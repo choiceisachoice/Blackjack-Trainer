@@ -172,7 +172,7 @@ blackjack-trainer/
 | ID | Feature | Phase | Priority | Status |
 |----|---------|-------|----------|--------|
 | F-001 | Shoe Engine | Phase 1 | P0 | ✅ Done |
-| F-002 | Blackjack Game Rules | Phase 1 | P0 | 🔲 Not started |
+| F-002 | Blackjack Game Rules | Phase 1 | P0 | ✅ Complete |
 | F-003 | Counting Engine | Phase 2 | P0 | 🔲 Not started |
 | F-004 | Basic Strategy Engine | Phase 1 | P0 | 🔲 Not started |
 | F-005 | Table UI | Phase 3 | P1 | 🔲 Not started |
