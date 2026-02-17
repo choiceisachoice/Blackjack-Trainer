@@ -3,7 +3,7 @@ import { useGameStore } from '../../store/game-store'
 import { Hand } from '../cards/Hand'
 import { BalanceDisplay } from './BalanceDisplay'
 import { CountDisplay } from './CountDisplay'
-import { ShoeProgress } from './ShoeProgress'
+import { ShoeStack, DiscardStack } from './ShoeProgress'
 import { MessageDisplay } from './MessageDisplay'
 import { BetControls } from './BetControls'
 import { ActionButtons } from './ActionButtons'
@@ -14,6 +14,8 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
  *
  * Full-screen layout with casino-realistic green felt, wood border,
  * dealer area (top), player area (bottom), and controls.
+ * Shoe (top-right) and Discard Tray (top-left) are positioned
+ * as 3D card stacks within the felt area.
  */
 export function GameTable() {
   const gameState = useGameStore(s => s.gameState)
@@ -39,8 +41,16 @@ export function GameTable() {
       </div>
 
       {/* Table area */}
-      <div className="flex-1 flex flex-col items-center justify-between mx-2 md:mx-4 mb-2
+      <div className="flex-1 relative flex flex-col items-center justify-between mx-2 md:mx-4 mb-2
         bg-felt rounded-xl border-4 border-wood shadow-2xl overflow-hidden py-4 md:py-8">
+
+        {/* Discard Tray (top-left) and Shoe (top-right) */}
+        <div className="absolute top-3 left-3 md:top-4 md:left-4 z-10">
+          <DiscardStack />
+        </div>
+        <div className="absolute top-3 right-3 md:top-4 md:right-4 z-10">
+          <ShoeStack />
+        </div>
 
         {/* Dealer area */}
         <div className="flex flex-col items-center gap-2">
@@ -60,7 +70,6 @@ export function GameTable() {
 
         {/* Middle info area */}
         <div className="flex flex-col items-center gap-2 w-full px-4">
-          <ShoeProgress />
           <MessageDisplay />
         </div>
 

@@ -1,4 +1,5 @@
 import { AnimatePresence } from 'framer-motion'
+import { useRef, useEffect } from 'react'
 import type { Card } from '../../types'
 import { PlayingCard } from './PlayingCard'
 import { Rank } from '../../types'
@@ -62,9 +63,45 @@ function rankValue(rank: string): number {
 
 /**
  * Renders a hand of overlapping playing cards with a value badge.
+ *
+ * Handles staggered deal animations for the initial deal (4-card sequence),
+ * single-card hit animations, and dealer draw staggering.
  */
 export function Hand({ cards, isDealer = false, hideFirst = false, label, isActive = false }: HandProps) {
+  // Track previous card count to detect initial deal vs. hit
+  const prevCardCount = useRef(0)
+  const isInitialDeal = prevCardCount.current === 0 && cards.length >= 2
+
+  useEffect(() => {
+    prevCardCount.current = cards.length
+  })
+
   if (cards.length === 0) return null
+
+  /**
+   * Returns the animation delay for a card based on its position in the deal sequence.
+   *
+   * Initial deal: Player 1st (0s), Dealer 1st (0.3s), Player 2nd (0.6s), Dealer hole (0.9s)
+   * Dealer draw: 0.5s after reveal + 0.5s between each draw
+   * Player hit: no extra delay
+   */
+  function getCardDelay(cardIndex: number): number {
+    if (isInitialDeal) {
+      if (isDealer) {
+        return cardIndex === 0 ? 0.3 : 0.9
+      }
+      return cardIndex === 0 ? 0 : 0.6
+    }
+
+    // Dealer drawing after reveal: stagger after hole card flip
+    if (isDealer && cardIndex >= prevCardCount.current) {
+      const drawIndex = cardIndex - prevCardCount.current
+      return 0.5 + drawIndex * 0.5
+    }
+
+    // Player hit: immediate
+    return 0
+  }
 
   const displayValue = getDisplayValue(cards, hideFirst)
   const hard = hardTotal(cards)
@@ -87,7 +124,9 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
               <PlayingCard
                 card={card}
                 faceDown={hideFirst && i === 0}
-                animateIn
+                animateIn={i >= prevCardCount.current || isInitialDeal}
+                delay={getCardDelay(i)}
+                isDealer={isDealer}
               />
             </div>
           ))}
