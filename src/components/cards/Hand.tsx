@@ -1,0 +1,109 @@
+import { AnimatePresence } from 'framer-motion'
+import type { Card } from '../../types'
+import { PlayingCard } from './PlayingCard'
+import { Rank } from '../../types'
+
+/** Props for the Hand component. */
+interface HandProps {
+  /** Array of cards in the hand. */
+  cards: Card[]
+  /** Whether this is the dealer's hand. */
+  isDealer?: boolean
+  /** Hide the first card (dealer's hole card). */
+  hideFirst?: boolean
+  /** Optional label for split hands (e.g. "Hand 1"). */
+  label?: string
+  /** Whether this hand is the currently active hand. */
+  isActive?: boolean
+}
+
+/**
+ * Calculates the display value for a hand.
+ */
+function getDisplayValue(cards: Card[], hideFirst: boolean): string {
+  if (cards.length === 0) return ''
+  if (hideFirst) {
+    // Only show value of visible cards (skip first)
+    const visible = cards.slice(1)
+    const val = handValue(visible)
+    return val.toString()
+  }
+  const hard = hardTotal(cards)
+  const soft = softTotal(cards)
+  if (hard > 21) return `${hard} BUST`
+  if (soft <= 21 && soft !== hard) return `${soft}`
+  return `${hard}`
+}
+
+function hardTotal(cards: Card[]): number {
+  let total = 0
+  for (const c of cards) {
+    total += rankValue(c.rank)
+  }
+  return total
+}
+
+function softTotal(cards: Card[]): number {
+  const hard = hardTotal(cards)
+  const hasAce = cards.some(c => c.rank === Rank.Ace)
+  return hasAce && hard + 10 <= 21 ? hard + 10 : hard
+}
+
+function handValue(cards: Card[]): number {
+  const soft = softTotal(cards)
+  return soft <= 21 ? soft : hardTotal(cards)
+}
+
+function rankValue(rank: string): number {
+  if (rank === Rank.Ace) return 1
+  if (['10', 'J', 'Q', 'K'].includes(rank)) return 10
+  return parseInt(rank, 10)
+}
+
+/**
+ * Renders a hand of overlapping playing cards with a value badge.
+ */
+export function Hand({ cards, isDealer = false, hideFirst = false, label, isActive = false }: HandProps) {
+  if (cards.length === 0) return null
+
+  const displayValue = getDisplayValue(cards, hideFirst)
+  const hard = hardTotal(cards)
+  const isBust = !hideFirst && hard > 21 && softTotal(cards) > 21
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      {label && (
+        <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+          isActive ? 'bg-gold text-black' : 'bg-white/10 text-white/60'
+        }`}>
+          {label}
+        </span>
+      )}
+
+      <div className="flex -space-x-6 md:-space-x-8">
+        <AnimatePresence>
+          {cards.map((card, i) => (
+            <div key={`${card.rank}-${card.suit}-${i}`} className="relative" style={{ zIndex: i }}>
+              <PlayingCard
+                card={card}
+                faceDown={hideFirst && i === 0}
+                animateIn
+              />
+            </div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Hand value badge */}
+      <div className={`mt-1 px-3 py-0.5 rounded-full text-sm font-bold ${
+        isBust
+          ? 'bg-error text-white'
+          : isDealer && hideFirst
+            ? 'bg-white/10 text-white/60'
+            : 'bg-white/20 text-white'
+      }`}>
+        {displayValue}
+      </div>
+    </div>
+  )
+}

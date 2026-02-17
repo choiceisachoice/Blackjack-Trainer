@@ -175,7 +175,7 @@ blackjack-trainer/
 | F-002 | Blackjack Game Rules | Phase 1 | P0 | ✅ Complete |
 | F-003 | Counting Engine | Phase 2 | P0 | ✅ Complete |
 | F-004 | Basic Strategy Engine | Phase 1 | P0 | ✅ Complete |
-| F-005 | Table UI | Phase 3 | P1 | 🔲 Not started |
+| F-005 | Table UI | Phase 3 | P1 | ✅ Complete |
 | F-006 | Training Modes (all 5) | Phase 4 | P1 | 🔲 Not started |
 | F-007 | Analytics & Statistics | Phase 5 | P2 | 🔲 Not started |
 | F-008 | Supabase Auth & Persistence | Phase 3 | P1 | 🔲 Not started |
