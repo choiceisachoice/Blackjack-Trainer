@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useGameStore } from './game-store'
 import { Action, HandResult } from '../engine/rules/types'
 
@@ -19,12 +19,22 @@ function resetStore() {
     isShoeEmpty: false,
     message: '',
     availableActions: [],
+    totalCards: 0,
+    remainingInShoe: 0,
+    cardsInDiscard: 0,
+    cardsOnTable: 0,
+    isAnimating: false,
   })
 }
 
 describe('Game Store', () => {
   beforeEach(() => {
+    vi.useFakeTimers()
     resetStore()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('initGame creates shoe, gameEngine, countingEngine instances', () => {
@@ -88,6 +98,7 @@ describe('Game Store', () => {
     store.initGame()
     store.placeBet(100)
     store.startRound()
+    vi.advanceTimersByTime(2200)
 
     const state = useGameStore.getState()
     expect(state.gameState).not.toBeNull()
@@ -100,6 +111,7 @@ describe('Game Store', () => {
     store.initGame()
     store.placeBet(100)
     store.startRound()
+    vi.advanceTimersByTime(2200)
 
     const stateAfterDeal = useGameStore.getState()
     // Only proceed if player doesn't have blackjack and round isn't over
@@ -109,6 +121,7 @@ describe('Game Store', () => {
     const cardsBefore = stateAfterDeal.gameState!.playerHands[0].cards.length
 
     store.hit()
+    vi.advanceTimersByTime(800)
 
     const stateAfterHit = useGameStore.getState()
     // If round ended (bust → dealer play → settle), hands may be settled
@@ -126,11 +139,13 @@ describe('Game Store', () => {
     store.initGame()
     store.placeBet(100)
     store.startRound()
+    vi.advanceTimersByTime(2200)
 
     const stateAfterDeal = useGameStore.getState()
     if (stateAfterDeal.gameState?.isRoundOver) return
 
     store.stand()
+    vi.advanceTimersByTime(1100)
 
     const stateAfterStand = useGameStore.getState()
     // After stand, dealer plays automatically → settlement
@@ -143,6 +158,7 @@ describe('Game Store', () => {
     store.initGame()
     store.placeBet(100)
     store.startRound()
+    vi.advanceTimersByTime(2200)
 
     const stateAfterDeal = useGameStore.getState()
     if (stateAfterDeal.gameState?.isRoundOver) return
@@ -168,9 +184,11 @@ describe('Game Store', () => {
     while (!useGameStore.getState().isShoeEmpty && rounds < 100) {
       store.placeBet(5)
       store.startRound()
+      vi.advanceTimersByTime(2200)
       const s = useGameStore.getState()
       if (s.gameState && !s.gameState.isRoundOver) {
         store.stand()
+        vi.advanceTimersByTime(1100)
       }
       store.newRound()
       rounds++
@@ -180,9 +198,11 @@ describe('Game Store', () => {
     if (useGameStore.getState().isShoeEmpty) {
       store.placeBet(5)
       store.startRound()
+      vi.advanceTimersByTime(2200)
       const s = useGameStore.getState()
       if (s.gameState && !s.gameState.isRoundOver) {
         store.stand()
+        vi.advanceTimersByTime(1100)
       }
       store.newRound()
 
@@ -198,6 +218,7 @@ describe('Game Store', () => {
     const rcBefore = useGameStore.getState().runningCount
     store.placeBet(100)
     store.startRound()
+    vi.advanceTimersByTime(2200)
 
     const stateAfterDeal = useGameStore.getState()
     // After dealing 4 cards, running count should have changed (or be 0 if they cancel)
@@ -206,6 +227,7 @@ describe('Game Store', () => {
 
     if (!stateAfterDeal.gameState?.isRoundOver) {
       store.stand()
+      vi.advanceTimersByTime(1100)
     }
 
     const stateAfterRound = useGameStore.getState()
@@ -221,10 +243,12 @@ describe('Game Store', () => {
     const balanceStart = useGameStore.getState().balance
     store.placeBet(100)
     store.startRound()
+    vi.advanceTimersByTime(2200)
 
     const s = useGameStore.getState()
     if (s.gameState && !s.gameState.isRoundOver) {
       store.stand()
+      vi.advanceTimersByTime(1100)
     }
 
     const stateAfterRound = useGameStore.getState()

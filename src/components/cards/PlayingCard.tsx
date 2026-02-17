@@ -68,7 +68,7 @@ export function PlayingCard({
       style={{ perspective: '800px' }}
       initial={animateIn ? { x: slideX, y: slideY, opacity: 0 } : false}
       animate={{ x: 0, y: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: 'easeOut', delay }}
+      transition={{ duration: 0.5, ease: 'easeOut', delay }}
       onAnimationComplete={() => {
         if (animateIn && !canFlip) setCanFlip(true)
       }}
@@ -78,7 +78,7 @@ export function PlayingCard({
         style={{ transformStyle: 'preserve-3d' }}
         animate={{ rotateY: currentRotation }}
         transition={{
-          duration: isRevealing ? 0.4 : 0.25,
+          duration: isRevealing ? 0.6 : 0.3,
           ease: 'easeInOut',
         }}
       >

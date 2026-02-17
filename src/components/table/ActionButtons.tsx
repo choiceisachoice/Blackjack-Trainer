@@ -36,6 +36,7 @@ export function ActionButtons() {
   const availableActions = useGameStore(s => s.availableActions)
   const gameState = useGameStore(s => s.gameState)
   const newRound = useGameStore(s => s.newRound)
+  const isAnimating = useGameStore(s => s.isAnimating)
 
   // After settlement: show New Round button
   if (gameState?.isRoundOver) {
@@ -56,7 +57,7 @@ export function ActionButtons() {
   return (
     <div className="flex gap-2 md:gap-3 flex-wrap justify-center">
       {ACTIONS.map(({ action, label, shortcut, color }) => {
-        const isAvailable = availableActions.includes(action)
+        const isAvailable = availableActions.includes(action) && !isAnimating
         return (
           <motion.button
             key={action}

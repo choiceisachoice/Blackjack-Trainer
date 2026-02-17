@@ -59,6 +59,7 @@ function getSettlementInfo(
 
 /**
  * Plays the dealer hand, processes new cards, and settles the round.
+ * Returns dealerDrawnCards so callers can update cardsOnTable.
  */
 function finishRound(
   state: GameState,
@@ -74,8 +75,10 @@ function finishRound(
   message: string
   runningCount: number
   trueCount: number
+  dealerDrawnCards: number
 } {
   const dealerState = gameEngine.playDealerHand(state)
+  const dealerDrawnCards = dealerState.dealerHand.cards.length - 2
 
   // Process new dealer cards (index 2+ = drawn during dealer play)
   for (let i = 2; i < dealerState.dealerHand.cards.length; i++) {
@@ -91,6 +94,7 @@ function finishRound(
     message,
     runningCount: countingEngine.getRunningCount(),
     trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+    dealerDrawnCards,
   }
 }
 
@@ -110,8 +114,16 @@ export interface GameStoreState {
   isShoeEmpty: boolean
   message: string
   availableActions: Action[]
-  /** Primitive counter for remaining cards – triggers reliable re-renders for Shoe/Discard components. */
-  remainingCards: number
+  /** Total cards in the shoe (numDecks × 52) – single source of truth. */
+  totalCards: number
+  /** Cards still in the shoe – decreases on every dealt card. Shoe component reads this. */
+  remainingInShoe: number
+  /** Cards collected in the discard tray – increases only at newRound (after settlement). Discard component reads this. */
+  cardsInDiscard: number
+  /** Cards currently on the table (during a hand) – moved to discard at newRound. */
+  cardsOnTable: number
+  /** True while card deal/flip animations are playing – buttons should be disabled. */
+  isAnimating: boolean
 }
 
 export interface GameStoreActions {
@@ -154,7 +166,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   isShoeEmpty: false,
   message: '',
   availableActions: [],
-  remainingCards: 0,
+  totalCards: 0,
+  remainingInShoe: 0,
+  cardsInDiscard: 0,
+  cardsOnTable: 0,
+  isAnimating: false,
 
   // ── Actions ──────────────────────────────────────────────────
 
@@ -177,7 +193,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isShoeEmpty: false,
       message: '',
       availableActions: [],
-      remainingCards: shoe.remaining(),
+      totalCards: rules.numDecks * 52,
+      remainingInShoe: shoe.remaining(),
+      cardsInDiscard: 0,
+      cardsOnTable: 0,
     })
   },
 
@@ -206,104 +225,157 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Check for player blackjack → auto-finish
     if (isBlackjack(gameState.playerHands[0].cards)) {
-      const result = finishRound(
-        { ...gameState, phase: 'dealerTurn' },
-        gameEngine, countingEngine, shoe,
-        get().rules.blackjackPayout, get().balance, 0
-      )
       set({
-        gameState: result.gameState,
-        balance: result.balance,
-        message: result.message,
-        runningCount: result.runningCount,
-        trueCount: result.trueCount,
+        gameState: { ...gameState },
+        runningCount: countingEngine.getRunningCount(),
+        trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
         isShoeEmpty: shoe.cutCardReached(),
         availableActions: [],
-        remainingCards: shoe.remaining(),
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: 4,
+        isAnimating: true,
       })
+      // Finish round after deal animation completes
+      setTimeout(() => {
+        const result = finishRound(
+          { ...gameState, phase: 'dealerTurn' },
+          gameEngine, countingEngine, shoe,
+          get().rules.blackjackPayout, get().balance, 0
+        )
+        set({
+          gameState: result.gameState,
+          balance: result.balance,
+          message: result.message,
+          runningCount: result.runningCount,
+          trueCount: result.trueCount,
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+          remainingInShoe: shoe.remaining(),
+          cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
+          isAnimating: false,
+        })
+      }, 2200)
       return
     }
 
+    // Lock buttons during initial deal animation (~2s)
     set({
       gameState,
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
       isShoeEmpty: shoe.cutCardReached(),
       message: '',
-      availableActions: gameEngine.getAvailableActions(gameState),
-      remainingCards: shoe.remaining(),
+      availableActions: [],
+      remainingInShoe: shoe.remaining(),
+      cardsOnTable: 4,
+      isAnimating: true,
     })
+    setTimeout(() => {
+      set({
+        availableActions: gameEngine.getAvailableActions(gameState),
+        isAnimating: false,
+      })
+    }, 2200)
   },
 
   hit: () => {
     const { gameEngine, countingEngine, gameState, shoe } = get()
     if (!gameEngine || !countingEngine || !gameState || !shoe) return
+    if (get().isAnimating) return
 
     const newState = gameEngine.hit(gameState)
     const currentHand = newState.playerHands[gameState.currentHandIndex]
     countingEngine.processCard(currentHand.cards[currentHand.cards.length - 1])
 
     if (newState.phase === 'dealerTurn') {
-      const result = finishRound(
-        newState, gameEngine, countingEngine, shoe,
-        get().rules.blackjackPayout, get().balance, gameState.insuranceBet
-      )
+      // Lock during hit animation, then finish round
       set({
-        gameState: result.gameState,
-        balance: result.balance,
-        message: result.message,
-        runningCount: result.runningCount,
-        trueCount: result.trueCount,
-        isShoeEmpty: shoe.cutCardReached(),
+        gameState: newState,
         availableActions: [],
-        remainingCards: shoe.remaining(),
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: get().cardsOnTable + 1,
+        isAnimating: true,
       })
+      setTimeout(() => {
+        const result = finishRound(
+          newState, gameEngine, countingEngine, shoe,
+          get().rules.blackjackPayout, get().balance, gameState.insuranceBet
+        )
+        set({
+          gameState: result.gameState,
+          balance: result.balance,
+          message: result.message,
+          runningCount: result.runningCount,
+          trueCount: result.trueCount,
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+          remainingInShoe: shoe.remaining(),
+          cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
+          isAnimating: false,
+        })
+      }, 800)
       return
     }
 
+    // Lock during hit animation
     set({
       gameState: newState,
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
-      availableActions: gameEngine.getAvailableActions(newState),
-      remainingCards: shoe.remaining(),
+      availableActions: [],
+      remainingInShoe: shoe.remaining(),
+      cardsOnTable: get().cardsOnTable + 1,
+      isAnimating: true,
     })
+    setTimeout(() => {
+      set({
+        availableActions: gameEngine.getAvailableActions(newState),
+        isAnimating: false,
+      })
+    }, 800)
   },
 
   stand: () => {
     const { gameEngine, countingEngine, gameState, shoe } = get()
     if (!gameEngine || !countingEngine || !gameState || !shoe) return
+    if (get().isAnimating) return
 
     const newState = gameEngine.stand(gameState)
 
     if (newState.phase === 'dealerTurn') {
-      const result = finishRound(
-        newState, gameEngine, countingEngine, shoe,
-        get().rules.blackjackPayout, get().balance, gameState.insuranceBet
-      )
-      set({
-        gameState: result.gameState,
-        balance: result.balance,
-        message: result.message,
-        runningCount: result.runningCount,
-        trueCount: result.trueCount,
-        isShoeEmpty: shoe.cutCardReached(),
-        availableActions: [],
-        remainingCards: shoe.remaining(),
-      })
+      set({ availableActions: [], isAnimating: true })
+      // Dealer draws after hole card flip (~1.1s), then settle
+      setTimeout(() => {
+        const result = finishRound(
+          newState, gameEngine, countingEngine, shoe,
+          get().rules.blackjackPayout, get().balance, gameState.insuranceBet
+        )
+        set({
+          gameState: result.gameState,
+          balance: result.balance,
+          message: result.message,
+          runningCount: result.runningCount,
+          trueCount: result.trueCount,
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+          remainingInShoe: shoe.remaining(),
+          cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
+          isAnimating: false,
+        })
+      }, 1100)
       return
     }
 
     set({
       gameState: newState,
       availableActions: gameEngine.getAvailableActions(newState),
-      remainingCards: shoe.remaining(),
     })
   },
 
   double: () => {
     const { gameEngine, countingEngine, gameState, shoe, balance, currentBet } = get()
     if (!gameEngine || !countingEngine || !gameState || !shoe) return
+    if (get().isAnimating) return
 
     const newState = gameEngine.double(gameState)
     const currentHand = newState.playerHands[gameState.currentHandIndex]
@@ -313,6 +385,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newBalance = balance - currentBet
 
     if (newState.phase === 'dealerTurn') {
+      const cardsOnTableNow = get().cardsOnTable + 1
       const result = finishRound(
         newState, gameEngine, countingEngine, shoe,
         get().rules.blackjackPayout, newBalance, gameState.insuranceBet
@@ -325,7 +398,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         trueCount: result.trueCount,
         isShoeEmpty: shoe.cutCardReached(),
         availableActions: [],
-        remainingCards: shoe.remaining(),
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: cardsOnTableNow + result.dealerDrawnCards,
       })
       return
     }
@@ -336,13 +410,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
       availableActions: gameEngine.getAvailableActions(newState),
-      remainingCards: shoe.remaining(),
+      remainingInShoe: shoe.remaining(),
+      cardsOnTable: get().cardsOnTable + 1,
     })
   },
 
   split: () => {
     const { gameEngine, countingEngine, gameState, shoe, balance, currentBet } = get()
     if (!gameEngine || !countingEngine || !gameState || !shoe) return
+    if (get().isAnimating) return
 
     const oldIdx = gameState.currentHandIndex
     const newState = gameEngine.split(gameState)
@@ -355,6 +431,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newBalance = balance - currentBet
 
     if (newState.phase === 'dealerTurn') {
+      const cardsOnTableNow = get().cardsOnTable + 2
       const result = finishRound(
         newState, gameEngine, countingEngine, shoe,
         get().rules.blackjackPayout, newBalance, gameState.insuranceBet
@@ -367,7 +444,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         trueCount: result.trueCount,
         isShoeEmpty: shoe.cutCardReached(),
         availableActions: [],
-        remainingCards: shoe.remaining(),
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: cardsOnTableNow + result.dealerDrawnCards,
       })
       return
     }
@@ -378,13 +456,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
       availableActions: gameEngine.getAvailableActions(newState),
-      remainingCards: shoe.remaining(),
+      remainingInShoe: shoe.remaining(),
+      cardsOnTable: get().cardsOnTable + 2,
     })
   },
 
   surrender: () => {
     const { gameEngine, gameState, shoe, countingEngine } = get()
     if (!gameEngine || !gameState || !shoe || !countingEngine) return
+    if (get().isAnimating) return
 
     const newState = gameEngine.surrender(gameState)
     const { payout, message } = getSettlementInfo(newState, get().rules.blackjackPayout, gameState.insuranceBet)
@@ -395,13 +475,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       message,
       isShoeEmpty: shoe.cutCardReached(),
       availableActions: [],
-      remainingCards: shoe.remaining(),
     })
   },
 
   insurance: () => {
     const { gameEngine, gameState, shoe, currentBet, balance } = get()
     if (!gameEngine || !gameState || !shoe) return
+    if (get().isAnimating) return
 
     const newState = gameEngine.insurance(gameState)
     const insuranceBet = newState.insuranceBet
@@ -428,7 +508,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
         isShoeEmpty: false,
         message: 'Shuffling...',
         availableActions: [],
-        remainingCards: shoe.remaining(),
+        remainingInShoe: shoe.remaining(),
+        cardsInDiscard: 0,
+        cardsOnTable: 0,
       })
     } else {
       set({
@@ -436,7 +518,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         currentBet: 0,
         message: '',
         availableActions: [],
-        remainingCards: shoe.remaining(),
+        cardsInDiscard: get().cardsInDiscard + get().cardsOnTable,
+        cardsOnTable: 0,
       })
     }
   },

@@ -81,22 +81,23 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
   /**
    * Returns the animation delay for a card based on its position in the deal sequence.
    *
-   * Initial deal: Player 1st (0s), Dealer 1st (0.3s), Player 2nd (0.6s), Dealer hole (0.9s)
-   * Dealer draw: 0.5s after reveal + 0.5s between each draw
-   * Player hit: no extra delay
+   * Initial deal (~2s total):
+   *   Player 1st (0s), Dealer 1st (0.5s), Player 2nd (1.0s), Dealer hole (1.5s)
+   * Dealer draw: 0.6s flip + 0.5s pause, then 0.5s slide + 0.6s pause per card
+   * Player hit: immediate (0s delay, 0.5s slide duration handled in PlayingCard)
    */
   function getCardDelay(cardIndex: number): number {
     if (isInitialDeal) {
       if (isDealer) {
-        return cardIndex === 0 ? 0.3 : 0.9
+        return cardIndex === 0 ? 0.5 : 1.5
       }
-      return cardIndex === 0 ? 0 : 0.6
+      return cardIndex === 0 ? 0 : 1.0
     }
 
     // Dealer drawing after reveal: stagger after hole card flip
     if (isDealer && cardIndex >= prevCardCount.current) {
       const drawIndex = cardIndex - prevCardCount.current
-      return 0.5 + drawIndex * 0.5
+      return 0.6 + 0.5 + drawIndex * 1.1
     }
 
     // Player hit: immediate

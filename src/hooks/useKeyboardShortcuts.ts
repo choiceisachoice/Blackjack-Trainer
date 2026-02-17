@@ -28,6 +28,9 @@ export function useKeyboardShortcuts() {
       const store = useGameStore.getState()
       const key = e.key.toLowerCase()
 
+      // Block all shortcuts during animations
+      if (store.isAnimating) return
+
       // Space: Deal or New Round
       if (e.code === 'Space') {
         e.preventDefault()

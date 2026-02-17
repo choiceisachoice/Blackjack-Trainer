@@ -1,46 +1,38 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
 import { useGameStore } from '../../store/game-store'
 
-/** Shoe housing dimensions in px. */
-const SHOE_WIDTH = 220
-const SHOE_HEIGHT = 85
+/**
+ * Single scaling constant used by BOTH shoe and discard.
+ * Guarantees: what the shoe loses in width, the discard gains in height.
+ * 312 cards × 0.6 = 187px max visual size.
+ */
+const PIXELS_PER_CARD = 0.6
 
-/** Discard tray dimensions in px. */
-const DISCARD_WIDTH = 160
-const DISCARD_TRAY_HEIGHT = 30
-const DISCARD_MAX_STACK = 120
+/** Shoe housing accommodates full card block + frame padding. */
+const SHOE_HOUSING_WIDTH = Math.round(312 * PIXELS_PER_CARD) + 30 // ~217px
+const SHOE_HOUSING_HEIGHT = 90
+
+/** Discard acrylic container accommodates full stack + base. */
+const DISCARD_CONTAINER_WIDTH = 120
+const DISCARD_CONTAINER_MAX_HEIGHT = Math.round(312 * PIXELS_PER_CARD) + 20 // ~207px
 
 /**
  * Realistic horizontal card shoe (Kartenschlitten).
  *
- * - Dark wood/plastic housing sitting flat on the table (NO rotation)
- * - Inside: a white card block visible from the side (card edges as vertical lines)
- * - The card block shrinks from left as cards are dealt
- * - A slot on the left front where cards come out
- * - All backgrounds transparent – sits directly on green felt
+ * - Upright housing with vertical card edges (viewed from the side)
+ * - Dark wood/plastic frame, card block shrinks from left as cards are dealt
+ * - Slot on the left for card output
+ * - NO text, NO numbers, NO percentage indicators
  */
-function ShoeHousing({
-  fillRatio,
-  tooltip,
-}: {
-  fillRatio: number
-  tooltip?: string
-}) {
-  const [showTooltip, setShowTooltip] = useState(false)
-  const fillPercent = Math.max(0, Math.min(100, fillRatio * 100))
+function ShoeHousing({ cardCount }: { cardCount: number }) {
+  const blockWidth = Math.max(0, Math.round(cardCount * PIXELS_PER_CARD))
 
   return (
-    <div
-      className="flex flex-col items-center gap-1.5"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
-      {/* Shoe housing – flat, no rotation */}
+    <div className="flex flex-col items-center gap-1.5">
       <div
         style={{
-          width: `${SHOE_WIDTH}px`,
-          height: `${SHOE_HEIGHT}px`,
+          width: `${SHOE_HOUSING_WIDTH}px`,
+          height: `${SHOE_HOUSING_HEIGHT}px`,
           background: 'linear-gradient(180deg, #3d2317 0%, #2c1810 100%)',
           borderRadius: '6px',
           border: '2px solid #1a0f0a',
@@ -49,6 +41,9 @@ function ShoeHousing({
           position: 'relative',
           overflow: 'hidden',
           padding: '8px',
+          display: 'flex',
+          alignItems: 'stretch',
+          justifyContent: 'flex-end',
         }}
       >
         {/* Top bevel highlight */}
@@ -65,18 +60,18 @@ function ShoeHousing({
           }}
         />
 
-        {/* Card block inside the shoe – shrinks from left */}
+        {/* Card block – vertical card edges, shrinks from left */}
         <motion.div
-          animate={{ width: `${fillPercent}%` }}
+          animate={{ width: blockWidth }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
           style={{
             height: '100%',
-            marginLeft: 'auto',
             borderRadius: '2px',
             background:
               'repeating-linear-gradient(90deg, #f5f5f5 0px, #f5f5f5 1px, #e0e0e0 1px, #e0e0e0 2px)',
             boxShadow:
               'inset 0 1px 2px rgba(0,0,0,0.1), 0 0 3px rgba(0,0,0,0.2)',
+            flexShrink: 0,
           }}
         />
 
@@ -98,74 +93,77 @@ function ShoeHousing({
       <span className="text-[11px] text-white/40 uppercase tracking-widest font-medium">
         Shoe
       </span>
-
-      {/* Tooltip on hover */}
-      {tooltip && showTooltip && (
-        <motion.div
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-[11px] text-gold bg-black/80 px-2.5 py-1 rounded pointer-events-none whitespace-nowrap"
-        >
-          {tooltip}
-        </motion.div>
-      )}
     </div>
   )
 }
 
 /**
- * Flat discard tray with a straight card stack growing upward.
+ * Vertical acrylic discard tray – like a real casino.
  *
- * - A shallow tray/container at the bottom (dark red, semi-transparent)
- * - Cards stacked flat and straight on top (horizontal card-edge lines)
- * - Stack grows upward as cards are discarded
- * - NO rotation, NO tilting – everything is straight
- * - All backgrounds transparent – sits directly on green felt
+ * - Transparent acrylic container with subtle glass border
+ * - Cards lie FLAT stacked on top of each other – stack grows UPWARD
+ * - Horizontal card-edge lines (side view of flat stack)
+ * - Dark base at the bottom
+ * - Only grows when cards are collected after settlement (not during a hand)
+ * - NO text, NO numbers, NO percentage indicators
  */
-function DiscardTray({ fillRatio }: { fillRatio: number }) {
-  const stackHeight = Math.max(0, Math.round(fillRatio * DISCARD_MAX_STACK))
-  const hasCards = fillRatio > 0.01
+function DiscardTray({ cardCount }: { cardCount: number }) {
+  const stackHeight = Math.max(0, Math.round(cardCount * PIXELS_PER_CARD))
+  const hasCards = cardCount > 0
 
   return (
     <div className="flex flex-col items-center gap-1.5">
-      {/* Stack + tray wrapper */}
       <div
         style={{
-          position: 'relative',
-          width: `${DISCARD_WIDTH}px`,
-          height: `${DISCARD_TRAY_HEIGHT + DISCARD_MAX_STACK + 10}px`,
+          width: `${DISCARD_CONTAINER_WIDTH}px`,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-end',
         }}
       >
-        {/* Card stack – grows upward from the tray */}
-        {hasCards && (
-          <motion.div
-            animate={{ height: stackHeight }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            style={{
-              width: '100%',
-              overflow: 'hidden',
-              borderRadius: '3px 3px 0 0',
-              background:
-                'repeating-linear-gradient(0deg, #f5f5f5 0px, #f5f5f5 1px, #e0e0e0 1px, #e0e0e0 2px)',
-              boxShadow: '0 -2px 4px rgba(0,0,0,0.3)',
-            }}
-          />
-        )}
-
-        {/* Tray container */}
+        {/* Acrylic container */}
         <div
           style={{
             width: '100%',
-            height: `${DISCARD_TRAY_HEIGHT}px`,
-            background: 'rgba(139, 0, 0, 0.3)',
-            border: '2px solid rgba(139, 0, 0, 0.6)',
-            borderRadius: '4px 4px 8px 8px',
+            minHeight: '30px',
+            height: `${Math.max(30, stackHeight + 30)}px`,
+            maxHeight: `${DISCARD_CONTAINER_MAX_HEIGHT}px`,
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            borderBottom: 'none',
+            borderRadius: '3px 3px 0 0',
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
             boxShadow:
-              '0 3px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
-            flexShrink: 0,
+              'inset 0 0 20px rgba(255, 255, 255, 0.03), 0 2px 8px rgba(0, 0, 0, 0.3)',
+          }}
+        >
+          {/* Card stack – horizontal card edges, grows from bottom */}
+          {hasCards && (
+            <motion.div
+              animate={{ height: stackHeight }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              style={{
+                width: '100%',
+                borderRadius: '2px 2px 0 0',
+                background:
+                  'repeating-linear-gradient(180deg, #f0f0f0 0px, #f0f0f0 1.5px, #d4d4d4 1.5px, #d4d4d4 2.5px)',
+                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.08)',
+              }}
+            />
+          )}
+        </div>
+
+        {/* Dark base */}
+        <div
+          style={{
+            width: '100%',
+            height: '8px',
+            background: '#1c1917',
+            borderRadius: '0 0 4px 4px',
           }}
         />
       </div>
@@ -179,43 +177,26 @@ function DiscardTray({ fillRatio }: { fillRatio: number }) {
 
 /**
  * Visual shoe (right side of table).
- * Horizontal card shoe housing that shrinks as cards are dealt.
- *
- * Subscribes to the primitive remainingCards counter for reliable re-renders.
+ * Reads remainingInShoe from the store – shrinks on every dealt card.
  */
 export function ShoeStack() {
-  const remainingCards = useGameStore(s => s.remainingCards)
-  const numDecks = useGameStore(s => s.rules.numDecks)
+  const remainingInShoe = useGameStore(s => s.remainingInShoe)
   const shoe = useGameStore(s => s.shoe)
 
-  if (!shoe) return <div style={{ width: `${SHOE_WIDTH}px` }} />
+  if (!shoe) return <div style={{ width: `${SHOE_HOUSING_WIDTH}px` }} />
 
-  const totalCards = numDecks * 52
-  const fillRatio = remainingCards / totalCards
-
-  return (
-    <ShoeHousing
-      fillRatio={fillRatio}
-      tooltip="Estimate the remaining decks!"
-    />
-  )
+  return <ShoeHousing cardCount={remainingInShoe} />
 }
 
 /**
  * Visual discard tray (left side of table).
- * Flat tray with a straight stack growing upward.
- *
- * Subscribes to the primitive remainingCards counter for reliable re-renders.
+ * Reads cardsInDiscard from the store – grows only after settlement + newRound.
  */
 export function DiscardStack() {
-  const remainingCards = useGameStore(s => s.remainingCards)
-  const numDecks = useGameStore(s => s.rules.numDecks)
+  const cardsInDiscard = useGameStore(s => s.cardsInDiscard)
   const shoe = useGameStore(s => s.shoe)
 
-  if (!shoe) return <div style={{ width: `${DISCARD_WIDTH}px` }} />
+  if (!shoe) return <div style={{ width: `${DISCARD_CONTAINER_WIDTH}px` }} />
 
-  const totalCards = numDecks * 52
-  const fillRatio = (totalCards - remainingCards) / totalCards
-
-  return <DiscardTray fillRatio={fillRatio} />
+  return <DiscardTray cardCount={cardsInDiscard} />
 }
