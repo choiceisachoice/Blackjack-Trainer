@@ -148,13 +148,13 @@ describe('Game Store', () => {
     if (stateAfterDeal.gameState?.isRoundOver) return
     if (!stateAfterDeal.availableActions.includes(Action.Double)) return
 
-    const balanceBefore = stateAfterDeal.balance
+    const cardsBefore = stateAfterDeal.gameState!.playerHands[0].cards.length
 
     store.double()
 
     const stateAfterDouble = useGameStore.getState()
-    // Balance should have decreased by another bet amount
-    expect(stateAfterDouble.balance).toBeLessThanOrEqual(balanceBefore)
+    // Player hand should have exactly one more card
+    expect(stateAfterDouble.gameState!.playerHands[0].cards.length).toBe(cardsBefore + 1)
     // Round should be over (double → stand → dealer → settle)
     expect(stateAfterDouble.gameState!.isRoundOver).toBe(true)
   })

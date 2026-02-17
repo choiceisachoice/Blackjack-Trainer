@@ -172,6 +172,48 @@ describe('GameEngine', () => {
       expect(newState.playerHands[1].bet).toBe(10)
     })
 
+    it('split is available for King + Queen (10-value pair)', () => {
+      // Player: K+Q (both value 10), Dealer: 7+5
+      const shoe = createCardSource([
+        c(Rank.King), c(Rank.Seven), c(Rank.Queen), c(Rank.Five),
+        c(Rank.Three), c(Rank.Four), c(Rank.Two), c(Rank.Six),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const actions = engine.getAvailableActions(state)
+
+      expect(actions).toContain(Action.Split)
+    })
+
+    it('split is available for 10 + Jack (10-value pair)', () => {
+      // Player: 10+J, Dealer: 7+5
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Seven), c(Rank.Jack), c(Rank.Five),
+        c(Rank.Three), c(Rank.Four), c(Rank.Two), c(Rank.Six),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const actions = engine.getAvailableActions(state)
+
+      expect(actions).toContain(Action.Split)
+    })
+
+    it('split creates two hands from King + Queen', () => {
+      // Player: K+Q, Dealer: 7+5
+      const shoe = createCardSource([
+        c(Rank.King), c(Rank.Seven), c(Rank.Queen), c(Rank.Five),
+        c(Rank.Three), c(Rank.Four), // dealt to split hands
+        c(Rank.Two), c(Rank.Six),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const newState = engine.split(state)
+
+      expect(newState.playerHands).toHaveLength(2)
+      expect(newState.playerHands[0].cards[0].rank).toBe(Rank.King)
+      expect(newState.playerHands[1].cards[0].rank).toBe(Rank.Queen)
+    })
+
     it('not allowed on non-pairs', () => {
       const shoe = createCardSource([
         c(Rank.Eight), c(Rank.Seven), c(Rank.Nine), c(Rank.Five),

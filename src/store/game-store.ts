@@ -110,6 +110,8 @@ export interface GameStoreState {
   isShoeEmpty: boolean
   message: string
   availableActions: Action[]
+  /** Primitive counter for remaining cards – triggers reliable re-renders for Shoe/Discard components. */
+  remainingCards: number
 }
 
 export interface GameStoreActions {
@@ -152,6 +154,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   isShoeEmpty: false,
   message: '',
   availableActions: [],
+  remainingCards: 0,
 
   // ── Actions ──────────────────────────────────────────────────
 
@@ -174,6 +177,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isShoeEmpty: false,
       message: '',
       availableActions: [],
+      remainingCards: shoe.remaining(),
     })
   },
 
@@ -215,6 +219,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         trueCount: result.trueCount,
         isShoeEmpty: shoe.cutCardReached(),
         availableActions: [],
+        remainingCards: shoe.remaining(),
       })
       return
     }
@@ -226,6 +231,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isShoeEmpty: shoe.cutCardReached(),
       message: '',
       availableActions: gameEngine.getAvailableActions(gameState),
+      remainingCards: shoe.remaining(),
     })
   },
 
@@ -250,6 +256,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         trueCount: result.trueCount,
         isShoeEmpty: shoe.cutCardReached(),
         availableActions: [],
+        remainingCards: shoe.remaining(),
       })
       return
     }
@@ -259,6 +266,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
       availableActions: gameEngine.getAvailableActions(newState),
+      remainingCards: shoe.remaining(),
     })
   },
 
@@ -281,6 +289,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         trueCount: result.trueCount,
         isShoeEmpty: shoe.cutCardReached(),
         availableActions: [],
+        remainingCards: shoe.remaining(),
       })
       return
     }
@@ -288,6 +297,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({
       gameState: newState,
       availableActions: gameEngine.getAvailableActions(newState),
+      remainingCards: shoe.remaining(),
     })
   },
 
@@ -315,6 +325,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         trueCount: result.trueCount,
         isShoeEmpty: shoe.cutCardReached(),
         availableActions: [],
+        remainingCards: shoe.remaining(),
       })
       return
     }
@@ -325,6 +336,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
       availableActions: gameEngine.getAvailableActions(newState),
+      remainingCards: shoe.remaining(),
     })
   },
 
@@ -355,6 +367,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         trueCount: result.trueCount,
         isShoeEmpty: shoe.cutCardReached(),
         availableActions: [],
+        remainingCards: shoe.remaining(),
       })
       return
     }
@@ -365,6 +378,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
       availableActions: gameEngine.getAvailableActions(newState),
+      remainingCards: shoe.remaining(),
     })
   },
 
@@ -381,6 +395,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       message,
       isShoeEmpty: shoe.cutCardReached(),
       availableActions: [],
+      remainingCards: shoe.remaining(),
     })
   },
 
@@ -413,6 +428,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         isShoeEmpty: false,
         message: 'Shuffling...',
         availableActions: [],
+        remainingCards: shoe.remaining(),
       })
     } else {
       set({
@@ -420,6 +436,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         currentBet: 0,
         message: '',
         availableActions: [],
+        remainingCards: shoe.remaining(),
       })
     }
   },

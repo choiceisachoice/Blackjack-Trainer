@@ -66,8 +66,28 @@ describe('isBlackjack', () => {
 })
 
 describe('isPair', () => {
-  it('true for 8+8', () => {
+  it('true for 8+8 (same rank)', () => {
     expect(isPair([c(Rank.Eight, Suit.Spades), c(Rank.Eight, Suit.Hearts)])).toBe(true)
+  })
+
+  it('true for Queen+Queen (same rank)', () => {
+    expect(isPair([c(Rank.Queen, Suit.Spades), c(Rank.Queen, Suit.Hearts)])).toBe(true)
+  })
+
+  it('true for King+Queen (both value 10)', () => {
+    expect(isPair([c(Rank.King), c(Rank.Queen)])).toBe(true)
+  })
+
+  it('true for Jack+10 (both value 10)', () => {
+    expect(isPair([c(Rank.Jack), c(Rank.Ten)])).toBe(true)
+  })
+
+  it('true for 10+King (both value 10)', () => {
+    expect(isPair([c(Rank.Ten), c(Rank.King)])).toBe(true)
+  })
+
+  it('false for King+9 (different value)', () => {
+    expect(isPair([c(Rank.King), c(Rank.Nine)])).toBe(false)
   })
 
   it('false for 8+9', () => {

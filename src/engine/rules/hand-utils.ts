@@ -80,10 +80,22 @@ export function isSoft(cards: Card[]): boolean {
 }
 
 /**
- * Checks if a hand is a pair (exactly 2 cards of the same rank).
+ * Returns the numeric face value of a card rank.
+ * 2–9 = face value, 10/J/Q/K = 10, A = 11.
+ * @param rank - The card rank
+ * @returns Numeric value of the rank
+ */
+export function getCardValue(rank: Rank): number {
+  if (rank === Rank.Ace) return 11
+  return RANK_VALUE[rank]
+}
+
+/**
+ * Checks if a hand is a pair (exactly 2 cards with the same numeric value).
+ * Any two 10-value cards (10, J, Q, K) count as a pair, matching real casino rules.
  * @param cards - Array of cards in the hand
- * @returns true if the hand has exactly 2 cards with matching ranks
+ * @returns true if the hand has exactly 2 cards with matching values
  */
 export function isPair(cards: Card[]): boolean {
-  return cards.length === 2 && cards[0].rank === cards[1].rank
+  return cards.length === 2 && RANK_VALUE[cards[0].rank] === RANK_VALUE[cards[1].rank]
 }

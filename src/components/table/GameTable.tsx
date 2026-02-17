@@ -14,8 +14,8 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
  *
  * Full-screen layout with casino-realistic green felt, wood border,
  * dealer area (top), player area (bottom), and controls.
- * Shoe (top-right) and Discard Tray (top-left) are positioned
- * as 3D card stacks within the felt area.
+ * Shoe (right side) and Discard Tray (left side) are vertically centered
+ * on the felt area as 3D card stacks.
  */
 export function GameTable() {
   const gameState = useGameStore(s => s.gameState)
@@ -44,11 +44,13 @@ export function GameTable() {
       <div className="flex-1 relative flex flex-col items-center justify-between mx-2 md:mx-4 mb-2
         bg-felt rounded-xl border-4 border-wood shadow-2xl overflow-hidden py-4 md:py-8">
 
-        {/* Discard Tray (top-left) and Shoe (top-right) */}
-        <div className="absolute top-3 left-3 md:top-4 md:left-4 z-10">
+        {/* Discard Tray – left side, vertically centered */}
+        <div className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 z-10">
           <DiscardStack />
         </div>
-        <div className="absolute top-3 right-3 md:top-4 md:right-4 z-10">
+
+        {/* Shoe – right side, vertically centered */}
+        <div className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 z-10">
           <ShoeStack />
         </div>
 
