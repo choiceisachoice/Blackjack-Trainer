@@ -433,6 +433,92 @@ describe('GameEngine', () => {
     })
   })
 
+  // ── insurance ──────────────────────────────────────────────────
+
+  describe('insurance', () => {
+    it('is available when dealer upcard is Ace', () => {
+      // Deal order: player1, dealer1(upcard), player2, dealer2(hole)
+      // Dealer upcard = Ace (cards[0])
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Ace), c(Rank.Eight), c(Rank.Five),
+        c(Rank.Three), c(Rank.Four),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const actions = engine.getAvailableActions(state)
+
+      expect(actions).toContain(Action.Insurance)
+    })
+
+    it('is NOT available when dealer upcard is not Ace', () => {
+      // Dealer upcard = King (cards[0])
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.King), c(Rank.Eight), c(Rank.Five),
+        c(Rank.Three), c(Rank.Four),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const actions = engine.getAvailableActions(state)
+
+      expect(actions).not.toContain(Action.Insurance)
+    })
+
+    it('is NOT available after player has already acted (hit)', () => {
+      // Dealer upcard = Ace, but player hits first
+      const shoe = createCardSource([
+        c(Rank.Five), c(Rank.Ace), c(Rank.Three), c(Rank.Five, Suit.Hearts),
+        c(Rank.Two), // hit card
+        c(Rank.Three, Suit.Hearts), c(Rank.Four),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterHit = engine.hit(state)
+      const actions = engine.getAvailableActions(afterHit)
+
+      expect(actions).not.toContain(Action.Insurance)
+    })
+
+    it('pays 2:1 when dealer has blackjack', () => {
+      // Player: 10+8=18, Dealer: A(upcard)+K(hole) = BJ
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Ace), c(Rank.Eight), c(Rank.King),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = engine.insurance(state)
+
+      expect(state.insuranceBet).toBe(5) // half of original bet
+
+      state = engine.stand(state)
+      state = engine.playDealerHand(state)
+      state = engine.settleRound(state)
+
+      expect(state.playerHands[0].result).toBe(HandResult.Loss)
+      expect(state.isRoundOver).toBe(true)
+    })
+
+    it('loses when dealer does not have blackjack', () => {
+      // Player: 10+8=18, Dealer: A(upcard)+6(hole) = soft 17
+      // With S17 rules dealer stands on soft 17 → 17 < 18 → player wins
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Ace), c(Rank.Eight), c(Rank.Six),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = engine.insurance(state)
+
+      expect(state.insuranceBet).toBe(5)
+
+      state = engine.stand(state)
+      state = engine.playDealerHand(state)
+      state = engine.settleRound(state)
+
+      // Dealer has no BJ → insurance lost, but player wins main hand (18 > 17)
+      expect(state.playerHands[0].result).toBe(HandResult.Win)
+      expect(state.isRoundOver).toBe(true)
+    })
+  })
+
   // ── getAvailableActions ─────────────────────────────────────────
 
   describe('getAvailableActions', () => {

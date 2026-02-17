@@ -10,7 +10,7 @@ interface HandProps {
   cards: Card[]
   /** Whether this is the dealer's hand. */
   isDealer?: boolean
-  /** Hide the first card (dealer's hole card). */
+  /** Hide the dealer's hole card (index 1, dealt second). */
   hideFirst?: boolean
   /** Optional label for split hands (e.g. "Hand 1"). */
   label?: string
@@ -24,8 +24,8 @@ interface HandProps {
 function getDisplayValue(cards: Card[], hideFirst: boolean): string {
   if (cards.length === 0) return ''
   if (hideFirst) {
-    // Only show value of visible cards (skip first)
-    const visible = cards.slice(1)
+    // Only show value of visible cards (upcard at index 0, skip hole card at index 1)
+    const visible = [cards[0], ...cards.slice(2)]
     const val = handValue(visible)
     return val.toString()
   }
@@ -123,7 +123,7 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
             <div key={`${card.rank}-${card.suit}-${i}`} className="relative" style={{ zIndex: i }}>
               <PlayingCard
                 card={card}
-                faceDown={hideFirst && i === 0}
+                faceDown={hideFirst && i === 1}
                 animateIn={i >= prevCardCount.current || isInitialDeal}
                 delay={getCardDelay(i)}
                 isDealer={isDealer}
