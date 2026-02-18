@@ -14,8 +14,22 @@ describe('App', () => {
   })
 
   it('renders coming soon for unimplemented modes', () => {
-    useAppStore.setState({ currentMode: 'deviationTraining' })
+    useAppStore.setState({ currentMode: 'deckEstimation' })
     render(<App />)
     expect(screen.getByText('Coming soon')).toBeInTheDocument()
+  })
+
+  it('renders DeviationTraining for deviationTraining mode', () => {
+    useAppStore.setState({ currentMode: 'deviationTraining' })
+    render(<App />)
+    expect(screen.getByText('Deviation Set')).toBeInTheDocument()
+    expect(screen.getByTestId('start-training')).toBeInTheDocument()
+  })
+
+  it('renders BetSpread for betSpread mode', () => {
+    useAppStore.setState({ currentMode: 'betSpread' })
+    render(<App />)
+    expect(screen.getByText('Bet Spread Reference')).toBeInTheDocument()
+    expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 })

@@ -5,6 +5,8 @@ import { TopBar } from './components/navigation/TopBar'
 import { GameTable } from './components/table/GameTable'
 import { SpeedDrill } from './components/training/SpeedDrill'
 import { TableCounting } from './components/training/TableCounting'
+import { DeviationTraining } from './components/training/DeviationTraining'
+import { BetSpread } from './components/training/BetSpread'
 
 /**
  * Placeholder screen for training modes not yet implemented.
@@ -35,8 +37,8 @@ function App() {
       <TopBar />
       {currentMode === 'speedDrill' && <SpeedDrill />}
       {currentMode === 'tableCounting' && <TableCounting />}
-      {currentMode === 'deviationTraining' && <ComingSoon name="Deviation Training" />}
-      {currentMode === 'betSpread' && <ComingSoon name="Bet Spread" />}
+      {currentMode === 'deviationTraining' && <DeviationTraining />}
+      {currentMode === 'betSpread' && <BetSpread />}
       {currentMode === 'deckEstimation' && <ComingSoon name="Deck Estimation" />}
     </div>
   )
