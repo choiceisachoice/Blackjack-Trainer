@@ -24,8 +24,16 @@ const DISCARD_CONTAINER_MAX_HEIGHT = Math.round(312 * PIXELS_PER_CARD) + 20 // ~
  * - Slot on the left for card output
  * - NO text, NO numbers, NO percentage indicators
  */
-function ShoeHousing({ cardCount }: { cardCount: number }) {
+function ShoeHousing({ cardCount, totalCards, penetration }: {
+  cardCount: number
+  totalCards: number
+  penetration: number
+}) {
   const blockWidth = Math.max(0, Math.round(cardCount * PIXELS_PER_CARD))
+
+  // Cut card position: fixed distance from the RIGHT edge of the card block.
+  // At 75% penetration, 25% of cards remain after the cut card.
+  const cutCardRight = Math.round((1 - penetration) * totalCards * PIXELS_PER_CARD)
 
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -72,8 +80,25 @@ function ShoeHousing({ cardCount }: { cardCount: number }) {
             boxShadow:
               'inset 0 1px 2px rgba(0,0,0,0.1), 0 0 3px rgba(0,0,0,0.2)',
             flexShrink: 0,
+            position: 'relative',
+            overflow: 'visible',
           }}
-        />
+        >
+          {/* Cut Card – red plastic marker */}
+          <div
+            style={{
+              position: 'absolute',
+              right: `${cutCardRight}px`,
+              top: '-2px',
+              width: '3px',
+              height: 'calc(100% + 2px)',
+              background: '#ef4444',
+              borderRadius: '1px',
+              boxShadow: '0 0 4px rgba(239, 68, 68, 0.5)',
+              zIndex: 2,
+            }}
+          />
+        </motion.div>
 
         {/* Slot / opening on the left front */}
         <div
@@ -181,11 +206,19 @@ function DiscardTray({ cardCount }: { cardCount: number }) {
  */
 export function ShoeStack() {
   const remainingInShoe = useGameStore(s => s.remainingInShoe)
+  const totalCards = useGameStore(s => s.totalCards)
+  const penetration = useGameStore(s => s.rules.penetration)
   const shoe = useGameStore(s => s.shoe)
 
   if (!shoe) return <div style={{ width: `${SHOE_HOUSING_WIDTH}px` }} />
 
-  return <ShoeHousing cardCount={remainingInShoe} />
+  return (
+    <ShoeHousing
+      cardCount={remainingInShoe}
+      totalCards={totalCards}
+      penetration={penetration}
+    />
+  )
 }
 
 /**

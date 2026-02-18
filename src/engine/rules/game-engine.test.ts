@@ -551,4 +551,460 @@ describe('GameEngine', () => {
       expect(actionsAfterHit).not.toContain(Action.Insurance)
     })
   })
+
+  // ── checkDealerBlackjack ──────────────────────────────────────
+
+  describe('checkDealerBlackjack', () => {
+    it('settles round when dealer has blackjack', () => {
+      // Player: 10+8=18, Dealer: A+K = BJ
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Ace), c(Rank.Eight), c(Rank.King),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+
+      const result = engine.checkDealerBlackjack(state)
+      expect(result.isRoundOver).toBe(true)
+      expect(result.phase).toBe('settlement')
+      expect(result.playerHands[0].result).toBe(HandResult.Loss)
+    })
+
+    it('returns state unchanged when dealer does not have blackjack', () => {
+      // Player: 10+8=18, Dealer: A+6 = 17
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Ace), c(Rank.Eight), c(Rank.Six),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+
+      const result = engine.checkDealerBlackjack(state)
+      expect(result.isRoundOver).toBe(false)
+      expect(result.phase).toBe('playerTurn')
+      expect(result).toBe(state) // same reference, unchanged
+    })
+  })
+
+  // ── player blackjack actions ──────────────────────────────────
+
+  describe('player blackjack available actions', () => {
+    it('player BJ + dealer Ace → [Insurance, Stand]', () => {
+      // Player: A+K = BJ, Dealer: A+6
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Ace, Suit.Hearts), c(Rank.King), c(Rank.Six),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const actions = engine.getAvailableActions(state)
+
+      expect(actions).toEqual([Action.Insurance, Action.Stand])
+    })
+
+    it('player BJ + dealer non-Ace → empty actions (auto-settle)', () => {
+      // Player: A+K = BJ, Dealer: 7+5
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Seven), c(Rank.King), c(Rank.Five),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const actions = engine.getAvailableActions(state)
+
+      expect(actions).toEqual([])
+    })
+  })
+
+  // ── hand value 21 auto-stand ──────────────────────────────────
+
+  describe('auto-stand at 21', () => {
+    it('hand value 21 with 3+ cards → empty actions', () => {
+      // Player: 5+6=11, Dealer: 7+5, Hit: 10 → 21
+      const shoe = createCardSource([
+        c(Rank.Five), c(Rank.Seven), c(Rank.Six), c(Rank.Five, Suit.Hearts),
+        c(Rank.Ten), // hit to 21
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterHit = engine.hit(state)
+      const actions = engine.getAvailableActions(afterHit)
+
+      expect(actions).toEqual([])
+    })
+
+    it('hit() to 21 auto-stands and moves to dealer turn', () => {
+      // Player: 7+4=11, Dealer: 8+5=13, Hit: 10 → 21
+      const shoe = createCardSource([
+        c(Rank.Seven), c(Rank.Eight), c(Rank.Four), c(Rank.Five),
+        c(Rank.Ten), // hit to 21
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterHit = engine.hit(state)
+
+      expect(afterHit.playerHands[0].isStanding).toBe(true)
+      expect(afterHit.phase).toBe('dealerTurn')
+    })
+
+    it('split() hand reaching 21 auto-stands', () => {
+      // Player: 5♠+5♥ pair, Dealer: 7+8
+      // Split: hand1 gets 6 → 5+6=11 (not 21), hand2 gets K → 5+10=15 (not 21)
+      // Actually need to reach 21: Player: 5♠+5♥, split hand1 gets Ace → 5+11=16... no
+      // Better: Player: Jack♠+Jack♥, split hand1 gets Ace → 10+11=21!
+      const shoe = createCardSource([
+        c(Rank.Jack, Suit.Spades), c(Rank.Seven), c(Rank.Jack, Suit.Hearts), c(Rank.Eight),
+        c(Rank.Ace), c(Rank.Three), // split cards: hand1=J+A=21, hand2=J+3=13
+        c(Rank.Four), c(Rank.Five), // extra
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterSplit = engine.split(state)
+
+      // Hand 1 (J+A=21) should be auto-standing
+      expect(afterSplit.playerHands[0].isStanding).toBe(true)
+      // Hand 2 (J+3=13) should NOT be auto-standing
+      expect(afterSplit.playerHands[1].isStanding).toBe(false)
+      // Current hand should advance to hand2 since hand1 is standing
+      expect(afterSplit.currentHandIndex).toBe(1)
+    })
+  })
+
+  // ── playDealerHand skips for player BJ ────────────────────────
+
+  describe('playDealerHand with player BJ', () => {
+    it('skips drawing when player has natural blackjack', () => {
+      // Player: A+K = BJ, Dealer: 7+5=12 (would normally draw)
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Seven), c(Rank.King), c(Rank.Five),
+        c(Rank.Ten), // extra card that should NOT be drawn
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = engine.stand(state)
+      state = engine.playDealerHand(state)
+
+      // Dealer should not have drawn any cards
+      expect(state.dealerHand.cards).toHaveLength(2)
+      expect(state.phase).toBe('settlement')
+    })
+  })
+
+  // ── Bug 1: Dealer Blackjack Check after Insurance ───────────
+
+  describe('dealer blackjack check after insurance', () => {
+    it('dealer BJ with Ace showing → round ends immediately after insurance decision', () => {
+      // Player: 10+8=18, Dealer: A+K = BJ
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Ace), c(Rank.Eight), c(Rank.King),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = engine.insurance(state)
+      state = engine.checkDealerBlackjack(state)
+
+      expect(state.isRoundOver).toBe(true)
+      expect(state.phase).toBe('settlement')
+      expect(state.playerHands[0].result).toBe(HandResult.Loss)
+    })
+
+    it('dealer BJ without insurance → player loses, round over', () => {
+      // Player: 10+8=18, Dealer: A+K = BJ, player declines insurance
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Ace), c(Rank.Eight), c(Rank.King),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      // Player declines insurance → dealer peek
+      state = engine.checkDealerBlackjack(state)
+
+      expect(state.isRoundOver).toBe(true)
+      expect(state.playerHands[0].result).toBe(HandResult.Loss)
+    })
+
+    it('dealer BJ with insurance → player loses hand but insurance pays 2:1', () => {
+      // Player: 10+8=18, Dealer: A+K = BJ
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Ace), c(Rank.Eight), c(Rank.King),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = engine.insurance(state)
+
+      expect(state.insuranceBet).toBe(5) // half of 10
+
+      state = engine.checkDealerBlackjack(state)
+      expect(state.isRoundOver).toBe(true)
+      expect(state.playerHands[0].result).toBe(HandResult.Loss)
+      // Insurance bet is preserved in state for payout calculation
+      expect(state.insuranceBet).toBe(5)
+    })
+
+    it('player BJ vs dealer BJ → Push', () => {
+      // Player: A+K = BJ, Dealer: A+10 = BJ
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Ace, Suit.Hearts), c(Rank.King), c(Rank.Ten),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = engine.checkDealerBlackjack(state)
+
+      expect(state.isRoundOver).toBe(true)
+      expect(state.playerHands[0].result).toBe(HandResult.Push)
+    })
+
+    it('dealer no BJ after Ace → insurance lost, normal play continues', () => {
+      // Player: 10+8=18, Dealer: A+6 = soft 17
+      const shoe = createCardSource([
+        c(Rank.Ten), c(Rank.Ace), c(Rank.Eight), c(Rank.Six),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = engine.insurance(state)
+      state = engine.checkDealerBlackjack(state)
+
+      // No BJ → round continues
+      expect(state.isRoundOver).toBe(false)
+      expect(state.phase).toBe('playerTurn')
+      // Insurance bet is set (will be lost at settlement)
+      expect(state.insuranceBet).toBe(5)
+      // Player can still act
+      const actions = engine.getAvailableActions(state)
+      expect(actions).toContain(Action.Hit)
+      expect(actions).toContain(Action.Stand)
+    })
+  })
+
+  // ── Bug 2: Player Blackjack = immediate win ─────────────────
+
+  describe('player blackjack immediate handling', () => {
+    it('player blackjack → no actions available', () => {
+      // Player: A+K = BJ, Dealer: 7+5
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Seven), c(Rank.King), c(Rank.Five),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const actions = engine.getAvailableActions(state)
+
+      expect(actions).toEqual([])
+    })
+
+    it('player blackjack → immediate 3:2 payout via settlement', () => {
+      // Player: A+K = BJ, Dealer: 7+5=12
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Seven), c(Rank.King), c(Rank.Five),
+        c(Rank.Ten), c(Rank.Three), // dealer draw cards
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = { ...state, phase: 'dealerTurn' as const }
+      state = engine.playDealerHand(state)
+      state = engine.settleRound(state)
+
+      expect(state.playerHands[0].result).toBe(HandResult.Blackjack)
+    })
+
+    it('player blackjack vs dealer Ace → insurance offered first', () => {
+      // Player: A+K = BJ, Dealer: A+6
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Ace, Suit.Hearts), c(Rank.King), c(Rank.Six),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const actions = engine.getAvailableActions(state)
+
+      expect(actions).toContain(Action.Insurance)
+      expect(actions).toContain(Action.Stand)
+      expect(actions).toHaveLength(2)
+      // No Hit, Double, Split, or Surrender
+      expect(actions).not.toContain(Action.Hit)
+    })
+
+    it('player blackjack vs dealer blackjack → Push', () => {
+      // Player: A+K = BJ, Dealer: A+10 = BJ
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Ace, Suit.Hearts), c(Rank.King), c(Rank.Ten),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = engine.checkDealerBlackjack(state)
+
+      expect(state.isRoundOver).toBe(true)
+      expect(state.playerHands[0].result).toBe(HandResult.Push)
+    })
+
+    it('player blackjack vs dealer 10 showing, no BJ → player wins 3:2', () => {
+      // Player: A+K = BJ, Dealer: 10+6=16
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Ten), c(Rank.King), c(Rank.Six),
+        c(Rank.Three), // dealer draw card
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      // Dealer shows 10 → peek for BJ
+      state = engine.checkDealerBlackjack(state)
+      // No dealer BJ → round continues, then settle with player BJ
+      expect(state.isRoundOver).toBe(false)
+      state = { ...state, phase: 'dealerTurn' as const }
+      state = engine.playDealerHand(state)
+      state = engine.settleRound(state)
+
+      expect(state.playerHands[0].result).toBe(HandResult.Blackjack)
+    })
+  })
+
+  // ── Bug 4: Dealer Peek at 10-value upcard ─────────────────
+
+  describe('dealer 10-value peek', () => {
+    it('dealer shows 10 with Ace hole → checkDealerBlackjack settles round', () => {
+      // Player: 8+9=17, Dealer: 10+A = BJ
+      const shoe = createCardSource([
+        c(Rank.Eight), c(Rank.Ten), c(Rank.Nine), c(Rank.Ace),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+
+      const result = engine.checkDealerBlackjack(state)
+      expect(result.isRoundOver).toBe(true)
+      expect(result.phase).toBe('settlement')
+      expect(result.playerHands[0].result).toBe(HandResult.Loss)
+    })
+
+    it('dealer shows King with Ace hole → immediate BJ', () => {
+      // Player: 5+6=11, Dealer: K+A = BJ
+      const shoe = createCardSource([
+        c(Rank.Five), c(Rank.King), c(Rank.Six), c(Rank.Ace),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+
+      const result = engine.checkDealerBlackjack(state)
+      expect(result.isRoundOver).toBe(true)
+      expect(result.playerHands[0].result).toBe(HandResult.Loss)
+    })
+
+    it('dealer shows Jack with 9 hole → no BJ, normal play', () => {
+      // Player: 8+9=17, Dealer: J+9 = 19 (no BJ)
+      const shoe = createCardSource([
+        c(Rank.Eight), c(Rank.Jack), c(Rank.Nine), c(Rank.Nine, Suit.Hearts),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+
+      const result = engine.checkDealerBlackjack(state)
+      expect(result.isRoundOver).toBe(false)
+      expect(result).toBe(state) // unchanged reference
+    })
+
+    it('player 21 (not BJ) vs dealer BJ with 10 showing → player loses', () => {
+      // Player: 5+6=11, Dealer: Q+A = BJ
+      // Player would normally hit to 21, but dealer BJ should end round first
+      const shoe = createCardSource([
+        c(Rank.Five), c(Rank.Queen), c(Rank.Six), c(Rank.Ace),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+
+      const result = engine.checkDealerBlackjack(state)
+      expect(result.isRoundOver).toBe(true)
+      // Player's 11 loses to dealer BJ
+      expect(result.playerHands[0].result).toBe(HandResult.Loss)
+    })
+  })
+
+  // ── Bug 5: Split 21 is NOT Blackjack ────────────────────────
+
+  describe('split 21 is not blackjack', () => {
+    it('A+K after split → settles as Win (1:1), not Blackjack (3:2)', () => {
+      const rules: CasinoRules = { ...DEFAULT_RULES, hitSplitAces: false }
+      // Player: A♠+A♥ pair, Dealer: 7+5=12
+      // Split: hand1 gets K → A+K=21, hand2 gets 6 → A+6=17
+      // Dealer draws: 5 → 12+5=17
+      const shoe = createCardSource([
+        c(Rank.Ace, Suit.Spades), c(Rank.Seven), c(Rank.Ace, Suit.Hearts), c(Rank.Five),
+        c(Rank.King), c(Rank.Six),     // split cards
+        c(Rank.Five, Suit.Hearts),      // dealer draw → 17
+      ])
+      const engine = new GameEngine(rules, shoe)
+      let state = engine.startRound(10)
+      state = engine.split(state)
+      // Both hands auto-stand (hitSplitAces=false)
+      expect(state.phase).toBe('dealerTurn')
+      state = engine.playDealerHand(state)
+      state = engine.settleRound(state)
+
+      // Hand 1: A+K=21 (isSplit=true) → Win, NOT Blackjack
+      expect(state.playerHands[0].result).toBe(HandResult.Win)
+      // Hand 2: A+6=17 vs dealer 17 → Push
+      expect(state.playerHands[1].result).toBe(HandResult.Push)
+    })
+
+    it('A+K initial deal (no split) → settles as Blackjack', () => {
+      // Player: A+K = BJ, Dealer: 7+5=12
+      const shoe = createCardSource([
+        c(Rank.Ace), c(Rank.Seven), c(Rank.King), c(Rank.Five),
+        c(Rank.Ten), c(Rank.Three), // dealer draw
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      let state = engine.startRound(10)
+      state = { ...state, phase: 'dealerTurn' as const }
+      state = engine.playDealerHand(state)
+      state = engine.settleRound(state)
+
+      expect(state.playerHands[0].result).toBe(HandResult.Blackjack)
+    })
+
+    it('split aces: A+10 result is Win, not Blackjack', () => {
+      const rules: CasinoRules = { ...DEFAULT_RULES, hitSplitAces: false }
+      // Player: A♠+A♥ pair, Dealer: 3+4=7
+      // Split: hand1 gets 10 → A+10=21, hand2 gets 5 → A+5=16
+      // Dealer draws: K → 7+10=17
+      const shoe = createCardSource([
+        c(Rank.Ace, Suit.Spades), c(Rank.Three), c(Rank.Ace, Suit.Hearts), c(Rank.Four),
+        c(Rank.Ten), c(Rank.Five),     // split cards
+        c(Rank.King),                   // dealer draw → 17
+      ])
+      const engine = new GameEngine(rules, shoe)
+      let state = engine.startRound(10)
+      state = engine.split(state)
+      expect(state.phase).toBe('dealerTurn')
+      state = engine.playDealerHand(state)
+      state = engine.settleRound(state)
+
+      // Hand 1: A+10=21 (isSplit=true) → Win (1:1), NOT Blackjack
+      expect(state.playerHands[0].result).toBe(HandResult.Win)
+    })
+  })
+
+  // ── Bug 3: Auto-Stand at 21 (additional tests) ─────────────
+
+  describe('auto-stand at 21 (additional)', () => {
+    it('hand reaching 21 via three cards (7+7+7) → auto stand', () => {
+      // Player: 7+7=14, Dealer: 8+5=13, Hit: 7 → 21
+      const shoe = createCardSource([
+        c(Rank.Seven), c(Rank.Eight), c(Rank.Seven, Suit.Hearts), c(Rank.Five),
+        c(Rank.Seven, Suit.Diamonds), // hit to 21
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterHit = engine.hit(state)
+
+      expect(afterHit.playerHands[0].isStanding).toBe(true)
+      expect(afterHit.phase).toBe('dealerTurn')
+      expect(engine.getAvailableActions(afterHit)).toEqual([])
+    })
+
+    it('hand reaching 21 after hit → auto stand, no further actions', () => {
+      // Player: 4+7=11, Dealer: 9+3=12, Hit: 10 → 21
+      const shoe = createCardSource([
+        c(Rank.Four), c(Rank.Nine), c(Rank.Seven), c(Rank.Three),
+        c(Rank.Ten), // hit to 21
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterHit = engine.hit(state)
+
+      expect(afterHit.playerHands[0].isStanding).toBe(true)
+      expect(afterHit.phase).toBe('dealerTurn')
+      const actions = engine.getAvailableActions(afterHit)
+      expect(actions).toEqual([])
+    })
+  })
 })

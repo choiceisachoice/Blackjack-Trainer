@@ -3,11 +3,12 @@ import { Shoe } from '../engine/shoe/shoe'
 import { GameEngine } from '../engine/rules/game-engine'
 import { CountingEngine } from '../engine/counting/counting-engine'
 import { getSystemById } from '../engine/counting/counting-systems'
-import { isBlackjack, isBust } from '../engine/rules/hand-utils'
+import { isBlackjack, isBust, getCardValue } from '../engine/rules/hand-utils'
 import type { GameState, CasinoRules } from '../engine/rules/types'
 import { DEFAULT_RULES, Action, HandResult } from '../engine/rules/types'
 import { CountingSystemId } from '../engine/counting/types'
 import type { Card } from '../engine/shoe/types'
+import { Rank } from '../engine/shoe/types'
 
 /**
  * Computes settlement payout and message after a round ends.
@@ -96,6 +97,21 @@ function finishRound(
     trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
     dealerDrawnCards,
   }
+}
+
+/**
+ * Returns true when dealer shows Ace, no insurance taken, and current hand
+ * is in first-action position (2 cards, not split). This means the player
+ * is implicitly declining insurance by taking another action.
+ */
+function needsDealerPeek(gameState: GameState): boolean {
+  const current = gameState.playerHands[gameState.currentHandIndex]
+  return (
+    gameState.dealerHand.cards[0].rank === Rank.Ace &&
+    gameState.insuranceBet === 0 &&
+    current.cards.length === 2 &&
+    !current.isSplit
+  )
 }
 
 /** Game store state and actions. */
@@ -223,8 +239,87 @@ export const useGameStore = create<GameStore>((set, get) => ({
     countingEngine.processCard(gameState.playerHands[0].cards[1])
     countingEngine.processCard(gameState.dealerHand.cards[1])
 
-    // Check for player blackjack → auto-finish
+    // Check for player blackjack
     if (isBlackjack(gameState.playerHands[0].cards)) {
+      const dealerUpcard = gameState.dealerHand.cards[0].rank
+
+      if (dealerUpcard === Rank.Ace) {
+        // Dealer shows Ace → offer Insurance/Stand, don't auto-finish
+        set({
+          gameState: { ...gameState },
+          runningCount: countingEngine.getRunningCount(),
+          trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+          remainingInShoe: shoe.remaining(),
+          cardsOnTable: 4,
+          isAnimating: true,
+        })
+        setTimeout(() => {
+          set({
+            availableActions: [Action.Insurance, Action.Stand],
+            isAnimating: false,
+          })
+        }, 2200)
+        return
+      }
+
+      if (getCardValue(dealerUpcard) === 10) {
+        // Dealer shows 10-value → peek for dealer BJ
+        set({
+          gameState: { ...gameState },
+          runningCount: countingEngine.getRunningCount(),
+          trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+          remainingInShoe: shoe.remaining(),
+          cardsOnTable: 4,
+          isAnimating: true,
+        })
+        setTimeout(() => {
+          const peeked = gameEngine.checkDealerBlackjack({
+            ...gameState,
+            phase: 'dealerTurn',
+          })
+          if (peeked.isRoundOver) {
+            // Dealer also has BJ → push
+            const { payout, message } = getSettlementInfo(peeked, get().rules.blackjackPayout, 0)
+            set({
+              gameState: peeked,
+              balance: get().balance + payout,
+              message,
+              runningCount: countingEngine.getRunningCount(),
+              trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+              isShoeEmpty: shoe.cutCardReached(),
+              availableActions: [],
+              remainingInShoe: shoe.remaining(),
+              isAnimating: false,
+            })
+          } else {
+            // No dealer BJ → player BJ wins
+            const result = finishRound(
+              { ...gameState, phase: 'dealerTurn' },
+              gameEngine, countingEngine, shoe,
+              get().rules.blackjackPayout, get().balance, 0
+            )
+            set({
+              gameState: result.gameState,
+              balance: result.balance,
+              message: result.message,
+              runningCount: result.runningCount,
+              trueCount: result.trueCount,
+              isShoeEmpty: shoe.cutCardReached(),
+              availableActions: [],
+              remainingInShoe: shoe.remaining(),
+              cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
+              isAnimating: false,
+            })
+          }
+        }, 2200)
+        return
+      }
+
+      // Dealer shows 2-9 → auto-finish, player BJ wins
       set({
         gameState: { ...gameState },
         runningCount: countingEngine.getRunningCount(),
@@ -235,7 +330,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         cardsOnTable: 4,
         isAnimating: true,
       })
-      // Finish round after deal animation completes
       setTimeout(() => {
         const result = finishRound(
           { ...gameState, phase: 'dealerTurn' },
@@ -254,6 +348,45 @@ export const useGameStore = create<GameStore>((set, get) => ({
           cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
           isAnimating: false,
         })
+      }, 2200)
+      return
+    }
+
+    // Dealer shows 10-value (no player BJ) → peek for dealer BJ before player acts
+    if (getCardValue(gameState.dealerHand.cards[0].rank) === 10) {
+      set({
+        gameState: { ...gameState },
+        runningCount: countingEngine.getRunningCount(),
+        trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+        isShoeEmpty: shoe.cutCardReached(),
+        availableActions: [],
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: 4,
+        isAnimating: true,
+      })
+      setTimeout(() => {
+        const peeked = gameEngine.checkDealerBlackjack(gameState)
+        if (peeked.isRoundOver) {
+          // Dealer has BJ → round over immediately
+          const { payout, message } = getSettlementInfo(peeked, get().rules.blackjackPayout, 0)
+          set({
+            gameState: peeked,
+            balance: get().balance + payout,
+            message,
+            runningCount: countingEngine.getRunningCount(),
+            trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+            isShoeEmpty: shoe.cutCardReached(),
+            availableActions: [],
+            remainingInShoe: shoe.remaining(),
+            isAnimating: false,
+          })
+        } else {
+          // No dealer BJ → normal play
+          set({
+            availableActions: gameEngine.getAvailableActions(gameState),
+            isAnimating: false,
+          })
+        }
       }, 2200)
       return
     }
@@ -282,6 +415,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameEngine, countingEngine, gameState, shoe } = get()
     if (!gameEngine || !countingEngine || !gameState || !shoe) return
     if (get().isAnimating) return
+
+    // Implicit insurance decline: dealer peek when dealer shows Ace
+    if (needsDealerPeek(gameState)) {
+      const peeked = gameEngine.checkDealerBlackjack(gameState)
+      if (peeked.isRoundOver) {
+        const { payout, message } = getSettlementInfo(peeked, get().rules.blackjackPayout, 0)
+        set({
+          gameState: peeked,
+          balance: get().balance + payout,
+          message,
+          runningCount: countingEngine.getRunningCount(),
+          trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+        })
+        return
+      }
+    }
 
     const newState = gameEngine.hit(gameState)
     const currentHand = newState.playerHands[gameState.currentHandIndex]
@@ -340,6 +491,44 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!gameEngine || !countingEngine || !gameState || !shoe) return
     if (get().isAnimating) return
 
+    // Implicit insurance decline: dealer peek when dealer shows Ace
+    if (needsDealerPeek(gameState)) {
+      const peeked = gameEngine.checkDealerBlackjack(gameState)
+      if (peeked.isRoundOver) {
+        const { payout, message } = getSettlementInfo(peeked, get().rules.blackjackPayout, 0)
+        set({
+          gameState: peeked,
+          balance: get().balance + payout,
+          message,
+          runningCount: countingEngine.getRunningCount(),
+          trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+        })
+        return
+      }
+      // No dealer BJ — if player has BJ, auto-finish with BJ win
+      if (isBlackjack(gameState.playerHands[0].cards) && !gameState.playerHands[0].isSplit) {
+        const result = finishRound(
+          { ...gameState, phase: 'dealerTurn' },
+          gameEngine, countingEngine, shoe,
+          get().rules.blackjackPayout, get().balance, 0
+        )
+        set({
+          gameState: result.gameState,
+          balance: result.balance,
+          message: result.message,
+          runningCount: result.runningCount,
+          trueCount: result.trueCount,
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+          remainingInShoe: shoe.remaining(),
+          cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
+        })
+        return
+      }
+    }
+
     const newState = gameEngine.stand(gameState)
 
     if (newState.phase === 'dealerTurn') {
@@ -376,6 +565,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameEngine, countingEngine, gameState, shoe, balance, currentBet } = get()
     if (!gameEngine || !countingEngine || !gameState || !shoe) return
     if (get().isAnimating) return
+
+    // Implicit insurance decline: dealer peek when dealer shows Ace
+    if (needsDealerPeek(gameState)) {
+      const peeked = gameEngine.checkDealerBlackjack(gameState)
+      if (peeked.isRoundOver) {
+        const { payout, message } = getSettlementInfo(peeked, get().rules.blackjackPayout, 0)
+        set({
+          gameState: peeked,
+          balance: get().balance + payout,
+          message,
+          runningCount: countingEngine.getRunningCount(),
+          trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+        })
+        return
+      }
+    }
 
     const newState = gameEngine.double(gameState)
     const currentHand = newState.playerHands[gameState.currentHandIndex]
@@ -419,6 +626,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { gameEngine, countingEngine, gameState, shoe, balance, currentBet } = get()
     if (!gameEngine || !countingEngine || !gameState || !shoe) return
     if (get().isAnimating) return
+
+    // Implicit insurance decline: dealer peek when dealer shows Ace
+    if (needsDealerPeek(gameState)) {
+      const peeked = gameEngine.checkDealerBlackjack(gameState)
+      if (peeked.isRoundOver) {
+        const { payout, message } = getSettlementInfo(peeked, get().rules.blackjackPayout, 0)
+        set({
+          gameState: peeked,
+          balance: get().balance + payout,
+          message,
+          runningCount: countingEngine.getRunningCount(),
+          trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+        })
+        return
+      }
+    }
 
     const oldIdx = gameState.currentHandIndex
     const newState = gameEngine.split(gameState)
@@ -466,6 +691,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!gameEngine || !gameState || !shoe || !countingEngine) return
     if (get().isAnimating) return
 
+    // Implicit insurance decline: dealer peek when dealer shows Ace
+    if (needsDealerPeek(gameState)) {
+      const peeked = gameEngine.checkDealerBlackjack(gameState)
+      if (peeked.isRoundOver) {
+        const { payout, message } = getSettlementInfo(peeked, get().rules.blackjackPayout, 0)
+        set({
+          gameState: peeked,
+          balance: get().balance + payout,
+          message,
+          runningCount: countingEngine.getRunningCount(),
+          trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+          isShoeEmpty: shoe.cutCardReached(),
+          availableActions: [],
+        })
+        return
+      }
+    }
+
     const newState = gameEngine.surrender(gameState)
     const { payout, message } = getSettlementInfo(newState, get().rules.blackjackPayout, gameState.insuranceBet)
 
@@ -479,16 +722,56 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   insurance: () => {
-    const { gameEngine, gameState, shoe, currentBet, balance } = get()
-    if (!gameEngine || !gameState || !shoe) return
+    const { gameEngine, countingEngine, gameState, shoe, balance } = get()
+    if (!gameEngine || !countingEngine || !gameState || !shoe) return
     if (get().isAnimating) return
 
     const newState = gameEngine.insurance(gameState)
     const insuranceBet = newState.insuranceBet
+    const newBalance = balance - insuranceBet
 
+    // Dealer peek after taking insurance
+    const peeked = gameEngine.checkDealerBlackjack(newState)
+    if (peeked.isRoundOver) {
+      // Dealer has BJ → settle immediately (loss + insurance pays 2:1)
+      const { payout, message } = getSettlementInfo(peeked, get().rules.blackjackPayout, insuranceBet)
+      set({
+        gameState: peeked,
+        balance: newBalance + payout,
+        message,
+        runningCount: countingEngine.getRunningCount(),
+        trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+        isShoeEmpty: shoe.cutCardReached(),
+        availableActions: [],
+      })
+      return
+    }
+
+    // No dealer BJ — check if player has BJ → auto-finish with BJ win
+    if (isBlackjack(newState.playerHands[0].cards) && !newState.playerHands[0].isSplit) {
+      const result = finishRound(
+        { ...newState, phase: 'dealerTurn' },
+        gameEngine, countingEngine, shoe,
+        get().rules.blackjackPayout, newBalance, insuranceBet
+      )
+      set({
+        gameState: result.gameState,
+        balance: result.balance,
+        message: result.message,
+        runningCount: result.runningCount,
+        trueCount: result.trueCount,
+        isShoeEmpty: shoe.cutCardReached(),
+        availableActions: [],
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
+      })
+      return
+    }
+
+    // No dealer BJ, normal hand → continue play (insurance lost later at settlement)
     set({
       gameState: newState,
-      balance: balance - insuranceBet,
+      balance: newBalance,
       availableActions: gameEngine.getAvailableActions(newState),
     })
   },

@@ -70,9 +70,25 @@ export class GameEngine {
   }
 
   /**
+   * Checks whether the dealer has blackjack and settles the round if so.
+   * Used after insurance decision or implicit insurance decline.
+   * @param state - Current game state
+   * @returns New GameState — settled if dealer has BJ, unchanged otherwise
+   */
+  checkDealerBlackjack(state: GameState): GameState {
+    if (isBlackjack(state.dealerHand.cards)) {
+      return this.settleRound({
+        ...state,
+        phase: 'settlement',
+      })
+    }
+    return state
+  }
+
+  /**
    * Player takes a card on the current hand.
    *
-   * If the hand busts, it is marked as standing and play advances.
+   * If the hand busts or reaches 21, it is marked as standing and play advances.
    * @param state - Current game state
    * @returns New GameState with the dealt card added
    */
@@ -85,7 +101,7 @@ export class GameEngine {
     const newHand: Hand = {
       ...current,
       cards: newCards,
-      isStanding: busted,
+      isStanding: busted || getHandValue(newCards).best === 21,
     }
 
     const newPlayerHands = [...state.playerHands]
@@ -168,19 +184,22 @@ export class GameEngine {
     const isAces = current.cards[0].rank === Rank.Ace
     const autoStand = isAces && !this.rules.hitSplitAces
 
+    const hand1Cards = [current.cards[0], state.shoe.deal()]
+    const hand2Cards = [current.cards[1], state.shoe.deal()]
+
     const hand1: Hand = {
-      cards: [current.cards[0], state.shoe.deal()],
+      cards: hand1Cards,
       bet: current.bet,
       isDoubled: false,
       isSplit: true,
-      isStanding: autoStand,
+      isStanding: autoStand || getHandValue(hand1Cards).best === 21,
     }
     const hand2: Hand = {
-      cards: [current.cards[1], state.shoe.deal()],
+      cards: hand2Cards,
       bet: current.bet,
       isDoubled: false,
       isSplit: true,
-      isStanding: autoStand,
+      isStanding: autoStand || getHandValue(hand2Cards).best === 21,
     }
 
     const newPlayerHands = [
@@ -249,9 +268,11 @@ export class GameEngine {
    * @returns New GameState after dealer has finished drawing
    */
   playDealerHand(state: GameState): GameState {
-    // If all player hands are busted, dealer doesn't need to draw
-    const allBusted = state.playerHands.every((h) => isBust(h.cards))
-    if (allBusted) {
+    // If all player hands are busted or natural BJ, dealer doesn't need to draw
+    const allBustedOrBJ = state.playerHands.every(
+      (h) => isBust(h.cards) || (isBlackjack(h.cards) && !h.isSplit)
+    )
+    if (allBustedOrBJ) {
       return { ...state, phase: 'settlement' }
     }
 
@@ -339,6 +360,25 @@ export class GameEngine {
     const current = state.playerHands[state.currentHandIndex]
 
     if (current.isStanding) {
+      return []
+    }
+
+    // Player has natural blackjack (not from split)
+    if (isBlackjack(current.cards) && !current.isSplit) {
+      // Dealer shows Ace and no insurance taken → offer insurance + stand
+      if (
+        state.dealerHand.cards[0].rank === Rank.Ace &&
+        state.insuranceBet === 0 &&
+        this.rules.insuranceAllowed
+      ) {
+        return [Action.Insurance, Action.Stand]
+      }
+      // Otherwise → auto-settle (no actions needed)
+      return []
+    }
+
+    // Hand has reached 21 (3+ cards) → auto-stand
+    if (getHandValue(current.cards).best === 21) {
       return []
     }
 
