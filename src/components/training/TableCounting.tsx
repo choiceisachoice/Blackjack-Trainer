@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useGameStore } from '../../store/game-store'
 import { useAppStore } from '../../store/app-store'
 import { getSystemById, getCountValue } from '../../engine/counting/counting-systems'
@@ -21,8 +21,9 @@ const SUIT_SYMBOL: Record<string, string> = {
 /**
  * Table Counting training mode.
  *
- * Wraps the existing GameTable and overlays a count prompt after each round.
- * Players play normal blackjack while mentally tracking the count.
+ * Wraps the existing GameTable and overlays a count prompt when the player
+ * clicks "New Round" after a hand settles. Cards remain visible behind
+ * the semi-transparent overlay so the player can review them.
  */
 export function TableCounting() {
   const selectedSystem = useAppStore(s => s.selectedSystem)
@@ -48,18 +49,22 @@ export function TableCounting() {
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
 
+  // How many hands have fully completed (FIX 2: skip prompt until >= 1)
+  const handsCompleted = useRef(0)
+
   // Hard mode: ask every N hands (random 2-5)
   const [handsUntilPrompt, setHandsUntilPrompt] = useState(1)
   const handsSinceLastPrompt = useRef(0)
 
-  // Track cards dealt in the current hand
-  const prevCardsRef = useRef<Card[]>([])
+  // Whether the current round-end should trigger a prompt (decided on settlement)
+  const shouldPromptRef = useRef(false)
 
-  const isRoundOver = useGameStore(s => s.gameState?.isRoundOver ?? false)
+  // Track cards from the settled round for error explanation
+  const settledCardsRef = useRef<Card[]>([])
+
   const gameState = useGameStore(s => s.gameState)
   const runningCount = useGameStore(s => s.runningCount)
   const trueCount = useGameStore(s => s.trueCount)
-  const shoe = useGameStore(s => s.shoe)
 
   const systemConfig = getSystemById(selectedSystem)
 
@@ -78,49 +83,71 @@ export function TableCounting() {
     }
   }, [tcPhase, selectedSystem])
 
-  // Collect all visible cards before round ends for error explanation
-  useEffect(() => {
-    if (gameState && !gameState.isRoundOver) {
-      const allCards: Card[] = []
-      for (const hand of gameState.playerHands) {
-        allCards.push(...hand.cards)
-      }
-      allCards.push(...gameState.dealerHand.cards)
-      prevCardsRef.current = allCards
-    }
-  }, [gameState])
+  // When a round settles, decide if we should prompt and capture the cards
+  const isRoundOver = useGameStore(s => s.gameState?.isRoundOver ?? false)
 
-  // Detect round settlement
   useEffect(() => {
     if (!isRoundOver || !gameState || tcPhase !== 'playing') return
 
+    handsCompleted.current++
     handsSinceLastPrompt.current++
-    setHandsPlayed(prev => prev + 1)
+
+    // FIX 2: Don't prompt on the very first settlement (RC=0 is trivial)
+    if (handsCompleted.current <= 1) {
+      shouldPromptRef.current = false
+      return
+    }
 
     const shouldAsk = difficulty === 'hard'
       ? handsSinceLastPrompt.current >= handsUntilPrompt
       : true
 
     if (shouldAsk) {
-      // Collect all cards from this settled round
+      // Capture all cards from this settled round
       const allCards: Card[] = []
       for (const hand of gameState.playerHands) {
         allCards.push(...hand.cards)
       }
       allCards.push(...gameState.dealerHand.cards)
-
-      prevCardsRef.current = allCards
-      setRcAnswer(0)
-      setTcAnswer(0)
-      setFeedback(null)
-      setShowPrompt(true)
-      handsSinceLastPrompt.current = 0
-
-      if (difficulty === 'hard') {
-        setHandsUntilPrompt(Math.floor(Math.random() * 4) + 2) // 2-5
-      }
+      settledCardsRef.current = allCards
+      shouldPromptRef.current = true
+    } else {
+      shouldPromptRef.current = false
     }
   }, [isRoundOver, gameState, tcPhase, difficulty, handsUntilPrompt])
+
+  // FIX 1: Intercept newRound — show prompt instead of starting new round
+  const openPrompt = useCallback(() => {
+    if (!shouldPromptRef.current) {
+      // No prompt needed — proceed with actual new round
+      useGameStore.getState().setNewRoundInterceptor(null)
+      useGameStore.getState().newRound()
+      // Re-register interceptor after the real newRound executes
+      // (done in the effect below on next render)
+      return
+    }
+
+    setHandsPlayed(prev => prev + 1)
+    setRcAnswer(0)
+    setTcAnswer(0)
+    setFeedback(null)
+    setShowPrompt(true)
+    handsSinceLastPrompt.current = 0
+
+    if (difficulty === 'hard') {
+      setHandsUntilPrompt(Math.floor(Math.random() * 4) + 2) // 2-5
+    }
+  }, [difficulty])
+
+  // Register/unregister the interceptor when entering/leaving playing phase
+  useEffect(() => {
+    if (tcPhase === 'playing') {
+      useGameStore.getState().setNewRoundInterceptor(openPrompt)
+    }
+    return () => {
+      useGameStore.getState().setNewRoundInterceptor(null)
+    }
+  }, [tcPhase, openPrompt])
 
   const handleSubmit = useCallback(() => {
     const isFractional = selectedSystem === CountingSystemId.WongHalves
@@ -141,7 +168,7 @@ export function TableCounting() {
     }
 
     // Build hand cards with count values for explanation
-    const handCards = prevCardsRef.current.map(card => ({
+    const handCards = settledCardsRef.current.map(card => ({
       card,
       value: getCountValue(card, systemConfig),
     }))
@@ -168,7 +195,19 @@ export function TableCounting() {
   const handleContinue = useCallback(() => {
     setShowPrompt(false)
     setFeedback(null)
+    shouldPromptRef.current = false
+
+    // Now actually start the new round
+    useGameStore.getState().setNewRoundInterceptor(null)
+    useGameStore.getState().newRound()
   }, [])
+
+  // Re-register interceptor after a real newRound completes (gameState becomes null)
+  useEffect(() => {
+    if (tcPhase === 'playing' && !gameState && !showPrompt) {
+      useGameStore.getState().setNewRoundInterceptor(openPrompt)
+    }
+  }, [tcPhase, gameState, showPrompt, openPrompt])
 
   // Keyboard: Enter submits prompt
   useEffect(() => {
@@ -188,6 +227,12 @@ export function TableCounting() {
 
   const formatCount = (n: number) => (n >= 0 ? `+${n}` : `${n}`)
   const formatValue = (n: number) => (n >= 0 ? `+${n}` : `${n}`)
+
+  // Easy mode: compute count value per card for badge display
+  const cardCountValueFn = useMemo(() => {
+    if (difficulty !== 'easy' || tcPhase !== 'playing') return undefined
+    return (card: Card) => getCountValue(card, systemConfig)
+  }, [difficulty, tcPhase, systemConfig])
 
   // ── Settings Phase ──
   if (tcPhase === 'settings') {
@@ -213,7 +258,7 @@ export function TableCounting() {
             ))}
           </div>
           <p className="text-xs text-white/40 max-w-sm text-center">
-            {difficulty === 'easy' && 'Count asked every hand.'}
+            {difficulty === 'easy' && 'Count badges on cards, breakdown always shown.'}
             {difficulty === 'normal' && 'Count asked every hand, no help.'}
             {difficulty === 'hard' && 'Count asked randomly every 2-5 hands.'}
           </p>
@@ -268,13 +313,13 @@ export function TableCounting() {
 
       {/* GameTable fills remaining space */}
       <div className="flex-1 overflow-hidden">
-        <GameTable />
+        <GameTable getCardCountValue={cardCountValueFn} />
       </div>
 
-      {/* Count Prompt Overlay */}
+      {/* Count Prompt Overlay – positioned at top so cards remain visible below */}
       {showPrompt && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-neutral-900 border border-white/20 rounded-2xl p-6 max-w-md w-full mx-4">
+        <div className="absolute inset-0 bg-black/30 flex items-start justify-center pt-16 z-50">
+          <div className="bg-neutral-900/95 border border-gold/30 rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl">
             {!feedback ? (
               <>
                 {/* Question */}
@@ -367,8 +412,8 @@ export function TableCounting() {
                   </p>
                 </div>
 
-                {/* Card breakdown on wrong answer */}
-                {!feedback.correct && feedback.handCards.length > 0 && (
+                {/* Card breakdown: always in easy mode, on wrong answer otherwise */}
+                {(difficulty === 'easy' || !feedback.correct) && feedback.handCards.length > 0 && (
                   <div className="mb-4">
                     <p className="text-xs text-white/50 mb-2 text-center">Cards this hand:</p>
                     <div className="flex flex-wrap justify-center gap-1">

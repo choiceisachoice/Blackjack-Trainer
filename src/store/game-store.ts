@@ -10,6 +10,42 @@ import { CountingSystemId } from '../engine/counting/types'
 import type { Card } from '../engine/shoe/types'
 import { Rank } from '../engine/shoe/types'
 
+// ── Animation Timing Constants (ms) ──────────────────────
+/** Initial 4-card deal animation total duration. */
+const DEAL_ANIM_MS = 2200
+/** Single card slide-in duration. */
+const CARD_SLIDE_MS = 800
+/** Hole card flip duration. */
+const HOLE_FLIP_MS = 600
+/** Pause after hole flip before dealer draws. */
+const POST_FLIP_PAUSE_MS = 800
+/** Per dealer-drawn card: slide (500) + pause (800). */
+const PER_DEALER_CARD_MS = 1100
+/** Final pause after last dealer card before settlement. */
+const POST_DEALER_PAUSE_MS = 1000
+/** Split animation duration. */
+const SPLIT_ANIM_MS = 1600
+
+/**
+ * Calculates the total delay for dealer play animation.
+ * Accounts for hole card flip + pause + per-card stagger + final pause.
+ */
+function dealerPlayDelay(dealerDrawnCards: number): number {
+  return HOLE_FLIP_MS + POST_FLIP_PAUSE_MS +
+    dealerDrawnCards * PER_DEALER_CARD_MS +
+    POST_DEALER_PAUSE_MS
+}
+
+/** Tracks the pending settlement/animation timeout so it can be cleared across rounds. */
+let _pendingTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearPendingTimer() {
+  if (_pendingTimer !== null) {
+    clearTimeout(_pendingTimer)
+    _pendingTimer = null
+  }
+}
+
 /**
  * Computes settlement payout and message after a round ends.
  */
@@ -140,6 +176,8 @@ export interface GameStoreState {
   cardsOnTable: number
   /** True while card deal/flip animations are playing – buttons should be disabled. */
   isAnimating: boolean
+  /** Optional callback that intercepts newRound(). If set, called instead of the default logic. */
+  newRoundInterceptor: (() => void) | null
 }
 
 export interface GameStoreActions {
@@ -156,6 +194,7 @@ export interface GameStoreActions {
   newRound: () => void
   toggleCountDisplay: () => void
   setCountingSystem: (systemId: CountingSystemId) => void
+  setNewRoundInterceptor: (fn: (() => void) | null) => void
 }
 
 export type GameStore = GameStoreState & GameStoreActions
@@ -187,6 +226,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   cardsInDiscard: 0,
   cardsOnTable: 0,
   isAnimating: false,
+  newRoundInterceptor: null,
 
   // ── Actions ──────────────────────────────────────────────────
 
@@ -230,6 +270,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   startRound: () => {
     const { gameEngine, countingEngine, shoe, currentBet } = get()
     if (!gameEngine || !countingEngine || !shoe || currentBet <= 0) return
+    clearPendingTimer()
 
     const gameState = gameEngine.startRound(currentBet)
 
@@ -439,32 +480,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
     countingEngine.processCard(currentHand.cards[currentHand.cards.length - 1])
 
     if (newState.phase === 'dealerTurn') {
-      // Lock during hit animation, then finish round
+      // Compute dealer play + settlement so cards render & animate
+      const result = finishRound(
+        newState, gameEngine, countingEngine, shoe,
+        get().rules.blackjackPayout, get().balance, gameState.insuranceBet
+      )
+      // Show hit card + dealer cards now
       set({
-        gameState: newState,
+        gameState: result.gameState,
         availableActions: [],
         remainingInShoe: shoe.remaining(),
-        cardsOnTable: get().cardsOnTable + 1,
+        cardsOnTable: get().cardsOnTable + 1 + result.dealerDrawnCards,
         isAnimating: true,
       })
-      setTimeout(() => {
-        const result = finishRound(
-          newState, gameEngine, countingEngine, shoe,
-          get().rules.blackjackPayout, get().balance, gameState.insuranceBet
-        )
+      // Wait for hit card animation + dealer play animation
+      const delay = CARD_SLIDE_MS + dealerPlayDelay(result.dealerDrawnCards)
+      _pendingTimer = setTimeout(() => {
+        _pendingTimer = null
         set({
-          gameState: result.gameState,
           balance: result.balance,
           message: result.message,
           runningCount: result.runningCount,
           trueCount: result.trueCount,
           isShoeEmpty: shoe.cutCardReached(),
-          availableActions: [],
-          remainingInShoe: shoe.remaining(),
-          cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
           isAnimating: false,
         })
-      }, 800)
+      }, delay)
       return
     }
 
@@ -478,12 +519,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       cardsOnTable: get().cardsOnTable + 1,
       isAnimating: true,
     })
-    setTimeout(() => {
+    _pendingTimer = setTimeout(() => {
+      _pendingTimer = null
       set({
         availableActions: gameEngine.getAvailableActions(newState),
         isAnimating: false,
       })
-    }, 800)
+    }, CARD_SLIDE_MS)
   },
 
   stand: () => {
@@ -532,26 +574,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newState = gameEngine.stand(gameState)
 
     if (newState.phase === 'dealerTurn') {
-      set({ availableActions: [], isAnimating: true })
-      // Dealer draws after hole card flip (~1.1s), then settle
-      setTimeout(() => {
-        const result = finishRound(
-          newState, gameEngine, countingEngine, shoe,
-          get().rules.blackjackPayout, get().balance, gameState.insuranceBet
-        )
+      // Compute dealer play + settlement immediately so cards render & animate
+      const result = finishRound(
+        newState, gameEngine, countingEngine, shoe,
+        get().rules.blackjackPayout, get().balance, gameState.insuranceBet
+      )
+      // Show dealer cards now (Hand.tsx staggers the animations)
+      set({
+        gameState: result.gameState,
+        availableActions: [],
+        isAnimating: true,
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
+      })
+      // Delay settlement message until animations finish
+      const delay = dealerPlayDelay(result.dealerDrawnCards)
+      _pendingTimer = setTimeout(() => {
+        _pendingTimer = null
         set({
-          gameState: result.gameState,
           balance: result.balance,
           message: result.message,
           runningCount: result.runningCount,
           trueCount: result.trueCount,
           isShoeEmpty: shoe.cutCardReached(),
-          availableActions: [],
-          remainingInShoe: shoe.remaining(),
-          cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
           isAnimating: false,
         })
-      }, 1100)
+      }, delay)
       return
     }
 
@@ -597,17 +645,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
         newState, gameEngine, countingEngine, shoe,
         get().rules.blackjackPayout, newBalance, gameState.insuranceBet
       )
+      // Show double card + dealer cards now
       set({
         gameState: result.gameState,
-        balance: result.balance,
-        message: result.message,
-        runningCount: result.runningCount,
-        trueCount: result.trueCount,
-        isShoeEmpty: shoe.cutCardReached(),
+        balance: newBalance,
         availableActions: [],
         remainingInShoe: shoe.remaining(),
         cardsOnTable: cardsOnTableNow + result.dealerDrawnCards,
+        isAnimating: true,
       })
+      // Wait for double card animation + dealer play
+      const delay = CARD_SLIDE_MS + dealerPlayDelay(result.dealerDrawnCards)
+      _pendingTimer = setTimeout(() => {
+        _pendingTimer = null
+        set({
+          balance: result.balance,
+          message: result.message,
+          runningCount: result.runningCount,
+          trueCount: result.trueCount,
+          isShoeEmpty: shoe.cutCardReached(),
+          isAnimating: false,
+        })
+      }, delay)
       return
     }
 
@@ -663,15 +722,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
       )
       set({
         gameState: result.gameState,
-        balance: result.balance,
-        message: result.message,
-        runningCount: result.runningCount,
-        trueCount: result.trueCount,
-        isShoeEmpty: shoe.cutCardReached(),
+        balance: newBalance,
         availableActions: [],
         remainingInShoe: shoe.remaining(),
         cardsOnTable: cardsOnTableNow + result.dealerDrawnCards,
+        isAnimating: true,
       })
+      const delay = SPLIT_ANIM_MS + dealerPlayDelay(result.dealerDrawnCards)
+      _pendingTimer = setTimeout(() => {
+        _pendingTimer = null
+        set({
+          balance: result.balance,
+          message: result.message,
+          runningCount: result.runningCount,
+          trueCount: result.trueCount,
+          isShoeEmpty: shoe.cutCardReached(),
+          isAnimating: false,
+        })
+      }, delay)
       return
     }
 
@@ -680,10 +748,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
       balance: newBalance,
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
-      availableActions: gameEngine.getAvailableActions(newState),
+      availableActions: [],
       remainingInShoe: shoe.remaining(),
       cardsOnTable: get().cardsOnTable + 2,
+      isAnimating: true,
     })
+    _pendingTimer = setTimeout(() => {
+      _pendingTimer = null
+      set({
+        availableActions: gameEngine.getAvailableActions(newState),
+        isAnimating: false,
+      })
+    }, SPLIT_ANIM_MS)
   },
 
   surrender: () => {
@@ -777,8 +853,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   newRound: () => {
-    const { shoe, countingEngine } = get()
+    const { shoe, countingEngine, newRoundInterceptor } = get()
     if (!shoe || !countingEngine) return
+
+    if (newRoundInterceptor) {
+      newRoundInterceptor()
+      return
+    }
+
+    clearPendingTimer()
+    set({ isAnimating: false })
 
     if (shoe.cutCardReached()) {
       shoe.reset()
@@ -822,5 +906,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe?.remainingDecks() ?? rules.numDecks),
     })
+  },
+
+  setNewRoundInterceptor: (fn) => {
+    set({ newRoundInterceptor: fn })
   },
 }))

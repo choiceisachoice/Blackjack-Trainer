@@ -125,7 +125,7 @@ describe('Game Store', () => {
     const cardsBefore = stateAfterDeal.gameState!.playerHands[0].cards.length
 
     store.hit()
-    vi.advanceTimersByTime(800)
+    vi.advanceTimersByTime(10000)
 
     const stateAfterHit = useGameStore.getState()
     // If round ended (bust → dealer play → settle), hands may be settled
@@ -149,7 +149,7 @@ describe('Game Store', () => {
     if (stateAfterDeal.gameState?.isRoundOver) return
 
     store.stand()
-    vi.advanceTimersByTime(1100)
+    vi.advanceTimersByTime(10000)
 
     const stateAfterStand = useGameStore.getState()
     // After stand, dealer plays automatically → settlement
@@ -192,7 +192,7 @@ describe('Game Store', () => {
       const s = useGameStore.getState()
       if (s.gameState && !s.gameState.isRoundOver) {
         store.stand()
-        vi.advanceTimersByTime(1100)
+        vi.advanceTimersByTime(10000)
       }
       store.newRound()
       rounds++
@@ -206,7 +206,7 @@ describe('Game Store', () => {
       const s = useGameStore.getState()
       if (s.gameState && !s.gameState.isRoundOver) {
         store.stand()
-        vi.advanceTimersByTime(1100)
+        vi.advanceTimersByTime(10000)
       }
       store.newRound()
 
@@ -231,7 +231,7 @@ describe('Game Store', () => {
 
     if (!stateAfterDeal.gameState?.isRoundOver) {
       store.stand()
-      vi.advanceTimersByTime(1100)
+      vi.advanceTimersByTime(10000)
     }
 
     const stateAfterRound = useGameStore.getState()
@@ -252,7 +252,7 @@ describe('Game Store', () => {
     const s = useGameStore.getState()
     if (s.gameState && !s.gameState.isRoundOver) {
       store.stand()
-      vi.advanceTimersByTime(1100)
+      vi.advanceTimersByTime(10000)
     }
 
     const stateAfterRound = useGameStore.getState()
@@ -541,7 +541,7 @@ describe('Game Store – Dealer Peek & BJ Logic', () => {
     vi.advanceTimersByTime(2200)
 
     store.hit()
-    vi.advanceTimersByTime(800)
+    vi.advanceTimersByTime(10000)
 
     const state = useGameStore.getState()
     // Round should be over (auto-stand → dealer plays → settle)
@@ -694,7 +694,7 @@ describe('Game Store – Split 21 Payout', () => {
 
     // Split the aces
     store.split()
-    vi.advanceTimersByTime(800)
+    vi.advanceTimersByTime(10000)
 
     const state = useGameStore.getState()
     expect(state.gameState!.isRoundOver).toBe(true)
@@ -725,7 +725,7 @@ describe('Game Store – Split 21 Payout', () => {
     vi.advanceTimersByTime(2200)
 
     store.split()
-    vi.advanceTimersByTime(800)
+    vi.advanceTimersByTime(10000)
 
     const state = useGameStore.getState()
     expect(state.gameState!.isRoundOver).toBe(true)
@@ -750,7 +750,7 @@ describe('Game Store – Split 21 Payout', () => {
     vi.advanceTimersByTime(2200)
 
     store.split()
-    vi.advanceTimersByTime(800)
+    vi.advanceTimersByTime(10000)
 
     const state = useGameStore.getState()
     // Both hands have exactly 2 cards (original + 1 dealt)

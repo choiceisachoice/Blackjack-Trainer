@@ -16,6 +16,8 @@ interface HandProps {
   label?: string
   /** Whether this hand is the currently active hand. */
   isActive?: boolean
+  /** Per-card count values for easy mode badges (parallel array). */
+  countValues?: number[]
 }
 
 /**
@@ -67,7 +69,7 @@ function rankValue(rank: string): number {
  * Handles staggered deal animations for the initial deal (4-card sequence),
  * single-card hit animations, and dealer draw staggering.
  */
-export function Hand({ cards, isDealer = false, hideFirst = false, label, isActive = false }: HandProps) {
+export function Hand({ cards, isDealer = false, hideFirst = false, label, isActive = false, countValues }: HandProps) {
   // Track previous card count to detect initial deal vs. hit
   const prevCardCount = useRef(0)
   const isInitialDeal = prevCardCount.current === 0 && cards.length >= 2
@@ -128,6 +130,7 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
                 animateIn={i >= prevCardCount.current || isInitialDeal}
                 delay={getCardDelay(i)}
                 isDealer={isDealer}
+                countValue={countValues?.[i]}
               />
             </div>
           ))}

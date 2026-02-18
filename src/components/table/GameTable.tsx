@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { motion, LayoutGroup } from 'framer-motion'
 import { useGameStore } from '../../store/game-store'
 import { Hand } from '../cards/Hand'
 import { BalanceDisplay } from './BalanceDisplay'
@@ -8,6 +9,13 @@ import { MessageDisplay } from './MessageDisplay'
 import { BetControls } from './BetControls'
 import { ActionButtons } from './ActionButtons'
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
+import type { Card } from '../../engine/shoe/types'
+
+/** Props for GameTable. */
+interface GameTableProps {
+  /** Optional function to compute count value for a card (easy mode badges). */
+  getCardCountValue?: (card: Card) => number
+}
 
 /**
  * Main Blackjack game table component.
@@ -17,7 +25,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts'
  * Shoe (right side) and Discard Tray (left side) are vertically centered
  * on the felt area as 3D card stacks.
  */
-export function GameTable() {
+export function GameTable({ getCardCountValue }: GameTableProps = {}) {
   const gameState = useGameStore(s => s.gameState)
   const initGame = useGameStore(s => s.initGame)
   const currentBet = useGameStore(s => s.currentBet)
@@ -62,6 +70,7 @@ export function GameTable() {
               cards={gameState.dealerHand.cards}
               isDealer
               hideFirst={hideDealer}
+              countValues={getCardCountValue ? gameState.dealerHand.cards.map(getCardCountValue) : undefined}
             />
           ) : (
             <div className="h-[8rem] md:h-[10rem] flex items-center justify-center text-white/20">
@@ -78,16 +87,24 @@ export function GameTable() {
         {/* Player area */}
         <div className="flex flex-col items-center gap-2">
           {gameState && gameState.playerHands.length > 0 ? (
-            <div className="flex gap-4 md:gap-8 flex-wrap justify-center">
-              {gameState.playerHands.map((hand, i) => (
-                <Hand
-                  key={i}
-                  cards={hand.cards}
-                  label={gameState.playerHands.length > 1 ? `Hand ${i + 1}` : undefined}
-                  isActive={gameState.currentHandIndex === i && isPlayerTurn}
-                />
-              ))}
-            </div>
+            <LayoutGroup>
+              <div className="flex gap-4 md:gap-8 flex-wrap justify-center">
+                {gameState.playerHands.map((hand, i) => (
+                  <motion.div
+                    key={`hand-${i}`}
+                    layout
+                    transition={{ type: 'spring', stiffness: 200, damping: 25, duration: 0.6 }}
+                  >
+                    <Hand
+                      cards={hand.cards}
+                      label={gameState.playerHands.length > 1 ? `Hand ${i + 1}` : undefined}
+                      isActive={gameState.currentHandIndex === i && isPlayerTurn}
+                      countValues={getCardCountValue ? hand.cards.map(getCardCountValue) : undefined}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </LayoutGroup>
           ) : (
             <div className="h-[8rem] md:h-[10rem]" />
           )}

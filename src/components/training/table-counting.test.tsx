@@ -29,8 +29,28 @@ vi.mock('framer-motion', () => {
   return {
     motion: new Proxy({}, handler),
     AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
+    LayoutGroup: ({ children }: React.PropsWithChildren) => <>{children}</>,
   }
 })
+
+/**
+ * Helper: play one full hand (bet → deal → stand → settlement).
+ * Returns true if the round successfully settled.
+ */
+function playOneHand(): boolean {
+  const store = useGameStore.getState()
+  store.placeBet(100)
+  store.startRound()
+  act(() => { vi.advanceTimersByTime(2200) })
+
+  const afterDeal = useGameStore.getState()
+  if (afterDeal.gameState?.isRoundOver) return true
+  if (afterDeal.availableActions.length > 0) {
+    afterDeal.stand()
+    act(() => { vi.advanceTimersByTime(10000) })
+  }
+  return useGameStore.getState().gameState?.isRoundOver ?? false
+}
 
 describe('TableCounting', () => {
   beforeEach(() => {
@@ -40,9 +60,12 @@ describe('TableCounting', () => {
       selectedSystem: CountingSystemId.HiLo,
       selectedRules: DEFAULT_RULES,
     })
+    // Reset interceptor between tests
+    useGameStore.getState().setNewRoundInterceptor(null)
   })
 
   afterEach(() => {
+    useGameStore.getState().setNewRoundInterceptor(null)
     vi.useRealTimers()
   })
 
@@ -60,39 +83,49 @@ describe('TableCounting', () => {
     // Stats bar should be visible
     expect(screen.getByText(/Hands: 0/)).toBeInTheDocument()
 
-    // Game table gets rendered (it calls initGame internally)
     // The count display should be hidden
     const store = useGameStore.getState()
     expect(store.showCount).toBe(false)
   })
 
-  it('shows count prompt after round ends', () => {
+  it('no count prompt before first hand is played', () => {
     render(<TableCounting />)
     fireEvent.click(screen.getByTestId('start-playing'))
-
-    // Wait for initGame
     act(() => { vi.advanceTimersByTime(100) })
 
-    const store = useGameStore.getState()
-    store.placeBet(100)
-    store.startRound()
+    // No prompt should be visible before any hand is played
+    expect(screen.queryByText('What is the Running Count?')).not.toBeInTheDocument()
+  })
 
-    // Wait for deal animation
-    act(() => { vi.advanceTimersByTime(2200) })
+  it('first hand settles without count prompt, prompt appears after second hand via New Round', () => {
+    render(<TableCounting />)
+    fireEvent.click(screen.getByTestId('start-playing'))
+    act(() => { vi.advanceTimersByTime(100) })
 
-    // Force stand to end the round quickly
-    const afterDeal = useGameStore.getState()
-    if (afterDeal.availableActions.length > 0) {
-      afterDeal.stand()
-      // Wait for dealer play animation
-      act(() => { vi.advanceTimersByTime(1200) })
-    }
+    // Play first hand
+    const settled1 = playOneHand()
+    if (!settled1) return
 
-    // If the round ended, the prompt should appear
-    const gs = useGameStore.getState().gameState
-    if (gs?.isRoundOver) {
-      expect(screen.getByText('What is the Running Count?')).toBeInTheDocument()
-    }
+    // After first settlement: NO prompt should appear automatically
+    expect(screen.queryByText('What is the Running Count?')).not.toBeInTheDocument()
+
+    // Click New Round — should proceed directly (no prompt for first hand)
+    // Wrap in act() so React effects (interceptor re-registration) fire
+    act(() => { useGameStore.getState().newRound() })
+    act(() => { vi.advanceTimersByTime(100) })
+
+    // Play second hand
+    const settled2 = playOneHand()
+    if (!settled2) return
+
+    // After second settlement: still no prompt until player clicks New Round
+    expect(screen.queryByText('What is the Running Count?')).not.toBeInTheDocument()
+
+    // NOW click New Round — prompt should appear
+    act(() => { useGameStore.getState().newRound() })
+    act(() => { vi.advanceTimersByTime(100) })
+
+    expect(screen.getByText('What is the Running Count?')).toBeInTheDocument()
   })
 
   it('correct RC answer shows green feedback', () => {
@@ -100,20 +133,19 @@ describe('TableCounting', () => {
     fireEvent.click(screen.getByTestId('start-playing'))
     act(() => { vi.advanceTimersByTime(100) })
 
-    const store = useGameStore.getState()
-    store.placeBet(100)
-    store.startRound()
-    act(() => { vi.advanceTimersByTime(2200) })
+    // Play first hand (no prompt)
+    if (!playOneHand()) return
+    act(() => { useGameStore.getState().newRound() })
+    act(() => { vi.advanceTimersByTime(100) })
 
-    const afterDeal = useGameStore.getState()
-    if (afterDeal.availableActions.length > 0) {
-      afterDeal.stand()
-      act(() => { vi.advanceTimersByTime(1200) })
-    }
+    // Play second hand
+    if (!playOneHand()) return
 
-    const gs = useGameStore.getState().gameState
-    if (gs?.isRoundOver) {
-      // Enter the correct RC
+    // Trigger prompt via New Round
+    act(() => { useGameStore.getState().newRound() })
+    act(() => { vi.advanceTimersByTime(100) })
+
+    if (screen.queryByTestId('rc-input')) {
       const correctRC = useGameStore.getState().runningCount
       const input = screen.getByTestId('rc-input')
       fireEvent.change(input, { target: { value: String(correctRC) } })
@@ -128,19 +160,19 @@ describe('TableCounting', () => {
     fireEvent.click(screen.getByTestId('start-playing'))
     act(() => { vi.advanceTimersByTime(100) })
 
-    const store = useGameStore.getState()
-    store.placeBet(100)
-    store.startRound()
-    act(() => { vi.advanceTimersByTime(2200) })
+    // Play first hand (no prompt)
+    if (!playOneHand()) return
+    act(() => { useGameStore.getState().newRound() })
+    act(() => { vi.advanceTimersByTime(100) })
 
-    const afterDeal = useGameStore.getState()
-    if (afterDeal.availableActions.length > 0) {
-      afterDeal.stand()
-      act(() => { vi.advanceTimersByTime(1200) })
-    }
+    // Play second hand
+    if (!playOneHand()) return
 
-    const gs = useGameStore.getState().gameState
-    if (gs?.isRoundOver) {
+    // Trigger prompt
+    act(() => { useGameStore.getState().newRound() })
+    act(() => { vi.advanceTimersByTime(100) })
+
+    if (screen.queryByTestId('rc-input')) {
       const input = screen.getByTestId('rc-input')
       fireEvent.change(input, { target: { value: '999' } })
       fireEvent.click(screen.getByTestId('submit-count'))
