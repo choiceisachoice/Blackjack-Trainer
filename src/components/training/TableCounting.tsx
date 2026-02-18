@@ -49,7 +49,7 @@ export function TableCounting() {
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
 
-  // How many hands have fully completed (FIX 2: skip prompt until >= 1)
+  // How many hands have fully completed
   const handsCompleted = useRef(0)
 
   // Hard mode: ask every N hands (random 2-5)
@@ -91,12 +91,6 @@ export function TableCounting() {
 
     handsCompleted.current++
     handsSinceLastPrompt.current++
-
-    // FIX 2: Don't prompt on the very first settlement (RC=0 is trivial)
-    if (handsCompleted.current <= 1) {
-      shouldPromptRef.current = false
-      return
-    }
 
     const shouldAsk = difficulty === 'hard'
       ? handsSinceLastPrompt.current >= handsUntilPrompt

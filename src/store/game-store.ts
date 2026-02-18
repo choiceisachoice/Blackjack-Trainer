@@ -19,12 +19,18 @@ const CARD_SLIDE_MS = 800
 const HOLE_FLIP_MS = 600
 /** Pause after hole flip before dealer draws. */
 const POST_FLIP_PAUSE_MS = 800
-/** Per dealer-drawn card: slide (500) + pause (800). */
-const PER_DEALER_CARD_MS = 1100
+/** Per dealer-drawn card: slide + pause. */
+const PER_DEALER_CARD_MS = 800
 /** Final pause after last dealer card before settlement. */
 const POST_DEALER_PAUSE_MS = 1000
-/** Split animation duration. */
-const SPLIT_ANIM_MS = 1600
+/** Split animation: aces (both hands get cards). */
+const SPLIT_ANIM_MS = 2800
+/** Split animation: non-aces (only hand 1 gets card). */
+const SPLIT_ONE_CARD_MS = 2000
+/** Pause after bust card before dealer reveals. */
+const BUST_PAUSE_MS = 1500
+/** Pause after stand/21 before dealer starts. */
+const PRE_DEALER_PAUSE_MS = 1000
 
 /**
  * Calculates the total delay for dealer play animation.
@@ -44,6 +50,49 @@ function clearPendingTimer() {
     clearTimeout(_pendingTimer)
     _pendingTimer = null
   }
+}
+
+/**
+ * Detects advance cards dealt to split hands during advanceIfNeeded.
+ * Returns the cards and number of newly dealt cards beyond actionHandIdx.
+ */
+function getAdvanceInfo(
+  oldState: GameState,
+  newState: GameState,
+  actionHandIdx: number
+): { cards: Card[]; count: number } {
+  const cards: Card[] = []
+  for (let i = actionHandIdx + 1; i < newState.playerHands.length; i++) {
+    const oldLen = oldState.playerHands[i]?.cards.length ?? 0
+    for (let j = oldLen; j < newState.playerHands[i].cards.length; j++) {
+      cards.push(newState.playerHands[i].cards[j])
+    }
+  }
+  return { cards, count: cards.length }
+}
+
+/**
+ * Creates an intermediate GameState without advance cards (hands beyond
+ * actionHandIdx keep their old card count). Used for animation staggering.
+ */
+function stateWithoutAdvanceCards(
+  newState: GameState,
+  oldState: GameState,
+  actionHandIdx: number
+): GameState {
+  const hands = newState.playerHands.map((hand, i) => {
+    if (i <= actionHandIdx) return hand
+    const oldLen = oldState.playerHands[i]?.cards.length ?? 0
+    if (hand.cards.length > oldLen) {
+      return {
+        ...hand,
+        cards: hand.cards.slice(0, oldLen),
+        isStanding: false,
+      }
+    }
+    return hand
+  })
+  return { ...newState, playerHands: hands }
 }
 
 /**
@@ -176,6 +225,8 @@ export interface GameStoreState {
   cardsOnTable: number
   /** True while card deal/flip animations are playing – buttons should be disabled. */
   isAnimating: boolean
+  /** Split animation delays: [hand0CardDelaySec, hand1CardDelaySec] or null. */
+  splitNewCardDelays: [number, number] | null
   /** Optional callback that intercepts newRound(). If set, called instead of the default logic. */
   newRoundInterceptor: (() => void) | null
 }
@@ -226,6 +277,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   cardsInDiscard: 0,
   cardsOnTable: 0,
   isAnimating: false,
+  splitNewCardDelays: null,
   newRoundInterceptor: null,
 
   // ── Actions ──────────────────────────────────────────────────
@@ -475,37 +527,116 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
+    const actionIdx = gameState.currentHandIndex
     const newState = gameEngine.hit(gameState)
-    const currentHand = newState.playerHands[gameState.currentHandIndex]
+    const currentHand = newState.playerHands[actionIdx]
     countingEngine.processCard(currentHand.cards[currentHand.cards.length - 1])
 
+    // Detect advance cards dealt to split hands during advanceIfNeeded
+    const advance = getAdvanceInfo(gameState, newState, actionIdx)
+    advance.cards.forEach(c => countingEngine.processCard(c))
+
     if (newState.phase === 'dealerTurn') {
-      // Compute dealer play + settlement so cards render & animate
+      // Compute dealer play + settlement
       const result = finishRound(
         newState, gameEngine, countingEngine, shoe,
         get().rules.blackjackPayout, get().balance, gameState.insuranceBet
       )
-      // Show hit card + dealer cards now
+      const playerBusted = isBust(newState.playerHands[actionIdx].cards)
+
+      if (advance.count > 0) {
+        // Hit caused bust/21 on split hand → advance dealt to next hand → dealerTurn
+        // Phase 1: Show hit card + intermediate (advance hands keep 1 card)
+        const intermediate = stateWithoutAdvanceCards(newState, gameState, actionIdx)
+        set({
+          gameState: { ...intermediate, phase: 'playerTurn' as const },
+          availableActions: [],
+          remainingInShoe: shoe.remaining(),
+          cardsOnTable: get().cardsOnTable + 1 + advance.count + result.dealerDrawnCards,
+          isAnimating: true,
+        })
+        // Phase 2: After hit card → show advance cards
+        _pendingTimer = setTimeout(() => {
+          set({ gameState: { ...newState, phase: 'playerTurn' as const } })
+          // Phase 3: After advance card + pause → reveal dealer
+          _pendingTimer = setTimeout(() => {
+            set({ gameState: result.gameState })
+            // Phase 4: After dealer animation → settle
+            const dealerDelay = dealerPlayDelay(result.dealerDrawnCards)
+            _pendingTimer = setTimeout(() => {
+              _pendingTimer = null
+              set({
+                balance: result.balance,
+                message: result.message,
+                runningCount: result.runningCount,
+                trueCount: result.trueCount,
+                isShoeEmpty: shoe.cutCardReached(),
+                isAnimating: false,
+              })
+            }, dealerDelay)
+          }, CARD_SLIDE_MS + PRE_DEALER_PAUSE_MS)
+        }, CARD_SLIDE_MS + (playerBusted ? BUST_PAUSE_MS : PRE_DEALER_PAUSE_MS))
+        return
+      }
+
+      // No advance cards — standard flow
+      // Phase 1: Show hit card but keep dealer hidden (phase stays 'playerTurn')
       set({
-        gameState: result.gameState,
+        gameState: { ...newState, phase: 'playerTurn' as const },
         availableActions: [],
         remainingInShoe: shoe.remaining(),
         cardsOnTable: get().cardsOnTable + 1 + result.dealerDrawnCards,
         isAnimating: true,
       })
-      // Wait for hit card animation + dealer play animation
-      const delay = CARD_SLIDE_MS + dealerPlayDelay(result.dealerDrawnCards)
+
+      // Phase 2: After hit card + pause → reveal dealer
+      const playerDelay = CARD_SLIDE_MS + (playerBusted ? BUST_PAUSE_MS : PRE_DEALER_PAUSE_MS)
       _pendingTimer = setTimeout(() => {
-        _pendingTimer = null
-        set({
-          balance: result.balance,
-          message: result.message,
-          runningCount: result.runningCount,
-          trueCount: result.trueCount,
-          isShoeEmpty: shoe.cutCardReached(),
-          isAnimating: false,
-        })
-      }, delay)
+        set({ gameState: result.gameState })
+        // Phase 3: After dealer animation → settle
+        const dealerDelay = playerBusted && result.dealerDrawnCards === 0
+          ? HOLE_FLIP_MS + POST_FLIP_PAUSE_MS
+          : dealerPlayDelay(result.dealerDrawnCards)
+        _pendingTimer = setTimeout(() => {
+          _pendingTimer = null
+          set({
+            balance: result.balance,
+            message: result.message,
+            runningCount: result.runningCount,
+            trueCount: result.trueCount,
+            isShoeEmpty: shoe.cutCardReached(),
+            isAnimating: false,
+          })
+        }, dealerDelay)
+      }, playerDelay)
+      return
+    }
+
+    if (advance.count > 0) {
+      // Hit caused bust/21 → advance dealt card to next split hand → still playing
+      // Phase 1: Show hit card + intermediate (advance hands keep 1 card)
+      const intermediate = stateWithoutAdvanceCards(newState, gameState, actionIdx)
+      set({
+        gameState: intermediate,
+        availableActions: [],
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: get().cardsOnTable + 1 + advance.count,
+        isAnimating: true,
+      })
+      // Phase 2: After hit card → show advance card
+      _pendingTimer = setTimeout(() => {
+        set({ gameState: newState })
+        // Phase 3: After advance card slide → enable actions
+        _pendingTimer = setTimeout(() => {
+          _pendingTimer = null
+          set({
+            runningCount: countingEngine.getRunningCount(),
+            trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+            availableActions: gameEngine.getAvailableActions(newState),
+            isAnimating: false,
+          })
+        }, CARD_SLIDE_MS)
+      }, CARD_SLIDE_MS)
       return
     }
 
@@ -571,35 +702,106 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
+    const actionIdx = gameState.currentHandIndex
     const newState = gameEngine.stand(gameState)
 
+    // Detect advance cards dealt to split hands during advanceIfNeeded
+    const advance = getAdvanceInfo(gameState, newState, actionIdx)
+    advance.cards.forEach(c => countingEngine.processCard(c))
+
     if (newState.phase === 'dealerTurn') {
-      // Compute dealer play + settlement immediately so cards render & animate
+      // Compute dealer play + settlement
       const result = finishRound(
         newState, gameEngine, countingEngine, shoe,
         get().rules.blackjackPayout, get().balance, gameState.insuranceBet
       )
-      // Show dealer cards now (Hand.tsx staggers the animations)
+
+      if (advance.count > 0) {
+        // Stand → advance dealt card to split hand(s) → all done → dealerTurn
+        // Phase 1: Show intermediate (advance hands keep 1 card)
+        const intermediate = stateWithoutAdvanceCards(newState, gameState, actionIdx)
+        set({
+          gameState: intermediate,
+          availableActions: [],
+          isAnimating: true,
+          remainingInShoe: shoe.remaining(),
+          cardsOnTable: get().cardsOnTable + advance.count + result.dealerDrawnCards,
+        })
+        // Phase 2: Show advance cards
+        _pendingTimer = setTimeout(() => {
+          set({ gameState: { ...newState, phase: 'playerTurn' as const } })
+          // Phase 3: After advance card + pause → reveal dealer
+          _pendingTimer = setTimeout(() => {
+            set({ gameState: result.gameState })
+            // Phase 4: After dealer animation → settle
+            _pendingTimer = setTimeout(() => {
+              _pendingTimer = null
+              set({
+                balance: result.balance,
+                message: result.message,
+                runningCount: result.runningCount,
+                trueCount: result.trueCount,
+                isShoeEmpty: shoe.cutCardReached(),
+                isAnimating: false,
+              })
+            }, dealerPlayDelay(result.dealerDrawnCards))
+          }, CARD_SLIDE_MS + PRE_DEALER_PAUSE_MS)
+        }, 300)
+        return
+      }
+
+      // No advance cards — standard dealer play
+      // Phase 1: Keep dealer hidden while pausing
       set({
-        gameState: result.gameState,
         availableActions: [],
         isAnimating: true,
         remainingInShoe: shoe.remaining(),
         cardsOnTable: get().cardsOnTable + result.dealerDrawnCards,
       })
-      // Delay settlement message until animations finish
-      const delay = dealerPlayDelay(result.dealerDrawnCards)
+      // Phase 2: After pause → reveal dealer
       _pendingTimer = setTimeout(() => {
-        _pendingTimer = null
-        set({
-          balance: result.balance,
-          message: result.message,
-          runningCount: result.runningCount,
-          trueCount: result.trueCount,
-          isShoeEmpty: shoe.cutCardReached(),
-          isAnimating: false,
-        })
-      }, delay)
+        set({ gameState: result.gameState })
+        // Phase 3: After dealer animation → settle
+        _pendingTimer = setTimeout(() => {
+          _pendingTimer = null
+          set({
+            balance: result.balance,
+            message: result.message,
+            runningCount: result.runningCount,
+            trueCount: result.trueCount,
+            isShoeEmpty: shoe.cutCardReached(),
+            isAnimating: false,
+          })
+        }, dealerPlayDelay(result.dealerDrawnCards))
+      }, PRE_DEALER_PAUSE_MS)
+      return
+    }
+
+    if (advance.count > 0) {
+      // Stand → advance dealt card to next split hand → still playing
+      // Phase 1: Show intermediate (advance hands keep 1 card)
+      const intermediate = stateWithoutAdvanceCards(newState, gameState, actionIdx)
+      set({
+        gameState: intermediate,
+        availableActions: [],
+        isAnimating: true,
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: get().cardsOnTable + advance.count,
+      })
+      // Phase 2: After brief pause → show advance card
+      _pendingTimer = setTimeout(() => {
+        set({ gameState: newState })
+        // Phase 3: After card slide → enable actions
+        _pendingTimer = setTimeout(() => {
+          _pendingTimer = null
+          set({
+            runningCount: countingEngine.getRunningCount(),
+            trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+            availableActions: gameEngine.getAvailableActions(newState),
+            isAnimating: false,
+          })
+        }, CARD_SLIDE_MS)
+      }, 300)
       return
     }
 
@@ -632,41 +834,117 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
+    const actionIdx = gameState.currentHandIndex
     const newState = gameEngine.double(gameState)
-    const currentHand = newState.playerHands[gameState.currentHandIndex]
+    const currentHand = newState.playerHands[actionIdx]
     countingEngine.processCard(currentHand.cards[currentHand.cards.length - 1])
+
+    // Detect advance cards dealt to split hands during advanceIfNeeded
+    const advance = getAdvanceInfo(gameState, newState, actionIdx)
+    advance.cards.forEach(c => countingEngine.processCard(c))
 
     // Deduct extra bet for the double
     const newBalance = balance - currentBet
 
     if (newState.phase === 'dealerTurn') {
-      const cardsOnTableNow = get().cardsOnTable + 1
+      const cardsOnTableNow = get().cardsOnTable + 1 + advance.count
       const result = finishRound(
         newState, gameEngine, countingEngine, shoe,
         get().rules.blackjackPayout, newBalance, gameState.insuranceBet
       )
-      // Show double card + dealer cards now
+      const playerBusted = isBust(newState.playerHands[actionIdx].cards)
+
+      if (advance.count > 0) {
+        // Double on split hand → advance dealt to next hand → dealerTurn
+        const intermediate = stateWithoutAdvanceCards(newState, gameState, actionIdx)
+        set({
+          gameState: { ...intermediate, phase: 'playerTurn' as const },
+          balance: newBalance,
+          availableActions: [],
+          remainingInShoe: shoe.remaining(),
+          cardsOnTable: cardsOnTableNow + result.dealerDrawnCards,
+          isAnimating: true,
+        })
+        // Phase 2: After double card → show advance cards
+        _pendingTimer = setTimeout(() => {
+          set({ gameState: { ...newState, phase: 'playerTurn' as const } })
+          // Phase 3: After advance card + pause → reveal dealer
+          _pendingTimer = setTimeout(() => {
+            set({ gameState: result.gameState })
+            // Phase 4: After dealer animation → settle
+            _pendingTimer = setTimeout(() => {
+              _pendingTimer = null
+              set({
+                balance: result.balance,
+                message: result.message,
+                runningCount: result.runningCount,
+                trueCount: result.trueCount,
+                isShoeEmpty: shoe.cutCardReached(),
+                isAnimating: false,
+              })
+            }, dealerPlayDelay(result.dealerDrawnCards))
+          }, CARD_SLIDE_MS + PRE_DEALER_PAUSE_MS)
+        }, CARD_SLIDE_MS + (playerBusted ? BUST_PAUSE_MS : PRE_DEALER_PAUSE_MS))
+        return
+      }
+
+      // No advance cards — standard flow
+      // Phase 1: Show double card but keep dealer hidden
       set({
-        gameState: result.gameState,
+        gameState: { ...newState, phase: 'playerTurn' as const },
         balance: newBalance,
         availableActions: [],
         remainingInShoe: shoe.remaining(),
         cardsOnTable: cardsOnTableNow + result.dealerDrawnCards,
         isAnimating: true,
       })
-      // Wait for double card animation + dealer play
-      const delay = CARD_SLIDE_MS + dealerPlayDelay(result.dealerDrawnCards)
+
+      // Phase 2: After double card + pause → reveal dealer
+      const playerDelay = CARD_SLIDE_MS + (playerBusted ? BUST_PAUSE_MS : PRE_DEALER_PAUSE_MS)
       _pendingTimer = setTimeout(() => {
-        _pendingTimer = null
-        set({
-          balance: result.balance,
-          message: result.message,
-          runningCount: result.runningCount,
-          trueCount: result.trueCount,
-          isShoeEmpty: shoe.cutCardReached(),
-          isAnimating: false,
-        })
-      }, delay)
+        set({ gameState: result.gameState })
+        // Phase 3: After dealer animation → settle
+        const dealerDelay = playerBusted && result.dealerDrawnCards === 0
+          ? HOLE_FLIP_MS + POST_FLIP_PAUSE_MS
+          : dealerPlayDelay(result.dealerDrawnCards)
+        _pendingTimer = setTimeout(() => {
+          _pendingTimer = null
+          set({
+            balance: result.balance,
+            message: result.message,
+            runningCount: result.runningCount,
+            trueCount: result.trueCount,
+            isShoeEmpty: shoe.cutCardReached(),
+            isAnimating: false,
+          })
+        }, dealerDelay)
+      }, playerDelay)
+      return
+    }
+
+    if (advance.count > 0) {
+      // Double on split hand → advance dealt to next hand → still playing
+      const intermediate = stateWithoutAdvanceCards(newState, gameState, actionIdx)
+      set({
+        gameState: intermediate,
+        balance: newBalance,
+        availableActions: [],
+        remainingInShoe: shoe.remaining(),
+        cardsOnTable: get().cardsOnTable + 1 + advance.count,
+        isAnimating: true,
+      })
+      _pendingTimer = setTimeout(() => {
+        set({ gameState: newState })
+        _pendingTimer = setTimeout(() => {
+          _pendingTimer = null
+          set({
+            runningCount: countingEngine.getRunningCount(),
+            trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+            availableActions: gameEngine.getAvailableActions(newState),
+            isAnimating: false,
+          })
+        }, CARD_SLIDE_MS)
+      }, CARD_SLIDE_MS)
       return
     }
 
@@ -707,39 +985,52 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const oldIdx = gameState.currentHandIndex
     const newState = gameEngine.split(gameState)
 
-    // Process the 2 newly dealt cards (second card of each split hand)
+    // Detect how many cards were dealt (aces: 2, non-aces: 1 or 2 if hand1→21→advance)
+    const hand2HasCard = newState.playerHands[oldIdx + 1].cards.length >= 2
+    const cardsDealt = hand2HasCard ? 2 : 1
+
+    // Process newly dealt cards for counting
     countingEngine.processCard(newState.playerHands[oldIdx].cards[1])
-    countingEngine.processCard(newState.playerHands[oldIdx + 1].cards[1])
+    if (hand2HasCard) {
+      countingEngine.processCard(newState.playerHands[oldIdx + 1].cards[1])
+    }
 
     // Deduct extra bet for the split hand
     const newBalance = balance - currentBet
+    const splitAnimMs = hand2HasCard ? SPLIT_ANIM_MS : SPLIT_ONE_CARD_MS
 
     if (newState.phase === 'dealerTurn') {
-      const cardsOnTableNow = get().cardsOnTable + 2
+      const cardsOnTableNow = get().cardsOnTable + cardsDealt
       const result = finishRound(
         newState, gameEngine, countingEngine, shoe,
         get().rules.blackjackPayout, newBalance, gameState.insuranceBet
       )
+      // Phase 1: Show split with animation, keep dealer hidden
       set({
-        gameState: result.gameState,
+        gameState: { ...newState, phase: 'playerTurn' as const },
         balance: newBalance,
+        splitNewCardDelays: [1.0, 1.8],
         availableActions: [],
         remainingInShoe: shoe.remaining(),
         cardsOnTable: cardsOnTableNow + result.dealerDrawnCards,
         isAnimating: true,
       })
-      const delay = SPLIT_ANIM_MS + dealerPlayDelay(result.dealerDrawnCards)
+      // Phase 2: After split animation + pause → reveal dealer
       _pendingTimer = setTimeout(() => {
-        _pendingTimer = null
-        set({
-          balance: result.balance,
-          message: result.message,
-          runningCount: result.runningCount,
-          trueCount: result.trueCount,
-          isShoeEmpty: shoe.cutCardReached(),
-          isAnimating: false,
-        })
-      }, delay)
+        set({ gameState: result.gameState, splitNewCardDelays: null })
+        // Phase 3: After dealer animation → settle
+        _pendingTimer = setTimeout(() => {
+          _pendingTimer = null
+          set({
+            balance: result.balance,
+            message: result.message,
+            runningCount: result.runningCount,
+            trueCount: result.trueCount,
+            isShoeEmpty: shoe.cutCardReached(),
+            isAnimating: false,
+          })
+        }, dealerPlayDelay(result.dealerDrawnCards))
+      }, splitAnimMs + PRE_DEALER_PAUSE_MS)
       return
     }
 
@@ -748,18 +1039,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
       balance: newBalance,
       runningCount: countingEngine.getRunningCount(),
       trueCount: countingEngine.getTrueCount(shoe.remainingDecks()),
+      splitNewCardDelays: [1.0, 1.8],
       availableActions: [],
       remainingInShoe: shoe.remaining(),
-      cardsOnTable: get().cardsOnTable + 2,
+      cardsOnTable: get().cardsOnTable + cardsDealt,
       isAnimating: true,
     })
     _pendingTimer = setTimeout(() => {
       _pendingTimer = null
       set({
+        splitNewCardDelays: null,
         availableActions: gameEngine.getAvailableActions(newState),
         isAnimating: false,
       })
-    }, SPLIT_ANIM_MS)
+    }, splitAnimMs)
   },
 
   surrender: () => {

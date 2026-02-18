@@ -154,9 +154,10 @@ describe('GameEngine', () => {
   describe('split', () => {
     it('creates two hands from a pair', () => {
       // Player: 8+8 pair, Dealer: 7+5
+      // Non-aces: hand 1 gets a card immediately, hand 2 waits with 1 card
       const shoe = createCardSource([
         c(Rank.Eight, Suit.Spades), c(Rank.Seven), c(Rank.Eight, Suit.Hearts), c(Rank.Five),
-        c(Rank.King), c(Rank.Queen), // dealt to split hands
+        c(Rank.King), // dealt to hand 1 only
         c(Rank.Three), c(Rank.Four), // extra
       ])
       const engine = new GameEngine(DEFAULT_RULES, shoe)
@@ -165,7 +166,7 @@ describe('GameEngine', () => {
 
       expect(newState.playerHands).toHaveLength(2)
       expect(newState.playerHands[0].cards).toHaveLength(2)
-      expect(newState.playerHands[1].cards).toHaveLength(2)
+      expect(newState.playerHands[1].cards).toHaveLength(1) // deferred: waits for its turn
       expect(newState.playerHands[0].isSplit).toBe(true)
       expect(newState.playerHands[1].isSplit).toBe(true)
       expect(newState.playerHands[0].bet).toBe(10)
@@ -200,9 +201,10 @@ describe('GameEngine', () => {
 
     it('split creates two hands from King + Queen', () => {
       // Player: K+Q, Dealer: 7+5
+      // Non-aces: only hand 1 gets a card, hand 2 keeps original card
       const shoe = createCardSource([
         c(Rank.King), c(Rank.Seven), c(Rank.Queen), c(Rank.Five),
-        c(Rank.Three), c(Rank.Four), // dealt to split hands
+        c(Rank.Three), // dealt to hand 1 only
         c(Rank.Two), c(Rank.Six),
       ])
       const engine = new GameEngine(DEFAULT_RULES, shoe)
@@ -211,7 +213,9 @@ describe('GameEngine', () => {
 
       expect(newState.playerHands).toHaveLength(2)
       expect(newState.playerHands[0].cards[0].rank).toBe(Rank.King)
+      expect(newState.playerHands[0].cards).toHaveLength(2)
       expect(newState.playerHands[1].cards[0].rank).toBe(Rank.Queen)
+      expect(newState.playerHands[1].cards).toHaveLength(1) // deferred
     })
 
     it('not allowed on non-pairs', () => {
@@ -1005,6 +1009,121 @@ describe('GameEngine', () => {
       expect(afterHit.phase).toBe('dealerTurn')
       const actions = engine.getAvailableActions(afterHit)
       expect(actions).toEqual([])
+    })
+  })
+
+  // ── Deferred split dealing ────────────────────────────────────
+  describe('deferred split dealing', () => {
+    it('non-aces split: hand 2 gets card only when it becomes active', () => {
+      // Player: 8♠+8♥ pair, Dealer: 7+5
+      // Split: hand1 = [8♠, K], hand2 = [8♥] (deferred)
+      // Stand hand1 → advance → hand2 = [8♥, Q]
+      const shoe = createCardSource([
+        c(Rank.Eight, Suit.Spades), c(Rank.Seven), c(Rank.Eight, Suit.Hearts), c(Rank.Five),
+        c(Rank.King),   // hand1's second card (during split)
+        c(Rank.Queen),  // hand2's second card (during advance after stand)
+        c(Rank.Three), c(Rank.Four),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterSplit = engine.split(state)
+
+      // After split: hand1 has 2 cards, hand2 has 1 card
+      expect(afterSplit.playerHands[0].cards).toHaveLength(2)
+      expect(afterSplit.playerHands[1].cards).toHaveLength(1)
+      expect(afterSplit.currentHandIndex).toBe(0)
+
+      // Stand on hand1 → advances to hand2, deals card to hand2
+      const afterStand = engine.stand(afterSplit)
+      expect(afterStand.playerHands[1].cards).toHaveLength(2)
+      expect(afterStand.playerHands[1].cards[1].rank).toBe(Rank.Queen)
+      expect(afterStand.currentHandIndex).toBe(1)
+    })
+
+    it('non-aces split: hit cards on hand1 come before hand2 card from shoe', () => {
+      // Player: 5♠+5♥ pair, Dealer: 7+8
+      // Split: hand1 = [5♠, 3], hand2 = [5♥]
+      // Hit hand1: gets 4 → [5,3,4]=12, hit again: 6 → 18, stand
+      // Advance: hand2 gets next card from shoe (after hit cards)
+      const shoe = createCardSource([
+        c(Rank.Five, Suit.Spades), c(Rank.Seven), c(Rank.Five, Suit.Hearts), c(Rank.Eight),
+        c(Rank.Three),  // hand1's split card
+        c(Rank.Four),   // hand1 hit 1
+        c(Rank.Six),    // hand1 hit 2
+        c(Rank.Nine),   // hand2's advance card (after all hand1 hits)
+        c(Rank.Two),    // extra
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterSplit = engine.split(state)
+
+      const hit1 = engine.hit(afterSplit)
+      const hit2 = engine.hit(hit1)
+      const afterStand = engine.stand(hit2)
+
+      // Hand2 gets the 9 (next from shoe after hand1's hits)
+      expect(afterStand.playerHands[1].cards).toHaveLength(2)
+      expect(afterStand.playerHands[1].cards[1].rank).toBe(Rank.Nine)
+    })
+
+    it('non-aces split: hand1 busts → advance deals to hand2', () => {
+      // Player: 10♠+10♥ pair, Dealer: 7+5
+      // Split: hand1 = [10♠, 8]=18, hand2 = [10♥]
+      // Hit hand1: gets 5 → 23 bust
+      // Advance: hand2 gets next card
+      const shoe = createCardSource([
+        c(Rank.Ten, Suit.Spades), c(Rank.Seven), c(Rank.Ten, Suit.Hearts), c(Rank.Five),
+        c(Rank.Eight),  // hand1's split card
+        c(Rank.Five, Suit.Hearts),  // hand1 hit → bust (10+8+5=23)
+        c(Rank.Three),  // hand2's advance card
+        c(Rank.Four),   // extra
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterSplit = engine.split(state)
+      const afterHit = engine.hit(afterSplit) // bust
+
+      expect(afterHit.playerHands[0].isStanding).toBe(true) // busted
+      expect(afterHit.playerHands[1].cards).toHaveLength(2)
+      expect(afterHit.playerHands[1].cards[1].rank).toBe(Rank.Three)
+      expect(afterHit.currentHandIndex).toBe(1)
+    })
+
+    it('non-aces split: hand1 21 auto-stand → hand2 gets card during split advance', () => {
+      // Player: J♠+J♥ pair, Dealer: 7+8
+      // Split: hand1 = [J♠, A]=21 → auto-stand
+      // advanceIfNeeded: hand2 = [J♥, 3]=13
+      const shoe = createCardSource([
+        c(Rank.Jack, Suit.Spades), c(Rank.Seven), c(Rank.Jack, Suit.Hearts), c(Rank.Eight),
+        c(Rank.Ace),    // hand1's split card → J+A=21
+        c(Rank.Three),  // hand2's advance card
+        c(Rank.Four), c(Rank.Five),
+      ])
+      const engine = new GameEngine(DEFAULT_RULES, shoe)
+      const state = engine.startRound(10)
+      const afterSplit = engine.split(state)
+
+      expect(afterSplit.playerHands[0].isStanding).toBe(true)  // J+A=21
+      expect(afterSplit.playerHands[1].cards).toHaveLength(2)   // got card during advance
+      expect(afterSplit.playerHands[1].isStanding).toBe(false)  // J+3=13
+      expect(afterSplit.currentHandIndex).toBe(1)
+    })
+
+    it('split aces: both hands get cards immediately (unchanged)', () => {
+      const rules: CasinoRules = { ...DEFAULT_RULES, hitSplitAces: false }
+      const shoe = createCardSource([
+        c(Rank.Ace, Suit.Spades), c(Rank.Seven), c(Rank.Ace, Suit.Hearts), c(Rank.Five),
+        c(Rank.King), c(Rank.Queen),
+      ])
+      const engine = new GameEngine(rules, shoe)
+      const state = engine.startRound(10)
+      const newState = engine.split(state)
+
+      expect(newState.playerHands[0].cards).toHaveLength(2)
+      expect(newState.playerHands[1].cards).toHaveLength(2)
+      expect(newState.playerHands[0].isStanding).toBe(true)
+      expect(newState.playerHands[1].isStanding).toBe(true)
+      expect(newState.phase).toBe('dealerTurn')
     })
   })
 })

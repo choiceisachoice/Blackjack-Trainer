@@ -185,7 +185,11 @@ export class GameEngine {
     const autoStand = isAces && !this.rules.hitSplitAces
 
     const hand1Cards = [current.cards[0], state.shoe.deal()]
-    const hand2Cards = [current.cards[1], state.shoe.deal()]
+    // Non-aces: hand 2 waits with 1 card until it becomes active.
+    // Aces with autoStand: both hands get cards immediately (standard casino rule).
+    const hand2Cards = autoStand
+      ? [current.cards[1], state.shoe.deal()]
+      : [current.cards[1]]
 
     const hand1: Hand = {
       cards: hand1Cards,
@@ -199,7 +203,7 @@ export class GameEngine {
       bet: current.bet,
       isDoubled: false,
       isSplit: true,
-      isStanding: autoStand || getHandValue(hand2Cards).best === 21,
+      isStanding: autoStand,
     }
 
     const newPlayerHands = [
@@ -443,14 +447,32 @@ export class GameEngine {
       return state
     }
 
+    let updatedState = state
+
     // Find the next hand that isn't standing
-    for (let i = state.currentHandIndex + 1; i < state.playerHands.length; i++) {
-      if (!state.playerHands[i].isStanding) {
-        return { ...state, currentHandIndex: i }
+    for (let i = state.currentHandIndex + 1; i < updatedState.playerHands.length; i++) {
+      let hand = updatedState.playerHands[i]
+
+      // Deal card to 1-card split hand when it becomes active
+      if (hand.isSplit && hand.cards.length === 1) {
+        const card = updatedState.shoe.deal()
+        const newCards = [...hand.cards, card]
+        hand = {
+          ...hand,
+          cards: newCards,
+          isStanding: getHandValue(newCards).best === 21,
+        }
+        const newHands = [...updatedState.playerHands]
+        newHands[i] = hand
+        updatedState = { ...updatedState, playerHands: newHands }
+      }
+
+      if (!hand.isStanding) {
+        return { ...updatedState, currentHandIndex: i }
       }
     }
 
     // All hands done → move to dealer turn
-    return { ...state, phase: 'dealerTurn' }
+    return { ...updatedState, phase: 'dealerTurn' }
   }
 }

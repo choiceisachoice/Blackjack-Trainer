@@ -97,7 +97,7 @@ describe('TableCounting', () => {
     expect(screen.queryByText('What is the Running Count?')).not.toBeInTheDocument()
   })
 
-  it('first hand settles without count prompt, prompt appears after second hand via New Round', () => {
+  it('first hand settles, prompt appears after clicking New Round', () => {
     render(<TableCounting />)
     fireEvent.click(screen.getByTestId('start-playing'))
     act(() => { vi.advanceTimersByTime(100) })
@@ -106,22 +106,10 @@ describe('TableCounting', () => {
     const settled1 = playOneHand()
     if (!settled1) return
 
-    // After first settlement: NO prompt should appear automatically
+    // After settlement: NO prompt should appear automatically
     expect(screen.queryByText('What is the Running Count?')).not.toBeInTheDocument()
 
-    // Click New Round — should proceed directly (no prompt for first hand)
-    // Wrap in act() so React effects (interceptor re-registration) fire
-    act(() => { useGameStore.getState().newRound() })
-    act(() => { vi.advanceTimersByTime(100) })
-
-    // Play second hand
-    const settled2 = playOneHand()
-    if (!settled2) return
-
-    // After second settlement: still no prompt until player clicks New Round
-    expect(screen.queryByText('What is the Running Count?')).not.toBeInTheDocument()
-
-    // NOW click New Round — prompt should appear
+    // Click New Round — prompt should appear after first hand
     act(() => { useGameStore.getState().newRound() })
     act(() => { vi.advanceTimersByTime(100) })
 
@@ -133,12 +121,7 @@ describe('TableCounting', () => {
     fireEvent.click(screen.getByTestId('start-playing'))
     act(() => { vi.advanceTimersByTime(100) })
 
-    // Play first hand (no prompt)
-    if (!playOneHand()) return
-    act(() => { useGameStore.getState().newRound() })
-    act(() => { vi.advanceTimersByTime(100) })
-
-    // Play second hand
+    // Play first hand
     if (!playOneHand()) return
 
     // Trigger prompt via New Round
@@ -160,12 +143,7 @@ describe('TableCounting', () => {
     fireEvent.click(screen.getByTestId('start-playing'))
     act(() => { vi.advanceTimersByTime(100) })
 
-    // Play first hand (no prompt)
-    if (!playOneHand()) return
-    act(() => { useGameStore.getState().newRound() })
-    act(() => { vi.advanceTimersByTime(100) })
-
-    // Play second hand
+    // Play first hand
     if (!playOneHand()) return
 
     // Trigger prompt

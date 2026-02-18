@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useState, useEffect, useRef } from 'react'
+import { memo, useState, useEffect, useRef } from 'react'
 import type { Card } from '../../types'
 import { Suit } from '../../types'
 
@@ -22,8 +22,6 @@ interface PlayingCardProps {
   delay?: number
   /** Whether this card belongs to the dealer hand (affects slide direction). */
   isDealer?: boolean
-  /** Count value badge for easy mode (e.g. +1, -1, 0). Shown when defined. */
-  countValue?: number
 }
 
 /**
@@ -33,13 +31,12 @@ interface PlayingCardProps {
  * to its target position, then flips from face-down to face-up.
  * The dealer hole card stays face-down until revealed.
  */
-export function PlayingCard({
+export const PlayingCard = memo(function PlayingCard({
   card,
   faceDown = false,
   animateIn = false,
   delay = 0,
   isDealer = false,
-  countValue,
 }: PlayingCardProps) {
   const isRed = card.suit === Suit.Hearts || card.suit === Suit.Diamonds
   const suitSymbol = SUIT_SYMBOL[card.suit]
@@ -73,7 +70,7 @@ export function PlayingCard({
       animate={{ x: 0, y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut', delay }}
       onAnimationComplete={() => {
-        if (animateIn && !canFlip) setCanFlip(true)
+        if (!canFlip) setCanFlip(true)
       }}
     >
       <motion.div
@@ -125,14 +122,6 @@ export function PlayingCard({
         </div>
       </motion.div>
 
-      {/* Count value badge (easy mode) */}
-      {countValue !== undefined && !faceDown && canFlip && (
-        <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full text-xs font-bold
-          flex items-center justify-center shadow-md z-10
-          ${countValue > 0 ? 'bg-success text-white' : countValue < 0 ? 'bg-error text-white' : 'bg-white/30 text-white/80'}`}>
-          {countValue > 0 ? `+${countValue}` : countValue}
-        </div>
-      )}
     </motion.div>
   )
-}
+})

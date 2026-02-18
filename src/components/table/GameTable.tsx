@@ -29,6 +29,7 @@ export function GameTable({ getCardCountValue }: GameTableProps = {}) {
   const gameState = useGameStore(s => s.gameState)
   const initGame = useGameStore(s => s.initGame)
   const currentBet = useGameStore(s => s.currentBet)
+  const splitNewCardDelays = useGameStore(s => s.splitNewCardDelays)
 
   useKeyboardShortcuts()
 
@@ -89,20 +90,30 @@ export function GameTable({ getCardCountValue }: GameTableProps = {}) {
           {gameState && gameState.playerHands.length > 0 ? (
             <LayoutGroup>
               <div className="flex gap-4 md:gap-8 flex-wrap justify-center">
-                {gameState.playerHands.map((hand, i) => (
-                  <motion.div
-                    key={`hand-${i}`}
-                    layout
-                    transition={{ type: 'spring', stiffness: 200, damping: 25, duration: 0.6 }}
-                  >
-                    <Hand
-                      cards={hand.cards}
-                      label={gameState.playerHands.length > 1 ? `Hand ${i + 1}` : undefined}
-                      isActive={gameState.currentHandIndex === i && isPlayerTurn}
-                      countValues={getCardCountValue ? hand.cards.map(getCardCountValue) : undefined}
-                    />
-                  </motion.div>
-                ))}
+                {gameState.playerHands.map((hand, i) => {
+                  const isSplit = gameState.playerHands.length > 1
+                  const isHandActive = gameState.currentHandIndex === i && isPlayerTurn
+                  return (
+                    <motion.div
+                      key={`hand-${i}`}
+                      layout
+                      transition={{ type: 'spring', stiffness: 120, damping: 20, duration: 0.8 }}
+                      className={isSplit
+                        ? isHandActive
+                          ? 'ring-2 ring-gold rounded-xl p-2'
+                          : 'opacity-50 p-2'
+                        : ''}
+                    >
+                      <Hand
+                        cards={hand.cards}
+                        label={isSplit ? `Hand ${i + 1}` : undefined}
+                        isActive={isHandActive}
+                        countValues={getCardCountValue ? hand.cards.map(getCardCountValue) : undefined}
+                        splitNewCardDelay={splitNewCardDelays?.[i]}
+                      />
+                    </motion.div>
+                  )
+                })}
               </div>
             </LayoutGroup>
           ) : (

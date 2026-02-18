@@ -172,6 +172,8 @@ describe('Game Store', () => {
 
     store.double()
 
+    vi.advanceTimersByTime(10000)
+
     const stateAfterDouble = useGameStore.getState()
     // Player hand should have exactly one more card
     expect(stateAfterDouble.gameState!.playerHands[0].cards.length).toBe(cardsBefore + 1)
