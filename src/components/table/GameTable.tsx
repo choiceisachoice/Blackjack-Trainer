@@ -33,7 +33,7 @@ export function GameTable() {
   const hideDealer = isPlayerTurn
 
   return (
-    <div className="h-screen flex flex-col bg-casino-bg overflow-hidden">
+    <div className="h-full flex flex-col bg-casino-bg overflow-hidden">
       {/* Top bar */}
       <div className="flex justify-between items-start px-4 py-3">
         <BalanceDisplay />
