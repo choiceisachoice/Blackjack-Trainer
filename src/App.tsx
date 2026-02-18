@@ -7,19 +7,7 @@ import { SpeedDrill } from './components/training/SpeedDrill'
 import { TableCounting } from './components/training/TableCounting'
 import { DeviationTraining } from './components/training/DeviationTraining'
 import { BetSpread } from './components/training/BetSpread'
-
-/**
- * Placeholder screen for training modes not yet implemented.
- */
-function ComingSoon({ name }: { name: string }) {
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-4">
-      <span className="text-5xl">🚧</span>
-      <h2 className="text-2xl font-bold text-white">{name}</h2>
-      <p className="text-white/50">Coming soon</p>
-    </div>
-  )
-}
+import { DeckEstimation } from './components/training/DeckEstimation'
 
 /**
  * Root application component.
@@ -39,7 +27,7 @@ function App() {
       {currentMode === 'tableCounting' && <TableCounting />}
       {currentMode === 'deviationTraining' && <DeviationTraining />}
       {currentMode === 'betSpread' && <BetSpread />}
-      {currentMode === 'deckEstimation' && <ComingSoon name="Deck Estimation" />}
+      {currentMode === 'deckEstimation' && <DeckEstimation />}
     </div>
   )
 }
