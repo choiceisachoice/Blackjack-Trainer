@@ -8,6 +8,7 @@ import { TableCounting } from './components/training/TableCounting'
 import { DeviationTraining } from './components/training/DeviationTraining'
 import { BetSpread } from './components/training/BetSpread'
 import { DeckEstimation } from './components/training/DeckEstimation'
+import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard'
 
 /**
  * Root application component.
@@ -21,13 +22,14 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-casino-bg overflow-hidden">
+    <div className={`h-screen flex flex-col bg-casino-bg ${currentMode === 'analytics' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <TopBar />
       {currentMode === 'speedDrill' && <SpeedDrill />}
       {currentMode === 'tableCounting' && <TableCounting />}
       {currentMode === 'deviationTraining' && <DeviationTraining />}
       {currentMode === 'betSpread' && <BetSpread />}
       {currentMode === 'deckEstimation' && <DeckEstimation />}
+      {currentMode === 'analytics' && <AnalyticsDashboard />}
     </div>
   )
 }

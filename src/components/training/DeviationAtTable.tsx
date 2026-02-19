@@ -5,7 +5,7 @@ import { useSessionSave } from '../../hooks/useSessionSave'
 import { findMatchingDeviation } from '../../engine/counting/deviations'
 import { getHandValue } from '../../engine/rules/hand-utils'
 import { GameTable } from '../table/GameTable'
-import { ACTION_LABEL, getDeviations, ALL_ACTIONS, formatTC } from './deviation-utils'
+import { ACTION_LABEL, getDeviations, ALL_ACTIONS, formatTC, getBasicAction, isReversedDeviation, getDeviationAction as getDevAction } from './deviation-utils'
 import type { DeviationSet } from './deviation-utils'
 import type { Deviation } from '../../engine/counting/types'
 import { Action } from '../../engine/rules/types'
@@ -215,20 +215,17 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
       setCurrentStreak(0)
     }
 
-    // Sync stats ref for session save
-    const newTotal = deviationsTotal + 1
-    const newCorrect = deviationsCorrect + (bothCorrect ? 1 : 0)
-    const newBestStreak = bothCorrect
-      ? Math.max(bestStreak, currentStreak + 1)
-      : bestStreak
+    // Sync stats ref for session save (accumulate on ref to include trap answers)
     statsRef.current = {
-      totalQuestions: newTotal,
-      correctAnswers: newCorrect,
-      bestStreak: newBestStreak,
+      totalQuestions: statsRef.current.totalQuestions + 1,
+      correctAnswers: statsRef.current.correctAnswers + (bothCorrect ? 1 : 0),
+      bestStreak: bothCorrect
+        ? Math.max(statsRef.current.bestStreak, currentStreak + 1)
+        : statsRef.current.bestStreak,
     }
 
     setOverlayPhase('feedback')
-  }, [activeDeviation, trueCount, tcAnswer, selectedAction, deviationsTotal, deviationsCorrect, bestStreak, currentStreak, statsRef])
+  }, [activeDeviation, trueCount, tcAnswer, selectedAction, currentStreak, statsRef])
 
   const handleTrapAnswer = useCallback((answer: boolean) => {
     setTrapAnswer(answer)
@@ -245,8 +242,17 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
       setCurrentStreak(0)
     }
 
+    // Sync stats ref for session save (trap counts as a question)
+    statsRef.current = {
+      totalQuestions: statsRef.current.totalQuestions + 1,
+      correctAnswers: statsRef.current.correctAnswers + (correct ? 1 : 0),
+      bestStreak: correct
+        ? Math.max(statsRef.current.bestStreak, currentStreak + 1)
+        : statsRef.current.bestStreak,
+    }
+
     setOverlayPhase('feedback')
-  }, [])
+  }, [currentStreak, statsRef])
 
   const handleDismiss = useCallback(() => {
     setOverlayPhase('none')
@@ -500,8 +506,8 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
 
                   {/* Rule explanation */}
                   <p className="text-white/40 text-xs" data-testid="deviation-rule">
-                    {activeDeviation.isIllustrious18 ? 'I18' : 'Fab 4'}: {activeDeviation.name} → {ACTION_LABEL[activeDeviation.actionAbove]} at TC ≥ {formatTC(activeDeviation.trueCountThreshold)}
-                    {' '}(instead of {ACTION_LABEL[activeDeviation.actionBelow]})
+                    {activeDeviation.isIllustrious18 ? 'I18' : 'Fab 4'}: {activeDeviation.name} → {ACTION_LABEL[getDevAction(activeDeviation)]} at TC {isReversedDeviation(activeDeviation) ? '<' : '\u2265'} {formatTC(activeDeviation.trueCountThreshold)}
+                    {' '}(instead of {ACTION_LABEL[getBasicAction(activeDeviation)]})
                   </p>
                 </div>
               </>

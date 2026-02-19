@@ -11,6 +11,7 @@ export type AppMode =
   | 'deviationTraining'
   | 'betSpread'
   | 'deckEstimation'
+  | 'analytics'
 
 /** App-level state for navigation and global settings. */
 export interface AppStoreState {

@@ -169,18 +169,18 @@ export const ILLUSTRIOUS_18: Deviation[] = [
     isIllustrious18: true,
     isFab4: false,
   },
-  // 14. 13 vs 2: TC >= -1 → Hit (instead of Stand)
+  // 14. 13 vs 2: BS = Stand, but Hit at TC < -1 (reversed)
   {
     name: '13 vs 2',
     playerHand: '13',
     dealerUpcard: '2',
     trueCountThreshold: -1,
-    actionAbove: Action.Hit,
-    actionBelow: Action.Stand,
+    actionAbove: Action.Stand,
+    actionBelow: Action.Hit,
     isIllustrious18: true,
     isFab4: false,
   },
-  // 15. 12 vs 4: TC >= 0 → Stand (confirms BS)
+  // 15. 12 vs 4: BS = Stand, but Hit at TC < 0 (reversed)
   {
     name: '12 vs 4',
     playerHand: '12',
@@ -191,36 +191,36 @@ export const ILLUSTRIOUS_18: Deviation[] = [
     isIllustrious18: true,
     isFab4: false,
   },
-  // 16. 12 vs 5: TC >= -2 → Hit (instead of Stand)
+  // 16. 12 vs 5: BS = Stand, but Hit at TC < -2 (reversed)
   {
     name: '12 vs 5',
     playerHand: '12',
     dealerUpcard: '5',
     trueCountThreshold: -2,
-    actionAbove: Action.Hit,
-    actionBelow: Action.Stand,
+    actionAbove: Action.Stand,
+    actionBelow: Action.Hit,
     isIllustrious18: true,
     isFab4: false,
   },
-  // 17. 12 vs 6: TC >= -1 → Hit (instead of Stand)
+  // 17. 12 vs 6: BS = Stand, but Hit at TC < -1 (reversed)
   {
     name: '12 vs 6',
     playerHand: '12',
     dealerUpcard: '6',
     trueCountThreshold: -1,
-    actionAbove: Action.Hit,
-    actionBelow: Action.Stand,
+    actionAbove: Action.Stand,
+    actionBelow: Action.Hit,
     isIllustrious18: true,
     isFab4: false,
   },
-  // 18. 13 vs 3: TC >= -2 → Hit (instead of Stand)
+  // 18. 13 vs 3: BS = Stand, but Hit at TC < -2 (reversed)
   {
     name: '13 vs 3',
     playerHand: '13',
     dealerUpcard: '3',
     trueCountThreshold: -2,
-    actionAbove: Action.Hit,
-    actionBelow: Action.Stand,
+    actionAbove: Action.Stand,
+    actionBelow: Action.Hit,
     isIllustrious18: true,
     isFab4: false,
   },

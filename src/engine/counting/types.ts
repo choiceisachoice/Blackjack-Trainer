@@ -56,7 +56,10 @@ export interface CountingState {
 /**
  * A strategy deviation that overrides Basic Strategy at a specific true count.
  *
- * When True Count ≥ threshold → use actionAbove instead of actionBelow (Basic Strategy).
+ * - Standard deviations (I18 #1-13, Fab 4): at TC ≥ threshold, deviate from BS.
+ *   actionAbove = deviation action, actionBelow = basic strategy action.
+ * - Reversed deviations (I18 #14-18): at TC < threshold, deviate from BS.
+ *   actionAbove = basic strategy action (Stand), actionBelow = deviation action (Hit).
  */
 export interface Deviation {
   /** Descriptive name (e.g. "Insurance", "16 vs 10"). */
@@ -67,9 +70,9 @@ export interface Deviation {
   dealerUpcard: string
   /** True count threshold for the deviation. */
   trueCountThreshold: number
-  /** Action to take when TC ≥ threshold (deviation from Basic Strategy). */
+  /** Action to take when TC ≥ threshold. */
   actionAbove: Action
-  /** Action to take when TC < threshold (Basic Strategy action). */
+  /** Action to take when TC < threshold. */
   actionBelow: Action
   /** Whether this deviation is part of the Illustrious 18. */
   isIllustrious18: boolean

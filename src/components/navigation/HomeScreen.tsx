@@ -78,6 +78,22 @@ export function HomeScreen() {
         ))}
       </div>
 
+      {/* Analytics Button */}
+      <button
+        onClick={() => setMode('analytics')}
+        data-testid="analytics-button"
+        className="group w-full max-w-4xl flex items-center gap-4 p-4 rounded-xl mb-12
+          bg-white/5 border border-gold/30
+          hover:border-gold/60 hover:bg-white/8
+          transition-all duration-200 text-left cursor-pointer"
+      >
+        <span className="text-2xl">{'\uD83D\uDCCA'}</span>
+        <div>
+          <h2 className="text-base font-semibold text-gold">Analytics</h2>
+          <p className="text-sm text-white/50">View your training stats, trends, and progress</p>
+        </div>
+      </button>
+
       {/* System Selector */}
       <div className="flex items-center gap-3">
         <label htmlFor="system-select" className="text-sm text-white/60">

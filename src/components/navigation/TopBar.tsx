@@ -7,6 +7,7 @@ const MODE_LABELS: Record<string, string> = {
   deviationTraining: 'Deviation Training',
   betSpread: 'Bet Spread',
   deckEstimation: 'Deck Estimation',
+  analytics: 'Analytics',
 }
 
 /**

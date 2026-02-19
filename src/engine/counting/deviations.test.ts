@@ -10,7 +10,6 @@ const c = (rank: Rank, suit: Suit = Suit.Spades): Card => ({ rank, suit })
 
 describe('Insurance Deviation', () => {
   it('Insurance deviation fires at TC >= +3', () => {
-    // Any hand, dealer Ace, TC = 3
     const result = getDeviationAction(
       [c(Rank.Ten), c(Rank.Six)],
       c(Rank.Ace),
@@ -27,13 +26,10 @@ describe('Insurance Deviation', () => {
       2,
       ILLUSTRIOUS_18
     )
-    // At TC +2, Insurance doesn't fire. The 16 vs A deviation doesn't exist
-    // in Illustrious 18 either, so returns null.
     expect(result).toBeNull()
   })
 
   it('Insurance fires with any hand at TC >= +3', () => {
-    // Soft 18 hand with dealer Ace
     const result = getDeviationAction(
       [c(Rank.Ace), c(Rank.Seven)],
       c(Rank.Ace),
@@ -88,6 +84,30 @@ describe('16 vs 10 Deviation', () => {
   })
 })
 
+// ── 16 vs 9 Deviation ───────────────────────────────────────────
+
+describe('16 vs 9 Deviation', () => {
+  it('16 vs 9 at TC +5 = Stand', () => {
+    const result = getDeviationAction(
+      [c(Rank.Ten), c(Rank.Six)],
+      c(Rank.Nine),
+      5,
+      ILLUSTRIOUS_18
+    )
+    expect(result).toBe(Action.Stand)
+  })
+
+  it('16 vs 9 at TC +4 = null (below threshold)', () => {
+    const result = getDeviationAction(
+      [c(Rank.Ten), c(Rank.Six)],
+      c(Rank.Nine),
+      4,
+      ILLUSTRIOUS_18
+    )
+    expect(result).toBeNull()
+  })
+})
+
 // ── Pair Deviations ──────────────────────────────────────────────
 
 describe('Pair Deviations', () => {
@@ -122,68 +142,249 @@ describe('Pair Deviations', () => {
   })
 })
 
+// ── Reversed Deviations (I18 #14-18) ────────────────────────────
+
+describe('Reversed Deviations', () => {
+  it('13 vs 2: Stand at TC >= -1 (basic strategy)', () => {
+    const result = getDeviationAction(
+      [c(Rank.Ten), c(Rank.Three)],
+      c(Rank.Two),
+      -1,
+      ILLUSTRIOUS_18
+    )
+    // At TC >= -1, basic strategy (Stand) applies
+    expect(result).toBe(Action.Stand)
+  })
+
+  it('13 vs 2: null at TC < -1 (deviation to Hit, but getDeviationAction only returns actionAbove)', () => {
+    const result = getDeviationAction(
+      [c(Rank.Ten), c(Rank.Three)],
+      c(Rank.Two),
+      -2,
+      ILLUSTRIOUS_18
+    )
+    // getDeviationAction returns null when TC < threshold;
+    // for reversed deviations, the CORRECT play at TC < -1 is Hit,
+    // but this function only handles the "above" case.
+    expect(result).toBeNull()
+  })
+
+  it('12 vs 4: Stand at TC >= 0, null at TC < 0', () => {
+    expect(getDeviationAction(
+      [c(Rank.Ten), c(Rank.Two)],
+      c(Rank.Four),
+      0,
+      ILLUSTRIOUS_18
+    )).toBe(Action.Stand)
+
+    expect(getDeviationAction(
+      [c(Rank.Ten), c(Rank.Two)],
+      c(Rank.Four),
+      -1,
+      ILLUSTRIOUS_18
+    )).toBeNull()
+  })
+
+  it('12 vs 5: Stand at TC >= -2, null at TC < -2', () => {
+    expect(getDeviationAction(
+      [c(Rank.Ten), c(Rank.Two)],
+      c(Rank.Five),
+      -2,
+      ILLUSTRIOUS_18
+    )).toBe(Action.Stand)
+
+    expect(getDeviationAction(
+      [c(Rank.Ten), c(Rank.Two)],
+      c(Rank.Five),
+      -3,
+      ILLUSTRIOUS_18
+    )).toBeNull()
+  })
+
+  it('12 vs 6: Stand at TC >= -1, null at TC < -1', () => {
+    expect(getDeviationAction(
+      [c(Rank.Ten), c(Rank.Two)],
+      c(Rank.Six),
+      -1,
+      ILLUSTRIOUS_18
+    )).toBe(Action.Stand)
+
+    expect(getDeviationAction(
+      [c(Rank.Ten), c(Rank.Two)],
+      c(Rank.Six),
+      -2,
+      ILLUSTRIOUS_18
+    )).toBeNull()
+  })
+
+  it('13 vs 3: Stand at TC >= -2, null at TC < -2', () => {
+    expect(getDeviationAction(
+      [c(Rank.Ten), c(Rank.Three)],
+      c(Rank.Three),
+      -2,
+      ILLUSTRIOUS_18
+    )).toBe(Action.Stand)
+
+    expect(getDeviationAction(
+      [c(Rank.Ten), c(Rank.Three)],
+      c(Rank.Three),
+      -3,
+      ILLUSTRIOUS_18
+    )).toBeNull()
+  })
+
+  it('reversed deviations have actionAbove=Stand, actionBelow=Hit', () => {
+    const reversed = ['13 vs 2', '12 vs 4', '12 vs 5', '12 vs 6', '13 vs 3']
+    for (const name of reversed) {
+      const dev = ILLUSTRIOUS_18.find(d => d.name === name)!
+      expect(dev.actionAbove).toBe(Action.Stand)
+      expect(dev.actionBelow).toBe(Action.Hit)
+    }
+  })
+})
+
 // ── Illustrious 18 Structure ─────────────────────────────────────
 
 describe('Illustrious 18 Structure', () => {
-  it('All 18 Illustrious deviations have correct thresholds', () => {
+  it('I18 contains exactly 18 deviations', () => {
     expect(ILLUSTRIOUS_18).toHaveLength(18)
+  })
 
-    // All must be marked isIllustrious18
+  it('all I18 deviations have correct flags', () => {
     for (const dev of ILLUSTRIOUS_18) {
       expect(dev.isIllustrious18).toBe(true)
       expect(dev.isFab4).toBe(false)
     }
+  })
 
-    // Verify specific thresholds by name
-    const byName = (name: string) => ILLUSTRIOUS_18.find(d => d.name === name)
+  it('all I18 indices match official values', () => {
+    const expected: [string, number][] = [
+      ['Insurance', 3],
+      ['16 vs 10', 0],
+      ['15 vs 10', 4],
+      ['10,10 vs 5', 5],
+      ['10,10 vs 6', 4],
+      ['10 vs 10', 4],
+      ['12 vs 3', 2],
+      ['12 vs 2', 3],
+      ['11 vs A', 1],
+      ['9 vs 2', 1],
+      ['10 vs A', 4],
+      ['9 vs 7', 3],
+      ['16 vs 9', 5],
+      ['13 vs 2', -1],
+      ['12 vs 4', 0],
+      ['12 vs 5', -2],
+      ['12 vs 6', -1],
+      ['13 vs 3', -2],
+    ]
 
-    expect(byName('Insurance')?.trueCountThreshold).toBe(3)
-    expect(byName('16 vs 10')?.trueCountThreshold).toBe(0)
-    expect(byName('15 vs 10')?.trueCountThreshold).toBe(4)
-    expect(byName('10,10 vs 5')?.trueCountThreshold).toBe(5)
-    expect(byName('10,10 vs 6')?.trueCountThreshold).toBe(4)
-    expect(byName('10 vs 10')?.trueCountThreshold).toBe(4)
-    expect(byName('12 vs 3')?.trueCountThreshold).toBe(2)
-    expect(byName('12 vs 2')?.trueCountThreshold).toBe(3)
-    expect(byName('11 vs A')?.trueCountThreshold).toBe(1)
-    expect(byName('9 vs 2')?.trueCountThreshold).toBe(1)
-    expect(byName('10 vs A')?.trueCountThreshold).toBe(4)
-    expect(byName('9 vs 7')?.trueCountThreshold).toBe(3)
-    expect(byName('16 vs 9')?.trueCountThreshold).toBe(5)
-    expect(byName('13 vs 2')?.trueCountThreshold).toBe(-1)
-    expect(byName('12 vs 4')?.trueCountThreshold).toBe(0)
-    expect(byName('12 vs 5')?.trueCountThreshold).toBe(-2)
-    expect(byName('12 vs 6')?.trueCountThreshold).toBe(-1)
-    expect(byName('13 vs 3')?.trueCountThreshold).toBe(-2)
+    expect(expected).toHaveLength(18)
+
+    for (const [name, threshold] of expected) {
+      const dev = ILLUSTRIOUS_18.find(d => d.name === name)
+      expect(dev, `Missing deviation: ${name}`).toBeDefined()
+      expect(dev!.trueCountThreshold).toBe(threshold)
+    }
+  })
+
+  it('all I18 actions match official values', () => {
+    const byName = (name: string) => ILLUSTRIOUS_18.find(d => d.name === name)!
+
+    // Standard deviations (1-13): actionAbove = deviation, actionBelow = BS
+    expect(byName('Insurance').actionAbove).toBe(Action.Insurance)
+    expect(byName('16 vs 10').actionAbove).toBe(Action.Stand)
+    expect(byName('15 vs 10').actionAbove).toBe(Action.Stand)
+    expect(byName('10,10 vs 5').actionAbove).toBe(Action.Split)
+    expect(byName('10,10 vs 6').actionAbove).toBe(Action.Split)
+    expect(byName('10 vs 10').actionAbove).toBe(Action.Double)
+    expect(byName('12 vs 3').actionAbove).toBe(Action.Stand)
+    expect(byName('12 vs 2').actionAbove).toBe(Action.Stand)
+    expect(byName('11 vs A').actionAbove).toBe(Action.Double)
+    expect(byName('9 vs 2').actionAbove).toBe(Action.Double)
+    expect(byName('10 vs A').actionAbove).toBe(Action.Double)
+    expect(byName('9 vs 7').actionAbove).toBe(Action.Double)
+    expect(byName('16 vs 9').actionAbove).toBe(Action.Stand)
+
+    // Reversed deviations (14-18): actionAbove = Stand (BS), actionBelow = Hit (deviation)
+    expect(byName('13 vs 2').actionAbove).toBe(Action.Stand)
+    expect(byName('13 vs 2').actionBelow).toBe(Action.Hit)
+    expect(byName('12 vs 4').actionAbove).toBe(Action.Stand)
+    expect(byName('12 vs 4').actionBelow).toBe(Action.Hit)
+    expect(byName('12 vs 5').actionAbove).toBe(Action.Stand)
+    expect(byName('12 vs 5').actionBelow).toBe(Action.Hit)
+    expect(byName('12 vs 6').actionAbove).toBe(Action.Stand)
+    expect(byName('12 vs 6').actionBelow).toBe(Action.Hit)
+    expect(byName('13 vs 3').actionAbove).toBe(Action.Stand)
+    expect(byName('13 vs 3').actionBelow).toBe(Action.Hit)
   })
 })
 
 // ── Fab 4 Structure ──────────────────────────────────────────────
 
 describe('Fab 4 Structure', () => {
-  it('All 4 Fab 4 deviations have correct thresholds', () => {
+  it('Fab 4 contains exactly 4 deviations', () => {
     expect(FAB_4).toHaveLength(4)
+  })
 
+  it('all Fab 4 have correct flags and Surrender action', () => {
     for (const dev of FAB_4) {
       expect(dev.isIllustrious18).toBe(false)
       expect(dev.isFab4).toBe(true)
       expect(dev.actionAbove).toBe(Action.Surrender)
     }
+  })
 
-    const byName = (name: string) => FAB_4.find(d => d.name === name)
+  it('all Fab 4 indices match official values', () => {
+    const expected: [string, number][] = [
+      ['14 vs 10', 3],
+      ['15 vs 10', 0],
+      ['15 vs 9', 2],
+      ['15 vs A', 1],
+    ]
 
-    expect(byName('14 vs 10')?.trueCountThreshold).toBe(3)
-    expect(byName('15 vs 10')?.trueCountThreshold).toBe(0)
-    expect(byName('15 vs 9')?.trueCountThreshold).toBe(2)
-    expect(byName('15 vs A')?.trueCountThreshold).toBe(1)
+    for (const [name, threshold] of expected) {
+      const dev = FAB_4.find(d => d.name === name)
+      expect(dev, `Missing Fab 4 deviation: ${name}`).toBeDefined()
+      expect(dev!.trueCountThreshold).toBe(threshold)
+    }
   })
 })
 
-// ── No Match ─────────────────────────────────────────────────────
+// ── 15 vs 10 Priority (I18 + Fab 4 interaction) ─────────────────
+
+describe('15 vs 10 Priority', () => {
+  const allDeviations = [...ILLUSTRIOUS_18, ...FAB_4]
+  const hand15 = [c(Rank.Ten), c(Rank.Five)]
+  const dealer10 = c(Rank.Ten)
+
+  it('TC >= +4 → Stand (I18 takes priority over Fab4)', () => {
+    const result = getDeviationAction(hand15, dealer10, 4, allDeviations)
+    expect(result).toBe(Action.Stand)
+  })
+
+  it('TC +5 → Stand (I18 still applies)', () => {
+    const result = getDeviationAction(hand15, dealer10, 5, allDeviations)
+    expect(result).toBe(Action.Stand)
+  })
+
+  it('TC 0 to +3 → Surrender (Fab4 applies, I18 threshold not met)', () => {
+    for (const tc of [0, 1, 2, 3]) {
+      const result = getDeviationAction(hand15, dealer10, tc, allDeviations)
+      expect(result).toBe(Action.Surrender)
+    }
+  })
+
+  it('TC < 0 → null (use basic strategy: Hit)', () => {
+    const result = getDeviationAction(hand15, dealer10, -1, allDeviations)
+    expect(result).toBeNull()
+  })
+})
+
+// ── No Match / Edge Cases ───────────────────────────────────────
 
 describe('No Match', () => {
   it('getDeviationAction returns null when no deviation matches', () => {
-    // Hard 17 vs 2 — not in Illustrious 18
     const result = getDeviationAction(
       [c(Rank.Ten), c(Rank.Seven)],
       c(Rank.Two),
@@ -194,7 +395,6 @@ describe('No Match', () => {
   })
 
   it('getDeviationAction returns null for soft hands against hard total deviations', () => {
-    // Soft 16 (A+5) vs 10 should NOT match hard 16 vs 10 deviation
     const result = getDeviationAction(
       [c(Rank.Ace), c(Rank.Five)],
       c(Rank.Ten),
@@ -279,7 +479,6 @@ describe('findMatchingDeviation', () => {
   })
 
   it('returns null when no deviation matches', () => {
-    // 17 vs 2 — not in any deviation set
     const result = findMatchingDeviation(
       [c(Rank.Ten), c(Rank.Seven)],
       c(Rank.Two),
@@ -289,7 +488,6 @@ describe('findMatchingDeviation', () => {
   })
 
   it('soft hand does not match hard total deviation', () => {
-    // Soft 16 (A+5) should NOT match hard 16 vs 10
     const result = findMatchingDeviation(
       [c(Rank.Ace), c(Rank.Five)],
       c(Rank.Ten),

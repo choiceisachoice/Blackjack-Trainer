@@ -2,6 +2,18 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import App from './App'
 import { useAppStore } from './store/app-store'
+import { useStatsStore } from './store/stats-store'
+
+// Mock recharts for AnalyticsDashboard
+vi.mock('recharts', () => ({
+  LineChart: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
+  Line: () => <div />,
+  XAxis: () => <div />,
+  YAxis: () => <div />,
+  Tooltip: () => <div />,
+  Legend: () => <div />,
+  ResponsiveContainer: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
+}))
 
 // Mock framer-motion for DeckEstimation's ShoeVisual
 vi.mock('framer-motion', () => ({
@@ -44,6 +56,22 @@ describe('App', () => {
     render(<App />)
     expect(screen.getByText('Decks in Shoe')).toBeInTheDocument()
     expect(screen.getByTestId('start-training')).toBeInTheDocument()
+  })
+
+  it('renders AnalyticsDashboard for analytics mode', () => {
+    useAppStore.setState({ currentMode: 'analytics' })
+    useStatsStore.setState({
+      sessions: [],
+      lifetimeStats: {
+        totalSessions: 0, totalQuestions: 0, totalCorrect: 0,
+        totalPracticeSeconds: 0, overallAccuracy: 0, bestStreak: 0,
+        byMode: {}, dailyStats: [],
+      },
+      isLoading: false,
+      loadStats: vi.fn().mockResolvedValue(undefined),
+    })
+    render(<App />)
+    expect(screen.getByTestId('analytics-dashboard')).toBeInTheDocument()
   })
 
   it('all 5 training modes are routed (no Coming Soon)', () => {

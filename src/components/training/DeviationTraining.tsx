@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Action } from '../../engine/rules/types'
 import type { Deviation } from '../../engine/counting/types'
-import { ACTION_LABEL, getDeviations, ALL_ACTIONS, getFlashCardActionEnabled, formatTC } from './deviation-utils'
+import { ACTION_LABEL, getDeviations, ALL_ACTIONS, getFlashCardActionEnabled, formatTC, getBasicAction, isReversedDeviation, getDeviationAction as getDevAction } from './deviation-utils'
 import { DeviationAtTable } from './DeviationAtTable'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import type { DeviationSet } from './deviation-utils'
@@ -235,7 +235,7 @@ export function DeviationTraining() {
             </div>
             <div className="border-t border-white/10 pt-3">
               <span className="text-white/40 text-xs">
-                Basic Strategy says: <span className="text-white/70 font-medium">{ACTION_LABEL[deviation.actionBelow]}</span>
+                Basic Strategy says: <span className="text-white/70 font-medium">{ACTION_LABEL[getBasicAction(deviation)]}</span>
               </span>
             </div>
           </div>
@@ -293,13 +293,13 @@ export function DeviationTraining() {
             </p>
           )}
           <p className="text-white/70 text-sm" data-testid="feedback-explanation">
-            {question.isAboveThreshold
-              ? `${ACTION_LABEL[correctAction]} at TC \u2265 ${formatTC(deviation.trueCountThreshold)} (you had ${formatTC(trueCount)})`
-              : `Basic Strategy: ${ACTION_LABEL[correctAction]} (TC ${formatTC(trueCount)} is below ${formatTC(deviation.trueCountThreshold)})`}
+            {correctAction === getBasicAction(deviation)
+              ? `Basic Strategy: ${ACTION_LABEL[correctAction]} (TC ${formatTC(trueCount)} — deviation does not apply)`
+              : `${ACTION_LABEL[correctAction]} at TC ${isReversedDeviation(deviation) ? '<' : '\u2265'} ${formatTC(deviation.trueCountThreshold)} (you had ${formatTC(trueCount)})`}
           </p>
           <p className="text-white/40 text-xs">
-            {deviation.isIllustrious18 ? 'I18' : 'Fab 4'}: {deviation.name} → {ACTION_LABEL[deviation.actionAbove]} at TC ≥ {formatTC(deviation.trueCountThreshold)}
-            {' '}(instead of {ACTION_LABEL[deviation.actionBelow]})
+            {deviation.isIllustrious18 ? 'I18' : 'Fab 4'}: {deviation.name} → {ACTION_LABEL[getDevAction(deviation)]} at TC {isReversedDeviation(deviation) ? '<' : '\u2265'} {formatTC(deviation.trueCountThreshold)}
+            {' '}(instead of {ACTION_LABEL[getBasicAction(deviation)]})
           </p>
         </div>
 

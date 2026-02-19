@@ -46,6 +46,36 @@ export function getFlashCardActionEnabled(deviation: Deviation): Record<string, 
   }
 }
 
+/** Names of reversed deviations (I18 #14-18: BS=Stand, deviate to Hit at low TC). */
+const REVERSED_DEVIATION_NAMES = new Set([
+  '13 vs 2', '12 vs 4', '12 vs 5', '12 vs 6', '13 vs 3',
+])
+
+/**
+ * Whether a deviation is "reversed" (deviation fires BELOW threshold).
+ *
+ * Standard deviations: actionAbove = deviation, actionBelow = basic strategy.
+ * Reversed deviations: actionAbove = basic strategy (Stand), actionBelow = deviation (Hit).
+ */
+export function isReversedDeviation(deviation: Deviation): boolean {
+  return REVERSED_DEVIATION_NAMES.has(deviation.name)
+}
+
+/**
+ * Returns the basic strategy action for a deviation
+ * (what you would do without counting).
+ */
+export function getBasicAction(deviation: Deviation): Action {
+  return isReversedDeviation(deviation) ? deviation.actionAbove : deviation.actionBelow
+}
+
+/**
+ * Returns the deviation action (what you do when the deviation fires).
+ */
+export function getDeviationAction(deviation: Deviation): Action {
+  return isReversedDeviation(deviation) ? deviation.actionBelow : deviation.actionAbove
+}
+
 /** Format TC as "+N" or "N". */
 export function formatTC(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`
