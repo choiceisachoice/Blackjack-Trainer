@@ -3,6 +3,19 @@ import type { CountingSystemConfig, CountingState } from './types'
 import { getCountValue, getInitialRunningCount } from './counting-systems'
 
 /**
+ * Calculates the true count from running count and remaining decks,
+ * rounded to the nearest 0.5.
+ *
+ * @param runningCount - The current running count
+ * @param remainingDecks - Number of decks remaining in the shoe
+ * @returns True count rounded to nearest 0.5
+ */
+export function calculateTrueCount(runningCount: number, remainingDecks: number): number {
+  if (remainingDecks <= 0) return 0
+  return Math.round((runningCount / remainingDecks) * 2) / 2
+}
+
+/**
  * Engine that tracks the running count and true count for a card counting system.
  *
  * Processes dealt cards one at a time, maintains the running count,
@@ -56,11 +69,7 @@ export class CountingEngine {
     if (!this.system.isBalanced) {
       return this.runningCount
     }
-    if (remainingDecks <= 0) {
-      return this.runningCount
-    }
-    const tc = this.runningCount / remainingDecks
-    return Math.round(tc * 2) / 2
+    return calculateTrueCount(this.runningCount, remainingDecks)
   }
 
   /**

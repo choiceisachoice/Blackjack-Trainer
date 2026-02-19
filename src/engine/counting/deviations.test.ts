@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { Rank, Suit } from '../shoe/types'
 import type { Card } from '../shoe/types'
 import { Action } from '../rules/types'
-import { ILLUSTRIOUS_18, FAB_4, getDeviationAction } from './deviations'
+import { ILLUSTRIOUS_18, FAB_4, getDeviationAction, findMatchingDeviation } from './deviations'
 
 const c = (rank: Rank, suit: Suit = Suit.Spades): Card => ({ rank, suit })
 
@@ -230,6 +230,70 @@ describe('No Match', () => {
       c(Rank.Ace),
       0,
       FAB_4
+    )
+    expect(result).toBeNull()
+  })
+})
+
+// ── findMatchingDeviation ─────────────────────────────────────
+
+describe('findMatchingDeviation', () => {
+  it('matches hard total deviation (16 vs 10)', () => {
+    const result = findMatchingDeviation(
+      [c(Rank.Ten), c(Rank.Six)],
+      c(Rank.Ten),
+      ILLUSTRIOUS_18
+    )
+    expect(result).not.toBeNull()
+    expect(result!.name).toBe('16 vs 10')
+  })
+
+  it('matches pair deviation (10,10 vs 5)', () => {
+    const result = findMatchingDeviation(
+      [c(Rank.Ten), c(Rank.Ten)],
+      c(Rank.Five),
+      ILLUSTRIOUS_18
+    )
+    expect(result).not.toBeNull()
+    expect(result!.name).toBe('10,10 vs 5')
+  })
+
+  it('matches wildcard Insurance (any hand vs A)', () => {
+    const result = findMatchingDeviation(
+      [c(Rank.Seven), c(Rank.Three)],
+      c(Rank.Ace),
+      ILLUSTRIOUS_18
+    )
+    expect(result).not.toBeNull()
+    expect(result!.name).toBe('Insurance')
+  })
+
+  it('maps face cards to 10 for dealer upcard', () => {
+    const result = findMatchingDeviation(
+      [c(Rank.Ten), c(Rank.Six)],
+      c(Rank.Queen),
+      ILLUSTRIOUS_18
+    )
+    expect(result).not.toBeNull()
+    expect(result!.name).toBe('16 vs 10')
+  })
+
+  it('returns null when no deviation matches', () => {
+    // 17 vs 2 — not in any deviation set
+    const result = findMatchingDeviation(
+      [c(Rank.Ten), c(Rank.Seven)],
+      c(Rank.Two),
+      ILLUSTRIOUS_18
+    )
+    expect(result).toBeNull()
+  })
+
+  it('soft hand does not match hard total deviation', () => {
+    // Soft 16 (A+5) should NOT match hard 16 vs 10
+    const result = findMatchingDeviation(
+      [c(Rank.Ace), c(Rank.Five)],
+      c(Rank.Ten),
+      ILLUSTRIOUS_18
     )
     expect(result).toBeNull()
   })

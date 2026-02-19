@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { calculateTrueCount } from '../../engine/counting/counting-engine'
 
 type QuestionType = 'A' | 'B' | 'C'
 type QuestionMode = 'A' | 'B' | 'C' | 'random'
@@ -19,10 +20,11 @@ const BET_OPTIONS = [10, 20, 40, 80, 120, 160]
 
 const REMAINING_DECKS_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
 
-/** Returns the correct multiplier for a given TC. */
+/** Returns the correct multiplier for a given TC (floors to integer for bracket lookup). */
 function getMultiplier(tc: number): number {
+  const intTC = Math.floor(tc)
   for (const row of BET_SPREAD) {
-    if (tc >= row.minTC && tc <= row.maxTC) return row.multiplier
+    if (intTC >= row.minTC && intTC <= row.maxTC) return row.multiplier
   }
   return 1
 }
@@ -91,7 +93,7 @@ export function BetSpread() {
     const type = pickQuestionType(questionMode)
     const rc = generateRC()
     const remainingDecks = REMAINING_DECKS_OPTIONS[Math.floor(Math.random() * REMAINING_DECKS_OPTIONS.length)]
-    const tc = Math.floor(rc / remainingDecks)
+    const tc = calculateTrueCount(rc, remainingDecks)
     const correctBet = getCorrectBet(tc)
 
     setQuestion({ type, rc, remainingDecks, tc, correctBet })
@@ -257,7 +259,7 @@ export function BetSpread() {
               <p className="text-white/70 text-sm mb-2 text-center">What is the True Count?</p>
               <div className="flex items-center justify-center gap-3">
                 <button
-                  onClick={() => setTcAnswer(prev => prev - 1)}
+                  onClick={() => setTcAnswer(prev => prev - 0.5)}
                   className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-lg
                     text-white font-bold transition-colors cursor-pointer"
                 >
@@ -265,6 +267,7 @@ export function BetSpread() {
                 </button>
                 <input
                   type="number"
+                  step="0.5"
                   value={tcAnswer}
                   onChange={(e) => setTcAnswer(Number(e.target.value) || 0)}
                   data-testid="tc-input"
@@ -273,7 +276,7 @@ export function BetSpread() {
                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <button
-                  onClick={() => setTcAnswer(prev => prev + 1)}
+                  onClick={() => setTcAnswer(prev => prev + 0.5)}
                   className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-lg
                     text-white font-bold transition-colors cursor-pointer"
                 >

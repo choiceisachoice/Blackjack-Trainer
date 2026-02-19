@@ -337,3 +337,31 @@ export function getDeviationAction(
 
   return null
 }
+
+/**
+ * Finds the first deviation that matches the player hand and dealer upcard,
+ * regardless of the current true count.
+ *
+ * This is used by the "At the Table" training mode to detect deviation
+ * *situations* as they arise naturally during play.
+ *
+ * @param playerCards - The player's current hand
+ * @param dealerUpcard - The dealer's face-up card
+ * @param deviations - Array of deviations to check
+ * @returns The matching Deviation object, or null if no deviation applies
+ */
+export function findMatchingDeviation(
+  playerCards: Card[],
+  dealerUpcard: Card,
+  deviations: Deviation[]
+): Deviation | null {
+  const dealerKey = rankToKey(dealerUpcard.rank)
+
+  for (const deviation of deviations) {
+    if (deviation.dealerUpcard !== dealerKey) continue
+    if (!matchesPlayerHand(playerCards, deviation.playerHand)) continue
+    return deviation
+  }
+
+  return null
+}

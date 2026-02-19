@@ -357,7 +357,7 @@ export function TableCounting() {
                     </h3>
                     <div className="flex items-center justify-center gap-4">
                       <button
-                        onClick={() => setTcAnswer(prev => prev - 1)}
+                        onClick={() => setTcAnswer(prev => prev - 0.5)}
                         className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-xl
                           text-white font-bold transition-colors cursor-pointer"
                       >
@@ -365,6 +365,7 @@ export function TableCounting() {
                       </button>
                       <input
                         type="number"
+                        step="0.5"
                         value={tcAnswer}
                         onChange={(e) => setTcAnswer(Number(e.target.value) || 0)}
                         data-testid="tc-input"
@@ -373,7 +374,7 @@ export function TableCounting() {
                           [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                       <button
-                        onClick={() => setTcAnswer(prev => prev + 1)}
+                        onClick={() => setTcAnswer(prev => prev + 0.5)}
                         className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-xl
                           text-white font-bold transition-colors cursor-pointer"
                       >

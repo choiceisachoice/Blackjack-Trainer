@@ -1,52 +1,12 @@
 import { useState, useCallback, useEffect } from 'react'
-import { ILLUSTRIOUS_18, FAB_4 } from '../../engine/counting/deviations'
 import { Action } from '../../engine/rules/types'
 import type { Deviation } from '../../engine/counting/types'
+import { ACTION_LABEL, getDeviations, ALL_ACTIONS, getFlashCardActionEnabled, formatTC } from './deviation-utils'
+import { DeviationAtTable } from './DeviationAtTable'
+import type { DeviationSet } from './deviation-utils'
 
-type DeviationSet = 'i18' | 'fab4' | 'all'
 type TrainingMode = 'flashCards' | 'atTheTable'
-type Phase = 'settings' | 'question' | 'feedback'
-
-/** Human-readable action labels. */
-const ACTION_LABEL: Record<string, string> = {
-  [Action.Hit]: 'Hit',
-  [Action.Stand]: 'Stand',
-  [Action.Double]: 'Double',
-  [Action.Split]: 'Split',
-  [Action.Surrender]: 'Surrender',
-  [Action.Insurance]: 'Insurance',
-}
-
-/** Returns the deviation set based on user selection. */
-function getDeviations(set: DeviationSet): Deviation[] {
-  switch (set) {
-    case 'i18': return ILLUSTRIOUS_18
-    case 'fab4': return FAB_4
-    case 'all': return [...ILLUSTRIOUS_18, ...FAB_4]
-  }
-}
-
-/** Returns possible player actions for a given deviation. */
-function getActionChoices(deviation: Deviation): Action[] {
-  const actions = new Set<Action>([deviation.actionAbove, deviation.actionBelow])
-  // Always include Hit/Stand as baseline options
-  actions.add(Action.Hit)
-  actions.add(Action.Stand)
-  // Add contextual actions
-  if (deviation.actionAbove === Action.Double || deviation.actionBelow === Action.Double) {
-    actions.add(Action.Double)
-  }
-  if (deviation.actionAbove === Action.Split || deviation.actionBelow === Action.Split) {
-    actions.add(Action.Split)
-  }
-  if (deviation.actionAbove === Action.Surrender || deviation.actionBelow === Action.Surrender) {
-    actions.add(Action.Surrender)
-  }
-  if (deviation.actionAbove === Action.Insurance) {
-    actions.add(Action.Insurance)
-  }
-  return Array.from(actions)
-}
+type Phase = 'settings' | 'question' | 'feedback' | 'atTheTable'
 
 /** Generates a random TC around the threshold. */
 function generateTrueCount(threshold: number, isAbove: boolean): number {
@@ -56,11 +16,6 @@ function generateTrueCount(threshold: number, isAbove: boolean): number {
   }
   // TC below threshold: threshold-4 to threshold-1
   return threshold - 1 - Math.floor(Math.random() * 4)
-}
-
-/** Format TC as "+N" or "N". */
-function formatTC(n: number): string {
-  return n >= 0 ? `+${n}` : `${n}`
 }
 
 interface QuestionState {
@@ -190,13 +145,10 @@ export function DeviationTraining() {
               At the Table
             </button>
           </div>
-          {trainingMode === 'atTheTable' && (
-            <p className="text-xs text-warning mt-1">Coming soon — Flash Cards available now</p>
-          )}
         </div>
 
         <button
-          onClick={generateQuestion}
+          onClick={() => trainingMode === 'atTheTable' ? setPhase('atTheTable') : generateQuestion()}
           data-testid="start-training"
           className="mt-4 px-8 py-3 bg-gold text-black font-bold rounded-xl
             hover:bg-gold/90 transition-colors text-lg cursor-pointer"
@@ -207,9 +159,13 @@ export function DeviationTraining() {
     )
   }
 
+  if (phase === 'atTheTable') {
+    return <DeviationAtTable deviationSet={deviationSet} />
+  }
+
   if (!question) return null
   const { deviation, trueCount, correctAction } = question
-  const actionChoices = getActionChoices(deviation)
+  const actionEnabled = getFlashCardActionEnabled(deviation)
 
   // ── Question Phase ──
   if (phase === 'question') {
@@ -252,17 +208,23 @@ export function DeviationTraining() {
           <p className="text-white font-medium text-center mb-4">What do you do?</p>
 
           <div className="flex flex-wrap gap-2 justify-center">
-            {actionChoices.map(action => (
-              <button
-                key={action}
-                onClick={() => handleAnswer(action)}
-                data-testid={`action-${action.toLowerCase()}`}
-                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium
-                  rounded-xl transition-colors cursor-pointer text-sm"
-              >
-                {ACTION_LABEL[action]}
-              </button>
-            ))}
+            {ALL_ACTIONS.map(action => {
+              const enabled = actionEnabled[action]
+              return (
+                <button
+                  key={action}
+                  onClick={() => enabled && handleAnswer(action)}
+                  disabled={!enabled}
+                  data-testid={`action-${action.toLowerCase()}`}
+                  className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-colors
+                    ${enabled
+                      ? 'bg-white/10 hover:bg-white/20 text-white cursor-pointer'
+                      : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
+                >
+                  {ACTION_LABEL[action]}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>

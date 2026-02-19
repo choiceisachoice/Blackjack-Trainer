@@ -75,15 +75,16 @@ describe('BetSpread', () => {
 
     // Read the TC from the UI
     const tcText = screen.getByTestId('true-count').textContent || ''
-    const tc = parseInt(tcText.replace('+', ''))
+    const tc = parseFloat(tcText.replace('+', ''))
 
-    // Calculate correct bet
+    // Calculate correct bet (floor TC for bet bracket lookup)
+    const intTC = Math.floor(tc)
     let correctBet: number
-    if (tc <= 0) correctBet = 10
-    else if (tc === 1) correctBet = 20
-    else if (tc === 2) correctBet = 40
-    else if (tc === 3) correctBet = 80
-    else if (tc === 4) correctBet = 120
+    if (intTC <= 0) correctBet = 10
+    else if (intTC === 1) correctBet = 20
+    else if (intTC === 2) correctBet = 40
+    else if (intTC === 3) correctBet = 80
+    else if (intTC === 4) correctBet = 120
     else correctBet = 160
 
     fireEvent.click(screen.getByTestId(`bet-${correctBet}`))
