@@ -4,8 +4,10 @@ import { Shoe } from '../../engine/shoe/shoe'
 import { CountingEngine } from '../../engine/counting/counting-engine'
 import { getSystemById } from '../../engine/counting/counting-systems'
 import { useAppStore } from '../../store/app-store'
+import { useSessionSave } from '../../hooks/useSessionSave'
 import type { Card } from '../../engine/shoe/types'
 import { Suit } from '../../engine/shoe/types'
+import type { SpeedDrillDetails } from '../../services/stats-types'
 
 type Phase = 'settings' | 'drill' | 'input' | 'result'
 
@@ -60,6 +62,15 @@ export function SpeedDrill() {
   const systemConfig = getSystemById(selectedSystem)
   const isFractional = selectedSystem === 'WongHalves'
 
+  // ── Session stats persistence ──
+  const rcErrorsRef = useRef<number[]>([])
+  const { statsRef } = useSessionSave('speedDrill', (): SpeedDrillDetails => ({
+    type: 'speedDrill',
+    cardsPerRound: cardCount,
+    speedMs,
+    rcErrors: [...rcErrorsRef.current],
+  }))
+
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current)
@@ -105,9 +116,13 @@ export function SpeedDrill() {
 
   const handleSubmit = useCallback(() => {
     const tolerance = isFractional ? 0.5 : 0
-    const correct = Math.abs(userAnswer - correctRC) <= tolerance
+    const error = Math.abs(userAnswer - correctRC)
+    const correct = error <= tolerance
     setIsCorrect(correct)
     setTotalAttempts(prev => prev + 1)
+
+    // Track RC error for session save
+    rcErrorsRef.current.push(error)
 
     if (correct) {
       setTotalCorrect(prev => prev + 1)
@@ -120,8 +135,15 @@ export function SpeedDrill() {
       setStreak(0)
     }
 
+    // Sync stats ref for session save
+    statsRef.current = {
+      totalQuestions: totalAttempts + 1,
+      correctAnswers: totalCorrect + (correct ? 1 : 0),
+      bestStreak: correct ? Math.max(bestStreak, streak + 1) : bestStreak,
+    }
+
     setPhase('result')
-  }, [userAnswer, correctRC, isFractional])
+  }, [userAnswer, correctRC, isFractional, totalAttempts, totalCorrect, bestStreak, streak, statsRef])
 
   const handleAbort = useCallback(() => {
     stopTimer()

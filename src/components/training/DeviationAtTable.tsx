@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useGameStore } from '../../store/game-store'
 import { useAppStore } from '../../store/app-store'
+import { useSessionSave } from '../../hooks/useSessionSave'
 import { findMatchingDeviation } from '../../engine/counting/deviations'
 import { getHandValue } from '../../engine/rules/hand-utils'
 import { GameTable } from '../table/GameTable'
@@ -8,6 +9,7 @@ import { ACTION_LABEL, getDeviations, ALL_ACTIONS, formatTC } from './deviation-
 import type { DeviationSet } from './deviation-utils'
 import type { Deviation } from '../../engine/counting/types'
 import { Action } from '../../engine/rules/types'
+import type { DeviationDetails } from '../../services/stats-types'
 
 type OverlayPhase = 'none' | 'countdown' | 'deviation-prompt' | 'trap-prompt' | 'feedback'
 
@@ -44,6 +46,19 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
   const [tcErrors, setTcErrors] = useState<number[]>([])
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
+
+  // Per-deviation tracking for session save
+  const deviationResultsRef = useRef<Record<string, { correct: number; incorrect: number }>>({})
+
+  // ── Session stats persistence ──
+  const { statsRef } = useSessionSave('deviationAtTable', (): DeviationDetails => ({
+    type: 'deviationAtTable',
+    deviationSet,
+    perDeviation: { ...deviationResultsRef.current },
+    avgTcError: tcErrors.length > 0
+      ? tcErrors.reduce((a, b) => a + b, 0) / tcErrors.length
+      : 0,
+  }))
 
   // Detection refs
   const hasCheckedRef = useRef(false)
@@ -177,6 +192,18 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
     setDeviationsTotal(prev => prev + 1)
 
     const bothCorrect = tcOk && actionOk
+
+    // Track per-deviation results
+    const devName = activeDeviation.name
+    if (!deviationResultsRef.current[devName]) {
+      deviationResultsRef.current[devName] = { correct: 0, incorrect: 0 }
+    }
+    if (bothCorrect) {
+      deviationResultsRef.current[devName].correct++
+    } else {
+      deviationResultsRef.current[devName].incorrect++
+    }
+
     if (bothCorrect) {
       setDeviationsCorrect(prev => prev + 1)
       setCurrentStreak(prev => {
@@ -188,8 +215,20 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
       setCurrentStreak(0)
     }
 
+    // Sync stats ref for session save
+    const newTotal = deviationsTotal + 1
+    const newCorrect = deviationsCorrect + (bothCorrect ? 1 : 0)
+    const newBestStreak = bothCorrect
+      ? Math.max(bestStreak, currentStreak + 1)
+      : bestStreak
+    statsRef.current = {
+      totalQuestions: newTotal,
+      correctAnswers: newCorrect,
+      bestStreak: newBestStreak,
+    }
+
     setOverlayPhase('feedback')
-  }, [activeDeviation, trueCount, tcAnswer, selectedAction])
+  }, [activeDeviation, trueCount, tcAnswer, selectedAction, deviationsTotal, deviationsCorrect, bestStreak, currentStreak, statsRef])
 
   const handleTrapAnswer = useCallback((answer: boolean) => {
     setTrapAnswer(answer)

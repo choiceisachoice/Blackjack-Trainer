@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { ShoeVisual } from '../table/ShoeVisual'
+import { useSessionSave } from '../../hooks/useSessionSave'
+import type { DeckEstimationDetails } from '../../services/stats-types'
 
 type DeckCount = 2 | 6 | 8
 type AccuracyMode = 'half' | 'whole'
@@ -69,6 +71,18 @@ export function DeckEstimation() {
   // Stats
   const [stats, setStats] = useState<Stats>(INITIAL_STATS)
 
+  // Estimations tracking for session save
+  const estimationsRef = useRef<{ actual: number; estimated: number | null; error: number }[]>([])
+
+  // ── Session stats persistence ──
+  const { statsRef } = useSessionSave('deckEstimation', (): DeckEstimationDetails => ({
+    type: 'deckEstimation',
+    deckCount,
+    accuracyMode,
+    quickFire,
+    estimations: [...estimationsRef.current],
+  }))
+
   // Quick Fire state
   const [qfRound, setQfRound] = useState(0)
   const [qfTimer, setQfTimer] = useState(QUICK_FIRE_SECONDS)
@@ -105,19 +119,31 @@ export function DeckEstimation() {
     setSelectedAnswer(answer)
     setIsCorrect(correct)
 
+    // Track estimation for session save
+    estimationsRef.current.push({ actual, estimated: answer, error })
+
     setStats(prev => {
       const newStreak = correct ? prev.streak + 1 : 0
-      return {
+      const newStats = {
         correct: prev.correct + (correct ? 1 : 0),
         total: prev.total + 1,
         totalError: prev.totalError + error,
         streak: newStreak,
         bestStreak: Math.max(prev.bestStreak, newStreak),
       }
+
+      // Sync stats ref for session save
+      statsRef.current = {
+        totalQuestions: newStats.total,
+        correctAnswers: newStats.correct,
+        bestStreak: newStats.bestStreak,
+      }
+
+      return newStats
     })
 
     setPhase('feedback')
-  }, [remainingCards, clearTimer])
+  }, [remainingCards, clearTimer, statsRef])
 
   const handleAnswer = useCallback((decks: number) => {
     processAnswer(decks)

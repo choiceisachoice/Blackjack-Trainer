@@ -1,9 +1,11 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { Action } from '../../engine/rules/types'
 import type { Deviation } from '../../engine/counting/types'
 import { ACTION_LABEL, getDeviations, ALL_ACTIONS, getFlashCardActionEnabled, formatTC } from './deviation-utils'
 import { DeviationAtTable } from './DeviationAtTable'
+import { useSessionSave } from '../../hooks/useSessionSave'
 import type { DeviationSet } from './deviation-utils'
+import type { DeviationDetails } from '../../services/stats-types'
 
 type TrainingMode = 'flashCards' | 'atTheTable'
 type Phase = 'settings' | 'question' | 'feedback' | 'atTheTable'
@@ -47,6 +49,16 @@ export function DeviationTraining() {
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
 
+  // Per-deviation tracking for session save
+  const deviationResultsRef = useRef<Record<string, { correct: number; incorrect: number }>>({})
+
+  // ── Session stats persistence (flash cards only) ──
+  const { statsRef } = useSessionSave('deviationFlashCards', (): DeviationDetails => ({
+    type: 'deviationFlashCards',
+    deviationSet,
+    perDeviation: { ...deviationResultsRef.current },
+  }))
+
   const generateQuestion = useCallback(() => {
     const deviations = getDeviations(deviationSet)
     const deviation = deviations[Math.floor(Math.random() * deviations.length)]
@@ -67,6 +79,17 @@ export function DeviationTraining() {
     setIsCorrect(correct)
     setTotalAttempts(prev => prev + 1)
 
+    // Track per-deviation results
+    const devName = question.deviation.name
+    if (!deviationResultsRef.current[devName]) {
+      deviationResultsRef.current[devName] = { correct: 0, incorrect: 0 }
+    }
+    if (correct) {
+      deviationResultsRef.current[devName].correct++
+    } else {
+      deviationResultsRef.current[devName].incorrect++
+    }
+
     if (correct) {
       setTotalCorrect(prev => prev + 1)
       setCurrentStreak(prev => {
@@ -78,8 +101,20 @@ export function DeviationTraining() {
       setCurrentStreak(0)
     }
 
+    // Sync stats ref for session save
+    const newAttempts = totalAttempts + 1
+    const newCorrect = totalCorrect + (correct ? 1 : 0)
+    const newBestStreak = correct
+      ? Math.max(bestStreak, currentStreak + 1)
+      : bestStreak
+    statsRef.current = {
+      totalQuestions: newAttempts,
+      correctAnswers: newCorrect,
+      bestStreak: newBestStreak,
+    }
+
     setPhase('feedback')
-  }, [question])
+  }, [question, totalAttempts, totalCorrect, bestStreak, currentStreak, statsRef])
 
   // Keyboard: Enter → next question in feedback phase
   useEffect(() => {

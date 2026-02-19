@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useGameStore } from '../../store/game-store'
 import { useAppStore } from '../../store/app-store'
+import { useSessionSave } from '../../hooks/useSessionSave'
 import { getSystemById, getCountValue } from '../../engine/counting/counting-systems'
 import { GameTable } from '../table/GameTable'
 import type { Card } from '../../engine/shoe/types'
 import { Suit } from '../../engine/shoe/types'
 import { CountingSystemId } from '../../engine/counting/types'
+import type { TableCountingDetails } from '../../services/stats-types'
 
 type Difficulty = 'easy' | 'normal' | 'hard'
 type QueryType = 'rc' | 'tc' | 'both'
@@ -48,6 +50,24 @@ export function TableCounting() {
   const [correctCount, setCorrectCount] = useState(0)
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
+
+  // RC/TC accuracy tracking for session save
+  const rcCorrectRef = useRef(0)
+  const rcTotalRef = useRef(0)
+  const tcCorrectRef = useRef(0)
+  const tcTotalRef = useRef(0)
+
+  // ── Session stats persistence ──
+  const { statsRef } = useSessionSave('tableCounting', (): TableCountingDetails => ({
+    type: 'tableCounting',
+    difficulty,
+    queryType,
+    handsPlayed,
+    rcCorrect: rcCorrectRef.current,
+    rcTotal: rcTotalRef.current,
+    tcCorrect: tcCorrectRef.current,
+    tcTotal: tcTotalRef.current,
+  }))
 
   // How many hands have fully completed
   const handsCompleted = useRef(0)
@@ -150,15 +170,17 @@ export function TableCounting() {
 
     if (queryType === 'rc' || queryType === 'both') {
       const tolerance = isFractional ? 0.5 : 0
-      if (Math.abs(rcAnswer - runningCount) > tolerance) {
-        isCorrectAnswer = false
-      }
+      const rcOk = Math.abs(rcAnswer - runningCount) <= tolerance
+      rcTotalRef.current++
+      if (rcOk) rcCorrectRef.current++
+      if (!rcOk) isCorrectAnswer = false
     }
 
     if (queryType === 'tc' || queryType === 'both') {
-      if (Math.abs(tcAnswer - trueCount) > 0.5) {
-        isCorrectAnswer = false
-      }
+      const tcOk = Math.abs(tcAnswer - trueCount) <= 0.5
+      tcTotalRef.current++
+      if (tcOk) tcCorrectRef.current++
+      if (!tcOk) isCorrectAnswer = false
     }
 
     // Build hand cards with count values for explanation
@@ -184,7 +206,19 @@ export function TableCounting() {
     } else {
       setCurrentStreak(0)
     }
-  }, [rcAnswer, tcAnswer, runningCount, trueCount, queryType, selectedSystem, systemConfig])
+
+    // Sync stats ref for session save
+    const newHandsPlayed = handsPlayed + 1
+    const newCorrectCount = correctCount + (isCorrectAnswer ? 1 : 0)
+    const newBestStreak = isCorrectAnswer
+      ? Math.max(bestStreak, currentStreak + 1)
+      : bestStreak
+    statsRef.current = {
+      totalQuestions: newHandsPlayed,
+      correctAnswers: newCorrectCount,
+      bestStreak: newBestStreak,
+    }
+  }, [rcAnswer, tcAnswer, runningCount, trueCount, queryType, selectedSystem, systemConfig, handsPlayed, correctCount, bestStreak, currentStreak, statsRef])
 
   const handleContinue = useCallback(() => {
     setShowPrompt(false)

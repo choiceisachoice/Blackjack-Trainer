@@ -1,5 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { calculateTrueCount } from '../../engine/counting/counting-engine'
+import { useSessionSave } from '../../hooks/useSessionSave'
+import type { BetSpreadDetails } from '../../services/stats-types'
 
 type QuestionType = 'A' | 'B' | 'C'
 type QuestionMode = 'A' | 'B' | 'C' | 'random'
@@ -89,6 +91,22 @@ export function BetSpread() {
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
 
+  // TC and bet accuracy tracking for session save
+  const tcCorrectRef = useRef(0)
+  const tcTotalRef = useRef(0)
+  const betCorrectRef = useRef(0)
+  const betTotalRef = useRef(0)
+
+  // ── Session stats persistence ──
+  const { statsRef } = useSessionSave('betSpread', (): BetSpreadDetails => ({
+    type: 'betSpread',
+    questionMode,
+    tcCorrect: tcCorrectRef.current,
+    tcTotal: tcTotalRef.current,
+    betCorrect: betCorrectRef.current,
+    betTotal: betTotalRef.current,
+  }))
+
   const generateQuestion = useCallback(() => {
     const type = pickQuestionType(questionMode)
     const rc = generateRC()
@@ -107,12 +125,19 @@ export function BetSpread() {
   const handleSubmitBet = useCallback((bet: number) => {
     if (!question) return
 
-    let correct = bet === question.correctBet
+    const betOk = bet === question.correctBet
+    let correct = betOk
     let tcOk = true
+
+    // Track bet accuracy
+    betTotalRef.current++
+    if (betOk) betCorrectRef.current++
 
     // For type C, also check TC answer
     if (question.type === 'C') {
       tcOk = tcAnswer === question.tc
+      tcTotalRef.current++
+      if (tcOk) tcCorrectRef.current++
       correct = correct && tcOk
     }
 
@@ -132,8 +157,20 @@ export function BetSpread() {
       setCurrentStreak(0)
     }
 
+    // Sync stats ref for session save
+    const newAttempts = totalAttempts + 1
+    const newCorrect = totalCorrect + (correct ? 1 : 0)
+    const newBestStreak = correct
+      ? Math.max(bestStreak, currentStreak + 1)
+      : bestStreak
+    statsRef.current = {
+      totalQuestions: newAttempts,
+      correctAnswers: newCorrect,
+      bestStreak: newBestStreak,
+    }
+
     setPhase('feedback')
-  }, [question, tcAnswer])
+  }, [question, tcAnswer, totalAttempts, totalCorrect, bestStreak, currentStreak, statsRef])
 
   // Keyboard: Enter → next in feedback
   useEffect(() => {
