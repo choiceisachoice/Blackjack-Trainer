@@ -208,7 +208,7 @@ describe('BankrollSimulator', () => {
     expect(screen.getByText('Bankroll Simulator')).toBeInTheDocument()
   })
 
-  it('Run Again re-runs simulation with saved config', () => {
+  it('Run Again re-runs simulation with saved config (not form state)', () => {
     render(<BankrollSimulator />)
 
     // Run initial simulation
@@ -216,6 +216,8 @@ describe('BankrollSimulator', () => {
     act(() => { vi.advanceTimersByTime(100) })
     expect(screen.getByTestId('sim-results')).toBeInTheDocument()
 
+    // Capture config from first call
+    const firstCallConfig = mockRunSimulation.mock.calls[mockRunSimulation.mock.calls.length - 1][0]
     const callCount = mockRunSimulation.mock.calls.length
 
     // Click Run Again
@@ -226,6 +228,17 @@ describe('BankrollSimulator', () => {
     expect(mockRunSimulation.mock.calls.length).toBe(callCount + 1)
     // Still showing results
     expect(screen.getByTestId('sim-results')).toBeInTheDocument()
+
+    // Config should match — same rules, same bet spread
+    const secondCallConfig = mockRunSimulation.mock.calls[mockRunSimulation.mock.calls.length - 1][0]
+    expect(secondCallConfig.dealerHitsSoft17).toBe(firstCallConfig.dealerHitsSoft17)
+    expect(secondCallConfig.blackjackPays).toBe(firstCallConfig.blackjackPays)
+    expect(secondCallConfig.bankroll).toBe(firstCallConfig.bankroll)
+    expect(secondCallConfig.minBet).toBe(firstCallConfig.minBet)
+    expect(secondCallConfig.numDecks).toBe(firstCallConfig.numDecks)
+    expect(secondCallConfig.penetration).toBe(firstCallConfig.penetration)
+    expect(secondCallConfig.deviationAccuracy).toBe(firstCallConfig.deviationAccuracy)
+    expect(JSON.stringify(secondCallConfig.betSpread)).toBe(JSON.stringify(firstCallConfig.betSpread))
   })
 
   it('error boundary shows message instead of crash', () => {

@@ -169,7 +169,10 @@ export function BankrollSimulator() {
   const [phase, setPhase] = useState<'config' | 'results'>('config')
   const [isSimulating, setIsSimulating] = useState(false)
   const [result, setResult] = useState<SimulationResult | null>(null)
-  const [configSnapshot, setConfigSnapshot] = useState({ bankroll: 100000, minBet: 100 })
+  const [configSnapshot, setConfigSnapshot] = useState<{
+    bankroll: number; minBet: number; handsPerHour: number;
+    useDeviations: boolean; deviationAccuracy: number;
+  }>({ bankroll: 100000, minBet: 100, handsPerHour: 80, useDeviations: true, deviationAccuracy: 0.9 })
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [savedConfig, setSavedConfig] = useState<SimulationConfig | null>(null)
 
@@ -261,14 +264,24 @@ export function BankrollSimulator() {
 
   const handleRunSimulation = useCallback(() => {
     const config = buildConfig()
-    setSavedConfig(config)
-    setConfigSnapshot({ bankroll: Number(bankroll) || 10000, minBet: Number(minBet) || 10 })
-    executeSimulation(config)
-  }, [buildConfig, bankroll, minBet, executeSimulation])
+    // Deep copy for safety — prevents mutation across re-runs
+    const configCopy: SimulationConfig = { ...config, betSpread: { ...config.betSpread } }
+    setSavedConfig(configCopy)
+    setConfigSnapshot({
+      bankroll: config.bankroll,
+      minBet: config.minBet,
+      handsPerHour: Number(handsPerHour) || 80,
+      useDeviations,
+      deviationAccuracy: config.deviationAccuracy,
+    })
+    executeSimulation(configCopy)
+  }, [buildConfig, handsPerHour, useDeviations, executeSimulation])
 
   const handleRunAgain = useCallback(() => {
     if (!savedConfig) return
-    executeSimulation(savedConfig)
+    // Deep copy again to prevent mutation between re-runs
+    const configCopy: SimulationConfig = { ...savedConfig, betSpread: { ...savedConfig.betSpread } }
+    executeSimulation(configCopy)
   }, [savedConfig, executeSimulation])
 
   // ── Copy summary ──
@@ -294,14 +307,23 @@ N-Zero: ${result.n0.toLocaleString()} hands`
   if (bankroll < minBet) validationErrors.push('Bankroll must be at least the minimum bet')
   const isConfigValid = validationErrors.length === 0
 
-  // ── Derived bet spread for Section E ──
-  const betSpread = useMemo(() => ({ 1: tc1, 2: tc2, 3: tc3, 4: tc4, 5: tc5 }), [tc1, tc2, tc3, tc4, tc5])
+  // ── Derived values for Bet Spread Analysis (results phase uses saved config) ──
+  const betSpread = useMemo(() => {
+    if (phase === 'results' && savedConfig) return savedConfig.betSpread
+    return { 1: tc1, 2: tc2, 3: tc3, 4: tc4, 5: tc5 }
+  }, [phase, savedConfig, tc1, tc2, tc3, tc4, tc5])
 
-  const baseEdge = useMemo(() => calculateHouseEdge({
-    dealerHitsSoft17, doubleAfterSplit, surrenderAllowed, blackjackPays, numDecks,
-  }), [dealerHitsSoft17, doubleAfterSplit, surrenderAllowed, blackjackPays, numDecks])
+  const baseEdge = useMemo(() => {
+    if (phase === 'results' && savedConfig) return calculateHouseEdge(savedConfig)
+    return calculateHouseEdge({ dealerHitsSoft17, doubleAfterSplit, surrenderAllowed, blackjackPays, numDecks })
+  }, [phase, savedConfig, dealerHitsSoft17, doubleAfterSplit, surrenderAllowed, blackjackPays, numDecks])
 
-  const tcGain = EDGE_PER_TC + (useDeviations ? DEVIATION_TC_BONUS * deviationAccuracy : 0)
+  const tcGain = useMemo(() => {
+    const devAcc = phase === 'results' && savedConfig
+      ? savedConfig.deviationAccuracy
+      : (useDeviations ? deviationAccuracy : 0)
+    return EDGE_PER_TC + DEVIATION_TC_BONUS * devAcc
+  }, [phase, savedConfig, useDeviations, deviationAccuracy])
 
   // ════════════════════════════════════════════════════════════════
   //  PHASE 1: Configuration
@@ -613,13 +635,13 @@ N-Zero: ${result.n0.toLocaleString()} hands`
 
   const evPerHand = result.totalHands > 0 ? result.netProfit / result.totalHands : 0
   const sdPerHand = HAND_SD * result.averageBet
-  const hourlySD = sdPerHand * Math.sqrt(handsPerHour)
+  const snapshotHPH = configSnapshot.handsPerHour || 80
+  const hourlySD = sdPerHand * Math.sqrt(snapshotHPH)
   const recBankroll = recommendedBankroll(result, configSnapshot.bankroll)
   const risk50 = riskOf50Loss(result, configSnapshot.bankroll)
-  const n0Hours = result.n0 !== Infinity ? Math.round(result.n0 / handsPerHour) : null
-  const playerEdge = result.totalHands > 0 && result.netProfit > 0
-    ? result.netProfit / (result.totalHands * result.averageBet)
-    : result.houseEdge
+  const n0Hours = result.n0 !== Infinity ? Math.round(result.n0 / snapshotHPH) : null
+  // Always use result.houseEdge (deterministic from config) — NOT the stochastic observed edge
+  const playerEdge = result.houseEdge
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="sim-results">

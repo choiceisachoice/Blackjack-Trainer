@@ -113,7 +113,13 @@ function buildOutcomeDistribution(shoeResults: number[]): OutcomeBucket[] {
  * Uses Hi-Lo count values for realistic shoe tracking and normal distribution
  * for hand outcome approximation.
  */
-export function runSimulation(config: SimulationConfig): SimulationResult {
+export function runSimulation(inputConfig: SimulationConfig): SimulationResult {
+  // Deep copy to prevent mutation of caller's config
+  const config: SimulationConfig = {
+    ...inputConfig,
+    betSpread: { ...inputConfig.betSpread },
+  };
+
   // Validate config
   if (!config.bankroll || config.bankroll <= 0) throw new Error('bankroll must be > 0');
   if (!config.minBet || config.minBet <= 0) throw new Error('minBet must be > 0');

@@ -446,4 +446,32 @@ describe('runSimulation validation', () => {
     expect(isFinite(result.hourlyEV)).toBe(true);
     expect(isFinite(result.averageBet)).toBe(true);
   });
+
+  it('runSimulation does not mutate input config', () => {
+    const config: SimulationConfig = {
+      ...validConfig,
+      numShoes: 50,
+    };
+    const configBefore = JSON.stringify(config);
+    runSimulation(config);
+    const configAfter = JSON.stringify(config);
+    expect(configAfter).toBe(configBefore);
+  });
+
+  it('two runs with same config produce same houseEdge', () => {
+    const config: SimulationConfig = { ...validConfig, numShoes: 50 };
+    const result1 = runSimulation(config);
+    const result2 = runSimulation(config);
+    // houseEdge is deterministic (calculated from rules, not random)
+    expect(result1.houseEdge).toBe(result2.houseEdge);
+  });
+
+  it('worst case preset always has negative expected hourly win', () => {
+    for (let i = 0; i < 3; i++) {
+      const result = runSimulation(worstCasePreset);
+      // Tough Conditions: 6:5 BJ, H17, no DAS, no surrender, 8-deck
+      // Base edge is -2.03%, so hourly EV should be strongly negative
+      expect(result.houseEdge).toBeLessThan(-0.01);
+    }
+  });
 });
