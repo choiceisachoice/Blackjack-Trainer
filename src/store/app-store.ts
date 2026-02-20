@@ -12,6 +12,7 @@ export type AppMode =
   | 'betSpread'
   | 'deckEstimation'
   | 'analytics'
+  | 'bankrollSim'
 
 /** App-level state for navigation and global settings. */
 export interface AppStoreState {

@@ -9,6 +9,7 @@ import { DeviationTraining } from './components/training/DeviationTraining'
 import { BetSpread } from './components/training/BetSpread'
 import { DeckEstimation } from './components/training/DeckEstimation'
 import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard'
+import { BankrollSimulator } from './components/simulator/BankrollSimulator'
 
 /**
  * Root application component.
@@ -22,7 +23,7 @@ function App() {
   }
 
   return (
-    <div className={`h-screen flex flex-col bg-casino-bg ${currentMode === 'analytics' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+    <div className={`h-screen flex flex-col bg-casino-bg ${currentMode === 'analytics' || currentMode === 'bankrollSim' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <TopBar />
       {currentMode === 'speedDrill' && <SpeedDrill />}
       {currentMode === 'tableCounting' && <TableCounting />}
@@ -30,6 +31,7 @@ function App() {
       {currentMode === 'betSpread' && <BetSpread />}
       {currentMode === 'deckEstimation' && <DeckEstimation />}
       {currentMode === 'analytics' && <AnalyticsDashboard />}
+      {currentMode === 'bankrollSim' && <BankrollSimulator />}
     </div>
   )
 }

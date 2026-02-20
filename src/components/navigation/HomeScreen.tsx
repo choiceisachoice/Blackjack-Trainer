@@ -34,6 +34,12 @@ const MODE_CARDS: { mode: AppMode; icon: string; title: string; description: str
     title: 'Deck Estimation',
     description: 'Estimate remaining decks from the shoe',
   },
+  {
+    mode: 'bankrollSim',
+    icon: '\uD83D\uDCB0',
+    title: 'Bankroll Simulator',
+    description: 'Simulate your edge, risk & hourly win',
+  },
 ]
 
 const systems = getAllSystems()
@@ -53,7 +59,7 @@ export function HomeScreen() {
         Blackjack Card Counting Trainer
       </h1>
       <p className="text-white/50 text-sm md:text-base text-center mb-10 max-w-lg">
-        Master card counting with 5 training modes, 6 counting systems, and realistic shoe simulation.
+        Master card counting with 6 training modes, 6 counting systems, and realistic shoe simulation.
       </p>
 
       {/* Mode Cards Grid */}
