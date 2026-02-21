@@ -1,5 +1,7 @@
 import { useAppStore } from '../../store/app-store'
 import type { AppMode } from '../../store/app-store'
+import { useAchievementStore } from '../../store/achievement-store'
+import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
 import { CountingSystemId } from '../../engine/counting/types'
 import { getAllSystems } from '../../engine/counting/counting-systems'
 
@@ -51,6 +53,7 @@ export function HomeScreen() {
   const setMode = useAppStore(s => s.setMode)
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const setSystem = useAppStore(s => s.setSystem)
+  const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
 
   return (
     <div className="min-h-screen bg-casino-bg flex flex-col items-center px-4 py-8 md:py-16">
@@ -84,21 +87,43 @@ export function HomeScreen() {
         ))}
       </div>
 
-      {/* Analytics Button */}
-      <button
-        onClick={() => setMode('analytics')}
-        data-testid="analytics-button"
-        className="group w-full max-w-4xl flex items-center gap-4 p-4 rounded-xl mb-12
-          bg-white/5 border border-gold/30
-          hover:border-gold/60 hover:bg-white/8
-          transition-all duration-200 text-left cursor-pointer"
-      >
-        <span className="text-2xl">{'\uD83D\uDCCA'}</span>
-        <div>
-          <h2 className="text-base font-semibold text-gold">Analytics</h2>
-          <p className="text-sm text-white/50">View your training stats, trends, and progress</p>
-        </div>
-      </button>
+      {/* Analytics & Achievements Buttons */}
+      <div className="w-full max-w-4xl space-y-3 mb-12">
+        <button
+          onClick={() => setMode('analytics')}
+          data-testid="analytics-button"
+          className="group w-full flex items-center gap-4 p-4 rounded-xl
+            bg-white/5 border border-gold/30
+            hover:border-gold/60 hover:bg-white/8
+            transition-all duration-200 text-left cursor-pointer"
+        >
+          <span className="text-2xl">{'\uD83D\uDCCA'}</span>
+          <div>
+            <h2 className="text-base font-semibold text-gold">Analytics</h2>
+            <p className="text-sm text-white/50">View your training stats, trends, and progress</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => setMode('achievements')}
+          data-testid="achievements-button"
+          className="group w-full flex items-center gap-4 p-4 rounded-xl
+            bg-white/5 border border-gold/30
+            hover:border-gold/60 hover:bg-white/8
+            transition-all duration-200 text-left cursor-pointer"
+        >
+          <span className="text-2xl">{'\uD83C\uDFC6'}</span>
+          <div className="flex-1">
+            <h2 className="text-base font-semibold text-gold">
+              Achievements
+              <span className="ml-2 text-sm font-normal text-white/50">
+                ({totalUnlocked}/{ALL_ACHIEVEMENTS.length})
+              </span>
+            </h2>
+            <p className="text-sm text-white/50">Track your progress and unlock rewards</p>
+          </div>
+        </button>
+      </div>
 
       {/* System Selector */}
       <div className="flex items-center gap-3">

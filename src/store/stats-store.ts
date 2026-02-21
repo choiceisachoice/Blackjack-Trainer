@@ -7,6 +7,7 @@ import type {
   SessionDetails,
 } from '../services/stats-types'
 import { useAppStore } from './app-store'
+import { useAchievementStore } from './achievement-store'
 import type { CountingSystemId } from '../engine/counting/types'
 
 /** Accuracy trend direction. */
@@ -124,10 +125,17 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
 
     // Update cached state
     const lifetimeStats = await storage.getLifetimeStats()
-    set(state => ({
-      sessions: [result, ...state.sessions],
+    const allSessions = [result, ...get().sessions]
+    set(() => ({
+      sessions: allSessions,
       lifetimeStats,
     }))
+
+    // Check achievements after session save
+    const dayStreak = get().getTrainingStreak()
+    useAchievementStore.getState().checkAchievements(
+      result, lifetimeStats, dayStreak, allSessions,
+    )
   },
 
   getAccuracyTrend(mode?: TrainingMode): TrendDirection {

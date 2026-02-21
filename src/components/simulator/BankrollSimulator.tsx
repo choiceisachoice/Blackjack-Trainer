@@ -22,6 +22,7 @@ import {
 import { calculateHouseEdge, EDGE_PER_TC, DEVIATION_TC_BONUS, HAND_SD, TC_DISTRIBUTION } from '../../engine/simulation/math-utils'
 import type { SimulationConfig, SimulationResult } from '../../engine/simulation/types'
 import { useStatsStore } from '../../store/stats-store'
+import { useAchievementStore } from '../../store/achievement-store'
 
 // ── Preset definitions ──────────────────────────────────────────
 
@@ -241,6 +242,7 @@ export function BankrollSimulator() {
         const simResult = sanitizeResult(runSimulation(config))
         setResult(simResult)
         setPhase('results')
+        useAchievementStore.getState().checkSimulationAchievements(simResult)
       } catch (error) {
         console.error('Simulation failed:', error)
         setErrorMessage('Simulation produced invalid results. Try adjusting your settings.')

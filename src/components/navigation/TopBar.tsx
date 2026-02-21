@@ -9,6 +9,7 @@ const MODE_LABELS: Record<string, string> = {
   deckEstimation: 'Deck Estimation',
   analytics: 'Analytics',
   bankrollSim: 'Bankroll Simulator',
+  achievements: 'Achievements',
 }
 
 /**

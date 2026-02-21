@@ -10,6 +10,10 @@ import {
 } from 'recharts'
 import { useStatsStore } from '../../store/stats-store'
 import type { TrendDirection } from '../../store/stats-store'
+import { useAchievementStore } from '../../store/achievement-store'
+import { useAppStore } from '../../store/app-store'
+import { achievementEngine } from '../../services/achievements/achievement-engine'
+import { getAchievementById } from '../../services/achievements/achievement-list'
 import type { TrainingMode, TrainingSessionResult, ModeStats } from '../../services/stats-types'
 
 /** Display config per training mode. */
@@ -279,6 +283,9 @@ export function AnalyticsDashboard() {
         </div>
       )}
 
+      {/* Recent Achievements */}
+      <RecentAchievements />
+
       {/* Section 3: Mode Breakdown */}
       <section>
         <h2 className="text-lg font-semibold text-white mb-3">Mode Breakdown</h2>
@@ -417,5 +424,66 @@ export function AnalyticsDashboard() {
         </button>
       </section>
     </div>
+  )
+}
+
+const TIER_BADGE: Record<string, string> = {
+  bronze: '\uD83E\uDD49',
+  silver: '\uD83E\uDD48',
+  gold: '\uD83E\uDD47',
+  diamond: '\uD83D\uDC8E',
+}
+
+/** Recent achievements section with link to full gallery. */
+function RecentAchievements() {
+  const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
+  const setMode = useAppStore(s => s.setMode)
+
+  const recent = achievementEngine.getUnlocked()
+    .sort((a, b) => b.unlockedAt - a.unlockedAt)
+    .slice(0, 3)
+    .map(u => ({ ...u, achievement: getAchievementById(u.achievementId) }))
+    .filter(u => u.achievement != null)
+
+  return (
+    <section data-testid="recent-achievements">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold text-white">
+          Recent Achievements
+          <span className="ml-2 text-sm text-white/40">({totalUnlocked} unlocked)</span>
+        </h2>
+        <button
+          onClick={() => setMode('achievements')}
+          className="text-xs text-gold hover:text-gold/80 transition-colors cursor-pointer"
+          data-testid="view-all-achievements"
+        >
+          View All →
+        </button>
+      </div>
+
+      {recent.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {recent.map(({ achievementId, unlockedAt, achievement }) => (
+            <div
+              key={achievementId}
+              className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3"
+            >
+              <span className="text-2xl">{achievement!.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{achievement!.name}</p>
+                <p className="text-xs text-white/40">
+                  {new Date(unlockedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+              <span className="text-lg">{TIER_BADGE[achievement!.tier]}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="bg-white/5 border border-white/10 rounded-xl p-6 text-center">
+          <p className="text-white/40" data-testid="no-achievements">No achievements unlocked yet. Keep training!</p>
+        </div>
+      )}
+    </section>
   )
 }

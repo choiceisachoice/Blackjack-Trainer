@@ -38,6 +38,7 @@ export type AppMode =
   | 'deckEstimation'
   | 'analytics'
   | 'bankrollSim'
+  | 'achievements'
 
 /** App-level state for navigation and global settings. */
 export interface AppStoreState {

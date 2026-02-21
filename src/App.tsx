@@ -10,6 +10,8 @@ import { BetSpread } from './components/training/BetSpread'
 import { DeckEstimation } from './components/training/DeckEstimation'
 import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard'
 import { BankrollSimulator } from './components/simulator/BankrollSimulator'
+import { AchievementsPage } from './components/achievements/AchievementsPage'
+import { AchievementToast } from './components/achievements/AchievementToast'
 
 /**
  * Root application component.
@@ -19,11 +21,16 @@ function App() {
   const currentMode = useAppStore(s => s.currentMode)
 
   if (currentMode === 'home') {
-    return <HomeScreen />
+    return (
+      <>
+        <HomeScreen />
+        <AchievementToast />
+      </>
+    )
   }
 
   return (
-    <div className={`h-screen flex flex-col bg-casino-bg ${currentMode === 'analytics' || currentMode === 'bankrollSim' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+    <div className={`h-screen flex flex-col bg-casino-bg ${currentMode === 'analytics' || currentMode === 'bankrollSim' || currentMode === 'achievements' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <TopBar />
       {currentMode === 'speedDrill' && <SpeedDrill />}
       {currentMode === 'tableCounting' && <TableCounting />}
@@ -32,6 +39,8 @@ function App() {
       {currentMode === 'deckEstimation' && <DeckEstimation />}
       {currentMode === 'analytics' && <AnalyticsDashboard />}
       {currentMode === 'bankrollSim' && <BankrollSimulator />}
+      {currentMode === 'achievements' && <AchievementsPage />}
+      <AchievementToast />
     </div>
   )
 }
