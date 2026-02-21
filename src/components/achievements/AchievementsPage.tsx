@@ -105,8 +105,8 @@ export function AchievementsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white">Achievements</h2>
-          <p className="text-sm text-white/50" data-testid="unlock-count">
+          <h2 className="text-xl font-bold text-content">Achievements</h2>
+          <p className="text-sm text-content/50" data-testid="unlock-count">
             {totalUnlocked}/{ALL_ACHIEVEMENTS.length} unlocked
           </p>
         </div>
@@ -125,7 +125,7 @@ export function AchievementsPage() {
               strokeLinecap="round"
             />
           </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">
+          <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-content">
             {Math.round((totalUnlocked / ALL_ACHIEVEMENTS.length) * 100)}%
           </span>
         </div>
@@ -141,7 +141,7 @@ export function AchievementsPage() {
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
               ${filter === f
                 ? 'bg-gold/20 text-gold border border-gold/40'
-                : 'bg-white/5 text-white/50 border border-white/10 hover:text-white/70'
+                : 'bg-contrast/5 text-content/50 border border-contrast/10 hover:text-content/70'
               }`}
           >
             {f === 'all' ? 'All' : f === 'unlocked' ? 'Unlocked' : 'Locked'}
@@ -152,10 +152,10 @@ export function AchievementsPage() {
       {/* Category sections */}
       {grouped.map(({ category, achievements }) => (
         <section key={category}>
-          <h3 className="text-sm font-semibold text-white/70 mb-3 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-content/70 mb-3 flex items-center gap-2">
             <span>{CATEGORY_DISPLAY[category].icon}</span>
             <span>{CATEGORY_DISPLAY[category].label}</span>
-            <span className="text-white/30">({achievements.length})</span>
+            <span className="text-content/30">({achievements.length})</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -176,7 +176,7 @@ export function AchievementsPage() {
 
       {filteredAchievements.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-white/40">
+          <p className="text-content/40">
             {filter === 'unlocked' ? 'No achievements unlocked yet' : 'All achievements unlocked!'}
           </p>
         </div>
@@ -206,7 +206,7 @@ function AchievementCard({
         relative rounded-xl p-4 border transition-all
         ${isUnlocked
           ? `${tier.bg} ${tier.border} shadow-sm`
-          : 'bg-white/3 border-white/10 opacity-70'
+          : 'bg-contrast/3 border-contrast/10 opacity-70'
         }
       `}
     >
@@ -216,7 +216,7 @@ function AchievementCard({
             {achievement.icon}
           </span>
           <div>
-            <p className={`text-sm font-semibold ${isUnlocked ? 'text-white' : 'text-white/60'}`}>
+            <p className={`text-sm font-semibold ${isUnlocked ? 'text-content' : 'text-content/60'}`}>
               {achievement.name}
             </p>
           </div>
@@ -226,7 +226,7 @@ function AchievementCard({
         </span>
       </div>
 
-      <p className={`text-xs mb-3 ${isUnlocked ? 'text-white/60' : 'text-white/40'}`}>
+      <p className={`text-xs mb-3 ${isUnlocked ? 'text-content/60' : 'text-content/40'}`}>
         {achievement.description}
       </p>
 
@@ -237,14 +237,14 @@ function AchievementCard({
       ) : (
         <div>
           <div className="flex items-center gap-2">
-            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div className="flex-1 h-1.5 bg-contrast/10 rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full bg-white/30 transition-all duration-500"
+                className="h-full rounded-full bg-contrast/30 transition-all duration-500"
                 style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
                 data-testid={`progress-bar-${achievement.id}`}
               />
             </div>
-            <span className="text-xs text-white/40 w-8 text-right">
+            <span className="text-xs text-content/40 w-8 text-right">
               {Math.round(progress)}%
             </span>
           </div>

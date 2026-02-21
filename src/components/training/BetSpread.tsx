@@ -191,15 +191,15 @@ export function BetSpread() {
   if (phase === 'settings') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-white">Bet Spread</h2>
+        <h2 className="text-2xl font-bold text-content">Bet Spread</h2>
 
         {/* Bet Spread Table */}
-        <div className="bg-white/5 rounded-xl p-4 max-w-sm w-full">
-          <p className="text-xs text-white/50 mb-3 text-center">Bet Spread Reference</p>
+        <div className="bg-contrast/5 rounded-xl p-4 max-w-sm w-full">
+          <p className="text-xs text-content/50 mb-3 text-center">Bet Spread Reference</p>
           <div className="space-y-1">
             {BET_SPREAD.map((row, i) => (
               <div key={i} className="flex justify-between text-sm">
-                <span className="text-white/70">{row.label}</span>
+                <span className="text-content/70">{row.label}</span>
                 <span className="text-gold font-medium">{row.multiplier}x (${row.multiplier * MIN_BET})</span>
               </div>
             ))}
@@ -208,7 +208,7 @@ export function BetSpread() {
 
         {/* Question Type */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Question Type</span>
+          <span className="text-sm text-content/50">Question Type</span>
           <div className="flex gap-2 flex-wrap justify-center">
             {([
               { value: 'random' as QuestionMode, label: 'Random', desc: 'Mix of all types' },
@@ -223,13 +223,13 @@ export function BetSpread() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                   ${questionMode === q.value
                     ? 'bg-gold text-black'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
               >
                 {q.label}
               </button>
             ))}
           </div>
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-content/40">
             {questionMode === 'random' && 'Mix of all question types'}
             {questionMode === 'A' && 'Given RC and remaining decks, choose the optimal bet'}
             {questionMode === 'B' && 'Given True Count, choose the optimal bet'}
@@ -256,26 +256,26 @@ export function BetSpread() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
         {/* Stats bar */}
-        <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-black/40 text-xs text-white/50 rounded-lg">
+        <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
           <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
           <span>Streak: {currentStreak} (Best: {bestStreak})</span>
         </div>
 
         {/* Situation card */}
-        <div className="bg-neutral-900/95 border border-white/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+        <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
           <div className="space-y-3 mb-6">
             {/* Type A & C: show RC and remaining decks */}
             {(question.type === 'A' || question.type === 'C') && (
               <>
                 <div className="flex justify-between items-center">
-                  <span className="text-white/60 text-sm">Running Count:</span>
-                  <span className="text-white font-bold text-lg" data-testid="running-count">
+                  <span className="text-content/60 text-sm">Running Count:</span>
+                  <span className="text-content font-bold text-lg" data-testid="running-count">
                     {formatTC(question.rc)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-white/60 text-sm">Remaining Decks:</span>
-                  <span className="text-white font-bold text-lg" data-testid="remaining-decks">
+                  <span className="text-content/60 text-sm">Remaining Decks:</span>
+                  <span className="text-content font-bold text-lg" data-testid="remaining-decks">
                     ~{question.remainingDecks}
                   </span>
                 </div>
@@ -285,7 +285,7 @@ export function BetSpread() {
             {/* Type B: show TC directly */}
             {question.type === 'B' && (
               <div className="flex justify-between items-center">
-                <span className="text-white/60 text-sm">True Count:</span>
+                <span className="text-content/60 text-sm">True Count:</span>
                 <span className="text-gold font-bold text-lg" data-testid="true-count">
                   {formatTC(question.tc)}
                 </span>
@@ -296,12 +296,12 @@ export function BetSpread() {
           {/* Type C: TC input field */}
           {question.type === 'C' && (
             <div className="mb-6">
-              <p className="text-white/70 text-sm mb-2 text-center">What is the True Count?</p>
+              <p className="text-content/70 text-sm mb-2 text-center">What is the True Count?</p>
               <div className="flex items-center justify-center gap-3">
                 <button
                   onClick={() => setTcAnswer(prev => prev - 0.5)}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-lg
-                    text-white font-bold transition-colors cursor-pointer"
+                  className="w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-lg
+                    text-content font-bold transition-colors cursor-pointer"
                 >
                   &minus;
                 </button>
@@ -311,14 +311,14 @@ export function BetSpread() {
                   value={tcAnswer}
                   onChange={(e) => setTcAnswer(Number(e.target.value) || 0)}
                   data-testid="tc-input"
-                  className="w-20 h-12 text-center text-xl font-bold bg-white/10 border border-white/20
-                    rounded-xl text-white focus:outline-none focus:border-gold/60
+                  className="w-20 h-12 text-center text-xl font-bold bg-contrast/10 border border-contrast/20
+                    rounded-xl text-content focus:outline-none focus:border-gold/60
                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <button
                   onClick={() => setTcAnswer(prev => prev + 0.5)}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-lg
-                    text-white font-bold transition-colors cursor-pointer"
+                  className="w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-lg
+                    text-content font-bold transition-colors cursor-pointer"
                 >
                   +
                 </button>
@@ -326,7 +326,7 @@ export function BetSpread() {
             </div>
           )}
 
-          <p className="text-white font-medium text-center mb-4">What is your optimal bet?</p>
+          <p className="text-content font-medium text-center mb-4">What is your optimal bet?</p>
 
           <div className="flex flex-wrap gap-2 justify-center">
             {BET_OPTIONS.map(bet => (
@@ -334,7 +334,7 @@ export function BetSpread() {
                 key={bet}
                 onClick={() => handleSubmitBet(bet)}
                 data-testid={`bet-${bet}`}
-                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium
+                className="px-5 py-2.5 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
                   rounded-xl transition-colors cursor-pointer text-sm min-w-[70px]"
               >
                 ${bet}
@@ -352,13 +352,13 @@ export function BetSpread() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
       {/* Stats bar */}
-      <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-black/40 text-xs text-white/50 rounded-lg">
+      <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
         <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
         <span>Streak: {currentStreak} (Best: {bestStreak})</span>
       </div>
 
       {/* Result card */}
-      <div className="bg-neutral-900/95 border border-white/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
         <div className={`text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
           <span className="text-4xl">{isCorrect ? '\u2705' : '\u274C'}</span>
           <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
@@ -367,15 +367,15 @@ export function BetSpread() {
         </div>
 
         {/* Explanation */}
-        <div className="bg-white/5 rounded-xl p-4 mb-4 space-y-2">
+        <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
           {question.type === 'C' && !tcCorrect && (
-            <p className="text-white/70 text-sm">
+            <p className="text-content/70 text-sm">
               TC: You said {formatTC(tcAnswer)}, correct was{' '}
               <span className="text-gold font-medium">{formatTC(question.tc)}</span>
               {' '}(RC {formatTC(question.rc)} / {question.remainingDecks} decks)
             </p>
           )}
-          <p className="text-white/70 text-sm" data-testid="feedback-explanation">
+          <p className="text-content/70 text-sm" data-testid="feedback-explanation">
             TC {formatTC(question.tc)} → {multiplier}x bet (${question.correctBet})
             {selectedBet && selectedBet !== question.correctBet && (
               <span className="text-error"> — you chose ${selectedBet}</span>
@@ -384,14 +384,14 @@ export function BetSpread() {
         </div>
 
         {/* Bet spread reference with highlight */}
-        <div className="bg-white/5 rounded-xl p-3 mb-4">
-          <p className="text-xs text-white/40 mb-2 text-center">Bet Spread</p>
+        <div className="bg-contrast/5 rounded-xl p-3 mb-4">
+          <p className="text-xs text-content/40 mb-2 text-center">Bet Spread</p>
           <div className="space-y-0.5">
             {BET_SPREAD.map((row, i) => {
               const isHighlighted = question.tc >= row.minTC && question.tc <= row.maxTC
               return (
                 <div key={i} className={`flex justify-between text-xs px-2 py-0.5 rounded ${
-                  isHighlighted ? 'bg-gold/20 text-gold font-medium' : 'text-white/50'
+                  isHighlighted ? 'bg-gold/20 text-gold font-medium' : 'text-content/50'
                 }`}>
                   <span>{row.label}</span>
                   <span>{row.multiplier}x (${row.multiplier * MIN_BET})</span>

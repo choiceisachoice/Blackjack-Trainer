@@ -211,11 +211,11 @@ export function DeckEstimation() {
   if (phase === 'settings') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-white">Deck Estimation</h2>
+        <h2 className="text-2xl font-bold text-content">Deck Estimation</h2>
 
         {/* Deck Count */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Decks in Shoe</span>
+          <span className="text-sm text-content/50">Decks in Shoe</span>
           <div className="flex gap-2">
             {([2, 6, 8] as DeckCount[]).map(d => (
               <button
@@ -224,7 +224,7 @@ export function DeckEstimation() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                   ${deckCount === d
                     ? 'bg-gold text-black'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
               >
                 {d} Decks
               </button>
@@ -234,14 +234,14 @@ export function DeckEstimation() {
 
         {/* Accuracy Mode */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Precision</span>
+          <span className="text-sm text-content/50">Precision</span>
           <div className="flex gap-2">
             <button
               onClick={() => setAccuracyMode('half')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                 ${accuracyMode === 'half'
                   ? 'bg-gold text-black'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
             >
               Half Decks
             </button>
@@ -250,7 +250,7 @@ export function DeckEstimation() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                 ${accuracyMode === 'whole'
                   ? 'bg-gold text-black'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
             >
               Whole Decks
             </button>
@@ -259,14 +259,14 @@ export function DeckEstimation() {
 
         {/* Quick Fire Toggle */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Mode</span>
+          <span className="text-sm text-content/50">Mode</span>
           <div className="flex gap-2">
             <button
               onClick={() => setQuickFire(false)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                 ${!quickFire
                   ? 'bg-gold text-black'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
             >
               Normal
             </button>
@@ -276,7 +276,7 @@ export function DeckEstimation() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                 ${quickFire
                   ? 'bg-gold text-black'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
             >
               Quick Fire
             </button>
@@ -304,22 +304,22 @@ export function DeckEstimation() {
   if (phase === 'summary') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
-        <div className="bg-neutral-900/95 border border-white/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+        <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
           <h3 className="text-xl font-bold text-gold text-center mb-4" data-testid="summary-title">
             Quick Fire Complete!
           </h3>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between">
-              <span className="text-white/60">Correct:</span>
-              <span className="text-white font-bold">{stats.correct}/{stats.total} ({accuracy}%)</span>
+              <span className="text-content/60">Correct:</span>
+              <span className="text-content font-bold">{stats.correct}/{stats.total} ({accuracy}%)</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Avg Error:</span>
-              <span className="text-white font-bold" data-testid="avg-error">&plusmn;{avgError} decks</span>
+              <span className="text-content/60">Avg Error:</span>
+              <span className="text-content font-bold" data-testid="avg-error">&plusmn;{avgError} decks</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">Best Streak:</span>
-              <span className="text-white font-bold">{stats.bestStreak}</span>
+              <span className="text-content/60">Best Streak:</span>
+              <span className="text-content font-bold">{stats.bestStreak}</span>
             </div>
           </div>
           <button
@@ -340,7 +340,7 @@ export function DeckEstimation() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
         {/* Stats bar */}
-        <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-black/40 text-xs text-white/50 rounded-lg">
+        <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
           <span>Correct: {stats.correct}/{stats.total} ({accuracy}%)</span>
           <span>
             {quickFire
@@ -368,7 +368,7 @@ export function DeckEstimation() {
           size="large"
         />
 
-        <p className="text-white font-medium text-center">How many decks remain?</p>
+        <p className="text-content font-medium text-center">How many decks remain?</p>
 
         {/* Deck option buttons */}
         <div className="flex flex-wrap gap-2 justify-center max-w-lg">
@@ -377,7 +377,7 @@ export function DeckEstimation() {
               key={d}
               onClick={() => handleAnswer(d)}
               data-testid={`deck-${d}`}
-              className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium
+              className="px-4 py-2.5 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
                 rounded-xl transition-colors cursor-pointer text-sm min-w-[56px]"
             >
               {d}
@@ -395,13 +395,13 @@ export function DeckEstimation() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
       {/* Stats bar */}
-      <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-black/40 text-xs text-white/50 rounded-lg">
+      <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
         <span>Correct: {stats.correct}/{stats.total} ({accuracy}%)</span>
         <span>Avg Error: &plusmn;{avgError} decks</span>
       </div>
 
       {/* Result card */}
-      <div className="bg-neutral-900/95 border border-white/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
         <div className={`text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
           <span className="text-4xl">{isCorrect ? '\u2705' : '\u274C'}</span>
           <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
@@ -412,13 +412,13 @@ export function DeckEstimation() {
         </div>
 
         {/* Explanation */}
-        <div className="bg-white/5 rounded-xl p-4 mb-4 space-y-2">
-          <p className="text-white/70 text-sm" data-testid="feedback-explanation">
+        <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
+          <p className="text-content/70 text-sm" data-testid="feedback-explanation">
             ~{correctDecks.toFixed(1)} decks remaining
             {selectedAnswer !== null && ` (you said ${selectedAnswer})`}
           </p>
           {!isCorrect && selectedAnswer !== null && (
-            <p className="text-white/50 text-xs">
+            <p className="text-content/50 text-xs">
               Off by {errorDecks.toFixed(1)} decks
             </p>
           )}

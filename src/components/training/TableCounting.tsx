@@ -269,11 +269,11 @@ export function TableCounting() {
   if (tcPhase === 'settings') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-white">Table Counting</h2>
+        <h2 className="text-2xl font-bold text-content">Table Counting</h2>
 
         {/* Difficulty */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Difficulty</span>
+          <span className="text-sm text-content/50">Difficulty</span>
           <div className="flex gap-2">
             {(['easy', 'normal', 'hard'] as Difficulty[]).map(d => (
               <button
@@ -282,13 +282,13 @@ export function TableCounting() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors cursor-pointer
                   ${difficulty === d
                     ? 'bg-gold text-black'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
               >
                 {d}
               </button>
             ))}
           </div>
-          <p className="text-xs text-white/40 max-w-sm text-center">
+          <p className="text-xs text-content/40 max-w-sm text-center">
             {difficulty === 'easy' && 'Count badges on cards, breakdown always shown.'}
             {difficulty === 'normal' && 'Count asked every hand, no help.'}
             {difficulty === 'hard' && 'Count asked randomly every 2-5 hands.'}
@@ -297,7 +297,7 @@ export function TableCounting() {
 
         {/* Query type */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Ask for</span>
+          <span className="text-sm text-content/50">Ask for</span>
           <div className="flex gap-2">
             {([
               { value: 'rc' as QueryType, label: 'Running Count' },
@@ -310,7 +310,7 @@ export function TableCounting() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                   ${queryType === q.value
                     ? 'bg-gold text-black'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
               >
                 {q.label}
               </button>
@@ -336,7 +336,7 @@ export function TableCounting() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       {/* Stats bar */}
-      <div className="flex items-center justify-between px-4 py-1.5 bg-black/40 text-xs text-white/50 shrink-0">
+      <div className="flex items-center justify-between px-4 py-1.5 bg-contrast/10 text-xs text-content/50 shrink-0">
         <span>Hands: {handsPlayed}</span>
         <span>Correct: {correctCount}/{handsPlayed} ({accuracy}%)</span>
         <span>Streak: {currentStreak} (Best: {bestStreak})</span>
@@ -350,20 +350,20 @@ export function TableCounting() {
       {/* Count Prompt Overlay – positioned at top so cards remain visible below */}
       {showPrompt && (
         <div className="absolute inset-0 bg-black/30 flex items-start justify-center pt-16 z-50">
-          <div className="bg-neutral-900/95 border border-gold/30 rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl">
+          <div className="bg-casino-bg/95 border border-gold/30 rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl">
             {!feedback ? (
               <>
                 {/* Question */}
                 {(queryType === 'rc' || queryType === 'both') && (
                   <div className="mb-4">
-                    <h3 className="text-lg font-bold text-white text-center mb-3">
+                    <h3 className="text-lg font-bold text-content text-center mb-3">
                       What is the Running Count?
                     </h3>
                     <div className="flex items-center justify-center gap-4">
                       <button
                         onClick={() => setRcAnswer(prev => prev - 1)}
-                        className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-xl
-                          text-white font-bold transition-colors cursor-pointer"
+                        className="w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20 text-xl
+                          text-content font-bold transition-colors cursor-pointer"
                       >
                         &minus;
                       </button>
@@ -372,14 +372,14 @@ export function TableCounting() {
                         value={rcAnswer}
                         onChange={(e) => setRcAnswer(Number(e.target.value) || 0)}
                         data-testid="rc-input"
-                        className="w-20 h-14 text-center text-2xl font-bold bg-white/10 border border-white/20
-                          rounded-xl text-white focus:outline-none focus:border-gold/60
+                        className="w-20 h-14 text-center text-2xl font-bold bg-contrast/10 border border-contrast/20
+                          rounded-xl text-content focus:outline-none focus:border-gold/60
                           [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                       <button
                         onClick={() => setRcAnswer(prev => prev + 1)}
-                        className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-xl
-                          text-white font-bold transition-colors cursor-pointer"
+                        className="w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20 text-xl
+                          text-content font-bold transition-colors cursor-pointer"
                       >
                         +
                       </button>
@@ -389,14 +389,14 @@ export function TableCounting() {
 
                 {(queryType === 'tc' || queryType === 'both') && (
                   <div className="mb-4">
-                    <h3 className="text-lg font-bold text-white text-center mb-3">
+                    <h3 className="text-lg font-bold text-content text-center mb-3">
                       What is the True Count?
                     </h3>
                     <div className="flex items-center justify-center gap-4">
                       <button
                         onClick={() => setTcAnswer(prev => prev - 0.5)}
-                        className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-xl
-                          text-white font-bold transition-colors cursor-pointer"
+                        className="w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20 text-xl
+                          text-content font-bold transition-colors cursor-pointer"
                       >
                         &minus;
                       </button>
@@ -406,14 +406,14 @@ export function TableCounting() {
                         value={tcAnswer}
                         onChange={(e) => setTcAnswer(Number(e.target.value) || 0)}
                         data-testid="tc-input"
-                        className="w-20 h-14 text-center text-2xl font-bold bg-white/10 border border-white/20
-                          rounded-xl text-white focus:outline-none focus:border-gold/60
+                        className="w-20 h-14 text-center text-2xl font-bold bg-contrast/10 border border-contrast/20
+                          rounded-xl text-content focus:outline-none focus:border-gold/60
                           [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                       <button
                         onClick={() => setTcAnswer(prev => prev + 0.5)}
-                        className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-xl
-                          text-white font-bold transition-colors cursor-pointer"
+                        className="w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20 text-xl
+                          text-content font-bold transition-colors cursor-pointer"
                       >
                         +
                       </button>
@@ -438,7 +438,7 @@ export function TableCounting() {
                   <h3 className="text-xl font-bold mt-2">
                     {feedback.correct ? 'Correct!' : 'Wrong!'}
                   </h3>
-                  <p className="text-sm mt-1 text-white/70">
+                  <p className="text-sm mt-1 text-content/70">
                     RC: {formatCount(feedback.correctRC)}
                     {(queryType === 'tc' || queryType === 'both') && ` | TC: ${formatCount(feedback.correctTC)}`}
                   </p>
@@ -447,7 +447,7 @@ export function TableCounting() {
                 {/* Card breakdown: always in easy mode, on wrong answer otherwise */}
                 {(difficulty === 'easy' || !feedback.correct) && feedback.handCards.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-xs text-white/50 mb-2 text-center">Cards this hand:</p>
+                    <p className="text-xs text-content/50 mb-2 text-center">Cards this hand:</p>
                     <div className="flex flex-wrap justify-center gap-1">
                       {feedback.handCards.map((item, i) => {
                         const isRed = item.card.suit === Suit.Hearts || item.card.suit === Suit.Diamonds
@@ -455,11 +455,11 @@ export function TableCounting() {
                           <span
                             key={i}
                             className={`text-xs px-1.5 py-0.5 rounded ${
-                              isRed ? 'text-red-400' : 'text-white/80'
-                            } bg-white/10`}
+                              isRed ? 'text-red-400' : 'text-content/80'
+                            } bg-contrast/10`}
                           >
                             {item.card.rank}{SUIT_SYMBOL[item.card.suit]}
-                            <span className="text-white/40">({formatValue(item.value)})</span>
+                            <span className="text-content/40">({formatValue(item.value)})</span>
                           </span>
                         )
                       })}

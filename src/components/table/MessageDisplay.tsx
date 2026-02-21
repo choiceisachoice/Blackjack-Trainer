@@ -12,7 +12,7 @@ export function MessageDisplay() {
     if (msg.includes('+') || msg.includes('Win') || msg.includes('Blackjack') || msg.includes('Busts!')) return 'text-success'
     if (msg.includes('-') || msg.includes('Bust!') || msg.includes('Lost')) return 'text-error'
     if (msg.includes('Push') || msg.includes('Shuffling')) return 'text-warning'
-    return 'text-white'
+    return 'text-content'
   }
 
   return (

@@ -320,7 +320,7 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       {/* Stats bar */}
-      <div className="flex items-center justify-between px-4 py-1.5 bg-black/40 text-xs text-white/50 shrink-0" data-testid="deviation-stats">
+      <div className="flex items-center justify-between px-4 py-1.5 bg-contrast/10 text-xs text-content/50 shrink-0" data-testid="deviation-stats">
         <span>Hands: {handsPlayed}</span>
         <span>Deviations: {deviationsCorrect}/{deviationsTotal} ({deviationAccuracy}%)</span>
         <span>TC Avg Error: \u00B1{avgTcError}</span>
@@ -346,28 +346,28 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
       {/* Deviation Prompt Overlay */}
       {overlayPhase === 'deviation-prompt' && activeDeviation && (
         <div className="absolute inset-0 bg-black/30 flex items-start justify-center pt-16 z-50" data-testid="deviation-overlay">
-          <div className="bg-neutral-900/95 border border-gold/30 rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-white text-center mb-4">Deviation Check</h3>
+          <div className="bg-casino-bg/95 border border-gold/30 rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-content text-center mb-4">Deviation Check</h3>
 
             <div className="space-y-2 mb-4">
               <div className="flex justify-between items-center">
-                <span className="text-white/60 text-sm">Your Hand:</span>
-                <span className="text-white font-bold" data-testid="overlay-hand-value">{handValue}</span>
+                <span className="text-content/60 text-sm">Your Hand:</span>
+                <span className="text-content font-bold" data-testid="overlay-hand-value">{handValue}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-white/60 text-sm">Dealer Shows:</span>
-                <span className="text-white font-bold" data-testid="overlay-dealer-card">{dealerUpcard?.rank}</span>
+                <span className="text-content/60 text-sm">Dealer Shows:</span>
+                <span className="text-content font-bold" data-testid="overlay-dealer-card">{dealerUpcard?.rank}</span>
               </div>
             </div>
 
             {/* TC Input */}
             <div className="mb-4">
-              <p className="text-white/70 text-sm text-center mb-2">What is the True Count?</p>
+              <p className="text-content/70 text-sm text-center mb-2">What is the True Count?</p>
               <div className="flex items-center justify-center gap-4">
                 <button
                   onClick={() => setTcAnswer(prev => prev - 0.5)}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-lg
-                    text-white font-bold transition-colors cursor-pointer"
+                  className="w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-lg
+                    text-content font-bold transition-colors cursor-pointer"
                 >
                   &minus;
                 </button>
@@ -377,14 +377,14 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
                   value={tcAnswer}
                   onChange={(e) => setTcAnswer(Number(e.target.value) || 0)}
                   data-testid="deviation-tc-input"
-                  className="w-16 h-12 text-center text-xl font-bold bg-white/10 border border-white/20
-                    rounded-xl text-white focus:outline-none focus:border-gold/60
+                  className="w-16 h-12 text-center text-xl font-bold bg-contrast/10 border border-contrast/20
+                    rounded-xl text-content focus:outline-none focus:border-gold/60
                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <button
                   onClick={() => setTcAnswer(prev => prev + 0.5)}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-lg
-                    text-white font-bold transition-colors cursor-pointer"
+                  className="w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-lg
+                    text-content font-bold transition-colors cursor-pointer"
                 >
                   +
                 </button>
@@ -393,7 +393,7 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
 
             {/* Action buttons */}
             <div className="mb-4">
-              <p className="text-white/70 text-sm text-center mb-2">What should you do?</p>
+              <p className="text-content/70 text-sm text-center mb-2">What should you do?</p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {ALL_ACTIONS.map(action => {
                   const enabled =
@@ -412,10 +412,10 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
                       data-testid={`deviation-action-${action.toLowerCase()}`}
                       className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors
                         ${!enabled
-                          ? 'bg-white/5 text-white/20 cursor-not-allowed'
+                          ? 'bg-contrast/5 text-content/20 cursor-not-allowed'
                           : selectedAction === action
                             ? 'bg-gold text-black cursor-pointer'
-                            : 'bg-white/10 hover:bg-white/20 text-white cursor-pointer'}`}
+                            : 'bg-contrast/10 hover:bg-contrast/20 text-content cursor-pointer'}`}
                     >
                       {ACTION_LABEL[action]}
                     </button>
@@ -440,27 +440,27 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
       {/* Trap Prompt Overlay */}
       {overlayPhase === 'trap-prompt' && (
         <div className="absolute inset-0 bg-black/30 flex items-start justify-center pt-16 z-50" data-testid="trap-overlay">
-          <div className="bg-neutral-900/95 border border-gold/30 rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-white text-center mb-4">Deviation Check</h3>
+          <div className="bg-casino-bg/95 border border-gold/30 rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-content text-center mb-4">Deviation Check</h3>
 
             <div className="space-y-2 mb-4">
               <div className="flex justify-between items-center">
-                <span className="text-white/60 text-sm">Your Hand:</span>
-                <span className="text-white font-bold">{handValue}</span>
+                <span className="text-content/60 text-sm">Your Hand:</span>
+                <span className="text-content font-bold">{handValue}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-white/60 text-sm">Dealer Shows:</span>
-                <span className="text-white font-bold">{dealerUpcard?.rank}</span>
+                <span className="text-content/60 text-sm">Dealer Shows:</span>
+                <span className="text-content font-bold">{dealerUpcard?.rank}</span>
               </div>
             </div>
 
-            <p className="text-white font-medium text-center mb-4">Is there a deviation here?</p>
+            <p className="text-content font-medium text-center mb-4">Is there a deviation here?</p>
 
             <div className="flex gap-3">
               <button
                 onClick={() => handleTrapAnswer(true)}
                 data-testid="trap-yes"
-                className="flex-1 px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-medium
+                className="flex-1 px-4 py-3 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
                   rounded-xl transition-colors cursor-pointer text-sm"
               >
                 Yes - there is a deviation
@@ -468,7 +468,7 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
               <button
                 onClick={() => handleTrapAnswer(false)}
                 data-testid="trap-no"
-                className="flex-1 px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-medium
+                className="flex-1 px-4 py-3 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
                   rounded-xl transition-colors cursor-pointer text-sm"
               >
                 No - play Basic Strategy
@@ -481,7 +481,7 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
       {/* Feedback Overlay */}
       {overlayPhase === 'feedback' && (
         <div className="absolute inset-0 bg-black/30 flex items-start justify-center pt-16 z-50" data-testid="feedback-overlay">
-          <div className="bg-neutral-900/95 border border-gold/30 rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl">
+          <div className="bg-casino-bg/95 border border-gold/30 rounded-2xl p-5 max-w-sm w-full mx-4 shadow-2xl">
             {activeDeviation ? (
               // Deviation feedback
               <>
@@ -492,9 +492,9 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
                   </h3>
                 </div>
 
-                <div className="bg-white/5 rounded-xl p-4 mb-4 space-y-2">
+                <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
                   {/* TC feedback */}
-                  <p className="text-white/70 text-sm" data-testid="deviation-tc-feedback">
+                  <p className="text-content/70 text-sm" data-testid="deviation-tc-feedback">
                     True Count: {formatTC(trueCount)}
                     {!isTcCorrect && (
                       <span className="text-error"> (you said {formatTC(tcAnswer)})</span>
@@ -503,14 +503,14 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
 
                   {/* Action feedback */}
                   {!isActionCorrect && selectedAction && correctAction && (
-                    <p className="text-white/70 text-sm">
+                    <p className="text-content/70 text-sm">
                       You chose <span className="text-error font-medium">{ACTION_LABEL[selectedAction]}</span>,
                       correct was <span className="text-success font-medium">{ACTION_LABEL[correctAction]}</span>.
                     </p>
                   )}
 
                   {/* Rule explanation */}
-                  <p className="text-white/40 text-xs" data-testid="deviation-rule">
+                  <p className="text-content/40 text-xs" data-testid="deviation-rule">
                     {activeDeviation.isIllustrious18 ? 'I18' : 'Fab 4'}: {activeDeviation.name} → {ACTION_LABEL[getDevAction(activeDeviation)]} at TC {isReversedDeviation(activeDeviation) ? '<' : '\u2265'} {formatTC(activeDeviation.trueCountThreshold)}
                     {' '}(instead of {ACTION_LABEL[getBasicAction(activeDeviation)]})
                   </p>
@@ -526,8 +526,8 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
                   </h3>
                 </div>
 
-                <div className="bg-white/5 rounded-xl p-4 mb-4">
-                  <p className="text-white/70 text-sm" data-testid="trap-feedback-text">
+                <div className="bg-contrast/5 rounded-xl p-4 mb-4">
+                  <p className="text-content/70 text-sm" data-testid="trap-feedback-text">
                     {isTrapCorrect
                       ? 'No deviation applies here — play Basic Strategy.'
                       : 'There is no deviation for this hand — play Basic Strategy.'}

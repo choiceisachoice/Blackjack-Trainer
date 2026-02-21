@@ -65,7 +65,7 @@ export function GameTable({ getCardCountValue }: GameTableProps = {}) {
 
         {/* Dealer area */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-xs text-white/40 uppercase tracking-wider">Dealer</span>
+          <span className="text-xs text-content/40 uppercase tracking-wider">Dealer</span>
           {gameState ? (
             <Hand
               cards={gameState.dealerHand.cards}
@@ -74,7 +74,7 @@ export function GameTable({ getCardCountValue }: GameTableProps = {}) {
               countValues={getCardCountValue ? gameState.dealerHand.cards.map(getCardCountValue) : undefined}
             />
           ) : (
-            <div className="h-[8rem] md:h-[10rem] flex items-center justify-center text-white/20">
+            <div className="h-[8rem] md:h-[10rem] flex items-center justify-center text-content/20">
               Place your bet to start
             </div>
           )}

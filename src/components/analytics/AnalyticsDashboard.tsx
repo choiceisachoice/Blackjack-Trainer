@@ -65,7 +65,7 @@ function trendArrow(trend: TrendDirection): string {
 function trendColor(trend: TrendDirection): string {
   if (trend === 'improving') return 'text-green-400'
   if (trend === 'declining') return 'text-red-400'
-  return 'text-white/50'
+  return 'text-content/50'
 }
 
 /** Color for accuracy value. */
@@ -147,7 +147,7 @@ export function AnalyticsDashboard() {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-white/50">Loading stats...</p>
+        <p className="text-content/50">Loading stats...</p>
       </div>
     )
   }
@@ -174,39 +174,39 @@ export function AnalyticsDashboard() {
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="analytics-dashboard">
       {/* Section 1: Overview Cards */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Overview</h2>
+        <h2 className="text-lg font-semibold text-content mb-3">Overview</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {/* Total Sessions */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-            <p className="text-2xl md:text-3xl font-bold text-white">{totalSessions}</p>
-            <p className="text-xs text-white/50 mt-1">Total Sessions</p>
-            <p className="text-xs text-white/30">across all modes</p>
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+            <p className="text-2xl md:text-3xl font-bold text-content">{totalSessions}</p>
+            <p className="text-xs text-content/50 mt-1">Total Sessions</p>
+            <p className="text-xs text-content/30">across all modes</p>
           </div>
 
           {/* Training Time */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-            <p className="text-2xl md:text-3xl font-bold text-white">{formatDuration(totalTime)}</p>
-            <p className="text-xs text-white/50 mt-1">Training Time</p>
-            <p className="text-xs text-white/30">total time trained</p>
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+            <p className="text-2xl md:text-3xl font-bold text-content">{formatDuration(totalTime)}</p>
+            <p className="text-xs text-content/50 mt-1">Training Time</p>
+            <p className="text-xs text-content/30">total time trained</p>
           </div>
 
           {/* Overall Accuracy */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-            <p className={`text-2xl md:text-3xl font-bold ${totalSessions > 0 ? accuracyColor(overallAccuracy) : 'text-white/30'}`}>
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+            <p className={`text-2xl md:text-3xl font-bold ${totalSessions > 0 ? accuracyColor(overallAccuracy) : 'text-content/30'}`}>
               {totalSessions > 0 ? `${Math.round(overallAccuracy * 100)}%` : '--'}
             </p>
-            <p className="text-xs text-white/50 mt-1">Overall Accuracy</p>
-            <p className="text-xs text-white/30">{totalCorrect}/{totalQuestions}</p>
+            <p className="text-xs text-content/50 mt-1">Overall Accuracy</p>
+            <p className="text-xs text-content/30">{totalCorrect}/{totalQuestions}</p>
           </div>
 
           {/* Training Streak */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-            <p className="text-2xl md:text-3xl font-bold text-white">
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+            <p className="text-2xl md:text-3xl font-bold text-content">
               {streak > 0 ? streak : '--'}
               {streak > 0 && <span className="ml-1 text-orange-400" data-testid="streak-fire">{'\uD83D\uDD25'}</span>}
             </p>
-            <p className="text-xs text-white/50 mt-1">Day Streak</p>
-            <p className="text-xs text-white/30" data-testid="streak-motivation">
+            <p className="text-xs text-content/50 mt-1">Day Streak</p>
+            <p className="text-xs text-content/30" data-testid="streak-motivation">
               {getStreakMotivation(streak)}
             </p>
           </div>
@@ -215,33 +215,33 @@ export function AnalyticsDashboard() {
 
       {/* Section 2: Accuracy Trend Chart */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">
+        <h2 className="text-lg font-semibold text-content mb-3">
           Accuracy Trend
           <span className={`ml-2 text-sm ${trendColor(overallTrend)}`}>{trendArrow(overallTrend)}</span>
         </h2>
         {chartData.length >= 2 ? (
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
                 <XAxis
                   dataKey="label"
                   tick={{ fill: '#a3a3a3', fontSize: 12 }}
-                  axisLine={{ stroke: '#ffffff20' }}
+                  axisLine={{ stroke: 'rgba(128,128,128,0.2)' }}
                   tickLine={false}
                 />
                 <YAxis
                   domain={[0, 100]}
                   tick={{ fill: '#a3a3a3', fontSize: 12 }}
-                  axisLine={{ stroke: '#ffffff20' }}
+                  axisLine={{ stroke: 'rgba(128,128,128,0.2)' }}
                   tickLine={false}
                   tickFormatter={(v: number) => `${v}%`}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1a1a1a',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    backgroundColor: 'var(--color-tooltip-bg)',
+                    border: '1px solid var(--color-tooltip-border)',
                     borderRadius: 8,
-                    color: '#f5f5f5',
+                    color: 'var(--color-content)',
                   }}
                   formatter={(value: number, name: string) => [`${value}%`, name]}
                 />
@@ -262,8 +262,8 @@ export function AnalyticsDashboard() {
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
-            <p className="text-white/40" data-testid="chart-empty">Play more sessions to see trends</p>
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-8 text-center">
+            <p className="text-content/40" data-testid="chart-empty">Play more sessions to see trends</p>
           </div>
         )}
       </section>
@@ -288,7 +288,7 @@ export function AnalyticsDashboard() {
 
       {/* Section 3: Mode Breakdown */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Mode Breakdown</h2>
+        <h2 className="text-lg font-semibold text-content mb-3">Mode Breakdown</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {ALL_MODES.map(mode => {
             const display = MODE_DISPLAY[mode]
@@ -298,53 +298,53 @@ export function AnalyticsDashboard() {
 
             if (!modeStats || modeStats.totalSessions === 0) {
               return (
-                <div key={mode} className="bg-white/5 border border-white/10 rounded-xl p-4 opacity-50">
+                <div key={mode} className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 opacity-50">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xl">{display.icon}</span>
-                    <span className="text-sm font-medium text-white/60">{display.label}</span>
+                    <span className="text-sm font-medium text-content/60">{display.label}</span>
                   </div>
-                  <p className="text-xs text-white/30">Not yet played</p>
+                  <p className="text-xs text-content/30">Not yet played</p>
                 </div>
               )
             }
 
             return (
-              <div key={mode} className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div key={mode} className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">{display.icon}</span>
-                  <span className="text-sm font-medium text-white">{display.label}</span>
+                  <span className="text-sm font-medium text-content">{display.label}</span>
                 </div>
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-white/50">Sessions</span>
-                    <span className="text-white">{modeStats.totalSessions}</span>
+                    <span className="text-content/50">Sessions</span>
+                    <span className="text-content">{modeStats.totalSessions}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/50">Accuracy</span>
+                    <span className="text-content/50">Accuracy</span>
                     <span className={accuracyColor(lastSession?.accuracy ?? modeStats.accuracy)}>
                       {Math.round((lastSession?.accuracy ?? modeStats.accuracy) * 100)}%
                       <span className={`ml-1 ${trendColor(trend)}`}>{trendArrow(trend)}</span>
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/50">Best</span>
+                    <span className="text-content/50">Best</span>
                     <span className={accuracyColor(modeStats.bestAccuracy)} data-testid={`mode-best-${mode}`}>
                       {Math.round(modeStats.bestAccuracy * 100)}%
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/50">Average</span>
+                    <span className="text-content/50">Average</span>
                     <span className={accuracyColor(modeStats.accuracy)} data-testid={`mode-avg-${mode}`}>
                       {Math.round(modeStats.accuracy * 100)}%
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/50">Best Streak</span>
-                    <span className="text-white">{modeStats.bestStreak}</span>
+                    <span className="text-content/50">Best Streak</span>
+                    <span className="text-content">{modeStats.bestStreak}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-white/50">Last Played</span>
-                    <span className="text-white/70">
+                    <span className="text-content/50">Last Played</span>
+                    <span className="text-content/70">
                       {lastSession ? formatRelativeTime(lastSession.timestamp) : '--'}
                     </span>
                   </div>
@@ -357,13 +357,13 @@ export function AnalyticsDashboard() {
 
       {/* Section 4: Weakest Deviations */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Weakest Deviations</h2>
+        <h2 className="text-lg font-semibold text-content mb-3">Weakest Deviations</h2>
         {weakest.length > 0 ? (
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 space-y-3">
             {weakest.map(({ name, accuracy }) => (
               <div key={name} className="flex items-center gap-3">
-                <span className="text-sm text-white w-48 truncate">{name}</span>
-                <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                <span className="text-sm text-content w-48 truncate">{name}</span>
+                <div className="flex-1 h-2 bg-contrast/10 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full ${accuracy >= 0.8 ? 'bg-green-500' : accuracy >= 0.6 ? 'bg-yellow-500' : 'bg-red-500'}`}
                     style={{ width: `${Math.round(accuracy * 100)}%` }}
@@ -376,35 +376,35 @@ export function AnalyticsDashboard() {
             ))}
           </div>
         ) : (
-          <div className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
-            <p className="text-white/40" data-testid="deviations-empty">Complete deviation training to see weak spots</p>
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-8 text-center">
+            <p className="text-content/40" data-testid="deviations-empty">Complete deviation training to see weak spots</p>
           </div>
         )}
       </section>
 
       {/* Section 5: Session History */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Recent Sessions</h2>
+        <h2 className="text-lg font-semibold text-content mb-3">Recent Sessions</h2>
         {sessions.length > 0 ? (
-          <div className="bg-white/5 border border-white/10 rounded-xl divide-y divide-white/5">
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl divide-y divide-white/5">
             {sessions.slice(0, 20).map(session => {
               const display = MODE_DISPLAY[session.mode]
               return (
                 <div key={session.id} className="flex items-center gap-3 px-4 py-3 text-sm">
                   <span className="text-lg">{display.icon}</span>
-                  <span className="text-white flex-1 truncate">{display.label}</span>
-                  <span className="text-white/40 text-xs">{formatRelativeTime(session.timestamp)}</span>
+                  <span className="text-content flex-1 truncate">{display.label}</span>
+                  <span className="text-content/40 text-xs">{formatRelativeTime(session.timestamp)}</span>
                   <span className={`font-medium w-12 text-right ${accuracyColor(session.accuracy)}`}>
                     {Math.round(session.accuracy * 100)}%
                   </span>
-                  <span className="text-white/40 text-xs w-12 text-right">{formatDuration(session.durationSeconds)}</span>
+                  <span className="text-content/40 text-xs w-12 text-right">{formatDuration(session.durationSeconds)}</span>
                 </div>
               )
             })}
           </div>
         ) : (
-          <div className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
-            <p className="text-white/40" data-testid="sessions-empty">No sessions recorded yet</p>
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-8 text-center">
+            <p className="text-content/40" data-testid="sessions-empty">No sessions recorded yet</p>
           </div>
         )}
       </section>
@@ -448,9 +448,9 @@ function RecentAchievements() {
   return (
     <section data-testid="recent-achievements">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-white">
+        <h2 className="text-lg font-semibold text-content">
           Recent Achievements
-          <span className="ml-2 text-sm text-white/40">({totalUnlocked} unlocked)</span>
+          <span className="ml-2 text-sm text-content/40">({totalUnlocked} unlocked)</span>
         </h2>
         <button
           onClick={() => setMode('achievements')}
@@ -466,12 +466,12 @@ function RecentAchievements() {
           {recent.map(({ achievementId, unlockedAt, achievement }) => (
             <div
               key={achievementId}
-              className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3"
+              className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 flex items-center gap-3"
             >
               <span className="text-2xl">{achievement!.icon}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{achievement!.name}</p>
-                <p className="text-xs text-white/40">
+                <p className="text-sm font-medium text-content truncate">{achievement!.name}</p>
+                <p className="text-xs text-content/40">
                   {new Date(unlockedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </p>
               </div>
@@ -480,8 +480,8 @@ function RecentAchievements() {
           ))}
         </div>
       ) : (
-        <div className="bg-white/5 border border-white/10 rounded-xl p-6 text-center">
-          <p className="text-white/40" data-testid="no-achievements">No achievements unlocked yet. Keep training!</p>
+        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-6 text-center">
+          <p className="text-content/40" data-testid="no-achievements">No achievements unlocked yet. Keep training!</p>
         </div>
       )}
     </section>

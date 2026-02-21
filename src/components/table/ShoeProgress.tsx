@@ -115,7 +115,7 @@ function ShoeHousing({ cardCount, totalCards, penetration }: {
         />
       </div>
 
-      <span className="text-[11px] text-white/40 uppercase tracking-widest font-medium">
+      <span className="text-[11px] text-content/40 uppercase tracking-widest font-medium">
         Shoe
       </span>
     </div>
@@ -193,7 +193,7 @@ function DiscardTray({ cardCount }: { cardCount: number }) {
         />
       </div>
 
-      <span className="text-[11px] text-white/40 uppercase tracking-widest font-medium">
+      <span className="text-[11px] text-content/40 uppercase tracking-widest font-medium">
         Discard
       </span>
     </div>

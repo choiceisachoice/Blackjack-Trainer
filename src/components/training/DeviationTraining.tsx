@@ -136,11 +136,11 @@ export function DeviationTraining() {
   if (phase === 'settings') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-white">Deviation Training</h2>
+        <h2 className="text-2xl font-bold text-content">Deviation Training</h2>
 
         {/* Deviation Set */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Deviation Set</span>
+          <span className="text-sm text-content/50">Deviation Set</span>
           <div className="flex gap-2">
             {([
               { value: 'i18' as DeviationSet, label: 'Illustrious 18' },
@@ -153,7 +153,7 @@ export function DeviationTraining() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                   ${deviationSet === d.value
                     ? 'bg-gold text-black'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
               >
                 {d.label}
               </button>
@@ -163,14 +163,14 @@ export function DeviationTraining() {
 
         {/* Training Mode */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Mode</span>
+          <span className="text-sm text-content/50">Mode</span>
           <div className="flex gap-2">
             <button
               onClick={() => setTrainingMode('flashCards')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                 ${trainingMode === 'flashCards'
                   ? 'bg-gold text-black'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
             >
               Flash Cards
             </button>
@@ -179,7 +179,7 @@ export function DeviationTraining() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                 ${trainingMode === 'atTheTable'
                   ? 'bg-gold text-black'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
             >
               At the Table
             </button>
@@ -211,40 +211,40 @@ export function DeviationTraining() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
         {/* Stats bar */}
-        <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-black/40 text-xs text-white/50 rounded-lg">
+        <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
           <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
           <span>Streak: {currentStreak} (Best: {bestStreak})</span>
         </div>
 
         {/* Situation card */}
-        <div className="bg-neutral-900/95 border border-white/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+        <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
-              <span className="text-white/60 text-sm">Your Hand:</span>
-              <span className="text-white font-bold text-lg" data-testid="player-hand">
+              <span className="text-content/60 text-sm">Your Hand:</span>
+              <span className="text-content font-bold text-lg" data-testid="player-hand">
                 {deviation.playerHand === '*' ? 'Any' : deviation.playerHand}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-white/60 text-sm">Dealer Shows:</span>
-              <span className="text-white font-bold text-lg" data-testid="dealer-card">
+              <span className="text-content/60 text-sm">Dealer Shows:</span>
+              <span className="text-content font-bold text-lg" data-testid="dealer-card">
                 {deviation.dealerUpcard}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-white/60 text-sm">True Count:</span>
+              <span className="text-content/60 text-sm">True Count:</span>
               <span className="text-gold font-bold text-lg" data-testid="true-count">
                 {formatTC(trueCount)}
               </span>
             </div>
-            <div className="border-t border-white/10 pt-3">
-              <span className="text-white/40 text-xs">
-                Basic Strategy says: <span className="text-white/70 font-medium">{ACTION_LABEL[getBasicAction(deviation)]}</span>
+            <div className="border-t border-contrast/10 pt-3">
+              <span className="text-content/40 text-xs">
+                Basic Strategy says: <span className="text-content/70 font-medium">{ACTION_LABEL[getBasicAction(deviation)]}</span>
               </span>
             </div>
           </div>
 
-          <p className="text-white font-medium text-center mb-4">What do you do?</p>
+          <p className="text-content font-medium text-center mb-4">What do you do?</p>
 
           <div className="flex flex-wrap gap-2 justify-center">
             {ALL_ACTIONS.map(action => {
@@ -257,8 +257,8 @@ export function DeviationTraining() {
                   data-testid={`action-${action.toLowerCase()}`}
                   className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-colors
                     ${enabled
-                      ? 'bg-white/10 hover:bg-white/20 text-white cursor-pointer'
-                      : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
+                      ? 'bg-contrast/10 hover:bg-contrast/20 text-content cursor-pointer'
+                      : 'bg-contrast/5 text-content/20 cursor-not-allowed'}`}
                 >
                   {ACTION_LABEL[action]}
                 </button>
@@ -274,13 +274,13 @@ export function DeviationTraining() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
       {/* Stats bar */}
-      <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-black/40 text-xs text-white/50 rounded-lg">
+      <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
         <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
         <span>Streak: {currentStreak} (Best: {bestStreak})</span>
       </div>
 
       {/* Result card */}
-      <div className="bg-neutral-900/95 border border-white/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
         <div className={`text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
           <span className="text-4xl">{isCorrect ? '\u2705' : '\u274C'}</span>
           <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
@@ -289,19 +289,19 @@ export function DeviationTraining() {
         </div>
 
         {/* Explanation */}
-        <div className="bg-white/5 rounded-xl p-4 mb-4 space-y-2">
+        <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
           {!isCorrect && selectedAction && (
-            <p className="text-white/70 text-sm">
+            <p className="text-content/70 text-sm">
               You chose <span className="text-error font-medium">{ACTION_LABEL[selectedAction]}</span>,
               correct was <span className="text-success font-medium">{ACTION_LABEL[correctAction]}</span>.
             </p>
           )}
-          <p className="text-white/70 text-sm" data-testid="feedback-explanation">
+          <p className="text-content/70 text-sm" data-testid="feedback-explanation">
             {correctAction === getBasicAction(deviation)
               ? `Basic Strategy: ${ACTION_LABEL[correctAction]} (TC ${formatTC(trueCount)} — deviation does not apply)`
               : `${ACTION_LABEL[correctAction]} at TC ${isReversedDeviation(deviation) ? '<' : '\u2265'} ${formatTC(deviation.trueCountThreshold)} (you had ${formatTC(trueCount)})`}
           </p>
-          <p className="text-white/40 text-xs">
+          <p className="text-content/40 text-xs">
             {deviation.isIllustrious18 ? 'I18' : 'Fab 4'}: {deviation.name} → {ACTION_LABEL[getDevAction(deviation)]} at TC {isReversedDeviation(deviation) ? '<' : '\u2265'} {formatTC(deviation.trueCountThreshold)}
             {' '}(instead of {ACTION_LABEL[getBasicAction(deviation)]})
           </p>

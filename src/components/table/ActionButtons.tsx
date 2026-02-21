@@ -14,7 +14,7 @@ const ACTIONS: ActionDef[] = [
   { action: Action.Stand, label: 'Stand', shortcut: 'S', color: 'bg-error hover:bg-error/80' },
   { action: Action.Double, label: 'Double', shortcut: 'D', color: 'bg-warning hover:bg-warning/80' },
   { action: Action.Split, label: 'Split', shortcut: 'P', color: 'bg-chip-blue hover:bg-chip-blue/80' },
-  { action: Action.Surrender, label: 'Surrender', shortcut: 'R', color: 'bg-white/20 hover:bg-white/30' },
+  { action: Action.Surrender, label: 'Surrender', shortcut: 'R', color: 'bg-contrast/20 hover:bg-contrast/30' },
   { action: Action.Insurance, label: 'Insurance', shortcut: 'I', color: 'bg-gold/80 hover:bg-gold/60' },
 ]
 
@@ -71,7 +71,7 @@ export function ActionButtons() {
             disabled={!isAvailable}
             className={`px-4 py-2 md:px-5 md:py-2.5 rounded-lg font-bold text-sm text-white
               shadow-md transition-opacity
-              ${isAvailable ? color : 'bg-white/5 text-white/20 cursor-not-allowed'}`}
+              ${isAvailable ? color : 'bg-contrast/5 text-content/20 cursor-not-allowed'}`}
           >
             {label}
             <span className="ml-1.5 text-xs opacity-60">[{shortcut}]</span>

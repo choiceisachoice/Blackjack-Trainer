@@ -150,7 +150,7 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
     <div className="flex flex-col items-center gap-1">
       {label && (
         <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-          isActive ? 'bg-gold text-black' : 'bg-white/10 text-white/60'
+          isActive ? 'bg-gold text-black' : 'bg-contrast/10 text-content/60'
         }`}>
           {label}
         </span>
@@ -176,8 +176,8 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
                   className={`w-[22px] h-[22px] rounded-full text-[10px] font-bold
                     flex items-center justify-center
                     ${isFaceDown
-                      ? 'bg-white/20 text-white/50'
-                      : val > 0 ? 'bg-success text-white' : val < 0 ? 'bg-error text-white' : 'bg-white/30 text-white/80'
+                      ? 'bg-contrast/20 text-content/50'
+                      : val > 0 ? 'bg-success text-white' : val < 0 ? 'bg-error text-white' : 'bg-contrast/30 text-content/80'
                     }`}>
                   {isFaceDown ? '?' : val > 0 ? `+${val}` : val}
                 </motion.div>
@@ -212,8 +212,8 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
         showBustText
           ? 'bg-error text-white'
           : isDealer && hideFirst
-            ? 'bg-white/10 text-white/60'
-            : 'bg-white/20 text-white'
+            ? 'bg-contrast/10 text-content/60'
+            : 'bg-contrast/20 text-content'
       }`}>
         {displayValue}
       </div>

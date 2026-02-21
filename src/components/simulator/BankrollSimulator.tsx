@@ -327,7 +327,7 @@ N-Zero: ${result.n0.toLocaleString()} hands`
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="sim-config">
         {/* Presets */}
         <section>
-          <h2 className="text-lg font-semibold text-white mb-3">Preset Configurations</h2>
+          <h2 className="text-lg font-semibold text-content mb-3">Preset Configurations</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {UI_PRESETS.map(p => (
               <button
@@ -337,11 +337,11 @@ N-Zero: ${result.n0.toLocaleString()} hands`
                 className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                   activePreset === p.key
                     ? 'border-gold bg-gold/10 ring-1 ring-gold/40'
-                    : 'border-white/10 bg-white/5 hover:border-white/30'
+                    : 'border-contrast/10 bg-contrast/5 hover:border-contrast/30'
                 }`}
               >
-                <span className="text-sm font-semibold text-white">{p.label}</span>
-                <p className="text-xs text-white/40 mt-1">{p.description}</p>
+                <span className="text-sm font-semibold text-content">{p.label}</span>
+                <p className="text-xs text-content/40 mt-1">{p.description}</p>
               </button>
             ))}
           </div>
@@ -354,37 +354,37 @@ N-Zero: ${result.n0.toLocaleString()} hands`
             <h3 className="text-sm font-semibold text-gold uppercase tracking-wider">Bankroll & Bets</h3>
 
             <label className="block">
-              <span className="text-xs text-white/60">Starting Bankroll</span>
+              <span className="text-xs text-content/60">Starting Bankroll</span>
               <div className="flex items-center mt-1">
-                <span className="text-white/40 mr-1">$</span>
+                <span className="text-content/40 mr-1">$</span>
                 <input type="number" min={1000} step={1000} value={bankroll}
                   onChange={e => { setBankroll(Number(e.target.value)); setActivePreset(null) }}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold/60" />
+                  className="w-full bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60" />
               </div>
             </label>
 
             <label className="block">
-              <span className="text-xs text-white/60">Minimum Bet</span>
+              <span className="text-xs text-content/60">Minimum Bet</span>
               <div className="flex items-center mt-1">
-                <span className="text-white/40 mr-1">$</span>
+                <span className="text-content/40 mr-1">$</span>
                 <input type="number" min={5} step={5} value={minBet}
                   onChange={e => { setMinBet(Number(e.target.value)); setActivePreset(null) }}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold/60" />
+                  className="w-full bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60" />
               </div>
             </label>
 
             {/* Bet Spread Table */}
             <div>
-              <span className="text-xs text-white/60">Bet Spread</span>
+              <span className="text-xs text-content/60">Bet Spread</span>
               <table className="w-full mt-1 text-sm" data-testid="bet-spread-table">
                 <thead>
-                  <tr className="text-xs text-white/40">
+                  <tr className="text-xs text-content/40">
                     <th className="text-left py-1">TC</th>
                     <th className="text-right py-1">Multiplier</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="text-white/50">
+                  <tr className="text-content/50">
                     <td className="py-1">{'\u2264'} 0</td>
                     <td className="text-right">1x</td>
                   </tr>
@@ -396,18 +396,18 @@ N-Zero: ${result.n0.toLocaleString()} hands`
                     { label: '+5+', val: tc5, set: setTc5 },
                   ].map(r => (
                     <tr key={r.label}>
-                      <td className="py-1 text-white/70">{r.label}</td>
+                      <td className="py-1 text-content/70">{r.label}</td>
                       <td className="text-right">
                         <input type="number" min={1} max={50} value={r.val}
                           onChange={e => { r.set(Number(e.target.value)); setActivePreset(null) }}
-                          className="w-16 bg-white/10 border border-white/20 rounded px-2 py-1 text-sm text-white text-right focus:outline-none focus:border-gold/60" />
-                        <span className="text-white/40 ml-1">x</span>
+                          className="w-16 bg-contrast/10 border border-contrast/20 rounded px-2 py-1 text-sm text-content text-right focus:outline-none focus:border-gold/60" />
+                        <span className="text-content/40 ml-1">x</span>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <p className="text-xs text-white/40 mt-1">Max Bet: {fmtDollar(maxBet)}</p>
+              <p className="text-xs text-content/40 mt-1">Max Bet: {fmtDollar(maxBet)}</p>
             </div>
           </section>
 
@@ -416,36 +416,36 @@ N-Zero: ${result.n0.toLocaleString()} hands`
             <h3 className="text-sm font-semibold text-gold uppercase tracking-wider">Casino Rules</h3>
 
             <label className="block">
-              <span className="text-xs text-white/60">Number of Decks</span>
+              <span className="text-xs text-content/60">Number of Decks</span>
               <select value={numDecks}
                 onChange={e => { setNumDecks(Number(e.target.value)); setActivePreset(null) }}
-                className="w-full mt-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold/60 cursor-pointer">
-                <option value={2} className="bg-neutral-900">2</option>
-                <option value={6} className="bg-neutral-900">6</option>
-                <option value={8} className="bg-neutral-900">8</option>
+                className="w-full mt-1 bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60 cursor-pointer">
+                <option value={2} className="bg-select-bg">2</option>
+                <option value={6} className="bg-select-bg">6</option>
+                <option value={8} className="bg-select-bg">8</option>
               </select>
             </label>
 
             <div>
-              <span className="text-xs text-white/60">Penetration: {Math.round(penetration * 100)}%</span>
+              <span className="text-xs text-content/60">Penetration: {Math.round(penetration * 100)}%</span>
               <input type="range" min={50} max={90} step={5} value={penetration * 100}
                 onChange={e => { setPenetration(Number(e.target.value) / 100); setActivePreset(null) }}
                 className="w-full mt-1 accent-gold" />
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-content/40">
                 {(numDecks * penetration).toFixed(1)} decks dealt of {numDecks}
               </p>
             </div>
 
             {/* Toggle: Dealer Soft 17 */}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-white/60">Dealer Soft 17</span>
-              <div className="flex rounded-lg overflow-hidden border border-white/20">
+              <span className="text-xs text-content/60">Dealer Soft 17</span>
+              <div className="flex rounded-lg overflow-hidden border border-contrast/20">
                 <button onClick={() => { setDealerHitsSoft17(false); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${!dealerHitsSoft17 ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                  className={`px-3 py-1.5 text-xs cursor-pointer ${!dealerHitsSoft17 ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                   Stands (S17)
                 </button>
                 <button onClick={() => { setDealerHitsSoft17(true); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${dealerHitsSoft17 ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                  className={`px-3 py-1.5 text-xs cursor-pointer ${dealerHitsSoft17 ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                   Hits (H17)
                 </button>
               </div>
@@ -453,14 +453,14 @@ N-Zero: ${result.n0.toLocaleString()} hands`
 
             {/* Toggle: DAS */}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-white/60">Double After Split</span>
-              <div className="flex rounded-lg overflow-hidden border border-white/20">
+              <span className="text-xs text-content/60">Double After Split</span>
+              <div className="flex rounded-lg overflow-hidden border border-contrast/20">
                 <button onClick={() => { setDoubleAfterSplit(true); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${doubleAfterSplit ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                  className={`px-3 py-1.5 text-xs cursor-pointer ${doubleAfterSplit ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                   Yes
                 </button>
                 <button onClick={() => { setDoubleAfterSplit(false); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${!doubleAfterSplit ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                  className={`px-3 py-1.5 text-xs cursor-pointer ${!doubleAfterSplit ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                   No
                 </button>
               </div>
@@ -468,14 +468,14 @@ N-Zero: ${result.n0.toLocaleString()} hands`
 
             {/* Toggle: Surrender */}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-white/60">Surrender</span>
-              <div className="flex rounded-lg overflow-hidden border border-white/20">
+              <span className="text-xs text-content/60">Surrender</span>
+              <div className="flex rounded-lg overflow-hidden border border-contrast/20">
                 <button onClick={() => { setSurrenderAllowed(true); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${surrenderAllowed ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                  className={`px-3 py-1.5 text-xs cursor-pointer ${surrenderAllowed ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                   Allowed
                 </button>
                 <button onClick={() => { setSurrenderAllowed(false); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${!surrenderAllowed ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                  className={`px-3 py-1.5 text-xs cursor-pointer ${!surrenderAllowed ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                   Not Allowed
                 </button>
               </div>
@@ -484,14 +484,14 @@ N-Zero: ${result.n0.toLocaleString()} hands`
             {/* Toggle: Blackjack Pays */}
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-white/60">Blackjack Pays</span>
-                <div className="flex rounded-lg overflow-hidden border border-white/20">
+                <span className="text-xs text-content/60">Blackjack Pays</span>
+                <div className="flex rounded-lg overflow-hidden border border-contrast/20">
                   <button onClick={() => { setBlackjackPays(1.5); setActivePreset(null) }}
-                    className={`px-3 py-1.5 text-xs cursor-pointer ${blackjackPays === 1.5 ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                    className={`px-3 py-1.5 text-xs cursor-pointer ${blackjackPays === 1.5 ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                     3:2
                   </button>
                   <button onClick={() => { setBlackjackPays(1.2); setActivePreset(null) }}
-                    className={`px-3 py-1.5 text-xs cursor-pointer ${blackjackPays === 1.2 ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                    className={`px-3 py-1.5 text-xs cursor-pointer ${blackjackPays === 1.2 ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                     6:5
                   </button>
                 </div>
@@ -510,7 +510,7 @@ N-Zero: ${result.n0.toLocaleString()} hands`
 
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-white/60">Counting Accuracy: {Math.round(countingAccuracy * 100)}%</span>
+                <span className="text-xs text-content/60">Counting Accuracy: {Math.round(countingAccuracy * 100)}%</span>
                 {statsAvailable.tcAvg !== null && (
                   <button onClick={() => { setCountingAccuracy(statsAvailable.tcAvg!); setActivePreset(null) }}
                     className="text-[10px] px-2 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 cursor-pointer"
@@ -522,23 +522,23 @@ N-Zero: ${result.n0.toLocaleString()} hands`
               <input type="range" min={50} max={100} step={1} value={countingAccuracy * 100}
                 onChange={e => { setCountingAccuracy(Number(e.target.value) / 100); setActivePreset(null) }}
                 className="w-full mt-1 accent-gold" />
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-content/40">
                 {countingAccuracy >= 0.95 ? 'Good' : countingAccuracy >= 0.9 ? 'Average' : 'Needs Work'}
               </p>
             </div>
 
             {/* Toggle: Use Deviations */}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-white/60">Use Deviations</span>
-              <div className="flex rounded-lg overflow-hidden border border-white/20">
+              <span className="text-xs text-content/60">Use Deviations</span>
+              <div className="flex rounded-lg overflow-hidden border border-contrast/20">
                 <button onClick={() => { setUseDeviations(true); setActivePreset(null) }}
                   data-testid="deviations-yes"
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${useDeviations ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                  className={`px-3 py-1.5 text-xs cursor-pointer ${useDeviations ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                   Yes
                 </button>
                 <button onClick={() => { setUseDeviations(false); setActivePreset(null) }}
                   data-testid="deviations-no"
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${!useDeviations ? 'bg-gold/20 text-gold' : 'bg-white/5 text-white/50'}`}>
+                  className={`px-3 py-1.5 text-xs cursor-pointer ${!useDeviations ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
                   No
                 </button>
               </div>
@@ -547,7 +547,7 @@ N-Zero: ${result.n0.toLocaleString()} hands`
             {useDeviations && (
               <div data-testid="deviation-accuracy-slider">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-white/60">Deviation Accuracy: {Math.round(deviationAccuracy * 100)}%</span>
+                  <span className="text-xs text-content/60">Deviation Accuracy: {Math.round(deviationAccuracy * 100)}%</span>
                   {statsAvailable.devAvg !== null && (
                     <button onClick={() => { setDeviationAccuracy(statsAvailable.devAvg!); setActivePreset(null) }}
                       className="text-[10px] px-2 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 cursor-pointer"
@@ -563,22 +563,22 @@ N-Zero: ${result.n0.toLocaleString()} hands`
             )}
 
             <label className="block">
-              <span className="text-xs text-white/60">Hands Per Hour</span>
+              <span className="text-xs text-content/60">Hands Per Hour</span>
               <input type="number" min={60} max={120} value={handsPerHour}
                 onChange={e => { setHandsPerHour(Number(e.target.value)); setActivePreset(null) }}
-                className="w-full mt-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold/60" />
+                className="w-full mt-1 bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60" />
             </label>
 
             <div>
-              <span className="text-xs text-white/60">Number of Shoes</span>
+              <span className="text-xs text-content/60">Number of Shoes</span>
               <select value={numShoes}
                 onChange={e => { setNumShoes(Number(e.target.value)); setActivePreset(null) }}
-                className="w-full mt-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold/60 cursor-pointer">
+                className="w-full mt-1 bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60 cursor-pointer">
                 {[1000, 5000, 10000, 25000, 50000].map(n => (
-                  <option key={n} value={n} className="bg-neutral-900">{n.toLocaleString()}</option>
+                  <option key={n} value={n} className="bg-select-bg">{n.toLocaleString()}</option>
                 ))}
               </select>
-              <p className="text-xs text-white/40 mt-1">
+              <p className="text-xs text-content/40 mt-1">
                 ~{estimatedHands.toLocaleString()} hands simulated
                 {numShoes >= 50000 && <span className="ml-1 text-yellow-400">{'\u23F1'} May take a few seconds</span>}
               </p>
@@ -666,37 +666,37 @@ N-Zero: ${result.n0.toLocaleString()} hands`
 
       {/* Section A: Key Metrics */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Key Metrics</h2>
+        <h2 className="text-lg font-semibold text-content mb-3">Key Metrics</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="key-metrics">
           {/* Card 1: Expected Hourly Win (theoretical) */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4" data-testid="metric-hourly-ev">
-            <p className="text-xs text-white/50 mb-1">Expected Hourly Win</p>
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="metric-hourly-ev">
+            <p className="text-xs text-content/50 mb-1">Expected Hourly Win</p>
             <p className={`text-2xl md:text-3xl font-bold ${theoHourlyEV >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {fmtDollarCents(theoHourlyEV, true)}/hr
             </p>
-            <p className="text-xs text-white/40 mt-1">
+            <p className="text-xs text-content/40 mt-1">
               Weighted edge: {fmtPct(playerEdge, 2)} | Base: {fmtPct(result.houseEdge, 2)}
             </p>
           </div>
 
           {/* Card 2: Risk of Ruin */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4" data-testid="metric-ror">
-            <p className="text-xs text-white/50 mb-1">Risk of Ruin</p>
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="metric-ror">
+            <p className="text-xs text-content/50 mb-1">Risk of Ruin</p>
             <p className={`text-2xl md:text-3xl font-bold ${rorColor(result.riskOfRuin)}`}>
               {fmtPct(result.riskOfRuin)}
             </p>
-            <p className="text-xs text-white/40 mt-1">Chance of losing entire bankroll</p>
+            <p className="text-xs text-content/40 mt-1">Chance of losing entire bankroll</p>
           </div>
 
           {/* Card 3: Recommended Bankroll */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4" data-testid="metric-rec-bankroll">
-            <p className="text-xs text-white/50 mb-1">Recommended Bankroll</p>
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="metric-rec-bankroll">
+            <p className="text-xs text-content/50 mb-1">Recommended Bankroll</p>
             {recBankroll !== null ? (
               <>
-                <p className="text-2xl md:text-3xl font-bold text-white">
+                <p className="text-2xl md:text-3xl font-bold text-content">
                   {fmtDollar(recBankroll)}
                 </p>
-                <p className="text-xs text-white/40 mt-1">For {'<'}5% risk of ruin</p>
+                <p className="text-xs text-content/40 mt-1">For {'<'}5% risk of ruin</p>
                 {configSnapshot.bankroll < recBankroll && (
                   <p className="text-xs text-yellow-400 mt-1">{'\u26A0'} Your bankroll is underfunded</p>
                 )}
@@ -706,18 +706,18 @@ N-Zero: ${result.n0.toLocaleString()} hands`
                 <p className="text-base font-bold text-red-400" data-testid="rec-bankroll-negative">
                   No bankroll can overcome a negative edge
                 </p>
-                <p className="text-xs text-white/40 mt-1">Improve rules or counting to gain an edge first</p>
+                <p className="text-xs text-content/40 mt-1">Improve rules or counting to gain an edge first</p>
               </>
             )}
           </div>
 
           {/* Card 4: N-Zero */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4" data-testid="metric-n0">
-            <p className="text-xs text-white/50 mb-1">N-Zero</p>
-            <p className="text-2xl md:text-3xl font-bold text-white">
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="metric-n0">
+            <p className="text-xs text-content/50 mb-1">N-Zero</p>
+            <p className="text-2xl md:text-3xl font-bold text-content">
               {hasPositiveEdge ? `${result.n0.toLocaleString()} hands` : '\u221E (negative edge)'}
             </p>
-            <p className="text-xs text-white/40 mt-1">
+            <p className="text-xs text-content/40 mt-1">
               {n0Hours !== null ? `~${n0Hours.toLocaleString()} hours until skill beats luck` : (playerEdge <= 0 ? 'You need a positive edge first' : 'Edge too small to overcome variance')}
             </p>
           </div>
@@ -726,8 +726,8 @@ N-Zero: ${result.n0.toLocaleString()} hands`
 
       {/* Section B: Bankroll Journey Chart */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Bankroll Journey</h2>
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4" data-testid="bankroll-chart">
+        <h2 className="text-lg font-semibold text-content mb-3">Bankroll Journey</h2>
+        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="bankroll-chart">
           <ResponsiveContainer width="100%" height={350}>
             <AreaChart data={result.bankrollHistory}>
               <defs>
@@ -736,39 +736,39 @@ N-Zero: ${result.n0.toLocaleString()} hands`
                   <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-              <XAxis dataKey="hand" tick={{ fill: '#a3a3a3', fontSize: 11 }} axisLine={{ stroke: '#ffffff20' }} tickLine={false}
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.1)" />
+              <XAxis dataKey="hand" tick={{ fill: '#a3a3a3', fontSize: 11 }} axisLine={{ stroke: 'rgba(128,128,128,0.15)' }} tickLine={false}
                 tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)} />
-              <YAxis tick={{ fill: '#a3a3a3', fontSize: 11 }} axisLine={{ stroke: '#ffffff20' }} tickLine={false}
+              <YAxis tick={{ fill: '#a3a3a3', fontSize: 11 }} axisLine={{ stroke: 'rgba(128,128,128,0.15)' }} tickLine={false}
                 tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#f5f5f5' }}
+                contentStyle={{ backgroundColor: 'var(--color-tooltip-bg)', border: '1px solid var(--color-tooltip-border)', borderRadius: 8, color: 'var(--color-content)' }}
                 formatter={(value: number) => [fmtDollar(value), 'Bankroll']}
                 labelFormatter={(label: number) => `Hand #${label.toLocaleString()}`} />
-              <ReferenceLine y={configSnapshot.bankroll} stroke="#ffffff40" strokeDasharray="6 4" label={{ value: 'Start', fill: '#ffffff40', fontSize: 11 }} />
+              <ReferenceLine y={configSnapshot.bankroll} stroke="rgba(128,128,128,0.3)" strokeDasharray="6 4" label={{ value: 'Start', fill: 'rgba(128,128,128,0.3)', fontSize: 11 }} />
               <ReferenceLine y={0} stroke="#ef444440" strokeDasharray="6 4" />
               <Area type="monotone" dataKey="bankroll" stroke="#06b6d4" strokeWidth={2} fill="url(#bankrollGrad)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
-          <div className="flex flex-wrap gap-4 mt-3 text-xs text-white/50">
+          <div className="flex flex-wrap gap-4 mt-3 text-xs text-content/50">
             <span>Peak: <span className="text-green-400 font-medium">{fmtDollar(result.peakBankroll)}</span></span>
             <span>Worst Drawdown: <span className="text-red-400 font-medium">-{fmtDollar(result.worstDrawdown)}</span></span>
-            <span>Final: <span className="text-white font-medium">{fmtDollar(result.finalBankroll)}</span></span>
+            <span>Final: <span className="text-content font-medium">{fmtDollar(result.finalBankroll)}</span></span>
           </div>
         </div>
       </section>
 
       {/* Section C: Outcome Distribution */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Outcome Distribution</h2>
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4" data-testid="outcome-chart">
+        <h2 className="text-lg font-semibold text-content mb-3">Outcome Distribution</h2>
+        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="outcome-chart">
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={result.outcomeDistribution}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-              <XAxis dataKey="label" tick={{ fill: '#a3a3a3', fontSize: 10 }} axisLine={{ stroke: '#ffffff20' }} tickLine={false} />
-              <YAxis tick={{ fill: '#a3a3a3', fontSize: 11 }} axisLine={{ stroke: '#ffffff20' }} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.1)" />
+              <XAxis dataKey="label" tick={{ fill: '#a3a3a3', fontSize: 10 }} axisLine={{ stroke: 'rgba(128,128,128,0.15)' }} tickLine={false} />
+              <YAxis tick={{ fill: '#a3a3a3', fontSize: 11 }} axisLine={{ stroke: 'rgba(128,128,128,0.15)' }} tickLine={false} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#f5f5f5' }}
+                contentStyle={{ backgroundColor: 'var(--color-tooltip-bg)', border: '1px solid var(--color-tooltip-border)', borderRadius: 8, color: 'var(--color-content)' }}
                 formatter={(value: number, _name: string, props: { payload: { percentage: number } }) =>
                   [`${props.payload.percentage.toFixed(1)}% of simulations`, 'Sessions']}
               />
@@ -784,10 +784,10 @@ N-Zero: ${result.n0.toLocaleString()} hands`
 
       {/* Section D: Detailed Stats */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Detailed Stats</h2>
+        <h2 className="text-lg font-semibold text-content mb-3">Detailed Stats</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Performance */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 space-y-2">
             <h3 className="text-sm font-semibold text-gold mb-2">Performance</h3>
             {[
               ['Total Hands Simulated', result.totalHands.toLocaleString()],
@@ -798,14 +798,14 @@ N-Zero: ${result.n0.toLocaleString()} hands`
               ['Average Bet Size', fmtDollarCents(result.averageBet)],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between text-sm">
-                <span className="text-white/50">{label}</span>
-                <span className="text-white font-medium">{value}</span>
+                <span className="text-content/50">{label}</span>
+                <span className="text-content font-medium">{value}</span>
               </div>
             ))}
           </div>
 
           {/* Risk Analysis */}
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 space-y-2">
             <h3 className="text-sm font-semibold text-gold mb-2">Risk Analysis</h3>
             {[
               ['Risk of Ruin (full)', fmtPct(result.riskOfRuin)],
@@ -816,8 +816,8 @@ N-Zero: ${result.n0.toLocaleString()} hands`
               ['Hours to Break Even (N0)', n0Hours !== null ? `~${n0Hours.toLocaleString()} hours` : (playerEdge <= 0 ? '\u221E (negative edge)' : 'N/A')],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between text-sm">
-                <span className="text-white/50">{label}</span>
-                <span className="text-white font-medium">{value}</span>
+                <span className="text-content/50">{label}</span>
+                <span className="text-content font-medium">{value}</span>
               </div>
             ))}
           </div>
@@ -826,11 +826,11 @@ N-Zero: ${result.n0.toLocaleString()} hands`
 
       {/* Section E: Bet Spread Analysis */}
       <section>
-        <h2 className="text-lg font-semibold text-white mb-3">Bet Spread Analysis</h2>
-        <div className="bg-white/5 border border-white/10 rounded-xl p-4 overflow-x-auto" data-testid="spread-analysis">
+        <h2 className="text-lg font-semibold text-content mb-3">Bet Spread Analysis</h2>
+        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 overflow-x-auto" data-testid="spread-analysis">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-xs text-white/40 border-b border-white/10">
+              <tr className="text-xs text-content/40 border-b border-contrast/10">
                 <th className="text-left py-2">True Count</th>
                 <th className="text-right py-2">Bet Size</th>
                 <th className="text-right py-2">% of Hands</th>
@@ -845,10 +845,10 @@ N-Zero: ${result.n0.toLocaleString()} hands`
                 const edge = baseEdge + row.tc * tcGain
                 const evHand = edge * bet
                 return (
-                  <tr key={row.label} className="border-b border-white/5">
-                    <td className="py-2 text-white/70">{row.label}</td>
-                    <td className="text-right text-white">{fmtDollar(bet)}</td>
-                    <td className="text-right text-white/60">{Math.round(row.pct * 100)}%</td>
+                  <tr key={row.label} className="border-b border-contrast/5">
+                    <td className="py-2 text-content/70">{row.label}</td>
+                    <td className="text-right text-content">{fmtDollar(bet)}</td>
+                    <td className="text-right text-content/60">{Math.round(row.pct * 100)}%</td>
                     <td className={`text-right ${edge >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {edge >= 0 ? '+' : ''}{(edge * 100).toFixed(2)}%
                     </td>
@@ -870,11 +870,11 @@ N-Zero: ${result.n0.toLocaleString()} hands`
           {isSimulating ? '\u23F3 Simulating...' : '\uD83D\uDD04 Run Again'}
         </button>
         <button onClick={() => setPhase('config')} data-testid="modify-settings-bottom"
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold border border-white/20 text-white hover:bg-white/10 transition-all cursor-pointer">
+          className="px-6 py-2.5 rounded-xl text-sm font-semibold border border-contrast/20 text-content hover:bg-contrast/10 transition-all cursor-pointer">
           {'\u25C0'} Modify Settings
         </button>
         <button onClick={handleCopySummary} data-testid="copy-summary"
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold border border-white/20 text-white hover:bg-white/10 transition-all cursor-pointer">
+          className="px-6 py-2.5 rounded-xl text-sm font-semibold border border-contrast/20 text-content hover:bg-contrast/10 transition-all cursor-pointer">
           {'\uD83D\uDCCB'} Copy Summary
         </button>
       </section>

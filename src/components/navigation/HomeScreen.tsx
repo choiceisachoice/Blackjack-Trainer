@@ -61,7 +61,7 @@ export function HomeScreen() {
       <h1 className="text-3xl md:text-5xl font-bold text-gold text-center mb-2">
         Blackjack Card Counting Trainer
       </h1>
-      <p className="text-white/50 text-sm md:text-base text-center mb-10 max-w-lg">
+      <p className="text-content/50 text-sm md:text-base text-center mb-10 max-w-lg">
         Master card counting with 6 training modes, 6 counting systems, and realistic shoe simulation.
       </p>
 
@@ -73,16 +73,16 @@ export function HomeScreen() {
             onClick={() => setMode(mode)}
             data-testid={`mode-card-${mode}`}
             className="group relative flex flex-col items-start p-5 rounded-xl
-              bg-white/5 border border-white/10
-              hover:border-gold/60 hover:bg-white/8 hover:-translate-y-0.5
+              bg-contrast/5 border border-contrast/10
+              hover:border-gold/60 hover:bg-contrast/8 hover:-translate-y-0.5
               transition-all duration-200 text-left cursor-pointer"
           >
             {/* Gold accent top bar */}
             <div className="absolute top-0 left-4 right-4 h-0.5 bg-gold/40 group-hover:bg-gold rounded-full transition-colors" />
 
             <span className="text-3xl mb-3">{icon}</span>
-            <h2 className="text-lg font-semibold text-white mb-1">{title}</h2>
-            <p className="text-sm text-white/50">{description}</p>
+            <h2 className="text-lg font-semibold text-content mb-1">{title}</h2>
+            <p className="text-sm text-content/50">{description}</p>
           </button>
         ))}
       </div>
@@ -93,14 +93,14 @@ export function HomeScreen() {
           onClick={() => setMode('analytics')}
           data-testid="analytics-button"
           className="group w-full flex items-center gap-4 p-4 rounded-xl
-            bg-white/5 border border-gold/30
-            hover:border-gold/60 hover:bg-white/8
+            bg-contrast/5 border border-gold/30
+            hover:border-gold/60 hover:bg-contrast/8
             transition-all duration-200 text-left cursor-pointer"
         >
           <span className="text-2xl">{'\uD83D\uDCCA'}</span>
           <div>
             <h2 className="text-base font-semibold text-gold">Analytics</h2>
-            <p className="text-sm text-white/50">View your training stats, trends, and progress</p>
+            <p className="text-sm text-content/50">View your training stats, trends, and progress</p>
           </div>
         </button>
 
@@ -108,37 +108,37 @@ export function HomeScreen() {
           onClick={() => setMode('achievements')}
           data-testid="achievements-button"
           className="group w-full flex items-center gap-4 p-4 rounded-xl
-            bg-white/5 border border-gold/30
-            hover:border-gold/60 hover:bg-white/8
+            bg-contrast/5 border border-gold/30
+            hover:border-gold/60 hover:bg-contrast/8
             transition-all duration-200 text-left cursor-pointer"
         >
           <span className="text-2xl">{'\uD83C\uDFC6'}</span>
           <div className="flex-1">
             <h2 className="text-base font-semibold text-gold">
               Achievements
-              <span className="ml-2 text-sm font-normal text-white/50">
+              <span className="ml-2 text-sm font-normal text-content/50">
                 ({totalUnlocked}/{ALL_ACHIEVEMENTS.length})
               </span>
             </h2>
-            <p className="text-sm text-white/50">Track your progress and unlock rewards</p>
+            <p className="text-sm text-content/50">Track your progress and unlock rewards</p>
           </div>
         </button>
       </div>
 
       {/* System Selector */}
       <div className="flex items-center gap-3">
-        <label htmlFor="system-select" className="text-sm text-white/60">
+        <label htmlFor="system-select" className="text-sm text-content/60">
           Counting System:
         </label>
         <select
           id="system-select"
           value={selectedSystem}
           onChange={(e) => setSystem(e.target.value as CountingSystemId)}
-          className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white
+          className="bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content
             focus:outline-none focus:border-gold/60 cursor-pointer"
         >
           {systems.map((s) => (
-            <option key={s.id} value={s.id} className="bg-neutral-900">
+            <option key={s.id} value={s.id} className="bg-select-bg">
               {s.name} (Level {s.level})
             </option>
           ))}

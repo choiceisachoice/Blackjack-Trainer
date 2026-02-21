@@ -5,6 +5,10 @@ import { DEFAULT_RULES } from '../engine/rules/types'
 import { soundEngine } from '../services/sound-engine'
 
 const SOUND_SETTINGS_KEY = 'bjt_sound_settings'
+const THEME_KEY = 'bjt_theme'
+
+/** Supported theme modes. */
+export type ThemeMode = 'dark' | 'light'
 
 /** Load persisted sound settings from localStorage. */
 function loadSoundSettings(): { enabled: boolean; volume: number } {
@@ -28,6 +32,26 @@ function saveSoundSettings(enabled: boolean, volume: number): void {
   } catch { /* ignore */ }
 }
 
+/** Load persisted theme, falling back to system preference then dark. */
+function loadTheme(): ThemeMode {
+  try {
+    const stored = localStorage.getItem(THEME_KEY)
+    if (stored === 'light' || stored === 'dark') return stored
+  } catch { /* ignore */ }
+  // System preference detection for first visit
+  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: light)').matches) {
+    return 'light'
+  }
+  return 'dark'
+}
+
+/** Apply theme to the document root element. */
+function applyTheme(theme: ThemeMode): void {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
+}
+
 /** Available training modes in the app. */
 export type AppMode =
   | 'home'
@@ -47,6 +71,7 @@ export interface AppStoreState {
   selectedRules: CasinoRules
   soundEnabled: boolean
   soundVolume: number
+  theme: ThemeMode
 }
 
 export interface AppStoreActions {
@@ -55,6 +80,8 @@ export interface AppStoreActions {
   setRules: (rules: CasinoRules) => void
   toggleSound: () => void
   setSoundVolume: (v: number) => void
+  toggleTheme: () => void
+  setTheme: (theme: ThemeMode) => void
 }
 
 export type AppStore = AppStoreState & AppStoreActions
@@ -64,11 +91,15 @@ const initialSound = loadSoundSettings()
 soundEngine.enabled = initialSound.enabled
 soundEngine.volume = initialSound.volume
 
+// Initialize theme
+const initialTheme = loadTheme()
+applyTheme(initialTheme)
+
 /**
  * Zustand store for app-level navigation and global settings.
  *
  * Controls which training mode is active and which counting system / rules
- * are selected across all modes.
+ * are selected across all modes. Also manages theme (dark/light).
  */
 export const useAppStore = create<AppStore>((set, get) => ({
   currentMode: 'home',
@@ -76,6 +107,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   selectedRules: DEFAULT_RULES,
   soundEnabled: initialSound.enabled,
   soundVolume: initialSound.volume,
+  theme: initialTheme,
 
   setMode: (mode) => set({ currentMode: mode }),
   setSystem: (system) => set({ selectedSystem: system }),
@@ -93,5 +125,18 @@ export const useAppStore = create<AppStore>((set, get) => ({
     soundEngine.volume = clamped
     saveSoundSettings(get().soundEnabled, clamped)
     set({ soundVolume: clamped })
+  },
+
+  toggleTheme: () => {
+    const next: ThemeMode = get().theme === 'dark' ? 'light' : 'dark'
+    applyTheme(next)
+    try { localStorage.setItem(THEME_KEY, next) } catch { /* ignore */ }
+    set({ theme: next })
+  },
+
+  setTheme: (theme) => {
+    applyTheme(theme)
+    try { localStorage.setItem(THEME_KEY, theme) } catch { /* ignore */ }
+    set({ theme })
   },
 }))

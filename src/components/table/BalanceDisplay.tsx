@@ -9,7 +9,7 @@ export function BalanceDisplay() {
 
   return (
     <div className="flex flex-col items-start">
-      <span className="text-xs text-white/50 uppercase tracking-wider">Balance</span>
+      <span className="text-xs text-content/50 uppercase tracking-wider">Balance</span>
       <span className={`text-xl md:text-2xl font-bold ${
         balance > 0 ? 'text-gold' : 'text-error'
       }`}>

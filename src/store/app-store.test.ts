@@ -6,15 +6,18 @@ import { soundEngine } from '../services/sound-engine'
 
 describe('app-store', () => {
   beforeEach(() => {
+    localStorage.removeItem('bjt_theme')
     useAppStore.setState({
       currentMode: 'home',
       selectedSystem: CountingSystemId.HiLo,
       selectedRules: DEFAULT_RULES,
       soundEnabled: true,
       soundVolume: 0.15,
+      theme: 'dark',
     })
     soundEngine.enabled = true
     soundEngine.volume = 0.15
+    document.documentElement.setAttribute('data-theme', 'dark')
   })
 
   it('default mode is home', () => {
@@ -74,5 +77,51 @@ describe('app-store', () => {
 
     useAppStore.getState().setSoundVolume(5)
     expect(useAppStore.getState().soundVolume).toBe(1)
+  })
+
+  // ── Theme Tests ──
+
+  it('theme defaults to dark', () => {
+    expect(useAppStore.getState().theme).toBe('dark')
+  })
+
+  it('toggleTheme switches dark to light', () => {
+    useAppStore.getState().toggleTheme()
+    expect(useAppStore.getState().theme).toBe('light')
+  })
+
+  it('toggleTheme switches light to dark', () => {
+    useAppStore.getState().setTheme('light')
+    useAppStore.getState().toggleTheme()
+    expect(useAppStore.getState().theme).toBe('dark')
+  })
+
+  it('setTheme sets specific theme', () => {
+    useAppStore.getState().setTheme('light')
+    expect(useAppStore.getState().theme).toBe('light')
+
+    useAppStore.getState().setTheme('dark')
+    expect(useAppStore.getState().theme).toBe('dark')
+  })
+
+  it('theme persists to localStorage', () => {
+    useAppStore.getState().toggleTheme()
+    expect(localStorage.getItem('bjt_theme')).toBe('light')
+
+    useAppStore.getState().toggleTheme()
+    expect(localStorage.getItem('bjt_theme')).toBe('dark')
+  })
+
+  it('setTheme persists to localStorage', () => {
+    useAppStore.getState().setTheme('light')
+    expect(localStorage.getItem('bjt_theme')).toBe('light')
+  })
+
+  it('data-theme attribute is set on html element', () => {
+    useAppStore.getState().toggleTheme()
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+
+    useAppStore.getState().toggleTheme()
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
   })
 })

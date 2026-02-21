@@ -176,11 +176,11 @@ export function SpeedDrill() {
   if (phase === 'settings') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-white">Speed Drill</h2>
+        <h2 className="text-2xl font-bold text-content">Speed Drill</h2>
 
         {/* Card count */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Number of Cards</span>
+          <span className="text-sm text-content/50">Number of Cards</span>
           <div className="flex gap-2">
             {CARD_COUNTS.map(n => (
               <button
@@ -189,7 +189,7 @@ export function SpeedDrill() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                   ${cardCount === n
                     ? 'bg-gold text-black'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
               >
                 {n}
               </button>
@@ -199,7 +199,7 @@ export function SpeedDrill() {
 
         {/* Speed */}
         <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-white/50">Speed</span>
+          <span className="text-sm text-content/50">Speed</span>
           <div className="flex gap-2">
             {SPEED_OPTIONS.map(s => (
               <button
@@ -208,7 +208,7 @@ export function SpeedDrill() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
                   ${speedMs === s.ms
                     ? 'bg-gold text-black'
-                    : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
               >
                 {s.label}
               </button>
@@ -238,11 +238,11 @@ export function SpeedDrill() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 bg-felt-dark">
         {/* Progress */}
         <div className="w-full max-w-sm">
-          <div className="flex justify-between text-xs text-white/50 mb-1">
+          <div className="flex justify-between text-xs text-content/50 mb-1">
             <span>Card {currentIndex + 1} / {cards.length}</span>
             <span>{Math.round(progress)}%</span>
           </div>
-          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-contrast/10 rounded-full overflow-hidden">
             <div
               className="h-full bg-gold rounded-full transition-all duration-200"
               style={{ width: `${progress}%` }}
@@ -276,7 +276,7 @@ export function SpeedDrill() {
         </AnimatePresence>
 
         {/* Countdown bar */}
-        <div className="w-[250px] h-1 bg-white/10 rounded-full overflow-hidden">
+        <div className="w-[250px] h-1 bg-contrast/10 rounded-full overflow-hidden">
           <motion.div
             key={currentIndex}
             className="h-full bg-gold/70 rounded-full"
@@ -288,7 +288,7 @@ export function SpeedDrill() {
 
         <button
           onClick={handleAbort}
-          className="text-sm text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+          className="text-sm text-content/40 hover:text-content/70 transition-colors cursor-pointer"
         >
           Stop (ESC)
         </button>
@@ -300,13 +300,13 @@ export function SpeedDrill() {
   if (phase === 'input') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
-        <h2 className="text-xl font-bold text-white">What is the Running Count?</h2>
+        <h2 className="text-xl font-bold text-content">What is the Running Count?</h2>
 
         <div className="flex items-center gap-4">
           <button
             onClick={() => setUserAnswer(prev => prev - 1)}
-            className="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 text-2xl
-              text-white font-bold transition-colors cursor-pointer"
+            className="w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20 text-2xl
+              text-content font-bold transition-colors cursor-pointer"
           >
             &minus;
           </button>
@@ -315,21 +315,21 @@ export function SpeedDrill() {
             value={userAnswer}
             onChange={(e) => setUserAnswer(Number(e.target.value) || 0)}
             data-testid="count-input"
-            className="w-24 h-16 text-center text-3xl font-bold bg-white/10 border border-white/20
-              rounded-xl text-white focus:outline-none focus:border-gold/60
+            className="w-24 h-16 text-center text-3xl font-bold bg-contrast/10 border border-contrast/20
+              rounded-xl text-content focus:outline-none focus:border-gold/60
               [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <button
             onClick={() => setUserAnswer(prev => prev + 1)}
-            className="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 text-2xl
-              text-white font-bold transition-colors cursor-pointer"
+            className="w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20 text-2xl
+              text-content font-bold transition-colors cursor-pointer"
           >
             +
           </button>
         </div>
 
         {isFractional && (
-          <p className="text-xs text-white/40">Wong Halves: answer accepted within &plusmn;0.5</p>
+          <p className="text-xs text-content/40">Wong Halves: answer accepted within &plusmn;0.5</p>
         )}
 
         <button
@@ -362,17 +362,17 @@ export function SpeedDrill() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 text-center">
-        <div className="bg-white/5 rounded-lg px-4 py-3">
-          <div className="text-xs text-white/50">Streak</div>
-          <div className="text-xl font-bold text-white">{streak}</div>
+        <div className="bg-contrast/5 rounded-lg px-4 py-3">
+          <div className="text-xs text-content/50">Streak</div>
+          <div className="text-xl font-bold text-content">{streak}</div>
         </div>
-        <div className="bg-white/5 rounded-lg px-4 py-3">
-          <div className="text-xs text-white/50">Best Streak</div>
+        <div className="bg-contrast/5 rounded-lg px-4 py-3">
+          <div className="text-xs text-content/50">Best Streak</div>
           <div className="text-xl font-bold text-gold">{bestStreak}</div>
         </div>
-        <div className="bg-white/5 rounded-lg px-4 py-3 col-span-2">
-          <div className="text-xs text-white/50">Accuracy</div>
-          <div className="text-xl font-bold text-white">
+        <div className="bg-contrast/5 rounded-lg px-4 py-3 col-span-2">
+          <div className="text-xs text-content/50">Accuracy</div>
+          <div className="text-xl font-bold text-content">
             {totalCorrect}/{totalAttempts} ({accuracy}%)
           </div>
         </div>
@@ -390,8 +390,8 @@ export function SpeedDrill() {
         </button>
         <button
           onClick={() => setPhase('settings')}
-          className="px-6 py-3 bg-white/10 text-white font-medium rounded-xl
-            hover:bg-white/20 transition-colors cursor-pointer"
+          className="px-6 py-3 bg-contrast/10 text-content font-medium rounded-xl
+            hover:bg-contrast/20 transition-colors cursor-pointer"
         >
           Back to Menu
         </button>

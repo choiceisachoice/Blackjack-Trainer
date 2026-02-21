@@ -30,7 +30,7 @@ function App() {
   }
 
   return (
-    <div className={`h-screen flex flex-col bg-casino-bg ${currentMode === 'analytics' || currentMode === 'bankrollSim' || currentMode === 'achievements' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+    <div className={`h-screen flex flex-col bg-casino-bg transition-colors duration-200 ${currentMode === 'analytics' || currentMode === 'bankrollSim' || currentMode === 'achievements' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <TopBar />
       {currentMode === 'speedDrill' && <SpeedDrill />}
       {currentMode === 'tableCounting' && <TableCounting />}

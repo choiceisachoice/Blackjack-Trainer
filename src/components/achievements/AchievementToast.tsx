@@ -68,7 +68,7 @@ export function AchievementToast() {
       className={`
         fixed bottom-6 left-1/2 -translate-x-1/2 z-50
         flex items-center gap-4 px-5 py-4 rounded-xl
-        bg-neutral-900/95 backdrop-blur-sm border-2 ${tier.borderColor}
+        bg-casino-bg/95 backdrop-blur-sm border-2 ${tier.borderColor}
         shadow-lg ${tier.bgGlow}
         cursor-pointer select-none
         transition-all duration-300 ease-out
@@ -86,8 +86,8 @@ export function AchievementToast() {
         <p className="text-xs font-semibold text-[#FFD700] uppercase tracking-wider">
           Achievement Unlocked!
         </p>
-        <p className="text-base font-bold text-white truncate">{current.name}</p>
-        <p className="text-xs text-white/60 truncate">{current.description}</p>
+        <p className="text-base font-bold text-content truncate">{current.name}</p>
+        <p className="text-xs text-content/60 truncate">{current.description}</p>
       </div>
 
       {/* Tier badge */}

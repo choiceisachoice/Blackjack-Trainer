@@ -14,7 +14,8 @@ const MODE_LABELS: Record<string, string> = {
 
 /**
  * Top navigation bar shown in every training mode.
- * Displays home button, current mode name, selected counting system, and sound toggle.
+ * Displays home button, current mode name, selected counting system,
+ * sound toggle, and theme toggle.
  */
 export function TopBar() {
   const currentMode = useAppStore(s => s.currentMode)
@@ -22,31 +23,41 @@ export function TopBar() {
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const soundEnabled = useAppStore(s => s.soundEnabled)
   const toggleSound = useAppStore(s => s.toggleSound)
+  const theme = useAppStore(s => s.theme)
+  const toggleTheme = useAppStore(s => s.toggleTheme)
 
   const systemConfig = getSystemById(selectedSystem)
 
   return (
-    <div className="h-12 flex items-center justify-between px-4 bg-black/60 border-b border-white/10 shrink-0">
+    <div className="h-12 flex items-center justify-between px-4 bg-topbar border-b border-contrast/10 shrink-0 transition-colors duration-200">
       <button
         onClick={() => setMode('home')}
-        className="text-sm text-white/70 hover:text-gold transition-colors cursor-pointer"
+        className="text-sm text-content/70 hover:text-gold transition-colors cursor-pointer"
       >
         &larr; Home
       </button>
-      <span className="text-sm font-semibold text-white">
+      <span className="text-sm font-semibold text-content">
         {MODE_LABELS[currentMode] ?? currentMode}
       </span>
       <div className="flex items-center gap-3">
-        <span className="text-xs text-white/50">
+        <span className="text-xs text-content/50">
           {systemConfig.name}
         </span>
         <button
           onClick={toggleSound}
           data-testid="sound-toggle"
           title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
-          className="text-base text-white/50 hover:text-white transition-colors cursor-pointer"
+          className="text-base text-content/50 hover:text-content transition-colors cursor-pointer"
         >
           {soundEnabled ? '\uD83D\uDD0A' : '\uD83D\uDD07'}
+        </button>
+        <button
+          onClick={toggleTheme}
+          data-testid="theme-toggle"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          className="text-base text-content/50 hover:text-content transition-colors cursor-pointer"
+        >
+          {theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19'}
         </button>
       </div>
     </div>
