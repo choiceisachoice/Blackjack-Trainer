@@ -3,6 +3,7 @@ import { Rank, Suit } from '../shoe/types'
 import type { Card } from '../shoe/types'
 import { Action } from '../rules/types'
 import { ILLUSTRIOUS_18, FAB_4, getDeviationAction, findMatchingDeviation } from './deviations'
+import { getAtTableDeviations, getDeviations } from '../../components/training/deviation-utils'
 
 const c = (rank: Rank, suit: Suit = Suit.Spades): Card => ({ rank, suit })
 
@@ -494,5 +495,49 @@ describe('findMatchingDeviation', () => {
       ILLUSTRIOUS_18
     )
     expect(result).toBeNull()
+  })
+})
+
+// ── At-Table Deviations (Insurance excluded) ─────────────────
+
+describe('getAtTableDeviations', () => {
+  it('excludes Insurance from i18 set', () => {
+    const atTable = getAtTableDeviations('i18')
+    const full = getDeviations('i18')
+    expect(atTable).toHaveLength(full.length - 1)
+    expect(atTable.find(d => d.name === 'Insurance')).toBeUndefined()
+  })
+
+  it('excludes Insurance from all set', () => {
+    const atTable = getAtTableDeviations('all')
+    expect(atTable.find(d => d.name === 'Insurance')).toBeUndefined()
+  })
+
+  it('fab4 set is unchanged (no Insurance)', () => {
+    const atTable = getAtTableDeviations('fab4')
+    const full = getDeviations('fab4')
+    expect(atTable).toHaveLength(full.length)
+  })
+
+  it('findMatchingDeviation with filtered list does not match Insurance vs Ace', () => {
+    const atTable = getAtTableDeviations('i18')
+    const result = findMatchingDeviation(
+      [c(Rank.Ten), c(Rank.Ten)],
+      c(Rank.Ace),
+      atTable
+    )
+    // With Insurance filtered out, 10,10 vs A does not match any deviation
+    expect(result).toBeNull()
+  })
+
+  it('findMatchingDeviation with filtered list still matches 11 vs A', () => {
+    const atTable = getAtTableDeviations('i18')
+    const result = findMatchingDeviation(
+      [c(Rank.Five), c(Rank.Six)],
+      c(Rank.Ace),
+      atTable
+    )
+    expect(result).not.toBeNull()
+    expect(result!.name).toBe('11 vs A')
   })
 })

@@ -24,6 +24,8 @@ export interface SimulationConfig {
   blackjackPays: number;
   /** Player's deviation accuracy (0–1) */
   deviationAccuracy: number;
+  /** Player's counting accuracy (0–1, how often they track the count correctly) */
+  countingAccuracy: number;
 }
 
 /** A single data point in the bankroll progression */
@@ -64,6 +66,8 @@ export interface SimulationResult {
   n0: number;
   /** Base house edge from rules (negative = house advantage) */
   houseEdge: number;
+  /** Weighted player edge accounting for bet spread and counting skill */
+  weightedPlayerEdge: number;
   /** Bankroll progression over time (sampled every 50 hands) */
   bankrollHistory: BankrollDataPoint[];
   /** Distribution of per-shoe outcomes */

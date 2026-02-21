@@ -179,6 +179,7 @@ blackjack-trainer/
 | F-006 | Training Modes (all 5) | Phase 4 | P1 | ✅ Complete |
 | F-007 | Analytics & Statistics | Phase 5 | P2 | 🔲 Not started |
 | F-008 | Supabase Auth & Persistence | Phase 3 | P1 | 🔲 Not started |
+| F-010 | Sound Effects | Phase 5 | P2 | ✅ Complete |
 
 ## Implementation Workflow (for every feature)
 

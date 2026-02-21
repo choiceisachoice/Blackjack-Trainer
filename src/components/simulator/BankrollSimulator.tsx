@@ -12,14 +12,14 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from 'recharts'
-import { runSimulation } from '../../engine/simulation/simulator'
+import { runSimulation, getBetMultiplier } from '../../engine/simulation/simulator'
 import {
   beginnerPreset,
   intermediatePreset,
   professionalPreset,
   worstCasePreset,
 } from '../../engine/simulation/presets'
-import { calculateHouseEdge, EDGE_PER_TC, DEVIATION_TC_BONUS, HAND_SD } from '../../engine/simulation/math-utils'
+import { calculateHouseEdge, EDGE_PER_TC, DEVIATION_TC_BONUS, HAND_SD, TC_DISTRIBUTION } from '../../engine/simulation/math-utils'
 import type { SimulationConfig, SimulationResult } from '../../engine/simulation/types'
 import { useStatsStore } from '../../store/stats-store'
 
@@ -74,22 +74,27 @@ const UI_PRESETS: UIPreset[] = [
   },
 ]
 
-// ── TC distribution for 6-deck shoes (standard approximation) ───
+// ── TC display labels for rendering (uses imported TC_DISTRIBUTION for data) ───
 
-const TC_DISTRIBUTION: { tc: string; tcNum: number; pct: number }[] = [
-  { tc: '\u2264 0', tcNum: 0, pct: 0.56 },
-  { tc: '+1', tcNum: 1, pct: 0.18 },
-  { tc: '+2', tcNum: 2, pct: 0.12 },
-  { tc: '+3', tcNum: 3, pct: 0.07 },
-  { tc: '+4', tcNum: 4, pct: 0.04 },
-  { tc: '+5+', tcNum: 5, pct: 0.03 },
-]
+const TC_DISPLAY_LABELS: Record<number, string> = {
+  0: '\u2264 0',
+  1: '+1',
+  2: '+2',
+  3: '+3',
+  4: '+4',
+  5: '+5+',
+}
+
+const TC_DISPLAY = TC_DISTRIBUTION.map(d => ({
+  ...d,
+  label: TC_DISPLAY_LABELS[d.tc] ?? `+${d.tc}`,
+}))
 
 // ── Helpers ─────────────────────────────────────────────────────
 
 /** Format a dollar amount with sign. */
 function fmtDollar(n: number, showSign = false): string {
-  const sign = showSign && n > 0 ? '+' : ''
+  const sign = showSign && n > 0 ? '+' : n < 0 ? '-' : ''
   return `${sign}$${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
@@ -111,30 +116,13 @@ function rorColor(ror: number): string {
   return 'text-red-400'
 }
 
-/** Compute recommended bankroll for < 5% RoR. */
-function recommendedBankroll(result: SimulationResult, startingBankroll: number): number | null {
-  const evPerHand = result.totalHands > 0 ? result.netProfit / result.totalHands : 0
-  const sdPerHand = HAND_SD * result.averageBet
-  if (evPerHand <= 0 || sdPerHand === 0) return null
-  return Math.ceil((-sdPerHand * sdPerHand * Math.log(0.05)) / (2 * evPerHand))
-}
-
-/** Compute risk of losing 50% of bankroll. */
-function riskOf50Loss(result: SimulationResult, startingBankroll: number): number {
-  const evPerHand = result.totalHands > 0 ? result.netProfit / result.totalHands : 0
-  const sdPerHand = HAND_SD * result.averageBet
-  const variance = sdPerHand * sdPerHand
-  if (evPerHand <= 0 || variance === 0) return 1
-  return Math.min(1, Math.max(0, Math.exp((-evPerHand * startingBankroll) / variance)))
-}
-
-/** Get bet multiplier for a TC from the spread. */
-function getMultiplier(betSpread: Record<number, number>, tc: number): number {
-  const keys = Object.keys(betSpread).map(Number).sort((a, b) => b - a)
-  for (const key of keys) {
-    if (tc >= key) return betSpread[key]
+/** Compute theoretical average bet from TC distribution and bet spread. */
+function theoreticalAvgBet(minBet: number, spread: Record<number, number>, getBetMult: typeof getBetMultiplier): number {
+  let avg = 0
+  for (const { tc, pct } of TC_DISTRIBUTION) {
+    avg += minBet * getBetMult(spread, tc) * pct
   }
-  return 1
+  return avg
 }
 
 // ── Component ───────────────────────────────────────────────────
@@ -229,7 +217,8 @@ export function BankrollSimulator() {
     surrenderAllowed,
     blackjackPays,
     deviationAccuracy: useDeviations ? Math.max(0, Math.min(1, Number(deviationAccuracy) || 0)) : 0,
-  }), [bankroll, minBet, numShoes, numDecks, penetration, tc1, tc2, tc3, tc4, tc5, dealerHitsSoft17, doubleAfterSplit, surrenderAllowed, blackjackPays, useDeviations, deviationAccuracy])
+    countingAccuracy: Math.max(0, Math.min(1, Number(countingAccuracy) || 0.95)),
+  }), [bankroll, minBet, numShoes, numDecks, penetration, tc1, tc2, tc3, tc4, tc5, dealerHitsSoft17, doubleAfterSplit, surrenderAllowed, blackjackPays, useDeviations, deviationAccuracy, countingAccuracy])
 
   // ── Sanitize simulation result (NaN/Infinity → 0) ──
   const sanitizeResult = (r: SimulationResult): SimulationResult => {
@@ -286,16 +275,18 @@ export function BankrollSimulator() {
 
   // ── Copy summary ──
   const handleCopySummary = useCallback(() => {
-    if (!result) return
+    if (!result || !savedConfig) return
     const maxMult = Math.max(tc1, tc2, tc3, tc4, tc5)
+    const cpAvg = theoreticalAvgBet(configSnapshot.minBet, savedConfig.betSpread, getBetMultiplier)
+    const cpHourly = result.weightedPlayerEdge * cpAvg * (configSnapshot.handsPerHour || 80)
     const text = `Bankroll Simulation Results:
 Starting Bankroll: ${fmtDollar(configSnapshot.bankroll)}
 Bet Spread: ${fmtDollar(configSnapshot.minBet)}-${fmtDollar(configSnapshot.minBet * maxMult)}
-Expected Win: ${fmtDollarCents(result.hourlyEV, true)}/hr
+Expected Win: ${fmtDollarCents(cpHourly, true)}/hr
 Risk of Ruin: ${fmtPct(result.riskOfRuin)}
 N-Zero: ${result.n0.toLocaleString()} hands`
     navigator.clipboard.writeText(text)
-  }, [result, configSnapshot, tc1, tc2, tc3, tc4, tc5])
+  }, [result, savedConfig, configSnapshot, tc1, tc2, tc3, tc4, tc5])
 
   const maxBet = minBet * Math.max(tc1, tc2, tc3, tc4, tc5)
   const estimatedHands = Math.round(numShoes * (numDecks * 52 * penetration) / 5.2)
@@ -633,15 +624,26 @@ N-Zero: ${result.n0.toLocaleString()} hands`
 
   if (!result) return null
 
-  const evPerHand = result.totalHands > 0 ? result.netProfit / result.totalHands : 0
-  const sdPerHand = HAND_SD * result.averageBet
+  // Theoretical metrics (deterministic — same config always gives same values)
+  const playerEdge = result.weightedPlayerEdge
+  const avgBet = theoreticalAvgBet(configSnapshot.minBet, betSpread, getBetMultiplier)
+  const theoEvPerHand = playerEdge * avgBet
+  const theoSdPerHand = HAND_SD * avgBet
   const snapshotHPH = configSnapshot.handsPerHour || 80
-  const hourlySD = sdPerHand * Math.sqrt(snapshotHPH)
-  const recBankroll = recommendedBankroll(result, configSnapshot.bankroll)
-  const risk50 = riskOf50Loss(result, configSnapshot.bankroll)
-  const n0Hours = result.n0 !== Infinity ? Math.round(result.n0 / snapshotHPH) : null
-  // Always use result.houseEdge (deterministic from config) — NOT the stochastic observed edge
-  const playerEdge = result.houseEdge
+  const theoHourlyEV = theoEvPerHand * snapshotHPH
+  const hourlySD = theoSdPerHand * Math.sqrt(snapshotHPH)
+  const hasPositiveEdge = playerEdge > 0
+  const recBankroll = theoEvPerHand > 0 && theoSdPerHand > 0
+    ? Math.ceil((-theoSdPerHand * theoSdPerHand * Math.log(0.05)) / (2 * theoEvPerHand))
+    : null
+  const theoVariance = theoSdPerHand * theoSdPerHand
+  const risk50 = theoEvPerHand > 0 && theoVariance > 0
+    ? Math.min(1, Math.max(0, Math.exp((-theoEvPerHand * configSnapshot.bankroll) / theoVariance)))
+    : 1
+  const n0Hours = hasPositiveEdge && result.n0 > 0 ? Math.round(result.n0 / snapshotHPH) : null
+  // Simulated hourly (for detailed stats)
+  const simEvPerHand = result.totalHands > 0 ? result.netProfit / result.totalHands : 0
+  const simHourlyEV = simEvPerHand * snapshotHPH
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="sim-results">
@@ -651,18 +653,27 @@ N-Zero: ${result.n0.toLocaleString()} hands`
         {'\u25C0'} Modify Settings
       </button>
 
+      {/* Negative edge warning */}
+      {playerEdge <= 0 && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4" data-testid="negative-edge-warning">
+          <p className="text-sm text-red-400 font-medium">
+            {'\u26A0'} Warning: Your player edge is negative ({fmtPct(playerEdge, 2)}). No bet spread can overcome a negative base edge. Consider better table rules or improving your counting accuracy.
+          </p>
+        </div>
+      )}
+
       {/* Section A: Key Metrics */}
       <section>
         <h2 className="text-lg font-semibold text-white mb-3">Key Metrics</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="key-metrics">
-          {/* Card 1: Expected Hourly Win */}
+          {/* Card 1: Expected Hourly Win (theoretical) */}
           <div className="bg-white/5 border border-white/10 rounded-xl p-4" data-testid="metric-hourly-ev">
             <p className="text-xs text-white/50 mb-1">Expected Hourly Win</p>
-            <p className={`text-2xl md:text-3xl font-bold ${result.hourlyEV >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {fmtDollarCents(result.hourlyEV, true)}/hr
+            <p className={`text-2xl md:text-3xl font-bold ${theoHourlyEV >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              {fmtDollarCents(theoHourlyEV, true)}/hr
             </p>
             <p className="text-xs text-white/40 mt-1">
-              Player edge: {fmtPct(playerEdge, 2)} per hand
+              Weighted edge: {fmtPct(playerEdge, 2)} | Base: {fmtPct(result.houseEdge, 2)}
             </p>
           </div>
 
@@ -678,12 +689,23 @@ N-Zero: ${result.n0.toLocaleString()} hands`
           {/* Card 3: Recommended Bankroll */}
           <div className="bg-white/5 border border-white/10 rounded-xl p-4" data-testid="metric-rec-bankroll">
             <p className="text-xs text-white/50 mb-1">Recommended Bankroll</p>
-            <p className="text-2xl md:text-3xl font-bold text-white">
-              {recBankroll !== null ? fmtDollar(recBankroll) : 'N/A'}
-            </p>
-            <p className="text-xs text-white/40 mt-1">For {'<'}5% risk of ruin</p>
-            {recBankroll !== null && configSnapshot.bankroll < recBankroll && (
-              <p className="text-xs text-yellow-400 mt-1">{'\u26A0'} Your bankroll is underfunded</p>
+            {recBankroll !== null ? (
+              <>
+                <p className="text-2xl md:text-3xl font-bold text-white">
+                  {fmtDollar(recBankroll)}
+                </p>
+                <p className="text-xs text-white/40 mt-1">For {'<'}5% risk of ruin</p>
+                {configSnapshot.bankroll < recBankroll && (
+                  <p className="text-xs text-yellow-400 mt-1">{'\u26A0'} Your bankroll is underfunded</p>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-base font-bold text-red-400" data-testid="rec-bankroll-negative">
+                  No bankroll can overcome a negative edge
+                </p>
+                <p className="text-xs text-white/40 mt-1">Improve rules or counting to gain an edge first</p>
+              </>
             )}
           </div>
 
@@ -691,10 +713,10 @@ N-Zero: ${result.n0.toLocaleString()} hands`
           <div className="bg-white/5 border border-white/10 rounded-xl p-4" data-testid="metric-n0">
             <p className="text-xs text-white/50 mb-1">N-Zero</p>
             <p className="text-2xl md:text-3xl font-bold text-white">
-              {result.n0 !== Infinity ? `${result.n0.toLocaleString()} hands` : '\u221E'}
+              {hasPositiveEdge ? `${result.n0.toLocaleString()} hands` : '\u221E (negative edge)'}
             </p>
             <p className="text-xs text-white/40 mt-1">
-              {n0Hours !== null ? `~${n0Hours.toLocaleString()} hours until skill beats luck` : 'Edge too small to overcome variance'}
+              {n0Hours !== null ? `~${n0Hours.toLocaleString()} hours until skill beats luck` : (playerEdge <= 0 ? 'You need a positive edge first' : 'Edge too small to overcome variance')}
             </p>
           </div>
         </div>
@@ -769,6 +791,7 @@ N-Zero: ${result.n0.toLocaleString()} hands`
               ['Total Hands Simulated', result.totalHands.toLocaleString()],
               ['Total Wagered', fmtDollar(result.totalHands * result.averageBet)],
               ['Net Profit', fmtDollar(result.netProfit, true)],
+              ['Simulated Hourly Win', `${fmtDollarCents(simHourlyEV, true)}/hr (this run)`],
               ['Winning Sessions', `${result.percentWinningSessions}% of shoes profitable`],
               ['Average Bet Size', fmtDollarCents(result.averageBet)],
             ].map(([label, value]) => (
@@ -788,7 +811,7 @@ N-Zero: ${result.n0.toLocaleString()} hands`
               ['Kelly Optimal Bet', result.kellyOptimalBet > 0 ? fmtDollarCents(result.kellyOptimalBet) : 'N/A'],
               ['Standard Deviation', `${fmtDollarCents(hourlySD)}/hr`],
               ['Worst Drawdown', `-${fmtDollar(result.worstDrawdown)}`],
-              ['Hours to Break Even (N0)', n0Hours !== null ? `~${n0Hours.toLocaleString()} hours` : 'N/A'],
+              ['Hours to Break Even (N0)', n0Hours !== null ? `~${n0Hours.toLocaleString()} hours` : (playerEdge <= 0 ? '\u221E (negative edge)' : 'N/A')],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between text-sm">
                 <span className="text-white/50">{label}</span>
@@ -814,14 +837,14 @@ N-Zero: ${result.n0.toLocaleString()} hands`
               </tr>
             </thead>
             <tbody>
-              {TC_DISTRIBUTION.map(row => {
-                const mult = getMultiplier(betSpread, row.tcNum)
+              {TC_DISPLAY.map(row => {
+                const mult = getBetMultiplier(betSpread, row.tc)
                 const bet = configSnapshot.minBet * mult
-                const edge = baseEdge + row.tcNum * tcGain
+                const edge = baseEdge + row.tc * tcGain
                 const evHand = edge * bet
                 return (
-                  <tr key={row.tc} className="border-b border-white/5">
-                    <td className="py-2 text-white/70">{row.tc}</td>
+                  <tr key={row.label} className="border-b border-white/5">
+                    <td className="py-2 text-white/70">{row.label}</td>
                     <td className="text-right text-white">{fmtDollar(bet)}</td>
                     <td className="text-right text-white/60">{Math.round(row.pct * 100)}%</td>
                     <td className={`text-right ${edge >= 0 ? 'text-green-400' : 'text-red-400'}`}>

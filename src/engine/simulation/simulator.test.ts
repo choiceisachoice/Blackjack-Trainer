@@ -4,6 +4,8 @@ import {
   calculateHouseEdge,
   kellyOptimalBet,
   calculateN0,
+  calculateWeightedPlayerEdge,
+  TC_DISTRIBUTION,
   EDGE_PER_TC,
   DEVIATION_TC_BONUS,
 } from './math-utils';
@@ -182,6 +184,71 @@ describe('math-utils', () => {
       expect(calculateN0(-0.5, 50)).toBe(Infinity);
     });
   });
+
+  describe('TC_DISTRIBUTION', () => {
+    it('percentages sum to 1', () => {
+      const sum = TC_DISTRIBUTION.reduce((s, d) => s + d.pct, 0);
+      expect(sum).toBeCloseTo(1, 6);
+    });
+
+    it('has entries for TC 0 through 5', () => {
+      expect(TC_DISTRIBUTION).toHaveLength(6);
+      expect(TC_DISTRIBUTION[0].tc).toBe(0);
+      expect(TC_DISTRIBUTION[5].tc).toBe(5);
+    });
+  });
+
+  describe('calculateWeightedPlayerEdge', () => {
+    const proConfig = {
+      dealerHitsSoft17: false,
+      doubleAfterSplit: true,
+      surrenderAllowed: true,
+      blackjackPays: 1.5,
+      numDecks: 6,
+      betSpread: { 1: 2, 2: 4, 3: 8, 4: 12, 5: 16 } as Record<number, number>,
+      deviationAccuracy: 0.95,
+      countingAccuracy: 0.95,
+    };
+
+    const worstConfig = {
+      dealerHitsSoft17: true,
+      doubleAfterSplit: false,
+      surrenderAllowed: false,
+      blackjackPays: 1.2,
+      numDecks: 8,
+      betSpread: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 } as Record<number, number>,
+      deviationAccuracy: 0.5,
+      countingAccuracy: 0.85,
+    };
+
+    it('returns positive weighted edge for professional config', () => {
+      const edge = calculateWeightedPlayerEdge(proConfig, getBetMultiplier);
+      expect(edge).toBeGreaterThan(0);
+    });
+
+    it('returns negative weighted edge for worst-case config', () => {
+      const edge = calculateWeightedPlayerEdge(worstConfig, getBetMultiplier);
+      expect(edge).toBeLessThan(0);
+    });
+
+    it('higher counting accuracy produces higher edge', () => {
+      const low = calculateWeightedPlayerEdge({ ...proConfig, countingAccuracy: 0.7 }, getBetMultiplier);
+      const high = calculateWeightedPlayerEdge({ ...proConfig, countingAccuracy: 1.0 }, getBetMultiplier);
+      expect(high).toBeGreaterThan(low);
+    });
+
+    it('wider bet spread produces higher edge', () => {
+      const narrow = calculateWeightedPlayerEdge(
+        { ...proConfig, betSpread: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 } },
+        getBetMultiplier,
+      );
+      const wide = calculateWeightedPlayerEdge(
+        { ...proConfig, betSpread: { 1: 2, 2: 8, 3: 16, 4: 24, 5: 32 } },
+        getBetMultiplier,
+      );
+      expect(wide).toBeGreaterThan(narrow);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -236,6 +303,7 @@ describe('runSimulation', () => {
     surrenderAllowed: true,
     blackjackPays: 1.5,
     deviationAccuracy: 0.8,
+    countingAccuracy: 1,
   };
 
   it('returns a valid SimulationResult structure', () => {
@@ -249,6 +317,7 @@ describe('runSimulation', () => {
     expect(result).toHaveProperty('riskOfRuin');
     expect(result).toHaveProperty('n0');
     expect(result).toHaveProperty('houseEdge');
+    expect(result).toHaveProperty('weightedPlayerEdge');
     expect(result).toHaveProperty('bankrollHistory');
     expect(result).toHaveProperty('outcomeDistribution');
     expect(result).toHaveProperty('percentWinningSessions');
@@ -354,7 +423,7 @@ describe('presets', () => {
     const requiredKeys: (keyof SimulationConfig)[] = [
       'bankroll', 'minBet', 'numShoes', 'numDecks', 'penetration',
       'betSpread', 'countingSystem', 'dealerHitsSoft17', 'doubleAfterSplit',
-      'surrenderAllowed', 'blackjackPays', 'deviationAccuracy',
+      'surrenderAllowed', 'blackjackPays', 'deviationAccuracy', 'countingAccuracy',
     ];
 
     for (const [, preset] of Object.entries(simulationPresets)) {
@@ -419,6 +488,7 @@ describe('runSimulation validation', () => {
     surrenderAllowed: true,
     blackjackPays: 1.5,
     deviationAccuracy: 0.8,
+    countingAccuracy: 1,
   };
 
   it('throws on zero bankroll', () => {
@@ -466,12 +536,62 @@ describe('runSimulation validation', () => {
     expect(result1.houseEdge).toBe(result2.houseEdge);
   });
 
+  it('hourlyEV is deterministic (theoretical, not simulation-based)', () => {
+    const config: SimulationConfig = { ...validConfig, numShoes: 50 };
+    const result1 = runSimulation(config);
+    const result2 = runSimulation(config);
+    // hourlyEV is now theoretical — same config always gives same value
+    expect(result1.hourlyEV).toBe(result2.hourlyEV);
+  });
+
+  it('n0 is deterministic (theoretical, not simulation-based)', () => {
+    const config: SimulationConfig = { ...validConfig, numShoes: 50 };
+    const result1 = runSimulation(config);
+    const result2 = runSimulation(config);
+    expect(result1.n0).toBe(result2.n0);
+  });
+
+  it('riskOfRuin is deterministic (analytical, not simulation-based)', () => {
+    const config: SimulationConfig = { ...validConfig, numShoes: 50 };
+    const result1 = runSimulation(config);
+    const result2 = runSimulation(config);
+    expect(result1.riskOfRuin).toBe(result2.riskOfRuin);
+  });
+
+  it('professional preset always has positive theoretical hourly win', () => {
+    for (let i = 0; i < 3; i++) {
+      const result = runSimulation(professionalPreset);
+      expect(result.weightedPlayerEdge).toBeGreaterThan(0);
+      expect(result.hourlyEV).toBeGreaterThan(0);
+      expect(result.n0).toBeGreaterThan(0);
+      expect(result.n0).toBeLessThan(Infinity);
+      expect(result.riskOfRuin).toBeLessThan(1);
+    }
+  });
+
   it('worst case preset always has negative expected hourly win', () => {
     for (let i = 0; i < 3; i++) {
       const result = runSimulation(worstCasePreset);
       // Tough Conditions: 6:5 BJ, H17, no DAS, no surrender, 8-deck
       // Base edge is -2.03%, so hourly EV should be strongly negative
       expect(result.houseEdge).toBeLessThan(-0.01);
+      expect(result.weightedPlayerEdge).toBeLessThan(0);
+      expect(result.hourlyEV).toBeLessThan(0);
+    }
+  });
+
+  it('net profit equals final bankroll minus starting bankroll even when bankrupt', () => {
+    const tinyConfig: SimulationConfig = {
+      ...validConfig,
+      bankroll: 5,
+      minBet: 10,
+      numShoes: 100,
+    };
+    const result = runSimulation(tinyConfig);
+    if (result.finalBankroll === 0) {
+      expect(result.netProfit).toBe(-5);
+    } else {
+      expect(result.netProfit).toBeCloseTo(result.finalBankroll - 5, 1);
     }
   });
 });

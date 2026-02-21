@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useGameStore } from '../../store/game-store'
 import { useAppStore } from '../../store/app-store'
 import { useSessionSave } from '../../hooks/useSessionSave'
+import { soundEngine } from '../../services/sound-engine'
 import { getSystemById, getCountValue } from '../../engine/counting/counting-systems'
 import { GameTable } from '../table/GameTable'
 import type { Card } from '../../engine/shoe/types'
@@ -197,6 +198,7 @@ export function TableCounting() {
     })
 
     if (isCorrectAnswer) {
+      soundEngine.correct()
       setCorrectCount(prev => prev + 1)
       setCurrentStreak(prev => {
         const next = prev + 1
@@ -204,6 +206,7 @@ export function TableCounting() {
         return next
       })
     } else {
+      soundEngine.wrong()
       setCurrentStreak(0)
     }
 

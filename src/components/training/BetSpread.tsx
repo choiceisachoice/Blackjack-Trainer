@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { calculateTrueCount } from '../../engine/counting/counting-engine'
 import { useSessionSave } from '../../hooks/useSessionSave'
+import { soundEngine } from '../../services/sound-engine'
 import type { BetSpreadDetails } from '../../services/stats-types'
 
 type QuestionType = 'A' | 'B' | 'C'
@@ -147,6 +148,7 @@ export function BetSpread() {
     setTotalAttempts(prev => prev + 1)
 
     if (correct) {
+      soundEngine.correct()
       setTotalCorrect(prev => prev + 1)
       setCurrentStreak(prev => {
         const next = prev + 1
@@ -154,6 +156,7 @@ export function BetSpread() {
         return next
       })
     } else {
+      soundEngine.wrong()
       setCurrentStreak(0)
     }
 

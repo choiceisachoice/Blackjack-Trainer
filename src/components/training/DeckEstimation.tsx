@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { ShoeVisual } from '../table/ShoeVisual'
 import { useSessionSave } from '../../hooks/useSessionSave'
+import { soundEngine } from '../../services/sound-engine'
 import type { DeckEstimationDetails } from '../../services/stats-types'
 
 type DeckCount = 2 | 6 | 8
@@ -116,6 +117,12 @@ export function DeckEstimation() {
     const error = answer !== null ? Math.abs(answer - actual) : actual
     const correct = answer !== null && error <= TOLERANCE
 
+    if (correct) {
+      soundEngine.correct()
+    } else {
+      soundEngine.wrong()
+    }
+
     setSelectedAnswer(answer)
     setIsCorrect(correct)
 
@@ -151,6 +158,7 @@ export function DeckEstimation() {
 
   const handleNext = useCallback(() => {
     if (quickFire && qfRound >= QUICK_FIRE_ROUNDS) {
+      soundEngine.sessionComplete()
       setPhase('summary')
       return
     }

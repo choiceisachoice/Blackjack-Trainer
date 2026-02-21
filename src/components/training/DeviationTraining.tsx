@@ -4,6 +4,7 @@ import type { Deviation } from '../../engine/counting/types'
 import { ACTION_LABEL, getDeviations, ALL_ACTIONS, getFlashCardActionEnabled, formatTC, getBasicAction, isReversedDeviation, getDeviationAction as getDevAction } from './deviation-utils'
 import { DeviationAtTable } from './DeviationAtTable'
 import { useSessionSave } from '../../hooks/useSessionSave'
+import { soundEngine } from '../../services/sound-engine'
 import type { DeviationSet } from './deviation-utils'
 import type { DeviationDetails } from '../../services/stats-types'
 
@@ -91,13 +92,16 @@ export function DeviationTraining() {
     }
 
     if (correct) {
+      soundEngine.correct()
       setTotalCorrect(prev => prev + 1)
       setCurrentStreak(prev => {
         const next = prev + 1
+        if (next > bestStreak) soundEngine.streak()
         setBestStreak(best => Math.max(best, next))
         return next
       })
     } else {
+      soundEngine.wrong()
       setCurrentStreak(0)
     }
 

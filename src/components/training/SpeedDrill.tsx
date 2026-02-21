@@ -5,6 +5,7 @@ import { CountingEngine } from '../../engine/counting/counting-engine'
 import { getSystemById } from '../../engine/counting/counting-systems'
 import { useAppStore } from '../../store/app-store'
 import { useSessionSave } from '../../hooks/useSessionSave'
+import { soundEngine } from '../../services/sound-engine'
 import type { Card } from '../../engine/shoe/types'
 import { Suit } from '../../engine/shoe/types'
 import type { SpeedDrillDetails } from '../../services/stats-types'
@@ -97,9 +98,12 @@ export function SpeedDrill() {
   }, [cardCount, selectedRules, systemConfig])
 
   // Drill timer: advance cards
+  // Only play card sounds at slow (2s) and normal (1s) speeds — fast/blitz is too rapid
+  const playCardSound = speedMs >= 1000
   useEffect(() => {
     if (phase !== 'drill') return
 
+    if (playCardSound) soundEngine.cardDeal()
     timerRef.current = setInterval(() => {
       setCurrentIndex(prev => {
         if (prev >= cards.length - 1) {
@@ -107,12 +111,13 @@ export function SpeedDrill() {
           setPhase('input')
           return prev
         }
+        if (playCardSound) soundEngine.cardDeal()
         return prev + 1
       })
     }, speedMs)
 
     return stopTimer
-  }, [phase, cards.length, speedMs, stopTimer])
+  }, [phase, cards.length, speedMs, stopTimer, playCardSound])
 
   const handleSubmit = useCallback(() => {
     const tolerance = isFractional ? 0.5 : 0
@@ -125,6 +130,7 @@ export function SpeedDrill() {
     rcErrorsRef.current.push(error)
 
     if (correct) {
+      soundEngine.correct()
       setTotalCorrect(prev => prev + 1)
       setStreak(prev => {
         const next = prev + 1
@@ -132,6 +138,7 @@ export function SpeedDrill() {
         return next
       })
     } else {
+      soundEngine.wrong()
       setStreak(0)
     }
 

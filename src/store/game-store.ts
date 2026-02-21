@@ -9,6 +9,7 @@ import { DEFAULT_RULES, Action, HandResult } from '../engine/rules/types'
 import { CountingSystemId } from '../engine/counting/types'
 import type { Card } from '../engine/shoe/types'
 import { Rank } from '../engine/shoe/types'
+import { soundEngine } from '../services/sound-engine'
 
 // ── Animation Timing Constants (ms) ──────────────────────
 /** Initial 4-card deal animation total duration. */
@@ -324,7 +325,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!gameEngine || !countingEngine || !shoe || currentBet <= 0) return
     clearPendingTimer()
 
+    soundEngine.chipPlace()
+
     const gameState = gameEngine.startRound(currentBet)
+
+    // Fire staggered card-deal sounds for the 4-card deal
+    soundEngine.cardDeal()
+    setTimeout(() => soundEngine.cardDeal(), 550)
+    setTimeout(() => soundEngine.cardDeal(), 1100)
+    setTimeout(() => soundEngine.cardDeal(), 1650)
 
     // Process all 4 dealt cards in deal order
     countingEngine.processCard(gameState.playerHands[0].cards[0])
@@ -531,6 +540,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newState = gameEngine.hit(gameState)
     const currentHand = newState.playerHands[actionIdx]
     countingEngine.processCard(currentHand.cards[currentHand.cards.length - 1])
+    soundEngine.cardDeal()
 
     // Detect advance cards dealt to split hands during advanceIfNeeded
     const advance = getAdvanceInfo(gameState, newState, actionIdx)
@@ -838,6 +848,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newState = gameEngine.double(gameState)
     const currentHand = newState.playerHands[actionIdx]
     countingEngine.processCard(currentHand.cards[currentHand.cards.length - 1])
+    soundEngine.cardDeal()
+    soundEngine.chipPlace()
 
     // Detect advance cards dealt to split hands during advanceIfNeeded
     const advance = getAdvanceInfo(gameState, newState, actionIdx)
@@ -994,6 +1006,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (hand2HasCard) {
       countingEngine.processCard(newState.playerHands[oldIdx + 1].cards[1])
     }
+
+    soundEngine.chipPlace()
+    soundEngine.cardDeal()
+    if (hand2HasCard) setTimeout(() => soundEngine.cardDeal(), 800)
 
     // Deduct extra bet for the split hand
     const newBalance = balance - currentBet
@@ -1205,3 +1221,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ newRoundInterceptor: fn })
   },
 }))
+
+// Sound effects subscription — fires on every state change.
+// Plays cardFlip when dealer hole card is revealed (round ends)
+// and chipCollect when the player wins (balance increases at settlement).
+useGameStore.subscribe((state, prev) => {
+  // Dealer hole card reveal: isRoundOver transitions from false/undefined → true
+  if (state.gameState?.isRoundOver && !prev.gameState?.isRoundOver) {
+    soundEngine.cardFlip()
+  }
+  // Win settlement: message appears and balance increased
+  if (state.message && !prev.message && state.balance > prev.balance) {
+    soundEngine.chipCollect()
+  }
+})

@@ -33,6 +33,7 @@ const mockResult: SimulationResult = {
   riskOfRuin: 0.032,
   n0: 12450,
   houseEdge: -0.0005,
+  weightedPlayerEdge: 0.008,
   bankrollHistory: [
     { hand: 0, bankroll: 50000 },
     { hand: 50, bankroll: 50100 },
@@ -300,5 +301,148 @@ describe('BankrollSimulator', () => {
 
     expect(screen.getByTestId('sim-results')).toBeInTheDocument()
     expect(screen.getByTestId('metric-hourly-ev')).toBeInTheDocument()
+  })
+
+  it('negative edge shows warning banner', () => {
+    const negEdgeResult: SimulationResult = {
+      ...mockResult,
+      houseEdge: -0.005,
+      weightedPlayerEdge: -0.002,
+      netProfit: -3000,
+      hourlyEV: -15,
+      n0: 0, // sanitized from Infinity
+    }
+    mockRunSimulation.mockReturnValueOnce(negEdgeResult)
+
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('run-simulation'))
+    act(() => { vi.advanceTimersByTime(100) })
+
+    expect(screen.getByTestId('negative-edge-warning')).toBeInTheDocument()
+    expect(screen.getByTestId('negative-edge-warning')).toHaveTextContent('negative')
+  })
+
+  it('negative edge shows meaningful recommended bankroll message instead of N/A', () => {
+    const negEdgeResult: SimulationResult = {
+      ...mockResult,
+      houseEdge: -0.005,
+      weightedPlayerEdge: -0.002,
+      netProfit: -3000,
+      hourlyEV: -15,
+      n0: 0,
+    }
+    mockRunSimulation.mockReturnValueOnce(negEdgeResult)
+
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('run-simulation'))
+    act(() => { vi.advanceTimersByTime(100) })
+
+    expect(screen.getByTestId('rec-bankroll-negative')).toHaveTextContent('No bankroll can overcome a negative edge')
+  })
+
+  it('negative edge shows infinity for N-Zero', () => {
+    const negEdgeResult: SimulationResult = {
+      ...mockResult,
+      houseEdge: -0.005,
+      weightedPlayerEdge: -0.002,
+      netProfit: -3000,
+      hourlyEV: -15,
+      n0: 0,
+    }
+    mockRunSimulation.mockReturnValueOnce(negEdgeResult)
+
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('run-simulation'))
+    act(() => { vi.advanceTimersByTime(100) })
+
+    const n0Card = screen.getByTestId('metric-n0')
+    expect(n0Card).toHaveTextContent('\u221E (negative edge)')
+    expect(n0Card).toHaveTextContent('You need a positive edge first')
+  })
+
+  it('positive edge does not show warning banner', () => {
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('run-simulation'))
+    act(() => { vi.advanceTimersByTime(100) })
+
+    // Default mockResult has weightedPlayerEdge: 0.008 which is positive
+    // But let's verify with an explicitly positive result
+    const posResult: SimulationResult = {
+      ...mockResult,
+      houseEdge: -0.002,
+      weightedPlayerEdge: 0.01,
+      n0: 12450,
+    }
+    mockRunSimulation.mockReturnValueOnce(posResult)
+
+    fireEvent.click(screen.getByTestId('run-again'))
+    act(() => { vi.advanceTimersByTime(100) })
+
+    expect(screen.queryByTestId('negative-edge-warning')).not.toBeInTheDocument()
+  })
+
+  it('countingAccuracy is passed to engine config', () => {
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('run-simulation'))
+    act(() => { vi.advanceTimersByTime(100) })
+
+    const config = mockRunSimulation.mock.calls[0][0] as SimulationConfig
+    expect(config).toHaveProperty('countingAccuracy')
+    expect(config.countingAccuracy).toBeGreaterThan(0)
+    expect(config.countingAccuracy).toBeLessThanOrEqual(1)
+  })
+
+  it('shows both weighted and base edge in hourly EV card', () => {
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('run-simulation'))
+    act(() => { vi.advanceTimersByTime(100) })
+
+    const evCard = screen.getByTestId('metric-hourly-ev')
+    expect(evCard).toHaveTextContent('Weighted edge')
+    expect(evCard).toHaveTextContent('Base')
+  })
+
+  it('positive weighted edge shows positive hourly EV even if simulation lost money', () => {
+    // Simulate a run where the player went bankrupt by bad luck,
+    // but the theoretical edge is positive
+    const bankruptButPositiveEdge: SimulationResult = {
+      ...mockResult,
+      netProfit: -100000,
+      finalBankroll: 0,
+      hourlyEV: 296.7, // theoretical from simulator
+      weightedPlayerEdge: 0.008,
+      n0: 12000,
+      riskOfRuin: 0.03,
+    }
+    mockRunSimulation.mockReturnValueOnce(bankruptButPositiveEdge)
+
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('run-simulation'))
+    act(() => { vi.advanceTimersByTime(100) })
+
+    // Key metrics should all reflect the POSITIVE theoretical edge
+    expect(screen.queryByTestId('negative-edge-warning')).not.toBeInTheDocument()
+    const evCard = screen.getByTestId('metric-hourly-ev')
+    // The hourly EV card should show green (positive), not red
+    expect(evCard.querySelector('.text-green-400')).not.toBeNull()
+    // N-Zero should show hours, not infinity
+    const n0Card = screen.getByTestId('metric-n0')
+    expect(n0Card).not.toHaveTextContent('\u221E (negative edge)')
+  })
+
+  it('shows simulated hourly in detailed stats', () => {
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('run-simulation'))
+    act(() => { vi.advanceTimersByTime(100) })
+
+    expect(screen.getByText('Simulated Hourly Win')).toBeInTheDocument()
   })
 })

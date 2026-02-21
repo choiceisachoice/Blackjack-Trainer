@@ -14,6 +14,7 @@ export const beginnerPreset: SimulationConfig = {
   surrenderAllowed: false,
   blackjackPays: 1.5,
   deviationAccuracy: 0.5,
+  countingAccuracy: 0.80,
 };
 
 /** Intermediate: Medium bankroll, wider spread, better deviation play */
@@ -30,6 +31,7 @@ export const intermediatePreset: SimulationConfig = {
   surrenderAllowed: true,
   blackjackPays: 1.5,
   deviationAccuracy: 0.85,
+  countingAccuracy: 0.90,
 };
 
 /** Professional: Large bankroll, aggressive spread, near-perfect deviations */
@@ -46,6 +48,7 @@ export const professionalPreset: SimulationConfig = {
   surrenderAllowed: true,
   blackjackPays: 1.5,
   deviationAccuracy: 0.95,
+  countingAccuracy: 0.95,
 };
 
 /** Worst Case: Hostile rules, shallow penetration, 8 decks, 6:5 BJ */
@@ -62,6 +65,7 @@ export const worstCasePreset: SimulationConfig = {
   surrenderAllowed: false,
   blackjackPays: 1.2,
   deviationAccuracy: 0.5,
+  countingAccuracy: 0.85,
 };
 
 /** All simulation presets indexed by name */

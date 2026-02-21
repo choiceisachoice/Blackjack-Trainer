@@ -76,3 +76,41 @@ export function calculateN0(evPerHand: number, sdPerHand: number): number {
   if (evPerHand <= 0) return Infinity;
   return (sdPerHand / evPerHand) ** 2;
 }
+
+/** TC distribution for 6-deck shoes (standard approximation) */
+export const TC_DISTRIBUTION: { tc: number; pct: number }[] = [
+  { tc: 0, pct: 0.56 },
+  { tc: 1, pct: 0.18 },
+  { tc: 2, pct: 0.12 },
+  { tc: 3, pct: 0.07 },
+  { tc: 4, pct: 0.04 },
+  { tc: 5, pct: 0.03 },
+];
+
+/**
+ * Calculate the weighted player edge accounting for bet spread and counting skill.
+ * Formula: Σ(edgeAtTC × betSize × pct) / Σ(betSize × pct)
+ * @param config - Simulation config with rules, bet spread, and accuracy values
+ * @param getBetMult - Function to look up bet multiplier from spread for a given TC
+ */
+export function calculateWeightedPlayerEdge(
+  config: Pick<SimulationConfig, 'dealerHitsSoft17' | 'doubleAfterSplit' | 'surrenderAllowed' | 'blackjackPays' | 'numDecks' | 'betSpread' | 'deviationAccuracy' | 'countingAccuracy'>,
+  getBetMult: (spread: Record<number, number>, tc: number) => number,
+): number {
+  const baseEdge = calculateHouseEdge(config);
+  const countingAccuracy = config.countingAccuracy ?? 1;
+  const deviationAccuracy = config.deviationAccuracy ?? 0;
+  const tcGain = EDGE_PER_TC + DEVIATION_TC_BONUS * deviationAccuracy;
+
+  let weightedEV = 0;
+  let weightedBet = 0;
+
+  for (const { tc, pct } of TC_DISTRIBUTION) {
+    const edgeAtTC = baseEdge + tc * tcGain * countingAccuracy;
+    const betMult = getBetMult(config.betSpread, tc);
+    weightedEV += edgeAtTC * betMult * pct;
+    weightedBet += betMult * pct;
+  }
+
+  return weightedBet > 0 ? weightedEV / weightedBet : baseEdge;
+}

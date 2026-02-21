@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useGameStore } from '../../store/game-store'
 import { useAppStore } from '../../store/app-store'
 import { useSessionSave } from '../../hooks/useSessionSave'
+import { soundEngine } from '../../services/sound-engine'
 import { findMatchingDeviation } from '../../engine/counting/deviations'
 import { getHandValue } from '../../engine/rules/hand-utils'
 import { GameTable } from '../table/GameTable'
-import { ACTION_LABEL, getDeviations, ALL_ACTIONS, formatTC, getBasicAction, isReversedDeviation, getDeviationAction as getDevAction } from './deviation-utils'
+import { ACTION_LABEL, getAtTableDeviations, ALL_ACTIONS, formatTC, getBasicAction, isReversedDeviation, getDeviationAction as getDevAction } from './deviation-utils'
 import type { DeviationSet } from './deviation-utils'
 import type { Deviation } from '../../engine/counting/types'
 import { Action } from '../../engine/rules/types'
@@ -85,7 +86,7 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
   // More reliable than useEffect dependency tracking — fires synchronously
   // when the store changes, avoiding React effect scheduling issues.
   useEffect(() => {
-    const deviations = getDeviations(deviationSet)
+    const deviations = getAtTableDeviations(deviationSet)
 
     const clearTimers = () => {
       for (const t of countdownTimersRef.current) clearTimeout(t)
@@ -205,6 +206,7 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
     }
 
     if (bothCorrect) {
+      soundEngine.correct()
       setDeviationsCorrect(prev => prev + 1)
       setCurrentStreak(prev => {
         const next = prev + 1
@@ -212,6 +214,7 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
         return next
       })
     } else {
+      soundEngine.wrong()
       setCurrentStreak(0)
     }
 
@@ -233,12 +236,14 @@ export function DeviationAtTable({ deviationSet }: DeviationAtTableProps) {
     setIsTrapCorrect(correct)
 
     if (correct) {
+      soundEngine.correct()
       setCurrentStreak(prev => {
         const next = prev + 1
         setBestStreak(best => Math.max(best, next))
         return next
       })
     } else {
+      soundEngine.wrong()
       setCurrentStreak(0)
     }
 

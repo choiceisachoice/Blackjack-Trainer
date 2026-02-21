@@ -23,6 +23,17 @@ export function getDeviations(set: DeviationSet): Deviation[] {
   }
 }
 
+/**
+ * Returns deviations filtered for at-the-table mode.
+ *
+ * Excludes Insurance because it is a side bet, not a play decision.
+ * Insurance is only trained in the flash-card mode where it works
+ * correctly as a standalone question.
+ */
+export function getAtTableDeviations(set: DeviationSet): Deviation[] {
+  return getDeviations(set).filter(d => d.name !== 'Insurance')
+}
+
 /** Fixed order of all action buttons — layout never changes. */
 export const ALL_ACTIONS: Action[] = [
   Action.Hit, Action.Stand, Action.Double, Action.Split, Action.Surrender, Action.Insurance,

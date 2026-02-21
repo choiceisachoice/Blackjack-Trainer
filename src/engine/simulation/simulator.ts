@@ -4,6 +4,8 @@ import {
   calculateHouseEdge,
   kellyOptimalBet as kellyBet,
   calculateN0,
+  calculateWeightedPlayerEdge,
+  TC_DISTRIBUTION,
   EDGE_PER_TC,
   DEVIATION_TC_BONUS,
   HAND_SD,
@@ -129,6 +131,7 @@ export function runSimulation(inputConfig: SimulationConfig): SimulationResult {
 
   // Clamp accuracy values
   const deviationAccuracy = Math.max(0, Math.min(1, config.deviationAccuracy || 0));
+  const countingAccuracy = Math.max(0, Math.min(1, config.countingAccuracy ?? 1));
 
   const baseEdge = calculateHouseEdge(config);
   const tcGain = EDGE_PER_TC + DEVIATION_TC_BONUS * deviationAccuracy;
@@ -161,8 +164,8 @@ export function runSimulation(inputConfig: SimulationConfig): SimulationResult {
       const betMultiplier = getBetMultiplier(config.betSpread, tc);
       const bet = config.minBet * betMultiplier;
 
-      // Effective edge for this hand (base + TC × gain per TC)
-      const effectiveEdge = baseEdge + tc * tcGain;
+      // Effective edge for this hand (base + TC × gain per TC × counting accuracy)
+      const effectiveEdge = baseEdge + tc * tcGain * countingAccuracy;
 
       // Simulate hand outcome using normal distribution
       const handResult = normalRandom(effectiveEdge * bet, HAND_SD * bet);
@@ -207,23 +210,32 @@ export function runSimulation(inputConfig: SimulationConfig): SimulationResult {
     bankrollHistory.push({ hand: totalHands, bankroll });
   }
 
-  // Compute summary statistics
+  // Simulation-derived statistics
   const averageBet = totalHands > 0 ? totalBet / totalHands : 0;
   const netProfit = bankroll - config.bankroll;
-  const evPerHand = totalHands > 0 ? netProfit / totalHands : 0;
-  const sdPerHand = HAND_SD * averageBet;
-  const hourlyEV = evPerHand * HANDS_PER_HOUR;
-  const n0 = evPerHand > 0 ? calculateN0(evPerHand, sdPerHand) : Infinity;
+
+  // Theoretical metrics (deterministic — independent of simulation outcome)
+  const weightedEdge = calculateWeightedPlayerEdge(config, getBetMultiplier);
+  let theoreticalAvgBet = 0;
+  for (const { tc, pct } of TC_DISTRIBUTION) {
+    theoreticalAvgBet += config.minBet * getBetMultiplier(config.betSpread, tc) * pct;
+  }
+  const theoreticalEvPerHand = weightedEdge * theoreticalAvgBet;
+  const theoreticalSdPerHand = HAND_SD * theoreticalAvgBet;
+
+  // Hourly EV, N0, RoR, Kelly — all based on THEORETICAL edge (not simulation luck)
+  const hourlyEV = theoreticalEvPerHand * HANDS_PER_HOUR;
+  const n0 = theoreticalEvPerHand > 0
+    ? calculateN0(theoreticalEvPerHand, theoreticalSdPerHand) : Infinity;
 
   // Analytical Risk of Ruin: RoR = e^(−2·μ·B / σ²)
-  const variance = sdPerHand * sdPerHand;
-  const riskOfRuin = evPerHand > 0 && variance > 0
-    ? Math.exp((-2 * evPerHand * config.bankroll) / variance)
+  const theoreticalVariance = theoreticalSdPerHand * theoreticalSdPerHand;
+  const riskOfRuin = theoreticalEvPerHand > 0 && theoreticalVariance > 0
+    ? Math.exp((-2 * theoreticalEvPerHand * config.bankroll) / theoreticalVariance)
     : 1;
 
-  // Kelly optimal bet based on observed edge
-  const observedEdge = totalBet > 0 ? netProfit / totalBet : 0;
-  const kellyOptimal = kellyBet(observedEdge, HAND_SD * HAND_SD, config.bankroll);
+  // Kelly optimal bet based on theoretical weighted edge
+  const kellyOptimal = kellyBet(weightedEdge, HAND_SD * HAND_SD, config.bankroll);
 
   return {
     totalHands,
@@ -235,6 +247,7 @@ export function runSimulation(inputConfig: SimulationConfig): SimulationResult {
     riskOfRuin: Math.min(1, Math.max(0, riskOfRuin)),
     n0: Math.round(n0),
     houseEdge: baseEdge,
+    weightedPlayerEdge: weightedEdge,
     bankrollHistory,
     outcomeDistribution: buildOutcomeDistribution(shoeResults),
     percentWinningSessions: shoeResults.length > 0
