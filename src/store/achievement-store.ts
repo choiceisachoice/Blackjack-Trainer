@@ -4,6 +4,7 @@ import type { TrainingSessionResult, LifetimeStats } from '../services/stats-typ
 import type { SimulationResult } from '../engine/simulation/types'
 import { achievementEngine } from '../services/achievements/achievement-engine'
 import { ALL_ACHIEVEMENTS } from '../services/achievements/achievement-list'
+import { useLevelStore } from './level-store'
 
 /** State shape for the achievement store. */
 export interface AchievementStoreState {
@@ -32,6 +33,11 @@ export interface AchievementStoreActions {
    * Check for simulation-related achievements after a bankroll simulation.
    */
   checkSimulationAchievements(result: SimulationResult): void
+
+  /**
+   * Check for bankroll-tracker achievements after a session is added/edited/deleted.
+   */
+  checkBankrollTrackerAchievements(): void
 
   /** Remove the first achievement from the toast queue. */
   dismissNewAchievement(): void
@@ -65,6 +71,10 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
         newlyUnlocked: [...state.newlyUnlocked, ...newAchievements],
         totalUnlocked: achievementEngine.getUnlockedCount(),
       }))
+      // Award XP for each unlocked achievement
+      for (const achievement of newAchievements) {
+        useLevelStore.getState().addAchievementXP(achievement.tier)
+      }
     }
   },
 
@@ -76,6 +86,23 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
         newlyUnlocked: [...state.newlyUnlocked, ...newAchievements],
         totalUnlocked: achievementEngine.getUnlockedCount(),
       }))
+      for (const achievement of newAchievements) {
+        useLevelStore.getState().addAchievementXP(achievement.tier)
+      }
+    }
+  },
+
+  checkBankrollTrackerAchievements() {
+    const newAchievements = achievementEngine.checkAfterBankrollUpdate()
+    if (newAchievements.length > 0) {
+      set(state => ({
+        unlockedIds: achievementEngine.getUnlocked().map(u => u.achievementId),
+        newlyUnlocked: [...state.newlyUnlocked, ...newAchievements],
+        totalUnlocked: achievementEngine.getUnlockedCount(),
+      }))
+      for (const achievement of newAchievements) {
+        useLevelStore.getState().addAchievementXP(achievement.tier)
+      }
     }
   },
 

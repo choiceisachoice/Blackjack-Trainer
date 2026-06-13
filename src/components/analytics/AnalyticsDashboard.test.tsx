@@ -115,7 +115,7 @@ describe('AnalyticsDashboard', () => {
 
     // Other modes show "Not yet played"
     const unplayed = screen.getAllByText('Not yet played')
-    expect(unplayed.length).toBe(5) // 6 modes - 1 played = 5 unplayed
+    expect(unplayed.length).toBe(6) // 7 modes - 1 played = 6 unplayed
   })
 
   it('shows weakest deviations when deviation data exists', () => {
@@ -139,9 +139,9 @@ describe('AnalyticsDashboard', () => {
     render(<AnalyticsDashboard />)
 
     expect(screen.getByText('Insurance (16 vs A)')).toBeInTheDocument()
-    expect(screen.getByText('20%')).toBeInTheDocument()
+    expect(screen.getByText('20% accuracy')).toBeInTheDocument()
     expect(screen.getByText('Stand 16 vs 10')).toBeInTheDocument()
-    expect(screen.getByText('70%')).toBeInTheDocument()
+    expect(screen.getByText('70% accuracy')).toBeInTheDocument()
   })
 
   it('shows session history', () => {
@@ -249,7 +249,7 @@ describe('AnalyticsDashboard', () => {
     // Should show as played mode (not "Not yet played")
     const atTableLabels = screen.getAllByText('Deviation At Table')
     expect(atTableLabels.length).toBeGreaterThanOrEqual(1) // breakdown + session history
-    expect(screen.getAllByText('Not yet played').length).toBe(5) // 6 modes - 1 played
+    expect(screen.getAllByText('Not yet played').length).toBe(6) // 7 modes - 1 played
   })
 
   it('weakest deviations shows correct accuracy from session data', () => {
@@ -286,11 +286,11 @@ describe('AnalyticsDashboard', () => {
 
     // 16 vs 10: (8+6) correct / (8+2+6+4) total = 14/20 = 70%
     expect(screen.getByText('16 vs 10')).toBeInTheDocument()
-    expect(screen.getByText('70%')).toBeInTheDocument()
+    expect(screen.getByText('70% accuracy')).toBeInTheDocument()
 
     // 15 vs 10: 3 correct / (3+7) total = 30%
     expect(screen.getByText('15 vs 10')).toBeInTheDocument()
-    expect(screen.getByText('30%')).toBeInTheDocument()
+    expect(screen.getByText('30% accuracy')).toBeInTheDocument()
   })
 
   it('deviations with 0 attempts are excluded from weakest list', () => {
@@ -394,11 +394,14 @@ describe('buildChartData', () => {
     const data = buildChartData(sessions)
 
     // Sessions are reversed (chronological), so first is 14:30
-    // getHours() uses local time, but both should be different
     expect(data).toHaveLength(2)
-    expect(data[0].label).toMatch(/^\d{2}:\d{2}$/)
-    expect(data[1].label).toMatch(/^\d{2}:\d{2}$/)
-    expect(data[0].label).not.toBe(data[1].label)
+    // label is now unique index
+    expect(data[0].label).toBe('#1')
+    expect(data[1].label).toBe('#2')
+    // date holds the original time display
+    expect(data[0].date).toMatch(/^\d{2}:\d{2}$/)
+    expect(data[1].date).toMatch(/^\d{2}:\d{2}$/)
+    expect(data[0].date).not.toBe(data[1].date)
   })
 
   it('uses date labels when sessions span multiple days', () => {
@@ -410,9 +413,12 @@ describe('buildChartData', () => {
     const data = buildChartData(sessions)
 
     expect(data).toHaveLength(2)
-    // Date labels should contain month name abbreviation
-    expect(data[0].label).toMatch(/\w+ \d+/)
-    expect(data[1].label).toMatch(/\w+ \d+/)
+    // label is unique index
+    expect(data[0].label).toBe('#1')
+    expect(data[1].label).toBe('#2')
+    // date holds the original date display
+    expect(data[0].date).toMatch(/\w+ \d+/)
+    expect(data[1].date).toMatch(/\w+ \d+/)
   })
 })
 

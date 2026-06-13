@@ -48,6 +48,9 @@ export interface CasinoSessionConfig {
 
   /** The card counting system to use. */
   countingSystem: CountingSystemId
+
+  /** Whether to play casino ambient sound during the session. */
+  casinoAmbience: boolean
 }
 
 // ─── Bot Player ────────────────────────────────────────
@@ -222,6 +225,8 @@ export interface PlayerHandRecord {
 
 /** Summary of a bot's result in a single round. */
 export interface BotRoundResult {
+  /** Bot's unique identifier. */
+  id: string
   /** Bot's display name. */
   name: string
   /** Cards in the bot's hand. */

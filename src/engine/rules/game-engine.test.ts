@@ -273,6 +273,89 @@ describe('GameEngine', () => {
       const actions = engine.getAvailableActions(after2)
       expect(actions).not.toContain(Action.Split)
     })
+
+    it('re-split Aces when dealt another Ace', () => {
+      const rules: CasinoRules = {
+        ...DEFAULT_RULES,
+        hitSplitAces: false,
+        resplitAllowed: true,
+        maxSplitHands: 4,
+      }
+      // Player: A♠+A♥, Dealer: 7+5
+      // Split: hand1 gets A♦ (pair!), hand2 gets K
+      const shoe = createCardSource([
+        c(Rank.Ace, Suit.Spades), c(Rank.Seven), c(Rank.Ace, Suit.Hearts), c(Rank.Five),
+        c(Rank.Ace, Suit.Diamonds), c(Rank.King), // split cards
+        c(Rank.Ten), c(Rank.Nine),                 // re-split cards
+        c(Rank.Three),                              // extra
+      ])
+      const engine = new GameEngine(rules, shoe)
+      const state = engine.startRound(10)
+      const after = engine.split(state)
+
+      expect(after.playerHands).toHaveLength(2)
+      // Hand 1: [A♠, A♦] — NOT standing (can re-split)
+      expect(after.playerHands[0].cards[1].rank).toBe(Rank.Ace)
+      expect(after.playerHands[0].isStanding).toBe(false)
+      // Hand 2: [A♥, K] — standing (no Ace dealt)
+      expect(after.playerHands[1].cards[1].rank).toBe(Rank.King)
+      expect(after.playerHands[1].isStanding).toBe(true)
+
+      // Can split again
+      const after2 = engine.split(after)
+      expect(after2.playerHands).toHaveLength(3)
+    })
+
+    it('re-split Aces not possible at maxSplitHands', () => {
+      const rules: CasinoRules = {
+        ...DEFAULT_RULES,
+        hitSplitAces: false,
+        resplitAllowed: true,
+        maxSplitHands: 2,
+      }
+      // Player: A♠+A♥, Dealer: 7+5
+      // Split: hand1 gets A♦, hand2 gets K
+      // maxSplitHands=2, already at max → both must stand
+      const shoe = createCardSource([
+        c(Rank.Ace, Suit.Spades), c(Rank.Seven), c(Rank.Ace, Suit.Hearts), c(Rank.Five),
+        c(Rank.Ace, Suit.Diamonds), c(Rank.King),
+      ])
+      const engine = new GameEngine(rules, shoe)
+      const state = engine.startRound(10)
+      const after = engine.split(state)
+
+      expect(after.playerHands).toHaveLength(2)
+      // Both hands standing despite hand1 having A+A
+      expect(after.playerHands[0].isStanding).toBe(true)
+      expect(after.playerHands[1].isStanding).toBe(true)
+      // Should be in dealer turn since both are standing
+      expect(after.phase).toBe('dealerTurn')
+    })
+
+    it('re-split Aces: getAvailableActions offers Split+Stand, no Hit', () => {
+      const rules: CasinoRules = {
+        ...DEFAULT_RULES,
+        hitSplitAces: false,
+        resplitAllowed: true,
+        maxSplitHands: 4,
+      }
+      // Player: A♠+A♥, Dealer: 7+5
+      // Split: hand1 gets A♦ (pair!), hand2 gets K
+      const shoe = createCardSource([
+        c(Rank.Ace, Suit.Spades), c(Rank.Seven), c(Rank.Ace, Suit.Hearts), c(Rank.Five),
+        c(Rank.Ace, Suit.Diamonds), c(Rank.King),
+        c(Rank.Ten), c(Rank.Nine),
+      ])
+      const engine = new GameEngine(rules, shoe)
+      const state = engine.startRound(10)
+      const after = engine.split(state)
+
+      const actions = engine.getAvailableActions(after)
+      expect(actions).toContain(Action.Stand)
+      expect(actions).toContain(Action.Split)
+      expect(actions).not.toContain(Action.Hit)
+      expect(actions).not.toContain(Action.Double)
+    })
   })
 
   // ── surrender ───────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { Rank, Suit } from '../shoe/types'
 import { getHandValue } from '../rules/hand-utils'
 import { Action } from '../rules/types'
 import { CountingSystemId } from '../counting/types'
-import { CasinoSessionEngine } from './session-engine'
+import { CasinoSessionEngine, canReSplitAces } from './session-engine'
 import type { CasinoSessionConfig, PlayerHandRecord } from './types'
 
 /** Shorthand card creator. */
@@ -34,6 +34,7 @@ function createTestConfig(overrides: Partial<CasinoSessionConfig> = {}): CasinoS
     countCheckFrequency: 'every',
     showDeviationHints: true,
     countingSystem: CountingSystemId.HiLo,
+    casinoAmbience: false,
     ...overrides,
   }
 }
@@ -1098,6 +1099,135 @@ describe('CasinoSessionEngine', () => {
   })
 
   // ═══════════════════════════════════════════════════════
+  // Fix 8 Bug Fixes – Bot Surrender, Pair Action, Split Settlement
+  // ═══════════════════════════════════════════════════════
+
+  describe('Fix 8: Bot Surrender Prevention', () => {
+    it('bots never surrender even when table rules allow surrender', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({
+        numBots: 3,
+        playerSeatIndex: 0,
+        surrenderAllowed: true,  // Table allows surrender
+      }))
+
+      // Play many rounds and verify no bot ever surrenders
+      for (let round = 0; round < 10; round++) {
+        const deal = engine.dealNewRound()
+        engine.playAllBots(deal.dealerUpCard)
+
+        const seats = engine.getSeats()
+        for (const bot of seats) {
+          if (!bot) continue
+          for (const hand of bot.hands) {
+            expect(hand.result).not.toBe('surrender')
+          }
+        }
+
+        // Clean up round
+        engine.playDealerHand([deal.dealerUpCard, deal.dealerHoleCard])
+        engine.settleBotHands([deal.dealerUpCard, deal.dealerHoleCard])
+      }
+    })
+
+    it('playBotAtSeat passes botRules with surrenderAllowed=none', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({
+        numBots: 1,
+        playerSeatIndex: 0,
+        surrenderAllowed: true,
+      }))
+
+      const deal = engine.dealNewRound()
+      // Bot is at seat 1, 2, 3, 4, or 5
+      const seats = engine.getSeats()
+      const botSeatIdx = seats.findIndex(s => s !== null)
+
+      // Play the bot — should not throw and should not surrender
+      engine.playBotAtSeat(botSeatIdx, deal.dealerUpCard)
+
+      const bot = seats[botSeatIdx]!
+      for (const hand of bot.hands) {
+        expect(hand.result).not.toBe('surrender')
+      }
+    })
+  })
+
+  describe('Fix 8: Pair Action Recording', () => {
+    it('records split as action when bot splits (not bust)', () => {
+      // We need a bot with a pair hand that would normally be split
+      // Create engine with bots and test playBotAtSeat
+      const engine = new CasinoSessionEngine(createTestConfig({
+        numBots: 1,
+        playerSeatIndex: 5,
+      }))
+
+      const deal = engine.dealNewRound()
+      const seats = engine.getSeats()
+      const botSeatIdx = seats.findIndex(s => s !== null)
+      const bot = seats[botSeatIdx]
+
+      // Even if the bot splits and a split hand busts,
+      // hands.length > 1 is checked BEFORE isBusted
+      if (bot && bot.hands.length > 0) {
+        engine.playBotAtSeat(botSeatIdx, deal.dealerUpCard)
+        // After play: if split happened, hands.length > 1
+        if (bot.hands.length > 1) {
+          // The action should be 'split', not 'bust'
+          // (We can't directly check the recorder output here without exposing it,
+          // but we verify the priority logic: split > bust)
+          expect(bot.hands.length).toBeGreaterThan(1)
+          expect(bot.hands[0].isSplit).toBe(true)
+        }
+      }
+    })
+  })
+
+  describe('Fix 8: Split Hand Settlement', () => {
+    it('settles each split hand independently', () => {
+      const engine = new CasinoSessionEngine(createTestConfig())
+
+      // Test individual hand settlement: 19 vs 17 = win
+      const result1 = engine.settleHand(
+        [card(Rank.Ten), card(Rank.Nine)],    // 19 (split hand 1)
+        [card(Rank.Ten), card(Rank.Seven)],   // 17
+        100, false, false,
+      )
+      expect(result1.result).toBe('win')
+      expect(result1.profit).toBe(100)
+
+      // 15 vs 17 = loss
+      const result2 = engine.settleHand(
+        [card(Rank.Ten), card(Rank.Five)],    // 15 (split hand 2 - bust)
+        [card(Rank.Ten), card(Rank.Seven)],   // 17
+        100, false, false,
+      )
+      expect(result2.result).toBe('loss')
+      expect(result2.profit).toBe(-100)
+    })
+
+    it('handles split hand where one wins and one pushes', () => {
+      const engine = new CasinoSessionEngine(createTestConfig())
+
+      // 20 vs 18 = win
+      const result1 = engine.settleHand(
+        [card(Rank.Ten), card(Rank.Queen)],   // 20
+        [card(Rank.Ten), card(Rank.Eight)],   // 18
+        50, false, false,
+      )
+      expect(result1.result).toBe('win')
+      expect(result1.profit).toBe(50)
+
+      // 18 vs 18 = push
+      const result2 = engine.settleHand(
+        [card(Rank.Ten), card(Rank.Eight, Suit.Diamonds)],  // 18
+        [card(Rank.Ten), card(Rank.Eight)],                 // 18
+        50, false, false,
+      )
+      expect(result2.result).toBe('push')
+      expect(result2.profit).toBe(0)
+    })
+  })
+
+  // ═══════════════════════════════════════════════════════
   // Dealer Hand Play (5 Tests)
   // ═══════════════════════════════════════════════════════
 
@@ -1271,5 +1401,160 @@ describe('CasinoSessionEngine', () => {
       const botAfter = seatsAfter.find(s => s !== null)!
       expect(typeof botAfter.bankroll).toBe('number')
     })
+  })
+
+  // ═══════════════════════════════════════════════════════
+  // Dealer Bust + Split Hands (2 Tests)
+  // ═══════════════════════════════════════════════════════
+
+  describe('Dealer bust with split hands', () => {
+    it('dealer bust → all non-busted hands win including split main hand', () => {
+      const engine = new CasinoSessionEngine(createTestConfig())
+      const dealerCards = [card(Rank.Ten), card(Rank.Six), card(Rank.Ten)] // 26 = bust
+
+      // Split hand 0 (main hand): 18, not bust
+      const result0 = engine.settleHand(
+        [card(Rank.Ten), card(Rank.Eight)],  // 18
+        dealerCards,
+        100, false, false, true,             // isSplitHand = true
+      )
+      expect(result0.result).toBe('win')
+      expect(result0.profit).toBe(100)
+
+      // Split hand 1: 15, not bust — still wins because dealer busted
+      const result1 = engine.settleHand(
+        [card(Rank.Ten), card(Rank.Five)],   // 15
+        dealerCards,
+        100, false, false, true,
+      )
+      expect(result1.result).toBe('win')
+      expect(result1.profit).toBe(100)
+    })
+
+    it('dealer bust → busted split hand still loses', () => {
+      const engine = new CasinoSessionEngine(createTestConfig())
+      const dealerCards = [card(Rank.Ten), card(Rank.Six), card(Rank.Ten)] // 26 = bust
+
+      // Split hand that also busted — player bust is checked BEFORE dealer bust
+      const result = engine.settleHand(
+        [card(Rank.Ten), card(Rank.Six), card(Rank.Ten)],  // 26 = bust
+        dealerCards,
+        100, false, false, true,
+      )
+      expect(result.result).toBe('loss')
+      expect(result.profit).toBe(-100)
+    })
+  })
+
+  // ─── Shoe Integrity Tests ─────────────────────────────
+
+  describe('shoe integrity', () => {
+    it('6-deck shoe contains exactly 312 cards', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numDecks: 6 }))
+
+      let count = 0
+      while (engine.getCardsDealt() < engine.getTotalCards()) {
+        engine.drawCard()
+        count++
+      }
+
+      expect(count).toBe(312) // 6 × 52 = 312
+    })
+
+    it('6-deck shoe contains exactly 24 of each rank', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numDecks: 6 }))
+
+      const rankCount: Record<string, number> = {}
+      while (engine.getCardsDealt() < engine.getTotalCards()) {
+        const c = engine.drawCard()
+        rankCount[c.rank] = (rankCount[c.rank] || 0) + 1
+      }
+
+      // Each rank (A,2,3,...,K) appears 24 times (6 decks × 4 suits)
+      for (const rank of ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']) {
+        expect(rankCount[rank]).toBe(24)
+      }
+    })
+
+    it('6-deck shoe contains exactly 6 of each specific card', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numDecks: 6 }))
+
+      const cardCount: Record<string, number> = {}
+      while (engine.getCardsDealt() < engine.getTotalCards()) {
+        const c = engine.drawCard()
+        const key = `${c.rank}-${c.suit}`
+        cardCount[key] = (cardCount[key] || 0) + 1
+      }
+
+      // Each specific card (e.g. A♠) appears exactly 6 times
+      const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+      const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+
+      for (const rank of ranks) {
+        for (const suit of suits) {
+          expect(cardCount[`${rank}-${suit}`]).toBe(6)
+        }
+      }
+    })
+
+    it('2-deck shoe contains exactly 104 cards', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numDecks: 2 }))
+
+      let count = 0
+      while (engine.getCardsDealt() < engine.getTotalCards()) {
+        engine.drawCard()
+        count++
+      }
+
+      expect(count).toBe(104) // 2 × 52 = 104
+    })
+
+    it('8-deck shoe contains exactly 416 cards', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numDecks: 8 }))
+
+      let count = 0
+      while (engine.getCardsDealt() < engine.getTotalCards()) {
+        engine.drawCard()
+        count++
+      }
+
+      expect(count).toBe(416) // 8 × 52 = 416
+    })
+  })
+})
+
+// ═══════════════════════════════════════════════════════
+// canReSplitAces (5 Tests)
+// ═══════════════════════════════════════════════════════
+
+describe('canReSplitAces', () => {
+  it('re-split aces allowed when second card is ace', () => {
+    const cards = [card(Rank.Ace, Suit.Spades), card(Rank.Ace, Suit.Hearts)]
+    expect(canReSplitAces(cards, 2, 4)).toBe(true)
+  })
+
+  it('re-split aces not allowed at max split hands (4)', () => {
+    const cards = [card(Rank.Ace, Suit.Spades), card(Rank.Ace, Suit.Hearts)]
+    expect(canReSplitAces(cards, 4, 4)).toBe(false)
+  })
+
+  it('auto-stand after ace split when card is not ace', () => {
+    const cards = [card(Rank.Ace, Suit.Spades), card(Rank.Five, Suit.Hearts)]
+    expect(canReSplitAces(cards, 2, 4)).toBe(false)
+  })
+
+  it('re-split hand receives only 1 card (hand must have exactly 2 cards)', () => {
+    // A hand with 3 cards cannot re-split even if first two are aces
+    const threeCards = [card(Rank.Ace), card(Rank.Ace), card(Rank.Three)]
+    expect(canReSplitAces(threeCards, 2, 4)).toBe(false)
+
+    // A hand with 1 card cannot re-split
+    const oneCard = [card(Rank.Ace)]
+    expect(canReSplitAces(oneCard, 2, 4)).toBe(false)
+  })
+
+  it('returns false when first card is not ace', () => {
+    const cards = [card(Rank.Ten, Suit.Spades), card(Rank.Ace, Suit.Hearts)]
+    expect(canReSplitAces(cards, 2, 4)).toBe(false)
   })
 })

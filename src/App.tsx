@@ -11,7 +11,11 @@ import { DeckEstimation } from './components/training/DeckEstimation'
 import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard'
 import { BankrollSimulator } from './components/simulator/BankrollSimulator'
 import { AchievementsPage } from './components/achievements/AchievementsPage'
+import { CasinoSession } from './components/casino-session/CasinoSession'
+import { StrategyChart } from './components/strategy-chart/StrategyChart'
+import { CasinoSessionTracker } from './components/training/CasinoSessionTracker'
 import { AchievementToast } from './components/achievements/AchievementToast'
+import { LevelUpPopup } from './components/navigation/LevelUpPopup'
 
 /**
  * Root application component.
@@ -19,18 +23,18 @@ import { AchievementToast } from './components/achievements/AchievementToast'
  */
 function App() {
   const currentMode = useAppStore(s => s.currentMode)
-
   if (currentMode === 'home') {
     return (
       <>
         <HomeScreen />
         <AchievementToast />
+        <LevelUpPopup />
       </>
     )
   }
 
   return (
-    <div className={`h-screen flex flex-col bg-casino-bg transition-colors duration-200 ${currentMode === 'analytics' || currentMode === 'bankrollSim' || currentMode === 'achievements' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+    <div className={`h-screen flex flex-col bg-casino-bg transition-colors duration-200 ${currentMode === 'analytics' || currentMode === 'bankrollSim' || currentMode === 'achievements' || currentMode === 'casinoSession' || currentMode === 'strategyChart' || currentMode === 'casinoSessionTracker' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <TopBar />
       {currentMode === 'speedDrill' && <SpeedDrill />}
       {currentMode === 'tableCounting' && <TableCounting />}
@@ -40,7 +44,11 @@ function App() {
       {currentMode === 'analytics' && <AnalyticsDashboard />}
       {currentMode === 'bankrollSim' && <BankrollSimulator />}
       {currentMode === 'achievements' && <AchievementsPage />}
+      {currentMode === 'casinoSession' && <CasinoSession />}
+      {currentMode === 'strategyChart' && <StrategyChart />}
+      {currentMode === 'casinoSessionTracker' && <CasinoSessionTracker />}
       <AchievementToast />
+      <LevelUpPopup />
     </div>
   )
 }

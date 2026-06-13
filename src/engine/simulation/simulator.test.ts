@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest'
 import {
   normalRandom,
   calculateHouseEdge,
@@ -8,16 +8,20 @@ import {
   TC_DISTRIBUTION,
   EDGE_PER_TC,
   DEVIATION_TC_BONUS,
-} from './math-utils';
-import { runSimulation, getBetMultiplier } from './simulator';
+} from './math-utils'
 import {
-  beginnerPreset,
-  intermediatePreset,
-  professionalPreset,
-  worstCasePreset,
-  simulationPresets,
-} from './presets';
-import type { SimulationConfig } from './types';
+  ALL_PRESETS,
+  PRESET_BASIC_STRATEGY,
+  PRESET_CASUAL,
+  PRESET_SERIOUS,
+  PRESET_PROFESSIONAL,
+  PRESET_HOSTILE,
+  getBetMultiplier,
+  calculateBankrollAnalysis,
+  calculateAllPresets,
+  getTCBreakdown,
+} from './bankroll-calculator'
+import type { BankrollParams } from './types'
 
 // ---------------------------------------------------------------------------
 // math-utils
@@ -26,39 +30,39 @@ import type { SimulationConfig } from './types';
 describe('math-utils', () => {
   describe('normalRandom', () => {
     it('generates values with approximately correct mean', () => {
-      const samples = 10000;
-      let sum = 0;
+      const samples = 10000
+      let sum = 0
       for (let i = 0; i < samples; i++) {
-        sum += normalRandom(5, 1);
+        sum += normalRandom(5, 1)
       }
-      const mean = sum / samples;
-      expect(mean).toBeCloseTo(5, 0); // within ±0.5
-    });
+      const mean = sum / samples
+      expect(mean).toBeCloseTo(5, 0)
+    })
 
     it('generates values with approximately correct standard deviation', () => {
-      const samples = 10000;
-      const expectedMean = 0;
-      const expectedSd = 2;
-      const values: number[] = [];
+      const samples = 10000
+      const expectedMean = 0
+      const expectedSd = 2
+      const values: number[] = []
       for (let i = 0; i < samples; i++) {
-        values.push(normalRandom(expectedMean, expectedSd));
+        values.push(normalRandom(expectedMean, expectedSd))
       }
-      const actualMean = values.reduce((a, b) => a + b, 0) / samples;
-      const variance = values.reduce((a, b) => a + (b - actualMean) ** 2, 0) / samples;
-      const sd = Math.sqrt(variance);
-      expect(sd).toBeCloseTo(expectedSd, 0); // within ±0.5
-    });
+      const actualMean = values.reduce((a, b) => a + b, 0) / samples
+      const variance = values.reduce((a, b) => a + (b - actualMean) ** 2, 0) / samples
+      const sd = Math.sqrt(variance)
+      expect(sd).toBeCloseTo(expectedSd, 0)
+    })
 
     it('defaults to standard normal (mean=0, sd=1)', () => {
-      const samples = 5000;
-      let sum = 0;
+      const samples = 5000
+      let sum = 0
       for (let i = 0; i < samples; i++) {
-        sum += normalRandom();
+        sum += normalRandom()
       }
-      const mean = sum / samples;
-      expect(Math.abs(mean)).toBeLessThan(0.1);
-    });
-  });
+      const mean = sum / samples
+      expect(Math.abs(mean)).toBeLessThan(0.1)
+    })
+  })
 
   describe('calculateHouseEdge', () => {
     it('returns approximately -0.22% for 6-deck S17 DAS surrender 3:2', () => {
@@ -68,22 +72,20 @@ describe('math-utils', () => {
         surrenderAllowed: true,
         blackjackPays: 1.5,
         numDecks: 6,
-      });
-      // Base -0.64% + S17 +0.22% + DAS +0.13% + Surrender +0.07% = -0.22%
-      expect(edge).toBeCloseTo(-0.0022, 4);
-    });
+      })
+      expect(edge).toBeCloseTo(-0.0022, 4)
+    })
 
-    it('returns approximately -0.42% for 6-deck H17 DAS surrender 3:2', () => {
+    it('returns approximately -0.44% for 6-deck H17 DAS surrender 3:2', () => {
       const edge = calculateHouseEdge({
         dealerHitsSoft17: true,
         doubleAfterSplit: true,
         surrenderAllowed: true,
         blackjackPays: 1.5,
         numDecks: 6,
-      });
-      // Base -0.64% + DAS +0.13% + Surrender +0.07% = -0.44%
-      expect(edge).toBeCloseTo(-0.0044, 3);
-    });
+      })
+      expect(edge).toBeCloseTo(-0.0044, 3)
+    })
 
     it('returns correct edge for 6:5 unfavorable (H17, no DAS, no surrender, 8 deck)', () => {
       const edge = calculateHouseEdge({
@@ -92,10 +94,9 @@ describe('math-utils', () => {
         surrenderAllowed: false,
         blackjackPays: 1.2,
         numDecks: 8,
-      });
-      // Base -0.64% + 6:5 -1.36% + 8-deck -0.03% = -2.03%
-      expect(edge).toBeCloseTo(-0.0203, 4);
-    });
+      })
+      expect(edge).toBeCloseTo(-0.0203, 4)
+    })
 
     it('returns base edge with all default rules (H17, no DAS, no surrender, 3:2, 6 deck)', () => {
       const edge = calculateHouseEdge({
@@ -104,99 +105,97 @@ describe('math-utils', () => {
         surrenderAllowed: false,
         blackjackPays: 1.5,
         numDecks: 6,
-      });
-      expect(edge).toBeCloseTo(-0.0064, 4);
-    });
+      })
+      expect(edge).toBeCloseTo(-0.0064, 4)
+    })
 
     it('6:5 blackjack is at least 1.3% worse than 3:2', () => {
       const threeTwo = calculateHouseEdge({
         dealerHitsSoft17: false, doubleAfterSplit: true,
         surrenderAllowed: true, blackjackPays: 1.5, numDecks: 6,
-      });
+      })
       const sixFive = calculateHouseEdge({
         dealerHitsSoft17: false, doubleAfterSplit: true,
         surrenderAllowed: true, blackjackPays: 1.2, numDecks: 6,
-      });
-      expect(threeTwo - sixFive).toBeGreaterThan(0.013);
-    });
+      })
+      expect(threeTwo - sixFive).toBeGreaterThan(0.013)
+    })
 
     it('edge at TC 0 is negative for all standard rule sets', () => {
-      // Best standard rules: S17, DAS, Surrender, 3:2, 6-deck
       const bestEdge = calculateHouseEdge({
         dealerHitsSoft17: false, doubleAfterSplit: true,
         surrenderAllowed: true, blackjackPays: 1.5, numDecks: 6,
-      });
-      // Even with best rules, TC=0 edge is negative
-      const edgeAtTC0 = bestEdge + 0 * EDGE_PER_TC;
-      expect(edgeAtTC0).toBeLessThan(0);
-    });
+      })
+      const edgeAtTC0 = bestEdge + 0 * EDGE_PER_TC
+      expect(edgeAtTC0).toBeLessThan(0)
+    })
 
     it('edge at TC +2 is positive for 6-deck S17 DAS surrender', () => {
       const baseEdge = calculateHouseEdge({
         dealerHitsSoft17: false, doubleAfterSplit: true,
         surrenderAllowed: true, blackjackPays: 1.5, numDecks: 6,
-      });
-      const tcGain = EDGE_PER_TC + DEVIATION_TC_BONUS * 0.95;
-      const edgeAtTC2 = baseEdge + 2 * tcGain;
-      expect(edgeAtTC2).toBeGreaterThan(0);
-    });
+      })
+      const tcGain = EDGE_PER_TC + DEVIATION_TC_BONUS * 0.95
+      const edgeAtTC2 = baseEdge + 2 * tcGain
+      expect(edgeAtTC2).toBeGreaterThan(0)
+    })
 
     it('handles 2-deck bonus', () => {
       const twoDeck = calculateHouseEdge({
         dealerHitsSoft17: true, doubleAfterSplit: false,
         surrenderAllowed: false, blackjackPays: 1.5, numDecks: 2,
-      });
+      })
       const sixDeck = calculateHouseEdge({
         dealerHitsSoft17: true, doubleAfterSplit: false,
         surrenderAllowed: false, blackjackPays: 1.5, numDecks: 6,
-      });
-      expect(twoDeck).toBeGreaterThan(sixDeck);
-    });
-  });
+      })
+      expect(twoDeck).toBeGreaterThan(sixDeck)
+    })
+  })
 
   describe('kellyOptimalBet', () => {
     it('returns positive value for positive edge', () => {
-      const bet = kellyOptimalBet(0.01, 1.3225, 50000);
-      expect(bet).toBeGreaterThan(0);
-      expect(bet).toBeCloseTo(0.01 / 1.3225 * 50000, 0);
-    });
+      const bet = kellyOptimalBet(0.01, 1.3225, 50000)
+      expect(bet).toBeGreaterThan(0)
+      expect(bet).toBeCloseTo(0.01 / 1.3225 * 50000, 0)
+    })
 
     it('returns 0 for zero edge', () => {
-      expect(kellyOptimalBet(0, 1.3225, 50000)).toBe(0);
-    });
+      expect(kellyOptimalBet(0, 1.3225, 50000)).toBe(0)
+    })
 
     it('returns 0 for negative edge', () => {
-      expect(kellyOptimalBet(-0.005, 1.3225, 50000)).toBe(0);
-    });
-  });
+      expect(kellyOptimalBet(-0.005, 1.3225, 50000)).toBe(0)
+    })
+  })
 
   describe('calculateN0', () => {
     it('returns correct N0 for positive EV', () => {
-      const n0 = calculateN0(0.5, 50);
-      expect(n0).toBe(10000);
-    });
+      const n0 = calculateN0(0.5, 50)
+      expect(n0).toBe(10000)
+    })
 
     it('returns Infinity for zero EV', () => {
-      expect(calculateN0(0, 50)).toBe(Infinity);
-    });
+      expect(calculateN0(0, 50)).toBe(Infinity)
+    })
 
     it('returns Infinity for negative EV', () => {
-      expect(calculateN0(-0.5, 50)).toBe(Infinity);
-    });
-  });
+      expect(calculateN0(-0.5, 50)).toBe(Infinity)
+    })
+  })
 
   describe('TC_DISTRIBUTION', () => {
     it('percentages sum to 1', () => {
-      const sum = TC_DISTRIBUTION.reduce((s, d) => s + d.pct, 0);
-      expect(sum).toBeCloseTo(1, 6);
-    });
+      const sum = TC_DISTRIBUTION.reduce((s, d) => s + d.pct, 0)
+      expect(sum).toBeCloseTo(1, 6)
+    })
 
     it('has entries for TC 0 through 5', () => {
-      expect(TC_DISTRIBUTION).toHaveLength(6);
-      expect(TC_DISTRIBUTION[0].tc).toBe(0);
-      expect(TC_DISTRIBUTION[5].tc).toBe(5);
-    });
-  });
+      expect(TC_DISTRIBUTION).toHaveLength(6)
+      expect(TC_DISTRIBUTION[0].tc).toBe(0)
+      expect(TC_DISTRIBUTION[5].tc).toBe(5)
+    })
+  })
 
   describe('calculateWeightedPlayerEdge', () => {
     const proConfig = {
@@ -208,7 +207,7 @@ describe('math-utils', () => {
       betSpread: { 1: 2, 2: 4, 3: 8, 4: 12, 5: 16 } as Record<number, number>,
       deviationAccuracy: 0.95,
       countingAccuracy: 0.95,
-    };
+    }
 
     const worstConfig = {
       dealerHitsSoft17: true,
@@ -219,379 +218,394 @@ describe('math-utils', () => {
       betSpread: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 } as Record<number, number>,
       deviationAccuracy: 0.5,
       countingAccuracy: 0.85,
-    };
+    }
 
     it('returns positive weighted edge for professional config', () => {
-      const edge = calculateWeightedPlayerEdge(proConfig, getBetMultiplier);
-      expect(edge).toBeGreaterThan(0);
-    });
+      const edge = calculateWeightedPlayerEdge(proConfig, getBetMultiplier)
+      expect(edge).toBeGreaterThan(0)
+    })
 
     it('returns negative weighted edge for worst-case config', () => {
-      const edge = calculateWeightedPlayerEdge(worstConfig, getBetMultiplier);
-      expect(edge).toBeLessThan(0);
-    });
+      const edge = calculateWeightedPlayerEdge(worstConfig, getBetMultiplier)
+      expect(edge).toBeLessThan(0)
+    })
 
     it('higher counting accuracy produces higher edge', () => {
-      const low = calculateWeightedPlayerEdge({ ...proConfig, countingAccuracy: 0.7 }, getBetMultiplier);
-      const high = calculateWeightedPlayerEdge({ ...proConfig, countingAccuracy: 1.0 }, getBetMultiplier);
-      expect(high).toBeGreaterThan(low);
-    });
+      const low = calculateWeightedPlayerEdge({ ...proConfig, countingAccuracy: 0.7 }, getBetMultiplier)
+      const high = calculateWeightedPlayerEdge({ ...proConfig, countingAccuracy: 1.0 }, getBetMultiplier)
+      expect(high).toBeGreaterThan(low)
+    })
 
     it('wider bet spread produces higher edge', () => {
       const narrow = calculateWeightedPlayerEdge(
         { ...proConfig, betSpread: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 } },
         getBetMultiplier,
-      );
+      )
       const wide = calculateWeightedPlayerEdge(
         { ...proConfig, betSpread: { 1: 2, 2: 8, 3: 16, 4: 24, 5: 32 } },
         getBetMultiplier,
-      );
-      expect(wide).toBeGreaterThan(narrow);
-    });
-  });
-});
+      )
+      expect(wide).toBeGreaterThan(narrow)
+    })
+  })
+})
 
 // ---------------------------------------------------------------------------
 // getBetMultiplier
 // ---------------------------------------------------------------------------
 
 describe('getBetMultiplier', () => {
-  const spread: Record<number, number> = { 1: 2, 2: 4, 3: 8, 5: 16 };
+  const spread: Record<number, number> = { 1: 2, 2: 4, 3: 8, 5: 16 }
 
   it('returns matching multiplier for exact TC', () => {
-    expect(getBetMultiplier(spread, 3)).toBe(8);
-  });
+    expect(getBetMultiplier(spread, 3)).toBe(8)
+  })
 
   it('returns highest matching key for TC between keys', () => {
-    expect(getBetMultiplier(spread, 4)).toBe(8);
-  });
+    expect(getBetMultiplier(spread, 4)).toBe(8)
+  })
 
   it('returns max multiplier for TC above highest key', () => {
-    expect(getBetMultiplier(spread, 10)).toBe(16);
-  });
+    expect(getBetMultiplier(spread, 10)).toBe(16)
+  })
 
   it('returns default 1 for TC below all keys', () => {
-    expect(getBetMultiplier(spread, -3)).toBe(1);
-  });
+    expect(getBetMultiplier(spread, -3)).toBe(1)
+  })
 
   it('returns correct multiplier at TC +1', () => {
-    expect(getBetMultiplier(spread, 1)).toBe(2);
-  });
-
-  it('TC +1 bet multiplier is correctly applied from intermediate preset', () => {
-    const mult = getBetMultiplier(intermediatePreset.betSpread, 1);
-    expect(mult).toBe(2);
-    expect(intermediatePreset.minBet * mult).toBe(100); // $50 × 2 = $100
-  });
-});
+    expect(getBetMultiplier(spread, 1)).toBe(2)
+  })
+})
 
 // ---------------------------------------------------------------------------
-// runSimulation
-// ---------------------------------------------------------------------------
-
-describe('runSimulation', () => {
-  const quickConfig: SimulationConfig = {
-    bankroll: 10000,
-    minBet: 10,
-    numShoes: 100,
-    numDecks: 6,
-    penetration: 0.75,
-    betSpread: { 1: 2, 2: 4, 3: 8, 5: 16 },
-    countingSystem: 'Hi-Lo',
-    dealerHitsSoft17: false,
-    doubleAfterSplit: true,
-    surrenderAllowed: true,
-    blackjackPays: 1.5,
-    deviationAccuracy: 0.8,
-    countingAccuracy: 1,
-  };
-
-  it('returns a valid SimulationResult structure', () => {
-    const result = runSimulation(quickConfig);
-    expect(result).toHaveProperty('totalHands');
-    expect(result).toHaveProperty('finalBankroll');
-    expect(result).toHaveProperty('peakBankroll');
-    expect(result).toHaveProperty('minBankroll');
-    expect(result).toHaveProperty('netProfit');
-    expect(result).toHaveProperty('hourlyEV');
-    expect(result).toHaveProperty('riskOfRuin');
-    expect(result).toHaveProperty('n0');
-    expect(result).toHaveProperty('houseEdge');
-    expect(result).toHaveProperty('weightedPlayerEdge');
-    expect(result).toHaveProperty('bankrollHistory');
-    expect(result).toHaveProperty('outcomeDistribution');
-    expect(result).toHaveProperty('percentWinningSessions');
-    expect(result).toHaveProperty('worstDrawdown');
-    expect(result).toHaveProperty('averageBet');
-    expect(result).toHaveProperty('kellyOptimalBet');
-  });
-
-  it('bankrollHistory starts at hand 0 with starting bankroll', () => {
-    const result = runSimulation(quickConfig);
-    expect(result.bankrollHistory[0]).toEqual({ hand: 0, bankroll: quickConfig.bankroll });
-  });
-
-  it('bankrollHistory is sampled every 50 hands', () => {
-    const result = runSimulation(quickConfig);
-    const middlePoints = result.bankrollHistory.slice(1, -1);
-    for (const point of middlePoints) {
-      expect(point.hand % 50).toBe(0);
-    }
-  });
-
-  it('totalHands is reasonable for given shoe count', () => {
-    const result = runSimulation(quickConfig);
-    expect(result.totalHands).toBeGreaterThan(quickConfig.numShoes * 20);
-    expect(result.totalHands).toBeLessThan(quickConfig.numShoes * 80);
-  });
-
-  it('outcomeDistribution percentages sum to approximately 100', () => {
-    const result = runSimulation(quickConfig);
-    if (result.outcomeDistribution.length > 0) {
-      const totalPct = result.outcomeDistribution.reduce((sum, b) => sum + b.percentage, 0);
-      expect(totalPct).toBeCloseTo(100, 0);
-    }
-  });
-
-  it('averageBet is between minBet and max spread bet', () => {
-    const result = runSimulation(quickConfig);
-    const maxMultiplier = Math.max(...Object.values(quickConfig.betSpread));
-    expect(result.averageBet).toBeGreaterThanOrEqual(quickConfig.minBet);
-    expect(result.averageBet).toBeLessThanOrEqual(quickConfig.minBet * maxMultiplier);
-  });
-
-  it('netProfit equals finalBankroll minus starting bankroll', () => {
-    const result = runSimulation(quickConfig);
-    expect(result.netProfit).toBeCloseTo(result.finalBankroll - quickConfig.bankroll, 1);
-  });
-
-  it('peakBankroll is at least the starting bankroll', () => {
-    const result = runSimulation(quickConfig);
-    expect(result.peakBankroll).toBeGreaterThanOrEqual(quickConfig.bankroll);
-  });
-
-  it('riskOfRuin is between 0 and 1', () => {
-    const result = runSimulation(quickConfig);
-    expect(result.riskOfRuin).toBeGreaterThanOrEqual(0);
-    expect(result.riskOfRuin).toBeLessThanOrEqual(1);
-  });
-
-  it('handles bankrupt scenario (tiny bankroll)', () => {
-    const tinyConfig: SimulationConfig = {
-      ...quickConfig,
-      bankroll: 5,
-      minBet: 10,
-      numShoes: 100,
-    };
-    const result = runSimulation(tinyConfig);
-    expect(result.totalHands).toBeGreaterThan(0);
-    expect(result.finalBankroll).toBeGreaterThanOrEqual(0);
-  });
-
-  it('houseEdge matches calculateHouseEdge', () => {
-    const result = runSimulation(quickConfig);
-    const expected = calculateHouseEdge(quickConfig);
-    expect(result.houseEdge).toBeCloseTo(expected, 6);
-  });
-
-  it('percentWinningSessions is between 0 and 100', () => {
-    const result = runSimulation(quickConfig);
-    expect(result.percentWinningSessions).toBeGreaterThanOrEqual(0);
-    expect(result.percentWinningSessions).toBeLessThanOrEqual(100);
-  });
-
-  it('worstDrawdown is calculated as peak-to-trough', () => {
-    const result = runSimulation(quickConfig);
-    // Drawdown must be non-negative (peak - trough)
-    expect(result.worstDrawdown).toBeGreaterThanOrEqual(0);
-    // It must be at most peakBankroll (if bankroll hit 0)
-    expect(result.worstDrawdown).toBeLessThanOrEqual(result.peakBankroll);
-    // Drawdown must be at least (peak - final) since peak always precedes end
-    const peakToFinal = Math.round((result.peakBankroll - result.finalBankroll) * 100) / 100;
-    if (peakToFinal > 0) {
-      expect(result.worstDrawdown).toBeGreaterThanOrEqual(peakToFinal);
-    }
-  });
-});
-
-// ---------------------------------------------------------------------------
-// presets
+// Presets
 // ---------------------------------------------------------------------------
 
 describe('presets', () => {
-  it('all presets have valid SimulationConfig structure', () => {
-    const requiredKeys: (keyof SimulationConfig)[] = [
-      'bankroll', 'minBet', 'numShoes', 'numDecks', 'penetration',
-      'betSpread', 'countingSystem', 'dealerHitsSoft17', 'doubleAfterSplit',
-      'surrenderAllowed', 'blackjackPays', 'deviationAccuracy', 'countingAccuracy',
-    ];
+  it('ALL_PRESETS contains exactly 5 presets', () => {
+    expect(ALL_PRESETS).toHaveLength(5)
+  })
 
-    for (const [, preset] of Object.entries(simulationPresets)) {
-      for (const key of requiredKeys) {
-        expect(preset).toHaveProperty(key);
-      }
-      expect(preset.bankroll).toBeGreaterThan(0);
-      expect(preset.minBet).toBeGreaterThan(0);
-      expect(preset.numShoes).toBeGreaterThan(0);
-      expect(preset.penetration).toBeGreaterThan(0);
-      expect(preset.penetration).toBeLessThanOrEqual(1);
-      expect(preset.deviationAccuracy).toBeGreaterThanOrEqual(0);
-      expect(preset.deviationAccuracy).toBeLessThanOrEqual(1);
+  it('all presets have unique IDs', () => {
+    const ids = ALL_PRESETS.map(p => p.id)
+    expect(new Set(ids).size).toBe(5)
+  })
+
+  it('all presets have valid rules', () => {
+    for (const preset of ALL_PRESETS) {
+      expect(preset.rules.numDecks).toBeGreaterThan(0)
+      expect(preset.rules.penetration).toBeGreaterThan(0)
+      expect(preset.rules.penetration).toBeLessThanOrEqual(1)
+      expect(preset.rules.blackjackPays).toBeGreaterThan(0)
+      expect(preset.handsPerHour).toBeGreaterThan(0)
+      expect(preset.defaultBankroll).toBeGreaterThan(0)
+      expect(preset.defaultMinBet).toBeGreaterThan(0)
     }
-  });
+  })
 
-  it('worstCase preset has unfavorable rules', () => {
-    expect(worstCasePreset.dealerHitsSoft17).toBe(true);
-    expect(worstCasePreset.doubleAfterSplit).toBe(false);
-    expect(worstCasePreset.surrenderAllowed).toBe(false);
-    expect(worstCasePreset.blackjackPays).toBe(1.2);
-    expect(worstCasePreset.numDecks).toBe(8);
-  });
+  it('basic strategy preset has zero counting accuracy', () => {
+    expect(PRESET_BASIC_STRATEGY.countingAccuracy).toBe(0)
+    expect(PRESET_BASIC_STRATEGY.deviationAccuracy).toBe(0)
+  })
 
-  it('professional preset has favorable rules and high deviation accuracy', () => {
-    expect(professionalPreset.dealerHitsSoft17).toBe(false);
-    expect(professionalPreset.doubleAfterSplit).toBe(true);
-    expect(professionalPreset.surrenderAllowed).toBe(true);
-    expect(professionalPreset.blackjackPays).toBe(1.5);
-    expect(professionalPreset.deviationAccuracy).toBeGreaterThanOrEqual(0.9);
-  });
+  it('basic strategy preset has flat bet spread', () => {
+    const mults = Object.values(PRESET_BASIC_STRATEGY.betSpread)
+    expect(mults.every(m => m === 1)).toBe(true)
+  })
 
-  it('professional preset simulation completes in under 5 seconds', () => {
-    const start = performance.now();
-    const result = runSimulation(professionalPreset);
-    const elapsed = performance.now() - start;
-    expect(elapsed).toBeLessThan(5000);
-    expect(result.totalHands).toBeGreaterThan(0);
-  });
+  it('professional preset has favorable rules', () => {
+    expect(PRESET_PROFESSIONAL.rules.dealerHitsSoft17).toBe(false)
+    expect(PRESET_PROFESSIONAL.rules.doubleAfterSplit).toBe(true)
+    expect(PRESET_PROFESSIONAL.rules.surrenderAllowed).toBe(true)
+    expect(PRESET_PROFESSIONAL.rules.blackjackPays).toBe(1.5)
+    expect(PRESET_PROFESSIONAL.countingAccuracy).toBeGreaterThanOrEqual(0.9)
+    expect(PRESET_PROFESSIONAL.deviationAccuracy).toBeGreaterThanOrEqual(0.9)
+  })
 
-  it('intermediate (serious player) preset has TC+1 multiplier of 2', () => {
-    expect(intermediatePreset.betSpread[1]).toBe(2);
-    expect(intermediatePreset.minBet).toBe(50);
-  });
-});
+  it('hostile preset has unfavorable rules', () => {
+    expect(PRESET_HOSTILE.rules.dealerHitsSoft17).toBe(true)
+    expect(PRESET_HOSTILE.rules.doubleAfterSplit).toBe(false)
+    expect(PRESET_HOSTILE.rules.surrenderAllowed).toBe(false)
+    expect(PRESET_HOSTILE.rules.blackjackPays).toBe(1.2)
+    expect(PRESET_HOSTILE.rules.numDecks).toBe(8)
+  })
+
+  it('presets are ordered by skill level (basic → casual → serious → pro → hostile)', () => {
+    expect(ALL_PRESETS[0].id).toBe('basicStrategy')
+    expect(ALL_PRESETS[1].id).toBe('casual')
+    expect(ALL_PRESETS[2].id).toBe('serious')
+    expect(ALL_PRESETS[3].id).toBe('professional')
+    expect(ALL_PRESETS[4].id).toBe('hostile')
+  })
+})
 
 // ---------------------------------------------------------------------------
-// input validation
+// calculateBankrollAnalysis
 // ---------------------------------------------------------------------------
 
-describe('runSimulation validation', () => {
-  const validConfig: SimulationConfig = {
-    bankroll: 10000,
-    minBet: 10,
-    numShoes: 100,
-    numDecks: 6,
-    penetration: 0.75,
-    betSpread: { 1: 2, 2: 4, 3: 8, 5: 16 },
-    countingSystem: 'Hi-Lo',
-    dealerHitsSoft17: false,
-    doubleAfterSplit: true,
-    surrenderAllowed: true,
-    blackjackPays: 1.5,
-    deviationAccuracy: 0.8,
-    countingAccuracy: 1,
-  };
+describe('calculateBankrollAnalysis', () => {
+  const defaultParams: BankrollParams = {
+    bankroll: 100000,
+    minBet: 100,
+    sessionsPerWeek: 3,
+    hoursPerSession: 3,
+  }
 
-  it('throws on zero bankroll', () => {
-    expect(() => runSimulation({ ...validConfig, bankroll: 0 })).toThrow('bankroll must be > 0');
-  });
+  it('professional preset has positive player edge', () => {
+    const result = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    expect(result.hasEdge).toBe(true)
+    expect(result.playerEdge).toBeGreaterThan(0)
+  })
 
-  it('throws on zero minBet', () => {
-    expect(() => runSimulation({ ...validConfig, minBet: 0 })).toThrow('minBet must be > 0');
-  });
+  it('professional preset has positive hourly, monthly, yearly EV', () => {
+    const result = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    expect(result.hourlyEV).toBeGreaterThan(0)
+    expect(result.monthlyEV).toBeGreaterThan(0)
+    expect(result.yearlyEV).toBeGreaterThan(0)
+  })
 
-  it('throws on invalid penetration', () => {
-    expect(() => runSimulation({ ...validConfig, penetration: 0 })).toThrow('penetration must be between 0 and 1');
-    expect(() => runSimulation({ ...validConfig, penetration: 1 })).toThrow('penetration must be between 0 and 1');
-  });
+  it('basic strategy preset has negative edge (no counting)', () => {
+    const result = calculateBankrollAnalysis(PRESET_BASIC_STRATEGY, {
+      ...defaultParams,
+      minBet: 15,
+      bankroll: 5000,
+    })
+    expect(result.hasEdge).toBe(false)
+    expect(result.playerEdge).toBeLessThan(0)
+    expect(result.hourlyEV).toBeLessThan(0)
+    expect(result.riskOfRuin).toBe(1)
+    expect(result.riskLevel).toBe('extreme')
+  })
 
-  it('simulation with edge case inputs does not throw', () => {
-    const edgeConfig: SimulationConfig = {
-      ...validConfig,
-      bankroll: 100,
-      minBet: 1,
-      numShoes: 100,
-    };
-    const result = runSimulation(edgeConfig);
-    expect(result.totalHands).toBeGreaterThan(0);
-    expect(isFinite(result.hourlyEV)).toBe(true);
-    expect(isFinite(result.averageBet)).toBe(true);
-  });
+  it('hostile preset has negative edge', () => {
+    const result = calculateBankrollAnalysis(PRESET_HOSTILE, {
+      bankroll: 10000,
+      minBet: 25,
+      sessionsPerWeek: 3,
+      hoursPerSession: 3,
+    })
+    expect(result.hasEdge).toBe(false)
+    expect(result.hourlyEV).toBeLessThan(0)
+  })
 
-  it('runSimulation does not mutate input config', () => {
-    const config: SimulationConfig = {
-      ...validConfig,
-      numShoes: 50,
-    };
-    const configBefore = JSON.stringify(config);
-    runSimulation(config);
-    const configAfter = JSON.stringify(config);
-    expect(configAfter).toBe(configBefore);
-  });
-
-  it('two runs with same config produce same houseEdge', () => {
-    const config: SimulationConfig = { ...validConfig, numShoes: 50 };
-    const result1 = runSimulation(config);
-    const result2 = runSimulation(config);
-    // houseEdge is deterministic (calculated from rules, not random)
-    expect(result1.houseEdge).toBe(result2.houseEdge);
-  });
-
-  it('hourlyEV is deterministic (theoretical, not simulation-based)', () => {
-    const config: SimulationConfig = { ...validConfig, numShoes: 50 };
-    const result1 = runSimulation(config);
-    const result2 = runSimulation(config);
-    // hourlyEV is now theoretical — same config always gives same value
-    expect(result1.hourlyEV).toBe(result2.hourlyEV);
-  });
-
-  it('n0 is deterministic (theoretical, not simulation-based)', () => {
-    const config: SimulationConfig = { ...validConfig, numShoes: 50 };
-    const result1 = runSimulation(config);
-    const result2 = runSimulation(config);
-    expect(result1.n0).toBe(result2.n0);
-  });
-
-  it('riskOfRuin is deterministic (analytical, not simulation-based)', () => {
-    const config: SimulationConfig = { ...validConfig, numShoes: 50 };
-    const result1 = runSimulation(config);
-    const result2 = runSimulation(config);
-    expect(result1.riskOfRuin).toBe(result2.riskOfRuin);
-  });
-
-  it('professional preset always has positive theoretical hourly win', () => {
-    for (let i = 0; i < 3; i++) {
-      const result = runSimulation(professionalPreset);
-      expect(result.weightedPlayerEdge).toBeGreaterThan(0);
-      expect(result.hourlyEV).toBeGreaterThan(0);
-      expect(result.n0).toBeGreaterThan(0);
-      expect(result.n0).toBeLessThan(Infinity);
-      expect(result.riskOfRuin).toBeLessThan(1);
+  it('risk of ruin is between 0 and 1', () => {
+    for (const preset of ALL_PRESETS) {
+      const result = calculateBankrollAnalysis(preset, {
+        bankroll: preset.defaultBankroll,
+        minBet: preset.defaultMinBet,
+        sessionsPerWeek: 3,
+        hoursPerSession: 3,
+      })
+      expect(result.riskOfRuin).toBeGreaterThanOrEqual(0)
+      expect(result.riskOfRuin).toBeLessThanOrEqual(1)
     }
-  });
+  })
 
-  it('worst case preset always has negative expected hourly win', () => {
-    for (let i = 0; i < 3; i++) {
-      const result = runSimulation(worstCasePreset);
-      // Tough Conditions: 6:5 BJ, H17, no DAS, no surrender, 8-deck
-      // Base edge is -2.03%, so hourly EV should be strongly negative
-      expect(result.houseEdge).toBeLessThan(-0.01);
-      expect(result.weightedPlayerEdge).toBeLessThan(0);
-      expect(result.hourlyEV).toBeLessThan(0);
-    }
-  });
+  it('larger bankroll reduces risk of ruin', () => {
+    const small = calculateBankrollAnalysis(PRESET_PROFESSIONAL, { ...defaultParams, bankroll: 10000 })
+    const large = calculateBankrollAnalysis(PRESET_PROFESSIONAL, { ...defaultParams, bankroll: 200000 })
+    expect(large.riskOfRuin).toBeLessThan(small.riskOfRuin)
+  })
 
-  it('net profit equals final bankroll minus starting bankroll even when bankrupt', () => {
-    const tinyConfig: SimulationConfig = {
-      ...validConfig,
-      bankroll: 5,
+  it('higher min bet increases hourly EV (with positive edge)', () => {
+    const low = calculateBankrollAnalysis(PRESET_PROFESSIONAL, { ...defaultParams, minBet: 25 })
+    const high = calculateBankrollAnalysis(PRESET_PROFESSIONAL, { ...defaultParams, minBet: 200 })
+    expect(high.hourlyEV).toBeGreaterThan(low.hourlyEV)
+  })
+
+  it('more sessions/week increases monthly EV proportionally', () => {
+    const few = calculateBankrollAnalysis(PRESET_PROFESSIONAL, { ...defaultParams, sessionsPerWeek: 1 })
+    const many = calculateBankrollAnalysis(PRESET_PROFESSIONAL, { ...defaultParams, sessionsPerWeek: 5 })
+    expect(many.monthlyEV).toBeGreaterThan(few.monthlyEV)
+    // Should scale roughly linearly (5x sessions = ~5x monthly EV)
+    const ratio = many.monthlyEV / few.monthlyEV
+    expect(ratio).toBeCloseTo(5, 0)
+  })
+
+  it('longer sessions increase monthly EV proportionally', () => {
+    const short = calculateBankrollAnalysis(PRESET_PROFESSIONAL, { ...defaultParams, hoursPerSession: 1 })
+    const long = calculateBankrollAnalysis(PRESET_PROFESSIONAL, { ...defaultParams, hoursPerSession: 6 })
+    const ratio = long.monthlyEV / short.monthlyEV
+    expect(ratio).toBeCloseTo(6, 0)
+  })
+
+  it('N0 is finite for positive-edge presets', () => {
+    const result = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    expect(result.n0Hands).toBeGreaterThan(0)
+    expect(isFinite(result.n0Hands)).toBe(true)
+    expect(result.n0Hours).toBeGreaterThan(0)
+    expect(isFinite(result.n0Hours)).toBe(true)
+  })
+
+  it('N0 is infinite for negative-edge presets', () => {
+    const result = calculateBankrollAnalysis(PRESET_BASIC_STRATEGY, {
+      ...defaultParams,
+      minBet: 15,
+      bankroll: 5000,
+    })
+    expect(result.n0Hands).toBe(Infinity)
+  })
+
+  it('recommended bankroll is 0 for negative-edge presets', () => {
+    const result = calculateBankrollAnalysis(PRESET_BASIC_STRATEGY, {
+      ...defaultParams,
+      minBet: 15,
+      bankroll: 5000,
+    })
+    expect(result.recommendedBankroll).toBe(0)
+  })
+
+  it('recommended bankroll is positive for positive-edge presets', () => {
+    const result = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    expect(result.recommendedBankroll).toBeGreaterThan(0)
+  })
+
+  it('Kelly bet is 0 for negative-edge presets', () => {
+    const result = calculateBankrollAnalysis(PRESET_BASIC_STRATEGY, {
+      ...defaultParams,
+      minBet: 15,
+      bankroll: 5000,
+    })
+    expect(result.kellyBet).toBe(0)
+  })
+
+  it('Kelly bet is positive for positive-edge presets', () => {
+    const result = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    expect(result.kellyBet).toBeGreaterThan(0)
+  })
+
+  it('max bet equals minBet times highest spread multiplier', () => {
+    const result = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    const maxMult = Math.max(...Object.values(PRESET_PROFESSIONAL.betSpread))
+    expect(result.maxBet).toBe(defaultParams.minBet * maxMult)
+  })
+
+  it('average bet is between min bet and max bet', () => {
+    const result = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    expect(result.averageBet).toBeGreaterThanOrEqual(defaultParams.minBet)
+    expect(result.averageBet).toBeLessThanOrEqual(result.maxBet)
+  })
+
+  it('risk level is correctly classified', () => {
+    // Low risk: large bankroll, professional
+    const low = calculateBankrollAnalysis(PRESET_PROFESSIONAL, { ...defaultParams, bankroll: 500000 })
+    expect(low.riskLevel).toBe('low')
+
+    // Extreme risk: no edge
+    const extreme = calculateBankrollAnalysis(PRESET_BASIC_STRATEGY, {
+      ...defaultParams,
+      minBet: 15,
+      bankroll: 5000,
+    })
+    expect(extreme.riskLevel).toBe('extreme')
+  })
+
+  it('results are deterministic (same input = same output)', () => {
+    const r1 = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    const r2 = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    expect(r1.hourlyEV).toBe(r2.hourlyEV)
+    expect(r1.riskOfRuin).toBe(r2.riskOfRuin)
+    expect(r1.playerEdge).toBe(r2.playerEdge)
+    expect(r1.n0Hands).toBe(r2.n0Hands)
+    expect(r1.monthlyEV).toBe(r2.monthlyEV)
+  })
+
+  it('casual counter has smaller edge than professional', () => {
+    const casual = calculateBankrollAnalysis(PRESET_CASUAL, {
+      bankroll: 5000,
       minBet: 10,
-      numShoes: 100,
-    };
-    const result = runSimulation(tinyConfig);
-    if (result.finalBankroll === 0) {
-      expect(result.netProfit).toBe(-5);
-    } else {
-      expect(result.netProfit).toBeCloseTo(result.finalBankroll - 5, 1);
+      sessionsPerWeek: 3,
+      hoursPerSession: 3,
+    })
+    const pro = calculateBankrollAnalysis(PRESET_PROFESSIONAL, defaultParams)
+    // Both have favorable rules, but pro has better spread and accuracy
+    expect(pro.playerEdge).toBeGreaterThan(casual.playerEdge)
+  })
+
+  it('house edge is always negative', () => {
+    for (const preset of ALL_PRESETS) {
+      const result = calculateBankrollAnalysis(preset, {
+        bankroll: preset.defaultBankroll,
+        minBet: preset.defaultMinBet,
+        sessionsPerWeek: 3,
+        hoursPerSession: 3,
+      })
+      expect(result.houseEdge).toBeLessThan(0)
     }
-  });
-});
+  })
+})
+
+// ---------------------------------------------------------------------------
+// calculateAllPresets
+// ---------------------------------------------------------------------------
+
+describe('calculateAllPresets', () => {
+  it('returns results for all 5 presets', () => {
+    const results = calculateAllPresets({ sessionsPerWeek: 3, hoursPerSession: 3 })
+    expect(results).toHaveLength(5)
+  })
+
+  it('each result contains preset and analysis', () => {
+    const results = calculateAllPresets({ sessionsPerWeek: 3, hoursPerSession: 3 })
+    for (const { preset, analysis } of results) {
+      expect(preset.id).toBeTruthy()
+      expect(typeof analysis.hourlyEV).toBe('number')
+      expect(typeof analysis.riskOfRuin).toBe('number')
+    }
+  })
+
+  it('uses each preset default bankroll and minBet', () => {
+    const results = calculateAllPresets({ sessionsPerWeek: 3, hoursPerSession: 3 })
+    // Professional preset has default bankroll $100,000 and minBet $100
+    const pro = results.find(r => r.preset.id === 'professional')!
+    expect(pro.analysis.maxBet).toBe(
+      pro.preset.defaultMinBet * Math.max(...Object.values(pro.preset.betSpread)),
+    )
+  })
+})
+
+// ---------------------------------------------------------------------------
+// getTCBreakdown
+// ---------------------------------------------------------------------------
+
+describe('getTCBreakdown', () => {
+  it('returns 6 rows (TC 0 through 5)', () => {
+    const rows = getTCBreakdown(PRESET_PROFESSIONAL, 100)
+    expect(rows).toHaveLength(6)
+  })
+
+  it('percentages sum to 1', () => {
+    const rows = getTCBreakdown(PRESET_PROFESSIONAL, 100)
+    const total = rows.reduce((s, r) => s + r.pct, 0)
+    expect(total).toBeCloseTo(1, 6)
+  })
+
+  it('bet at TC 0 is minBet (spread maps TC<1 to 1x)', () => {
+    const rows = getTCBreakdown(PRESET_PROFESSIONAL, 100)
+    // TC 0 maps to 1x (below spread key 1)
+    expect(rows[0].bet).toBe(100)
+  })
+
+  it('bet increases with TC for professional spread', () => {
+    const rows = getTCBreakdown(PRESET_PROFESSIONAL, 100)
+    // Each TC level should have bet >= previous level
+    for (let i = 1; i < rows.length; i++) {
+      expect(rows[i].bet).toBeGreaterThanOrEqual(rows[i - 1].bet)
+    }
+  })
+
+  it('edge increases with TC', () => {
+    const rows = getTCBreakdown(PRESET_PROFESSIONAL, 100)
+    for (let i = 1; i < rows.length; i++) {
+      expect(rows[i].edge).toBeGreaterThan(rows[i - 1].edge)
+    }
+  })
+
+  it('flat bet spread shows same bet at all TC levels', () => {
+    const rows = getTCBreakdown(PRESET_BASIC_STRATEGY, 15)
+    for (const row of rows) {
+      expect(row.bet).toBe(15)
+    }
+  })
+})

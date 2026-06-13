@@ -1,883 +1,797 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  Cell,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
-  ReferenceLine,
   ResponsiveContainer,
+  ReferenceLine,
+  Area,
+  AreaChart,
 } from 'recharts'
-import { runSimulation, getBetMultiplier } from '../../engine/simulation/simulator'
-import {
-  beginnerPreset,
-  intermediatePreset,
-  professionalPreset,
-  worstCasePreset,
-} from '../../engine/simulation/presets'
-import { calculateHouseEdge, EDGE_PER_TC, DEVIATION_TC_BONUS, HAND_SD, TC_DISTRIBUTION } from '../../engine/simulation/math-utils'
-import type { SimulationConfig, SimulationResult } from '../../engine/simulation/types'
-import { useStatsStore } from '../../store/stats-store'
-import { useAchievementStore } from '../../store/achievement-store'
+import { useBankrollTrackerStore, type TrackedSession } from '../../store/bankroll-tracker-store'
 
-// ── Preset definitions ──────────────────────────────────────────
+// ── Helpers ─────────────────────────────────────────────────────────
 
-interface UIPreset {
-  key: string
-  label: string
-  description: string
-  config: SimulationConfig
-  handsPerHour: number
-  countingAccuracy: number
-  useDeviations: boolean
-}
-
-const UI_PRESETS: UIPreset[] = [
-  {
-    key: 'beginner',
-    label: 'Casual Counter',
-    description: 'Small bankroll, conservative spread',
-    config: beginnerPreset,
-    handsPerHour: 60,
-    countingAccuracy: 0.8,
-    useDeviations: false,
-  },
-  {
-    key: 'intermediate',
-    label: 'Serious Player',
-    description: 'Medium bankroll, wider spread',
-    config: intermediatePreset,
-    handsPerHour: 80,
-    countingAccuracy: 0.9,
-    useDeviations: true,
-  },
-  {
-    key: 'professional',
-    label: 'Professional',
-    description: 'Large bankroll, aggressive spread',
-    config: professionalPreset,
-    handsPerHour: 100,
-    countingAccuracy: 0.95,
-    useDeviations: true,
-  },
-  {
-    key: 'worstCase',
-    label: 'Tough Conditions',
-    description: 'Hostile rules, shallow penetration',
-    config: worstCasePreset,
-    handsPerHour: 80,
-    countingAccuracy: 0.85,
-    useDeviations: true,
-  },
-]
-
-// ── TC display labels for rendering (uses imported TC_DISTRIBUTION for data) ───
-
-const TC_DISPLAY_LABELS: Record<number, string> = {
-  0: '\u2264 0',
-  1: '+1',
-  2: '+2',
-  3: '+3',
-  4: '+4',
-  5: '+5+',
-}
-
-const TC_DISPLAY = TC_DISTRIBUTION.map(d => ({
-  ...d,
-  label: TC_DISPLAY_LABELS[d.tc] ?? `+${d.tc}`,
-}))
-
-// ── Helpers ─────────────────────────────────────────────────────
-
-/** Format a dollar amount with sign. */
 function fmtDollar(n: number, showSign = false): string {
   const sign = showSign && n > 0 ? '+' : n < 0 ? '-' : ''
   return `${sign}$${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
-/** Format a dollar amount with cents. */
-function fmtDollarCents(n: number, showSign = false): string {
-  const sign = showSign && n > 0 ? '+' : n < 0 ? '-' : ''
-  return `${sign}$${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function fmtDate(dateStr: string): string {
+  if (dateStr === 'Start') return 'Start'
+  const d = new Date(dateStr + 'T12:00:00')
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-/** Format percentage (0-1 scale). */
-function fmtPct(n: number, decimals = 1): string {
-  return `${(n * 100).toFixed(decimals)}%`
+function winRateGlow(rate: number): string {
+  if (rate > 0.55) return '0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.08)'
+  if (rate >= 0.45) return '0 0 20px rgba(234, 179, 8, 0.2), 0 0 40px rgba(234, 179, 8, 0.05)'
+  return '0 0 20px rgba(239, 68, 68, 0.2), 0 0 40px rgba(239, 68, 68, 0.05)'
 }
 
-/** Risk-of-ruin color coding. */
-function rorColor(ror: number): string {
-  if (ror < 0.05) return 'text-green-400'
-  if (ror <= 0.15) return 'text-yellow-400'
-  return 'text-red-400'
+function profitGlow(profit: number): string {
+  if (profit > 0) return '0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.08)'
+  if (profit < 0) return '0 0 20px rgba(239, 68, 68, 0.2), 0 0 40px rgba(239, 68, 68, 0.05)'
+  return 'none'
 }
 
-/** Compute theoretical average bet from TC distribution and bet spread. */
-function theoreticalAvgBet(minBet: number, spread: Record<number, number>, getBetMult: typeof getBetMultiplier): number {
-  let avg = 0
-  for (const { tc, pct } of TC_DISTRIBUTION) {
-    avg += minBet * getBetMult(spread, tc) * pct
-  }
-  return avg
+function todayString(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-// ── Component ───────────────────────────────────────────────────
+// ── Chart types ─────────────────────────────────────────────────────
 
-/**
- * Bankroll Simulator: configure casino rules, bet spread, and player skill
- * then run a Monte Carlo simulation to see expected results.
- */
+interface ChartDataPoint {
+  label: string
+  date: string
+  bankroll: number
+  casino: string
+  result: number
+}
+
+// ── Custom Tooltip ──────────────────────────────────────────────────
+
+function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: ChartDataPoint }> }) {
+  if (!active || !payload?.length) return null
+  const d = payload[0].payload
+  return (
+    <div className="bg-casino-bg border border-contrast/20 rounded-lg p-3 text-sm shadow-lg">
+      <p className="text-content/70 text-xs">{fmtDate(d.date)}</p>
+      {d.casino && <p className="text-content font-medium">{d.casino}</p>}
+      {d.result !== 0 && (
+        <p className={d.result > 0 ? 'text-green-400' : 'text-red-400'}>
+          {fmtDollar(d.result, true)}
+        </p>
+      )}
+      <p className="text-content font-bold mt-1">Bankroll: {fmtDollar(d.bankroll)}</p>
+    </div>
+  )
+}
+
+// ── Component ───────────────────────────────────────────────────────
+
 export function BankrollSimulator() {
+  const sessions = useBankrollTrackerStore(s => s.sessions)
+  const startingBankroll = useBankrollTrackerStore(s => s.startingBankroll)
+  const addSession = useBankrollTrackerStore(s => s.addSession)
+  const editSession = useBankrollTrackerStore(s => s.editSession)
+  const deleteSession = useBankrollTrackerStore(s => s.deleteSession)
+  const setStartingBankroll = useBankrollTrackerStore(s => s.setStartingBankroll)
+  const getCurrentBankroll = useBankrollTrackerStore(s => s.getCurrentBankroll)
+  const getTotalProfit = useBankrollTrackerStore(s => s.getTotalProfit)
+  const getTotalHours = useBankrollTrackerStore(s => s.getTotalHours)
+  const getWinRate = useBankrollTrackerStore(s => s.getWinRate)
+  const getAvgPerHour = useBankrollTrackerStore(s => s.getAvgPerHour)
+  const getBestSession = useBankrollTrackerStore(s => s.getBestSession)
+  const getWorstSession = useBankrollTrackerStore(s => s.getWorstSession)
+  const getSessionCount = useBankrollTrackerStore(s => s.getSessionCount)
+  const getWinningStreak = useBankrollTrackerStore(s => s.getWinningStreak)
+  const getLosingStreak = useBankrollTrackerStore(s => s.getLosingStreak)
+
+  // ── Onboarding state ──
+  const [onboardingBankroll, setOnboardingBankroll] = useState('')
+  const isOnboarding = startingBankroll === 0 && sessions.length === 0
+
   // ── Form state ──
-  const [bankroll, setBankroll] = useState(100000)
-  const [minBet, setMinBet] = useState(100)
-  const [tc1, setTc1] = useState(2)
-  const [tc2, setTc2] = useState(4)
-  const [tc3, setTc3] = useState(8)
-  const [tc4, setTc4] = useState(12)
-  const [tc5, setTc5] = useState(16)
-  const [numDecks, setNumDecks] = useState(6)
-  const [penetration, setPenetration] = useState(0.75)
-  const [dealerHitsSoft17, setDealerHitsSoft17] = useState(false)
-  const [doubleAfterSplit, setDoubleAfterSplit] = useState(true)
-  const [surrenderAllowed, setSurrenderAllowed] = useState(true)
-  const [blackjackPays, setBlackjackPays] = useState(1.5)
-  const [countingAccuracy, setCountingAccuracy] = useState(0.95)
-  const [useDeviations, setUseDeviations] = useState(true)
-  const [deviationAccuracy, setDeviationAccuracy] = useState(0.9)
-  const [handsPerHour, setHandsPerHour] = useState(80)
-  const [numShoes, setNumShoes] = useState(10000)
+  const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [formDate, setFormDate] = useState(todayString())
+  const [formCasino, setFormCasino] = useState('')
+  const [formAmount, setFormAmount] = useState('')
+  const [formIsWin, setFormIsWin] = useState(true)
+  const [formHours, setFormHours] = useState('3')
+  const [formNotes, setFormNotes] = useState('')
+  const [showCasinoDropdown, setShowCasinoDropdown] = useState(false)
+  const casinoInputRef = useRef<HTMLInputElement>(null)
 
-  // ── UI state ──
-  const [activePreset, setActivePreset] = useState<string | null>('professional')
-  const [phase, setPhase] = useState<'config' | 'results'>('config')
-  const [isSimulating, setIsSimulating] = useState(false)
-  const [result, setResult] = useState<SimulationResult | null>(null)
-  const [configSnapshot, setConfigSnapshot] = useState<{
-    bankroll: number; minBet: number; handsPerHour: number;
-    useDeviations: boolean; deviationAccuracy: number;
-  }>({ bankroll: 100000, minBet: 100, handsPerHour: 80, useDeviations: true, deviationAccuracy: 0.9 })
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [savedConfig, setSavedConfig] = useState<SimulationConfig | null>(null)
+  // ── Delete confirmation ──
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
-  // ── Stats store (for "Use My Stats") ──
-  const sessions = useStatsStore(s => s.sessions)
+  // ── Edit starting bankroll inline ──
+  const [isEditingStart, setIsEditingStart] = useState(false)
+  const [editStartValue, setEditStartValue] = useState('')
 
-  const statsAvailable = useMemo(() => {
-    const tcSessions = sessions.filter(s => s.mode === 'tableCounting')
-    const devSessions = sessions.filter(s => s.mode === 'deviationFlashCards' || s.mode === 'deviationAtTable')
-    const tcAvg = tcSessions.length > 0
-      ? tcSessions.reduce((sum, s) => sum + s.accuracy, 0) / tcSessions.length
-      : null
-    const devAvg = devSessions.length > 0
-      ? devSessions.reduce((sum, s) => sum + s.accuracy, 0) / devSessions.length
-      : null
-    return { tcAvg, devAvg }
+  // ── Computed values ──
+  const currentBankroll = getCurrentBankroll()
+  const totalProfit = getTotalProfit()
+  const totalHours = getTotalHours()
+  const winRate = getWinRate()
+  const avgPerHour = getAvgPerHour()
+  const bestSession = getBestSession()
+  const worstSession = getWorstSession()
+  const sessionCount = getSessionCount()
+  const winningStreak = getWinningStreak()
+  const losingStreak = getLosingStreak()
+  const roi = startingBankroll > 0 ? totalProfit / startingBankroll : 0
+
+  // ── Casino autocomplete ──
+  const uniqueCasinos = useMemo(() => {
+    const names = new Set(sessions.map(s => s.casino).filter(Boolean))
+    return [...names].sort()
   }, [sessions])
 
-  // ── Preset application ──
-  const applyPreset = useCallback((preset: UIPreset) => {
-    const c = preset.config
-    setBankroll(c.bankroll)
-    setMinBet(c.minBet)
-    setTc1(c.betSpread[1] ?? 1)
-    setTc2(c.betSpread[2] ?? 2)
-    setTc3(c.betSpread[3] ?? 4)
-    setTc4(c.betSpread[4] ?? 8)
-    setTc5(c.betSpread[5] ?? 16)
-    setNumDecks(c.numDecks)
-    setPenetration(c.penetration)
-    setDealerHitsSoft17(c.dealerHitsSoft17)
-    setDoubleAfterSplit(c.doubleAfterSplit)
-    setSurrenderAllowed(c.surrenderAllowed)
-    setBlackjackPays(c.blackjackPays)
-    setDeviationAccuracy(c.deviationAccuracy)
-    setNumShoes(c.numShoes)
-    setHandsPerHour(preset.handsPerHour)
-    setCountingAccuracy(preset.countingAccuracy)
-    setUseDeviations(preset.useDeviations)
-    setActivePreset(preset.key)
-  }, [])
+  const filteredCasinos = useMemo(() => {
+    if (!formCasino) return uniqueCasinos
+    return uniqueCasinos.filter(c => c.toLowerCase().includes(formCasino.toLowerCase()))
+  }, [formCasino, uniqueCasinos])
 
-  // ── Build engine config (explicit Number() conversion for safety) ──
-  const buildConfig = useCallback((): SimulationConfig => ({
-    bankroll: Number(bankroll) || 10000,
-    minBet: Number(minBet) || 10,
-    numShoes: Number(numShoes) || 1000,
-    numDecks: Number(numDecks) || 6,
-    penetration: Math.max(0.01, Math.min(0.99, Number(penetration) || 0.75)),
-    betSpread: { 1: Number(tc1) || 1, 2: Number(tc2) || 2, 3: Number(tc3) || 4, 4: Number(tc4) || 8, 5: Number(tc5) || 16 },
-    countingSystem: 'Hi-Lo',
-    dealerHitsSoft17,
-    doubleAfterSplit,
-    surrenderAllowed,
-    blackjackPays,
-    deviationAccuracy: useDeviations ? Math.max(0, Math.min(1, Number(deviationAccuracy) || 0)) : 0,
-    countingAccuracy: Math.max(0, Math.min(1, Number(countingAccuracy) || 0.95)),
-  }), [bankroll, minBet, numShoes, numDecks, penetration, tc1, tc2, tc3, tc4, tc5, dealerHitsSoft17, doubleAfterSplit, surrenderAllowed, blackjackPays, useDeviations, deviationAccuracy, countingAccuracy])
-
-  // ── Sanitize simulation result (NaN/Infinity → 0) ──
-  const sanitizeResult = (r: SimulationResult): SimulationResult => {
-    const sanitized = { ...r }
-    for (const key of Object.keys(sanitized) as (keyof SimulationResult)[]) {
-      const val = sanitized[key]
-      if (typeof val === 'number' && !isFinite(val)) {
-        (sanitized as Record<string, unknown>)[key] = 0
+  // Close casino dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (casinoInputRef.current && !casinoInputRef.current.contains(e.target as Node)) {
+        setShowCasinoDropdown(false)
       }
     }
-    return sanitized
-  }
-
-  // ── Run simulation ──
-  const executeSimulation = useCallback((config: SimulationConfig) => {
-    setIsSimulating(true)
-    setErrorMessage(null)
-    setTimeout(() => {
-      try {
-        const simResult = sanitizeResult(runSimulation(config))
-        setResult(simResult)
-        setPhase('results')
-        useAchievementStore.getState().checkSimulationAchievements(simResult)
-      } catch (error) {
-        console.error('Simulation failed:', error)
-        setErrorMessage('Simulation produced invalid results. Try adjusting your settings.')
-        setPhase('config')
-      } finally {
-        setIsSimulating(false)
-      }
-    }, 50)
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  const handleRunSimulation = useCallback(() => {
-    const config = buildConfig()
-    // Deep copy for safety — prevents mutation across re-runs
-    const configCopy: SimulationConfig = { ...config, betSpread: { ...config.betSpread } }
-    setSavedConfig(configCopy)
-    setConfigSnapshot({
-      bankroll: config.bankroll,
-      minBet: config.minBet,
-      handsPerHour: Number(handsPerHour) || 80,
-      useDeviations,
-      deviationAccuracy: config.deviationAccuracy,
+  // ── Chart data ──
+  const chartData = useMemo((): ChartDataPoint[] => {
+    const sorted = [...sessions].sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt)
+    const data: ChartDataPoint[] = [
+      { label: 'Start', date: 'Start', bankroll: startingBankroll, casino: '', result: 0 },
+    ]
+    sorted.forEach((session, i) => {
+      const prevBankroll = data[i].bankroll
+      data.push({
+        label: `#${i + 1}`,
+        date: session.date,
+        bankroll: prevBankroll + session.result,
+        casino: session.casino,
+        result: session.result,
+      })
     })
-    executeSimulation(configCopy)
-  }, [buildConfig, handsPerHour, useDeviations, executeSimulation])
+    return data
+  }, [sessions, startingBankroll])
 
-  const handleRunAgain = useCallback(() => {
-    if (!savedConfig) return
-    // Deep copy again to prevent mutation between re-runs
-    const configCopy: SimulationConfig = { ...savedConfig, betSpread: { ...savedConfig.betSpread } }
-    executeSimulation(configCopy)
-  }, [savedConfig, executeSimulation])
+  // ── Session list (newest first) ──
+  const sortedSessions = useMemo(() =>
+    [...sessions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt),
+    [sessions],
+  )
 
-  // ── Copy summary ──
-  const handleCopySummary = useCallback(() => {
-    if (!result || !savedConfig) return
-    const maxMult = Math.max(tc1, tc2, tc3, tc4, tc5)
-    const cpAvg = theoreticalAvgBet(configSnapshot.minBet, savedConfig.betSpread, getBetMultiplier)
-    const cpHourly = result.weightedPlayerEdge * cpAvg * (configSnapshot.handsPerHour || 80)
-    const text = `Bankroll Simulation Results:
-Starting Bankroll: ${fmtDollar(configSnapshot.bankroll)}
-Bet Spread: ${fmtDollar(configSnapshot.minBet)}-${fmtDollar(configSnapshot.minBet * maxMult)}
-Expected Win: ${fmtDollarCents(cpHourly, true)}/hr
-Risk of Ruin: ${fmtPct(result.riskOfRuin)}
-N-Zero: ${result.n0.toLocaleString()} hands`
-    navigator.clipboard.writeText(text)
-  }, [result, savedConfig, configSnapshot, tc1, tc2, tc3, tc4, tc5])
+  // ── Form handlers ──
+  const resetForm = useCallback(() => {
+    setFormDate(todayString())
+    setFormCasino('')
+    setFormAmount('')
+    setFormIsWin(true)
+    setFormHours('3')
+    setFormNotes('')
+    setEditingId(null)
+    setShowForm(false)
+  }, [])
 
-  const maxBet = minBet * Math.max(tc1, tc2, tc3, tc4, tc5)
-  const estimatedHands = Math.round(numShoes * (numDecks * 52 * penetration) / 5.2)
+  const openAddForm = useCallback(() => {
+    resetForm()
+    setShowForm(true)
+  }, [resetForm])
 
-  // ── Input validation ──
-  const validationErrors: string[] = []
-  if (bankroll <= 0) validationErrors.push('Bankroll must be greater than 0')
-  if (minBet <= 0) validationErrors.push('Min bet must be greater than 0')
-  if (bankroll < minBet) validationErrors.push('Bankroll must be at least the minimum bet')
-  const isConfigValid = validationErrors.length === 0
+  const openEditForm = useCallback((session: TrackedSession) => {
+    setEditingId(session.id)
+    setFormDate(session.date)
+    setFormCasino(session.casino)
+    setFormAmount(String(Math.abs(session.result)))
+    setFormIsWin(session.result >= 0)
+    setFormHours(String(session.hoursPlayed))
+    setFormNotes(session.notes)
+    setShowForm(true)
+  }, [])
 
-  // ── Derived values for Bet Spread Analysis (results phase uses saved config) ──
-  const betSpread = useMemo(() => {
-    if (phase === 'results' && savedConfig) return savedConfig.betSpread
-    return { 1: tc1, 2: tc2, 3: tc3, 4: tc4, 5: tc5 }
-  }, [phase, savedConfig, tc1, tc2, tc3, tc4, tc5])
+  const handleSave = useCallback(() => {
+    const amount = parseFloat(formAmount)
+    if (isNaN(amount) || amount < 0) return
+    const hours = parseFloat(formHours)
+    if (isNaN(hours) || hours <= 0) return
 
-  const baseEdge = useMemo(() => {
-    if (phase === 'results' && savedConfig) return calculateHouseEdge(savedConfig)
-    return calculateHouseEdge({ dealerHitsSoft17, doubleAfterSplit, surrenderAllowed, blackjackPays, numDecks })
-  }, [phase, savedConfig, dealerHitsSoft17, doubleAfterSplit, surrenderAllowed, blackjackPays, numDecks])
+    const result = formIsWin ? amount : -amount
+    const sessionData = {
+      date: formDate,
+      casino: formCasino.trim() || 'Unknown',
+      result,
+      hoursPlayed: hours,
+      notes: formNotes.trim(),
+    }
 
-  const tcGain = useMemo(() => {
-    const devAcc = phase === 'results' && savedConfig
-      ? savedConfig.deviationAccuracy
-      : (useDeviations ? deviationAccuracy : 0)
-    return EDGE_PER_TC + DEVIATION_TC_BONUS * devAcc
-  }, [phase, savedConfig, useDeviations, deviationAccuracy])
+    if (editingId) {
+      editSession(editingId, sessionData)
+    } else {
+      addSession(sessionData)
+    }
+    resetForm()
+  }, [formDate, formCasino, formAmount, formIsWin, formHours, formNotes, editingId, addSession, editSession, resetForm])
 
-  // ════════════════════════════════════════════════════════════════
-  //  PHASE 1: Configuration
-  // ════════════════════════════════════════════════════════════════
+  const handleDelete = useCallback((id: string) => {
+    deleteSession(id)
+    setConfirmDeleteId(null)
+  }, [deleteSession])
 
-  if (phase === 'config') {
+  const handleStartTracking = useCallback(() => {
+    const amount = parseFloat(onboardingBankroll)
+    if (isNaN(amount) || amount <= 0) return
+    setStartingBankroll(amount)
+  }, [onboardingBankroll, setStartingBankroll])
+
+  // ── Onboarding Screen ──
+  if (isOnboarding) {
     return (
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="sim-config">
-        {/* Presets */}
-        <section>
-          <h2 className="text-lg font-semibold text-content mb-3">Preset Configurations</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {UI_PRESETS.map(p => (
-              <button
-                key={p.key}
-                onClick={() => applyPreset(p)}
-                data-testid={`preset-${p.key}`}
-                className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                  activePreset === p.key
-                    ? 'border-gold bg-gold/10 ring-1 ring-gold/40'
-                    : 'border-contrast/10 bg-contrast/5 hover:border-contrast/30'
-                }`}
-              >
-                <span className="text-sm font-semibold text-content">{p.label}</span>
-                <p className="text-xs text-content/40 mt-1">{p.description}</p>
-              </button>
-            ))}
+      <div className="flex-1 overflow-y-auto p-4 md:p-6" data-testid="bankroll-tracker">
+        <div className="max-w-md mx-auto mt-16 text-center">
+          <p className="text-4xl mb-4">{'\uD83D\uDCB0'}</p>
+          <h2 className="text-2xl font-bold text-content mb-3">Start Tracking Your Bankroll</h2>
+          <p className="text-content/50 mb-8">
+            Track your real casino sessions to see your performance over time.
+          </p>
+          <div className="flex flex-col items-center gap-4">
+            <label className="w-full max-w-xs">
+              <span className="text-sm text-content/60 block mb-2">Starting Bankroll</span>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
+                <input
+                  type="number"
+                  value={onboardingBankroll}
+                  onChange={e => setOnboardingBankroll(e.target.value)}
+                  placeholder="10,000"
+                  data-testid="onboarding-bankroll-input"
+                  className="w-full pl-7 pr-3 py-3 rounded-xl bg-input-bg border border-contrast/20 text-content text-lg text-center focus:outline-none focus:border-gold/60"
+                />
+              </div>
+            </label>
+            <button
+              onClick={handleStartTracking}
+              data-testid="start-tracking-btn"
+              disabled={!onboardingBankroll || parseFloat(onboardingBankroll) <= 0}
+              className="px-8 py-3 rounded-xl bg-gold text-black font-semibold text-lg hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Start Tracking
+            </button>
           </div>
-        </section>
-
-        {/* Config Form — 3 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Column 1: Bankroll & Bets */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-semibold text-gold uppercase tracking-wider">Bankroll & Bets</h3>
-
-            <label className="block">
-              <span className="text-xs text-content/60">Starting Bankroll</span>
-              <div className="flex items-center mt-1">
-                <span className="text-content/40 mr-1">$</span>
-                <input type="number" min={1000} step={1000} value={bankroll}
-                  onChange={e => { setBankroll(Number(e.target.value)); setActivePreset(null) }}
-                  className="w-full bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60" />
-              </div>
-            </label>
-
-            <label className="block">
-              <span className="text-xs text-content/60">Minimum Bet</span>
-              <div className="flex items-center mt-1">
-                <span className="text-content/40 mr-1">$</span>
-                <input type="number" min={5} step={5} value={minBet}
-                  onChange={e => { setMinBet(Number(e.target.value)); setActivePreset(null) }}
-                  className="w-full bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60" />
-              </div>
-            </label>
-
-            {/* Bet Spread Table */}
-            <div>
-              <span className="text-xs text-content/60">Bet Spread</span>
-              <table className="w-full mt-1 text-sm" data-testid="bet-spread-table">
-                <thead>
-                  <tr className="text-xs text-content/40">
-                    <th className="text-left py-1">TC</th>
-                    <th className="text-right py-1">Multiplier</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="text-content/50">
-                    <td className="py-1">{'\u2264'} 0</td>
-                    <td className="text-right">1x</td>
-                  </tr>
-                  {[
-                    { label: '+1', val: tc1, set: setTc1 },
-                    { label: '+2', val: tc2, set: setTc2 },
-                    { label: '+3', val: tc3, set: setTc3 },
-                    { label: '+4', val: tc4, set: setTc4 },
-                    { label: '+5+', val: tc5, set: setTc5 },
-                  ].map(r => (
-                    <tr key={r.label}>
-                      <td className="py-1 text-content/70">{r.label}</td>
-                      <td className="text-right">
-                        <input type="number" min={1} max={50} value={r.val}
-                          onChange={e => { r.set(Number(e.target.value)); setActivePreset(null) }}
-                          className="w-16 bg-contrast/10 border border-contrast/20 rounded px-2 py-1 text-sm text-content text-right focus:outline-none focus:border-gold/60" />
-                        <span className="text-content/40 ml-1">x</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <p className="text-xs text-content/40 mt-1">Max Bet: {fmtDollar(maxBet)}</p>
-            </div>
-          </section>
-
-          {/* Column 2: Casino Rules */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-semibold text-gold uppercase tracking-wider">Casino Rules</h3>
-
-            <label className="block">
-              <span className="text-xs text-content/60">Number of Decks</span>
-              <select value={numDecks}
-                onChange={e => { setNumDecks(Number(e.target.value)); setActivePreset(null) }}
-                className="w-full mt-1 bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60 cursor-pointer">
-                <option value={2} className="bg-select-bg">2</option>
-                <option value={6} className="bg-select-bg">6</option>
-                <option value={8} className="bg-select-bg">8</option>
-              </select>
-            </label>
-
-            <div>
-              <span className="text-xs text-content/60">Penetration: {Math.round(penetration * 100)}%</span>
-              <input type="range" min={50} max={90} step={5} value={penetration * 100}
-                onChange={e => { setPenetration(Number(e.target.value) / 100); setActivePreset(null) }}
-                className="w-full mt-1 accent-gold" />
-              <p className="text-xs text-content/40">
-                {(numDecks * penetration).toFixed(1)} decks dealt of {numDecks}
-              </p>
-            </div>
-
-            {/* Toggle: Dealer Soft 17 */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-content/60">Dealer Soft 17</span>
-              <div className="flex rounded-lg overflow-hidden border border-contrast/20">
-                <button onClick={() => { setDealerHitsSoft17(false); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${!dealerHitsSoft17 ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                  Stands (S17)
-                </button>
-                <button onClick={() => { setDealerHitsSoft17(true); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${dealerHitsSoft17 ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                  Hits (H17)
-                </button>
-              </div>
-            </div>
-
-            {/* Toggle: DAS */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-content/60">Double After Split</span>
-              <div className="flex rounded-lg overflow-hidden border border-contrast/20">
-                <button onClick={() => { setDoubleAfterSplit(true); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${doubleAfterSplit ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                  Yes
-                </button>
-                <button onClick={() => { setDoubleAfterSplit(false); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${!doubleAfterSplit ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                  No
-                </button>
-              </div>
-            </div>
-
-            {/* Toggle: Surrender */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-content/60">Surrender</span>
-              <div className="flex rounded-lg overflow-hidden border border-contrast/20">
-                <button onClick={() => { setSurrenderAllowed(true); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${surrenderAllowed ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                  Allowed
-                </button>
-                <button onClick={() => { setSurrenderAllowed(false); setActivePreset(null) }}
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${!surrenderAllowed ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                  Not Allowed
-                </button>
-              </div>
-            </div>
-
-            {/* Toggle: Blackjack Pays */}
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-content/60">Blackjack Pays</span>
-                <div className="flex rounded-lg overflow-hidden border border-contrast/20">
-                  <button onClick={() => { setBlackjackPays(1.5); setActivePreset(null) }}
-                    className={`px-3 py-1.5 text-xs cursor-pointer ${blackjackPays === 1.5 ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                    3:2
-                  </button>
-                  <button onClick={() => { setBlackjackPays(1.2); setActivePreset(null) }}
-                    className={`px-3 py-1.5 text-xs cursor-pointer ${blackjackPays === 1.2 ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                    6:5
-                  </button>
-                </div>
-              </div>
-              {blackjackPays === 1.2 && (
-                <p className="text-xs text-red-400 mt-1" data-testid="six-five-warning">
-                  {'\u26A0'} 6:5 significantly increases house edge!
-                </p>
-              )}
-            </div>
-          </section>
-
-          {/* Column 3: Player Skill & Simulation */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-semibold text-gold uppercase tracking-wider">Player Skill & Simulation</h3>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-content/60">Counting Accuracy: {Math.round(countingAccuracy * 100)}%</span>
-                {statsAvailable.tcAvg !== null && (
-                  <button onClick={() => { setCountingAccuracy(statsAvailable.tcAvg!); setActivePreset(null) }}
-                    className="text-[10px] px-2 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 cursor-pointer"
-                    data-testid="use-my-counting-stats">
-                    Use My Stats
-                  </button>
-                )}
-              </div>
-              <input type="range" min={50} max={100} step={1} value={countingAccuracy * 100}
-                onChange={e => { setCountingAccuracy(Number(e.target.value) / 100); setActivePreset(null) }}
-                className="w-full mt-1 accent-gold" />
-              <p className="text-xs text-content/40">
-                {countingAccuracy >= 0.95 ? 'Good' : countingAccuracy >= 0.9 ? 'Average' : 'Needs Work'}
-              </p>
-            </div>
-
-            {/* Toggle: Use Deviations */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-content/60">Use Deviations</span>
-              <div className="flex rounded-lg overflow-hidden border border-contrast/20">
-                <button onClick={() => { setUseDeviations(true); setActivePreset(null) }}
-                  data-testid="deviations-yes"
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${useDeviations ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                  Yes
-                </button>
-                <button onClick={() => { setUseDeviations(false); setActivePreset(null) }}
-                  data-testid="deviations-no"
-                  className={`px-3 py-1.5 text-xs cursor-pointer ${!useDeviations ? 'bg-gold/20 text-gold' : 'bg-contrast/5 text-content/50'}`}>
-                  No
-                </button>
-              </div>
-            </div>
-
-            {useDeviations && (
-              <div data-testid="deviation-accuracy-slider">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-content/60">Deviation Accuracy: {Math.round(deviationAccuracy * 100)}%</span>
-                  {statsAvailable.devAvg !== null && (
-                    <button onClick={() => { setDeviationAccuracy(statsAvailable.devAvg!); setActivePreset(null) }}
-                      className="text-[10px] px-2 py-0.5 rounded bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 cursor-pointer"
-                      data-testid="use-my-deviation-stats">
-                      Use My Stats
-                    </button>
-                  )}
-                </div>
-                <input type="range" min={50} max={100} step={1} value={deviationAccuracy * 100}
-                  onChange={e => { setDeviationAccuracy(Number(e.target.value) / 100); setActivePreset(null) }}
-                  className="w-full mt-1 accent-gold" />
-              </div>
-            )}
-
-            <label className="block">
-              <span className="text-xs text-content/60">Hands Per Hour</span>
-              <input type="number" min={60} max={120} value={handsPerHour}
-                onChange={e => { setHandsPerHour(Number(e.target.value)); setActivePreset(null) }}
-                className="w-full mt-1 bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60" />
-            </label>
-
-            <div>
-              <span className="text-xs text-content/60">Number of Shoes</span>
-              <select value={numShoes}
-                onChange={e => { setNumShoes(Number(e.target.value)); setActivePreset(null) }}
-                className="w-full mt-1 bg-contrast/10 border border-contrast/20 rounded-lg px-3 py-2 text-sm text-content focus:outline-none focus:border-gold/60 cursor-pointer">
-                {[1000, 5000, 10000, 25000, 50000].map(n => (
-                  <option key={n} value={n} className="bg-select-bg">{n.toLocaleString()}</option>
-                ))}
-              </select>
-              <p className="text-xs text-content/40 mt-1">
-                ~{estimatedHands.toLocaleString()} hands simulated
-                {numShoes >= 50000 && <span className="ml-1 text-yellow-400">{'\u23F1'} May take a few seconds</span>}
-              </p>
-            </div>
-          </section>
-        </div>
-
-        {/* Validation errors */}
-        {validationErrors.length > 0 && (
-          <div className="text-center" data-testid="validation-errors">
-            {validationErrors.map(err => (
-              <p key={err} className="text-xs text-red-400">{'\u26A0'} {err}</p>
-            ))}
-          </div>
-        )}
-
-        {/* Error message from failed simulation */}
-        {errorMessage && (
-          <div className="text-center p-3 bg-red-500/10 border border-red-500/30 rounded-xl" data-testid="sim-error">
-            <p className="text-sm text-red-400">{errorMessage}</p>
-          </div>
-        )}
-
-        {/* Run Button */}
-        <div className="flex justify-center pt-4 pb-8">
-          <button
-            onClick={handleRunSimulation}
-            disabled={isSimulating || !isConfigValid}
-            data-testid="run-simulation"
-            className="px-8 py-3 rounded-xl text-lg font-bold transition-all cursor-pointer
-              bg-gold text-black hover:bg-gold/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSimulating
-              ? `\u23F3 Simulating ${numShoes.toLocaleString()} shoes...`
-              : '\uD83C\uDFB0 Run Simulation'}
-          </button>
         </div>
       </div>
     )
   }
 
-  // ════════════════════════════════════════════════════════════════
-  //  PHASE 2: Results
-  // ════════════════════════════════════════════════════════════════
-
-  if (!result) return null
-
-  // Theoretical metrics (deterministic — same config always gives same values)
-  const playerEdge = result.weightedPlayerEdge
-  const avgBet = theoreticalAvgBet(configSnapshot.minBet, betSpread, getBetMultiplier)
-  const theoEvPerHand = playerEdge * avgBet
-  const theoSdPerHand = HAND_SD * avgBet
-  const snapshotHPH = configSnapshot.handsPerHour || 80
-  const theoHourlyEV = theoEvPerHand * snapshotHPH
-  const hourlySD = theoSdPerHand * Math.sqrt(snapshotHPH)
-  const hasPositiveEdge = playerEdge > 0
-  const recBankroll = theoEvPerHand > 0 && theoSdPerHand > 0
-    ? Math.ceil((-theoSdPerHand * theoSdPerHand * Math.log(0.05)) / (2 * theoEvPerHand))
-    : null
-  const theoVariance = theoSdPerHand * theoSdPerHand
-  const risk50 = theoEvPerHand > 0 && theoVariance > 0
-    ? Math.min(1, Math.max(0, Math.exp((-theoEvPerHand * configSnapshot.bankroll) / theoVariance)))
-    : 1
-  const n0Hours = hasPositiveEdge && result.n0 > 0 ? Math.round(result.n0 / snapshotHPH) : null
-  // Simulated hourly (for detailed stats)
-  const simEvPerHand = result.totalHands > 0 ? result.netProfit / result.totalHands : 0
-  const simHourlyEV = simEvPerHand * snapshotHPH
-
+  // ── Main Tracker View ──
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="sim-results">
-      {/* Back button */}
-      <button onClick={() => setPhase('config')} data-testid="modify-settings"
-        className="text-sm text-gold hover:text-gold/80 transition-colors cursor-pointer">
-        {'\u25C0'} Modify Settings
-      </button>
-
-      {/* Negative edge warning */}
-      {playerEdge <= 0 && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4" data-testid="negative-edge-warning">
-          <p className="text-sm text-red-400 font-medium">
-            {'\u26A0'} Warning: Your player edge is negative ({fmtPct(playerEdge, 2)}). No bet spread can overcome a negative base edge. Consider better table rules or improving your counting accuracy.
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="bankroll-tracker">
+      {/* ── Section A: Overview ── */}
+      <section data-testid="overview-section">
+        <div className="text-center mb-4">
+          <p className="text-xs text-content/40 mb-1">Current Bankroll</p>
+          <p className={`text-4xl font-bold ${currentBankroll >= startingBankroll ? 'text-green-400' : 'text-red-400'}`}
+            data-testid="current-bankroll">
+            {fmtDollar(currentBankroll)}
           </p>
+          <div className="text-sm text-content/50 mt-1 flex items-center justify-center gap-1 flex-wrap" data-testid="overview-summary">
+            {isEditingStart ? (
+              <span className="inline-flex items-center gap-1.5">
+                <span>Starting: $</span>
+                <input
+                  type="number"
+                  value={editStartValue}
+                  onChange={e => setEditStartValue(e.target.value)}
+                  data-testid="edit-starting-input"
+                  className="w-24 px-2 py-0.5 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm text-center focus:outline-none focus:border-gold/60"
+                  autoFocus
+                />
+                <button
+                  onClick={() => {
+                    const amount = parseFloat(editStartValue)
+                    if (!isNaN(amount) && amount > 0) setStartingBankroll(amount)
+                    setIsEditingStart(false)
+                  }}
+                  data-testid="save-starting-btn"
+                  className="text-xs text-green-400 hover:text-green-300 cursor-pointer font-semibold"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setIsEditingStart(false)}
+                  data-testid="cancel-starting-btn"
+                  className="text-xs text-content/40 hover:text-content cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </span>
+            ) : (
+              <span>
+                Starting: {fmtDollar(startingBankroll)}
+                <button
+                  onClick={() => { setEditStartValue(String(startingBankroll)); setIsEditingStart(true) }}
+                  data-testid="edit-starting-btn"
+                  className="ml-1 text-xs text-content/30 hover:text-gold cursor-pointer"
+                  title="Edit starting bankroll"
+                >
+                  {'\u270F\uFE0F'}
+                </button>
+              </span>
+            )}
+            {' \u2502 '}
+            Profit: <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
+            {' \u2502 '}
+            ROI: <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
+          </div>
         </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="stat-cards">
+          {/* Sessions */}
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
+            <p className="text-xs text-content/50">Sessions</p>
+            <p className="text-xl font-bold text-content" data-testid="stat-sessions">{sessionCount}</p>
+          </div>
+
+          {/* Win Rate */}
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
+            style={{ boxShadow: sessionCount > 0 ? winRateGlow(winRate) : 'none' }}>
+            <p className="text-xs text-content/50">Win Rate</p>
+            <p className={`text-xl font-bold ${winRate > 0.55 ? 'text-green-400' : winRate >= 0.45 ? 'text-yellow-400' : 'text-red-400'}`}
+              data-testid="stat-winrate">
+              {sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014'}
+            </p>
+          </div>
+
+          {/* $/hr */}
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
+            style={{ boxShadow: sessionCount > 0 ? profitGlow(avgPerHour) : 'none' }}>
+            <p className="text-xs text-content/50">$/hr</p>
+            <p className={`text-xl font-bold ${avgPerHour >= 0 ? 'text-green-400' : 'text-red-400'}`}
+              data-testid="stat-per-hour">
+              {sessionCount > 0 ? `$${avgPerHour.toFixed(2)}` : '\u2014'}
+            </p>
+          </div>
+
+          {/* Total Hours */}
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
+            <p className="text-xs text-content/50">Hours</p>
+            <p className="text-xl font-bold text-content" data-testid="stat-hours">
+              {totalHours > 0 ? `${totalHours.toFixed(1)}h` : '\u2014'}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Section B: Chart ── */}
+      <section data-testid="chart-section">
+        <h2 className="text-lg font-semibold text-content mb-3">Bankroll History</h2>
+        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+          {sessions.length > 0 ? (
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
+                <defs>
+                  <linearGradient id="bankrollGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0.2} />
+                    <stop offset="95%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="label"
+                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                  axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                  tickFormatter={(val: number) => `$${(val / 1000).toFixed(0)}k`}
+                  axisLine={false}
+                  tickLine={false}
+                  width={50}
+                />
+                <Tooltip content={<ChartTooltip />} />
+                <ReferenceLine
+                  y={startingBankroll}
+                  stroke="rgba(255,255,255,0.2)"
+                  strokeDasharray="4 4"
+                  label={{ value: 'Starting', fill: 'rgba(255,255,255,0.3)', fontSize: 10, position: 'right' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="bankroll"
+                  stroke={totalProfit >= 0 ? '#22c55e' : '#ef4444'}
+                  strokeWidth={2}
+                  fill="url(#bankrollGradient)"
+                  dot={{ r: 3, fill: totalProfit >= 0 ? '#22c55e' : '#ef4444', strokeWidth: 0 }}
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-48 flex items-center justify-center text-content/30 text-sm">
+              Add your first session to see the chart
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Section B2: Personal Records ── */}
+      {sessionCount > 0 && <PersonalRecordsSection />}
+
+      {/* ── Section C: Session List + Form ── */}
+      <section data-testid="session-section">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-content">Sessions</h2>
+          {!showForm && (
+            <button
+              onClick={openAddForm}
+              data-testid="add-session-btn"
+              className="px-4 py-2 rounded-xl bg-gold text-black font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer"
+            >
+              + Add Session
+            </button>
+          )}
+        </div>
+
+        {/* ── Session Form ── */}
+        {showForm && (
+          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 mb-4" data-testid="session-form">
+            <h3 className="text-sm font-semibold text-content mb-3">
+              {editingId ? 'Edit Session' : '+ New Session'}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Date */}
+              <label className="block">
+                <span className="text-xs text-content/60">Date</span>
+                <input
+                  type="date"
+                  value={formDate}
+                  onChange={e => setFormDate(e.target.value)}
+                  data-testid="form-date"
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm focus:outline-none focus:border-gold/60"
+                />
+              </label>
+
+              {/* Casino */}
+              <label className="block relative" ref={casinoInputRef}>
+                <span className="text-xs text-content/60">Casino</span>
+                <input
+                  type="text"
+                  value={formCasino}
+                  onChange={e => { setFormCasino(e.target.value); setShowCasinoDropdown(true) }}
+                  onFocus={() => setShowCasinoDropdown(true)}
+                  placeholder="e.g. Bellagio"
+                  data-testid="form-casino"
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm focus:outline-none focus:border-gold/60"
+                />
+                {showCasinoDropdown && filteredCasinos.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-casino-bg border border-contrast/20 rounded-lg shadow-lg max-h-32 overflow-y-auto"
+                    data-testid="casino-dropdown">
+                    {filteredCasinos.map(name => (
+                      <button
+                        key={name}
+                        onClick={() => { setFormCasino(name); setShowCasinoDropdown(false) }}
+                        className="w-full text-left px-3 py-2 text-sm text-content/70 hover:bg-contrast/10 cursor-pointer"
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </label>
+
+              {/* Result */}
+              <div>
+                <span className="text-xs text-content/60 block">Result</span>
+                <div className="flex gap-2 mt-1">
+                  <button
+                    onClick={() => setFormIsWin(true)}
+                    data-testid="form-win-btn"
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                      formIsWin
+                        ? 'bg-green-500/20 border border-green-500/50 text-green-400'
+                        : 'bg-contrast/5 border border-contrast/20 text-content/50'
+                    }`}
+                  >
+                    Win +
+                  </button>
+                  <button
+                    onClick={() => setFormIsWin(false)}
+                    data-testid="form-loss-btn"
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                      !formIsWin
+                        ? 'bg-red-500/20 border border-red-500/50 text-red-400'
+                        : 'bg-contrast/5 border border-contrast/20 text-content/50'
+                    }`}
+                  >
+                    Loss -
+                  </button>
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
+                    <input
+                      type="number"
+                      value={formAmount}
+                      onChange={e => setFormAmount(e.target.value)}
+                      placeholder="0"
+                      min="0"
+                      data-testid="form-amount"
+                      className={`w-full pl-7 pr-3 py-2 rounded-lg bg-input-bg text-content text-sm focus:outline-none border ${
+                        formIsWin
+                          ? 'border-green-500/30 focus:border-green-500/60'
+                          : 'border-red-500/30 focus:border-red-500/60'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Hours */}
+              <label className="block">
+                <span className="text-xs text-content/60">Hours Played</span>
+                <input
+                  type="number"
+                  value={formHours}
+                  onChange={e => setFormHours(e.target.value)}
+                  min="0.5"
+                  step="0.5"
+                  data-testid="form-hours"
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm focus:outline-none focus:border-gold/60"
+                />
+              </label>
+
+              {/* Notes */}
+              <div className="sm:col-span-2">
+                <span className="text-xs text-content/60 block">Notes (optional)</span>
+                <textarea
+                  value={formNotes}
+                  onChange={e => setFormNotes(e.target.value)}
+                  placeholder="Good penetration, 6 deck, S17..."
+                  rows={2}
+                  data-testid="form-notes"
+                  className="w-full mt-1 px-3 py-2 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm focus:outline-none focus:border-gold/60 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-4">
+              <button
+                onClick={resetForm}
+                data-testid="form-cancel"
+                className="px-4 py-2 rounded-lg text-sm text-content/60 hover:text-content transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                data-testid="form-save"
+                disabled={!formAmount || parseFloat(formAmount) < 0 || !formHours || parseFloat(formHours) <= 0}
+                className="px-6 py-2 rounded-lg bg-gold text-black font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {editingId ? 'Save Changes' : 'Save Session'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Session List ── */}
+        {sortedSessions.length > 0 ? (
+          <div className="space-y-2" data-testid="session-list">
+            {sortedSessions.map(session => (
+              <div key={session.id} className="bg-contrast/5 border border-contrast/10 rounded-xl p-3" data-testid={`session-${session.id}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <span className="text-xs text-content/50 shrink-0">{fmtDate(session.date)}</span>
+                    <span className="text-sm text-content/70 truncate">{session.casino}</span>
+                    <span className={`text-sm font-bold shrink-0 ${session.result >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {fmtDollar(session.result, true)}
+                    </span>
+                    <span className="text-xs text-content/40 shrink-0">{session.hoursPlayed}h</span>
+                  </div>
+                  <div className="flex items-center gap-2 ml-2 shrink-0">
+                    <button
+                      onClick={() => openEditForm(session)}
+                      data-testid={`edit-${session.id}`}
+                      className="text-xs text-content/40 hover:text-gold transition-colors cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                    {confirmDeleteId === session.id ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleDelete(session.id)}
+                          data-testid={`confirm-delete-${session.id}`}
+                          className="text-xs text-red-400 hover:text-red-300 cursor-pointer font-semibold"
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="text-xs text-content/40 hover:text-content cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(session.id)}
+                        data-testid={`delete-${session.id}`}
+                        className="text-xs text-content/40 hover:text-red-400 transition-colors cursor-pointer"
+                      >
+                        {'\uD83D\uDDD1\uFE0F'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {session.notes && (
+                  <p className="text-xs text-content/40 mt-1 truncate">{session.notes}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-content/30 text-sm py-8" data-testid="empty-sessions">
+            No sessions yet. Add your first casino visit!
+          </div>
+        )}
+      </section>
+
+      {/* ── Section D: Additional Stats ── */}
+      {sessionCount > 0 && (
+        <section data-testid="additional-stats">
+          <h2 className="text-lg font-semibold text-content mb-3">Highlights</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Best Session */}
+            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
+              style={{ boxShadow: bestSession ? profitGlow(bestSession.result) : 'none' }}>
+              <p className="text-xs text-content/50 mb-1">{'\uD83C\uDFC6'} Best Session</p>
+              {bestSession && (
+                <>
+                  <p className="text-xl font-bold text-green-400" data-testid="best-session-result">
+                    {fmtDollar(bestSession.result, true)}
+                  </p>
+                  <p className="text-xs text-content/50">{bestSession.casino}</p>
+                  <p className="text-xs text-content/40">{fmtDate(bestSession.date)}</p>
+                </>
+              )}
+            </div>
+
+            {/* Worst Session */}
+            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
+              style={{ boxShadow: worstSession ? profitGlow(worstSession.result) : 'none' }}>
+              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDE22'} Worst Session</p>
+              {worstSession && (
+                <>
+                  <p className="text-xl font-bold text-red-400" data-testid="worst-session-result">
+                    {fmtDollar(worstSession.result, true)}
+                  </p>
+                  <p className="text-xs text-content/50">{worstSession.casino}</p>
+                  <p className="text-xs text-content/40">{fmtDate(worstSession.date)}</p>
+                </>
+              )}
+            </div>
+
+            {/* Streaks */}
+            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center">
+              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDD25'} Streaks</p>
+              <div className="flex justify-center gap-4 mt-1">
+                <div>
+                  <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
+                  <p className="text-[10px] text-content/40">Win</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-red-400" data-testid="losing-streak">{losingStreak}</p>
+                  <p className="text-[10px] text-content/40">Loss</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       )}
 
-      {/* Section A: Key Metrics */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">Key Metrics</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="key-metrics">
-          {/* Card 1: Expected Hourly Win (theoretical) */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="metric-hourly-ev">
-            <p className="text-xs text-content/50 mb-1">Expected Hourly Win</p>
-            <p className={`text-2xl md:text-3xl font-bold ${theoHourlyEV >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {fmtDollarCents(theoHourlyEV, true)}/hr
-            </p>
-            <p className="text-xs text-content/40 mt-1">
-              Weighted edge: {fmtPct(playerEdge, 2)} | Base: {fmtPct(result.houseEdge, 2)}
-            </p>
-          </div>
+      {/* Bottom padding */}
+      <div className="pb-8" />
+    </div>
+  )
+}
 
-          {/* Card 2: Risk of Ruin */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="metric-ror">
-            <p className="text-xs text-content/50 mb-1">Risk of Ruin</p>
-            <p className={`text-2xl md:text-3xl font-bold ${rorColor(result.riskOfRuin)}`}>
-              {fmtPct(result.riskOfRuin)}
-            </p>
-            <p className="text-xs text-content/40 mt-1">Chance of losing entire bankroll</p>
-          </div>
+// ── Personal Records Component ────────────────────────────────────
 
-          {/* Card 3: Recommended Bankroll */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="metric-rec-bankroll">
-            <p className="text-xs text-content/50 mb-1">Recommended Bankroll</p>
-            {recBankroll !== null ? (
-              <>
-                <p className="text-2xl md:text-3xl font-bold text-content">
-                  {fmtDollar(recBankroll)}
-                </p>
-                <p className="text-xs text-content/40 mt-1">For {'<'}5% risk of ruin</p>
-                {configSnapshot.bankroll < recBankroll && (
-                  <p className="text-xs text-yellow-400 mt-1">{'\u26A0'} Your bankroll is underfunded</p>
-                )}
-              </>
-            ) : (
-              <>
-                <p className="text-base font-bold text-red-400" data-testid="rec-bankroll-negative">
-                  No bankroll can overcome a negative edge
-                </p>
-                <p className="text-xs text-content/40 mt-1">Improve rules or counting to gain an edge first</p>
-              </>
+function PersonalRecordsSection() {
+  const records = useBankrollTrackerStore(s => s.getPersonalRecords)()
+  const winRate = useBankrollTrackerStore(s => s.getWinRate)()
+  const sessionCount = useBankrollTrackerStore(s => s.getSessionCount)()
+
+  const cards: { label: string; icon: string; value: string; sub?: string; glow?: string }[] = [
+    {
+      label: 'Best Session',
+      icon: '\uD83E\uDD47',
+      value: records.bestSession ? fmtDollar(records.bestSession.result, true) : '\u2014',
+      sub: records.bestSession ? `${records.bestSession.casino} \u00B7 ${fmtDate(records.bestSession.date)}` : undefined,
+      glow: records.bestSession && records.bestSession.result > 0
+        ? '0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.08)' : undefined,
+    },
+    {
+      label: 'Worst Session',
+      icon: '\uD83D\uDE22',
+      value: records.worstSession ? fmtDollar(records.worstSession.result, true) : '\u2014',
+      sub: records.worstSession ? `${records.worstSession.casino} \u00B7 ${fmtDate(records.worstSession.date)}` : undefined,
+      glow: records.worstSession && records.worstSession.result < 0
+        ? '0 0 20px rgba(239, 68, 68, 0.2), 0 0 40px rgba(239, 68, 68, 0.05)' : undefined,
+    },
+    {
+      label: 'Win Streak',
+      icon: '\uD83D\uDD25',
+      value: records.longestWinStreak > 0 ? `${records.longestWinStreak} sessions` : '\u2014',
+    },
+    {
+      label: 'Longest Session',
+      icon: '\u23F1\uFE0F',
+      value: records.longestSession ? `${records.longestSession.hoursPlayed.toFixed(1)}h` : '\u2014',
+      sub: records.longestSession ? `${records.longestSession.casino} \u00B7 ${fmtDate(records.longestSession.date)}` : undefined,
+    },
+    {
+      label: 'Peak Bankroll',
+      icon: '\uD83D\uDCC8',
+      value: records.highestBankroll > 0 ? fmtDollar(records.highestBankroll) : '\u2014',
+    },
+    {
+      label: 'Best $/hr',
+      icon: '\uD83D\uDCB0',
+      value: records.bestHourlyRate
+        ? `$${(records.bestHourlyRate.result / records.bestHourlyRate.hoursPlayed).toFixed(0)}/hr`
+        : '\u2014',
+      sub: records.bestHourlyRate ? fmtDate(records.bestHourlyRate.date) : undefined,
+    },
+    {
+      label: 'Best Casino',
+      icon: '\uD83C\uDFE6',
+      value: records.mostProfitableCasino ?? '\u2014',
+    },
+    {
+      label: 'Win Rate',
+      icon: '\u2705',
+      value: sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014',
+    },
+  ]
+
+  return (
+    <section data-testid="personal-records">
+      <h2 className="text-lg font-semibold text-content mb-3">{'\uD83C\uDFC6'} Personal Records</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {cards.map(card => (
+          <div
+            key={card.label}
+            data-testid={`record-${card.label.toLowerCase().replace(/[\s/]/g, '-')}`}
+            className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
+            style={{ boxShadow: card.glow ?? 'none' }}
+          >
+            <p className="text-xs text-content/50 mb-1">
+              {card.icon} {card.label}
+            </p>
+            <p className={`text-lg font-bold ${
+              card.label === 'Best Session' && records.bestSession && records.bestSession.result > 0 ? 'text-green-400' :
+              card.label === 'Worst Session' && records.worstSession && records.worstSession.result < 0 ? 'text-red-400' :
+              'text-content'
+            }`}>
+              {card.value}
+            </p>
+            {card.sub && (
+              <p className="text-[10px] text-content/40 mt-0.5 truncate">{card.sub}</p>
             )}
           </div>
-
-          {/* Card 4: N-Zero */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="metric-n0">
-            <p className="text-xs text-content/50 mb-1">N-Zero</p>
-            <p className="text-2xl md:text-3xl font-bold text-content">
-              {hasPositiveEdge ? `${result.n0.toLocaleString()} hands` : '\u221E (negative edge)'}
-            </p>
-            <p className="text-xs text-content/40 mt-1">
-              {n0Hours !== null ? `~${n0Hours.toLocaleString()} hours until skill beats luck` : (playerEdge <= 0 ? 'You need a positive edge first' : 'Edge too small to overcome variance')}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Section B: Bankroll Journey Chart */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">Bankroll Journey</h2>
-        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="bankroll-chart">
-          <ResponsiveContainer width="100%" height={350}>
-            <AreaChart data={result.bankrollHistory}>
-              <defs>
-                <linearGradient id="bankrollGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.1)" />
-              <XAxis dataKey="hand" tick={{ fill: '#a3a3a3', fontSize: 11 }} axisLine={{ stroke: 'rgba(128,128,128,0.15)' }} tickLine={false}
-                tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)} />
-              <YAxis tick={{ fill: '#a3a3a3', fontSize: 11 }} axisLine={{ stroke: 'rgba(128,128,128,0.15)' }} tickLine={false}
-                tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip
-                contentStyle={{ backgroundColor: 'var(--color-tooltip-bg)', border: '1px solid var(--color-tooltip-border)', borderRadius: 8, color: 'var(--color-content)' }}
-                formatter={(value: number) => [fmtDollar(value), 'Bankroll']}
-                labelFormatter={(label: number) => `Hand #${label.toLocaleString()}`} />
-              <ReferenceLine y={configSnapshot.bankroll} stroke="rgba(128,128,128,0.3)" strokeDasharray="6 4" label={{ value: 'Start', fill: 'rgba(128,128,128,0.3)', fontSize: 11 }} />
-              <ReferenceLine y={0} stroke="#ef444440" strokeDasharray="6 4" />
-              <Area type="monotone" dataKey="bankroll" stroke="#06b6d4" strokeWidth={2} fill="url(#bankrollGrad)" dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
-          <div className="flex flex-wrap gap-4 mt-3 text-xs text-content/50">
-            <span>Peak: <span className="text-green-400 font-medium">{fmtDollar(result.peakBankroll)}</span></span>
-            <span>Worst Drawdown: <span className="text-red-400 font-medium">-{fmtDollar(result.worstDrawdown)}</span></span>
-            <span>Final: <span className="text-content font-medium">{fmtDollar(result.finalBankroll)}</span></span>
-          </div>
-        </div>
-      </section>
-
-      {/* Section C: Outcome Distribution */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">Outcome Distribution</h2>
-        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4" data-testid="outcome-chart">
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={result.outcomeDistribution}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.1)" />
-              <XAxis dataKey="label" tick={{ fill: '#a3a3a3', fontSize: 10 }} axisLine={{ stroke: 'rgba(128,128,128,0.15)' }} tickLine={false} />
-              <YAxis tick={{ fill: '#a3a3a3', fontSize: 11 }} axisLine={{ stroke: 'rgba(128,128,128,0.15)' }} tickLine={false} />
-              <Tooltip
-                contentStyle={{ backgroundColor: 'var(--color-tooltip-bg)', border: '1px solid var(--color-tooltip-border)', borderRadius: 8, color: 'var(--color-content)' }}
-                formatter={(value: number, _name: string, props: { payload: { percentage: number } }) =>
-                  [`${props.payload.percentage.toFixed(1)}% of simulations`, 'Sessions']}
-              />
-              <Bar dataKey="count">
-                {result.outcomeDistribution.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.label.includes('-') ? '#ef4444' : '#22c55e'} fillOpacity={0.7} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </section>
-
-      {/* Section D: Detailed Stats */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">Detailed Stats</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Performance */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 space-y-2">
-            <h3 className="text-sm font-semibold text-gold mb-2">Performance</h3>
-            {[
-              ['Total Hands Simulated', result.totalHands.toLocaleString()],
-              ['Total Wagered', fmtDollar(result.totalHands * result.averageBet)],
-              ['Net Profit', fmtDollar(result.netProfit, true)],
-              ['Simulated Hourly Win', `${fmtDollarCents(simHourlyEV, true)}/hr (this run)`],
-              ['Winning Sessions', `${result.percentWinningSessions}% of shoes profitable`],
-              ['Average Bet Size', fmtDollarCents(result.averageBet)],
-            ].map(([label, value]) => (
-              <div key={label} className="flex justify-between text-sm">
-                <span className="text-content/50">{label}</span>
-                <span className="text-content font-medium">{value}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Risk Analysis */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 space-y-2">
-            <h3 className="text-sm font-semibold text-gold mb-2">Risk Analysis</h3>
-            {[
-              ['Risk of Ruin (full)', fmtPct(result.riskOfRuin)],
-              ['Risk of 50% Loss', fmtPct(risk50)],
-              ['Kelly Optimal Bet', result.kellyOptimalBet > 0 ? fmtDollarCents(result.kellyOptimalBet) : 'N/A'],
-              ['Standard Deviation', `${fmtDollarCents(hourlySD)}/hr`],
-              ['Worst Drawdown', `-${fmtDollar(result.worstDrawdown)}`],
-              ['Hours to Break Even (N0)', n0Hours !== null ? `~${n0Hours.toLocaleString()} hours` : (playerEdge <= 0 ? '\u221E (negative edge)' : 'N/A')],
-            ].map(([label, value]) => (
-              <div key={label} className="flex justify-between text-sm">
-                <span className="text-content/50">{label}</span>
-                <span className="text-content font-medium">{value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Section E: Bet Spread Analysis */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">Bet Spread Analysis</h2>
-        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 overflow-x-auto" data-testid="spread-analysis">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs text-content/40 border-b border-contrast/10">
-                <th className="text-left py-2">True Count</th>
-                <th className="text-right py-2">Bet Size</th>
-                <th className="text-right py-2">% of Hands</th>
-                <th className="text-right py-2">Edge</th>
-                <th className="text-right py-2">EV/Hand</th>
-              </tr>
-            </thead>
-            <tbody>
-              {TC_DISPLAY.map(row => {
-                const mult = getBetMultiplier(betSpread, row.tc)
-                const bet = configSnapshot.minBet * mult
-                const edge = baseEdge + row.tc * tcGain
-                const evHand = edge * bet
-                return (
-                  <tr key={row.label} className="border-b border-contrast/5">
-                    <td className="py-2 text-content/70">{row.label}</td>
-                    <td className="text-right text-content">{fmtDollar(bet)}</td>
-                    <td className="text-right text-content/60">{Math.round(row.pct * 100)}%</td>
-                    <td className={`text-right ${edge >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {edge >= 0 ? '+' : ''}{(edge * 100).toFixed(2)}%
-                    </td>
-                    <td className={`text-right ${evHand >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {fmtDollarCents(evHand, true)}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Section F: Action Buttons */}
-      <section className="flex flex-wrap gap-3 pb-8">
-        <button onClick={handleRunAgain} disabled={isSimulating} data-testid="run-again"
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-gold text-black hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-50">
-          {isSimulating ? '\u23F3 Simulating...' : '\uD83D\uDD04 Run Again'}
-        </button>
-        <button onClick={() => setPhase('config')} data-testid="modify-settings-bottom"
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold border border-contrast/20 text-content hover:bg-contrast/10 transition-all cursor-pointer">
-          {'\u25C0'} Modify Settings
-        </button>
-        <button onClick={handleCopySummary} data-testid="copy-summary"
-          className="px-6 py-2.5 rounded-xl text-sm font-semibold border border-contrast/20 text-content hover:bg-contrast/10 transition-all cursor-pointer">
-          {'\uD83D\uDCCB'} Copy Summary
-        </button>
-      </section>
-    </div>
+        ))}
+      </div>
+    </section>
   )
 }

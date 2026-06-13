@@ -10,20 +10,28 @@ type FilterMode = 'all' | 'unlocked' | 'locked'
 
 /** Category display config. */
 const CATEGORY_DISPLAY: Record<AchievementCategory, { label: string; icon: string }> = {
-  getting_started: { label: 'Getting Started', icon: '\uD83C\uDFB0' },
-  dedication:      { label: 'Dedication',      icon: '\uD83D\uDD25' },
-  mastery:         { label: 'Mastery',          icon: '\u2705' },
-  speed:           { label: 'Speed',            icon: '\u26A1' },
-  counting:        { label: 'Counting',         icon: '\uD83D\uDD22' },
-  deviations:      { label: 'Deviations',       icon: '\uD83D\uDCCB' },
-  simulation:      { label: 'Bet Spread, Estimation & Simulation', icon: '\uD83C\uDFE6' },
-  ultimate:        { label: 'Ultimate',         icon: '\uD83C\uDFC6' },
+  getting_started:  { label: 'Getting Started', icon: '\uD83C\uDFB0' },
+  dedication:       { label: 'Dedication',      icon: '\uD83D\uDD25' },
+  mastery:          { label: 'Mastery',          icon: '\u2705' },
+  speed:            { label: 'Speed',            icon: '\u26A1' },
+  counting:         { label: 'Counting',         icon: '\uD83D\uDD22' },
+  deviations:       { label: 'Deviations',       icon: '\uD83D\uDCCB' },
+  simulation:       { label: 'Bet Spread, Estimation & Simulation', icon: '\uD83C\uDFE6' },
+  casino_session:   { label: 'Casino Session',   icon: '\uD83C\uDFB0' },
+  challenges:       { label: 'Daily & Weekly Challenges', icon: '\uD83D\uDCC5' },
+  level_system:     { label: 'Level System',     icon: '\u2B50' },
+  milestones:       { label: 'Milestones',       icon: '\uD83C\uDFAF' },
+  extreme:          { label: 'Extreme Challenges', icon: '\uD83D\uDCAF' },
+  counting_mastery: { label: 'Counting Mastery', icon: '\uD83D\uDD22' },
+  bankrollTracker: { label: 'Bankroll Tracker', icon: '\uD83D\uDCB0' },
 }
 
 /** Ordered categories for display. */
 const CATEGORY_ORDER: AchievementCategory[] = [
   'getting_started', 'dedication', 'mastery', 'speed',
-  'counting', 'deviations', 'simulation', 'ultimate',
+  'counting', 'deviations', 'simulation', 'casino_session',
+  'challenges', 'level_system', 'milestones', 'extreme', 'counting_mastery',
+  'bankrollTracker',
 ]
 
 /** Tier border/accent colors. */
@@ -41,6 +49,32 @@ const TIER_BADGE: Record<AchievementTier, string> = {
   diamond: '\uD83D\uDC8E',
 }
 
+const TIER_GLOW: Record<AchievementTier, React.CSSProperties> = {
+  bronze: {
+    border: '1px solid rgba(205, 127, 50, 0.5)',
+    boxShadow: '0 0 15px rgba(205, 127, 50, 0.2), inset 0 0 15px rgba(205, 127, 50, 0.05)',
+  },
+  silver: {
+    border: '1px solid rgba(192, 192, 192, 0.5)',
+    boxShadow: '0 0 15px rgba(192, 192, 192, 0.25), inset 0 0 15px rgba(192, 192, 192, 0.05)',
+  },
+  gold: {
+    border: '1px solid rgba(255, 215, 0, 0.6)',
+    boxShadow: '0 0 20px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.05)',
+  },
+  diamond: {
+    border: '1px solid rgba(185, 242, 255, 0.6)',
+    boxShadow: '0 0 20px rgba(185, 242, 255, 0.3), 0 0 40px rgba(185, 242, 255, 0.1), inset 0 0 15px rgba(185, 242, 255, 0.05)',
+  },
+}
+
+const TIER_ICON_GLOW: Record<AchievementTier, React.CSSProperties> = {
+  bronze: { textShadow: '0 0 10px rgba(205, 127, 50, 0.6)' },
+  silver: { textShadow: '0 0 10px rgba(192, 192, 192, 0.6)' },
+  gold: { textShadow: '0 0 12px rgba(255, 215, 0, 0.7)' },
+  diamond: { textShadow: '0 0 15px rgba(185, 242, 255, 0.8)' },
+}
+
 /** Format a timestamp to a readable date. */
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString('en-US', {
@@ -51,7 +85,7 @@ function formatDate(ts: number): string {
 }
 
 /**
- * Achievements gallery page displaying all 30 achievements.
+ * Achievements gallery page displaying all 92 achievements.
  *
  * Shows unlock status, progress bars for locked achievements,
  * and category-grouped sections with filter options.
@@ -198,17 +232,21 @@ function AchievementCard({
   progress: number
 }) {
   const tier = TIER_COLORS[achievement.tier]
+  const cardClass = isUnlocked
+    ? `achievement-card achievement-${achievement.tier}`
+    : 'achievement-card achievement-locked'
 
   return (
     <div
       data-testid={`achievement-card-${achievement.id}`}
       className={`
-        relative rounded-xl p-4 border transition-all
-        ${isUnlocked
-          ? `${tier.bg} ${tier.border} shadow-sm`
-          : 'bg-contrast/3 border-contrast/10 opacity-70'
-        }
+        relative rounded-xl p-4 ${cardClass}
+        ${isUnlocked ? `${tier.bg}` : 'bg-contrast/3'}
       `}
+      style={isUnlocked
+        ? TIER_GLOW[achievement.tier]
+        : { border: '1px solid rgba(255, 255, 255, 0.06)' }
+      }
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -221,7 +259,11 @@ function AchievementCard({
             </p>
           </div>
         </div>
-        <span className="text-lg" title={achievement.tier}>
+        <span
+          className="text-lg"
+          title={achievement.tier}
+          style={isUnlocked ? TIER_ICON_GLOW[achievement.tier] : undefined}
+        >
           {TIER_BADGE[achievement.tier]}
         </span>
       </div>

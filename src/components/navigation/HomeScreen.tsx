@@ -4,8 +4,12 @@ import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
 import { CountingSystemId } from '../../engine/counting/types'
 import { getAllSystems } from '../../engine/counting/counting-systems'
+import { CursorSpotlight, GlowTitle } from './GlowEffects'
+import { DailyChallengeCard } from './DailyChallengeCard'
+import { WeeklyChallengeCard } from './WeeklyChallengeCard'
+import { LevelBadge } from './LevelBadge'
 
-const MODE_CARDS: { mode: AppMode; icon: string; title: string; description: string }[] = [
+const TRAINING_CARDS: { mode: AppMode; icon: string; title: string; description: string }[] = [
   {
     mode: 'speedDrill',
     icon: '\u26A1',
@@ -39,8 +43,8 @@ const MODE_CARDS: { mode: AppMode; icon: string; title: string; description: str
   {
     mode: 'bankrollSim',
     icon: '\uD83D\uDCB0',
-    title: 'Bankroll Simulator',
-    description: 'Simulate your edge, risk & hourly win',
+    title: 'Bankroll Tracker',
+    description: 'Track your real casino results',
   },
 ]
 
@@ -54,45 +58,88 @@ export function HomeScreen() {
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const setSystem = useAppStore(s => s.setSystem)
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
-
   return (
     <div className="min-h-screen bg-casino-bg flex flex-col items-center px-4 py-8 md:py-16">
       {/* Title */}
-      <h1 className="text-3xl md:text-5xl font-bold text-gold text-center mb-2">
-        Blackjack Card Counting Trainer
-      </h1>
-      <p className="text-content/50 text-sm md:text-base text-center mb-10 max-w-lg">
+      <GlowTitle>Blackjack Card Counting Trainer</GlowTitle>
+      <div className="flex justify-center mb-4">
+        <LevelBadge />
+      </div>
+      <p className="text-content/50 text-sm md:text-base text-center mb-6 max-w-lg">
         Master card counting with 6 training modes, 6 counting systems, and realistic shoe simulation.
       </p>
 
-      {/* Mode Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 w-full max-w-4xl mb-12">
-        {MODE_CARDS.map(({ mode, icon, title, description }) => (
-          <button
-            key={mode}
-            onClick={() => setMode(mode)}
-            data-testid={`mode-card-${mode}`}
-            className="group relative flex flex-col items-start p-5 rounded-xl
-              bg-contrast/5 border border-contrast/10
-              hover:border-gold/60 hover:bg-contrast/8 hover:-translate-y-0.5
-              transition-all duration-200 text-left cursor-pointer"
-          >
-            {/* Gold accent top bar */}
-            <div className="absolute top-0 left-4 right-4 h-0.5 bg-gold/40 group-hover:bg-gold rounded-full transition-colors" />
-
-            <span className="text-3xl mb-3">{icon}</span>
-            <h2 className="text-lg font-semibold text-content mb-1">{title}</h2>
-            <p className="text-sm text-content/50">{description}</p>
-          </button>
-        ))}
+      {/* Daily & Weekly Challenges */}
+      <div className="w-full max-w-4xl mb-6 px-6 space-y-3">
+        <DailyChallengeCard />
+        <WeeklyChallengeCard />
       </div>
 
-      {/* Analytics & Achievements Buttons */}
-      <div className="w-full max-w-4xl space-y-3 mb-12">
+      {/* Training Mode Cards */}
+      <div className="w-full max-w-4xl mb-12" style={{ position: 'relative', overflow: 'hidden', borderRadius: '20px', padding: '24px' }}>
+        <CursorSpotlight />
+        {/* 6 Training Mode Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          {TRAINING_CARDS.map(({ mode, icon, title, description }) => (
+            <button
+              key={mode}
+              onClick={() => setMode(mode)}
+              data-testid={`mode-card-${mode}`}
+              className="mode-card group relative flex flex-col items-start p-5 rounded-xl
+                bg-contrast/5 border border-contrast/10
+                hover:border-gold/60 hover:bg-contrast/8
+                transition-all duration-200 text-left cursor-pointer"
+            >
+              {/* Gold accent top bar */}
+              <div className="absolute top-0 left-4 right-4 h-0.5 bg-gold/40 group-hover:bg-gold rounded-full transition-colors" />
+
+              <span className="text-3xl mb-3">{icon}</span>
+              <h2 className="text-lg font-semibold text-content mb-1">{title}</h2>
+              <p className="text-sm text-content/50">{description}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* Casino Session – highlighted in its own row */}
+        <button
+          onClick={() => setMode('casinoSession')}
+          data-testid="mode-card-casinoSession"
+          className="mode-card group relative flex items-center gap-4 w-full p-5 rounded-xl
+            bg-gradient-to-r from-gold/10 to-transparent border border-gold/30
+            hover:border-gold/60 hover:from-gold/15
+            transition-all duration-200 text-left cursor-pointer"
+        >
+          <span className="text-3xl">{'\uD83C\uDFB0'}</span>
+          <div>
+            <h2 className="text-lg font-semibold text-gold">Casino Session</h2>
+            <p className="text-sm text-content/50">Play a full session at a realistic table</p>
+          </div>
+        </button>
+
+        {/* Casino Session Tracker */}
+        <button
+          onClick={() => setMode('casinoSessionTracker')}
+          data-testid="mode-card-casinoSessionTracker"
+          className="mode-card group relative flex items-center gap-4 w-full p-5 rounded-xl mt-3
+            bg-contrast/5 border border-contrast/10
+            hover:border-gold/60 hover:bg-contrast/8
+            transition-all duration-200 text-left cursor-pointer"
+        >
+          <span className="text-3xl">{'\uD83C\uDFB0'}</span>
+          <div>
+            <h2 className="text-lg font-semibold text-content">Casino Session Tracker</h2>
+            <p className="text-sm text-content/50">Track your training session results</p>
+          </div>
+        </button>
+      </div>
+
+      {/* Analytics & Achievements */}
+      <div className="w-full max-w-4xl mb-12" style={{ position: 'relative', overflow: 'hidden', borderRadius: '20px', padding: '24px' }}>
+        <CursorSpotlight />
         <button
           onClick={() => setMode('analytics')}
           data-testid="analytics-button"
-          className="group w-full flex items-center gap-4 p-4 rounded-xl
+          className="mode-card group w-full flex items-center gap-4 p-4 rounded-xl
             bg-contrast/5 border border-gold/30
             hover:border-gold/60 hover:bg-contrast/8
             transition-all duration-200 text-left cursor-pointer"
@@ -105,9 +152,24 @@ export function HomeScreen() {
         </button>
 
         <button
+          onClick={() => setMode('strategyChart')}
+          data-testid="strategy-chart-button"
+          className="mode-card group w-full flex items-center gap-4 p-4 rounded-xl mt-3
+            bg-contrast/5 border border-gold/30
+            hover:border-gold/60 hover:bg-contrast/8
+            transition-all duration-200 text-left cursor-pointer"
+        >
+          <span className="text-2xl">{'\uD83D\uDCCB'}</span>
+          <div>
+            <h2 className="text-base font-semibold text-gold">Basic Strategy Chart</h2>
+            <p className="text-sm text-content/50">View the complete strategy table</p>
+          </div>
+        </button>
+
+        <button
           onClick={() => setMode('achievements')}
           data-testid="achievements-button"
-          className="group w-full flex items-center gap-4 p-4 rounded-xl
+          className="mode-card group w-full flex items-center gap-4 p-4 rounded-xl mt-3
             bg-contrast/5 border border-gold/30
             hover:border-gold/60 hover:bg-contrast/8
             transition-all duration-200 text-left cursor-pointer"
@@ -144,6 +206,7 @@ export function HomeScreen() {
           ))}
         </select>
       </div>
+
     </div>
   )
 }

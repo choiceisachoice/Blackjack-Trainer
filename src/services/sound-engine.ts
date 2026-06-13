@@ -224,6 +224,20 @@ class SoundEngine {
     playSoftTone(ctx, 392, 0.12, vol, t + 0.30)
     playSoftTone(ctx, 523, 0.18, vol, t + 0.45)
   }
+
+  /** Grand ascending fanfare — level up. C4-E4-G4-C5-E5, louder, ~0.8s. */
+  levelUp(): void {
+    if (!this.shouldPlay('levelUp')) return
+    const ctx = this.getContext()
+    if (!ctx) return
+    const t = ctx.currentTime
+    const vol = 0.16 * this._volume
+    playSoftTone(ctx, 262, 0.14, vol, t)
+    playSoftTone(ctx, 330, 0.14, vol, t + 0.15)
+    playSoftTone(ctx, 392, 0.14, vol, t + 0.30)
+    playSoftTone(ctx, 523, 0.16, vol * 1.1, t + 0.45)
+    playSoftTone(ctx, 659, 0.22, vol * 1.2, t + 0.62)
+  }
 }
 
 /** Singleton sound engine instance. */

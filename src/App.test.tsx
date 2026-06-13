@@ -34,7 +34,7 @@ describe('App', () => {
 
   it('renders home screen by default', () => {
     render(<App />)
-    expect(screen.getByText('Blackjack Card Counting Trainer')).toBeInTheDocument()
+    expect(screen.getAllByText('Blackjack Card Counting Trainer')[0]).toBeInTheDocument()
   })
 
   it('renders DeviationTraining for deviationTraining mode', () => {

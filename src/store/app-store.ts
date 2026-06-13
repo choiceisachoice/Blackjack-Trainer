@@ -63,6 +63,9 @@ export type AppMode =
   | 'analytics'
   | 'bankrollSim'
   | 'achievements'
+  | 'casinoSession'
+  | 'strategyChart'
+  | 'casinoSessionTracker'
 
 /** App-level state for navigation and global settings. */
 export interface AppStoreState {

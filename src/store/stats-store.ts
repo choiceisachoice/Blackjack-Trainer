@@ -8,7 +8,20 @@ import type {
 } from '../services/stats-types'
 import { useAppStore } from './app-store'
 import { useAchievementStore } from './achievement-store'
+import { useChallengeStore } from './challenge-store'
+import { useWeeklyChallengeStore } from './weekly-challenge-store'
+import { useLevelStore } from './level-store'
 import type { CountingSystemId } from '../engine/counting/types'
+
+/** Get the Monday (YYYY-MM-DD) of the current ISO week. */
+function getMonday(): string {
+  const now = new Date()
+  const day = now.getUTCDay() // 0=Sun, 1=Mon
+  const diff = day === 0 ? -6 : 1 - day
+  const monday = new Date(now)
+  monday.setUTCDate(now.getUTCDate() + diff)
+  return monday.toISOString().slice(0, 10)
+}
 
 /** Accuracy trend direction. */
 export type TrendDirection = 'improving' | 'stable' | 'declining'
@@ -136,6 +149,19 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
     useAchievementStore.getState().checkAchievements(
       result, lifetimeStats, dayStreak, allSessions,
     )
+
+    // Update daily challenge progress
+    const today = new Date().toISOString().slice(0, 10)
+    const todaySessions = allSessions.filter(s => s.timestamp.startsWith(today))
+    useChallengeStore.getState().updateProgress(result, todaySessions)
+
+    // Update weekly challenge progress
+    const weekStart = getMonday()
+    const weekSessions = allSessions.filter(s => s.timestamp.slice(0, 10) >= weekStart)
+    useWeeklyChallengeStore.getState().updateProgress(result, weekSessions)
+
+    // Award session XP
+    useLevelStore.getState().addSessionXP(result)
   },
 
   getAccuracyTrend(mode?: TrainingMode): TrendDirection {

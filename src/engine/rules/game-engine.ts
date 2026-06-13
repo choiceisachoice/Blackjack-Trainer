@@ -191,27 +191,44 @@ export class GameEngine {
       ? [current.cards[1], state.shoe.deal()]
       : [current.cards[1]]
 
+    const newPlayerHands = [
+      ...state.playerHands.slice(0, state.currentHandIndex),
+      // placeholders — filled below
+      {} as Hand,
+      {} as Hand,
+      ...state.playerHands.slice(state.currentHandIndex + 1),
+    ]
+
+    // Check if re-splitting Aces is possible (room for another split)
+    const newHandCount = newPlayerHands.length
+    const canReSplit =
+      autoStand &&
+      this.rules.resplitAllowed &&
+      newHandCount < this.rules.maxSplitHands
+
     const hand1: Hand = {
       cards: hand1Cards,
       bet: current.bet,
       isDoubled: false,
       isSplit: true,
-      isStanding: autoStand || getHandValue(hand1Cards).best === 21,
+      isStanding:
+        canReSplit && hand1Cards[1].rank === Rank.Ace
+          ? false
+          : autoStand || getHandValue(hand1Cards).best === 21,
     }
     const hand2: Hand = {
       cards: hand2Cards,
       bet: current.bet,
       isDoubled: false,
       isSplit: true,
-      isStanding: autoStand,
+      isStanding:
+        canReSplit && hand2Cards[1].rank === Rank.Ace
+          ? false
+          : autoStand,
     }
 
-    const newPlayerHands = [
-      ...state.playerHands.slice(0, state.currentHandIndex),
-      hand1,
-      hand2,
-      ...state.playerHands.slice(state.currentHandIndex + 1),
-    ]
+    newPlayerHands[state.currentHandIndex] = hand1
+    newPlayerHands[state.currentHandIndex + 1] = hand2
 
     return this.advanceIfNeeded({
       ...state,
@@ -386,11 +403,19 @@ export class GameEngine {
       return []
     }
 
-    const actions: Action[] = [Action.Hit, Action.Stand]
+    // Split Aces with no-hit: only Stand (and possibly Split) — no Hit or Double
+    const isSplitAcesNoHit =
+      current.isSplit &&
+      current.cards[0].rank === Rank.Ace &&
+      !this.rules.hitSplitAces
+
+    const actions: Action[] = isSplitAcesNoHit
+      ? [Action.Stand]
+      : [Action.Hit, Action.Stand]
     const isFirstAction = current.cards.length === 2 && !current.isSplit
 
     // Double: allowed on first 2 cards (and after split if doubleAfterSplit)
-    if (current.cards.length === 2) {
+    if (!isSplitAcesNoHit && current.cards.length === 2) {
       if (!current.isSplit || this.rules.doubleAfterSplit) {
         actions.push(Action.Double)
       }

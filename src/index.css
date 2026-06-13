@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/glow-effects.css";
 
 @theme {
   /* ── Static colors (same in both themes) ── */

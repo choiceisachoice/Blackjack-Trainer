@@ -17,6 +17,7 @@ import type {
   PlayDecision,
   PlayerHandRecord,
 } from './types'
+import type { SessionEventRecorder } from '../../services/session-recorder'
 
 /** Maximum number of seats at the table. */
 const MAX_SEATS = 6
@@ -29,6 +30,29 @@ const BET_SPREAD: Record<number, number> = {
   3: 8,    // TC +3
   4: 12,   // TC +4
   5: 16,   // TC +5+
+}
+
+/**
+ * Checks if re-splitting aces is allowed for a given hand.
+ * After splitting aces, each hand receives one card. If that card
+ * is also an ace and the hand limit hasn't been reached, the player
+ * may re-split.
+ * @param handCards - The cards in the hand (should be exactly 2)
+ * @param totalSplitHands - The current total number of player hands
+ * @param maxSplitHands - The maximum allowed hands after splitting
+ * @returns true if the hand contains two aces and re-split is allowed
+ */
+export function canReSplitAces(
+  handCards: Card[],
+  totalSplitHands: number,
+  maxSplitHands: number,
+): boolean {
+  return (
+    handCards.length === 2 &&
+    handCards[0].rank === 'A' &&
+    handCards[1].rank === 'A' &&
+    totalSplitHands < maxSplitHands
+  )
 }
 
 /**
@@ -66,8 +90,17 @@ export class CasinoSessionEngine {
   /** CasinoRules derived from session config (for basic strategy lookups). */
   private casinoRules: CasinoRules
 
-  constructor(config: CasinoSessionConfig) {
+  /** Optional event recorder for debug diagnostics. */
+  private recorder: SessionEventRecorder | null
+
+  /** Suit symbols for card formatting in recorder events. */
+  private static readonly SUIT_SYM: Record<string, string> = {
+    Hearts: '\u2665', Diamonds: '\u2666', Clubs: '\u2663', Spades: '\u2660',
+  }
+
+  constructor(config: CasinoSessionConfig, recorder?: SessionEventRecorder | null) {
     this.config = config
+    this.recorder = recorder ?? null
     this.humanBankroll = config.startingBankroll
     this.peakBankroll = config.startingBankroll
     this.countingSystem = getSystemById(config.countingSystem)
@@ -88,6 +121,16 @@ export class CasinoSessionEngine {
 
     this.shoe = this.createShoe()
     this.seats = this.initializeSeats()
+  }
+
+  /** Formats a Card as a readable string (e.g. "A\u2660"). */
+  private fmtCard(card: Card): string {
+    return `${card.rank}${CasinoSessionEngine.SUIT_SYM[card.suit] ?? card.suit}`
+  }
+
+  /** Formats an array of Cards as a string array. */
+  private fmtCards(cards: Card[]): string[] {
+    return cards.map(c => this.fmtCard(c))
   }
 
   // ─── Initialization ──────────────────────────────────
@@ -343,6 +386,10 @@ export class CasinoSessionEngine {
   dealNewRound(): DealResult {
     const reshuffled = this.reshuffleIfNeeded()
     this.currentHandNumber++
+    const hn = this.currentHandNumber
+
+    if (reshuffled) this.recorder?.recordShuffle(hn)
+    this.recorder?.recordNewHand(hn)
 
     const humanCards: Card[] = []
     const dealerCards: Card[] = []
@@ -352,7 +399,10 @@ export class CasinoSessionEngine {
     // Prepare bots for new round
     for (const seat of this.seats) {
       if (seat && seat.isActive) {
-        refillBotBankroll(seat, this.config.minBet, this.usedBotNames)
+        // Only refill when the bot can't afford the minimum bet
+        if (seat.bankroll < this.config.minBet) {
+          refillBotBankroll(seat, this.config.minBet, this.usedBotNames)
+        }
         seat.currentBet = Math.min(seat.flatBetAmount, seat.bankroll)
         seat.bankroll -= seat.currentBet
         seat.hands = [{
@@ -364,6 +414,7 @@ export class CasinoSessionEngine {
           isStanding: false,
         }]
         botHands.set(seat.id, [])
+        this.recorder?.recordBetPlaced(`bot:${seat.name}`, seat.currentBet, seat.currentBet, this.getTrueCount(), hn)
       }
     }
 
@@ -373,6 +424,7 @@ export class CasinoSessionEngine {
         const card = this.drawCard()
         humanCards.push(card)
         allDealtCards.push(card)
+        this.recorder?.recordCardDealt('human', this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
       } else {
         const bot = this.seats[seatIdx]
         if (bot && bot.isActive) {
@@ -381,6 +433,7 @@ export class CasinoSessionEngine {
           const botCards = botHands.get(bot.id)!
           botCards.push(card)
           allDealtCards.push(card)
+          this.recorder?.recordCardDealt(`bot:${bot.name}`, this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
         }
       }
     }
@@ -388,6 +441,7 @@ export class CasinoSessionEngine {
     const dealerUpCard = this.drawCard()
     dealerCards.push(dealerUpCard)
     allDealtCards.push(dealerUpCard)
+    this.recorder?.recordCardDealt('dealer_up', this.fmtCard(dealerUpCard), hn, this.runningCount, this.getTrueCount())
 
     // Round 2: Second card to each seat (left to right), then dealer hole card
     for (let seatIdx = 0; seatIdx < MAX_SEATS; seatIdx++) {
@@ -395,6 +449,7 @@ export class CasinoSessionEngine {
         const card = this.drawCard()
         humanCards.push(card)
         allDealtCards.push(card)
+        this.recorder?.recordCardDealt('human', this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
       } else {
         const bot = this.seats[seatIdx]
         if (bot && bot.isActive) {
@@ -403,6 +458,7 @@ export class CasinoSessionEngine {
           const botCards = botHands.get(bot.id)!
           botCards.push(card)
           allDealtCards.push(card)
+          this.recorder?.recordCardDealt(`bot:${bot.name}`, this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
         }
       }
     }
@@ -412,6 +468,19 @@ export class CasinoSessionEngine {
     // Hole card is NOT added to running count until revealed
     dealerCards.push(dealerHoleCard)
     allDealtCards.push(dealerHoleCard)
+    this.recorder?.recordCardDealt('dealer_hole', this.fmtCard(dealerHoleCard), hn, this.runningCount, this.getTrueCount())
+
+    // Record BJ checks for all players after deal
+    this.recorder?.recordBlackjackCheck('human', this.fmtCards(humanCards), isBlackjack(humanCards), hn)
+    this.recorder?.recordBlackjackCheck('dealer', this.fmtCards(dealerCards), isBlackjack(dealerCards), hn)
+    for (const seat of this.seats) {
+      if (seat && seat.isActive && seat.hands[0]) {
+        this.recorder?.recordBlackjackCheck(
+          `bot:${seat.name}`, this.fmtCards(seat.hands[0].cards),
+          isBlackjack(seat.hands[0].cards), hn,
+        )
+      }
+    }
 
     return {
       humanCards,
@@ -442,6 +511,8 @@ export class CasinoSessionEngine {
 
   private playBotRange(fromSeat: number, toSeat: number): Card[] {
     const drawnCards: Card[] = []
+    // Bots never surrender — use rules with surrender disabled
+    const botRules: CasinoRules = { ...this.casinoRules, surrenderAllowed: 'none' }
 
     for (let seatIdx = fromSeat; seatIdx < toSeat; seatIdx++) {
       const bot = this.seats[seatIdx]
@@ -453,11 +524,7 @@ export class CasinoSessionEngine {
         continue
       }
 
-      const cardsBefore = this.cardsDealt
-      bot.hands = playBotTurn(bot, bot.hands[0].cards.length > 0 ? this.getDealerUpCardFromSeats() : bot.hands[0].cards[0], () => this.drawCard(), this.casinoRules)
-      // Collect newly drawn cards (approximate)
-      const cardsAfter = this.cardsDealt
-      // We can't easily collect individual cards here, but the RC is updated via drawCard
+      bot.hands = playBotTurn(bot, bot.hands[0].cards.length > 0 ? this.getDealerUpCardFromSeats() : bot.hands[0].cards[0], () => this.drawCard(), botRules)
     }
 
     return drawnCards
@@ -476,18 +543,53 @@ export class CasinoSessionEngine {
   playBotAtSeat(seatIndex: number, dealerUpCard: Card): void {
     const bot = this.seats[seatIndex]
     if (!bot || !bot.isActive || bot.hands.length === 0) return
+    const hn = this.currentHandNumber
 
     // Skip if bot has blackjack
     if (bot.hands[0].cards.length === 2 && isBlackjack(bot.hands[0].cards)) {
       bot.hands[0].isStanding = true
+      this.recorder?.recordPlayerAction(
+        `bot:${bot.name}`, 'blackjack', 21, this.fmtCard(dealerUpCard),
+        'blackjack', true, true, hn,
+      )
       return
     }
 
+    // Save original cards BEFORE bot plays (for correct BS action recording on pairs)
+    const originalCards = [...bot.hands[0].cards]
+    const cardsBefore = bot.hands[0].cards.length
+
+    // Bots never surrender — use rules with surrender disabled
+    const botRules: CasinoRules = { ...this.casinoRules, surrenderAllowed: 'none' }
     bot.hands = playBotTurn(
       bot,
       dealerUpCard,
       () => this.drawCard(),
-      this.casinoRules,
+      botRules,
+    )
+
+    // Record bot's first action (not outcome like bust — bust is bad luck, not a decision)
+    const mainHand = bot.hands[0]
+    const finalValue = getHandValue(mainHand.cards).best
+    let action = 'stand'
+    if (bot.hands.length > 1) action = 'split'
+    else if (mainHand.isDoubled) action = 'double'
+    else if (mainHand.cards.length > cardsBefore) action = 'hit'
+
+    // Compute actual BS correct action using ORIGINAL cards (before split changed them)
+    // Use botRules (no surrender) so correctAction matches what bots can actually do
+    const bsAction = getOptimalAction(
+      originalCards, dealerUpCard, botRules,
+    )
+    const bsActionStr = bsAction === Action.Hit ? 'hit'
+      : bsAction === Action.Stand ? 'stand'
+      : bsAction === Action.Double ? 'double'
+      : bsAction === Action.Split ? 'split'
+      : bsAction === Action.Surrender ? 'surrender' : 'stand'
+
+    this.recorder?.recordPlayerAction(
+      `bot:${bot.name}`, action, finalValue, this.fmtCard(dealerUpCard),
+      bsActionStr, action === bsActionStr, false, hn,
     )
   }
 
@@ -514,9 +616,16 @@ export class CasinoSessionEngine {
    * @returns All dealer cards after playing
    */
   playDealerHand(dealerCards: Card[]): Card[] {
+    const hn = this.currentHandNumber
+
     // Reveal hole card — now it gets counted
     if (dealerCards.length >= 2) {
       this.runningCount += getCountValue(dealerCards[1], this.countingSystem)
+      this.recorder?.recordDealerReveal(
+        this.fmtCard(dealerCards[1]), hn,
+        this.fmtCard(dealerCards[1]), // expectedHoleCard — same since engine tracks it
+        this.runningCount,
+      )
     }
 
     let cards = [...dealerCards]
@@ -530,7 +639,10 @@ export class CasinoSessionEngine {
     while (this.dealerMustHit(cards)) {
       const card = this.drawCard()
       cards = [...cards, card]
+      this.recorder?.recordCardDealt('dealer_hit', this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
     }
+
+    this.recorder?.recordBlackjackCheck('dealer_final', this.fmtCards(cards), isBlackjack(cards), hn)
 
     return cards
   }
@@ -616,6 +728,9 @@ export class CasinoSessionEngine {
    */
   settleBotHands(dealerCards: Card[]): BotRoundResult[] {
     const results: BotRoundResult[] = []
+    const hn = this.currentHandNumber
+    const dealerValue = getHandValue(dealerCards).best
+    const dealerHasBJ = isBlackjack(dealerCards)
 
     for (const seat of this.seats) {
       if (!seat || !seat.isActive) continue
@@ -634,15 +749,32 @@ export class CasinoSessionEngine {
         hand.profit = profit
         totalProfit += profit
         seat.bankroll += hand.bet + profit
+
+        const playerValue = getHandValue(hand.cards).best
+        const playerHasBJ = isBlackjack(hand.cards) && !hand.isSplit
+        this.recorder?.recordSettlement(
+          `bot:${seat.name}`, result, profit, playerValue,
+          playerHasBJ, dealerValue, dealerHasBJ, hand.bet, hn,
+        )
       }
 
       // Use the first hand for display
       const mainHand = seat.hands[0]
+      let aggregateResult = mainHand.result || 'loss'
+
+      // For split hands, determine aggregate result from total profit
+      if (seat.hands.length > 1) {
+        if (totalProfit > 0) aggregateResult = 'win'
+        else if (totalProfit < 0) aggregateResult = 'loss'
+        else aggregateResult = 'push'
+      }
+
       results.push({
+        id: seat.id,
         name: seat.name,
         cards: mainHand.cards,
         handValue: getHandValue(mainHand.cards).best,
-        result: mainHand.result || 'loss',
+        result: aggregateResult,
         profit: totalProfit,
       })
     }

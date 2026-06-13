@@ -1,448 +1,343 @@
-import { render, screen, fireEvent, act } from '@testing-library/react'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import React from 'react'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BankrollSimulator } from './BankrollSimulator'
-import { TopBar } from '../navigation/TopBar'
-import { useStatsStore } from '../../store/stats-store'
+import { useBankrollTrackerStore } from '../../store/bankroll-tracker-store'
 import { useAppStore } from '../../store/app-store'
-import type { SimulationResult } from '../../engine/simulation/types'
+import { TopBar } from '../navigation/TopBar'
 
-// Mock recharts — render children only
 vi.mock('recharts', () => ({
   AreaChart: ({ children }: React.PropsWithChildren) => <div data-testid="area-chart">{children}</div>,
   Area: () => <div />,
-  BarChart: ({ children }: React.PropsWithChildren) => <div data-testid="bar-chart">{children}</div>,
-  Bar: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
-  Cell: () => <div />,
+  LineChart: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
+  Line: () => <div />,
   XAxis: () => <div />,
   YAxis: () => <div />,
   Tooltip: () => <div />,
-  CartesianGrid: () => <div />,
   ReferenceLine: () => <div />,
-  Legend: () => <div />,
   ResponsiveContainer: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
 }))
 
-// Mock simulation engine
-const mockResult: SimulationResult = {
-  totalHands: 45000,
-  finalBankroll: 52500,
-  peakBankroll: 58000,
-  minBankroll: 44000,
-  netProfit: 2500,
-  hourlyEV: 47.2,
-  riskOfRuin: 0.032,
-  n0: 12450,
-  houseEdge: -0.0005,
-  weightedPlayerEdge: 0.008,
-  bankrollHistory: [
-    { hand: 0, bankroll: 50000 },
-    { hand: 50, bankroll: 50100 },
-    { hand: 100, bankroll: 49800 },
-  ],
-  outcomeDistribution: [
-    { label: '$-500 to $0', count: 400, percentage: 40 },
-    { label: '$0 to $500', count: 600, percentage: 60 },
-  ],
-  percentWinningSessions: 62,
-  worstDrawdown: 6000,
-  averageBet: 52.4,
-  kellyOptimalBet: 85,
+function resetStore() {
+  useBankrollTrackerStore.setState({ sessions: [], startingBankroll: 0 })
 }
 
-const mockRunSimulation = vi.fn(() => mockResult)
-
-vi.mock('../../engine/simulation/simulator', () => ({
-  runSimulation: (...args: unknown[]) => mockRunSimulation(...args),
-  getBetMultiplier: vi.fn((spread: Record<number, number>, tc: number) => {
-    const keys = Object.keys(spread).map(Number).sort((a, b) => b - a)
-    for (const key of keys) {
-      if (tc >= key) return spread[key]
-    }
-    return 1
-  }),
-}))
-
-describe('BankrollSimulator', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-    mockRunSimulation.mockReturnValue(mockResult)
-    useStatsStore.setState({ sessions: [], lifetimeStats: null, isLoading: false })
+function setupWithSessions() {
+  useBankrollTrackerStore.setState({
+    startingBankroll: 10000,
+    sessions: [
+      { id: 's1', date: '2026-03-20', casino: 'Bellagio', result: 800, hoursPlayed: 4, notes: 'Hot shoe', createdAt: 1 },
+      { id: 's2', date: '2026-03-22', casino: 'MGM Grand', result: -200, hoursPlayed: 2.5, notes: 'Bad count', createdAt: 2 },
+      { id: 's3', date: '2026-03-25', casino: 'Bellagio', result: 500, hoursPlayed: 3, notes: '', createdAt: 3 },
+    ],
   })
+}
 
-  afterEach(() => {
-    vi.useRealTimers()
-  })
+describe('BankrollTracker', () => {
+  beforeEach(resetStore)
 
-  it('renders preset buttons', () => {
+  // ── Onboarding ──
+
+  it('shows onboarding when no starting bankroll and no sessions', () => {
     render(<BankrollSimulator />)
 
-    expect(screen.getByTestId('preset-beginner')).toHaveTextContent('Casual Counter')
-    expect(screen.getByTestId('preset-intermediate')).toHaveTextContent('Serious Player')
-    expect(screen.getByTestId('preset-professional')).toHaveTextContent('Professional')
-    expect(screen.getByTestId('preset-worstCase')).toHaveTextContent('Tough Conditions')
+    expect(screen.getByText('Start Tracking Your Bankroll')).toBeInTheDocument()
+    expect(screen.getByTestId('onboarding-bankroll-input')).toBeInTheDocument()
+    expect(screen.getByTestId('start-tracking-btn')).toBeInTheDocument()
   })
 
-  it('clicking preset fills form with preset values', () => {
+  it('onboarding sets starting bankroll and shows tracker', () => {
     render(<BankrollSimulator />)
 
-    fireEvent.click(screen.getByTestId('preset-beginner'))
+    fireEvent.change(screen.getByTestId('onboarding-bankroll-input'), { target: { value: '10000' } })
+    fireEvent.click(screen.getByTestId('start-tracking-btn'))
 
-    // Beginner preset: bankroll 5000, minBet 10
-    const bankrollInput = screen.getByDisplayValue('5000')
-    expect(bankrollInput).toBeInTheDocument()
-    const minBetInput = screen.getByDisplayValue('10')
-    expect(minBetInput).toBeInTheDocument()
+    expect(screen.getByTestId('bankroll-tracker')).toBeInTheDocument()
+    expect(screen.getByTestId('current-bankroll')).toHaveTextContent('$10,000')
   })
 
-  it('shows configuration form with all fields', () => {
+  it('start tracking button is disabled with empty or zero input', () => {
     render(<BankrollSimulator />)
 
-    expect(screen.getByTestId('sim-config')).toBeInTheDocument()
-    expect(screen.getByText('Bankroll & Bets')).toBeInTheDocument()
-    expect(screen.getByText('Casino Rules')).toBeInTheDocument()
-    expect(screen.getByText('Player Skill & Simulation')).toBeInTheDocument()
-    expect(screen.getByTestId('bet-spread-table')).toBeInTheDocument()
-    expect(screen.getByTestId('run-simulation')).toBeInTheDocument()
+    const btn = screen.getByTestId('start-tracking-btn')
+    expect(btn).toBeDisabled()
+
+    fireEvent.change(screen.getByTestId('onboarding-bankroll-input'), { target: { value: '0' } })
+    expect(btn).toBeDisabled()
   })
 
-  it('6:5 blackjack shows warning', () => {
+  // ── Main View ──
+
+  it('shows overview stats with sessions', () => {
+    setupWithSessions()
     render(<BankrollSimulator />)
 
-    // Default is 3:2, no warning
-    expect(screen.queryByTestId('six-five-warning')).not.toBeInTheDocument()
-
-    // Click 6:5 button
-    fireEvent.click(screen.getByText('6:5'))
-
-    expect(screen.getByTestId('six-five-warning')).toHaveTextContent('6:5 significantly increases house edge')
+    expect(screen.getByTestId('current-bankroll')).toHaveTextContent('$11,100')
+    expect(screen.getByTestId('stat-sessions')).toHaveTextContent('3')
+    expect(screen.getByTestId('stat-winrate')).toHaveTextContent('67%')
+    expect(screen.getByTestId('stat-hours')).toHaveTextContent('9.5h')
   })
 
-  it('disabling deviations hides deviation accuracy slider', () => {
+  it('shows overview summary with profit and ROI', () => {
+    setupWithSessions()
     render(<BankrollSimulator />)
 
-    // Default professional preset has deviations enabled
-    expect(screen.getByTestId('deviation-accuracy-slider')).toBeInTheDocument()
-
-    // Disable deviations
-    fireEvent.click(screen.getByTestId('deviations-no'))
-
-    expect(screen.queryByTestId('deviation-accuracy-slider')).not.toBeInTheDocument()
+    const summary = screen.getByTestId('overview-summary')
+    expect(summary).toHaveTextContent('Starting: $10,000')
+    expect(summary).toHaveTextContent('+$1,100')
+    expect(summary).toHaveTextContent('11.0%')
   })
 
-  it('run simulation button triggers simulation and shows results', () => {
+  it('renders chart section with area chart when sessions exist', () => {
+    setupWithSessions()
     render(<BankrollSimulator />)
 
-    fireEvent.click(screen.getByTestId('run-simulation'))
-
-    // Advance past the setTimeout(50ms)
-    act(() => { vi.advanceTimersByTime(100) })
-
-    expect(screen.getByTestId('sim-results')).toBeInTheDocument()
-  })
-
-  it('results show all 4 key metric cards', () => {
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    expect(screen.getByTestId('metric-hourly-ev')).toBeInTheDocument()
-    expect(screen.getByTestId('metric-ror')).toBeInTheDocument()
-    expect(screen.getByTestId('metric-rec-bankroll')).toBeInTheDocument()
-    expect(screen.getByTestId('metric-n0')).toBeInTheDocument()
-  })
-
-  it('bankroll journey chart renders with data', () => {
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    expect(screen.getByTestId('bankroll-chart')).toBeInTheDocument()
+    expect(screen.getByTestId('chart-section')).toBeInTheDocument()
     expect(screen.getByTestId('area-chart')).toBeInTheDocument()
   })
 
-  it('outcome distribution histogram renders', () => {
+  it('shows empty chart message when no sessions', () => {
+    useBankrollTrackerStore.setState({ startingBankroll: 10000, sessions: [] })
     render(<BankrollSimulator />)
 
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    expect(screen.getByTestId('outcome-chart')).toBeInTheDocument()
-    expect(screen.getByTestId('bar-chart')).toBeInTheDocument()
+    expect(screen.getByText('Add your first session to see the chart')).toBeInTheDocument()
   })
 
-  it('modify settings button returns to configuration', () => {
+  // ── Session List ──
+
+  it('renders session list sorted newest first', () => {
+    setupWithSessions()
     render(<BankrollSimulator />)
 
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
+    const list = screen.getByTestId('session-list')
+    expect(list).toBeInTheDocument()
 
-    expect(screen.getByTestId('sim-results')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByTestId('modify-settings'))
-
-    expect(screen.getByTestId('sim-config')).toBeInTheDocument()
+    // Check all sessions are rendered
+    expect(screen.getByTestId('session-s1')).toBeInTheDocument()
+    expect(screen.getByTestId('session-s2')).toBeInTheDocument()
+    expect(screen.getByTestId('session-s3')).toBeInTheDocument()
   })
 
-  it('copy summary copies text to clipboard', () => {
-    const writeText = vi.fn().mockResolvedValue(undefined)
-    Object.assign(navigator, { clipboard: { writeText } })
-
+  it('session shows green for win and red for loss', () => {
+    setupWithSessions()
     render(<BankrollSimulator />)
 
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    fireEvent.click(screen.getByTestId('copy-summary'))
-
-    expect(writeText).toHaveBeenCalledTimes(1)
-    const text = writeText.mock.calls[0][0] as string
-    expect(text).toContain('Bankroll Simulation Results')
-    expect(text).toContain('Expected Win')
-    expect(text).toContain('Risk of Ruin')
+    // s1 is a win (+$800)
+    expect(screen.getByTestId('session-s1')).toHaveTextContent('+$800')
+    // s2 is a loss (-$200)
+    expect(screen.getByTestId('session-s2')).toHaveTextContent('-$200')
   })
 
-  it('TopBar shows "Bankroll Simulator" for bankrollSim mode', () => {
+  it('shows empty sessions message when no sessions recorded', () => {
+    useBankrollTrackerStore.setState({ startingBankroll: 10000, sessions: [] })
+    render(<BankrollSimulator />)
+
+    expect(screen.getByTestId('empty-sessions')).toBeInTheDocument()
+  })
+
+  // ── Add Session Form ──
+
+  it('opens add session form and saves new session', () => {
+    useBankrollTrackerStore.setState({ startingBankroll: 10000, sessions: [] })
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('add-session-btn'))
+
+    expect(screen.getByTestId('session-form')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByTestId('form-casino'), { target: { value: 'Aria' } })
+    fireEvent.change(screen.getByTestId('form-amount'), { target: { value: '350' } })
+    fireEvent.change(screen.getByTestId('form-hours'), { target: { value: '2.5' } })
+    fireEvent.change(screen.getByTestId('form-notes'), { target: { value: 'Nice dealer' } })
+    fireEvent.click(screen.getByTestId('form-save'))
+
+    // Form closes and session appears
+    expect(screen.queryByTestId('session-form')).not.toBeInTheDocument()
+    expect(useBankrollTrackerStore.getState().sessions).toHaveLength(1)
+    expect(useBankrollTrackerStore.getState().sessions[0].result).toBe(350)
+    expect(useBankrollTrackerStore.getState().sessions[0].casino).toBe('Aria')
+  })
+
+  it('win/loss toggle changes result sign', () => {
+    useBankrollTrackerStore.setState({ startingBankroll: 10000, sessions: [] })
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('add-session-btn'))
+
+    // Default is Win
+    fireEvent.click(screen.getByTestId('form-loss-btn'))
+    fireEvent.change(screen.getByTestId('form-casino'), { target: { value: 'Test' } })
+    fireEvent.change(screen.getByTestId('form-amount'), { target: { value: '200' } })
+    fireEvent.click(screen.getByTestId('form-save'))
+
+    expect(useBankrollTrackerStore.getState().sessions[0].result).toBe(-200)
+  })
+
+  it('cancel button closes form', () => {
+    useBankrollTrackerStore.setState({ startingBankroll: 10000, sessions: [] })
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('add-session-btn'))
+    expect(screen.getByTestId('session-form')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('form-cancel'))
+    expect(screen.queryByTestId('session-form')).not.toBeInTheDocument()
+  })
+
+  // ── Edit Starting Bankroll ──
+
+  it('pencil icon opens inline edit for starting bankroll', () => {
+    setupWithSessions()
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('edit-starting-btn'))
+
+    const input = screen.getByTestId('edit-starting-input') as HTMLInputElement
+    expect(input).toBeInTheDocument()
+    expect(input.value).toBe('10000')
+  })
+
+  it('saving inline edit updates starting bankroll', () => {
+    setupWithSessions()
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('edit-starting-btn'))
+    fireEvent.change(screen.getByTestId('edit-starting-input'), { target: { value: '15000' } })
+    fireEvent.click(screen.getByTestId('save-starting-btn'))
+
+    expect(useBankrollTrackerStore.getState().startingBankroll).toBe(15000)
+    expect(screen.queryByTestId('edit-starting-input')).not.toBeInTheDocument()
+  })
+
+  it('canceling inline edit keeps original value', () => {
+    setupWithSessions()
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('edit-starting-btn'))
+    fireEvent.change(screen.getByTestId('edit-starting-input'), { target: { value: '99999' } })
+    fireEvent.click(screen.getByTestId('cancel-starting-btn'))
+
+    expect(useBankrollTrackerStore.getState().startingBankroll).toBe(10000)
+    expect(screen.queryByTestId('edit-starting-input')).not.toBeInTheDocument()
+  })
+
+  // ── Edit Session ──
+
+  it('edit button opens form with session data', () => {
+    setupWithSessions()
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('edit-s1'))
+
+    const form = screen.getByTestId('session-form')
+    expect(form).toBeInTheDocument()
+
+    const casinoInput = screen.getByTestId('form-casino') as HTMLInputElement
+    expect(casinoInput.value).toBe('Bellagio')
+
+    const amountInput = screen.getByTestId('form-amount') as HTMLInputElement
+    expect(amountInput.value).toBe('800')
+  })
+
+  it('saving edit updates the session', () => {
+    setupWithSessions()
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('edit-s1'))
+    fireEvent.change(screen.getByTestId('form-amount'), { target: { value: '1000' } })
+    fireEvent.click(screen.getByTestId('form-save'))
+
+    expect(useBankrollTrackerStore.getState().sessions.find(s => s.id === 's1')!.result).toBe(1000)
+  })
+
+  // ── Delete Session ──
+
+  it('delete requires confirmation', () => {
+    setupWithSessions()
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('delete-s1'))
+
+    // Should show confirm button, not immediately delete
+    expect(screen.getByTestId('confirm-delete-s1')).toBeInTheDocument()
+    expect(useBankrollTrackerStore.getState().sessions).toHaveLength(3)
+  })
+
+  it('confirming delete removes session', () => {
+    setupWithSessions()
+    render(<BankrollSimulator />)
+
+    fireEvent.click(screen.getByTestId('delete-s1'))
+    fireEvent.click(screen.getByTestId('confirm-delete-s1'))
+
+    expect(useBankrollTrackerStore.getState().sessions).toHaveLength(2)
+    expect(useBankrollTrackerStore.getState().sessions.find(s => s.id === 's1')).toBeUndefined()
+  })
+
+  // ── Additional Stats ──
+
+  it('shows best and worst session stats', () => {
+    setupWithSessions()
+    render(<BankrollSimulator />)
+
+    expect(screen.getByTestId('best-session-result')).toHaveTextContent('+$800')
+    expect(screen.getByTestId('worst-session-result')).toHaveTextContent('-$200')
+  })
+
+  it('shows winning and losing streaks', () => {
+    setupWithSessions()
+    render(<BankrollSimulator />)
+
+    expect(screen.getByTestId('winning-streak')).toBeInTheDocument()
+    expect(screen.getByTestId('losing-streak')).toBeInTheDocument()
+  })
+
+  // ── TopBar ──
+
+  it('TopBar shows "Bankroll Tracker" for bankrollSim mode', () => {
     useAppStore.setState({ currentMode: 'bankrollSim' })
     render(<TopBar />)
-    expect(screen.getByText('Bankroll Simulator')).toBeInTheDocument()
+    expect(screen.getByText('Bankroll Tracker')).toBeInTheDocument()
   })
 
-  it('Run Again re-runs simulation with saved config (not form state)', () => {
+  // ── Stat card glow ──
+
+  it('stat cards have glow effect based on performance', () => {
+    setupWithSessions()
     render(<BankrollSimulator />)
 
-    // Run initial simulation
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-    expect(screen.getByTestId('sim-results')).toBeInTheDocument()
-
-    // Capture config from first call
-    const firstCallConfig = mockRunSimulation.mock.calls[mockRunSimulation.mock.calls.length - 1][0]
-    const callCount = mockRunSimulation.mock.calls.length
-
-    // Click Run Again
-    fireEvent.click(screen.getByTestId('run-again'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    // Simulation was called again
-    expect(mockRunSimulation.mock.calls.length).toBe(callCount + 1)
-    // Still showing results
-    expect(screen.getByTestId('sim-results')).toBeInTheDocument()
-
-    // Config should match — same rules, same bet spread
-    const secondCallConfig = mockRunSimulation.mock.calls[mockRunSimulation.mock.calls.length - 1][0]
-    expect(secondCallConfig.dealerHitsSoft17).toBe(firstCallConfig.dealerHitsSoft17)
-    expect(secondCallConfig.blackjackPays).toBe(firstCallConfig.blackjackPays)
-    expect(secondCallConfig.bankroll).toBe(firstCallConfig.bankroll)
-    expect(secondCallConfig.minBet).toBe(firstCallConfig.minBet)
-    expect(secondCallConfig.numDecks).toBe(firstCallConfig.numDecks)
-    expect(secondCallConfig.penetration).toBe(firstCallConfig.penetration)
-    expect(secondCallConfig.deviationAccuracy).toBe(firstCallConfig.deviationAccuracy)
-    expect(JSON.stringify(secondCallConfig.betSpread)).toBe(JSON.stringify(firstCallConfig.betSpread))
+    const statCards = screen.getByTestId('stat-cards')
+    expect(statCards).toBeInTheDocument()
   })
 
-  it('error boundary shows message instead of crash', () => {
+  // ── Personal Records ──
+
+  it('shows personal records section when sessions exist', () => {
+    setupWithSessions()
     render(<BankrollSimulator />)
 
-    // Make runSimulation throw
-    mockRunSimulation.mockImplementationOnce(() => { throw new Error('boom') })
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    // Should show error and stay on config, not crash
-    expect(screen.getByTestId('sim-error')).toBeInTheDocument()
-    expect(screen.getByTestId('sim-config')).toBeInTheDocument()
+    expect(screen.getByTestId('personal-records')).toBeInTheDocument()
+    expect(screen.getByText(/Personal Records/)).toBeInTheDocument()
   })
 
-  it('invalid config shows validation errors and disables button', () => {
+  it('personal records shows 8 cards', () => {
+    setupWithSessions()
     render(<BankrollSimulator />)
 
-    // Set bankroll to 0
-    const bankrollInput = screen.getByDisplayValue('100000')
-    fireEvent.change(bankrollInput, { target: { value: '0' } })
-
-    expect(screen.getByTestId('validation-errors')).toBeInTheDocument()
-    expect(screen.getByTestId('run-simulation')).toBeDisabled()
+    expect(screen.getByTestId('record-best-session')).toBeInTheDocument()
+    expect(screen.getByTestId('record-worst-session')).toBeInTheDocument()
+    expect(screen.getByTestId('record-win-streak')).toBeInTheDocument()
+    expect(screen.getByTestId('record-longest-session')).toBeInTheDocument()
+    expect(screen.getByTestId('record-peak-bankroll')).toBeInTheDocument()
+    expect(screen.getByTestId('record-best-$-hr')).toBeInTheDocument()
+    expect(screen.getByTestId('record-best-casino')).toBeInTheDocument()
+    expect(screen.getByTestId('record-win-rate')).toBeInTheDocument()
   })
 
-  it('NaN/Infinity results are sanitized to 0', () => {
-    const nanResult: SimulationResult = {
-      ...mockResult,
-      hourlyEV: Infinity,
-      n0: NaN,
-      kellyOptimalBet: -Infinity,
-    }
-    mockRunSimulation.mockReturnValueOnce(nanResult)
-
+  it('does not show personal records when no sessions', () => {
+    useBankrollTrackerStore.setState({ startingBankroll: 10000, sessions: [] })
     render(<BankrollSimulator />)
 
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    // Should render without crashing
-    expect(screen.getByTestId('sim-results')).toBeInTheDocument()
-  })
-
-  it('simulation with negative netProfit renders without crash', () => {
-    const negResult: SimulationResult = {
-      ...mockResult,
-      netProfit: -5000,
-      hourlyEV: -12.5,
-      finalBankroll: 45000,
-    }
-    mockRunSimulation.mockReturnValueOnce(negResult)
-
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    expect(screen.getByTestId('sim-results')).toBeInTheDocument()
-    expect(screen.getByTestId('metric-hourly-ev')).toBeInTheDocument()
-  })
-
-  it('negative edge shows warning banner', () => {
-    const negEdgeResult: SimulationResult = {
-      ...mockResult,
-      houseEdge: -0.005,
-      weightedPlayerEdge: -0.002,
-      netProfit: -3000,
-      hourlyEV: -15,
-      n0: 0, // sanitized from Infinity
-    }
-    mockRunSimulation.mockReturnValueOnce(negEdgeResult)
-
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    expect(screen.getByTestId('negative-edge-warning')).toBeInTheDocument()
-    expect(screen.getByTestId('negative-edge-warning')).toHaveTextContent('negative')
-  })
-
-  it('negative edge shows meaningful recommended bankroll message instead of N/A', () => {
-    const negEdgeResult: SimulationResult = {
-      ...mockResult,
-      houseEdge: -0.005,
-      weightedPlayerEdge: -0.002,
-      netProfit: -3000,
-      hourlyEV: -15,
-      n0: 0,
-    }
-    mockRunSimulation.mockReturnValueOnce(negEdgeResult)
-
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    expect(screen.getByTestId('rec-bankroll-negative')).toHaveTextContent('No bankroll can overcome a negative edge')
-  })
-
-  it('negative edge shows infinity for N-Zero', () => {
-    const negEdgeResult: SimulationResult = {
-      ...mockResult,
-      houseEdge: -0.005,
-      weightedPlayerEdge: -0.002,
-      netProfit: -3000,
-      hourlyEV: -15,
-      n0: 0,
-    }
-    mockRunSimulation.mockReturnValueOnce(negEdgeResult)
-
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    const n0Card = screen.getByTestId('metric-n0')
-    expect(n0Card).toHaveTextContent('\u221E (negative edge)')
-    expect(n0Card).toHaveTextContent('You need a positive edge first')
-  })
-
-  it('positive edge does not show warning banner', () => {
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    // Default mockResult has weightedPlayerEdge: 0.008 which is positive
-    // But let's verify with an explicitly positive result
-    const posResult: SimulationResult = {
-      ...mockResult,
-      houseEdge: -0.002,
-      weightedPlayerEdge: 0.01,
-      n0: 12450,
-    }
-    mockRunSimulation.mockReturnValueOnce(posResult)
-
-    fireEvent.click(screen.getByTestId('run-again'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    expect(screen.queryByTestId('negative-edge-warning')).not.toBeInTheDocument()
-  })
-
-  it('countingAccuracy is passed to engine config', () => {
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    const config = mockRunSimulation.mock.calls[0][0] as SimulationConfig
-    expect(config).toHaveProperty('countingAccuracy')
-    expect(config.countingAccuracy).toBeGreaterThan(0)
-    expect(config.countingAccuracy).toBeLessThanOrEqual(1)
-  })
-
-  it('shows both weighted and base edge in hourly EV card', () => {
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    const evCard = screen.getByTestId('metric-hourly-ev')
-    expect(evCard).toHaveTextContent('Weighted edge')
-    expect(evCard).toHaveTextContent('Base')
-  })
-
-  it('positive weighted edge shows positive hourly EV even if simulation lost money', () => {
-    // Simulate a run where the player went bankrupt by bad luck,
-    // but the theoretical edge is positive
-    const bankruptButPositiveEdge: SimulationResult = {
-      ...mockResult,
-      netProfit: -100000,
-      finalBankroll: 0,
-      hourlyEV: 296.7, // theoretical from simulator
-      weightedPlayerEdge: 0.008,
-      n0: 12000,
-      riskOfRuin: 0.03,
-    }
-    mockRunSimulation.mockReturnValueOnce(bankruptButPositiveEdge)
-
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    // Key metrics should all reflect the POSITIVE theoretical edge
-    expect(screen.queryByTestId('negative-edge-warning')).not.toBeInTheDocument()
-    const evCard = screen.getByTestId('metric-hourly-ev')
-    // The hourly EV card should show green (positive), not red
-    expect(evCard.querySelector('.text-green-400')).not.toBeNull()
-    // N-Zero should show hours, not infinity
-    const n0Card = screen.getByTestId('metric-n0')
-    expect(n0Card).not.toHaveTextContent('\u221E (negative edge)')
-  })
-
-  it('shows simulated hourly in detailed stats', () => {
-    render(<BankrollSimulator />)
-
-    fireEvent.click(screen.getByTestId('run-simulation'))
-    act(() => { vi.advanceTimersByTime(100) })
-
-    expect(screen.getByText('Simulated Hourly Win')).toBeInTheDocument()
+    expect(screen.queryByTestId('personal-records')).not.toBeInTheDocument()
   })
 })

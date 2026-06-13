@@ -8,6 +8,7 @@ export type TrainingMode =
   | 'deviationAtTable'
   | 'betSpread'
   | 'deckEstimation'
+  | 'casinoSession'
 
 // ── Mode-specific detail interfaces ──
 
@@ -76,6 +77,37 @@ export interface DeckEstimationDetails {
   estimations: { actual: number; estimated: number | null; error: number }[]
 }
 
+/** Casino Session details. */
+export interface CasinoSessionDetails {
+  type: 'casinoSession'
+  /** Number of hands played. */
+  handsPlayed: number
+  /** Net profit/loss. */
+  netProfit: number
+  /** Overall score (0-100). */
+  overallScore: number
+  /** Letter grade. */
+  grade: string
+  /** Bet accuracy (0-100). */
+  betAccuracy: number
+  /** Play accuracy (0-100). */
+  playAccuracy: number
+  /** Count accuracy (0-100). */
+  countAccuracy: number
+  /** Deviation accuracy (0-100). */
+  deviationAccuracy: number
+  /** Number of bots at the table. */
+  numBots: number
+  /** Whether the player got a blackjack during the session. */
+  hadBlackjack: boolean
+  /** Longest consecutive win streak. */
+  longestWinStreak: number
+  /** Whether the player split aces during the session. */
+  splitAces: boolean
+  /** Maximum hands from a single split (e.g. 4 = split to 4 hands). */
+  maxSplitHands: number
+}
+
 /** Discriminated union of all detail types. */
 export type SessionDetails =
   | SpeedDrillDetails
@@ -83,6 +115,7 @@ export type SessionDetails =
   | DeviationDetails
   | BetSpreadDetails
   | DeckEstimationDetails
+  | CasinoSessionDetails
 
 /**
  * A single completed training session result.

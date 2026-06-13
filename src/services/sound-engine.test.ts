@@ -44,6 +44,7 @@ describe('SoundEngine', () => {
       'chipPlace', 'chipCollect',
       'correct', 'wrong', 'streak',
       'buttonClick', 'timerTick', 'sessionComplete',
+      'levelUp',
     ] as const
 
     for (const method of methods) {
@@ -65,6 +66,7 @@ describe('SoundEngine', () => {
     expect(() => soundEngine.buttonClick()).not.toThrow()
     expect(() => soundEngine.timerTick()).not.toThrow()
     expect(() => soundEngine.sessionComplete()).not.toThrow()
+    expect(() => soundEngine.levelUp()).not.toThrow()
   })
 
   it('setting enabled to true re-enables sounds', () => {

@@ -24,7 +24,7 @@ const DISCARD_CONTAINER_MAX_HEIGHT = Math.round(312 * PIXELS_PER_CARD) + 20 // ~
  * - Slot on the left for card output
  * - NO text, NO numbers, NO percentage indicators
  */
-function ShoeHousing({ cardCount, totalCards, penetration }: {
+export function ShoeHousing({ cardCount, totalCards, penetration }: {
   cardCount: number
   totalCards: number
   penetration: number
@@ -132,7 +132,7 @@ function ShoeHousing({ cardCount, totalCards, penetration }: {
  * - Only grows when cards are collected after settlement (not during a hand)
  * - NO text, NO numbers, NO percentage indicators
  */
-function DiscardTray({ cardCount }: { cardCount: number }) {
+export function DiscardTray({ cardCount }: { cardCount: number }) {
   const stackHeight = Math.max(0, Math.round(cardCount * PIXELS_PER_CARD))
   const hasCards = cardCount > 0
 

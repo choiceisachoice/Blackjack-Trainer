@@ -24,11 +24,13 @@ const MODE_DISPLAY: Record<TrainingMode, { label: string; icon: string; color: s
   deviationAtTable:    { label: 'Deviation At Table',  icon: '\uD83C\uDFAF', color: '#8b5cf6' },
   betSpread:           { label: 'Bet Spread',          icon: '\uD83D\uDCB0', color: '#ef4444' },
   deckEstimation:      { label: 'Deck Estimation',     icon: '\uD83D\uDC41', color: '#06b6d4' },
+  casinoSession:       { label: 'Casino Session',      icon: '\uD83C\uDFB0', color: '#d946ef' },
 }
 
 const ALL_MODES: TrainingMode[] = [
   'speedDrill', 'tableCounting', 'deviationFlashCards',
   'deviationAtTable', 'betSpread', 'deckEstimation',
+  'casinoSession',
 ]
 
 /** Format seconds into a human-readable duration. */
@@ -95,13 +97,14 @@ export function buildChartData(sessions: TrainingSessionResult[]) {
   const dates = new Set(chronological.map(s => s.timestamp.slice(0, 10)))
   const sameDay = dates.size <= 1
 
-  return chronological.map(s => {
+  return chronological.map((s, i) => {
     const d = new Date(s.timestamp)
-    const label = sameDay
+    const date = sameDay
       ? `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
       : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     return {
-      label,
+      label: `#${i + 1}`,
+      date,
       [s.mode]: Math.round(s.accuracy * 100),
     }
   })
@@ -121,6 +124,38 @@ export function computeQuickStats(byMode: Partial<Record<TrainingMode, ModeStats
     best: { mode: best[0] as TrainingMode, accuracy: best[1].accuracy },
     worst: { mode: worst[0] as TrainingMode, accuracy: worst[1].accuracy },
     mostPracticed: { mode: mostPracticed[0] as TrainingMode, sessions: mostPracticed[1].totalSessions },
+  }
+}
+
+/** Performance-based glow for stat cards. */
+function getPerformanceGlow(value: number | null): React.CSSProperties {
+  if (value === null || value === undefined) {
+    return {
+      border: '1px solid rgba(255, 255, 255, 0.08)',
+      boxShadow: '0 0 10px rgba(255, 255, 255, 0.03)',
+    }
+  }
+  if (value >= 90) {
+    return {
+      border: '1px solid rgba(255, 215, 0, 0.4)',
+      boxShadow: '0 0 15px rgba(255, 215, 0, 0.15), inset 0 0 10px rgba(255, 215, 0, 0.03)',
+    }
+  }
+  if (value >= 70) {
+    return {
+      border: '1px solid rgba(34, 197, 94, 0.4)',
+      boxShadow: '0 0 15px rgba(34, 197, 94, 0.15), inset 0 0 10px rgba(34, 197, 94, 0.03)',
+    }
+  }
+  if (value >= 50) {
+    return {
+      border: '1px solid rgba(234, 179, 8, 0.4)',
+      boxShadow: '0 0 15px rgba(234, 179, 8, 0.15), inset 0 0 10px rgba(234, 179, 8, 0.03)',
+    }
+  }
+  return {
+    border: '1px solid rgba(239, 68, 68, 0.4)',
+    boxShadow: '0 0 15px rgba(239, 68, 68, 0.15), inset 0 0 10px rgba(239, 68, 68, 0.03)',
   }
 }
 
@@ -153,7 +188,7 @@ export function AnalyticsDashboard() {
   }
 
   const streak = getTrainingStreak()
-  const weakest = getWeakestDeviations(5)
+  const weakest = getWeakestDeviations(8)
   const overallTrend = getAccuracyTrend()
   const chartData = buildChartData(sessions)
 
@@ -177,21 +212,24 @@ export function AnalyticsDashboard() {
         <h2 className="text-lg font-semibold text-content mb-3">Overview</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {/* Total Sessions */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+          <div className="stat-card bg-contrast/5 rounded-xl p-4" style={getPerformanceGlow(null)}>
             <p className="text-2xl md:text-3xl font-bold text-content">{totalSessions}</p>
             <p className="text-xs text-content/50 mt-1">Total Sessions</p>
             <p className="text-xs text-content/30">across all modes</p>
           </div>
 
           {/* Training Time */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+          <div className="stat-card bg-contrast/5 rounded-xl p-4" style={getPerformanceGlow(null)}>
             <p className="text-2xl md:text-3xl font-bold text-content">{formatDuration(totalTime)}</p>
             <p className="text-xs text-content/50 mt-1">Training Time</p>
             <p className="text-xs text-content/30">total time trained</p>
           </div>
 
           {/* Overall Accuracy */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+          <div
+            className="stat-card bg-contrast/5 rounded-xl p-4"
+            style={getPerformanceGlow(totalSessions > 0 ? Math.round(overallAccuracy * 100) : null)}
+          >
             <p className={`text-2xl md:text-3xl font-bold ${totalSessions > 0 ? accuracyColor(overallAccuracy) : 'text-content/30'}`}>
               {totalSessions > 0 ? `${Math.round(overallAccuracy * 100)}%` : '--'}
             </p>
@@ -200,7 +238,7 @@ export function AnalyticsDashboard() {
           </div>
 
           {/* Training Streak */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+          <div className="stat-card bg-contrast/5 rounded-xl p-4" style={getPerformanceGlow(null)}>
             <p className="text-2xl md:text-3xl font-bold text-content">
               {streak > 0 ? streak : '--'}
               {streak > 0 && <span className="ml-1 text-orange-400" data-testid="streak-fire">{'\uD83D\uDD25'}</span>}
@@ -243,17 +281,23 @@ export function AnalyticsDashboard() {
                     borderRadius: 8,
                     color: 'var(--color-content)',
                   }}
+                  cursor={{ stroke: 'rgba(128,128,128,0.3)', strokeDasharray: '3 3' }}
                   formatter={(value: number, name: string) => [`${value}%`, name]}
+                  labelFormatter={(_label: string, payload: Array<{ payload?: { date?: string } }>) => {
+                    const date = payload?.[0]?.payload?.date
+                    return date ? `Session: ${date}` : `Session: ${_label}`
+                  }}
                 />
                 <Legend />
                 {modesWithData.map(mode => (
                   <Line
                     key={mode}
+                    type="monotone"
                     dataKey={mode}
                     name={MODE_DISPLAY[mode].label}
                     stroke={MODE_DISPLAY[mode].color}
                     strokeWidth={2}
-                    dot={{ r: 5 }}
+                    dot={{ r: 4 }}
                     activeDot={{ r: 7 }}
                     connectNulls
                   />
@@ -298,7 +342,7 @@ export function AnalyticsDashboard() {
 
             if (!modeStats || modeStats.totalSessions === 0) {
               return (
-                <div key={mode} className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 opacity-50">
+                <div key={mode} className="stat-card bg-contrast/5 rounded-xl p-4 opacity-50" style={getPerformanceGlow(null)}>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xl">{display.icon}</span>
                     <span className="text-sm font-medium text-content/60">{display.label}</span>
@@ -308,8 +352,10 @@ export function AnalyticsDashboard() {
               )
             }
 
+            const modeAccuracy = Math.round((lastSession?.accuracy ?? modeStats.accuracy) * 100)
+
             return (
-              <div key={mode} className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+              <div key={mode} className="stat-card bg-contrast/5 rounded-xl p-4" style={getPerformanceGlow(modeAccuracy)}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">{display.icon}</span>
                   <span className="text-sm font-medium text-content">{display.label}</span>
@@ -322,7 +368,7 @@ export function AnalyticsDashboard() {
                   <div className="flex justify-between">
                     <span className="text-content/50">Accuracy</span>
                     <span className={accuracyColor(lastSession?.accuracy ?? modeStats.accuracy)}>
-                      {Math.round((lastSession?.accuracy ?? modeStats.accuracy) * 100)}%
+                      {modeAccuracy}%
                       <span className={`ml-1 ${trendColor(trend)}`}>{trendArrow(trend)}</span>
                     </span>
                   </div>
@@ -369,8 +415,8 @@ export function AnalyticsDashboard() {
                     style={{ width: `${Math.round(accuracy * 100)}%` }}
                   />
                 </div>
-                <span className={`text-sm font-medium w-12 text-right ${accuracyColor(accuracy)}`}>
-                  {Math.round(accuracy * 100)}%
+                <span className={`text-sm font-medium text-right whitespace-nowrap ${accuracyColor(accuracy)}`}>
+                  {Math.round(accuracy * 100)}% accuracy
                 </span>
               </div>
             ))}

@@ -1,0 +1,147 @@
+/* ═══════════════════════════════════════════════════════
+   INDIVIDUAL CARDS: Simple hover effect
+   ═══════════════════════════════════════════════════════ */
+
+.mode-card {
+  transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.mode-card:hover {
+  transform: translateY(-3px);
+}
+
+/* ═══════════════════════════════════════════════════════
+   STAT CARDS – Performance-based hover lift
+   ═══════════════════════════════════════════════════════ */
+
+.stat-card {
+  transition: transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  cursor: default;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+}
+
+/* ═══════════════════════════════════════════════════════
+   ACHIEVEMENT CARDS – Tier-specific hover glow
+   ═══════════════════════════════════════════════════════ */
+
+.achievement-card {
+  transition: transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.achievement-bronze:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 25px rgba(205, 127, 50, 0.4), 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-silver:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 25px rgba(192, 192, 192, 0.4), 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-gold:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.5), 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-diamond:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 30px rgba(185, 242, 255, 0.5), 0 0 60px rgba(185, 242, 255, 0.15), 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-locked {
+  opacity: 0.5;
+}
+
+.achievement-locked:hover {
+  opacity: 0.7;
+  transform: translateY(-2px);
+}
+
+/* ═══════════════════════════════════════════════════════
+   LEVEL-UP POPUP ANIMATIONS
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes levelFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes levelScaleIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   ONBOARDING TRAILER ANIMATIONS
+   ═══════════════════════════════════════════════════════ */
+
+@keyframes trailer-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes trailer-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes trailer-typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes trailer-glow-pulse {
+  0%, 100% {
+    text-shadow: 0 0 20px rgba(212,168,67,0.4);
+  }
+  50% {
+    text-shadow: 0 0 60px rgba(212,168,67,0.8),
+                 0 0 100px rgba(255,107,0,0.4);
+  }
+}
+
+@keyframes trailer-card-fly {
+  from {
+    opacity: 0;
+    transform: translateX(100px) rotate(10deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+@keyframes trailer-gold-explosion {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-card:hover {
+    transform: none;
+  }
+}

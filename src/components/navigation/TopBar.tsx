@@ -8,8 +8,11 @@ const MODE_LABELS: Record<string, string> = {
   betSpread: 'Bet Spread',
   deckEstimation: 'Deck Estimation',
   analytics: 'Analytics',
-  bankrollSim: 'Bankroll Simulator',
+  bankrollSim: 'Bankroll Tracker',
   achievements: 'Achievements',
+  casinoSession: 'Casino Session',
+  strategyChart: 'Strategy Chart',
+  casinoSessionTracker: 'Casino Session Tracker',
 }
 
 /**

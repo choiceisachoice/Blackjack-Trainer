@@ -205,10 +205,17 @@ export function playBotTurn(
         const card2 = drawCard()
         secondHand.cards = [...secondHand.cards, card2]
 
-        // Aces: one card each, then stand (standard casino rule)
+        // Aces: one card each, then stand — unless re-split is possible
         if (isAces && !rules.hitSplitAces) {
-          hand.isStanding = true
-          secondHand.isStanding = true
+          const canReSplit =
+            rules.resplitAllowed &&
+            hands.length + 1 < rules.maxSplitHands
+          if (!(canReSplit && hand.cards[1].rank === Rank.Ace)) {
+            hand.isStanding = true
+          }
+          if (!(canReSplit && secondHand.cards[1].rank === Rank.Ace)) {
+            secondHand.isStanding = true
+          }
         }
 
         // Insert the second hand right after the current one
