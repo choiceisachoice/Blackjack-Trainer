@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { Layers, Check, X } from 'lucide-react'
+import { Panel, Segmented, Button } from '../common/ui'
 import { ShoeVisual } from '../table/ShoeVisual'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
@@ -210,92 +212,68 @@ export function DeckEstimation() {
   // ── Settings Phase ──
   if (phase === 'settings') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-content">Deck Estimation</h2>
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <Panel icon={Layers} title="Deck Estimation" subtitle="Estimate the decks remaining in the shoe." className="w-full max-w-md">
+          {/* Deck Count */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Decks in Shoe</span>
+            <Segmented
+              fluid
+              ariaLabel="Decks in shoe"
+              value={deckCount}
+              onChange={v => setDeckCount(v as DeckCount)}
+              options={([2, 6, 8] as DeckCount[]).map(d => ({ label: `${d} Decks`, value: d }))}
+            />
+          </div>
 
-        {/* Deck Count */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Decks in Shoe</span>
-          <div className="flex gap-2">
-            {([2, 6, 8] as DeckCount[]).map(d => (
+          {/* Precision */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Precision</span>
+            <Segmented
+              fluid
+              ariaLabel="Precision"
+              value={accuracyMode}
+              onChange={setAccuracyMode}
+              options={[
+                { label: 'Half Decks', value: 'half' as AccuracyMode },
+                { label: 'Whole Decks', value: 'whole' as AccuracyMode },
+              ]}
+            />
+          </div>
+
+          {/* Mode (custom pair to keep the quick-fire-toggle testid) */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Mode</span>
+            <div role="group" aria-label="Mode" className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
               <button
-                key={d}
-                onClick={() => setDeckCount(d)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                  ${deckCount === d
-                    ? 'bg-gold text-black'
-                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
+                onClick={() => setQuickFire(false)}
+                aria-pressed={!quickFire}
+                className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer
+                  ${!quickFire ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
               >
-                {d} Decks
+                Normal
               </button>
-            ))}
+              <button
+                onClick={() => setQuickFire(true)}
+                data-testid="quick-fire-toggle"
+                aria-pressed={quickFire}
+                className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer
+                  ${quickFire ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+              >
+                Quick Fire
+              </button>
+            </div>
+            {quickFire && (
+              <p className="text-xs text-warning mt-2">
+                {QUICK_FIRE_ROUNDS} rounds, {QUICK_FIRE_SECONDS}s each
+              </p>
+            )}
           </div>
-        </div>
 
-        {/* Accuracy Mode */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Precision</span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setAccuracyMode('half')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                ${accuracyMode === 'half'
-                  ? 'bg-gold text-black'
-                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-            >
-              Half Decks
-            </button>
-            <button
-              onClick={() => setAccuracyMode('whole')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                ${accuracyMode === 'whole'
-                  ? 'bg-gold text-black'
-                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-            >
-              Whole Decks
-            </button>
-          </div>
-        </div>
-
-        {/* Quick Fire Toggle */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Mode</span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setQuickFire(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                ${!quickFire
-                  ? 'bg-gold text-black'
-                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-            >
-              Normal
-            </button>
-            <button
-              onClick={() => setQuickFire(true)}
-              data-testid="quick-fire-toggle"
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                ${quickFire
-                  ? 'bg-gold text-black'
-                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-            >
-              Quick Fire
-            </button>
-          </div>
-          {quickFire && (
-            <p className="text-xs text-warning mt-1">
-              {QUICK_FIRE_ROUNDS} rounds, {QUICK_FIRE_SECONDS}s each
-            </p>
-          )}
-        </div>
-
-        <button
-          onClick={startTraining}
-          data-testid="start-training"
-          className="mt-4 px-8 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors text-lg cursor-pointer"
-        >
-          Start Training
-        </button>
+          <Button size="lg" className="w-full mt-1" onClick={startTraining} data-testid="start-training">
+            Start Training
+          </Button>
+        </Panel>
       </div>
     )
   }
@@ -322,14 +300,9 @@ export function DeckEstimation() {
               <span className="text-content font-bold">{stats.bestStreak}</span>
             </div>
           </div>
-          <button
-            onClick={() => setPhase('settings')}
-            data-testid="back-to-settings"
-            className="w-full px-6 py-3 bg-gold text-black font-bold rounded-xl
-              hover:bg-gold/90 transition-colors cursor-pointer"
-          >
+          <Button onClick={() => setPhase('settings')} data-testid="back-to-settings" className="w-full">
             Back to Settings
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -402,8 +375,11 @@ export function DeckEstimation() {
 
       {/* Result card */}
       <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-        <div className={`text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
-          <span className="text-4xl">{isCorrect ? '\u2705' : '\u274C'}</span>
+        <div className={`flex flex-col items-center text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
+          <span className={`grid place-items-center w-12 h-12 rounded-full border
+            ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
+            {isCorrect ? <Check size={24} /> : <X size={24} />}
+          </span>
           <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
             {isCorrect
               ? (closeEnough ? 'Close enough!' : 'Correct!')
@@ -433,14 +409,9 @@ export function DeckEstimation() {
           />
         </div>
 
-        <button
-          onClick={handleNext}
-          data-testid="next-question"
-          className="w-full px-6 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors cursor-pointer"
-        >
+        <Button onClick={handleNext} data-testid="next-question" className="w-full">
           {quickFire && qfRound >= QUICK_FIRE_ROUNDS ? 'See Results' : 'Next'}
-        </button>
+        </Button>
       </div>
     </div>
   )

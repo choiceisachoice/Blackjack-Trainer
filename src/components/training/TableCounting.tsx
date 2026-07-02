@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { Spade, Check, X, Minus, Plus } from 'lucide-react'
+import { Panel, Segmented, Button } from '../common/ui'
 import { useGameStore } from '../../store/game-store'
 import { useAppStore } from '../../store/app-store'
 import { useSessionSave } from '../../hooks/useSessionSave'
@@ -268,64 +270,50 @@ export function TableCounting() {
   // ── Settings Phase ──
   if (tcPhase === 'settings') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-content">Table Counting</h2>
-
-        {/* Difficulty */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Difficulty</span>
-          <div className="flex gap-2">
-            {(['easy', 'normal', 'hard'] as Difficulty[]).map(d => (
-              <button
-                key={d}
-                onClick={() => setDifficulty(d)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors cursor-pointer
-                  ${difficulty === d
-                    ? 'bg-gold text-black'
-                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-              >
-                {d}
-              </button>
-            ))}
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <Panel icon={Spade} title="Table Counting" subtitle="Keep the count while you play real hands." className="w-full max-w-md">
+          {/* Difficulty */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Difficulty</span>
+            <Segmented
+              fluid
+              ariaLabel="Difficulty"
+              value={difficulty}
+              onChange={setDifficulty}
+              options={(['easy', 'normal', 'hard'] as Difficulty[]).map(d => ({ label: d[0].toUpperCase() + d.slice(1), value: d }))}
+            />
+            <p className="text-xs text-content/40 mt-2">
+              {difficulty === 'easy' && 'Count badges on cards, breakdown always shown.'}
+              {difficulty === 'normal' && 'Count asked every hand, no help.'}
+              {difficulty === 'hard' && 'Count asked randomly every 2-5 hands.'}
+            </p>
           </div>
-          <p className="text-xs text-content/40 max-w-sm text-center">
-            {difficulty === 'easy' && 'Count badges on cards, breakdown always shown.'}
-            {difficulty === 'normal' && 'Count asked every hand, no help.'}
-            {difficulty === 'hard' && 'Count asked randomly every 2-5 hands.'}
-          </p>
-        </div>
 
-        {/* Query type */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Ask for</span>
-          <div className="flex gap-2">
-            {([
-              { value: 'rc' as QueryType, label: 'Running Count' },
-              { value: 'tc' as QueryType, label: 'True Count' },
-              { value: 'both' as QueryType, label: 'Both' },
-            ]).map(q => (
-              <button
-                key={q.value}
-                onClick={() => setQueryType(q.value)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                  ${queryType === q.value
-                    ? 'bg-gold text-black'
-                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-              >
-                {q.label}
-              </button>
-            ))}
+          {/* Query type */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Ask for</span>
+            <Segmented
+              fluid
+              ariaLabel="Ask for"
+              value={queryType}
+              onChange={setQueryType}
+              options={[
+                { value: 'rc' as QueryType, label: 'Running' },
+                { value: 'tc' as QueryType, label: 'True' },
+                { value: 'both' as QueryType, label: 'Both' },
+              ]}
+            />
           </div>
-        </div>
 
-        <button
-          onClick={() => setTcPhase('playing')}
-          data-testid="start-playing"
-          className="mt-4 px-8 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors text-lg cursor-pointer"
-        >
-          Start Playing
-        </button>
+          <Button
+            size="lg"
+            className="w-full mt-1"
+            onClick={() => setTcPhase('playing')}
+            data-testid="start-playing"
+          >
+            Start Playing
+          </Button>
+        </Panel>
       </div>
     )
   }
@@ -362,10 +350,11 @@ export function TableCounting() {
                     <div className="flex items-center justify-center gap-4">
                       <button
                         onClick={() => setRcAnswer(prev => prev - 1)}
-                        className="w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20 text-xl
-                          text-content font-bold transition-colors cursor-pointer"
+                        aria-label="Decrease running count"
+                        className="grid place-items-center w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20
+                          text-content transition-colors cursor-pointer"
                       >
-                        &minus;
+                        <Minus size={20} />
                       </button>
                       <input
                         type="number"
@@ -378,10 +367,11 @@ export function TableCounting() {
                       />
                       <button
                         onClick={() => setRcAnswer(prev => prev + 1)}
-                        className="w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20 text-xl
-                          text-content font-bold transition-colors cursor-pointer"
+                        aria-label="Increase running count"
+                        className="grid place-items-center w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20
+                          text-content transition-colors cursor-pointer"
                       >
-                        +
+                        <Plus size={20} />
                       </button>
                     </div>
                   </div>
@@ -395,10 +385,11 @@ export function TableCounting() {
                     <div className="flex items-center justify-center gap-4">
                       <button
                         onClick={() => setTcAnswer(prev => prev - 0.5)}
-                        className="w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20 text-xl
-                          text-content font-bold transition-colors cursor-pointer"
+                        aria-label="Decrease true count"
+                        className="grid place-items-center w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20
+                          text-content transition-colors cursor-pointer"
                       >
-                        &minus;
+                        <Minus size={20} />
                       </button>
                       <input
                         type="number"
@@ -412,29 +403,28 @@ export function TableCounting() {
                       />
                       <button
                         onClick={() => setTcAnswer(prev => prev + 0.5)}
-                        className="w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20 text-xl
-                          text-content font-bold transition-colors cursor-pointer"
+                        aria-label="Increase true count"
+                        className="grid place-items-center w-12 h-12 rounded-full bg-contrast/10 hover:bg-contrast/20
+                          text-content transition-colors cursor-pointer"
                       >
-                        +
+                        <Plus size={20} />
                       </button>
                     </div>
                   </div>
                 )}
 
-                <button
-                  onClick={handleSubmit}
-                  data-testid="submit-count"
-                  className="w-full mt-2 px-6 py-3 bg-gold text-black font-bold rounded-xl
-                    hover:bg-gold/90 transition-colors cursor-pointer"
-                >
+                <Button onClick={handleSubmit} data-testid="submit-count" className="w-full mt-2">
                   Submit
-                </button>
+                </Button>
               </>
             ) : (
               <>
                 {/* Feedback */}
-                <div className={`text-center mb-4 ${feedback.correct ? 'text-success' : 'text-error'}`}>
-                  <span className="text-4xl">{feedback.correct ? '\u2705' : '\u274C'}</span>
+                <div className={`flex flex-col items-center text-center mb-4 ${feedback.correct ? 'text-success' : 'text-error'}`}>
+                  <span className={`grid place-items-center w-12 h-12 rounded-full border
+                    ${feedback.correct ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
+                    {feedback.correct ? <Check size={24} /> : <X size={24} />}
+                  </span>
                   <h3 className="text-xl font-bold mt-2">
                     {feedback.correct ? 'Correct!' : 'Wrong!'}
                   </h3>
@@ -467,14 +457,9 @@ export function TableCounting() {
                   </div>
                 )}
 
-                <button
-                  onClick={handleContinue}
-                  data-testid="continue-playing"
-                  className="w-full px-6 py-3 bg-gold text-black font-bold rounded-xl
-                    hover:bg-gold/90 transition-colors cursor-pointer"
-                >
+                <Button onClick={handleContinue} data-testid="continue-playing" className="w-full">
                   Continue
-                </button>
+                </Button>
               </>
             )}
           </div>

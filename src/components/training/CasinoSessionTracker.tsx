@@ -8,6 +8,7 @@ import {
   Area,
   AreaChart,
 } from 'recharts'
+import { ClipboardList } from 'lucide-react'
 import {
   useCasinoSessionTrackerStore,
   type TrackedCasinoSession,
@@ -175,7 +176,9 @@ export function CasinoSessionTracker() {
     return (
       <div className="flex-1 overflow-y-auto p-4 md:p-6" data-testid="cs-tracker">
         <div className="max-w-md mx-auto mt-16 text-center">
-          <p className="text-4xl mb-4">{'\uD83C\uDFB0'}</p>
+          <span className="grid place-items-center w-16 h-16 mx-auto mb-4 rounded-2xl text-gold bg-gold/10 border border-gold/20">
+            <ClipboardList size={30} />
+          </span>
           <h2 className="text-2xl font-bold text-content mb-3">Start Tracking Your Casino Sessions</h2>
           <p className="text-content/50 mb-2">
             Set your starting bankroll to begin.
@@ -215,6 +218,12 @@ export function CasinoSessionTracker() {
   // ── Main Tracker View ──
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="cs-tracker">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Casino Session Tracker</h1>
+        <p className="text-sm text-content/50">Your played casino sessions, results, and grades.</p>
+      </div>
+
       {/* ── Section A: Overview ── */}
       <section data-testid="overview-section">
         <div className="text-center mb-4">

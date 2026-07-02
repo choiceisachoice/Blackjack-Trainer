@@ -6,9 +6,33 @@ import { soundEngine } from '../services/sound-engine'
 
 const SOUND_SETTINGS_KEY = 'bjt_sound_settings'
 const THEME_KEY = 'bjt_theme'
+const DEALING_SPEED_KEY = 'bjt_dealing_speed'
 
 /** Supported theme modes. */
 export type ThemeMode = 'dark' | 'light'
+
+/** Card-dealing speed presets for the casino table. */
+export type DealingSpeed = 'slow' | 'normal' | 'fast'
+
+/**
+ * Multiplier applied to every animation delay. Higher = slower dealing.
+ * `normal` (1.0) is the original baseline; `slow` is the default so beginners
+ * can follow the count.
+ */
+export const DEALING_SPEED_MULTIPLIER: Record<DealingSpeed, number> = {
+  slow: 1.5,
+  normal: 1.0,
+  fast: 0.6,
+}
+
+/** Load persisted dealing speed. Defaults to slow (easier to count). */
+function loadDealingSpeed(): DealingSpeed {
+  try {
+    const s = localStorage.getItem(DEALING_SPEED_KEY)
+    if (s === 'slow' || s === 'normal' || s === 'fast') return s
+  } catch { /* ignore */ }
+  return 'slow'
+}
 
 /** Load persisted sound settings from localStorage. */
 function loadSoundSettings(): { enabled: boolean; volume: number } {
@@ -32,16 +56,13 @@ function saveSoundSettings(enabled: boolean, volume: number): void {
   } catch { /* ignore */ }
 }
 
-/** Load persisted theme, falling back to system preference then dark. */
+/** Load persisted theme. Defaults to dark (the app's primary luxury look). */
 function loadTheme(): ThemeMode {
   try {
     const stored = localStorage.getItem(THEME_KEY)
     if (stored === 'light' || stored === 'dark') return stored
   } catch { /* ignore */ }
-  // System preference detection for first visit
-  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: light)').matches) {
-    return 'light'
-  }
+  // Dark is the intended default; light remains available via the toggle.
   return 'dark'
 }
 
@@ -75,6 +96,7 @@ export interface AppStoreState {
   soundEnabled: boolean
   soundVolume: number
   theme: ThemeMode
+  dealingSpeed: DealingSpeed
 }
 
 export interface AppStoreActions {
@@ -85,6 +107,7 @@ export interface AppStoreActions {
   setSoundVolume: (v: number) => void
   toggleTheme: () => void
   setTheme: (theme: ThemeMode) => void
+  setDealingSpeed: (speed: DealingSpeed) => void
 }
 
 export type AppStore = AppStoreState & AppStoreActions
@@ -111,6 +134,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   soundEnabled: initialSound.enabled,
   soundVolume: initialSound.volume,
   theme: initialTheme,
+  dealingSpeed: loadDealingSpeed(),
 
   setMode: (mode) => set({ currentMode: mode }),
   setSystem: (system) => set({ selectedSystem: system }),
@@ -141,5 +165,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
     applyTheme(theme)
     try { localStorage.setItem(THEME_KEY, theme) } catch { /* ignore */ }
     set({ theme })
+  },
+
+  setDealingSpeed: (speed) => {
+    try { localStorage.setItem(DEALING_SPEED_KEY, speed) } catch { /* ignore */ }
+    set({ dealingSpeed: speed })
   },
 }))

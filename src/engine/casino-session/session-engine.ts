@@ -335,9 +335,18 @@ export class CasinoSessionEngine {
       if (!matching) continue
 
       if (trueCount >= dev.trueCountThreshold) {
-        const devAction = dev.actionAbove
-        if (devAction !== bsAction) {
-          return { action: devAction, isDeviation: true, deviationName: dev.name }
+        // Standard deviation: the index action applies at/above the threshold.
+        if (dev.actionAbove !== bsAction) {
+          return { action: dev.actionAbove, isDeviation: true, deviationName: dev.name }
+        }
+      } else {
+        // Reversed deviation (e.g. 12 vs 4/5/6, 13 vs 2/3): Basic Strategy is
+        // Stand (actionAbove) and the real deviation is actionBelow (Hit),
+        // applied BELOW the threshold. We only trust actionBelow when the
+        // above-side equals BS, so a normal deviation's placeholder actionBelow
+        // is never mistaken for a real reversed deviation.
+        if (dev.actionAbove === bsAction && dev.actionBelow !== bsAction) {
+          return { action: dev.actionBelow, isDeviation: true, deviationName: dev.name }
         }
       }
       // Don't break — a later deviation (e.g., Fab4) might fire

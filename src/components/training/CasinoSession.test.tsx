@@ -82,6 +82,8 @@ describe('CasinoSession', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     useAppStore.getState().setMode('casinoSession')
+    // Deal-timing tests assume the baseline (1.0×) speed, not the 'slow' default
+    useAppStore.setState({ dealingSpeed: 'normal' })
   })
 
   afterEach(() => {
@@ -103,19 +105,17 @@ describe('CasinoSession', () => {
     it('has default session mode set to hands', () => {
       render(<CasinoSession />)
 
-      const radios = screen.getAllByRole('radio')
-      const handsRadio = radios.find(r => (r as HTMLInputElement).checked)
-      expect(handsRadio).toBeTruthy()
+      const group = screen.getByRole('group', { name: 'Session length mode' })
+      expect(group.querySelector('[aria-pressed="true"]')?.textContent).toBe('Hands')
     })
 
     it('can toggle between hands and time mode', () => {
       render(<CasinoSession />)
 
-      const timeRadio = screen.getByLabelText('By Time')
-      fireEvent.click(timeRadio)
+      fireEvent.click(screen.getByRole('button', { name: 'Time' }))
 
       // Should now show Minutes input
-      expect(screen.getByText('Minutes:')).toBeTruthy()
+      expect(screen.getByLabelText('Minutes')).toBeTruthy()
     })
 
     it('starts session on button click', () => {
@@ -132,15 +132,17 @@ describe('CasinoSession', () => {
     it('renders number of bots selector', () => {
       render(<CasinoSession />)
 
-      const botsSelect = screen.getByText('Bots:').nextElementSibling as HTMLSelectElement
-      expect(botsSelect).toBeTruthy()
-      expect(botsSelect.value).toBe('2') // Default 2 bots
+      const botsGroup = screen.getByRole('group', { name: 'Number of bots' })
+      expect(botsGroup).toBeTruthy()
+      // Default 2 bots is the pressed segment
+      const pressed = botsGroup.querySelector('[aria-pressed="true"]')
+      expect(pressed?.textContent).toBe('2')
     })
 
     it('renders count check frequency selector', () => {
       render(<CasinoSession />)
 
-      expect(screen.getByText('Count Check:')).toBeTruthy()
+      expect(screen.getByRole('group', { name: 'Count check frequency' })).toBeTruthy()
     })
   })
 
@@ -518,8 +520,8 @@ describe('CasinoSession', () => {
       render(<CasinoSession />)
 
       // Change min to 50, max to 500 via config inputs
-      const minInput = screen.getByText('Min Bet:').nextElementSibling as HTMLInputElement
-      const maxInput = screen.getByText('Max Bet:').nextElementSibling as HTMLInputElement
+      const minInput = screen.getByLabelText('Min bet') as HTMLInputElement
+      const maxInput = screen.getByLabelText('Max bet') as HTMLInputElement
       fireEvent.change(minInput, { target: { value: '50' } })
       fireEvent.change(maxInput, { target: { value: '500' } })
 
@@ -674,7 +676,7 @@ describe('CasinoSession', () => {
       render(<CasinoSession />)
 
       // Change max to 1000
-      const maxInput = screen.getByText('Max Bet:').nextElementSibling as HTMLInputElement
+      const maxInput = screen.getByLabelText('Max bet') as HTMLInputElement
       fireEvent.change(maxInput, { target: { value: '1000' } })
 
       fireEvent.click(screen.getByTestId('start-session'))
@@ -694,8 +696,8 @@ describe('CasinoSession', () => {
       render(<CasinoSession />)
 
       // Set min=100, max=5000
-      const minInput = screen.getByText('Min Bet:').nextElementSibling as HTMLInputElement
-      const maxInput = screen.getByText('Max Bet:').nextElementSibling as HTMLInputElement
+      const minInput = screen.getByLabelText('Min bet') as HTMLInputElement
+      const maxInput = screen.getByLabelText('Max bet') as HTMLInputElement
       fireEvent.change(minInput, { target: { value: '100' } })
       fireEvent.change(maxInput, { target: { value: '5000' } })
 

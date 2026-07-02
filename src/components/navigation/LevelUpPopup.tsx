@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useLevelStore } from '../../store/level-store'
 
 const TIER_LABELS: Record<string, string> = {
@@ -25,6 +26,16 @@ export function LevelUpPopup() {
   const levelUpData = useLevelStore(s => s.levelUpData)
   const dismissLevelUp = useLevelStore(s => s.dismissLevelUp)
 
+  // Dismiss on Escape / Enter for keyboard accessibility
+  useEffect(() => {
+    if (!showLevelUp) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === 'Enter') dismissLevelUp()
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [showLevelUp, dismissLevelUp])
+
   if (!showLevelUp || !levelUpData) return null
 
   const { oldLevel, newLevel } = levelUpData
@@ -32,6 +43,9 @@ export function LevelUpPopup() {
   return (
     <div
       data-testid="level-up-popup"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Level up to level ${newLevel.level}, ${newLevel.title}`}
       className="fixed inset-0 z-[9999] flex items-center justify-center"
       style={{
         backgroundColor: 'rgba(0, 0, 0, 0.85)',
@@ -43,7 +57,7 @@ export function LevelUpPopup() {
         style={{
           padding: '48px',
           borderRadius: '24px',
-          backgroundColor: '#1a1a2e',
+          backgroundColor: 'var(--color-surface-2)',
           border: `2px solid ${newLevel.color}`,
           boxShadow: `0 0 60px ${newLevel.glowColor}, 0 0 120px ${newLevel.glowColor}`,
           animation: 'levelScaleIn 0.5s ease',
@@ -51,8 +65,7 @@ export function LevelUpPopup() {
       >
         {/* LEVEL UP text */}
         <div
-          className="text-base tracking-[6px] uppercase mb-4"
-          style={{ color: '#d4a843' }}
+          className="text-base tracking-[6px] uppercase mb-4 text-gold"
         >
           LEVEL UP
         </div>

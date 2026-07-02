@@ -1,13 +1,116 @@
 import { useState } from 'react'
-import { CountingSystemId } from '../../engine/counting/types'
+import { Timer, Users, Wallet, Scale, GraduationCap, Volume2, Play, type LucideIcon } from 'lucide-react'
 import type { CasinoSessionConfig } from '../../engine/casino-session/types'
-import { DEFAULT_CONFIG } from './helpers'
 
 interface CasinoSessionConfigProps {
   initialConfig: CasinoSessionConfig
   onStart: (config: CasinoSessionConfig) => void
 }
 
+/* ── Small local primitives (dark-luxury form controls) ── */
+
+/** Collapsible-free titled panel with an icon. */
+function Panel({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
+  return (
+    <section className="surface p-5">
+      <div className="flex items-center gap-2.5 mb-4">
+        <span className="grid place-items-center w-8 h-8 rounded-lg text-gold bg-gold/10 border border-gold/20">
+          <Icon size={16} />
+        </span>
+        <h3 className="text-sm font-semibold tracking-wide text-content">{title}</h3>
+      </div>
+      <div className="space-y-4">{children}</div>
+    </section>
+  )
+}
+
+/** A row: label on the left, control on the right. */
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-sm text-content/60">{label}</span>
+      {children}
+    </div>
+  )
+}
+
+interface SegOption<T> { label: string; value: T }
+/** Segmented control — replaces native selects / radios for small option sets. */
+function Segmented<T extends string | number>({ options, value, onChange, ariaLabel }: {
+  options: SegOption<T>[]; value: T; onChange: (v: T) => void; ariaLabel: string
+}) {
+  return (
+    <div role="group" aria-label={ariaLabel} className="inline-flex p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
+      {options.map(opt => {
+        const active = opt.value === value
+        return (
+          <button
+            key={String(opt.value)}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(opt.value)}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 cursor-pointer
+              ${active ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+          >
+            {opt.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/** iOS-style toggle switch — replaces native checkboxes. */
+function Toggle({ checked, onChange, label, testId }: {
+  checked: boolean; onChange: (v: boolean) => void; label: string; testId?: string
+}) {
+  return (
+    <label className="flex items-center justify-between gap-4 cursor-pointer">
+      <span className="text-sm text-content/80">{label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        data-testid={testId}
+        onClick={() => onChange(!checked)}
+        className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer shrink-0
+          ${checked ? 'bg-gold' : 'bg-contrast/15'}`}
+      >
+        <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200
+          ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+      </button>
+    </label>
+  )
+}
+
+/** Styled numeric input. */
+function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
+  value: number; min: number; max: number; step?: number; onChange: (v: number) => void; prefix?: string; label: string
+}) {
+  return (
+    <div className="relative">
+      {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-content/40">{prefix}</span>}
+      <input
+        type="number"
+        aria-label={label}
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={e => onChange(Math.max(min, Math.min(max, parseInt(e.target.value) || min)))}
+        className={`w-28 bg-surface-2 border border-contrast/15 rounded-lg py-1.5 text-sm text-content text-right
+          hover:border-gold/40 focus:border-gold/60 transition-colors ${prefix ? 'pl-7 pr-3' : 'px-3'}`}
+      />
+    </div>
+  )
+}
+
+/**
+ * Casino Session setup — dark-luxury redesign.
+ * Uses segmented controls, toggle switches and styled fields instead of raw
+ * native inputs. Card counting is Hi-Lo only, so no system picker is shown.
+ */
 export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessionConfigProps) {
   const [config, setConfig] = useState<CasinoSessionConfig>(initialConfig)
 
@@ -15,189 +118,138 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
     setConfig(prev => ({ ...prev, [key]: val }))
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h2 className="text-xl font-bold text-gold text-center">Casino Session Setup</h2>
+    <div className="flex-1 overflow-y-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Casino Session Setup</h2>
+          <p className="mt-2 text-sm text-content/50">Configure your table, then take a seat.</p>
+        </div>
 
-        {/* Session Mode */}
-        <fieldset className="space-y-3 bg-contrast/5 rounded-xl p-4 border border-contrast/10">
-          <legend className="text-sm font-semibold text-content/70 px-2">Session Length</legend>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" checked={config.sessionMode === 'hands'}
-                onChange={() => update('sessionMode', 'hands')}
-                className="accent-gold" />
-              <span className="text-sm text-content">By Hands</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" checked={config.sessionMode === 'time'}
-                onChange={() => update('sessionMode', 'time')}
-                className="accent-gold" />
-              <span className="text-sm text-content">By Time</span>
-            </label>
-          </div>
-          {config.sessionMode === 'hands' ? (
-            <label className="flex items-center gap-3">
-              <span className="text-sm text-content/60 w-32">Hands:</span>
-              <input type="number" min={5} max={200} value={config.targetHands}
-                onChange={e => update('targetHands', Math.max(5, parseInt(e.target.value) || 5))}
-                className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content w-24" />
-            </label>
-          ) : (
-            <label className="flex items-center gap-3">
-              <span className="text-sm text-content/60 w-32">Minutes:</span>
-              <input type="number" min={1} max={120} value={config.targetMinutes}
-                onChange={e => update('targetMinutes', Math.max(1, parseInt(e.target.value) || 1))}
-                className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content w-24" />
-            </label>
-          )}
-        </fieldset>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Session length */}
+          <Panel icon={Timer} title="Session Length">
+            <Field label="Measure by">
+              <Segmented
+                ariaLabel="Session length mode"
+                value={config.sessionMode}
+                onChange={v => update('sessionMode', v)}
+                options={[{ label: 'Hands', value: 'hands' }, { label: 'Time', value: 'time' }]}
+              />
+            </Field>
+            {config.sessionMode === 'hands' ? (
+              <Field label="Number of hands">
+                <NumberField label="Number of hands" value={config.targetHands} min={5} max={200} onChange={v => update('targetHands', v)} />
+              </Field>
+            ) : (
+              <Field label="Minutes">
+                <NumberField label="Minutes" value={config.targetMinutes} min={1} max={120} onChange={v => update('targetMinutes', v)} />
+              </Field>
+            )}
+          </Panel>
 
-        {/* Table Setup */}
-        <fieldset className="space-y-3 bg-contrast/5 rounded-xl p-4 border border-contrast/10">
-          <legend className="text-sm font-semibold text-content/70 px-2">Table Setup</legend>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">Bots:</span>
-            <select value={config.numBots} onChange={e => update('numBots', parseInt(e.target.value))}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content">
-              {[0,1,2,3,4,5].map(n => <option key={n} value={n} className="bg-select-bg">{n}</option>)}
-            </select>
-          </label>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">Your Seat:</span>
-            <select value={config.playerSeatIndex} onChange={e => update('playerSeatIndex', parseInt(e.target.value))}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content">
-              {[0,1,2,3,4,5].map(n => <option key={n} value={n} className="bg-select-bg">Seat {n + 1}</option>)}
-            </select>
-          </label>
-        </fieldset>
+          {/* Table setup */}
+          <Panel icon={Users} title="Table Setup">
+            <Field label="Bots at the table">
+              <Segmented
+                ariaLabel="Number of bots"
+                value={config.numBots}
+                onChange={v => update('numBots', v)}
+                options={[0, 1, 2, 3, 4, 5].map(n => ({ label: String(n), value: n }))}
+              />
+            </Field>
+            <Field label="Your seat">
+              <Segmented
+                ariaLabel="Your seat"
+                value={config.playerSeatIndex}
+                onChange={v => update('playerSeatIndex', v)}
+                options={[0, 1, 2, 3, 4, 5].map(n => ({ label: String(n + 1), value: n }))}
+              />
+            </Field>
+          </Panel>
 
-        {/* Bankroll & Betting */}
-        <fieldset className="space-y-3 bg-contrast/5 rounded-xl p-4 border border-contrast/10">
-          <legend className="text-sm font-semibold text-content/70 px-2">Bankroll & Betting</legend>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">Bankroll:</span>
-            <input type="number" min={100} max={100000} step={100} value={config.startingBankroll}
-              onChange={e => update('startingBankroll', Math.max(100, parseInt(e.target.value) || 100))}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content w-28" />
-          </label>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">Min Bet:</span>
-            <input type="number" min={5} max={500} step={5} value={config.minBet}
-              onChange={e => update('minBet', Math.max(5, parseInt(e.target.value) || 5))}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content w-28" />
-          </label>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">Max Bet:</span>
-            <input type="number" min={50} max={10000} step={50} value={config.maxBet}
-              onChange={e => update('maxBet', Math.max(50, parseInt(e.target.value) || 50))}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content w-28" />
-          </label>
-        </fieldset>
+          {/* Bankroll & betting */}
+          <Panel icon={Wallet} title="Bankroll & Betting">
+            <Field label="Starting bankroll">
+              <NumberField label="Starting bankroll" value={config.startingBankroll} min={100} max={100000} step={100} prefix="$" onChange={v => update('startingBankroll', v)} />
+            </Field>
+            <Field label="Min bet">
+              <NumberField label="Min bet" value={config.minBet} min={5} max={500} step={5} prefix="$" onChange={v => update('minBet', v)} />
+            </Field>
+            <Field label="Max bet">
+              <NumberField label="Max bet" value={config.maxBet} min={50} max={10000} step={50} prefix="$" onChange={v => update('maxBet', v)} />
+            </Field>
+          </Panel>
 
-        {/* Rules */}
-        <fieldset className="space-y-3 bg-contrast/5 rounded-xl p-4 border border-contrast/10">
-          <legend className="text-sm font-semibold text-content/70 px-2">Casino Rules</legend>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">Decks:</span>
-            <select value={config.numDecks} onChange={e => update('numDecks', parseInt(e.target.value))}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content">
-              {[2,6,8].map(n => <option key={n} value={n} className="bg-select-bg">{n}</option>)}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={config.dealerHitsSoft17}
-              onChange={e => update('dealerHitsSoft17', e.target.checked)}
-              className="accent-gold" />
-            <span className="text-sm text-content">Dealer Hits Soft 17 (H17)</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={config.doubleAfterSplit}
-              onChange={e => update('doubleAfterSplit', e.target.checked)}
-              className="accent-gold" />
-            <span className="text-sm text-content">Double After Split</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={config.surrenderAllowed}
-              onChange={e => update('surrenderAllowed', e.target.checked)}
-              className="accent-gold" />
-            <span className="text-sm text-content">Late Surrender</span>
-          </label>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">BJ Payout:</span>
-            <select value={config.blackjackPays} onChange={e => update('blackjackPays', parseFloat(e.target.value))}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content">
-              <option value={1.5} className="bg-select-bg">3:2</option>
-              <option value={1.2} className="bg-select-bg">6:5</option>
-            </select>
-          </label>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">Penetration:</span>
-            <select value={config.penetration} onChange={e => update('penetration', parseFloat(e.target.value))}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content">
-              {[0.65, 0.70, 0.75, 0.80, 0.85].map(p => (
-                <option key={p} value={p} className="bg-select-bg">{Math.round(p * 100)}%</option>
-              ))}
-            </select>
-          </label>
-        </fieldset>
+          {/* Rules */}
+          <Panel icon={Scale} title="Casino Rules">
+            <Field label="Decks">
+              <Segmented
+                ariaLabel="Number of decks"
+                value={config.numDecks}
+                onChange={v => update('numDecks', v)}
+                options={[2, 6, 8].map(n => ({ label: String(n), value: n }))}
+              />
+            </Field>
+            <Field label="Penetration">
+              <Segmented
+                ariaLabel="Penetration"
+                value={config.penetration}
+                onChange={v => update('penetration', v)}
+                options={[0.65, 0.70, 0.75, 0.80, 0.85].map(p => ({ label: `${Math.round(p * 100)}%`, value: p }))}
+              />
+            </Field>
+            <Field label="Blackjack pays">
+              <Segmented
+                ariaLabel="Blackjack payout"
+                value={config.blackjackPays}
+                onChange={v => update('blackjackPays', v)}
+                options={[{ label: '3:2', value: 1.5 }, { label: '6:5', value: 1.2 }]}
+              />
+            </Field>
+            <div className="pt-1 space-y-3">
+              <Toggle label="Dealer hits soft 17 (H17)" checked={config.dealerHitsSoft17} onChange={v => update('dealerHitsSoft17', v)} />
+              <Toggle label="Double after split" checked={config.doubleAfterSplit} onChange={v => update('doubleAfterSplit', v)} />
+              <Toggle label="Late surrender" checked={config.surrenderAllowed} onChange={v => update('surrenderAllowed', v)} />
+            </div>
+          </Panel>
 
-        {/* Training Options */}
-        <fieldset className="space-y-3 bg-contrast/5 rounded-xl p-4 border border-contrast/10">
-          <legend className="text-sm font-semibold text-content/70 px-2">Training Options</legend>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={config.trainingMode}
-              onChange={e => update('trainingMode', e.target.checked)}
-              className="accent-gold" />
-            <span className="text-sm text-content">Show feedback after each hand</span>
-          </label>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">Count Check:</span>
-            <select value={config.countCheckFrequency}
-              onChange={e => update('countCheckFrequency', e.target.value as CasinoSessionConfig['countCheckFrequency'])}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content">
-              <option value="every" className="bg-select-bg">Every hand</option>
-              <option value="every5" className="bg-select-bg">Every 5 hands</option>
-              <option value="every10" className="bg-select-bg">Every 10 hands</option>
-              <option value="never" className="bg-select-bg">Never</option>
-            </select>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={config.showDeviationHints}
-              onChange={e => update('showDeviationHints', e.target.checked)}
-              className="accent-gold" />
-            <span className="text-sm text-content">Show deviation hints</span>
-          </label>
-          <label className="flex items-center gap-3">
-            <span className="text-sm text-content/60 w-32">System:</span>
-            <select value={config.countingSystem}
-              onChange={e => update('countingSystem', e.target.value as CountingSystemId)}
-              className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content">
-              {Object.values(CountingSystemId).map(id => (
-                <option key={id} value={id} className="bg-select-bg">{id}</option>
-              ))}
-            </select>
-          </label>
-        </fieldset>
+          {/* Training options */}
+          <Panel icon={GraduationCap} title="Training Options">
+            <Field label="Count check">
+              <Segmented
+                ariaLabel="Count check frequency"
+                value={config.countCheckFrequency}
+                onChange={v => update('countCheckFrequency', v)}
+                options={[
+                  { label: 'Every', value: 'every' },
+                  { label: '5', value: 'every5' },
+                  { label: '10', value: 'every10' },
+                  { label: 'Off', value: 'never' },
+                ]}
+              />
+            </Field>
+            <div className="pt-1 space-y-3">
+              <Toggle label="Show feedback after each hand" checked={config.trainingMode} onChange={v => update('trainingMode', v)} />
+              <Toggle label="Show deviation hints" checked={config.showDeviationHints} onChange={v => update('showDeviationHints', v)} />
+            </div>
+          </Panel>
 
-        {/* Sound */}
-        <fieldset className="space-y-3 bg-contrast/5 rounded-xl p-4 border border-contrast/10">
-          <legend className="text-sm font-semibold text-content/70 px-2">Sound</legend>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={config.casinoAmbience}
-              onChange={e => update('casinoAmbience', e.target.checked)}
-              data-testid="toggle-ambience"
-              className="accent-gold" />
-            <span className="text-sm text-content">Casino Ambience</span>
-          </label>
-        </fieldset>
+          {/* Sound */}
+          <Panel icon={Volume2} title="Sound">
+            <Toggle label="Casino ambience" checked={config.casinoAmbience} onChange={v => update('casinoAmbience', v)} testId="toggle-ambience" />
+          </Panel>
+        </div>
 
+        {/* Start */}
         <button
           onClick={() => onStart(config)}
           data-testid="start-session"
-          className="w-full py-3 rounded-xl bg-gold text-black font-bold text-lg
-            hover:bg-gold/90 transition-colors cursor-pointer"
+          className="lift-glow mt-8 w-full py-3.5 rounded-xl font-semibold text-black
+            bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
+            flex items-center justify-center gap-2 shadow-[0_10px_30px_-12px_var(--color-gold)]"
         >
+          <Play size={18} className="fill-current" />
           Start Session
         </button>
       </div>

@@ -164,7 +164,7 @@ describe('TableCounting', () => {
     render(<TableCounting />)
 
     // Select hard difficulty
-    fireEvent.click(screen.getByText('hard'))
+    fireEvent.click(screen.getByText('Hard'))
 
     // Should show hard mode description on settings screen
     expect(screen.getByText('Count asked randomly every 2-5 hands.')).toBeInTheDocument()

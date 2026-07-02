@@ -10,6 +10,7 @@ import {
   Area,
   AreaChart,
 } from 'recharts'
+import { Wallet } from 'lucide-react'
 import { useBankrollTrackerStore, type TrackedSession } from '../../store/bankroll-tracker-store'
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -241,7 +242,9 @@ export function BankrollSimulator() {
     return (
       <div className="flex-1 overflow-y-auto p-4 md:p-6" data-testid="bankroll-tracker">
         <div className="max-w-md mx-auto mt-16 text-center">
-          <p className="text-4xl mb-4">{'\uD83D\uDCB0'}</p>
+          <span className="grid place-items-center w-16 h-16 mx-auto mb-4 rounded-2xl text-gold bg-gold/10 border border-gold/20">
+            <Wallet size={30} />
+          </span>
           <h2 className="text-2xl font-bold text-content mb-3">Start Tracking Your Bankroll</h2>
           <p className="text-content/50 mb-8">
             Track your real casino sessions to see your performance over time.
@@ -278,6 +281,12 @@ export function BankrollSimulator() {
   // ── Main Tracker View ──
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="bankroll-tracker">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Bankroll Tracker</h1>
+        <p className="text-sm text-content/50">Track your real casino sessions and results.</p>
+      </div>
+
       {/* ── Section A: Overview ── */}
       <section data-testid="overview-section">
         <div className="text-center mb-4">

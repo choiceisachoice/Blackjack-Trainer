@@ -1,164 +1,137 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { BetSpread } from './BetSpread'
+import { BetSpread, getMultiplier, getCorrectBet, buildBracketSequence } from './BetSpread'
 
-// Mock Math.random for deterministic tests
-let mockRandomIndex = 0
-
-function setMockRandom(values: number[]) {
-  mockRandomIndex = 0
-  vi.spyOn(Math, 'random').mockImplementation(() => {
-    const val = values[mockRandomIndex % values.length]
-    mockRandomIndex++
-    return val
-  })
+/** Expected 1–16 bet multiplier for a given TC (mirrors the component). */
+function expectedMultiplier(tc: number): number {
+  const t = Math.floor(tc)
+  if (t <= 0) return 1
+  if (t === 1) return 2
+  if (t === 2) return 4
+  if (t === 3) return 8
+  if (t === 4) return 12
+  return 16
 }
 
-describe('BetSpread', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks()
+/** Reads the numeric value out of a `$123` / `+2` style testid element. */
+function num(testId: string): number {
+  return parseFloat((screen.getByTestId(testId).textContent ?? '').replace(/[$+]/g, ''))
+}
+
+describe('BetSpread — pure helpers', () => {
+  it('getMultiplier follows the 1–16 ladder', () => {
+    expect(getMultiplier(-1)).toBe(1)
+    expect(getMultiplier(0)).toBe(1)
+    expect(getMultiplier(1)).toBe(2)
+    expect(getMultiplier(2)).toBe(4)
+    expect(getMultiplier(3)).toBe(8)
+    expect(getMultiplier(4)).toBe(12)
+    expect(getMultiplier(5)).toBe(16)
+    expect(getMultiplier(9)).toBe(16)
   })
 
-  it('renders settings screen', () => {
-    render(<BetSpread />)
+  it('getCorrectBet scales the multiplier by the table minimum', () => {
+    expect(getCorrectBet(0, 25)).toBe(25)   // 1× $25
+    expect(getCorrectBet(3, 25)).toBe(200)  // 8× $25
+    expect(getCorrectBet(5, 100)).toBe(1600) // 16× $100
+  })
 
+  it('buildBracketSequence never repeats adjacent and covers evenly', () => {
+    for (let run = 0; run < 25; run++) {
+      const seq = buildBracketSequence(20)
+      expect(seq).toHaveLength(20)
+      for (let i = 1; i < seq.length; i++) {
+        expect(seq[i]).not.toBe(seq[i - 1]) // no two identical questions in a row
+      }
+      // Every one of the six bet levels appears (good coverage)
+      expect(new Set(seq).size).toBe(6)
+    }
+  })
+})
+
+describe('BetSpread — UI', () => {
+  it('renders settings screen with the new controls', () => {
+    render(<BetSpread />)
     expect(screen.getByText('Bet Spread')).toBeInTheDocument()
     expect(screen.getByText('Bet Spread Reference')).toBeInTheDocument()
     expect(screen.getByText('Random')).toBeInTheDocument()
     expect(screen.getByText('Type A')).toBeInTheDocument()
     expect(screen.getByText('Type B')).toBeInTheDocument()
     expect(screen.getByText('Type C')).toBeInTheDocument()
+    // New: number-of-questions selector
+    expect(screen.getByRole('group', { name: 'Number of questions' })).toBeInTheDocument()
     expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 
-  it('shows RC, remaining decks, and bet options for type A', () => {
-    // Force type A question with specific RC and decks
-    // pickQuestionType for 'random' picks types[floor(random*3)]
-    // With random = 0.1 → types[0] = 'A'
-    // generateRC: normal dist - use simple values
-    // remainingDecks: REMAINING_DECKS_OPTIONS[floor(random*9)]
-    setMockRandom([
-      0.1,  // pickQuestionType → 'A'
-      0.5, 0.5, // Box-Muller for RC (normal ~= 0 → rc ~= 2)
-      0.3,  // remainingDecks index → ~2 decks
-    ])
-
-    render(<BetSpread />)
-    fireEvent.click(screen.getByTestId('start-training'))
-
-    // Should show RC and remaining decks (Type A)
-    expect(screen.getByTestId('running-count')).toBeInTheDocument()
-    expect(screen.getByTestId('remaining-decks')).toBeInTheDocument()
-    expect(screen.getByText('What is your optimal bet?')).toBeInTheDocument()
-
-    // Bet buttons should be visible
-    expect(screen.getByTestId('bet-10')).toBeInTheDocument()
-    expect(screen.getByTestId('bet-20')).toBeInTheDocument()
-    expect(screen.getByTestId('bet-40')).toBeInTheDocument()
-    expect(screen.getByTestId('bet-80')).toBeInTheDocument()
-    expect(screen.getByTestId('bet-120')).toBeInTheDocument()
-    expect(screen.getByTestId('bet-160')).toBeInTheDocument()
-  })
-
-  it('correct bet shows success with explanation', () => {
-    // Force Type B with specific TC
-    setMockRandom([
-      0.4,  // pickQuestionType → types[1] = 'B'
-      0.5, 0.5, // Box-Muller for RC
-      0.0,  // remainingDecks index → 1 deck
-    ])
-
-    render(<BetSpread />)
-    // Select Type B mode first
-    fireEvent.click(screen.getByText('Type B'))
-    fireEvent.click(screen.getByTestId('start-training'))
-
-    // Read the TC from the UI
-    const tcText = screen.getByTestId('true-count').textContent || ''
-    const tc = parseFloat(tcText.replace('+', ''))
-
-    // Calculate correct bet (floor TC for bet bracket lookup)
-    const intTC = Math.floor(tc)
-    let correctBet: number
-    if (intTC <= 0) correctBet = 10
-    else if (intTC === 1) correctBet = 20
-    else if (intTC === 2) correctBet = 40
-    else if (intTC === 3) correctBet = 80
-    else if (intTC === 4) correctBet = 120
-    else correctBet = 160
-
-    fireEvent.click(screen.getByTestId(`bet-${correctBet}`))
-
-    expect(screen.getByTestId('feedback-result')).toHaveTextContent('Correct!')
-  })
-
-  it('wrong bet shows error with correct bet', () => {
-    // Force Type B
-    setMockRandom([
-      0.4, 0.5, 0.5, 0.0,
-    ])
-
+  it('Type B shows the True Count, table minimum and a full bet ramp', () => {
     render(<BetSpread />)
     fireEvent.click(screen.getByText('Type B'))
     fireEvent.click(screen.getByTestId('start-training'))
 
-    // Always pick $10 — might be wrong depending on TC
-    // Pick $160 which is likely wrong for most TCs
-    fireEvent.click(screen.getByTestId('bet-160'))
+    expect(screen.getByTestId('true-count')).toBeInTheDocument()
+    expect(screen.getByTestId('table-min')).toBeInTheDocument()
+    expect(screen.queryByTestId('running-count')).not.toBeInTheDocument()
 
-    // Check if result is shown
-    const result = screen.getByTestId('feedback-result')
-    expect(result).toBeInTheDocument()
-    expect(screen.getByTestId('feedback-explanation')).toBeInTheDocument()
+    const tableMin = num('table-min')
+    // All six ramp options are present and scale by the table minimum
+    for (const m of [1, 2, 4, 8, 12, 16]) {
+      expect(screen.getByTestId(`bet-${m * tableMin}`)).toBeInTheDocument()
+    }
   })
 
-  it('type A: requires TC calculation from RC and decks', () => {
-    setMockRandom([0.1, 0.5, 0.5, 0.3])
-
+  it('Type A shows RC and remaining decks but not the TC', () => {
     render(<BetSpread />)
     fireEvent.click(screen.getByText('Type A'))
     fireEvent.click(screen.getByTestId('start-training'))
 
-    // Type A shows RC and decks but NOT TC
     expect(screen.getByTestId('running-count')).toBeInTheDocument()
     expect(screen.getByTestId('remaining-decks')).toBeInTheDocument()
     expect(screen.queryByTestId('true-count')).not.toBeInTheDocument()
   })
 
-  it('type B: given TC, just choose bet', () => {
-    setMockRandom([0.4, 0.5, 0.5, 0.0])
-
+  it('picking the correct bet shows Correct', () => {
     render(<BetSpread />)
     fireEvent.click(screen.getByText('Type B'))
     fireEvent.click(screen.getByTestId('start-training'))
 
-    // Type B shows TC directly
-    expect(screen.getByTestId('true-count')).toBeInTheDocument()
-    // No RC or remaining decks
-    expect(screen.queryByTestId('running-count')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('remaining-decks')).not.toBeInTheDocument()
+    const tc = num('true-count')
+    const tableMin = num('table-min')
+    const correctBet = expectedMultiplier(tc) * tableMin
+
+    fireEvent.click(screen.getByTestId(`bet-${correctBet}`))
+    expect(screen.getByTestId('feedback-result')).toHaveTextContent('Correct!')
   })
 
-  it('tracks accuracy statistics', () => {
-    setMockRandom([
-      0.4, 0.5, 0.5, 0.0, // first question
-      0.4, 0.5, 0.5, 0.0, // second question (after next)
-    ])
-
+  it('picking a wrong bet shows Wrong with an explanation', () => {
     render(<BetSpread />)
     fireEvent.click(screen.getByText('Type B'))
     fireEvent.click(screen.getByTestId('start-training'))
 
-    // Answer (any bet) to see stats
-    fireEvent.click(screen.getByTestId('bet-10'))
+    const tc = num('true-count')
+    const tableMin = num('table-min')
+    const correctBet = expectedMultiplier(tc) * tableMin
+    // Choose a definitely-different option
+    const wrongBet = correctBet === tableMin * 16 ? tableMin * 1 : tableMin * 16
 
-    // Stats should appear in feedback
-    expect(screen.getByText(/Correct: \d+\/1/)).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId(`bet-${wrongBet}`))
+    expect(screen.getByTestId('feedback-result')).toHaveTextContent('Wrong!')
+    expect(screen.getByTestId('feedback-explanation')).toBeInTheDocument()
+  })
 
-    // Go to next question
-    fireEvent.click(screen.getByTestId('next-question'))
+  it('runs a finite session and ends in a summary', () => {
+    render(<BetSpread />)
+    fireEvent.click(screen.getByText('Type B'))
+    fireEvent.click(screen.getByText('10')) // shortest session
+    fireEvent.click(screen.getByTestId('start-training'))
 
-    // Stats should persist
-    expect(screen.getByText(/\/1/)).toBeInTheDocument()
+    for (let i = 0; i < 10; i++) {
+      expect(screen.getByTestId('question-progress')).toHaveTextContent(`Question ${i + 1}/10`)
+      const tableMin = num('table-min')
+      fireEvent.click(screen.getByTestId(`bet-${tableMin}`)) // 1× option always exists
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+
+    expect(screen.getByTestId('summary-title')).toBeInTheDocument()
+    expect(screen.getByTestId('summary-accuracy')).toBeInTheDocument()
   })
 })

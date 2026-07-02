@@ -120,6 +120,12 @@ export function StrategyChart() {
 
   return (
     <div className="flex-1 p-4 md:p-6 max-w-4xl mx-auto w-full">
+      {/* Header */}
+      <div className="text-center mb-5">
+        <h2 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Basic Strategy Chart</h2>
+        <p className="mt-1 text-sm text-content/50">The complete Hi-Lo basic strategy — tap any cell for details.</p>
+      </div>
+
       {/* Legend */}
       <div className="flex flex-wrap gap-2 mb-4 justify-center">
         {(Object.keys(ACTION_LABELS) as ChartAction[]).map(action => (

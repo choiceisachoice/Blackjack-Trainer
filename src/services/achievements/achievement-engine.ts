@@ -24,7 +24,6 @@ interface TrackerSession {
 const SPEED_LEVEL_MS: Record<number, number> = {
   1: 1000,  // Normal
   2: 500,   // Fast
-  3: 250,   // Blitz
 }
 
 /**
@@ -646,7 +645,7 @@ export class AchievementEngine {
     return allSessions.filter(s => s.accuracy === 1 && s.totalQuestions >= 10).length
   }
 
-  /** Check if current session is a perfect Blitz speed drill. */
+  /** Check if current session is a perfect speed drill at the given speed level. */
   private checkSpeedDrillPerfect(session: TrainingSessionResult, speedLevel: number): boolean {
     if (session.mode !== 'speedDrill') return false
     if (session.accuracy < 1) return false

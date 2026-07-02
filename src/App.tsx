@@ -1,7 +1,7 @@
 import './index.css'
 import { useAppStore } from './store/app-store'
 import { HomeScreen } from './components/navigation/HomeScreen'
-import { TopBar } from './components/navigation/TopBar'
+import { NavBar } from './components/navigation/NavBar'
 import { GameTable } from './components/table/GameTable'
 import { SpeedDrill } from './components/training/SpeedDrill'
 import { TableCounting } from './components/training/TableCounting'
@@ -21,21 +21,19 @@ import { LevelUpPopup } from './components/navigation/LevelUpPopup'
  * Root application component.
  * Routes to the active training mode based on app-store.currentMode.
  */
+const SCROLLABLE_MODES = new Set([
+  'home', 'analytics', 'bankrollSim', 'achievements',
+  'casinoSession', 'strategyChart', 'casinoSessionTracker',
+])
+
 function App() {
   const currentMode = useAppStore(s => s.currentMode)
-  if (currentMode === 'home') {
-    return (
-      <>
-        <HomeScreen />
-        <AchievementToast />
-        <LevelUpPopup />
-      </>
-    )
-  }
+  const scrollable = SCROLLABLE_MODES.has(currentMode)
 
   return (
-    <div className={`h-screen flex flex-col bg-casino-bg transition-colors duration-200 ${currentMode === 'analytics' || currentMode === 'bankrollSim' || currentMode === 'achievements' || currentMode === 'casinoSession' || currentMode === 'strategyChart' || currentMode === 'casinoSessionTracker' ? 'overflow-y-auto' : 'overflow-hidden'}`}>
-      <TopBar />
+    <div className={`h-screen flex flex-col bg-casino-bg transition-colors duration-200 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+      <NavBar />
+      {currentMode === 'home' && <HomeScreen />}
       {currentMode === 'speedDrill' && <SpeedDrill />}
       {currentMode === 'tableCounting' && <TableCounting />}
       {currentMode === 'deviationTraining' && <DeviationTraining />}

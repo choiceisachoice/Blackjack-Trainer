@@ -152,7 +152,7 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     tier: 'diamond',
   },
 
-  // ── Speed (3) ────────────────────────────────────────
+  // ── Speed (2) ────────────────────────────────────────
   {
     id: 'quick_counter',
     name: 'Quick Counter',
@@ -171,16 +171,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     requirement: { type: 'speed', value: 2, mode: 'speedDrill' },
     tier: 'silver',
   },
-  {
-    id: 'blitz_master',
-    name: 'Blitz Master',
-    description: 'Complete Speed Drill at Blitz speed with 80%+',
-    icon: '\u26A1',
-    category: 'speed',
-    requirement: { type: 'speed', value: 3, mode: 'speedDrill' },
-    tier: 'gold',
-  },
-
   // ── Counting (3) ─────────────────────────────────────
   {
     id: 'count_rookie',
@@ -612,7 +602,7 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     tier: 'diamond',
   },
 
-  // ── Extreme Challenges (5) ────────────────────────────
+  // ── Extreme Challenges (4) ────────────────────────────
   {
     id: 'triple_perfect',
     name: 'Triple Perfect',
@@ -649,16 +639,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     requirement: { type: 'casino_streak', value: 10 },
     tier: 'gold',
   },
-  {
-    id: 'blitz_perfection',
-    name: 'Blitz Perfection',
-    description: 'Score 100% at Blitz speed in Speed Drill',
-    icon: '\u26A1',
-    category: 'extreme',
-    requirement: { type: 'speed_drill_perfect', value: 3 },
-    tier: 'diamond',
-  },
-
   // ── Counting Mastery (6) ──────────────────────────────
   {
     id: 'tc_sharpshooter',

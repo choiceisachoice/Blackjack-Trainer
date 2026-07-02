@@ -44,8 +44,8 @@ describe('AchievementEngine', () => {
     engine = new AchievementEngine()
   })
 
-  it('has 92 achievements defined', () => {
-    expect(ALL_ACHIEVEMENTS).toHaveLength(92)
+  it('has 90 achievements defined', () => {
+    expect(ALL_ACHIEVEMENTS).toHaveLength(90)
   })
 
   it('all achievements have unique ids', () => {

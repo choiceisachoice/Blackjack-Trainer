@@ -5,6 +5,7 @@ import { Action } from '../../engine/rules/types'
 import { casinoAmbient } from '../../services/casino-ambient'
 import type { CasinoSessionConfig, CasinoSessionResult } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
+import { useAppStore, type DealingSpeed } from '../../store/app-store'
 import { useGameLoop } from './useGameLoop'
 import { CasinoTable } from './CasinoTable'
 import { ActionButtons } from './ActionButtons'
@@ -39,6 +40,10 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     initSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Dealing speed (live, persisted)
+  const dealingSpeed = useAppStore(s => s.dealingSpeed)
+  const setDealingSpeed = useAppStore(s => s.setDealingSpeed)
 
   // Volume slider state (synced from singleton)
   const [ambientVolume, setAmbientVolume] = useState(() => casinoAmbient.volume)
@@ -199,6 +204,22 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             <span className="text-content/40 text-[10px]">Shoe</span>
             <div className="w-16 h-1.5 bg-contrast/10 rounded-full overflow-hidden">
               <div className="h-full bg-gold/60 rounded-full transition-all" style={{ width: `${Math.min(100, shoeProgress * 100)}%` }} />
+            </div>
+          </div>
+          <div className="flex items-center gap-1" data-testid="speed-control">
+            <span className="text-content/40 text-[10px]">Speed</span>
+            <div className="inline-flex p-0.5 rounded-md bg-contrast/10 border border-contrast/10">
+              {(['slow', 'normal', 'fast'] as DealingSpeed[]).map(s => (
+                <button
+                  key={s}
+                  onClick={() => setDealingSpeed(s)}
+                  aria-pressed={dealingSpeed === s}
+                  className={`px-1.5 py-0.5 rounded text-[10px] capitalize transition-colors cursor-pointer
+                    ${dealingSpeed === s ? 'bg-gold text-black font-semibold' : 'text-content/50 hover:text-content'}`}
+                >
+                  {s}
+                </button>
+              ))}
             </div>
           </div>
           {soundEnabled && config.casinoAmbience && (

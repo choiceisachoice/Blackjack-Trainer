@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect } from 'react'
+import { useAppStore, DEALING_SPEED_MULTIPLIER } from '../../store/app-store'
 
 export interface AnimStep {
   execute: () => void
@@ -21,6 +22,14 @@ export function useStepAnimation() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const animatingRef = useRef(false)
   const onCompleteRef = useRef<(() => void) | null>(null)
+
+  // Live dealing-speed multiplier (slow/normal/fast) — kept in a ref so the
+  // running sequencer always uses the latest value without restarting.
+  const dealingSpeed = useAppStore(s => s.dealingSpeed)
+  const speedMultiplierRef = useRef(DEALING_SPEED_MULTIPLIER[dealingSpeed])
+  useEffect(() => {
+    speedMultiplierRef.current = DEALING_SPEED_MULTIPLIER[dealingSpeed]
+  }, [dealingSpeed])
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -48,7 +57,7 @@ export function useStepAnimation() {
     if (step.delayMs <= 0) {
       executeNext()
     } else {
-      timerRef.current = setTimeout(executeNext, step.delayMs)
+      timerRef.current = setTimeout(executeNext, step.delayMs * speedMultiplierRef.current)
     }
   }, [])
 

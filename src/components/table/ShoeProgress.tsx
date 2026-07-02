@@ -12,9 +12,8 @@ const PIXELS_PER_CARD = 0.6
 const SHOE_HOUSING_WIDTH = Math.round(312 * PIXELS_PER_CARD) + 30 // ~217px
 const SHOE_HOUSING_HEIGHT = 90
 
-/** Discard acrylic container accommodates full stack + base. */
+/** Discard acrylic container width (height is derived from the shoe size). */
 const DISCARD_CONTAINER_WIDTH = 120
-const DISCARD_CONTAINER_MAX_HEIGHT = Math.round(312 * PIXELS_PER_CARD) + 20 // ~207px
 
 /**
  * Realistic horizontal card shoe (Kartenschlitten).
@@ -132,9 +131,16 @@ export function ShoeHousing({ cardCount, totalCards, penetration }: {
  * - Only grows when cards are collected after settlement (not during a hand)
  * - NO text, NO numbers, NO percentage indicators
  */
-export function DiscardTray({ cardCount }: { cardCount: number }) {
+export function DiscardTray({ cardCount, totalCards = 312 }: { cardCount: number; totalCards?: number }) {
   const stackHeight = Math.max(0, Math.round(cardCount * PIXELS_PER_CARD))
   const hasCards = cardCount > 0
+
+  // The tray is a fixed physical size = the whole shoe. The stack rises within
+  // it, and gold graduation lines mark each full deck (52 cards) so the player
+  // can estimate the decks dealt — and thus the decks remaining — by eye.
+  const deckPx = 52 * PIXELS_PER_CARD
+  const numDecks = Math.max(1, Math.round(totalCards / 52))
+  const trayHeight = Math.round(totalCards * PIXELS_PER_CARD)
 
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -146,13 +152,11 @@ export function DiscardTray({ cardCount }: { cardCount: number }) {
           justifyContent: 'flex-end',
         }}
       >
-        {/* Acrylic container */}
+        {/* Acrylic container — fixed height = full shoe */}
         <div
           style={{
             width: '100%',
-            minHeight: '30px',
-            height: `${Math.max(30, stackHeight + 30)}px`,
-            maxHeight: `${DISCARD_CONTAINER_MAX_HEIGHT}px`,
+            height: `${trayHeight + 8}px`,
             background: 'rgba(255, 255, 255, 0.05)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             borderBottom: 'none',
@@ -166,6 +170,22 @@ export function DiscardTray({ cardCount }: { cardCount: number }) {
               'inset 0 0 20px rgba(255, 255, 255, 0.03), 0 2px 8px rgba(0, 0, 0, 0.3)',
           }}
         >
+          {/* Deck graduation ticks (one per full deck boundary) */}
+          {Array.from({ length: numDecks - 1 }, (_, i) => i + 1).map(d => (
+            <div
+              key={d}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: `${d * deckPx}px`,
+                height: '1px',
+                background: 'rgba(212, 168, 67, 0.28)',
+                zIndex: 2,
+              }}
+            />
+          ))}
+
           {/* Card stack – horizontal card edges, grows from bottom */}
           {hasCards && (
             <motion.div
@@ -177,6 +197,7 @@ export function DiscardTray({ cardCount }: { cardCount: number }) {
                 background:
                   'repeating-linear-gradient(180deg, #f0f0f0 0px, #f0f0f0 1.5px, #d4d4d4 1.5px, #d4d4d4 2.5px)',
                 boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.08)',
+                zIndex: 1,
               }}
             />
           )}
@@ -227,9 +248,10 @@ export function ShoeStack() {
  */
 export function DiscardStack() {
   const cardsInDiscard = useGameStore(s => s.cardsInDiscard)
+  const totalCards = useGameStore(s => s.totalCards)
   const shoe = useGameStore(s => s.shoe)
 
   if (!shoe) return <div style={{ width: `${DISCARD_CONTAINER_WIDTH}px` }} />
 
-  return <DiscardTray cardCount={cardsInDiscard} />
+  return <DiscardTray cardCount={cardsInDiscard} totalCards={totalCards} />
 }

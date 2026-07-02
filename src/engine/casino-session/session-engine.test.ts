@@ -393,6 +393,42 @@ describe('CasinoSessionEngine', () => {
       expect(result.isDeviation).toBe(true)
       expect(result.deviationName).toBe('14 vs 10')
     })
+
+    // Reversed deviations (I18 #14-18): BS = Stand, but Hit BELOW the threshold.
+    it('reversed deviation: 12 vs 4 at TC -1 → Hit (I18 #15, below threshold 0)', () => {
+      const result = engine.getCorrectAction(
+        [card(Rank.Ten), card(Rank.Two)],
+        card(Rank.Four),
+        -1, // below threshold 0 → reversed deviation fires: Hit
+        false, true, true,
+      )
+      expect(result.action).toBe(Action.Hit)
+      expect(result.isDeviation).toBe(true)
+      expect(result.deviationName).toBe('12 vs 4')
+    })
+
+    it('reversed deviation: 12 vs 4 at TC +1 → Stand (Basic Strategy, no deviation)', () => {
+      const result = engine.getCorrectAction(
+        [card(Rank.Ten), card(Rank.Two)],
+        card(Rank.Four),
+        1, // at/above threshold 0 → follow BS: Stand
+        false, true, true,
+      )
+      expect(result.action).toBe(Action.Stand)
+      expect(result.isDeviation).toBe(false)
+    })
+
+    it('reversed deviation: 13 vs 2 at TC -2 → Hit (I18 #14, below threshold -1)', () => {
+      const result = engine.getCorrectAction(
+        [card(Rank.Ten), card(Rank.Three)],
+        card(Rank.Two),
+        -2, // below threshold -1 → reversed deviation fires: Hit
+        false, true, true,
+      )
+      expect(result.action).toBe(Action.Hit)
+      expect(result.isDeviation).toBe(true)
+      expect(result.deviationName).toBe('13 vs 2')
+    })
   })
 
   // ═══════════════════════════════════════════════════════

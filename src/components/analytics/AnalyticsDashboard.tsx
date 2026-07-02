@@ -207,6 +207,12 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="analytics-dashboard">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Analytics</h1>
+        <p className="text-sm text-content/50">Your training stats, trends, and progress.</p>
+      </div>
+
       {/* Section 1: Overview Cards */}
       <section>
         <h2 className="text-lg font-semibold text-content mb-3">Overview</h2>

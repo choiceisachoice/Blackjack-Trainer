@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { Target, Check, X } from 'lucide-react'
+import { Panel, Segmented, Button } from '../common/ui'
 import { Action } from '../../engine/rules/types'
 import type { Deviation } from '../../engine/counting/types'
 import { ACTION_LABEL, getDeviations, ALL_ACTIONS, getFlashCardActionEnabled, formatTC, getBasicAction, isReversedDeviation, getDeviationAction as getDevAction } from './deviation-utils'
@@ -135,65 +137,48 @@ export function DeviationTraining() {
   // ── Settings Phase ──
   if (phase === 'settings') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-content">Deviation Training</h2>
-
-        {/* Deviation Set */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Deviation Set</span>
-          <div className="flex gap-2">
-            {([
-              { value: 'i18' as DeviationSet, label: 'Illustrious 18' },
-              { value: 'fab4' as DeviationSet, label: 'Fab 4' },
-              { value: 'all' as DeviationSet, label: 'All 22' },
-            ]).map(d => (
-              <button
-                key={d.value}
-                onClick={() => setDeviationSet(d.value)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                  ${deviationSet === d.value
-                    ? 'bg-gold text-black'
-                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-              >
-                {d.label}
-              </button>
-            ))}
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <Panel icon={Target} title="Deviation Training" subtitle="Master the Illustrious 18 & Fab 4." className="w-full max-w-md">
+          {/* Deviation Set */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Deviation Set</span>
+            <Segmented
+              fluid
+              ariaLabel="Deviation set"
+              value={deviationSet}
+              onChange={setDeviationSet}
+              options={[
+                { value: 'i18' as DeviationSet, label: 'Illustrious 18' },
+                { value: 'fab4' as DeviationSet, label: 'Fab 4' },
+                { value: 'all' as DeviationSet, label: 'All 22' },
+              ]}
+            />
           </div>
-        </div>
 
-        {/* Training Mode */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Mode</span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setTrainingMode('flashCards')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                ${trainingMode === 'flashCards'
-                  ? 'bg-gold text-black'
-                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-            >
-              Flash Cards
-            </button>
-            <button
-              onClick={() => setTrainingMode('atTheTable')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                ${trainingMode === 'atTheTable'
-                  ? 'bg-gold text-black'
-                  : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-            >
-              At the Table
-            </button>
+          {/* Training Mode */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Mode</span>
+            <Segmented
+              fluid
+              ariaLabel="Training mode"
+              value={trainingMode}
+              onChange={setTrainingMode}
+              options={[
+                { value: 'flashCards' as TrainingMode, label: 'Flash Cards' },
+                { value: 'atTheTable' as TrainingMode, label: 'At the Table' },
+              ]}
+            />
           </div>
-        </div>
 
-        <button
-          onClick={() => trainingMode === 'atTheTable' ? setPhase('atTheTable') : generateQuestion()}
-          data-testid="start-training"
-          className="mt-4 px-8 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors text-lg cursor-pointer"
-        >
-          Start Training
-        </button>
+          <Button
+            size="lg"
+            className="w-full mt-1"
+            onClick={() => trainingMode === 'atTheTable' ? setPhase('atTheTable') : generateQuestion()}
+            data-testid="start-training"
+          >
+            Start Training
+          </Button>
+        </Panel>
       </div>
     )
   }
@@ -281,8 +266,11 @@ export function DeviationTraining() {
 
       {/* Result card */}
       <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-        <div className={`text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
-          <span className="text-4xl">{isCorrect ? '\u2705' : '\u274C'}</span>
+        <div className={`flex flex-col items-center text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
+          <span className={`grid place-items-center w-12 h-12 rounded-full border
+            ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
+            {isCorrect ? <Check size={24} /> : <X size={24} />}
+          </span>
           <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
             {isCorrect ? 'Correct!' : 'Wrong!'}
           </h3>
@@ -307,14 +295,9 @@ export function DeviationTraining() {
           </p>
         </div>
 
-        <button
-          onClick={generateQuestion}
-          data-testid="next-question"
-          className="w-full px-6 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors cursor-pointer"
-        >
+        <Button onClick={generateQuestion} data-testid="next-question" className="w-full">
           Next
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { Coins, Check, X, Minus, Plus } from 'lucide-react'
+import { Panel, Segmented, Button } from '../common/ui'
 import { calculateTrueCount } from '../../engine/counting/counting-engine'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
@@ -6,25 +8,33 @@ import type { BetSpreadDetails } from '../../services/stats-types'
 
 type QuestionType = 'A' | 'B' | 'C'
 type QuestionMode = 'A' | 'B' | 'C' | 'random'
-type Phase = 'settings' | 'question' | 'feedback'
+type Phase = 'settings' | 'question' | 'feedback' | 'summary'
 
-/** Bet spread table: TC → multiplier. */
+/**
+ * Bet spread ladder: True-Count bracket → bet multiplier.
+ * A 1–16 spread is the professional standard for Hi-Lo. The dollar amounts
+ * are derived per question from that table's minimum bet (the "unit").
+ */
 const BET_SPREAD: { minTC: number; maxTC: number; multiplier: number; label: string }[] = [
-  { minTC: -Infinity, maxTC: 0, multiplier: 1, label: 'TC \u2264 0' },
+  { minTC: -Infinity, maxTC: 0, multiplier: 1, label: 'TC ≤ 0' },
   { minTC: 1, maxTC: 1, multiplier: 2, label: 'TC +1' },
   { minTC: 2, maxTC: 2, multiplier: 4, label: 'TC +2' },
   { minTC: 3, maxTC: 3, multiplier: 8, label: 'TC +3' },
   { minTC: 4, maxTC: 4, multiplier: 12, label: 'TC +4' },
-  { minTC: 5, maxTC: Infinity, multiplier: 16, label: 'TC \u2265 +5' },
+  { minTC: 5, maxTC: Infinity, multiplier: 16, label: 'TC ≥ +5' },
 ]
 
-const MIN_BET = 10
-const BET_OPTIONS = [10, 20, 40, 80, 120, 160]
+/** Bet multipliers shown as options (1–16 spread). */
+const MULTIPLIERS = [1, 2, 4, 8, 12, 16]
+
+/** Realistic table minimums (the "unit"). Varies per question for realism. */
+const TABLE_MINIMUMS = [5, 10, 15, 25, 50, 100]
 
 const REMAINING_DECKS_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+const QUESTION_COUNTS = [10, 20, 30, 50]
 
 /** Returns the correct multiplier for a given TC (floors to integer for bracket lookup). */
-function getMultiplier(tc: number): number {
+export function getMultiplier(tc: number): number {
   const intTC = Math.floor(tc)
   for (const row of BET_SPREAD) {
     if (intTC >= row.minTC && intTC <= row.maxTC) return row.multiplier
@@ -32,9 +42,9 @@ function getMultiplier(tc: number): number {
   return 1
 }
 
-/** Returns the correct bet for a given TC. */
-function getCorrectBet(tc: number): number {
-  return getMultiplier(tc) * MIN_BET
+/** Returns the correct bet for a given TC at a given table minimum. */
+export function getCorrectBet(tc: number, tableMin: number): number {
+  return getMultiplier(tc) * tableMin
 }
 
 /** Format TC as "+N" or "N". */
@@ -42,45 +52,105 @@ function formatTC(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`
 }
 
-/** Generates a weighted random RC. Extreme values are rarer. */
-function generateRC(): number {
-  // Gaussian-ish distribution centered near 0, range -10 to +15
-  const u1 = Math.random()
-  const u2 = Math.random()
-  const normal = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
-  const rc = Math.round(normal * 4 + 2) // slightly positive bias
-  return Math.max(-10, Math.min(15, rc))
-}
+function rand(): number { return Math.random() }
+function pick<T>(arr: readonly T[]): T { return arr[Math.floor(rand() * arr.length)] }
 
-/** Picks a random question type. */
-function pickQuestionType(mode: QuestionMode): QuestionType {
-  if (mode === 'random') {
-    const types: QuestionType[] = ['A', 'B', 'C']
-    return types[Math.floor(Math.random() * types.length)]
-  }
-  return mode
-}
-
-interface QuestionState {
+interface Question {
   type: QuestionType
+  tableMin: number
   rc: number
   remainingDecks: number
   tc: number
   correctBet: number
 }
 
+/** Picks a representative integer TC inside a bracket (adds variety). */
+function pickTargetTC(bracketIdx: number): number {
+  switch (bracketIdx) {
+    case 0: return pick([-1, 0])
+    case 5: return pick([5, 6, 7])
+    default: return bracketIdx // brackets 1..4 map to TC 1..4
+  }
+}
+
+/**
+ * Builds a bracket sequence of the given length that covers all six bet levels
+ * as evenly as possible with NO two adjacent entries equal — so the same
+ * question/answer never appears twice in a row and the whole ramp is trained.
+ */
+export function buildBracketSequence(count: number): number[] {
+  const counts = [0, 0, 0, 0, 0, 0]
+  const seq: number[] = []
+  for (let i = 0; i < count; i++) {
+    // Candidates: any bracket except the previous one (guarantees no repeat)…
+    let candidates = [0, 1, 2, 3, 4, 5].filter(b => b !== seq[i - 1])
+    // …preferring the least-used so the whole ramp is covered evenly.
+    const min = Math.min(...candidates.map(b => counts[b]))
+    candidates = candidates.filter(b => counts[b] === min)
+    const b = candidates[Math.floor(rand() * candidates.length)]
+    seq.push(b)
+    counts[b]++
+  }
+  return seq
+}
+
+/** Builds one concrete question in the target bracket, avoiding a repeat of prev. */
+function makeQuestion(bracketIdx: number, type: QuestionType, prev: Question | null): Question {
+  const targetTC = pickTargetTC(bracketIdx)
+
+  // Vary the table minimum; avoid repeating the previous one
+  let tableMin = pick(TABLE_MINIMUMS)
+  if (prev && tableMin === prev.tableMin) {
+    const others = TABLE_MINIMUMS.filter(m => m !== prev.tableMin)
+    tableMin = pick(others)
+  }
+
+  let rc = 0
+  let remainingDecks = 1
+  let tc = targetTC
+
+  if (type !== 'B') {
+    // Type A/C: present RC + remaining decks; the engine derives the TC
+    remainingDecks = pick(REMAINING_DECKS_OPTIONS)
+    rc = Math.round(targetTC * remainingDecks)
+    tc = calculateTrueCount(rc, remainingDecks)
+  }
+
+  return { type, tableMin, rc, remainingDecks, tc, correctBet: getCorrectBet(tc, tableMin) }
+}
+
+/** Builds a full, non-repeating session of questions. */
+function buildSession(mode: QuestionMode, count: number): Question[] {
+  const seq = buildBracketSequence(count)
+  const questions: Question[] = []
+  let prev: Question | null = null
+  for (const bracketIdx of seq) {
+    const type: QuestionType = mode === 'random' ? pick(['A', 'B', 'C'] as const) : mode
+    const q = makeQuestion(bracketIdx, type, prev)
+    questions.push(q)
+    prev = q
+  }
+  return questions
+}
+
 /**
  * Bet Spread training mode.
  *
- * Teaches players to adjust bets based on the True Count.
- * Three question types: A (RC+decks), B (TC only), C (TC+bet).
+ * Realistic scenarios: each question uses a different table minimum, and the
+ * player picks the correct bet from that table's 1–16 spread. Sessions are a
+ * fixed length with no repeated questions, then show a summary.
  */
 export function BetSpread() {
   const [questionMode, setQuestionMode] = useState<QuestionMode>('random')
+  const [numQuestions, setNumQuestions] = useState(20)
   const [phase, setPhase] = useState<Phase>('settings')
 
-  // Question state
-  const [question, setQuestion] = useState<QuestionState | null>(null)
+  // Session
+  const [session, setSession] = useState<Question[]>([])
+  const [qIndex, setQIndex] = useState(0)
+  const question = session[qIndex] ?? null
+
+  // Answer state
   const [tcAnswer, setTcAnswer] = useState(0)
   const [selectedBet, setSelectedBet] = useState<number | null>(null)
   const [isCorrect, setIsCorrect] = useState(false)
@@ -92,13 +162,11 @@ export function BetSpread() {
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
 
-  // TC and bet accuracy tracking for session save
   const tcCorrectRef = useRef(0)
   const tcTotalRef = useRef(0)
   const betCorrectRef = useRef(0)
   const betTotalRef = useRef(0)
 
-  // ── Session stats persistence ──
   const { statsRef } = useSessionSave('betSpread', (): BetSpreadDetails => ({
     type: 'betSpread',
     questionMode,
@@ -108,20 +176,23 @@ export function BetSpread() {
     betTotal: betTotalRef.current,
   }))
 
-  const generateQuestion = useCallback(() => {
-    const type = pickQuestionType(questionMode)
-    const rc = generateRC()
-    const remainingDecks = REMAINING_DECKS_OPTIONS[Math.floor(Math.random() * REMAINING_DECKS_OPTIONS.length)]
-    const tc = calculateTrueCount(rc, remainingDecks)
-    const correctBet = getCorrectBet(tc)
-
-    setQuestion({ type, rc, remainingDecks, tc, correctBet })
+  const startSession = useCallback(() => {
+    setSession(buildSession(questionMode, numQuestions))
+    setQIndex(0)
     setTcAnswer(0)
     setSelectedBet(null)
     setIsCorrect(false)
     setTcCorrect(true)
+    setTotalCorrect(0)
+    setTotalAttempts(0)
+    setCurrentStreak(0)
+    setBestStreak(0)
+    tcCorrectRef.current = 0
+    tcTotalRef.current = 0
+    betCorrectRef.current = 0
+    betTotalRef.current = 0
     setPhase('question')
-  }, [questionMode])
+  }, [questionMode, numQuestions])
 
   const handleSubmitBet = useCallback((bet: number) => {
     if (!question) return
@@ -130,11 +201,9 @@ export function BetSpread() {
     let correct = betOk
     let tcOk = true
 
-    // Track bet accuracy
     betTotalRef.current++
     if (betOk) betCorrectRef.current++
 
-    // For type C, also check TC answer
     if (question.type === 'C') {
       tcOk = tcAnswer === question.tc
       tcTotalRef.current++
@@ -145,27 +214,22 @@ export function BetSpread() {
     setSelectedBet(bet)
     setIsCorrect(correct)
     setTcCorrect(tcOk)
-    setTotalAttempts(prev => prev + 1)
 
+    const newAttempts = totalAttempts + 1
+    const newCorrect = totalCorrect + (correct ? 1 : 0)
+    const newBestStreak = correct ? Math.max(bestStreak, currentStreak + 1) : bestStreak
+
+    setTotalAttempts(newAttempts)
     if (correct) {
       soundEngine.correct()
-      setTotalCorrect(prev => prev + 1)
-      setCurrentStreak(prev => {
-        const next = prev + 1
-        setBestStreak(best => Math.max(best, next))
-        return next
-      })
+      setTotalCorrect(newCorrect)
+      setCurrentStreak(currentStreak + 1)
+      setBestStreak(newBestStreak)
     } else {
       soundEngine.wrong()
       setCurrentStreak(0)
     }
 
-    // Sync stats ref for session save
-    const newAttempts = totalAttempts + 1
-    const newCorrect = totalCorrect + (correct ? 1 : 0)
-    const newBestStreak = correct
-      ? Math.max(bestStreak, currentStreak + 1)
-      : bestStreak
     statsRef.current = {
       totalQuestions: newAttempts,
       correctAnswers: newCorrect,
@@ -175,81 +239,126 @@ export function BetSpread() {
     setPhase('feedback')
   }, [question, tcAnswer, totalAttempts, totalCorrect, bestStreak, currentStreak, statsRef])
 
+  const handleNext = useCallback(() => {
+    if (qIndex + 1 >= session.length) {
+      soundEngine.sessionComplete()
+      setPhase('summary')
+      return
+    }
+    setQIndex(qIndex + 1)
+    setTcAnswer(0)
+    setSelectedBet(null)
+    setIsCorrect(false)
+    setTcCorrect(true)
+    setPhase('question')
+  }, [qIndex, session.length])
+
   // Keyboard: Enter → next in feedback
   useEffect(() => {
     if (phase !== 'feedback') return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') generateQuestion()
-    }
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Enter') handleNext() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [phase, generateQuestion])
+  }, [phase, handleNext])
 
   const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
 
   // ── Settings Phase ──
   if (phase === 'settings') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-content">Bet Spread</h2>
-
-        {/* Bet Spread Table */}
-        <div className="bg-contrast/5 rounded-xl p-4 max-w-sm w-full">
-          <p className="text-xs text-content/50 mb-3 text-center">Bet Spread Reference</p>
-          <div className="space-y-1">
-            {BET_SPREAD.map((row, i) => (
-              <div key={i} className="flex justify-between text-sm">
-                <span className="text-content/70">{row.label}</span>
-                <span className="text-gold font-medium">{row.multiplier}x (${row.multiplier * MIN_BET})</span>
-              </div>
-            ))}
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <Panel icon={Coins} title="Bet Spread" subtitle="Size your bet by the True Count at a real table." className="w-full max-w-md">
+          {/* Bet Spread Reference (multiplier ladder) */}
+          <div className="rounded-xl p-4 bg-contrast/5 border border-contrast/10">
+            <p className="text-xs font-semibold tracking-widest uppercase text-content/40 mb-3 text-center">Bet Spread Reference</p>
+            <div className="space-y-1">
+              {BET_SPREAD.map((row, i) => (
+                <div key={i} className="flex justify-between text-sm">
+                  <span className="text-content/70">{row.label}</span>
+                  <span className="text-gold font-medium">
+                    {row.multiplier}×{i === 0 ? ' (min)' : i === BET_SPREAD.length - 1 ? ' (max)' : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-content/40 mt-3 text-center">
+              Bet = multiplier × the table minimum (shown each question).
+            </p>
           </div>
-        </div>
 
-        {/* Question Type */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Question Type</span>
-          <div className="flex gap-2 flex-wrap justify-center">
-            {([
-              { value: 'random' as QuestionMode, label: 'Random', desc: 'Mix of all types' },
-              { value: 'A' as QuestionMode, label: 'Type A', desc: 'RC + Decks → Bet' },
-              { value: 'B' as QuestionMode, label: 'Type B', desc: 'TC → Bet' },
-              { value: 'C' as QuestionMode, label: 'Type C', desc: 'RC + Decks → TC + Bet' },
-            ]).map(q => (
-              <button
-                key={q.value}
-                onClick={() => setQuestionMode(q.value)}
-                title={q.desc}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                  ${questionMode === q.value
-                    ? 'bg-gold text-black'
-                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-              >
-                {q.label}
-              </button>
-            ))}
+          {/* Question Type */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Question Type</span>
+            <Segmented
+              fluid
+              ariaLabel="Question type"
+              value={questionMode}
+              onChange={setQuestionMode}
+              options={[
+                { value: 'random' as QuestionMode, label: 'Random' },
+                { value: 'A' as QuestionMode, label: 'Type A' },
+                { value: 'B' as QuestionMode, label: 'Type B' },
+                { value: 'C' as QuestionMode, label: 'Type C' },
+              ]}
+            />
+            <p className="text-xs text-content/40 mt-2">
+              {questionMode === 'random' && 'Mix of all question types'}
+              {questionMode === 'A' && 'Type A — given RC and remaining decks, choose the optimal bet'}
+              {questionMode === 'B' && 'Type B — given the True Count, choose the optimal bet'}
+              {questionMode === 'C' && 'Type C — given RC and remaining decks, enter the TC and choose the bet'}
+            </p>
           </div>
-          <p className="text-xs text-content/40">
-            {questionMode === 'random' && 'Mix of all question types'}
-            {questionMode === 'A' && 'Given RC and remaining decks, choose the optimal bet'}
-            {questionMode === 'B' && 'Given True Count, choose the optimal bet'}
-            {questionMode === 'C' && 'Given RC and remaining decks, enter TC and choose bet'}
-          </p>
-        </div>
 
-        <button
-          onClick={generateQuestion}
-          data-testid="start-training"
-          className="mt-4 px-8 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors text-lg cursor-pointer"
-        >
-          Start Training
-        </button>
+          {/* Number of questions */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Questions</span>
+            <Segmented
+              fluid
+              ariaLabel="Number of questions"
+              value={numQuestions}
+              onChange={setNumQuestions}
+              options={QUESTION_COUNTS.map(n => ({ label: String(n), value: n }))}
+            />
+          </div>
+
+          <Button size="lg" className="w-full mt-1" onClick={startSession} data-testid="start-training">
+            Start Training
+          </Button>
+        </Panel>
+      </div>
+    )
+  }
+
+  // ── Summary Phase ──
+  if (phase === 'summary') {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <div className="surface w-full max-w-md p-7 flex flex-col items-center gap-6">
+          <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">Session Complete!</h3>
+          <div className="grid grid-cols-2 gap-3 w-full text-center">
+            <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
+              <div className="text-xs text-content/50">Accuracy</div>
+              <div className="text-xl font-bold text-content" data-testid="summary-accuracy">{accuracy}%</div>
+            </div>
+            <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
+              <div className="text-xs text-content/50">Correct</div>
+              <div className="text-xl font-bold text-content">{totalCorrect}/{totalAttempts}</div>
+            </div>
+            <div className="rounded-xl px-4 py-3 col-span-2 bg-contrast/5 border border-contrast/10">
+              <div className="text-xs text-content/50">Best Streak</div>
+              <div className="text-xl font-bold text-gold">{bestStreak}</div>
+            </div>
+          </div>
+          <Button className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
+            Back to Settings
+          </Button>
+        </div>
       </div>
     )
   }
 
   if (!question) return null
+  const betOptions = MULTIPLIERS.map(m => m * question.tableMin)
 
   // ── Question Phase ──
   if (phase === 'question') {
@@ -257,53 +366,52 @@ export function BetSpread() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
         {/* Stats bar */}
         <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
+          <span data-testid="question-progress">Question {qIndex + 1}/{session.length}</span>
           <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
-          <span>Streak: {currentStreak} (Best: {bestStreak})</span>
+          <span>Streak: {currentStreak}</span>
         </div>
 
         {/* Situation card */}
-        <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+        <div className="surface p-6 max-w-md w-full">
+          {/* Table minimum — always shown (realistic scenario) */}
+          <div className="flex justify-between items-center pb-3 mb-3 border-b border-contrast/10">
+            <span className="text-content/60 text-sm">Table Minimum</span>
+            <span className="text-gold font-bold text-lg" data-testid="table-min">${question.tableMin}</span>
+          </div>
+
           <div className="space-y-3 mb-6">
-            {/* Type A & C: show RC and remaining decks */}
             {(question.type === 'A' || question.type === 'C') && (
               <>
                 <div className="flex justify-between items-center">
-                  <span className="text-content/60 text-sm">Running Count:</span>
-                  <span className="text-content font-bold text-lg" data-testid="running-count">
-                    {formatTC(question.rc)}
-                  </span>
+                  <span className="text-content/60 text-sm">Running Count</span>
+                  <span className="text-content font-bold text-lg" data-testid="running-count">{formatTC(question.rc)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-content/60 text-sm">Remaining Decks:</span>
-                  <span className="text-content font-bold text-lg" data-testid="remaining-decks">
-                    ~{question.remainingDecks}
-                  </span>
+                  <span className="text-content/60 text-sm">Remaining Decks</span>
+                  <span className="text-content font-bold text-lg" data-testid="remaining-decks">~{question.remainingDecks}</span>
                 </div>
               </>
             )}
 
-            {/* Type B: show TC directly */}
             {question.type === 'B' && (
               <div className="flex justify-between items-center">
-                <span className="text-content/60 text-sm">True Count:</span>
-                <span className="text-gold font-bold text-lg" data-testid="true-count">
-                  {formatTC(question.tc)}
-                </span>
+                <span className="text-content/60 text-sm">True Count</span>
+                <span className="text-gold font-bold text-lg" data-testid="true-count">{formatTC(question.tc)}</span>
               </div>
             )}
           </div>
 
-          {/* Type C: TC input field */}
+          {/* Type C: TC input */}
           {question.type === 'C' && (
             <div className="mb-6">
               <p className="text-content/70 text-sm mb-2 text-center">What is the True Count?</p>
               <div className="flex items-center justify-center gap-3">
                 <button
                   onClick={() => setTcAnswer(prev => prev - 0.5)}
-                  className="w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-lg
-                    text-content font-bold transition-colors cursor-pointer"
+                  aria-label="Decrease true count"
+                  className="grid place-items-center w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-content transition-colors cursor-pointer"
                 >
-                  &minus;
+                  <Minus size={18} />
                 </button>
                 <input
                   type="number"
@@ -317,10 +425,10 @@ export function BetSpread() {
                 />
                 <button
                   onClick={() => setTcAnswer(prev => prev + 0.5)}
-                  className="w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-lg
-                    text-content font-bold transition-colors cursor-pointer"
+                  aria-label="Increase true count"
+                  className="grid place-items-center w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-content transition-colors cursor-pointer"
                 >
-                  +
+                  <Plus size={18} />
                 </button>
               </div>
             </div>
@@ -329,7 +437,7 @@ export function BetSpread() {
           <p className="text-content font-medium text-center mb-4">What is your optimal bet?</p>
 
           <div className="flex flex-wrap gap-2 justify-center">
-            {BET_OPTIONS.map(bet => (
+            {betOptions.map(bet => (
               <button
                 key={bet}
                 onClick={() => handleSubmitBet(bet)}
@@ -353,14 +461,18 @@ export function BetSpread() {
     <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
       {/* Stats bar */}
       <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
+        <span>Question {qIndex + 1}/{session.length}</span>
         <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
-        <span>Streak: {currentStreak} (Best: {bestStreak})</span>
+        <span>Streak: {currentStreak}</span>
       </div>
 
       {/* Result card */}
-      <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-        <div className={`text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
-          <span className="text-4xl">{isCorrect ? '\u2705' : '\u274C'}</span>
+      <div className="surface p-6 max-w-md w-full">
+        <div className={`flex flex-col items-center text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
+          <span className={`grid place-items-center w-12 h-12 rounded-full border
+            ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
+            {isCorrect ? <Check size={24} /> : <X size={24} />}
+          </span>
           <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
             {isCorrect ? 'Correct!' : 'Wrong!'}
           </h3>
@@ -376,8 +488,8 @@ export function BetSpread() {
             </p>
           )}
           <p className="text-content/70 text-sm" data-testid="feedback-explanation">
-            TC {formatTC(question.tc)} → {multiplier}x bet (${question.correctBet})
-            {selectedBet && selectedBet !== question.correctBet && (
+            TC {formatTC(question.tc)} → {multiplier}× × ${question.tableMin} min = <span className="text-gold font-medium">${question.correctBet}</span>
+            {selectedBet !== null && selectedBet !== question.correctBet && (
               <span className="text-error"> — you chose ${selectedBet}</span>
             )}
           </p>
@@ -385,30 +497,29 @@ export function BetSpread() {
 
         {/* Bet spread reference with highlight */}
         <div className="bg-contrast/5 rounded-xl p-3 mb-4">
-          <p className="text-xs text-content/40 mb-2 text-center">Bet Spread</p>
+          <p className="text-xs text-content/40 mb-2 text-center">Bet Spread (× ${question.tableMin})</p>
           <div className="space-y-0.5">
             {BET_SPREAD.map((row, i) => {
-              const isHighlighted = question.tc >= row.minTC && question.tc <= row.maxTC
+              const isHighlighted = Math.floor(question.tc) >= row.minTC && Math.floor(question.tc) <= row.maxTC
               return (
                 <div key={i} className={`flex justify-between text-xs px-2 py-0.5 rounded ${
                   isHighlighted ? 'bg-gold/20 text-gold font-medium' : 'text-content/50'
                 }`}>
                   <span>{row.label}</span>
-                  <span>{row.multiplier}x (${row.multiplier * MIN_BET})</span>
+                  <span>{row.multiplier}× (${row.multiplier * question.tableMin})</span>
                 </div>
               )
             })}
           </div>
         </div>
 
-        <button
-          onClick={generateQuestion}
+        <Button
+          onClick={handleNext}
           data-testid="next-question"
-          className="w-full px-6 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors cursor-pointer"
+          className="w-full"
         >
-          Next
-        </button>
+          {qIndex + 1 >= session.length ? 'See Results' : 'Next'}
+        </Button>
       </div>
     </div>
   )

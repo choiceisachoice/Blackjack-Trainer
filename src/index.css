@@ -1,9 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "./styles/glow-effects.css";
 
 @theme {
   /* ── Static colors (same in both themes) ── */
-  --color-wood: #5c3a1e;
+  --color-wood: #4a2f18;
   --color-chip-red: #c41e3a;
   --color-chip-blue: #1e3a8a;
   --color-chip-green: #15803d;
@@ -13,37 +14,44 @@
   --color-error: #ef4444;
   --color-warning: #f59e0b;
 
-  /* ── Theme-dynamic colors (overridden by [data-theme="light"]) ── */
-  --color-casino-bg: #0a0a0a;
-  --color-felt: #1a6b3c;
-  --color-felt-dark: #0d4f2b;
+  /* ── Theme-dynamic colors (dark defaults; overridden by [data-theme="light"]) ── */
+  --color-casino-bg: #070809;
+  --color-surface: #0d0f13;
+  --color-surface-2: #14171d;
+  --color-felt: #12613a;
+  --color-felt-dark: #0a3f27;
   --color-gold: #d4a847;
+  --color-gold-bright: #f0cd82;
 
   /* Semantic content/surface colors for theme switching.
-     `content` is opaque — use with Tailwind opacity modifiers:
-       text-content, text-content/50, text-content/30
-     `contrast` is opaque — use with opacity modifiers:
-       bg-contrast/5, bg-contrast/10, border-contrast/10 */
-  --color-content: #ffffff;
+     `content` is opaque — use with Tailwind opacity modifiers (text-content/50).
+     `contrast` drives bg-contrast/5, border-contrast/10, etc. */
+  --color-content: #f4f5f6;
   --color-contrast: #ffffff;
-  --color-topbar: rgba(0, 0, 0, 0.60);
-  --color-input-bg: rgba(255, 255, 255, 0.10);
-  --color-select-bg: #171717;
-  --color-tooltip-bg: #1a1a1a;
+  --color-topbar: rgba(9, 10, 12, 0.72);
+  --color-input-bg: rgba(255, 255, 255, 0.05);
+  --color-select-bg: #14171d;
+  --color-tooltip-bg: #14171d;
   --color-tooltip-border: rgba(255, 255, 255, 0.10);
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* ── Light Theme Overrides ── */
 [data-theme="light"] {
-  --color-casino-bg: #f5f5f5;
-  --color-felt: #228B45;
-  --color-felt-dark: #1a7a42;
-  --color-gold: #b8912e;
+  --color-casino-bg: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0f1f4;
+  --color-felt: #1a7a45;
+  --color-felt-dark: #12603a;
+  --color-gold: #a8801f;
+  --color-gold-bright: #c79a32;
 
-  --color-content: #1a1a1a;
+  --color-content: #14161a;
   --color-contrast: #000000;
-  --color-topbar: rgba(255, 255, 255, 0.92);
-  --color-input-bg: #ffffff;
+  --color-topbar: rgba(255, 255, 255, 0.85);
+  --color-input-bg: rgba(0, 0, 0, 0.04);
   --color-select-bg: #ffffff;
   --color-tooltip-bg: #ffffff;
   --color-tooltip-border: rgba(0, 0, 0, 0.10);
@@ -53,7 +61,7 @@ body {
   margin: 0;
   background-color: var(--color-casino-bg);
   color: var(--color-content);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -61,4 +69,108 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Design system utilities — dark luxury (Blackjack 2.0)
+   ───────────────────────────────────────────────────────────── */
+
+/* Accessible focus ring app-wide (replaces the old focus:outline-none gaps) */
+*:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Elevated surface (cards, panels) */
+.surface {
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--color-surface-2) 92%, transparent),
+      var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-contrast) 8%, transparent);
+  border-radius: 16px;
+}
+
+/* Lift & Glow — the signature micro-interaction (à la Origin-Voice) */
+.lift-glow {
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.28s ease,
+    border-color 0.28s ease,
+    background-color 0.28s ease;
+  will-change: transform;
+}
+.lift-glow:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+  box-shadow:
+    0 14px 40px -14px rgba(0, 0, 0, 0.75),
+    0 0 0 1px color-mix(in srgb, var(--color-gold) 22%, transparent),
+    0 10px 44px -16px color-mix(in srgb, var(--color-gold) 38%, transparent);
+}
+.lift-glow:active {
+  transform: translateY(-1px);
+}
+
+/* Soft interactive glow without the lift (nav items, chips) */
+.glow-hover {
+  transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.glow-hover:hover {
+  box-shadow: 0 0 24px -6px color-mix(in srgb, var(--color-gold) 45%, transparent);
+}
+
+/* Gold gradient text for the wordmark / hero */
+.text-gold-gradient {
+  background: linear-gradient(120deg,
+    var(--color-gold-bright) 0%,
+    var(--color-gold) 45%,
+    color-mix(in srgb, var(--color-gold) 70%, #7a5716) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Thin sheen line used under nav / above sections */
+.hairline {
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 40%, transparent),
+    transparent);
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .lift-glow:hover { transform: none; }
+}
+
+/* Custom slim scrollbar for the dark theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-contrast) 14%, transparent) transparent;
+}
+
+/* Hide scrollbar (used by the horizontal nav) while keeping scroll */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Ambient radial glow behind the hero */
+.hero-glow {
+  position: absolute;
+  inset: -20% 0 auto 0;
+  height: 340px;
+  pointer-events: none;
+  background: radial-gradient(60% 100% at 50% 0%,
+    color-mix(in srgb, var(--color-gold) 18%, transparent) 0%,
+    transparent 70%);
+  z-index: 0;
 }

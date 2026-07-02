@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Zap, Play, Check, X, RotateCcw, Minus, Plus } from 'lucide-react'
 import { Shoe } from '../../engine/shoe/shoe'
 import { CountingEngine } from '../../engine/counting/counting-engine'
 import { getSystemById } from '../../engine/counting/counting-systems'
@@ -17,7 +18,6 @@ const SPEED_OPTIONS = [
   { label: 'Slow', ms: 2000 },
   { label: 'Normal', ms: 1000 },
   { label: 'Fast', ms: 500 },
-  { label: 'Blitz', ms: 250 },
 ] as const
 
 const SUIT_SYMBOL: Record<string, string> = {
@@ -175,55 +175,66 @@ export function SpeedDrill() {
   // ── Settings Phase ──
   if (phase === 'settings') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <h2 className="text-2xl font-bold text-content">Speed Drill</h2>
-
-        {/* Card count */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Number of Cards</span>
-          <div className="flex gap-2">
-            {CARD_COUNTS.map(n => (
-              <button
-                key={n}
-                onClick={() => setCardCount(n)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                  ${cardCount === n
-                    ? 'bg-gold text-black'
-                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-              >
-                {n}
-              </button>
-            ))}
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <div className="surface w-full max-w-md p-7">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-7">
+            <span className="grid place-items-center w-11 h-11 rounded-xl text-gold bg-gold/10 border border-gold/20">
+              <Zap size={22} />
+            </span>
+            <div>
+              <h2 className="text-xl font-bold text-content">Speed Drill</h2>
+              <p className="text-sm text-content/50">Flash cards, then call the running count.</p>
+            </div>
           </div>
-        </div>
 
-        {/* Speed */}
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-sm text-content/50">Speed</span>
-          <div className="flex gap-2">
-            {SPEED_OPTIONS.map(s => (
-              <button
-                key={s.label}
-                onClick={() => setSpeedMs(s.ms)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer
-                  ${speedMs === s.ms
-                    ? 'bg-gold text-black'
-                    : 'bg-contrast/10 text-content/70 hover:bg-contrast/20'}`}
-              >
-                {s.label}
-              </button>
-            ))}
+          {/* Card count */}
+          <div className="mb-5">
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Number of Cards</span>
+            <div className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
+              {CARD_COUNTS.map(n => (
+                <button
+                  key={n}
+                  onClick={() => setCardCount(n)}
+                  aria-pressed={cardCount === n}
+                  className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer
+                    ${cardCount === n ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <button
-          onClick={startDrill}
-          data-testid="start-drill"
-          className="mt-4 px-8 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors text-lg cursor-pointer"
-        >
-          Start Drill
-        </button>
+          {/* Speed */}
+          <div className="mb-7">
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Speed</span>
+            <div className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
+              {SPEED_OPTIONS.map(s => (
+                <button
+                  key={s.label}
+                  onClick={() => setSpeedMs(s.ms)}
+                  aria-pressed={speedMs === s.ms}
+                  className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer
+                    ${speedMs === s.ms ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={startDrill}
+            data-testid="start-drill"
+            className="lift-glow w-full py-3 rounded-xl font-semibold text-black flex items-center justify-center gap-2
+              bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
+              shadow-[0_10px_30px_-12px_var(--color-gold)]"
+          >
+            <Play size={18} className="fill-current" />
+            Start Drill
+          </button>
+        </div>
       </div>
     )
   }
@@ -305,10 +316,11 @@ export function SpeedDrill() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => setUserAnswer(prev => prev - 1)}
-            className="w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20 text-2xl
-              text-content font-bold transition-colors cursor-pointer"
+            aria-label="Decrease count"
+            className="grid place-items-center w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20
+              text-content transition-colors cursor-pointer"
           >
-            &minus;
+            <Minus size={22} />
           </button>
           <input
             type="number"
@@ -321,10 +333,11 @@ export function SpeedDrill() {
           />
           <button
             onClick={() => setUserAnswer(prev => prev + 1)}
-            className="w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20 text-2xl
-              text-content font-bold transition-colors cursor-pointer"
+            aria-label="Increase count"
+            className="grid place-items-center w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20
+              text-content transition-colors cursor-pointer"
           >
-            +
+            <Plus size={22} />
           </button>
         </div>
 
@@ -335,8 +348,9 @@ export function SpeedDrill() {
         <button
           onClick={handleSubmit}
           data-testid="submit-answer"
-          className="px-8 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors cursor-pointer"
+          className="lift-glow px-8 py-3 rounded-xl font-semibold text-black
+            bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
+            shadow-[0_10px_30px_-12px_var(--color-gold)]"
         >
           Submit
         </button>
@@ -349,52 +363,62 @@ export function SpeedDrill() {
   const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
-      {/* Result banner */}
-      <div className={`text-center ${isCorrect ? 'text-success' : 'text-error'}`}>
-        <span className="text-5xl">{isCorrect ? '\u2705' : '\u274C'}</span>
-        <h2 className="text-2xl font-bold mt-2">
-          {isCorrect
-            ? `Correct! RC = ${formatCount(correctRC)}`
-            : `Wrong! RC = ${formatCount(correctRC)} (you said ${formatCount(userAnswer)})`}
-        </h2>
-      </div>
+    <div className="flex-1 flex flex-col items-center justify-center px-4">
+      <div className="surface w-full max-w-md p-7 flex flex-col items-center gap-6">
+        {/* Result banner */}
+        <div className="flex flex-col items-center text-center gap-3">
+          <span className={`grid place-items-center w-16 h-16 rounded-full border
+            ${isCorrect ? 'text-success bg-success/10 border-success/30' : 'text-error bg-error/10 border-error/30'}`}>
+            {isCorrect ? <Check size={32} /> : <X size={32} />}
+          </span>
+          <h2 className={`text-xl font-bold ${isCorrect ? 'text-success' : 'text-error'}`}>
+            {isCorrect
+              ? `Correct! RC = ${formatCount(correctRC)}`
+              : `Wrong! RC = ${formatCount(correctRC)}`}
+          </h2>
+          {!isCorrect && (
+            <p className="text-sm text-content/50">You said {formatCount(userAnswer)}</p>
+          )}
+        </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 text-center">
-        <div className="bg-contrast/5 rounded-lg px-4 py-3">
-          <div className="text-xs text-content/50">Streak</div>
-          <div className="text-xl font-bold text-content">{streak}</div>
-        </div>
-        <div className="bg-contrast/5 rounded-lg px-4 py-3">
-          <div className="text-xs text-content/50">Best Streak</div>
-          <div className="text-xl font-bold text-gold">{bestStreak}</div>
-        </div>
-        <div className="bg-contrast/5 rounded-lg px-4 py-3 col-span-2">
-          <div className="text-xs text-content/50">Accuracy</div>
-          <div className="text-xl font-bold text-content">
-            {totalCorrect}/{totalAttempts} ({accuracy}%)
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 w-full text-center">
+          <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
+            <div className="text-xs text-content/50">Streak</div>
+            <div className="text-xl font-bold text-content">{streak}</div>
+          </div>
+          <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
+            <div className="text-xs text-content/50">Best Streak</div>
+            <div className="text-xl font-bold text-gold">{bestStreak}</div>
+          </div>
+          <div className="rounded-xl px-4 py-3 col-span-2 bg-contrast/5 border border-contrast/10">
+            <div className="text-xs text-content/50">Accuracy</div>
+            <div className="text-xl font-bold text-content">
+              {totalCorrect}/{totalAttempts} ({accuracy}%)
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Actions */}
-      <div className="flex gap-4">
-        <button
-          onClick={startDrill}
-          data-testid="try-again"
-          className="px-6 py-3 bg-gold text-black font-bold rounded-xl
-            hover:bg-gold/90 transition-colors cursor-pointer"
-        >
-          Try Again
-        </button>
-        <button
-          onClick={() => setPhase('settings')}
-          className="px-6 py-3 bg-contrast/10 text-content font-medium rounded-xl
-            hover:bg-contrast/20 transition-colors cursor-pointer"
-        >
-          Back to Menu
-        </button>
+        {/* Actions */}
+        <div className="flex gap-3 w-full">
+          <button
+            onClick={startDrill}
+            data-testid="try-again"
+            className="lift-glow flex-1 py-3 rounded-xl font-semibold text-black flex items-center justify-center gap-2
+              bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
+              shadow-[0_10px_30px_-12px_var(--color-gold)]"
+          >
+            <RotateCcw size={17} />
+            Try Again
+          </button>
+          <button
+            onClick={() => setPhase('settings')}
+            className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-medium
+              hover:bg-contrast/15 transition-colors cursor-pointer"
+          >
+            Back to Menu
+          </button>
+        </div>
       </div>
     </div>
   )

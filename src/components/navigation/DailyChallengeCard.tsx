@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { CalendarCheck } from 'lucide-react'
 import { useChallengeStore } from '../../store/challenge-store'
 import { CHALLENGE_XP } from '../../services/challenges/challenge-types'
 
@@ -95,7 +96,9 @@ export function DailyChallengeCard() {
       {/* Header row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">{challenge.icon}</span>
+          <span className="grid place-items-center w-9 h-9 rounded-lg text-gold bg-gold/10 border border-gold/20 shrink-0">
+            <CalendarCheck size={18} />
+          </span>
           <div>
             <h3 className="text-sm font-semibold text-content">
               Daily Challenge

@@ -139,7 +139,7 @@ export function AchievementsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-content">Achievements</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Achievements</h2>
           <p className="text-sm text-content/50" data-testid="unlock-count">
             {totalUnlocked}/{ALL_ACHIEVEMENTS.length} unlocked
           </p>

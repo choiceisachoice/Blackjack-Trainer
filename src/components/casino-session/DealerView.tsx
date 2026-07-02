@@ -26,7 +26,7 @@ export function DealerView({
     <div className="relative flex flex-col items-center gap-1 z-10 mb-4 md:mb-6">
       {/* Discard Tray — absolute left */}
       <div className="absolute left-2 md:left-4 top-0 z-20 origin-top-left">
-        <DiscardTray cardCount={cardsDealt} />
+        <DiscardTray cardCount={cardsDealt} totalCards={totalCards} />
       </div>
 
       {/* Shoe — absolute right */}

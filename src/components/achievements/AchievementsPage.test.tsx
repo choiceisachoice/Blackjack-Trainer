@@ -39,7 +39,7 @@ describe('AchievementsPage', () => {
     })
   })
 
-  it('renders all 92 achievements', () => {
+  it('renders all 90 achievements', () => {
     render(<AchievementsPage />)
 
     for (const achievement of ALL_ACHIEVEMENTS) {
@@ -52,7 +52,7 @@ describe('AchievementsPage', () => {
   it('shows unlocked count in header', () => {
     render(<AchievementsPage />)
 
-    expect(screen.getByTestId('unlock-count')).toHaveTextContent('0/92 unlocked')
+    expect(screen.getByTestId('unlock-count')).toHaveTextContent('0/90 unlocked')
   })
 
   it('shows correct count when achievements unlocked', () => {
@@ -63,7 +63,7 @@ describe('AchievementsPage', () => {
 
     render(<AchievementsPage />)
 
-    expect(screen.getByTestId('unlock-count')).toHaveTextContent('2/92 unlocked')
+    expect(screen.getByTestId('unlock-count')).toHaveTextContent('2/90 unlocked')
   })
 
   it('unlocked achievements show date', async () => {

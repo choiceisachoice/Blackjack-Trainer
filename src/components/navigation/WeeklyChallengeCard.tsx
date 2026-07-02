@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { CalendarRange } from 'lucide-react'
 import { useWeeklyChallengeStore } from '../../store/weekly-challenge-store'
 import { weeklyChallengeEngine } from '../../services/challenges/weekly-challenge'
 
@@ -75,16 +76,18 @@ export function WeeklyChallengeCard() {
         state.completed
           ? 'bg-green-900/20 border-green-500/40'
           : justCompleted
-            ? 'bg-violet-500/10 border-violet-400/60 shadow-lg shadow-violet-500/10'
-            : 'bg-contrast/5 border-violet-500/20'
+            ? 'bg-gold/10 border-gold/60 shadow-lg shadow-gold/10'
+            : 'bg-contrast/5 border-gold/20'
       }`}
     >
       {/* Header row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">{challenge.icon}</span>
+          <span className="grid place-items-center w-9 h-9 rounded-lg text-gold bg-gold/10 border border-gold/20 shrink-0">
+            <CalendarRange size={18} />
+          </span>
           <div>
-            <h3 className="text-sm font-semibold text-violet-400">
+            <h3 className="text-sm font-semibold text-gold">
               Weekly Challenge
             </h3>
             <p className="text-xs text-content/40">
@@ -96,12 +99,12 @@ export function WeeklyChallengeCard() {
           {streak > 0 && (
             <span
               data-testid="weekly-streak-badge"
-              className="text-xs font-medium px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300"
+              className="text-xs font-medium px-2 py-0.5 rounded-full bg-gold/15 text-gold"
             >
               {streak} week streak
             </span>
           )}
-          <span className="text-xs font-bold text-violet-400">
+          <span className="text-xs font-bold text-gold">
             +{challenge.xpReward} XP
           </span>
         </div>
@@ -120,7 +123,7 @@ export function WeeklyChallengeCard() {
         <div
           data-testid="weekly-progress-bar"
           className={`h-full rounded-full transition-all duration-500 ${
-            state.completed ? 'bg-green-500' : 'bg-violet-500'
+            state.completed ? 'bg-green-500' : 'bg-gold'
           }`}
           style={{ width: `${progressPct}%` }}
         />
@@ -146,7 +149,7 @@ export function WeeklyChallengeCard() {
 
       {/* Just-completed celebration overlay */}
       {justCompleted && (
-        <div className="mt-2 text-center text-violet-400 font-bold text-sm animate-pulse">
+        <div className="mt-2 text-center text-gold font-bold text-sm animate-pulse">
           +{challenge.xpReward} XP earned!
         </div>
       )}
