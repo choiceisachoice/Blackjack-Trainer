@@ -28,8 +28,8 @@ describe('app-store', () => {
     useAppStore.getState().setMode('speedDrill')
     expect(useAppStore.getState().currentMode).toBe('speedDrill')
 
-    useAppStore.getState().setMode('tableCounting')
-    expect(useAppStore.getState().currentMode).toBe('tableCounting')
+    useAppStore.getState().setMode('deviationTraining')
+    expect(useAppStore.getState().currentMode).toBe('deviationTraining')
   })
 
   it('default system is HiLo', () => {

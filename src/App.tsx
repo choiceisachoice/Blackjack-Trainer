@@ -4,7 +4,6 @@ import { HomeScreen } from './components/navigation/HomeScreen'
 import { NavBar } from './components/navigation/NavBar'
 import { GameTable } from './components/table/GameTable'
 import { SpeedDrill } from './components/training/SpeedDrill'
-import { TableCounting } from './components/training/TableCounting'
 import { DeviationTraining } from './components/training/DeviationTraining'
 import { BetSpread } from './components/training/BetSpread'
 import { DeckEstimation } from './components/training/DeckEstimation'
@@ -14,6 +13,7 @@ import { AchievementsPage } from './components/achievements/AchievementsPage'
 import { CasinoSession } from './components/casino-session/CasinoSession'
 import { StrategyChart } from './components/strategy-chart/StrategyChart'
 import { CasinoSessionTracker } from './components/training/CasinoSessionTracker'
+import { LearnPage } from './components/learn/LearnPage'
 import { AchievementToast } from './components/achievements/AchievementToast'
 import { LevelUpPopup } from './components/navigation/LevelUpPopup'
 
@@ -23,7 +23,7 @@ import { LevelUpPopup } from './components/navigation/LevelUpPopup'
  */
 const SCROLLABLE_MODES = new Set([
   'home', 'analytics', 'bankrollSim', 'achievements',
-  'casinoSession', 'strategyChart', 'casinoSessionTracker',
+  'casinoSession', 'strategyChart', 'casinoSessionTracker', 'learn',
 ])
 
 function App() {
@@ -35,7 +35,6 @@ function App() {
       <NavBar />
       {currentMode === 'home' && <HomeScreen />}
       {currentMode === 'speedDrill' && <SpeedDrill />}
-      {currentMode === 'tableCounting' && <TableCounting />}
       {currentMode === 'deviationTraining' && <DeviationTraining />}
       {currentMode === 'betSpread' && <BetSpread />}
       {currentMode === 'deckEstimation' && <DeckEstimation />}
@@ -45,6 +44,7 @@ function App() {
       {currentMode === 'casinoSession' && <CasinoSession />}
       {currentMode === 'strategyChart' && <StrategyChart />}
       {currentMode === 'casinoSessionTracker' && <CasinoSessionTracker />}
+      {currentMode === 'learn' && <LearnPage />}
       <AchievementToast />
       <LevelUpPopup />
     </div>

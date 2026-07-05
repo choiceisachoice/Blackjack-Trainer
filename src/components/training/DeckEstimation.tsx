@@ -1,12 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Layers, Check, X } from 'lucide-react'
 import { Panel, Segmented, Button } from '../common/ui'
-import { ShoeVisual } from '../table/ShoeVisual'
+import { DiscardTray } from '../table/ShoeProgress'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { DeckEstimationDetails } from '../../services/stats-types'
 
-type DeckCount = 2 | 6 | 8
+type DeckCount = 6 | 8
 type AccuracyMode = 'half' | 'whole'
 type Phase = 'settings' | 'question' | 'feedback' | 'summary'
 
@@ -51,6 +51,48 @@ interface Stats {
 }
 
 const INITIAL_STATS: Stats = { correct: 0, total: 0, totalError: 0, streak: 0, bestStreak: 0 }
+
+/**
+ * The estimation scene — a realistic discard tray on a felt table surface.
+ * The player estimates the decks remaining from the thickness of the played
+ * (discarded) cards, exactly like a real counter watches the discard rack.
+ * No deck graduation marks — estimating is the skill being trained.
+ */
+function DiscardScene({ remainingCards, totalCards, size }: {
+  remainingCards: number
+  totalCards: number
+  size: 'large' | 'small'
+}) {
+  const dealt = Math.max(0, totalCards - remainingCards)
+  const numDecks = Math.round(totalCards / 52)
+  const isLarge = size === 'large'
+
+  return (
+    <div
+      data-testid="discard-visual"
+      className="relative rounded-2xl"
+      style={{
+        padding: isLarge ? '20px 40px 28px' : '12px 24px 16px',
+        background: 'radial-gradient(ellipse 130% 100% at 50% 0%, #12613a 0%, #0c4a2d 55%, #083a24 100%)',
+        border: `${isLarge ? 10 : 6}px solid #4a2f18`,
+        boxShadow: 'inset 0 0 60px rgba(0,0,0,0.35), 0 10px 40px rgba(0,0,0,0.5)',
+      }}
+    >
+      <div className={`text-center mb-3 ${isLarge ? 'text-xs' : 'text-[10px]'} tracking-widest uppercase text-white/45 font-semibold`}>
+        {numDecks}-Deck Shoe · Discard Tray
+      </div>
+      <div className="flex justify-center">
+        <DiscardTray
+          cardCount={dealt}
+          totalCards={totalCards}
+          showTicks={false}
+          pxPerCard={isLarge ? 1.4 : 0.5}
+          width={isLarge ? 200 : 90}
+        />
+      </div>
+    </div>
+  )
+}
 
 /**
  * Deck Estimation training mode.
@@ -222,7 +264,7 @@ export function DeckEstimation() {
               ariaLabel="Decks in shoe"
               value={deckCount}
               onChange={v => setDeckCount(v as DeckCount)}
-              options={([2, 6, 8] as DeckCount[]).map(d => ({ label: `${d} Decks`, value: d }))}
+              options={([6, 8] as DeckCount[]).map(d => ({ label: `${d} Decks`, value: d }))}
             />
           </div>
 
@@ -334,12 +376,8 @@ export function DeckEstimation() {
           </div>
         )}
 
-        {/* Large Shoe Visual */}
-        <ShoeVisual
-          remainingCards={remainingCards}
-          totalCards={totalCards}
-          size="large"
-        />
+        {/* Realistic discard tray on felt — estimate the decks played */}
+        <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="large" />
 
         <p className="text-content font-medium text-center">How many decks remain?</p>
 
@@ -400,13 +438,9 @@ export function DeckEstimation() {
           )}
         </div>
 
-        {/* Visual shoe with answer comparison */}
+        {/* Discard tray recap */}
         <div className="flex justify-center mb-4">
-          <ShoeVisual
-            remainingCards={remainingCards}
-            totalCards={totalCards}
-            size="normal"
-          />
+          <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="small" />
         </div>
 
         <Button onClick={handleNext} data-testid="next-question" className="w-full">

@@ -77,7 +77,6 @@ function applyTheme(theme: ThemeMode): void {
 export type AppMode =
   | 'home'
   | 'speedDrill'
-  | 'tableCounting'
   | 'deviationTraining'
   | 'betSpread'
   | 'deckEstimation'
@@ -87,6 +86,7 @@ export type AppMode =
   | 'casinoSession'
   | 'strategyChart'
   | 'casinoSessionTracker'
+  | 'learn'
 
 /** App-level state for navigation and global settings. */
 export interface AppStoreState {

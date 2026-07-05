@@ -53,14 +53,14 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'at_the_table',
-    title: 'At the Table',
-    description: 'Complete a Table Counting session',
-    icon: '\uD83C\uDFB0',
+    title: 'Hit the Cards',
+    description: 'Complete a Flashcards session',
+    icon: '\uD83C\uDFB4',
     type: 'practice_mode',
     difficulty: 'easy',
     target: 1,
     progressMode: 'cumulative_today',
-    requiredMode: 'tableCounting',
+    requiredMode: 'deviationFlashCards',
   },
   {
     id: 'eye_test',

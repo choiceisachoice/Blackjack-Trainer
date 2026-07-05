@@ -1,6 +1,6 @@
 import {
-  Zap, Spade, Target, Coins, Layers, Wallet, Club,
-  ClipboardList, BarChart3, Grid3x3, Trophy, ArrowRight,
+  Zap, Spade, GraduationCap, Coins, Layers, Wallet, Club,
+  ClipboardList, BarChart3, Grid3x3, Trophy, BookOpen, ArrowRight,
   type LucideIcon,
 } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
@@ -9,6 +9,7 @@ import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
 import { DailyChallengeCard } from './DailyChallengeCard'
 import { WeeklyChallengeCard } from './WeeklyChallengeCard'
+import { TypewriterHeadline } from './TypewriterHeadline'
 
 interface FeatureCard {
   mode: AppMode
@@ -19,14 +20,14 @@ interface FeatureCard {
 
 const TRAINING_CARDS: FeatureCard[] = [
   { mode: 'speedDrill', icon: Zap, title: 'Speed Drill', description: 'Train your counting speed with flashing cards' },
-  { mode: 'tableCounting', icon: Spade, title: 'Table Counting', description: 'Play blackjack while keeping the count' },
-  { mode: 'deviationTraining', icon: Target, title: 'Deviation Training', description: 'Master the Illustrious 18 & Fab 4' },
+  { mode: 'deviationTraining', icon: GraduationCap, title: 'Flashcards', description: 'Drill every hand — and when to deviate' },
   { mode: 'betSpread', icon: Coins, title: 'Bet Spread', description: 'Practice optimal bet sizing by True Count' },
   { mode: 'deckEstimation', icon: Layers, title: 'Deck Estimation', description: 'Estimate remaining decks from the shoe' },
   { mode: 'bankrollSim', icon: Wallet, title: 'Bankroll Tracker', description: 'Track your real casino results' },
 ]
 
 const TOOL_CARDS: FeatureCard[] = [
+  { mode: 'learn', icon: BookOpen, title: 'Learn', description: 'How card counting works — for beginners' },
   { mode: 'analytics', icon: BarChart3, title: 'Analytics', description: 'View your training stats, trends, and progress' },
   { mode: 'strategyChart', icon: Grid3x3, title: 'Basic Strategy Chart', description: 'View the complete strategy table' },
   { mode: 'achievements', icon: Trophy, title: 'Achievements', description: 'Track your progress and unlock rewards' },
@@ -41,7 +42,7 @@ export function HomeScreen() {
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
 
   return (
-    <div className="relative min-h-full flex flex-col items-center px-4 pb-20">
+    <div className="relative min-h-full flex flex-col items-center px-4 pb-4">
       <div className="hero-glow" />
 
       {/* Hero */}
@@ -51,17 +52,15 @@ export function HomeScreen() {
           <Spade size={12} className="fill-current" />
           Professional Card-Counting Trainer
         </span>
-        <h1 className="text-gold-gradient text-4xl md:text-6xl font-extrabold tracking-tight leading-[1.05] max-w-3xl">
-          Blackjack Card Counting Trainer
-        </h1>
+        <TypewriterHeadline />
         <p className="mt-5 text-content/55 text-base md:text-lg max-w-xl">
           Learn to count cards the way the pros actually do. Master the Hi-Lo system,
-          sharpen your instincts across 6 training modes, and take your edge to a realistic casino table.
+          sharpen your instincts across focused training modes, and take your edge to a realistic casino table.
         </p>
 
         {/* Stat chips */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 text-xs">
-          {['Hi-Lo System', 'Basic Strategy', 'Illustrious 18 + Fab 4', 'Realistic Casino Play'].map(s => (
+          {['Hi-Lo System', 'Basic Strategy', 'Deviations', 'Realistic Casino Play'].map(s => (
             <span key={s} className="px-3 py-1.5 rounded-full text-content/60 bg-contrast/5 border border-contrast/10">
               {s}
             </span>
@@ -152,12 +151,12 @@ export function HomeScreen() {
       {/* Tools */}
       <section className="relative z-10 w-full max-w-5xl mb-12">
         <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-4 px-1">Tools & Progress</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {TOOL_CARDS.map(({ mode, icon: Icon, title, description }) => (
             <button
               key={mode}
               onClick={() => setMode(mode)}
-              data-testid={mode === 'analytics' ? 'analytics-button' : mode === 'strategyChart' ? 'strategy-chart-button' : 'achievements-button'}
+              data-testid={mode === 'learn' ? 'learn-button' : mode === 'analytics' ? 'analytics-button' : mode === 'strategyChart' ? 'strategy-chart-button' : 'achievements-button'}
               className="surface lift-glow group flex items-start gap-3 p-4 text-left cursor-pointer"
             >
               <span className="grid place-items-center w-10 h-10 rounded-lg text-gold bg-gold/10 border border-gold/20 shrink-0
@@ -180,6 +179,10 @@ export function HomeScreen() {
         </div>
       </section>
 
+      {/* Scroll-end breathing room. A real box is used (not padding/margin),
+          because browsers exclude a scroll container's trailing padding and the
+          last child's bottom margin from the scrollable overflow area. */}
+      <div aria-hidden className="w-full h-20 md:h-24 shrink-0" />
     </div>
   )
 }

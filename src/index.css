@@ -133,6 +133,22 @@ body {
   color: transparent;
 }
 
+/* Typewriter caret for the animated hero headline.
+   Steady while typing (.tw-caret--solid), soft blink while resting. */
+.tw-caret {
+  display: inline-block;
+  width: 0.06em;
+  height: 1.05em;
+  margin-left: 0.04em;
+  transform: translateY(0.12em);
+  background: var(--color-gold-bright);
+  border-radius: 2px;
+  box-shadow: 0 0 12px -1px color-mix(in srgb, var(--color-gold) 70%, transparent);
+  animation: tw-blink 1.15s ease-in-out infinite;
+}
+.tw-caret--solid { animation: none; opacity: 1; }
+@keyframes tw-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
 /* Thin sheen line used under nav / above sections */
 .hairline {
   height: 1px;

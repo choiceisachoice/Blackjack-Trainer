@@ -37,9 +37,10 @@ describe('DeckEstimation', () => {
     render(<DeckEstimation />)
 
     expect(screen.getByText('Deck Estimation')).toBeInTheDocument()
-    expect(screen.getByText('2 Decks')).toBeInTheDocument()
     expect(screen.getByText('6 Decks')).toBeInTheDocument()
     expect(screen.getByText('8 Decks')).toBeInTheDocument()
+    // 2-deck was removed (hand-pitched in reality, not a shoe game)
+    expect(screen.queryByText('2 Decks')).not.toBeInTheDocument()
     expect(screen.getByText('Half Decks')).toBeInTheDocument()
     expect(screen.getByText('Whole Decks')).toBeInTheDocument()
     expect(screen.getByText('Normal')).toBeInTheDocument()
@@ -47,23 +48,20 @@ describe('DeckEstimation', () => {
     expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 
-  it('shows large shoe visual without any numbers', () => {
-    // random values: u=0.5 (30-80% range), fraction random=0.5 → 0.3+0.25=0.55
-    // remaining = round(0.55 * 312) = 172 cards
+  it('shows the discard tray visual without revealing the answer', () => {
     setMockRandom([0.5, 0.5])
 
     render(<DeckEstimation />)
     fireEvent.click(screen.getByTestId('start-training'))
 
-    // Shoe visual should be present
-    expect(screen.getByTestId('shoe-visual')).toBeInTheDocument()
-
-    // Question text should be present
+    // Discard-tray scene should be present
+    const visual = screen.getByTestId('discard-visual')
+    expect(visual).toBeInTheDocument()
     expect(screen.getByText('How many decks remain?')).toBeInTheDocument()
 
-    // No percentage or card count numbers on the shoe
-    const shoe = screen.getByTestId('shoe-visual')
-    expect(shoe.textContent).toBe('')
+    // It must not leak the answer: no percentage, no "decks remaining" text
+    expect(visual.textContent).not.toMatch(/%/)
+    expect(visual.textContent).not.toMatch(/remaining/i)
   })
 
   it('correct estimation within tolerance shows success', () => {

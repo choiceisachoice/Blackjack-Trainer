@@ -212,10 +212,6 @@ export class AchievementEngine {
         return 0 // Binary
 
       case 'mode_complete': {
-        if (achievement.id === 'six_systems') {
-          const uniqueSystems = new Set(allSessions.map(s => s.countingSystem))
-          return Math.min(100, (uniqueSystems.size / 6) * 100)
-        }
         const uniqueModes = Object.keys(stats.byMode).filter(
           m => (stats.byMode[m as TrainingMode]?.totalSessions ?? 0) > 0
         )
@@ -282,9 +278,6 @@ export class AchievementEngine {
 
       case 'speed_drill_perfect':
         return 0 // Binary
-
-      case 'unique_systems':
-        return Math.min(100, (this.countUniqueSystemsWith80(allSessions) / req.value) * 100)
 
       case 'tracker_sessions':
         return Math.min(100, (this.getTrackerSessions().length / req.value) * 100)
@@ -374,10 +367,6 @@ export class AchievementEngine {
         return this.checkSpeedAchievement(session, req.value)
 
       case 'mode_complete': {
-        if (achievement.id === 'six_systems') {
-          const uniqueSystems = new Set(allSessions.map(s => s.countingSystem))
-          return uniqueSystems.size >= 6
-        }
         const uniqueModes = Object.keys(stats.byMode).filter(
           m => (stats.byMode[m as TrainingMode]?.totalSessions ?? 0) > 0
         )
@@ -428,9 +417,6 @@ export class AchievementEngine {
 
       case 'speed_drill_perfect':
         return this.checkSpeedDrillPerfect(session, req.value)
-
-      case 'unique_systems':
-        return this.countUniqueSystemsWith80(allSessions) >= req.value
 
       // Bankroll tracker achievements — handled by checkAfterBankrollUpdate
       case 'tracker_sessions':
@@ -655,22 +641,6 @@ export class AchievementEngine {
     if (!maxMs) return false
 
     return session.details.speedMs <= maxMs
-  }
-
-  /** Count unique counting systems used with 80%+ accuracy. */
-  private countUniqueSystemsWith80(allSessions: TrainingSessionResult[]): number {
-    const systemBest = new Map<string, number>()
-    for (const s of allSessions) {
-      const current = systemBest.get(s.countingSystem) ?? 0
-      if (s.accuracy > current) {
-        systemBest.set(s.countingSystem, s.accuracy)
-      }
-    }
-    let count = 0
-    for (const acc of systemBest.values()) {
-      if (acc >= 0.8) count++
-    }
-    return count
   }
 
   /** Check if a bankroll tracker achievement is met. */

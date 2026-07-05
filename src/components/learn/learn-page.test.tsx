@@ -1,0 +1,28 @@
+import { describe, it, expect } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { LearnPage } from './LearnPage'
+
+describe('LearnPage', () => {
+  it('renders the header, concept topics and mode guide', () => {
+    render(<LearnPage />)
+    expect(screen.getByTestId('learn-page')).toBeInTheDocument()
+    expect(screen.getByText('What is card counting?')).toBeInTheDocument()
+    expect(screen.getByText('The Hi-Lo count')).toBeInTheDocument()
+    expect(screen.getByText('Illustrious 18 & Fab 4')).toBeInTheDocument()
+    expect(screen.getByText('Basic Strategy')).toBeInTheDocument()
+    // Mode guide
+    expect(screen.getByText('The Training Modes')).toBeInTheDocument()
+  })
+
+  it('opens the first topic by default and toggles others', () => {
+    render(<LearnPage />)
+    expect(screen.getByTestId('topic-what-is-counting').getAttribute('aria-expanded')).toBe('true')
+
+    const hiLo = screen.getByTestId('topic-hi-lo')
+    expect(hiLo.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(hiLo)
+    expect(hiLo.getAttribute('aria-expanded')).toBe('true')
+    fireEvent.click(hiLo)
+    expect(hiLo.getAttribute('aria-expanded')).toBe('false')
+  })
+})

@@ -132,17 +132,17 @@ describe('AchievementEngine', () => {
       },
     })
 
-    // 5 speedDrill sessions shouldn't unlock "count_rookie" (requires tableCounting)
+    // 5 speedDrill sessions shouldn't unlock "deviation_student" (requires Flashcards)
     const unlocked = engine.checkAfterSession(speedSession, stats, 0, [speedSession])
-    expect(unlocked.some(a => a.id === 'count_rookie')).toBe(false)
+    expect(unlocked.some(a => a.id === 'deviation_student')).toBe(false)
   })
 
-  it('count_rookie unlocks with 5 tableCounting sessions', () => {
-    const session = makeSession({ mode: 'tableCounting' })
+  it('count_rookie unlocks with 5 speedDrill sessions', () => {
+    const session = makeSession({ mode: 'speedDrill' })
     const stats = makeStats({
       totalSessions: 5,
       byMode: {
-        tableCounting: {
+        speedDrill: {
           totalSessions: 5,
           totalQuestions: 100,
           totalCorrect: 80,
@@ -199,7 +199,7 @@ describe('AchievementEngine', () => {
     const stats = makeStats({
       byMode: {
         speedDrill: { totalSessions: 1, totalQuestions: 10, totalCorrect: 8, accuracy: 0.8, bestAccuracy: 0.8, totalPracticeSeconds: 60, bestStreak: 3 },
-        tableCounting: { totalSessions: 1, totalQuestions: 10, totalCorrect: 8, accuracy: 0.8, bestAccuracy: 0.8, totalPracticeSeconds: 60, bestStreak: 3 },
+        casinoSession: { totalSessions: 1, totalQuestions: 10, totalCorrect: 8, accuracy: 0.8, bestAccuracy: 0.8, totalPracticeSeconds: 60, bestStreak: 3 },
         deviationFlashCards: { totalSessions: 1, totalQuestions: 10, totalCorrect: 8, accuracy: 0.8, bestAccuracy: 0.8, totalPracticeSeconds: 60, bestStreak: 3 },
         betSpread: { totalSessions: 1, totalQuestions: 10, totalCorrect: 8, accuracy: 0.8, bestAccuracy: 0.8, totalPracticeSeconds: 60, bestStreak: 3 },
         deckEstimation: { totalSessions: 1, totalQuestions: 10, totalCorrect: 8, accuracy: 0.8, bestAccuracy: 0.8, totalPracticeSeconds: 60, bestStreak: 3 },
@@ -208,24 +208,6 @@ describe('AchievementEngine', () => {
 
     const unlocked = engine.checkAfterSession(session, stats, 0, [session])
     expect(unlocked.some(a => a.id === 'card_sharp')).toBe(true)
-  })
-
-  it('six_systems achievement counts unique counting systems', () => {
-    const allSystems = [
-      CountingSystemId.HiLo,
-      CountingSystemId.KO,
-      CountingSystemId.OmegaII,
-      CountingSystemId.ZenCount,
-      CountingSystemId.WongHalves,
-      CountingSystemId.Red7,
-    ]
-    const sessions = allSystems.map(sys =>
-      makeSession({ countingSystem: sys })
-    )
-    const stats = makeStats({ totalSessions: 6 })
-
-    const unlocked = engine.checkAfterSession(sessions[0], stats, 0, sessions)
-    expect(unlocked.some(a => a.id === 'six_systems')).toBe(true)
   })
 
   it('progress calculation returns correct percentage', () => {
@@ -406,36 +388,6 @@ describe('AchievementEngine', () => {
       const achievement = ALL_ACHIEVEMENTS.find(a => a.id === 'triple_perfect')!
       const progress = engine.getProgress(achievement, stats, 0, allSessions)
       expect(progress).toBe(100) // 3 perfect sessions
-    })
-
-    it('unique_systems counts systems with 80%+ accuracy', () => {
-      const allSystems = [
-        CountingSystemId.HiLo,
-        CountingSystemId.KO,
-        CountingSystemId.OmegaII,
-        CountingSystemId.ZenCount,
-        CountingSystemId.WongHalves,
-        CountingSystemId.Red7,
-      ]
-      const sessions = allSystems.map(sys =>
-        makeSession({ countingSystem: sys, accuracy: 0.85 })
-      )
-      const stats = makeStats({ totalSessions: 6 })
-      const achievement = ALL_ACHIEVEMENTS.find(a => a.id === 'system_scholar')!
-      const progress = engine.getProgress(achievement, stats, 0, sessions)
-      expect(progress).toBe(100)
-    })
-
-    it('unique_systems excludes systems below 80%', () => {
-      const sessions = [
-        makeSession({ countingSystem: CountingSystemId.HiLo, accuracy: 0.9 }),
-        makeSession({ countingSystem: CountingSystemId.KO, accuracy: 0.7 }),
-      ]
-      const stats = makeStats({ totalSessions: 2 })
-      const achievement = ALL_ACHIEVEMENTS.find(a => a.id === 'system_scholar')!
-      const progress = engine.getProgress(achievement, stats, 0, sessions)
-      // 1 out of 6 systems at 80%+
-      expect(Math.round(progress)).toBe(17)
     })
 
     it('master_collector requires 50 other unlocked achievements', () => {

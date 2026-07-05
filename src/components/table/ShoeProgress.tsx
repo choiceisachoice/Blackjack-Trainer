@@ -131,22 +131,35 @@ export function ShoeHousing({ cardCount, totalCards, penetration }: {
  * - Only grows when cards are collected after settlement (not during a hand)
  * - NO text, NO numbers, NO percentage indicators
  */
-export function DiscardTray({ cardCount, totalCards = 312 }: { cardCount: number; totalCards?: number }) {
-  const stackHeight = Math.max(0, Math.round(cardCount * PIXELS_PER_CARD))
+export function DiscardTray({
+  cardCount,
+  totalCards = 312,
+  showTicks = true,
+  pxPerCard = PIXELS_PER_CARD,
+  width = DISCARD_CONTAINER_WIDTH,
+}: {
+  cardCount: number
+  totalCards?: number
+  /** Show gold per-deck graduation lines. Off for the estimation drill (no cheating). */
+  showTicks?: boolean
+  /** Vertical scale (pixels per card). Larger = bigger tray. */
+  pxPerCard?: number
+  /** Container width in px. */
+  width?: number
+}) {
+  const stackHeight = Math.max(0, Math.round(cardCount * pxPerCard))
   const hasCards = cardCount > 0
 
-  // The tray is a fixed physical size = the whole shoe. The stack rises within
-  // it, and gold graduation lines mark each full deck (52 cards) so the player
-  // can estimate the decks dealt — and thus the decks remaining — by eye.
-  const deckPx = 52 * PIXELS_PER_CARD
+  // The tray is a fixed physical size = the whole shoe. The stack rises within it.
+  const deckPx = 52 * pxPerCard
   const numDecks = Math.max(1, Math.round(totalCards / 52))
-  const trayHeight = Math.round(totalCards * PIXELS_PER_CARD)
+  const trayHeight = Math.round(totalCards * pxPerCard)
 
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div
         style={{
-          width: `${DISCARD_CONTAINER_WIDTH}px`,
+          width: `${width}px`,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-end',
@@ -171,7 +184,7 @@ export function DiscardTray({ cardCount, totalCards = 312 }: { cardCount: number
           }}
         >
           {/* Deck graduation ticks (one per full deck boundary) */}
-          {Array.from({ length: numDecks - 1 }, (_, i) => i + 1).map(d => (
+          {showTicks && Array.from({ length: numDecks - 1 }, (_, i) => i + 1).map(d => (
             <div
               key={d}
               style={{

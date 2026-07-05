@@ -34,13 +34,16 @@ describe('App', () => {
 
   it('renders home screen by default', () => {
     render(<App />)
-    expect(screen.getAllByText('Blackjack Card Counting Trainer')[0]).toBeInTheDocument()
+    // The hero headline is animated; its accessible name stays the brand title.
+    expect(
+      screen.getAllByRole('heading', { name: 'Blackjack Card Counting Trainer' })[0]
+    ).toBeInTheDocument()
   })
 
-  it('renders DeviationTraining for deviationTraining mode', () => {
+  it('renders the Flashcards trainer for deviationTraining mode', () => {
     useAppStore.setState({ currentMode: 'deviationTraining' })
     render(<App />)
-    expect(screen.getByText('Deviation Set')).toBeInTheDocument()
+    expect(screen.getByText('Basic Strategy')).toBeInTheDocument()
     expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 
@@ -74,8 +77,8 @@ describe('App', () => {
     expect(screen.getByTestId('analytics-dashboard')).toBeInTheDocument()
   })
 
-  it('all 5 training modes are routed (no Coming Soon)', () => {
-    const modes = ['speedDrill', 'tableCounting', 'deviationTraining', 'betSpread', 'deckEstimation'] as const
+  it('all training modes are routed (no Coming Soon)', () => {
+    const modes = ['speedDrill', 'deviationTraining', 'betSpread', 'deckEstimation'] as const
     for (const mode of modes) {
       useAppStore.setState({ currentMode: mode })
       const { unmount } = render(<App />)

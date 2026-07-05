@@ -1,6 +1,6 @@
 import {
-  Zap, Spade, Target, Coins, Layers, Club,
-  BarChart3, Grid3x3, Trophy, Volume2, VolumeX, Sun, Moon,
+  Zap, Spade, GraduationCap, Coins, Layers, Club,
+  BarChart3, Grid3x3, Trophy, BookOpen, Volume2, VolumeX, Sun, Moon,
   type LucideIcon,
 } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
@@ -16,8 +16,7 @@ interface NavItem {
 /** Primary training features shown in the top navigation. */
 const TRAIN_ITEMS: NavItem[] = [
   { mode: 'speedDrill', label: 'Speed', icon: Zap },
-  { mode: 'tableCounting', label: 'Table', icon: Spade },
-  { mode: 'deviationTraining', label: 'Deviations', icon: Target },
+  { mode: 'deviationTraining', label: 'Flashcards', icon: GraduationCap },
   { mode: 'betSpread', label: 'Bet Spread', icon: Coins },
   { mode: 'deckEstimation', label: 'Decks', icon: Layers },
   { mode: 'casinoSession', label: 'Casino', icon: Club },
@@ -25,6 +24,7 @@ const TRAIN_ITEMS: NavItem[] = [
 
 /** Secondary "tools" features. */
 const TOOL_ITEMS: NavItem[] = [
+  { mode: 'learn', label: 'Learn', icon: BookOpen },
   { mode: 'analytics', label: 'Analytics', icon: BarChart3 },
   { mode: 'strategyChart', label: 'Strategy', icon: Grid3x3 },
   { mode: 'achievements', label: 'Awards', icon: Trophy },

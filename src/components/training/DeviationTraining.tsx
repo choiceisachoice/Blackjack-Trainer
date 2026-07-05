@@ -1,136 +1,117 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { Target, Check, X } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { GraduationCap, Check, X } from 'lucide-react'
 import { Panel, Segmented, Button } from '../common/ui'
 import { Action } from '../../engine/rules/types'
-import type { Deviation } from '../../engine/counting/types'
-import { ACTION_LABEL, getDeviations, ALL_ACTIONS, getFlashCardActionEnabled, formatTC, getBasicAction, isReversedDeviation, getDeviationAction as getDevAction } from './deviation-utils'
-import { DeviationAtTable } from './DeviationAtTable'
+import { buildFlashSession, enabledActions, type FlashLevel, type FlashQuestion } from '../../engine/strategy/flashcards'
+import { ACTION_LABEL, ALL_ACTIONS, formatTC } from './deviation-utils'
+import { useAppStore } from '../../store/app-store'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
-import type { DeviationSet } from './deviation-utils'
 import type { DeviationDetails } from '../../services/stats-types'
 
-type TrainingMode = 'flashCards' | 'atTheTable'
-type Phase = 'settings' | 'question' | 'feedback' | 'atTheTable'
+type Phase = 'settings' | 'question' | 'feedback' | 'summary'
 
-/** Generates a random TC around the threshold. */
-function generateTrueCount(threshold: number, isAbove: boolean): number {
-  if (isAbove) {
-    // TC at or above threshold: threshold to threshold+4
-    return threshold + Math.floor(Math.random() * 5)
-  }
-  // TC below threshold: threshold-4 to threshold-1
-  return threshold - 1 - Math.floor(Math.random() * 4)
+const QUESTION_COUNTS = [10, 20, 30, 50]
+
+const LEVEL_HELP: Record<FlashLevel, string> = {
+  basic: 'Learn what to do at every hand — no counting yet.',
+  deviations: 'Harder: the count is high or low — do you change your play?',
+  mixed: 'A blend of both — basic hands plus count-based decisions.',
 }
 
-interface QuestionState {
-  deviation: Deviation
-  trueCount: number
-  isAboveThreshold: boolean
-  correctAction: Action
+/** Display label for a hand. */
+function formatHand(q: FlashQuestion): string {
+  return q.hand === '*' ? 'Any' : q.hand
 }
 
 /**
- * Deviation Training mode.
+ * Flashcards trainer.
  *
- * Flash card style: shows a blackjack situation with a True Count,
- * player must decide whether to follow Basic Strategy or deviate.
+ * Drills Basic Strategy across every meaningful hand, and — at higher levels —
+ * count-based deviations. Finite sessions, no repeated questions in a row.
  */
 export function DeviationTraining() {
-  const [deviationSet, setDeviationSet] = useState<DeviationSet>('i18')
-  const [trainingMode, setTrainingMode] = useState<TrainingMode>('flashCards')
+  const dealerHitsSoft17 = useAppStore(s => s.selectedRules.dealerHitsSoft17)
+
+  const [level, setLevel] = useState<FlashLevel>('basic')
+  const [numQuestions, setNumQuestions] = useState(20)
   const [phase, setPhase] = useState<Phase>('settings')
 
-  // Question state
-  const [question, setQuestion] = useState<QuestionState | null>(null)
+  const [session, setSession] = useState<FlashQuestion[]>([])
+  const [qIndex, setQIndex] = useState(0)
+  const question = session[qIndex] ?? null
+
   const [selectedAction, setSelectedAction] = useState<Action | null>(null)
   const [isCorrect, setIsCorrect] = useState(false)
 
-  // Stats
   const [totalCorrect, setTotalCorrect] = useState(0)
   const [totalAttempts, setTotalAttempts] = useState(0)
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
 
-  // Per-deviation tracking for session save
-  const deviationResultsRef = useRef<Record<string, { correct: number; incorrect: number }>>({})
-
-  // ── Session stats persistence (flash cards only) ──
   const { statsRef } = useSessionSave('deviationFlashCards', (): DeviationDetails => ({
     type: 'deviationFlashCards',
-    deviationSet,
-    perDeviation: { ...deviationResultsRef.current },
+    deviationSet: 'all',
+    perDeviation: {},
   }))
 
-  const generateQuestion = useCallback(() => {
-    const deviations = getDeviations(deviationSet)
-    const deviation = deviations[Math.floor(Math.random() * deviations.length)]
-    const isAbove = Math.random() < 0.5
-    const tc = generateTrueCount(deviation.trueCountThreshold, isAbove)
-    const correctAction = isAbove ? deviation.actionAbove : deviation.actionBelow
-
-    setQuestion({ deviation, trueCount: tc, isAboveThreshold: isAbove, correctAction })
+  const startSession = useCallback(() => {
+    setSession(buildFlashSession(level, numQuestions, dealerHitsSoft17))
+    setQIndex(0)
     setSelectedAction(null)
     setIsCorrect(false)
+    setTotalCorrect(0)
+    setTotalAttempts(0)
+    setCurrentStreak(0)
+    setBestStreak(0)
     setPhase('question')
-  }, [deviationSet])
+  }, [level, numQuestions, dealerHitsSoft17])
 
   const handleAnswer = useCallback((action: Action) => {
     if (!question) return
     const correct = action === question.correctAction
     setSelectedAction(action)
     setIsCorrect(correct)
-    setTotalAttempts(prev => prev + 1)
 
-    // Track per-deviation results
-    const devName = question.deviation.name
-    if (!deviationResultsRef.current[devName]) {
-      deviationResultsRef.current[devName] = { correct: 0, incorrect: 0 }
-    }
-    if (correct) {
-      deviationResultsRef.current[devName].correct++
-    } else {
-      deviationResultsRef.current[devName].incorrect++
-    }
+    const newAttempts = totalAttempts + 1
+    const newCorrect = totalCorrect + (correct ? 1 : 0)
+    const newBestStreak = correct ? Math.max(bestStreak, currentStreak + 1) : bestStreak
 
+    setTotalAttempts(newAttempts)
     if (correct) {
       soundEngine.correct()
-      setTotalCorrect(prev => prev + 1)
-      setCurrentStreak(prev => {
-        const next = prev + 1
-        if (next > bestStreak) soundEngine.streak()
-        setBestStreak(best => Math.max(best, next))
-        return next
-      })
+      setTotalCorrect(newCorrect)
+      setCurrentStreak(currentStreak + 1)
+      if (currentStreak + 1 > bestStreak) soundEngine.streak()
+      setBestStreak(newBestStreak)
     } else {
       soundEngine.wrong()
       setCurrentStreak(0)
     }
 
-    // Sync stats ref for session save
-    const newAttempts = totalAttempts + 1
-    const newCorrect = totalCorrect + (correct ? 1 : 0)
-    const newBestStreak = correct
-      ? Math.max(bestStreak, currentStreak + 1)
-      : bestStreak
-    statsRef.current = {
-      totalQuestions: newAttempts,
-      correctAnswers: newCorrect,
-      bestStreak: newBestStreak,
-    }
-
+    statsRef.current = { totalQuestions: newAttempts, correctAnswers: newCorrect, bestStreak: newBestStreak }
     setPhase('feedback')
   }, [question, totalAttempts, totalCorrect, bestStreak, currentStreak, statsRef])
 
-  // Keyboard: Enter → next question in feedback phase
+  const handleNext = useCallback(() => {
+    if (qIndex + 1 >= session.length) {
+      soundEngine.sessionComplete()
+      setPhase('summary')
+      return
+    }
+    setQIndex(qIndex + 1)
+    setSelectedAction(null)
+    setIsCorrect(false)
+    setPhase('question')
+  }, [qIndex, session.length])
+
+  // Keyboard: Enter → next in feedback
   useEffect(() => {
     if (phase !== 'feedback') return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') generateQuestion()
-    }
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Enter') handleNext() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [phase, generateQuestion])
+  }, [phase, handleNext])
 
   const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
 
@@ -138,44 +119,37 @@ export function DeviationTraining() {
   if (phase === 'settings') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <Panel icon={Target} title="Deviation Training" subtitle="Master the Illustrious 18 & Fab 4." className="w-full max-w-md">
-          {/* Deviation Set */}
+        <Panel icon={GraduationCap} title="Flashcards" subtitle="Drill every hand — and when to deviate." className="w-full max-w-md">
+          {/* Level */}
           <div>
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Deviation Set</span>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Level</span>
             <Segmented
               fluid
-              ariaLabel="Deviation set"
-              value={deviationSet}
-              onChange={setDeviationSet}
+              ariaLabel="Level"
+              value={level}
+              onChange={setLevel}
               options={[
-                { value: 'i18' as DeviationSet, label: 'Illustrious 18' },
-                { value: 'fab4' as DeviationSet, label: 'Fab 4' },
-                { value: 'all' as DeviationSet, label: 'All 22' },
+                { value: 'basic' as FlashLevel, label: 'Basic Strategy' },
+                { value: 'deviations' as FlashLevel, label: 'Deviations' },
+                { value: 'mixed' as FlashLevel, label: 'Mixed' },
               ]}
+            />
+            <p className="text-xs text-content/40 mt-2">{LEVEL_HELP[level]}</p>
+          </div>
+
+          {/* Number of questions */}
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Questions</span>
+            <Segmented
+              fluid
+              ariaLabel="Number of questions"
+              value={numQuestions}
+              onChange={setNumQuestions}
+              options={QUESTION_COUNTS.map(n => ({ label: String(n), value: n }))}
             />
           </div>
 
-          {/* Training Mode */}
-          <div>
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Mode</span>
-            <Segmented
-              fluid
-              ariaLabel="Training mode"
-              value={trainingMode}
-              onChange={setTrainingMode}
-              options={[
-                { value: 'flashCards' as TrainingMode, label: 'Flash Cards' },
-                { value: 'atTheTable' as TrainingMode, label: 'At the Table' },
-              ]}
-            />
-          </div>
-
-          <Button
-            size="lg"
-            className="w-full mt-1"
-            onClick={() => trainingMode === 'atTheTable' ? setPhase('atTheTable') : generateQuestion()}
-            data-testid="start-training"
-          >
+          <Button size="lg" className="w-full mt-1" onClick={startSession} data-testid="start-training">
             Start Training
           </Button>
         </Panel>
@@ -183,13 +157,36 @@ export function DeviationTraining() {
     )
   }
 
-  if (phase === 'atTheTable') {
-    return <DeviationAtTable deviationSet={deviationSet} />
+  // ── Summary Phase ──
+  if (phase === 'summary') {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <div className="surface w-full max-w-md p-7 flex flex-col items-center gap-6">
+          <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">Session Complete!</h3>
+          <div className="grid grid-cols-2 gap-3 w-full text-center">
+            <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
+              <div className="text-xs text-content/50">Accuracy</div>
+              <div className="text-xl font-bold text-content">{accuracy}%</div>
+            </div>
+            <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
+              <div className="text-xs text-content/50">Correct</div>
+              <div className="text-xl font-bold text-content">{totalCorrect}/{totalAttempts}</div>
+            </div>
+            <div className="rounded-xl px-4 py-3 col-span-2 bg-contrast/5 border border-contrast/10">
+              <div className="text-xs text-content/50">Best Streak</div>
+              <div className="text-xl font-bold text-gold">{bestStreak}</div>
+            </div>
+          </div>
+          <Button className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
+            Back to Settings
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   if (!question) return null
-  const { deviation, trueCount, correctAction } = question
-  const actionEnabled = getFlashCardActionEnabled(deviation)
+  const enabled = enabledActions(question)
 
   // ── Question Phase ──
   if (phase === 'question') {
@@ -197,53 +194,44 @@ export function DeviationTraining() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
         {/* Stats bar */}
         <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
+          <span data-testid="question-progress">Question {qIndex + 1}/{session.length}</span>
           <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
-          <span>Streak: {currentStreak} (Best: {bestStreak})</span>
+          <span>Streak: {currentStreak}</span>
         </div>
 
         {/* Situation card */}
-        <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+        <div className="surface p-6 max-w-md w-full">
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
-              <span className="text-content/60 text-sm">Your Hand:</span>
-              <span className="text-content font-bold text-lg" data-testid="player-hand">
-                {deviation.playerHand === '*' ? 'Any' : deviation.playerHand}
-              </span>
+              <span className="text-content/60 text-sm">Your Hand</span>
+              <span className="text-content font-bold text-lg" data-testid="player-hand">{formatHand(question)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-content/60 text-sm">Dealer Shows:</span>
-              <span className="text-content font-bold text-lg" data-testid="dealer-card">
-                {deviation.dealerUpcard}
-              </span>
+              <span className="text-content/60 text-sm">Dealer Shows</span>
+              <span className="text-content font-bold text-lg" data-testid="dealer-card">{question.dealer}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-content/60 text-sm">True Count:</span>
-              <span className="text-gold font-bold text-lg" data-testid="true-count">
-                {formatTC(trueCount)}
-              </span>
-            </div>
-            <div className="border-t border-contrast/10 pt-3">
-              <span className="text-content/40 text-xs">
-                Basic Strategy says: <span className="text-content/70 font-medium">{ACTION_LABEL[getBasicAction(deviation)]}</span>
-              </span>
-            </div>
+            {question.trueCount !== null && (
+              <div className="flex justify-between items-center">
+                <span className="text-content/60 text-sm">True Count</span>
+                <span className="text-gold font-bold text-lg" data-testid="true-count">{formatTC(question.trueCount)}</span>
+              </div>
+            )}
           </div>
 
           <p className="text-content font-medium text-center mb-4">What do you do?</p>
 
           <div className="flex flex-wrap gap-2 justify-center">
             {ALL_ACTIONS.map(action => {
-              const enabled = actionEnabled[action]
+              const on = enabled[action]
               return (
                 <button
                   key={action}
-                  onClick={() => enabled && handleAnswer(action)}
-                  disabled={!enabled}
+                  onClick={() => on && handleAnswer(action)}
+                  disabled={!on}
                   data-testid={`action-${action.toLowerCase()}`}
                   className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-colors
-                    ${enabled
-                      ? 'bg-contrast/10 hover:bg-contrast/20 text-content cursor-pointer'
-                      : 'bg-contrast/5 text-content/20 cursor-not-allowed'}`}
+                    ${on ? 'bg-contrast/10 hover:bg-contrast/20 text-content cursor-pointer'
+                         : 'bg-contrast/5 text-content/20 cursor-not-allowed'}`}
                 >
                   {ACTION_LABEL[action]}
                 </button>
@@ -256,16 +244,16 @@ export function DeviationTraining() {
   }
 
   // ── Feedback Phase ──
+  const deviated = question.correctAction !== question.basicAction
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
-      {/* Stats bar */}
       <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
+        <span>Question {qIndex + 1}/{session.length}</span>
         <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
-        <span>Streak: {currentStreak} (Best: {bestStreak})</span>
+        <span>Streak: {currentStreak}</span>
       </div>
 
-      {/* Result card */}
-      <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+      <div className="surface p-6 max-w-md w-full">
         <div className={`flex flex-col items-center text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
           <span className={`grid place-items-center w-12 h-12 rounded-full border
             ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
@@ -276,27 +264,26 @@ export function DeviationTraining() {
           </h3>
         </div>
 
-        {/* Explanation */}
         <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
           {!isCorrect && selectedAction && (
             <p className="text-content/70 text-sm">
               You chose <span className="text-error font-medium">{ACTION_LABEL[selectedAction]}</span>,
-              correct was <span className="text-success font-medium">{ACTION_LABEL[correctAction]}</span>.
+              correct was <span className="text-success font-medium">{ACTION_LABEL[question.correctAction]}</span>.
             </p>
           )}
           <p className="text-content/70 text-sm" data-testid="feedback-explanation">
-            {correctAction === getBasicAction(deviation)
-              ? `Basic Strategy: ${ACTION_LABEL[correctAction]} (TC ${formatTC(trueCount)} — deviation does not apply)`
-              : `${ACTION_LABEL[correctAction]} at TC ${isReversedDeviation(deviation) ? '<' : '\u2265'} ${formatTC(deviation.trueCountThreshold)} (you had ${formatTC(trueCount)})`}
-          </p>
-          <p className="text-content/40 text-xs">
-            {deviation.isIllustrious18 ? 'I18' : 'Fab 4'}: {deviation.name} → {ACTION_LABEL[getDevAction(deviation)]} at TC {isReversedDeviation(deviation) ? '<' : '\u2265'} {formatTC(deviation.trueCountThreshold)}
-            {' '}(instead of {ACTION_LABEL[getBasicAction(deviation)]})
+            {question.trueCount === null ? (
+              <>Basic Strategy: <span className="text-gold font-medium">{ACTION_LABEL[question.correctAction]}</span>.</>
+            ) : deviated ? (
+              <>At TC {formatTC(question.trueCount)}, <span className="text-gold font-medium">{ACTION_LABEL[question.correctAction]}</span> — a deviation from the basic play ({ACTION_LABEL[question.basicAction]}).</>
+            ) : (
+              <>At TC {formatTC(question.trueCount)}, stick with basic strategy: <span className="text-gold font-medium">{ACTION_LABEL[question.correctAction]}</span> (no deviation here).</>
+            )}
           </p>
         </div>
 
-        <Button onClick={generateQuestion} data-testid="next-question" className="w-full">
-          Next
+        <Button onClick={handleNext} data-testid="next-question" className="w-full">
+          {qIndex + 1 >= session.length ? 'See Results' : 'Next'}
         </Button>
       </div>
     </div>
