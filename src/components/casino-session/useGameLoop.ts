@@ -835,7 +835,16 @@ export function useGameLoop(
     if (!engine || !dr) return []
 
     const originalDealerCards: Card[] = [dr.dealerUpCard, dr.dealerHoleCard]
-    const finalDealerCards = engine.playDealerHand([...originalDealerCards])
+    // The dealer only draws if the human still has a live hand — one that is
+    // not busted, not surrendered, and not a natural blackjack (naturals are
+    // already resolved). Bot hands are evaluated inside the engine.
+    const humanHandsNow = humanHandsRef.current
+    const humanNeedsDealer = !isSurrenderedRef.current && humanHandsNow.some(h => {
+      if (isBust(h)) return false
+      if (humanHandsNow.length === 1 && isBlackjack(h)) return false
+      return true
+    })
+    const finalDealerCards = engine.playDealerHand([...originalDealerCards], humanNeedsDealer)
 
     recorder?.recordDealerUpCardCheck(
       formatCard(dr.dealerUpCard), formatCard(dr.dealerUpCard),
@@ -1151,17 +1160,19 @@ export function useGameLoop(
 
     setShowInsurance(false)
 
-    if (isBlackjack([dr.dealerUpCard, dr.dealerHoleCard])) {
+    const dealerHasBJ = isBlackjack([dr.dealerUpCard, dr.dealerHoleCard])
+
+    // Settle the insurance side bet in every case: it pays 2:1 on a dealer
+    // blackjack, otherwise the half-bet stake is lost. (Previously a losing
+    // insurance bet was never deducted — insurance was effectively free.)
+    engine.updateHumanBankroll(engine.settleInsurance(currentBetRef.current, take, dealerHasBJ))
+
+    if (dealerHasBJ) {
       setDealerHoleRevealed(true)
       setGameStep('dealer_playing')
 
       // Count hole card and get final dealer cards
       const finalDC = engine.playDealerHand([dr.dealerUpCard, dr.dealerHoleCard])
-
-      // Insurance profit: 2:1 payout on half-bet side wager
-      if (take) {
-        engine.updateHumanBankroll(currentBetRef.current)
-      }
 
       // Settle all hands (human + bots) via the standard path
       settleDealerRound(finalDC)

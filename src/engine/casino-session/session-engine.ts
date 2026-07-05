@@ -363,6 +363,23 @@ export class CasinoSessionEngine {
     return trueCount >= 3
   }
 
+  /**
+   * Settles the insurance side bet and returns its net profit/loss.
+   *
+   * Insurance costs half the main bet and pays 2:1 when the dealer has a
+   * blackjack. When taken and the dealer does NOT have blackjack, the
+   * half-bet stake is lost.
+   * @param mainBet - The player's main wager for the hand
+   * @param taken - Whether the player took insurance
+   * @param dealerHasBlackjack - Whether the dealer has a blackjack
+   * @returns Net profit: win = +2×stake, loss = −stake, not taken = 0
+   */
+  settleInsurance(mainBet: number, taken: boolean, dealerHasBlackjack: boolean): number {
+    if (!taken) return 0
+    const stake = Math.floor(mainBet / 2)
+    return dealerHasBlackjack ? stake * 2 : -stake
+  }
+
   // ─── Bet Correctness ─────────────────────────────────
 
   /**
@@ -622,9 +639,11 @@ export class CasinoSessionEngine {
    * until reaching 17+ (or soft 17 with H17 rules).
    *
    * @param dealerCards - The dealer's current cards [upCard, holeCard]
+   * @param humanNeedsDealer - Whether the human still has a hand that needs the
+   *   dealer to play (defaults to true; bot hands are evaluated internally)
    * @returns All dealer cards after playing
    */
-  playDealerHand(dealerCards: Card[]): Card[] {
+  playDealerHand(dealerCards: Card[], humanNeedsDealer: boolean = true): Card[] {
     const hn = this.currentHandNumber
 
     // Reveal hole card — now it gets counted
@@ -639,9 +658,13 @@ export class CasinoSessionEngine {
 
     let cards = [...dealerCards]
 
-    // Check if anyone is still in the game (not all busted)
-    const allPlayersBusted = this.areAllPlayersBusted()
-    if (allPlayersBusted) {
+    // The dealer only draws if at least one live player hand still needs
+    // resolving. If every player (human + bots) has busted, surrendered, or
+    // holds a natural blackjack, the dealer stands after revealing the hole
+    // card — as in a real casino, so no extra cards are dealt or counted.
+    const someoneNeedsDealer = humanNeedsDealer || this.anyBotNeedsDealer()
+    if (!someoneNeedsDealer) {
+      this.recorder?.recordBlackjackCheck('dealer_final', this.fmtCards(cards), isBlackjack(cards), hn)
       return cards
     }
 
@@ -656,9 +679,19 @@ export class CasinoSessionEngine {
     return cards
   }
 
-  private areAllPlayersBusted(): boolean {
-    // Check human — we don't track human hand here, caller should check
-    // For now, return false — dealer always plays
+  /**
+   * Returns true if any active bot holds a hand that still needs the dealer to
+   * play — i.e. a hand that is neither busted nor a natural blackjack.
+   */
+  private anyBotNeedsDealer(): boolean {
+    for (const seat of this.seats) {
+      if (!seat || !seat.isActive) continue
+      for (const hand of seat.hands) {
+        if (hand.isBusted) continue
+        if (isBlackjack(hand.cards)) continue
+        return true
+      }
+    }
     return false
   }
 

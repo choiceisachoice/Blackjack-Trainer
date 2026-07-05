@@ -1594,3 +1594,61 @@ describe('canReSplitAces', () => {
     expect(canReSplitAces(cards, 2, 4)).toBe(false)
   })
 })
+
+// ═══════════════════════════════════════════════════════
+// Bug fix: Insurance side-bet settlement
+// ═══════════════════════════════════════════════════════
+describe('CasinoSessionEngine — insurance settlement', () => {
+  it('pays insurance 2:1 when the dealer has blackjack', () => {
+    const engine = new CasinoSessionEngine(createTestConfig())
+    // stake = floor(100/2) = 50; win pays 2:1 → net +100
+    expect(engine.settleInsurance(100, true, true)).toBe(100)
+  })
+
+  it('loses the half-bet stake when insurance is taken and the dealer has no blackjack', () => {
+    const engine = new CasinoSessionEngine(createTestConfig())
+    // Previously this returned 0 (insurance was effectively free on a loss).
+    expect(engine.settleInsurance(100, true, false)).toBe(-50)
+  })
+
+  it('returns 0 when insurance was not taken, regardless of the dealer', () => {
+    const engine = new CasinoSessionEngine(createTestConfig())
+    expect(engine.settleInsurance(100, false, true)).toBe(0)
+    expect(engine.settleInsurance(100, false, false)).toBe(0)
+  })
+
+  it('uses floor(bet / 2) as the stake for odd bets', () => {
+    const engine = new CasinoSessionEngine(createTestConfig())
+    // stake = floor(25/2) = 12 → win +24, loss -12
+    expect(engine.settleInsurance(25, true, true)).toBe(24)
+    expect(engine.settleInsurance(25, true, false)).toBe(-12)
+  })
+})
+
+// ═══════════════════════════════════════════════════════
+// Bug fix: Dealer only draws when a player needs it
+// ═══════════════════════════════════════════════════════
+describe('CasinoSessionEngine — dealer draws only when needed', () => {
+  it('does not draw when no player needs the dealer (all busted, no bots)', () => {
+    const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0 }))
+    // Dealer 16 (10 + 6) would normally hit — but with no live player it stands.
+    const dealerCards = [card(Rank.Ten, Suit.Spades), card(Rank.Six, Suit.Hearts)]
+    const final = engine.playDealerHand(dealerCards, /* humanNeedsDealer */ false)
+    expect(final).toHaveLength(2)
+    expect(getHandValue(final).best).toBe(16)
+  })
+
+  it('still counts the revealed hole card even when the dealer does not draw', () => {
+    const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0 }))
+    const before = engine.getRunningCount()
+    // Hole card (index 1) is a Six → Hi-Lo +1
+    engine.playDealerHand([card(Rank.Ten, Suit.Spades), card(Rank.Six, Suit.Hearts)], false)
+    expect(engine.getRunningCount()).toBe(before + 1)
+  })
+
+  it('draws to 17+ when a player still needs the dealer (default behavior)', () => {
+    const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0 }))
+    const final = engine.playDealerHand([card(Rank.Ten, Suit.Spades), card(Rank.Six, Suit.Hearts)], true)
+    expect(getHandValue(final).best).toBeGreaterThanOrEqual(17)
+  })
+})
