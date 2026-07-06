@@ -1,4 +1,4 @@
-import { getHandValue } from '../../engine/rules/hand-utils'
+import { getHandValue, isBlackjack } from '../../engine/rules/hand-utils'
 import { CountingSystemId } from '../../engine/counting/types'
 import type { Card } from '../../engine/shoe/types'
 import type { CasinoSessionConfig } from '../../engine/casino-session/types'
@@ -91,6 +91,17 @@ export function handValueStr(cards: Card[]): string {
   if (cards.length === 0) return ''
   const { best } = getHandValue(cards)
   return `${best}`
+}
+
+/**
+ * A NATURAL blackjack is only possible on an unsplit two-card hand. After a
+ * split (handCount > 1), a two-card 21 like [A,10] is a plain 21 — NOT a
+ * blackjack — so it must never be shown or paid as one.
+ * @param handCount - How many hands the player currently holds (1 = unsplit)
+ * @param cards - The hand's cards
+ */
+export function isNaturalBlackjack(handCount: number, cards: Card[]): boolean {
+  return handCount === 1 && isBlackjack(cards)
 }
 
 export const BOT_STATUS_STYLE: Record<BotStatus, { bg: string; text: string; animate?: boolean }> = {

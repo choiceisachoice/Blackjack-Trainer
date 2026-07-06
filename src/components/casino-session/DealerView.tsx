@@ -1,56 +1,31 @@
 import type { Card } from '../../engine/shoe/types'
-import { AnimatedTableCard } from './CardComponents'
-import { ShoeHousing, DiscardTray } from '../table/ShoeProgress'
+import { AnimatedTableCard, FlipCard } from './CardComponents'
 import { handValueStr } from './helpers'
 
 interface DealerViewProps {
   dealerCards: Card[]
   dealerHoleRevealed: boolean
-  isDealPhase: boolean
-  cardsRemaining: number
-  cardsDealt: number
-  totalCards: number
-  penetration: number
 }
 
-export function DealerView({
-  dealerCards,
-  dealerHoleRevealed,
-  isDealPhase,
-  cardsRemaining,
-  cardsDealt,
-  totalCards,
-  penetration,
-}: DealerViewProps) {
+/**
+ * The dealer's area: label, cards (equal size, hole card face-down until
+ * revealed) and running total. The shoe and discard tray live in the table's
+ * top rail, not here, so a long dealer hand never collides with them.
+ */
+export function DealerView({ dealerCards, dealerHoleRevealed }: DealerViewProps) {
   return (
-    <div className="relative flex flex-col items-center gap-1 z-10 mb-4 md:mb-6">
-      {/* Discard Tray — absolute left */}
-      <div className="absolute left-2 md:left-4 top-0 z-20 origin-top-left">
-        <DiscardTray cardCount={cardsDealt} totalCards={totalCards} />
-      </div>
-
-      {/* Shoe — absolute right */}
-      <div className="absolute right-2 md:right-4 top-0 z-20 origin-top-right">
-        <ShoeHousing
-          cardCount={cardsRemaining}
-          totalCards={totalCards}
-          penetration={penetration}
-        />
-      </div>
-
+    <div className="relative flex flex-col items-center gap-1">
       <span className="text-xs md:text-sm text-white/50 uppercase tracking-widest font-semibold">Dealer</span>
       {dealerCards.length > 0 ? (
         <>
-          <div className="flex -space-x-4 md:-space-x-5 mt-1">
+          <div className="flex -space-x-6 md:-space-x-7 mt-1">
             {dealerCards.map((c, i) => (
               <div key={`dealer-${i}`} className="relative" style={{ zIndex: i }}>
-                <AnimatedTableCard
-                  card={c}
-                  faceDown={i === 1 && !dealerHoleRevealed}
-                  animateIn
-                  delay={0}
-                  size="dealer"
-                />
+                {i === 1 ? (
+                  <FlipCard card={c} revealed={dealerHoleRevealed} size="dealer" />
+                ) : (
+                  <AnimatedTableCard card={c} animateIn delay={0} size="dealer" />
+                )}
               </div>
             ))}
           </div>

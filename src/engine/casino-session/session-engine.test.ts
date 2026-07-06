@@ -1652,3 +1652,41 @@ describe('CasinoSessionEngine — dealer draws only when needed', () => {
     expect(getHandValue(final).best).toBeGreaterThanOrEqual(17)
   })
 })
+
+// ═══════════════════════════════════════════════════════
+// Bug fix: a split-ace 21 is NOT a natural blackjack
+// ═══════════════════════════════════════════════════════
+describe('CasinoSessionEngine — split-ace 21 payout', () => {
+  it('pays a split-ace [A,10] = 21 as a normal win (1:1), NOT a blackjack (3:2)', () => {
+    const engine = new CasinoSessionEngine(createTestConfig({ blackjackPays: 1.5 }))
+    const res = engine.settleHand(
+      [card(Rank.Ace), card(Rank.Ten)],    // player 21, but from a split
+      [card(Rank.King), card(Rank.Ten)],   // dealer 20
+      100, false, false, /* isSplitHand */ true,
+    )
+    expect(res.result).toBe('win')
+    expect(res.profit).toBe(100)           // 1:1 — NOT 150
+  })
+
+  it('still pays an UNSPLIT natural blackjack 3:2', () => {
+    const engine = new CasinoSessionEngine(createTestConfig({ blackjackPays: 1.5 }))
+    const res = engine.settleHand(
+      [card(Rank.Ace), card(Rank.Ten)],    // natural blackjack
+      [card(Rank.King), card(Rank.Eight)], // dealer 18
+      100, false, false, /* isSplitHand */ false,
+    )
+    expect(res.result).toBe('blackjack')
+    expect(res.profit).toBe(150)           // 3:2
+  })
+
+  it('a split-ace 21 pushes against a dealer 21 (both non-blackjack)', () => {
+    const engine = new CasinoSessionEngine(createTestConfig())
+    const res = engine.settleHand(
+      [card(Rank.Ace), card(Rank.Ten)],                       // split 21
+      [card(Rank.Seven), card(Rank.Four), card(Rank.Ten)],    // dealer 21 (3 cards)
+      100, false, false, true,
+    )
+    expect(res.result).toBe('push')
+    expect(res.profit).toBe(0)
+  })
+})

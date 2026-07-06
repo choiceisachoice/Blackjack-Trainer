@@ -27,22 +27,28 @@ export function MiniCard({ card, faceDown }: { card: Card; faceDown?: boolean })
 
 export type CardSize = 'dealer' | 'player' | 'bot'
 
+/**
+ * Uniform, readable card sizes. Players and bots share ONE size so no seat's
+ * cards are harder to read than another's — essential for a counting trainer.
+ */
 const CARD_SIZE_CLASS: Record<CardSize, string> = {
-  dealer: 'w-14 h-20 md:w-[76px] md:h-[106px]',
-  player: 'w-11 h-[62px] md:w-[60px] md:h-[84px]',
-  bot: 'w-9 h-[50px] md:w-11 md:h-[62px]',
+  dealer: 'w-[58px] h-[82px] md:w-[64px] md:h-[90px]',
+  player: 'w-[52px] h-[74px] md:w-[56px] md:h-[80px]',
+  bot: 'w-[52px] h-[74px] md:w-[56px] md:h-[80px]',
 }
 
-const CARD_RANK_CLASS: Record<CardSize, string> = {
-  dealer: 'text-sm md:text-base font-bold',
-  player: 'text-xs md:text-sm font-bold',
-  bot: 'text-[10px] md:text-xs font-bold',
+/** Corner index (rank over suit) — stays visible when cards are fanned. */
+const CARD_CORNER_CLASS: Record<CardSize, string> = {
+  dealer: 'text-[13px] md:text-[15px]',
+  player: 'text-[12px] md:text-[13px]',
+  bot: 'text-[12px] md:text-[13px]',
 }
 
-const CARD_SUIT_CLASS: Record<CardSize, string> = {
-  dealer: 'text-xs md:text-sm',
-  player: 'text-[10px] md:text-xs',
-  bot: 'text-[9px] md:text-[10px]',
+/** Large centre suit pip. */
+const CARD_PIP_CLASS: Record<CardSize, string> = {
+  dealer: 'text-[26px] md:text-[30px]',
+  player: 'text-[22px] md:text-[24px]',
+  bot: 'text-[22px] md:text-[24px]',
 }
 
 export function TableCard({ card, faceDown, size = 'player' }: { card: Card; faceDown?: boolean; size?: CardSize }) {
@@ -59,10 +65,15 @@ export function TableCard({ card, faceDown, size = 'player' }: { card: Card; fac
   }
 
   return (
-    <div className={`${CARD_SIZE_CLASS[size]} rounded-md bg-white border border-gray-200 shadow-lg flex flex-col items-center justify-center leading-none flex-shrink-0
+    <div className={`${CARD_SIZE_CLASS[size]} relative rounded-md bg-white border border-gray-300 shadow-lg leading-none flex-shrink-0
       ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-      <span className={CARD_RANK_CLASS[size]}>{card.rank}</span>
-      <span className={CARD_SUIT_CLASS[size]}>{SUIT_MAP[card.suit]}</span>
+      {/* Top-left corner index — remains readable when the card is overlapped */}
+      <span className={`absolute top-[3px] left-[4px] flex flex-col items-center font-bold ${CARD_CORNER_CLASS[size]}`}>
+        <span>{card.rank}</span>
+        <span className="text-[0.82em] -mt-[1px]">{SUIT_MAP[card.suit]}</span>
+      </span>
+      {/* Centre pip */}
+      <span className={`absolute inset-0 grid place-items-center opacity-90 ${CARD_PIP_CLASS[size]}`}>{SUIT_MAP[card.suit]}</span>
     </div>
   )
 }
@@ -96,6 +107,33 @@ export function AnimatedTableCard({
     >
       <TableCard card={card} faceDown={faceDown} size={size} />
     </motion.div>
+  )
+}
+
+/**
+ * A card that flips in 3D (rotateY) between its back and its face. Used for the
+ * dealer's hole card so the reveal animates smoothly instead of snapping.
+ */
+export function FlipCard({ card, revealed, size = 'dealer' }: { card: Card; revealed: boolean; size?: CardSize }) {
+  return (
+    <div style={{ perspective: '900px' }}>
+      <motion.div
+        className={`${CARD_SIZE_CLASS[size]} relative`}
+        style={{ transformStyle: 'preserve-3d' }}
+        initial={false}
+        animate={{ rotateY: revealed ? 0 : 180 }}
+        transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+      >
+        {/* Face (visible at 0°) */}
+        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+          <TableCard card={card} size={size} />
+        </div>
+        {/* Back (visible at 180°) */}
+        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+          <TableCard card={card} faceDown size={size} />
+        </div>
+      </motion.div>
+    </div>
   )
 }
 

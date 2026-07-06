@@ -27,6 +27,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     shoeProgress,
     cardsRemaining,
     cardsDealt,
+    discardCount,
     totalCards,
     bankroll,
     handNum,
@@ -269,8 +270,11 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         bankroll={bankroll}
         cardsRemaining={cardsRemaining}
         cardsDealt={cardsDealt}
+        discardCount={discardCount}
         totalCards={totalCards}
         penetration={config.penetration}
+        blackjackPays={config.blackjackPays}
+        dealerHitsSoft17={config.dealerHitsSoft17}
       />
 
       {/* Controls Area */}

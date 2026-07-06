@@ -243,15 +243,13 @@ describe('CasinoSession', () => {
       expect(shoe).toBeTruthy()
     })
 
-    it('shows human seat on table and info strip below', () => {
+    it('shows human seat with the YOU nameplate in its block', () => {
       startSession()
 
       const humanSeat = screen.getByTestId('human-seat')
       expect(humanSeat).toBeTruthy()
-      // Info strip has "★ YOU"
+      // Nameplate (name + bankroll) lives inside the seat block now
       expect(screen.getByText(/YOU/)).toBeTruthy()
-      // Info strip container exists
-      expect(screen.getByTestId('player-info-strip')).toBeTruthy()
     })
 
     it('shows Dealer label on table', () => {
@@ -537,16 +535,16 @@ describe('CasinoSession', () => {
     })
   })
 
-  describe('Player Info Strip', () => {
-    it('player info strip is rendered below table', () => {
+  describe('Player Nameplate', () => {
+    it('human nameplate (★ YOU) is rendered inside the seat block', () => {
       render(<CasinoSession />)
       fireEvent.click(screen.getByTestId('start-session'))
       act(() => { vi.advanceTimersByTime(100) })
 
-      expect(screen.getByTestId('player-info-strip')).toBeTruthy()
+      expect(screen.getByText(/★.*YOU/)).toBeTruthy()
     })
 
-    it('bot status badges are shown in the info strip', () => {
+    it('bot status badges are shown for each seated bot', () => {
       render(<CasinoSession />)
       fireEvent.click(screen.getByTestId('start-session'))
       act(() => { vi.advanceTimersByTime(100) })

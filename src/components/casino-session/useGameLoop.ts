@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useMemo } from 'react'
 import { soundEngine } from '../../services/sound-engine'
+import { useAppStore, DEALING_SPEED_MULTIPLIER } from '../../store/app-store'
 import { CasinoSessionEngine, canReSplitAces } from '../../engine/casino-session/session-engine'
 import { getHandValue, isBlackjack, isBust, isPair } from '../../engine/rules/hand-utils'
 import { Action } from '../../engine/rules/types'
@@ -15,7 +16,7 @@ import type {
 } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
 import type { GameStep, BotStatus } from './helpers'
-import { formatDollar } from './helpers'
+import { formatDollar, isNaturalBlackjack } from './helpers'
 import { useStepAnimation, type AnimStep } from './useStepAnimation'
 
 // ─── Visible State ───────────────────────────────────
@@ -79,6 +80,11 @@ interface SeatLayoutEntry {
 
 // ─── Hook ────────────────────────────────────────────
 
+/** A base delay scaled by the live dealing-speed setting (slow/normal/fast). */
+function scaledDelay(ms: number): number {
+  return ms * DEALING_SPEED_MULTIPLIER[useAppStore.getState().dealingSpeed]
+}
+
 export function useGameLoop(
   config: CasinoSessionConfig,
   recorder: SessionRecorder | null,
@@ -133,6 +139,9 @@ export function useGameLoop(
 
   const [handReview, setHandReview] = useState<PlayerHandRecord | null>(null)
   const [showReshuffle, setShowReshuffle] = useState(false)
+  // Cards physically in the discard tray. Unlike cardsDealt (which leaves the
+  // shoe in real time), this only grows when a round is collected at settlement.
+  const [discardCount, setDiscardCount] = useState(0)
   const [botActiveSplitHands, setBotActiveSplitHands] = useState<Record<string, number>>({})
   const [botSplitVisibleCards, setBotSplitVisibleCards] = useState<Record<string, number[]>>({})
 
@@ -159,12 +168,32 @@ export function useGameLoop(
 
   const totalCards = config.numDecks * 52
 
+  // Cards still in the shoe = total − discarded − cards currently REVEALED on
+  // the table. Driving the shoe off revealed (not engine-drawn) cards makes it
+  // shrink in step with the deal animation instead of dropping all at once.
   const cardsRemaining = useMemo(() => {
-    const engine = engineRef.current
-    if (!engine) return totalCards
-    return engine.getTotalCards() - engine.getCardsDealt()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameStep, elapsedSeconds, humanHands, dealerCards, totalCards])
+    let revealed = 0
+    if (humanHands.length > 1) {
+      for (const h of humanHands) revealed += h.length
+    } else {
+      revealed += Math.min(humanHands[0]?.length ?? 0, humanVisibleCards)
+    }
+    for (const seat of seats) {
+      if (!seat || !seat.isActive) continue
+      const sv = botSplitVisibleCards[seat.id]
+      if (seat.hands.length > 1 && sv) {
+        for (let i = 0; i < seat.hands.length; i++) {
+          revealed += Math.min(seat.hands[i].cards.length, sv[i] ?? 0)
+        }
+      } else {
+        const lim = botVisibleCards[seat.id]
+        const count = seat.hands[0]?.cards.length ?? 0
+        revealed += lim !== undefined ? Math.min(count, lim) : count
+      }
+    }
+    revealed += dealerCards.length
+    return Math.max(0, totalCards - discardCount - revealed)
+  }, [humanHands, humanVisibleCards, seats, botVisibleCards, botSplitVisibleCards, dealerCards, discardCount, totalCards])
 
   const cardsDealt = useMemo(() => {
     const engine = engineRef.current
@@ -409,8 +438,10 @@ export function useGameLoop(
 
     const steps: AnimStep[] = []
 
-    // Blackjack
-    if (updatedBot.hands[0] && isBlackjack(updatedBot.hands[0].cards)) {
+    // Natural blackjack — ONLY possible on an unsplit two-card hand. After an
+    // ace split, hand 0 can be [A,10] = 21, which is a 21 but NOT a natural
+    // blackjack, so it must fall through to the split animation below.
+    if (isNaturalBlackjack(updatedBot.hands.length, updatedBot.hands[0]?.cards ?? [])) {
       steps.push({
         execute: () => {
           setActiveBotId(updatedBot.id)
@@ -916,12 +947,17 @@ export function useGameLoop(
       const nextHand = currentHumanHands[nextIdx]
 
       if (nextHand && nextHand.length === 1) {
-        const newCard = engine.drawCard()
-        soundEngine.cardDeal()
-        updateHandCards(nextIdx, [...nextHand, newCard])
-        setTimeout(() => setActiveHandIndex(nextIdx), 500)
-      } else {
+        // 1. Switch focus FIRST: dim the finished hand, un-dim the next one.
         setActiveHandIndex(nextIdx)
+        // 2. Only THEN — once the switch is visible — deal the next card to
+        //    the now-active hand (so the card never arrives on a dimmed hand).
+        setTimeout(() => {
+          const newCard = engine.drawCard()
+          soundEngine.cardDeal()
+          updateHandCards(nextIdx, [...nextHand, newCard])
+        }, scaledDelay(500))
+      } else {
+        setTimeout(() => setActiveHandIndex(nextIdx), scaledDelay(400))
       }
     } else {
       runPostHumanFlow()
@@ -965,6 +1001,8 @@ export function useGameLoop(
 
     const dealResult = engine.dealNewRound()
     dealResultRef.current = dealResult
+    // A fresh shoe empties the discard tray.
+    if (dealResult.reshuffled) setDiscardCount(0)
 
     // Reshuffle handled as leading animation steps (Fix 5)
 
@@ -1363,25 +1401,28 @@ export function useGameLoop(
               return
             }
 
-            const nc = engine.drawCard()
-            soundEngine.cardDeal()
-            updateHandCards(idx, [...hand, nc])
+            // Switch focus to this hand first (un-dim), then deal its card.
             setActiveHandIndex(idx)
+            setTimeout(() => {
+              const nc = engine.drawCard()
+              soundEngine.cardDeal()
+              updateHandCards(idx, [...hand, nc])
 
-            // Check re-split for this hand
-            if (canReSplitAces([hand[0], nc], humanHandsRef.current.length, config.maxSplitHands) &&
-                engine.getHumanBankroll() >= currentBetRef.current) {
-              // Player can re-split this hand
-              return
-            }
+              // Check re-split for this hand
+              if (canReSplitAces([hand[0], nc], humanHandsRef.current.length, config.maxSplitHands) &&
+                  engine.getHumanBankroll() >= currentBetRef.current) {
+                // Player can re-split this hand
+                return
+              }
 
-            // Auto-stand, advance to next after delay
-            setTimeout(() => advanceAceHands(idx + 1), 600)
+              // Auto-stand, advance to next after delay (respects dealing speed)
+              setTimeout(() => advanceAceHands(idx + 1), scaledDelay(600))
+            }, scaledDelay(500))
           }
 
-          setTimeout(() => advanceAceHands(hi + 1), 600)
+          setTimeout(() => advanceAceHands(hi + 1), scaledDelay(600))
         }
-      }, 600)
+      }, scaledDelay(600))
 
       return
     }
@@ -1452,6 +1493,11 @@ export function useGameLoop(
       endSession()
       return
     }
+
+    // Only NOW — when the player leaves the finished hand — are its cards
+    // collected into the discard tray (the cards were still on the table until
+    // this point). A fresh shoe resets the tray in confirmBet.
+    setDiscardCount(engine.getCardsDealt())
 
     resetRoundState()
     setSeats([...engine.getSeats()])
@@ -1533,6 +1579,7 @@ export function useGameLoop(
     totalCards,
     bankroll: engineRef.current?.getHumanBankroll() ?? 0,
     handNum: engineRef.current?.getCurrentHandNumber() ?? 0,
+    discardCount,
     initSession,
   }
 }
