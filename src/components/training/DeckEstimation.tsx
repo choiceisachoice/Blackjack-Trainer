@@ -355,7 +355,7 @@ export function DeckEstimation() {
   // ── Question Phase ──
   if (phase === 'question') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center gap-6 px-4 py-6">
         {/* Stats bar */}
         <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
           <span>Correct: {stats.correct}/{stats.total} ({accuracy}%)</span>
@@ -406,7 +406,7 @@ export function DeckEstimation() {
   const closeEnough = isCorrect && selectedAnswer !== null && Math.abs(selectedAnswer - correctDecks) > 0.01
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
+    <div className="flex-1 overflow-y-auto flex flex-col items-center gap-6 px-4 py-6">
       {/* Stats bar */}
       <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
         <span>Correct: {stats.correct}/{stats.total} ({accuracy}%)</span>

@@ -449,7 +449,7 @@ function RecentAchievements() {
 
   return (
     <Panel title={`Recent achievements`} note={`${totalUnlocked} unlocked`}>
-      <div className="flex items-center justify-end -mt-9 mb-2">
+      <div className="flex items-center justify-end mb-2 -mt-1">
         <button
           onClick={() => setMode('achievements')}
           className="text-xs text-gold hover:text-gold/80 transition-colors cursor-pointer"
