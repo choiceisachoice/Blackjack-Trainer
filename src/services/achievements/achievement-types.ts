@@ -82,6 +82,8 @@ export type AchievementRequirementType =
   | 'night_session'
   /** Meta: unlock >= value other achievements. */
   | 'meta_unlocks'
+  /** Master every deviation in a set (>= `value` correct each, 75%+ accuracy). */
+  | 'deviation_set_mastery'
 
 /** Condition that must be met to unlock an achievement. */
 export interface AchievementRequirement {
@@ -93,6 +95,8 @@ export interface AchievementRequirement {
   mode?: TrainingMode
   /** Optional: rolling window of sessions (used by `sustained_accuracy`). */
   window?: number
+  /** Optional: which deviation set (used by `deviation_set_mastery`). */
+  deviationSet?: 'i18' | 'fab4'
 }
 
 /** A single achievement definition. */

@@ -3,6 +3,7 @@ import { AchievementEngine } from './achievement-engine'
 import { ALL_ACHIEVEMENTS } from './achievement-list'
 import type { TrainingSessionResult, LifetimeStats, TrainingMode } from '../stats-types'
 import { CountingSystemId } from '../../engine/counting/types'
+import { FAB_4 } from '../../engine/counting/deviations'
 
 /** Build a minimal session result for testing. */
 function makeSession(overrides: Partial<TrainingSessionResult> = {}): TrainingSessionResult {
@@ -44,8 +45,8 @@ describe('AchievementEngine', () => {
     engine = new AchievementEngine()
   })
 
-  it('has 100 achievements defined', () => {
-    expect(ALL_ACHIEVEMENTS).toHaveLength(100)
+  it('has 102 achievements defined', () => {
+    expect(ALL_ACHIEVEMENTS).toHaveLength(102)
   })
 
   it('all achievements have unique ids', () => {
@@ -764,6 +765,29 @@ describe('AchievementEngine — balance-pass requirement types', () => {
     expect(unlock(day[0], makeStats(), day)).toContain('daily_double')
     // four modes only → not yet
     expect(unlock(day[0], makeStats(), day.slice(0, 4))).not.toContain('daily_double')
+  })
+
+  it('deviation_set_mastery: Fab Four unlocks when all four Fab 4 deviations are mastered', () => {
+    const per: Record<string, { correct: number; incorrect: number }> = {}
+    for (const d of FAB_4) per[d.name] = { correct: 4, incorrect: 0 } // 100% over 4 attempts each
+    const session = makeSession({
+      mode: 'deviationFlashCards',
+      details: { type: 'deviationFlashCards', deviationSet: 'fab4', perDeviation: per },
+    })
+    const unlocked = engine.checkAfterSession(session, makeStats(), 0, [session]).map(a => a.id)
+    expect(unlocked).toContain('fab_four_master')
+    expect(unlocked).not.toContain('deviation_sage') // the 18 are not all mastered
+  })
+
+  it('deviation_set_mastery: not mastered below the accuracy bar', () => {
+    const per: Record<string, { correct: number; incorrect: number }> = {}
+    for (const d of FAB_4) per[d.name] = { correct: 2, incorrect: 6 } // 25% accuracy
+    const session = makeSession({
+      mode: 'deviationFlashCards',
+      details: { type: 'deviationFlashCards', deviationSet: 'fab4', perDeviation: per },
+    })
+    const unlocked = engine.checkAfterSession(session, makeStats(), 0, [session]).map(a => a.id)
+    expect(unlocked).not.toContain('fab_four_master')
   })
 
   it('meta_unlocks: getProgress reflects other unlocks', () => {

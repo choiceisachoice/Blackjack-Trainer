@@ -1,6 +1,6 @@
 import type { Achievement } from './achievement-types'
 
-/** All 100 achievements in the game. */
+/** All 102 achievements in the game. */
 export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Getting Started (3) ──────────────────────────────
   {
@@ -947,6 +947,26 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     icon: '🏆',
     category: 'counting_mastery',
     requirement: { type: 'meta_unlocks', value: 75 },
+    tier: 'diamond',
+  },
+
+  // ── Deviation-set mastery (enabled by per-deviation tracking) ──
+  {
+    id: 'fab_four_master',
+    name: 'Fab Four',
+    description: 'Master all four Fab 4 surrender deviations',
+    icon: '🛡️',
+    category: 'deviations',
+    requirement: { type: 'deviation_set_mastery', value: 3, deviationSet: 'fab4' },
+    tier: 'silver',
+  },
+  {
+    id: 'deviation_sage',
+    name: 'Deviation Sage',
+    description: 'Master all 18 Illustrious 18 deviations',
+    icon: '📜',
+    category: 'deviations',
+    requirement: { type: 'deviation_set_mastery', value: 3, deviationSet: 'i18' },
     tier: 'diamond',
   },
 ]

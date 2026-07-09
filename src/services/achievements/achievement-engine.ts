@@ -3,6 +3,10 @@ import type { TrainingSessionResult, LifetimeStats, TrainingMode, CasinoSessionD
 import type { SimulationResult } from '../../engine/simulation/types'
 import { ALL_ACHIEVEMENTS } from './achievement-list'
 import { LEVELS } from '../level-system'
+import { ILLUSTRIOUS_18, FAB_4 } from '../../engine/counting/deviations'
+
+/** Minimum accuracy for a single deviation to count as "mastered". */
+const MASTERY_ACCURACY = 0.75
 
 const STORAGE_KEY = 'bjt_achievements'
 const SIM_COUNT_KEY = 'bjt_sim_count'
@@ -344,6 +348,12 @@ export class AchievementEngine {
       case 'night_session':
         return this.hasNightSession(allSessions) ? 100 : 0
 
+      case 'deviation_set_mastery': {
+        if (!req.deviationSet) return 0
+        const { mastered, total } = this.masteredCountForSet(allSessions, req.deviationSet, req.value)
+        return total > 0 ? Math.min(100, (mastered / total) * 100) : 0
+      }
+
       default:
         return 0
     }
@@ -469,6 +479,12 @@ export class AchievementEngine {
 
       case 'night_session':
         return new Date(session.timestamp).getHours() < 5
+
+      case 'deviation_set_mastery': {
+        if (!req.deviationSet) return false
+        const { mastered, total } = this.masteredCountForSet(allSessions, req.deviationSet, req.value)
+        return total > 0 && mastered >= total
+      }
 
       case 'meta_unlocks':
         return false // handled by checkMetaAchievements
@@ -702,6 +718,37 @@ export class AchievementEngine {
   /** Whether any session was completed after midnight (00:00–04:59 local). */
   private hasNightSession(allSessions: TrainingSessionResult[]): boolean {
     return allSessions.some(s => new Date(s.timestamp).getHours() < 5)
+  }
+
+  /** Aggregate per-deviation results (by name) across all flashcard sessions. */
+  private aggregateDeviations(allSessions: TrainingSessionResult[]): Record<string, { correct: number; incorrect: number }> {
+    const acc: Record<string, { correct: number; incorrect: number }> = {}
+    for (const s of allSessions) {
+      if (s.details.type !== 'deviationFlashCards' && s.details.type !== 'deviationAtTable') continue
+      for (const [name, r] of Object.entries(s.details.perDeviation)) {
+        if (!acc[name]) acc[name] = { correct: 0, incorrect: 0 }
+        acc[name].correct += r.correct
+        acc[name].incorrect += r.incorrect
+      }
+    }
+    return acc
+  }
+
+  /**
+   * How many deviations in a set are "mastered" — `minCorrect`+ correct answers
+   * at `MASTERY_ACCURACY`+ accuracy — plus the set's total size.
+   */
+  private masteredCountForSet(allSessions: TrainingSessionResult[], set: 'i18' | 'fab4', minCorrect: number): { mastered: number; total: number } {
+    const names = [...new Set((set === 'fab4' ? FAB_4 : ILLUSTRIOUS_18).map(d => d.name))]
+    const agg = this.aggregateDeviations(allSessions)
+    let mastered = 0
+    for (const name of names) {
+      const r = agg[name]
+      if (!r) continue
+      const total = r.correct + r.incorrect
+      if (r.correct >= minCorrect && total > 0 && r.correct / total >= MASTERY_ACCURACY) mastered++
+    }
+    return { mastered, total: names.length }
   }
 
   /** Get number of daily challenges completed from localStorage. */
