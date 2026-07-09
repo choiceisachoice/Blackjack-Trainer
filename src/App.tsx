@@ -1,5 +1,9 @@
 import './index.css'
+import { useEffect } from 'react'
+import { Loader2 } from 'lucide-react'
 import { useAppStore } from './store/app-store'
+import { useAuthStore, isSupabaseConfigured } from './store/auth-store'
+import { AuthPage } from './components/auth/AuthPage'
 import { HomeScreen } from './components/navigation/HomeScreen'
 import { NavBar } from './components/navigation/NavBar'
 import { GameTable } from './components/table/GameTable'
@@ -29,6 +33,30 @@ const SCROLLABLE_MODES = new Set([
 function App() {
   const currentMode = useAppStore(s => s.currentMode)
   const scrollable = SCROLLABLE_MODES.has(currentMode)
+
+  // Load the auth session once. Harmless (resolves to signed-out) when Supabase
+  // isn't configured yet, in which case the gate below stays inactive.
+  const authStatus = useAuthStore(s => s.status)
+  const initAuth = useAuthStore(s => s.init)
+  useEffect(() => { initAuth() }, [initAuth])
+
+  // Login gate — only active once Supabase is configured.
+  if (isSupabaseConfigured) {
+    if (authStatus === 'loading') {
+      return (
+        <div className="h-screen flex items-center justify-center bg-casino-bg text-content/50">
+          <Loader2 size={28} className="animate-spin" />
+        </div>
+      )
+    }
+    if (authStatus === 'signedOut') {
+      return (
+        <div className="h-screen flex flex-col bg-casino-bg">
+          <AuthPage />
+        </div>
+      )
+    }
+  }
 
   return (
     <div className={`h-screen flex flex-col bg-casino-bg transition-colors duration-200 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>

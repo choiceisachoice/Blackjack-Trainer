@@ -1,10 +1,11 @@
 import {
   Zap, Spade, GraduationCap, Coins, Layers, Club,
-  BarChart3, Grid3x3, Trophy, BookOpen, Volume2, VolumeX, Sun, Moon,
+  BarChart3, Grid3x3, Trophy, BookOpen, Volume2, VolumeX, Sun, Moon, LogOut,
   type LucideIcon,
 } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
 import type { AppMode } from '../../store/app-store'
+import { useAuthStore, isSupabaseConfigured } from '../../store/auth-store'
 import { LevelBadge } from './LevelBadge'
 
 interface NavItem {
@@ -42,6 +43,9 @@ export function NavBar() {
   const toggleSound = useAppStore(s => s.toggleSound)
   const theme = useAppStore(s => s.theme)
   const toggleTheme = useAppStore(s => s.toggleTheme)
+  const authStatus = useAuthStore(s => s.status)
+  const signOut = useAuthStore(s => s.signOut)
+  const showSignOut = isSupabaseConfigured && authStatus === 'signedIn'
 
   const renderItem = ({ mode, label, icon: Icon }: NavItem) => {
     const active = currentMode === mode
@@ -110,6 +114,17 @@ export function NavBar() {
           >
             {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
+          {showSignOut && (
+            <button
+              onClick={() => signOut()}
+              data-testid="sign-out"
+              aria-label="Sign out"
+              title="Sign out"
+              className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
+            >
+              <LogOut size={17} />
+            </button>
+          )}
           <div className="hidden sm:block pl-1">
             <LevelBadge />
           </div>
