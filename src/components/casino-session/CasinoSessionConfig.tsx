@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Timer, Users, Wallet, Scale, GraduationCap, Volume2, Play, type LucideIcon } from 'lucide-react'
 import type { CasinoSessionConfig } from '../../engine/casino-session/types'
+import { TrainingBackdrop } from '../training/TrainingBackdrop'
 
 interface CasinoSessionConfigProps {
   initialConfig: CasinoSessionConfig
@@ -118,7 +119,12 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
     setConfig(prev => ({ ...prev, [key]: val }))
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-8">
+    <div className="flex-1 overflow-y-auto">
+      {/* inner wrapper grows to the full settings height so the backdrop spans
+          all of it — suit watermark reaches the real bottom, rails centre on
+          the whole form rather than just the visible fold */}
+      <div className="relative isolate min-h-full px-4 py-8">
+      <TrainingBackdrop mode="casinoSession" showRails showGlow={false} railBreakpoint="2xl" />
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -252,6 +258,7 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
           <Play size={18} className="fill-current" />
           Start Session
         </button>
+      </div>
       </div>
     </div>
   )

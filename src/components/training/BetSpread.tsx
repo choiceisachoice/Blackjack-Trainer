@@ -5,6 +5,7 @@ import { calculateTrueCount } from '../../engine/counting/counting-engine'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { BetSpreadDetails } from '../../services/stats-types'
+import { TrainingBackdrop } from './TrainingBackdrop'
 
 type QuestionType = 'A' | 'B' | 'C'
 type QuestionMode = 'A' | 'B' | 'C' | 'random'
@@ -266,7 +267,8 @@ export function BetSpread() {
   // ── Settings Phase ──
   if (phase === 'settings') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
+      <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
+        <TrainingBackdrop mode="betSpread" showRails />
         <Panel icon={Coins} title="Bet Spread" subtitle="Size your bet by the True Count at a real table." className="w-full max-w-md">
           {/* Bet Spread Reference (multiplier ladder) */}
           <div className="rounded-xl p-4 bg-contrast/5 border border-contrast/10">

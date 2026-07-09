@@ -8,6 +8,7 @@ import { useAppStore } from '../../store/app-store'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { DeviationDetails } from '../../services/stats-types'
+import { TrainingBackdrop } from './TrainingBackdrop'
 
 type Phase = 'settings' | 'question' | 'feedback' | 'summary'
 
@@ -118,7 +119,8 @@ export function DeviationTraining() {
   // ── Settings Phase ──
   if (phase === 'settings') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
+      <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
+        <TrainingBackdrop mode="deviationFlashCards" showRails />
         <Panel icon={GraduationCap} title="Flashcards" subtitle="Drill every hand — and when to deviate." className="w-full max-w-md">
           {/* Level */}
           <div>

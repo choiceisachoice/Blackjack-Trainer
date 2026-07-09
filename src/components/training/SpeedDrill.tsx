@@ -10,6 +10,7 @@ import { soundEngine } from '../../services/sound-engine'
 import type { Card } from '../../engine/shoe/types'
 import { Suit } from '../../engine/shoe/types'
 import type { SpeedDrillDetails } from '../../services/stats-types'
+import { TrainingBackdrop } from './TrainingBackdrop'
 
 type Phase = 'settings' | 'drill' | 'input' | 'result'
 
@@ -175,7 +176,8 @@ export function SpeedDrill() {
   // ── Settings Phase ──
   if (phase === 'settings') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
+      <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
+        <TrainingBackdrop mode="speedDrill" showRails />
         <div className="surface w-full max-w-md p-7">
           {/* Header */}
           <div className="flex items-center gap-3 mb-7">

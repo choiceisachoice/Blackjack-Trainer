@@ -5,6 +5,7 @@ import { DiscardTray } from '../table/ShoeProgress'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { DeckEstimationDetails } from '../../services/stats-types'
+import { TrainingBackdrop } from './TrainingBackdrop'
 
 type DeckCount = 6 | 8
 type AccuracyMode = 'half' | 'whole'
@@ -254,7 +255,8 @@ export function DeckEstimation() {
   // ── Settings Phase ──
   if (phase === 'settings') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
+      <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
+        <TrainingBackdrop mode="deckEstimation" showRails />
         <Panel icon={Layers} title="Deck Estimation" subtitle="Estimate the decks remaining in the shoe." className="w-full max-w-md">
           {/* Deck Count */}
           <div>
