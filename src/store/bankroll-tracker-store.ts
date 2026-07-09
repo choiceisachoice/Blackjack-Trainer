@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useAchievementStore } from './achievement-store'
+import { pushSession, removeCloudSession } from '../services/supabase/bankroll-sync'
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -62,6 +63,8 @@ interface BankrollTrackerStore {
   editSession(id: string, updates: Partial<Omit<TrackedSession, 'id' | 'createdAt'>>): void
   deleteSession(id: string): void
   setStartingBankroll(amount: number): void
+  /** Replace all sessions (used when hydrating the merged set from the cloud). */
+  hydrate(sessions: TrackedSession[]): void
 
   // Computed helpers
   getCurrentBankroll(): number
@@ -80,7 +83,7 @@ interface BankrollTrackerStore {
 // ── Helpers ──────────────────────────────────────────────────────────
 
 function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+  return crypto.randomUUID()
 }
 
 /**
@@ -116,6 +119,7 @@ export const useBankrollTrackerStore = create<BankrollTrackerStore>()(
           createdAt: Date.now(),
         }
         set(state => ({ sessions: [...state.sessions, newSession] }))
+        pushSession(newSession)
         // Defer achievement check to next tick so localStorage is updated first
         setTimeout(() => useAchievementStore.getState().checkBankrollTrackerAchievements(), 0)
       },
@@ -126,6 +130,8 @@ export const useBankrollTrackerStore = create<BankrollTrackerStore>()(
             s.id === id ? { ...s, ...updates } : s,
           ),
         }))
+        const updated = get().sessions.find(s => s.id === id)
+        if (updated) pushSession(updated)
         setTimeout(() => useAchievementStore.getState().checkBankrollTrackerAchievements(), 0)
       },
 
@@ -133,10 +139,15 @@ export const useBankrollTrackerStore = create<BankrollTrackerStore>()(
         set(state => ({
           sessions: state.sessions.filter(s => s.id !== id),
         }))
+        removeCloudSession(id)
       },
 
       setStartingBankroll(amount) {
         set({ startingBankroll: amount })
+      },
+
+      hydrate(sessions) {
+        set({ sessions })
       },
 
       getCurrentBankroll() {

@@ -2,9 +2,12 @@ import { localStorageService } from '../storage/storage-service'
 import { SupabaseStorageService } from './supabase-storage'
 import { syncAchievementsOnSignIn } from './achievements-sync'
 import { syncProfileOnSignIn } from './profiles-sync'
+import { fetchCloudSessions, upsertCloudSessions, normalizeId, mergeById } from './bankroll-sync'
 import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useLevelStore } from '../../store/level-store'
+import { useBankrollTrackerStore } from '../../store/bankroll-tracker-store'
+import type { TrackedSession } from '../../store/bankroll-tracker-store'
 import { requireSupabase, isSupabaseConfigured } from './client'
 
 const cloud = new SupabaseStorageService()
@@ -12,6 +15,21 @@ const cloud = new SupabaseStorageService()
 /** localStorage flag key marking a user's one-time local→cloud migration as done. */
 function migratedKey(userId: string): string {
   return `bjt_cloud_migrated_${userId}`
+}
+
+/**
+ * Union-merge local and cloud bankroll sessions by id (local wins on conflict,
+ * so an offline edit is preserved and pushed up). Legacy sessions created
+ * before this sync used non-uuid ids; those are reassigned a uuid so they fit
+ * the cloud primary key. The merged set is written back locally and pushed up.
+ */
+async function syncBankrollOnSignIn(userId: string): Promise<void> {
+  const store = useBankrollTrackerStore.getState()
+  const localNormalized: TrackedSession[] = store.sessions.map(normalizeId)
+  const cloudSessions = await fetchCloudSessions(userId)
+
+  store.hydrate(mergeById(localNormalized, cloudSessions))
+  await upsertCloudSessions(userId, localNormalized) // push local-only + local edits
 }
 
 /**
@@ -54,6 +72,13 @@ export async function handleSignedIn(): Promise<void> {
       useLevelStore.getState().refresh()
     } catch (e) {
       console.error('profile sync on sign-in failed', e)
+    }
+
+    // Bankroll tracker: union-merge the real-money session log.
+    try {
+      await syncBankrollOnSignIn(userId)
+    } catch (e) {
+      console.error('bankroll sync on sign-in failed', e)
     }
 
     await useStatsStore.getState().loadStats()
