@@ -4,6 +4,7 @@ import type { TrainingSessionResult, LifetimeStats } from '../services/stats-typ
 import type { SimulationResult } from '../engine/simulation/types'
 import { achievementEngine } from '../services/achievements/achievement-engine'
 import { ALL_ACHIEVEMENTS } from '../services/achievements/achievement-list'
+import { pushNewUnlocks, clearCloudAchievements } from '../services/supabase/achievements-sync'
 import { useLevelStore } from './level-store'
 
 /** State shape for the achievement store. */
@@ -75,6 +76,7 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
       for (const achievement of newAchievements) {
         useLevelStore.getState().addAchievementXP(achievement.tier)
       }
+      pushNewUnlocks(newAchievements)
     }
   },
 
@@ -89,6 +91,7 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
       for (const achievement of newAchievements) {
         useLevelStore.getState().addAchievementXP(achievement.tier)
       }
+      pushNewUnlocks(newAchievements)
     }
   },
 
@@ -103,6 +106,7 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
       for (const achievement of newAchievements) {
         useLevelStore.getState().addAchievementXP(achievement.tier)
       }
+      pushNewUnlocks(newAchievements)
     }
   },
 
@@ -126,6 +130,8 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
       newlyUnlocked: [],
       totalUnlocked: 0,
     })
+    // Best-effort clear of the cloud copy so a later sign-in doesn't re-hydrate them.
+    void clearCloudAchievements().catch(e => console.error('cloud achievement reset failed', e))
   },
 }))
 

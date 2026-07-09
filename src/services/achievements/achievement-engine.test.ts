@@ -800,3 +800,55 @@ describe('AchievementEngine — balance-pass requirement types', () => {
     expect(progress).toBeGreaterThan(0)
   })
 })
+
+describe('AchievementEngine — mergeUnlocked (cloud union)', () => {
+  const KEY = 'bjt_achievements'
+
+  beforeEach(() => localStorage.clear())
+
+  /** Seed the local unlock set, then build an engine that loads it. */
+  function seed(local: { achievementId: string; unlockedAt: number }[]) {
+    localStorage.setItem(KEY, JSON.stringify(local))
+    return new AchievementEngine()
+  }
+
+  it('adds remote unlocks that are not present locally', () => {
+    const engine = seed([{ achievementId: 'first_hand', unlockedAt: 1000 }])
+    engine.mergeUnlocked([{ achievementId: 'night_owl', unlockedAt: 2000 }])
+    expect(engine.isUnlocked('first_hand')).toBe(true)
+    expect(engine.isUnlocked('night_owl')).toBe(true)
+    expect(engine.getUnlockedCount()).toBe(2)
+  })
+
+  it('returns local-only entries so the caller can push them to the cloud', () => {
+    const engine = seed([
+      { achievementId: 'first_hand', unlockedAt: 1000 },
+      { achievementId: 'night_owl', unlockedAt: 1500 },
+    ])
+    const localOnly = engine.mergeUnlocked([{ achievementId: 'night_owl', unlockedAt: 900 }])
+    expect(localOnly.map(u => u.achievementId)).toEqual(['first_hand'])
+  })
+
+  it('keeps the earliest unlock time on conflict', () => {
+    const engine = seed([{ achievementId: 'first_hand', unlockedAt: 5000 }])
+    engine.mergeUnlocked([{ achievementId: 'first_hand', unlockedAt: 1000 }])
+    const entry = engine.getUnlocked().find(u => u.achievementId === 'first_hand')!
+    expect(entry.unlockedAt).toBe(1000)
+    expect(engine.getUnlockedCount()).toBe(1)
+  })
+
+  it('ignores unknown remote ids so a stale cloud row cannot inflate the count', () => {
+    const engine = seed([])
+    const localOnly = engine.mergeUnlocked([{ achievementId: 'not_a_real_achievement', unlockedAt: 1 }])
+    expect(engine.getUnlockedCount()).toBe(0)
+    expect(localOnly).toEqual([])
+  })
+
+  it('persists the merged set across a reload', () => {
+    const engine = seed([{ achievementId: 'first_hand', unlockedAt: 1000 }])
+    engine.mergeUnlocked([{ achievementId: 'night_owl', unlockedAt: 2000 }])
+    const reloaded = new AchievementEngine()
+    expect(reloaded.isUnlocked('night_owl')).toBe(true)
+    expect(reloaded.getUnlockedCount()).toBe(2)
+  })
+})

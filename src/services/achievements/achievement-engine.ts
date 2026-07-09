@@ -157,6 +157,35 @@ export class AchievementEngine {
   }
 
   /**
+   * Merge a remote unlock set into the local one (a union — an achievement
+   * stays unlocked if either side has it, keeping the earliest unlock time).
+   * Unknown remote ids are ignored so a stale cloud row can't inflate the count.
+   * Persists the merged set and returns the entries that existed only locally,
+   * so the caller can push those up to the cloud.
+   */
+  mergeUnlocked(remote: UnlockedAchievement[]): UnlockedAchievement[] {
+    const knownRemote = remote.filter(r => ALL_ACHIEVEMENTS.some(a => a.id === r.achievementId))
+    const localOnly = this.unlocked.filter(
+      local => !knownRemote.some(r => r.achievementId === local.achievementId),
+    )
+
+    const byId = new Map<string, UnlockedAchievement>()
+    for (const u of this.unlocked) byId.set(u.achievementId, u)
+    for (const r of knownRemote) {
+      const existing = byId.get(r.achievementId)
+      if (!existing) {
+        byId.set(r.achievementId, r)
+      } else if (r.unlockedAt < existing.unlockedAt) {
+        byId.set(r.achievementId, { ...existing, unlockedAt: r.unlockedAt })
+      }
+    }
+
+    this.unlocked = [...byId.values()]
+    this.saveToStorage()
+    return localOnly
+  }
+
+  /**
    * Get progress percentage (0-100) for an achievement.
    */
   getProgress(
