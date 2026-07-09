@@ -5,6 +5,9 @@ import type {
   ModeStats,
   DailyStats,
 } from '../stats-types'
+import { useAuthStore } from '../../store/auth-store'
+import { isSupabaseConfigured } from '../supabase/client'
+import { SupabaseStorageService } from '../supabase/supabase-storage'
 
 /** Keys used in localStorage. */
 const SESSIONS_KEY = 'bjt_sessions'
@@ -211,5 +214,45 @@ export function computeLifetimeStats(
   return stats
 }
 
-/** Singleton storage service instance. */
-export const storage: StorageService = new LocalStorageService()
+/**
+ * Storage facade: delegates to Supabase when a user is signed in (and Supabase
+ * is configured), otherwise to localStorage. This keeps the app fully offline
+ * when logged out and syncs sessions to the cloud when logged in — without any
+ * caller needing to know which backend is active.
+ */
+class SyncedStorageService implements StorageService {
+  private readonly local = new LocalStorageService()
+  private readonly cloud = new SupabaseStorageService()
+
+  /** Pick the active backend for this call. */
+  private impl(): StorageService {
+    return isSupabaseConfigured && useAuthStore.getState().status === 'signedIn'
+      ? this.cloud
+      : this.local
+  }
+
+  saveSessionResult(result: TrainingSessionResult): Promise<void> {
+    return this.impl().saveSessionResult(result)
+  }
+  getSessionResults(mode: TrainingMode): Promise<TrainingSessionResult[]> {
+    return this.impl().getSessionResults(mode)
+  }
+  getAllSessionResults(): Promise<TrainingSessionResult[]> {
+    return this.impl().getAllSessionResults()
+  }
+  getSessionResultsByDateRange(start: Date, end: Date): Promise<TrainingSessionResult[]> {
+    return this.impl().getSessionResultsByDateRange(start, end)
+  }
+  getLifetimeStats(): Promise<LifetimeStats> {
+    return this.impl().getLifetimeStats()
+  }
+  clearAll(): Promise<void> {
+    return this.impl().clearAll()
+  }
+}
+
+/** Singleton storage service instance (local when logged out, cloud when signed in). */
+export const storage: StorageService = new SyncedStorageService()
+
+/** Direct access to the localStorage backend (used by the one-time cloud migration). */
+export const localStorageService = new LocalStorageService()

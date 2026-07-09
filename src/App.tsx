@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useAppStore } from './store/app-store'
 import { useAuthStore, isSupabaseConfigured } from './store/auth-store'
+import { handleSignedIn } from './services/supabase/cloud-sync'
 import { AuthPage } from './components/auth/AuthPage'
 import { HomeScreen } from './components/navigation/HomeScreen'
 import { NavBar } from './components/navigation/NavBar'
@@ -25,8 +26,11 @@ import { LevelUpPopup } from './components/navigation/LevelUpPopup'
  * Root application component.
  * Routes to the active training mode based on app-store.currentMode.
  */
+// Modes whose page relies on the app shell for scrolling. Analytics and
+// Achievements are excluded: their pages scroll themselves (flex-1 overflow-y-auto),
+// so also scrolling here would double up and can trap scrolling to part of the view.
 const SCROLLABLE_MODES = new Set([
-  'home', 'analytics', 'bankrollSim', 'achievements',
+  'home', 'bankrollSim',
   'casinoSession', 'strategyChart', 'casinoSessionTracker', 'learn',
 ])
 
@@ -39,6 +43,11 @@ function App() {
   const authStatus = useAuthStore(s => s.status)
   const initAuth = useAuthStore(s => s.init)
   useEffect(() => { initAuth() }, [initAuth])
+
+  // On sign-in: migrate local sessions to the cloud (once) and hydrate from it.
+  useEffect(() => {
+    if (authStatus === 'signedIn') handleSignedIn()
+  }, [authStatus])
 
   // Login gate — only active once Supabase is configured.
   if (isSupabaseConfigured) {
