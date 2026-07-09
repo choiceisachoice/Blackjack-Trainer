@@ -1,7 +1,42 @@
 import { useState } from 'react'
 import { S17_STRATEGY, H17_STRATEGY } from '../../engine/strategy/basic-strategy-tables'
 import type { StrategyAction, StrategyTable } from '../../engine/strategy/types'
+import { ILLUSTRIOUS_18 } from '../../engine/counting/deviations'
 import { useAppStore } from '../../store/app-store'
+
+/** A count-based deviation attached to a chart cell. */
+interface DevInfo {
+  /** 1-based number in the Illustrious 18 list. */
+  index: number
+  /** True-count threshold at/above which `above` applies. */
+  threshold: number
+  /** Action at/above the threshold. */
+  above: string
+  /** Action below the threshold. */
+  below: string
+}
+
+/**
+ * Map of `playerHand|dealerUpcard` → deviation, derived from the engine's
+ * Illustrious 18. Insurance (playerHand '*') is a side bet, not a chart cell.
+ */
+const DEVIATION_CELLS: Record<string, DevInfo> = {}
+ILLUSTRIOUS_18.forEach((d, i) => {
+  if (d.playerHand === '*') return
+  DEVIATION_CELLS[`${d.playerHand}|${d.dealerUpcard}`] = {
+    index: i + 1,
+    threshold: d.trueCountThreshold,
+    above: d.actionAbove,
+    below: d.actionBelow,
+  }
+})
+
+/** Format a true count with an explicit sign (e.g. "+2", "0", "−1"). */
+function formatTC(tc: number): string {
+  if (tc > 0) return `+${tc}`
+  if (tc < 0) return `−${Math.abs(tc)}`
+  return '0'
+}
 
 /** Display action codes shown in chart cells. */
 type ChartAction = 'H' | 'S' | 'D' | 'SP' | 'SU'
@@ -114,9 +149,14 @@ function buildSections(table: StrategyTable): ChartSection[] {
 export function StrategyChart() {
   const [selected, setSelected] = useState<CellInfo | null>(null)
   const dealerHitsSoft17 = useAppStore(s => s.selectedRules.dealerHitsSoft17)
-  const table = dealerHitsSoft17 ? H17_STRATEGY : S17_STRATEGY
+  // In-page rule override (defaults to the globally selected rules).
+  const [h17, setH17] = useState(dealerHitsSoft17)
+  const [showDeviations, setShowDeviations] = useState(true)
+  const table = h17 ? H17_STRATEGY : S17_STRATEGY
   const sections = buildSections(table)
-  const ruleLabel = dealerHitsSoft17 ? 'H17' : 'S17'
+  const ruleLabel = h17 ? 'H17' : 'S17'
+
+  const selectedDev = selected ? DEVIATION_CELLS[`${selected.hand}|${selected.dealer}`] : undefined
 
   return (
     <div className="flex-1 p-4 md:p-6 max-w-4xl mx-auto w-full">
@@ -124,6 +164,32 @@ export function StrategyChart() {
       <div className="text-center mb-5">
         <h2 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Basic Strategy Chart</h2>
         <p className="mt-1 text-sm text-content/50">The complete Hi-Lo basic strategy — tap any cell for details.</p>
+      </div>
+
+      {/* Controls: rule toggle + deviations overlay */}
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+        <div className="inline-flex p-0.5 rounded-lg bg-contrast/5 border border-contrast/10" role="group" aria-label="Dealer rule">
+          {([['S17', false], ['H17', true]] as const).map(([label, isH17]) => (
+            <button
+              key={label}
+              onClick={() => setH17(isH17)}
+              aria-pressed={h17 === isH17}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold cursor-pointer transition-colors
+                ${h17 === isH17 ? 'bg-gold text-black' : 'text-content/60 hover:text-content'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setShowDeviations(v => !v)}
+          aria-pressed={showDeviations}
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-colors
+            ${showDeviations ? 'bg-gold/20 text-gold border-gold/40' : 'bg-contrast/5 text-content/50 border-contrast/10 hover:text-content/70'}`}
+        >
+          <span className={`w-2 h-2 rounded-full ${showDeviations ? 'bg-gold' : 'bg-content/30'}`} />
+          Deviations (Illustrious 18)
+        </button>
       </div>
 
       {/* Legend */}
@@ -137,6 +203,12 @@ export function StrategyChart() {
             {action} = {ACTION_LABELS[action]}
           </span>
         ))}
+        {showDeviations && (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-content" style={{ border: '2px solid #f0cd82' }}>
+            <span className="grid place-items-center rounded-full text-black font-extrabold" style={{ width: '14px', height: '14px', fontSize: '8px', backgroundColor: '#f0cd82' }}>#</span>
+            Count Deviation
+          </span>
+        )}
       </div>
 
       <p className="text-center text-content/40 text-xs mb-4">
@@ -181,16 +253,18 @@ export function StrategyChart() {
                   {row.cells.map((action, ci) => {
                     const dealer = DEALER_KEYS[ci]
                     const isSelected = selected?.hand === row.label && selected?.dealer === dealer
+                    const dev = showDeviations ? DEVIATION_CELLS[`${row.label}|${dealer}`] : undefined
                     return (
                       <button
                         key={dealer}
                         onClick={() => setSelected({ hand: row.label, dealer, action })}
-                        className="flex items-center justify-center rounded text-xs font-bold text-white cursor-pointer transition-all duration-100"
+                        className="relative flex items-center justify-center rounded text-xs font-bold text-white cursor-pointer transition-all duration-100"
                         style={{
                           backgroundColor: ACTION_COLORS[action],
                           padding: '6px 2px',
                           outline: isSelected ? '2px solid white' : 'none',
                           outlineOffset: '-1px',
+                          boxShadow: dev ? 'inset 0 0 0 2px #f0cd82' : undefined,
                         }}
                         onMouseEnter={e => {
                           e.currentTarget.style.filter = 'brightness(1.2)'
@@ -204,6 +278,17 @@ export function StrategyChart() {
                         }}
                       >
                         {action}
+                        {dev && (
+                          <span
+                            className="absolute -top-1 -right-1 grid place-items-center rounded-full font-extrabold text-black leading-none"
+                            style={{
+                              minWidth: '14px', height: '14px', padding: '0 2px', fontSize: '8px',
+                              backgroundColor: '#f0cd82', boxShadow: '0 0 6px rgba(240,205,130,0.7)',
+                            }}
+                          >
+                            {dev.index}
+                          </span>
+                        )}
                       </button>
                     )
                   })}
@@ -230,6 +315,24 @@ export function StrategyChart() {
           <p className="text-content/50 text-xs">
             {getActionExplanation(selected.action)}
           </p>
+          {showDeviations && selectedDev && (
+            <div className="mt-3 pt-3 border-t border-contrast/15">
+              <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-bright">
+                <span
+                  className="grid place-items-center rounded-full text-black font-extrabold"
+                  style={{ minWidth: '16px', height: '16px', fontSize: '9px', backgroundColor: '#f0cd82' }}
+                >
+                  {selectedDev.index}
+                </span>
+                Count deviation
+              </p>
+              <p className="text-content/70 text-xs mt-1">
+                At True Count <b className="text-content">{formatTC(selectedDev.threshold)}</b> or higher →{' '}
+                <b className="text-content">{selectedDev.above}</b>
+                <span className="text-content/40"> (below: {selectedDev.below})</span>
+              </p>
+            </div>
+          )}
           <button
             onClick={() => setSelected(null)}
             className="mt-2 text-xs text-content/40 hover:text-content/70 cursor-pointer transition-colors"
