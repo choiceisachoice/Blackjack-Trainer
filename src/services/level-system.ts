@@ -200,6 +200,12 @@ export class LevelSystem {
     return this.totalXP
   }
 
+  /** Overwrite the total XP (used when hydrating from the cloud). Persists. */
+  setTotalXP(xp: number): void {
+    this.totalXP = Math.max(0, Math.floor(xp))
+    this.save()
+  }
+
   /** Clear all level data. */
   resetAll(): void {
     localStorage.removeItem(STORAGE_KEY)

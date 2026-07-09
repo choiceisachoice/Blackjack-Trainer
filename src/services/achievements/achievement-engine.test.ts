@@ -852,3 +852,24 @@ describe('AchievementEngine — mergeUnlocked (cloud union)', () => {
     expect(reloaded.getUnlockedCount()).toBe(2)
   })
 })
+
+describe('AchievementEngine — setSimCounters (cloud hydration)', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('overwrites the sim counters and persists them', () => {
+    const engine = new AchievementEngine()
+    engine.setSimCounters(7, 150)
+    expect(engine.getSimCount()).toBe(7)
+    expect(engine.getBestSimEdge()).toBe(150)
+    const reloaded = new AchievementEngine()
+    expect(reloaded.getSimCount()).toBe(7)
+    expect(reloaded.getBestSimEdge()).toBe(150)
+  })
+
+  it('floors and clamps to non-negative integers', () => {
+    const engine = new AchievementEngine()
+    engine.setSimCounters(-3, 12.8)
+    expect(engine.getSimCount()).toBe(0)
+    expect(engine.getBestSimEdge()).toBe(12)
+  })
+})

@@ -223,6 +223,23 @@ describe('LevelSystem', () => {
       expect(localStorage.getItem('bjt_level_xp')).toBeNull()
     })
   })
+
+  describe('setTotalXP (cloud hydration)', () => {
+    it('overwrites XP and persists it', () => {
+      system.addXP(100)
+      system.setTotalXP(68_000)
+      expect(system.getTotalXP()).toBe(68_000)
+      expect(system.getLevel().level).toBe(15)
+      expect(new LevelSystem().getTotalXP()).toBe(68_000)
+    })
+
+    it('floors and clamps to a non-negative integer', () => {
+      system.setTotalXP(-50)
+      expect(system.getTotalXP()).toBe(0)
+      system.setTotalXP(123.9)
+      expect(system.getTotalXP()).toBe(123)
+    })
+  })
 })
 
 describe('calculateSessionXP', () => {

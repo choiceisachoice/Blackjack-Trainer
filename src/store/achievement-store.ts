@@ -5,6 +5,7 @@ import type { SimulationResult } from '../engine/simulation/types'
 import { achievementEngine } from '../services/achievements/achievement-engine'
 import { ALL_ACHIEVEMENTS } from '../services/achievements/achievement-list'
 import { pushNewUnlocks, clearCloudAchievements } from '../services/supabase/achievements-sync'
+import { pushProfileScalars } from '../services/supabase/profiles-sync'
 import { useLevelStore } from './level-store'
 
 /** State shape for the achievement store. */
@@ -93,6 +94,8 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
       }
       pushNewUnlocks(newAchievements)
     }
+    // A simulation always bumps the sim counters, even with no new unlock.
+    pushProfileScalars()
   },
 
   checkBankrollTrackerAchievements() {

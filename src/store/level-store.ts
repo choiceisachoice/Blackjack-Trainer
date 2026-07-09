@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { TrainingSessionResult } from '../services/stats-types'
 import type { LevelDefinition, LevelProgress } from '../services/level-system'
 import { levelSystem, calculateSessionXP, XP_REWARDS } from '../services/level-system'
+import { pushProfileScalars } from '../services/supabase/profiles-sync'
 import { soundEngine } from '../services/sound-engine'
 
 /** State shape for the level store. */
@@ -77,6 +78,7 @@ export const useLevelStore = create<LevelStore>((set) => ({
         progress: levelSystem.getProgressToNext(),
       })
     }
+    pushProfileScalars()
   },
 
   addChallengeXP(amount) {
@@ -98,6 +100,7 @@ export const useLevelStore = create<LevelStore>((set) => ({
         progress: levelSystem.getProgressToNext(),
       })
     }
+    pushProfileScalars()
   },
 
   addAchievementXP(tier) {
@@ -122,6 +125,7 @@ export const useLevelStore = create<LevelStore>((set) => ({
         progress: levelSystem.getProgressToNext(),
       })
     }
+    pushProfileScalars()
   },
 
   dismissLevelUp() {

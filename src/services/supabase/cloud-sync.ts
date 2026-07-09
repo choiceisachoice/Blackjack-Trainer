@@ -1,8 +1,10 @@
 import { localStorageService } from '../storage/storage-service'
 import { SupabaseStorageService } from './supabase-storage'
 import { syncAchievementsOnSignIn } from './achievements-sync'
+import { syncProfileOnSignIn } from './profiles-sync'
 import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
+import { useLevelStore } from '../../store/level-store'
 import { requireSupabase, isSupabaseConfigured } from './client'
 
 const cloud = new SupabaseStorageService()
@@ -17,7 +19,8 @@ function migratedKey(userId: string): string {
  *  1. One-time migrate local sessions into the cloud (idempotent — upsert on id,
  *     so it never duplicates or overwrites cloud data).
  *  2. Union-merge achievements between local and cloud (both directions).
- *  3. Hydrate the stats store from the cloud (now the source of truth).
+ *  3. Reconcile progress scalars (level XP, sim counters) by max-merge.
+ *  4. Hydrate the stats store from the cloud (now the source of truth).
  *
  * Non-fatal on failure: the app stays usable, we just log and move on.
  */
@@ -43,6 +46,14 @@ export async function handleSignedIn(): Promise<void> {
       useAchievementStore.getState().loadAchievements()
     } catch (e) {
       console.error('achievement sync on sign-in failed', e)
+    }
+
+    // Progress scalars: max-merge level XP + sim counters, then refresh the UI.
+    try {
+      await syncProfileOnSignIn()
+      useLevelStore.getState().refresh()
+    } catch (e) {
+      console.error('profile sync on sign-in failed', e)
     }
 
     await useStatsStore.getState().loadStats()

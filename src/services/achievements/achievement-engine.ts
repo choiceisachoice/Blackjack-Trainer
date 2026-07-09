@@ -997,6 +997,12 @@ export class AchievementEngine {
     } catch { /* ignore */ }
   }
 
+  /** Overwrite the simulation counters (used when hydrating from the cloud). */
+  setSimCounters(count: number, bestEdgeBps: number): void {
+    this.setSimCount(Math.max(0, Math.floor(count)))
+    this.setBestSimEdge(Math.max(0, Math.floor(bestEdgeBps)))
+  }
+
   /** Get the best simulation edge in basis points. */
   getBestSimEdge(): number {
     try {
