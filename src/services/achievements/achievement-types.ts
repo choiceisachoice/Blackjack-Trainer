@@ -61,6 +61,27 @@ export type AchievementRequirementType =
   | 'tracker_session_hours'
   | 'tracker_single_session_profit'
   | 'tracker_comeback'
+  // ── Added in the 2026-07 balance pass ──
+  /** Sustained accuracy: average >= value% over the last `window` sessions of `mode`. */
+  | 'sustained_accuracy'
+  /** Best accuracy >= value% in every one of the five core training modes. */
+  | 'all_modes_accuracy'
+  /** Best in-session answer streak >= value. */
+  | 'session_streak'
+  /** value% accuracy in a Quick Fire Deck Estimation session. */
+  | 'quickfire_accuracy'
+  /** value% accuracy in a Speed Drill at Fast speed (<=500ms). */
+  | 'speed_accuracy'
+  /** value% deviation accuracy in a Casino Session. */
+  | 'casino_deviation_accuracy'
+  /** A single session lasting >= value minutes. */
+  | 'session_duration'
+  /** Play >= value distinct core modes in a single calendar day. */
+  | 'modes_in_day'
+  /** Complete a session started after midnight (00:00–05:00). */
+  | 'night_session'
+  /** Meta: unlock >= value other achievements. */
+  | 'meta_unlocks'
 
 /** Condition that must be met to unlock an achievement. */
 export interface AchievementRequirement {
@@ -70,6 +91,8 @@ export interface AchievementRequirement {
   value: number
   /** Optional: only counts for a specific training mode. */
   mode?: TrainingMode
+  /** Optional: rolling window of sessions (used by `sustained_accuracy`). */
+  window?: number
 }
 
 /** A single achievement definition. */

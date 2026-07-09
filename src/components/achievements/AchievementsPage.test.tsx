@@ -39,7 +39,7 @@ describe('AchievementsPage', () => {
     })
   })
 
-  it('renders all 90 achievements', () => {
+  it('renders every achievement as a medal', () => {
     render(<AchievementsPage />)
 
     for (const achievement of ALL_ACHIEVEMENTS) {
@@ -52,7 +52,7 @@ describe('AchievementsPage', () => {
   it('shows unlocked count in header', () => {
     render(<AchievementsPage />)
 
-    expect(screen.getByTestId('unlock-count')).toHaveTextContent('0/90 unlocked')
+    expect(screen.getByTestId('unlock-count')).toHaveTextContent(`0/${ALL_ACHIEVEMENTS.length} unlocked`)
   })
 
   it('shows correct count when achievements unlocked', () => {
@@ -63,7 +63,13 @@ describe('AchievementsPage', () => {
 
     render(<AchievementsPage />)
 
-    expect(screen.getByTestId('unlock-count')).toHaveTextContent('2/90 unlocked')
+    expect(screen.getByTestId('unlock-count')).toHaveTextContent(`2/${ALL_ACHIEVEMENTS.length} unlocked`)
+  })
+
+  it('renders the rank hero with the current level title', () => {
+    render(<AchievementsPage />)
+    // Fresh localStorage → level 1 Rookie
+    expect(screen.getByTestId('rank-title')).toHaveTextContent('Rookie')
   })
 
   it('unlocked achievements show date', async () => {
@@ -83,11 +89,11 @@ describe('AchievementsPage', () => {
     expect(screen.getByTestId('unlocked-date-first_hand')).toHaveTextContent(/Feb 15, 2026/)
   })
 
-  it('locked achievements show progress bar', () => {
+  it('locked achievements expose their progress', () => {
     render(<AchievementsPage />)
 
-    // "first_hand" is locked by default, should have a progress bar
-    expect(screen.getByTestId('progress-bar-first_hand')).toBeInTheDocument()
+    // "first_hand" is locked by default, should expose a progress value
+    expect(screen.getByTestId('progress-first_hand')).toBeInTheDocument()
   })
 
   it('filter buttons work', () => {

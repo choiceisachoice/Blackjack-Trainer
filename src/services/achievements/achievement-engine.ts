@@ -26,6 +26,11 @@ const SPEED_LEVEL_MS: Record<number, number> = {
   2: 500,   // Fast
 }
 
+/** The five core training modes used for breadth / variety achievements. */
+const CORE_MODES: TrainingMode[] = [
+  'speedDrill', 'deviationFlashCards', 'betSpread', 'deckEstimation', 'casinoSession',
+]
+
 /**
  * Achievement engine that tracks and awards achievements.
  *
@@ -60,8 +65,7 @@ export class AchievementEngine {
     }
 
     // Check meta achievements after potentially unlocking others
-    this.checkMetaAchievement('card_counter', 20, newlyUnlocked)
-    this.checkMetaAchievement('master_collector', 50, newlyUnlocked)
+    this.checkMetaAchievements(newlyUnlocked)
 
     return newlyUnlocked
   }
@@ -106,8 +110,7 @@ export class AchievementEngine {
     }
 
     // Check meta achievements
-    this.checkMetaAchievement('card_counter', 20, newlyUnlocked)
-    this.checkMetaAchievement('master_collector', 50, newlyUnlocked)
+    this.checkMetaAchievements(newlyUnlocked)
 
     return newlyUnlocked
   }
@@ -129,8 +132,7 @@ export class AchievementEngine {
     }
 
     // Check meta achievements
-    this.checkMetaAchievement('card_counter', 20, newlyUnlocked)
-    this.checkMetaAchievement('master_collector', 50, newlyUnlocked)
+    this.checkMetaAchievements(newlyUnlocked)
 
     return newlyUnlocked
   }
@@ -165,18 +167,15 @@ export class AchievementEngine {
 
     switch (req.type) {
       case 'sessions': {
-        if (achievement.id === 'card_counter') {
-          const otherUnlocked = this.unlocked.filter(u => u.achievementId !== 'card_counter').length
-          return Math.min(100, (otherUnlocked / 20) * 100)
-        }
-        if (achievement.id === 'master_collector') {
-          const otherUnlocked = this.unlocked.filter(u => u.achievementId !== 'master_collector').length
-          return Math.min(100, (otherUnlocked / 50) * 100)
-        }
         const count = req.mode
           ? (stats.byMode[req.mode]?.totalSessions ?? 0)
           : stats.totalSessions
         return Math.min(100, (count / req.value) * 100)
+      }
+
+      case 'meta_unlocks': {
+        const otherUnlocked = this.unlocked.filter(u => u.achievementId !== achievement.id).length
+        return Math.min(100, (otherUnlocked / req.value) * 100)
       }
 
       case 'accuracy': {
@@ -240,6 +239,7 @@ export class AchievementEngine {
       case 'casino_streak':
       case 'casino_split_aces':
       case 'casino_max_split':
+      case 'casino_deviation_accuracy':
         return this.getCasinoProgress(allSessions, req.type, req.value)
 
       case 'casino_grade_count': {
@@ -302,6 +302,47 @@ export class AchievementEngine {
 
       case 'tracker_comeback':
         return this.getTrackerHasComeback(req.value) ? 100 : 0
+
+      // ── Balance-pass requirement types ──
+      case 'sustained_accuracy': {
+        if (!req.mode || !req.window) return 0
+        const { count, avg } = this.sustainedAccuracy(allSessions, req.mode, req.window)
+        const accProgress = (avg * 100 / req.value) * 100
+        const countCap = (count / req.window) * 100
+        return Math.min(100, Math.max(0, Math.min(accProgress, countCap)))
+      }
+
+      case 'all_modes_accuracy':
+        return Math.min(100, (this.coreModesAtAccuracy(stats, req.value) / CORE_MODES.length) * 100)
+
+      case 'session_streak':
+        return Math.min(100, (this.bestSessionStreak(allSessions) / req.value) * 100)
+
+      case 'quickfire_accuracy':
+        return Math.min(100, (this.bestQuickFireAccuracy(allSessions) * 100 / req.value) * 100)
+
+      case 'speed_accuracy':
+        return Math.min(100, (this.bestFastSpeedAccuracy(allSessions) * 100 / req.value) * 100)
+
+      case 'session_duration':
+        return Math.min(100, (this.longestSessionMinutes(allSessions) / req.value) * 100)
+
+      case 'modes_in_day': {
+        // Best single-day coverage across all recorded days.
+        const byDay = new Map<string, Set<TrainingMode>>()
+        for (const s of allSessions) {
+          if (!CORE_MODES.includes(s.mode)) continue
+          const day = s.timestamp.slice(0, 10)
+          const set = byDay.get(day) ?? new Set<TrainingMode>()
+          set.add(s.mode)
+          byDay.set(day, set)
+        }
+        const best = [...byDay.values()].reduce((m, set) => Math.max(m, set.size), 0)
+        return Math.min(100, (best / req.value) * 100)
+      }
+
+      case 'night_session':
+        return this.hasNightSession(allSessions) ? 100 : 0
 
       default:
         return 0
@@ -389,10 +430,48 @@ export class AchievementEngine {
       case 'casino_streak':
       case 'casino_split_aces':
       case 'casino_max_split':
+      case 'casino_deviation_accuracy':
         return this.checkCasinoAchievement(session, req.type, req.value)
 
       case 'casino_grade_count':
         return this.checkCasinoGradeCount(allSessions, req.value)
+
+      // ── Balance-pass requirement types ──
+      case 'sustained_accuracy': {
+        if (!req.mode || !req.window) return false
+        const { count, avg } = this.sustainedAccuracy(allSessions, req.mode, req.window)
+        return count >= req.window && avg * 100 >= req.value
+      }
+
+      case 'all_modes_accuracy':
+        return this.coreModesAtAccuracy(stats, req.value) >= CORE_MODES.length
+
+      case 'session_streak':
+        return session.bestStreak >= req.value
+
+      case 'quickfire_accuracy':
+        return session.mode === 'deckEstimation' &&
+               session.details.type === 'deckEstimation' &&
+               session.details.quickFire &&
+               session.accuracy * 100 >= req.value
+
+      case 'speed_accuracy':
+        return session.mode === 'speedDrill' &&
+               session.details.type === 'speedDrill' &&
+               session.details.speedMs <= SPEED_LEVEL_MS[2] &&
+               session.accuracy * 100 >= req.value
+
+      case 'session_duration':
+        return session.durationSeconds / 60 >= req.value
+
+      case 'modes_in_day':
+        return this.coreModesOnDay(session, allSessions) >= req.value
+
+      case 'night_session':
+        return new Date(session.timestamp).getHours() < 5
+
+      case 'meta_unlocks':
+        return false // handled by checkMetaAchievements
 
       case 'daily_completed':
         return this.getDailyCompleted() >= req.value
@@ -479,6 +558,7 @@ export class AchievementEngine {
         case 'casino_streak': val = d.longestWinStreak; break
         case 'casino_split_aces': return d.splitAces ? 100 : 0
         case 'casino_max_split': val = d.maxSplitHands; break
+        case 'casino_deviation_accuracy': val = d.deviationAccuracy; break
       }
       if (val > bestValue) bestValue = val
     }
@@ -526,6 +606,8 @@ export class AchievementEngine {
         return details.splitAces
       case 'casino_max_split':
         return details.maxSplitHands >= value
+      case 'casino_deviation_accuracy':
+        return details.deviationAccuracy >= value
       default:
         return false
     }
@@ -549,17 +631,77 @@ export class AchievementEngine {
   }
 
   /**
-   * Check a meta achievement that requires N other achievements unlocked.
+   * Check all meta achievements (unlock N other achievements). Runs after other
+   * unlocks so a single action can cascade into a meta unlock.
    */
-  private checkMetaAchievement(id: string, required: number, newlyUnlocked: Achievement[]): void {
-    const achievement = ALL_ACHIEVEMENTS.find(a => a.id === id)
-    if (achievement && !this.isUnlocked(id)) {
-      const otherUnlocked = this.unlocked.filter(u => u.achievementId !== id).length
-      if (otherUnlocked >= required) {
-        this.unlock(id)
+  private checkMetaAchievements(newlyUnlocked: Achievement[]): void {
+    for (const achievement of ALL_ACHIEVEMENTS) {
+      if (achievement.requirement.type !== 'meta_unlocks') continue
+      if (this.isUnlocked(achievement.id)) continue
+      const otherUnlocked = this.unlocked.filter(u => u.achievementId !== achievement.id).length
+      if (otherUnlocked >= achievement.requirement.value) {
+        this.unlock(achievement.id)
         newlyUnlocked.push(achievement)
       }
     }
+  }
+
+  /** Count how many of the five core modes hit `target`% best accuracy. */
+  private coreModesAtAccuracy(stats: LifetimeStats, target: number): number {
+    return CORE_MODES.filter(m => (stats.byMode[m]?.bestAccuracy ?? 0) * 100 >= target).length
+  }
+
+  /** Average accuracy (0–1) over the most recent `window` sessions of `mode`. */
+  private sustainedAccuracy(allSessions: TrainingSessionResult[], mode: TrainingMode, window: number): { count: number; avg: number } {
+    const modeSessions = allSessions
+      .filter(s => s.mode === mode)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, window)
+    if (modeSessions.length === 0) return { count: 0, avg: 0 }
+    const avg = modeSessions.reduce((sum, s) => sum + s.accuracy, 0) / modeSessions.length
+    return { count: modeSessions.length, avg }
+  }
+
+  /** Distinct core modes played on the same calendar day as `session`. */
+  private coreModesOnDay(session: TrainingSessionResult, allSessions: TrainingSessionResult[]): number {
+    const day = session.timestamp.slice(0, 10)
+    const modes = new Set(
+      allSessions
+        .filter(s => s.timestamp.slice(0, 10) === day && CORE_MODES.includes(s.mode))
+        .map(s => s.mode),
+    )
+    // The just-finished session may not yet be in allSessions.
+    if (CORE_MODES.includes(session.mode)) modes.add(session.mode)
+    return modes.size
+  }
+
+  /** Best single-session answer streak across all sessions. */
+  private bestSessionStreak(allSessions: TrainingSessionResult[]): number {
+    return allSessions.reduce((best, s) => Math.max(best, s.bestStreak), 0)
+  }
+
+  /** Best accuracy (0–1) in a Quick Fire Deck Estimation session. */
+  private bestQuickFireAccuracy(allSessions: TrainingSessionResult[]): number {
+    return allSessions.reduce((best, s) =>
+      s.mode === 'deckEstimation' && s.details.type === 'deckEstimation' && s.details.quickFire
+        ? Math.max(best, s.accuracy) : best, 0)
+  }
+
+  /** Best accuracy (0–1) in a Fast-speed Speed Drill session. */
+  private bestFastSpeedAccuracy(allSessions: TrainingSessionResult[]): number {
+    return allSessions.reduce((best, s) =>
+      s.mode === 'speedDrill' && s.details.type === 'speedDrill' && s.details.speedMs <= SPEED_LEVEL_MS[2]
+        ? Math.max(best, s.accuracy) : best, 0)
+  }
+
+  /** Longest single session in minutes. */
+  private longestSessionMinutes(allSessions: TrainingSessionResult[]): number {
+    return allSessions.reduce((best, s) => Math.max(best, s.durationSeconds / 60), 0)
+  }
+
+  /** Whether any session was completed after midnight (00:00–04:59 local). */
+  private hasNightSession(allSessions: TrainingSessionResult[]): boolean {
+    return allSessions.some(s => new Date(s.timestamp).getHours() < 5)
   }
 
   /** Get number of daily challenges completed from localStorage. */

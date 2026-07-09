@@ -44,8 +44,8 @@ describe('AchievementEngine', () => {
     engine = new AchievementEngine()
   })
 
-  it('has 90 achievements defined', () => {
-    expect(ALL_ACHIEVEMENTS).toHaveLength(90)
+  it('has 100 achievements defined', () => {
+    expect(ALL_ACHIEVEMENTS).toHaveLength(100)
   })
 
   it('all achievements have unique ids', () => {
@@ -527,7 +527,6 @@ describe('AchievementEngine', () => {
       const unlocked = engine.checkAfterBankrollUpdate()
       const ids = unlocked.map(a => a.id)
       expect(ids).toContain('tracker_first_session')
-      expect(ids).toContain('tracker_first_casino')
       expect(ids).toContain('tracker_5_sessions')
       expect(ids).not.toContain('tracker_10_sessions')
     })
@@ -668,5 +667,112 @@ describe('AchievementEngine', () => {
       const engine2 = new AchievementEngine()
       expect(engine2.getSimCount()).toBe(2)
     })
+  })
+})
+
+// ── Balance-pass requirement types (2026-07) ─────────────────────────────
+describe('AchievementEngine — balance-pass requirement types', () => {
+  let engine: AchievementEngine
+
+  beforeEach(() => {
+    localStorage.clear()
+    engine = new AchievementEngine()
+  })
+
+  const modeStats = (bestAccuracy: number) => ({
+    totalSessions: 5, totalQuestions: 50, totalCorrect: 45,
+    accuracy: bestAccuracy, bestAccuracy, totalPracticeSeconds: 300, bestStreak: 8,
+  })
+  const allModes = (bestAccuracy: number): LifetimeStats['byMode'] => {
+    const by: LifetimeStats['byMode'] = {}
+    for (const m of ['speedDrill', 'deviationFlashCards', 'betSpread', 'deckEstimation', 'casinoSession'] as TrainingMode[]) {
+      by[m] = modeStats(bestAccuracy)
+    }
+    return by
+  }
+  const unlock = (session: TrainingSessionResult, stats = makeStats(), all = [session]) =>
+    engine.checkAfterSession(session, stats, 0, all).map(a => a.id)
+
+  it('session_streak: In The Zone at 20, Unbreakable at 50', () => {
+    expect(unlock(makeSession({ bestStreak: 20 }))).toContain('in_the_zone')
+    expect(unlock(makeSession({ bestStreak: 20 }))).not.toContain('unbreakable')
+    expect(unlock(makeSession({ bestStreak: 50 }))).toContain('unbreakable')
+  })
+
+  it('all_modes_accuracy: Well-Rounded needs all five modes at 80%+', () => {
+    expect(unlock(makeSession(), makeStats({ byMode: allModes(0.85) }))).toContain('well_rounded')
+    // 90% variant also clears Renaissance Counter
+    expect(unlock(makeSession(), makeStats({ byMode: allModes(0.92) }))).toContain('renaissance_counter')
+  })
+
+  it('all_modes_accuracy: not unlocked when a mode is missing', () => {
+    const by = allModes(0.9)
+    delete by.casinoSession
+    expect(unlock(makeSession(), makeStats({ byMode: by }))).not.toContain('well_rounded')
+  })
+
+  it('sustained_accuracy: Count Expert needs 20 sessions averaging 90%+', () => {
+    const mk = (acc: number) => makeSession({ mode: 'speedDrill', accuracy: acc })
+    const nineteen = Array.from({ length: 19 }, () => mk(0.95))
+    // 19 sessions → not enough count
+    expect(unlock(mk(0.95), makeStats(), [...nineteen])).not.toContain('count_expert')
+    // 20 sessions averaging 95% → unlocks
+    expect(unlock(mk(0.95), makeStats(), [mk(0.95), ...nineteen])).toContain('count_expert')
+    // 20 sessions averaging 85% → below threshold
+    const low = Array.from({ length: 20 }, () => mk(0.85))
+    expect(unlock(mk(0.85), makeStats(), low)).not.toContain('count_expert')
+  })
+
+  it('session_duration: Marathon Mind at 60 minutes', () => {
+    expect(unlock(makeSession({ durationSeconds: 3600 }))).toContain('marathon_mind')
+    expect(unlock(makeSession({ durationSeconds: 1800 }))).not.toContain('marathon_mind')
+  })
+
+  it('night_session: Night Owl for a session started before 5am', () => {
+    const night = makeSession({ timestamp: new Date(2026, 2, 1, 2, 0, 0).toISOString() })
+    const day = makeSession({ timestamp: new Date(2026, 2, 1, 14, 0, 0).toISOString() })
+    expect(unlock(night)).toContain('night_owl')
+    expect(unlock(day)).not.toContain('night_owl')
+  })
+
+  it('quickfire_accuracy: Quick Draw needs a Quick Fire session at 90%+', () => {
+    const qf = makeSession({ mode: 'deckEstimation', accuracy: 0.9, details: { type: 'deckEstimation', deckCount: 6, accuracyMode: 'half', quickFire: true, estimations: [] } })
+    const normal = makeSession({ mode: 'deckEstimation', accuracy: 0.95, details: { type: 'deckEstimation', deckCount: 6, accuracyMode: 'half', quickFire: false, estimations: [] } })
+    expect(unlock(qf)).toContain('quick_draw')
+    expect(unlock(normal)).not.toContain('quick_draw')
+  })
+
+  it('speed_accuracy: Blur needs 95%+ at Fast speed', () => {
+    const fast = makeSession({ mode: 'speedDrill', accuracy: 0.96, details: { type: 'speedDrill', cardsPerRound: 20, speedMs: 500, rcErrors: [] } })
+    const normal = makeSession({ mode: 'speedDrill', accuracy: 0.96, details: { type: 'speedDrill', cardsPerRound: 20, speedMs: 1000, rcErrors: [] } })
+    expect(unlock(fast)).toContain('blur')
+    expect(unlock(normal)).not.toContain('blur')
+  })
+
+  it('casino_deviation_accuracy: Deviation Ace needs 95%+ deviation accuracy', () => {
+    const casino = (dev: number) => makeSession({
+      mode: 'casinoSession', accuracy: 0.9,
+      details: { type: 'casinoSession', handsPlayed: 40, netProfit: 100, overallScore: 85, grade: 'B', betAccuracy: 90, playAccuracy: 90, countAccuracy: 90, deviationAccuracy: dev, numBots: 2, hadBlackjack: true, longestWinStreak: 3, splitAces: false, maxSplitHands: 2 },
+    })
+    expect(unlock(casino(96))).toContain('deviation_ace')
+    expect(unlock(casino(80))).not.toContain('deviation_ace')
+  })
+
+  it('modes_in_day: Daily Double for all five core modes on one day', () => {
+    const modes: TrainingMode[] = ['speedDrill', 'deviationFlashCards', 'betSpread', 'deckEstimation', 'casinoSession']
+    const day = modes.map(m => makeSession({ mode: m, timestamp: '2026-03-01T14:00:00.000Z' }))
+    expect(unlock(day[0], makeStats(), day)).toContain('daily_double')
+    // four modes only → not yet
+    expect(unlock(day[0], makeStats(), day.slice(0, 4))).not.toContain('daily_double')
+  })
+
+  it('meta_unlocks: getProgress reflects other unlocks', () => {
+    // Renamed to "Achievement Hunter" but keeps its id for storage compatibility.
+    const hunter = ALL_ACHIEVEMENTS.find(a => a.id === 'card_counter')!
+    expect(hunter.requirement.type).toBe('meta_unlocks')
+    // Unlock 10 achievements via a rich session, then progress toward 20 should be > 0
+    engine.checkAfterSession(makeSession({ bestStreak: 20, accuracy: 1, totalQuestions: 20, correctAnswers: 20 }), makeStats({ byMode: allModes(0.95), totalSessions: 5 }), 5, [makeSession()])
+    const progress = engine.getProgress(hunter, makeStats(), 0, [])
+    expect(progress).toBeGreaterThan(0)
   })
 })

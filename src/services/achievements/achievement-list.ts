@@ -1,6 +1,6 @@
 import type { Achievement } from './achievement-types'
 
-/** All 92 achievements in the game. */
+/** All 100 achievements in the game. */
 export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Getting Started (3) ──────────────────────────────
   {
@@ -149,7 +149,7 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     icon: '\u2705',
     category: 'mastery',
     requirement: { type: 'perfect', value: 10 },
-    tier: 'diamond',
+    tier: 'silver',
   },
 
   // ── Speed (2) ────────────────────────────────────────
@@ -184,20 +184,20 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'count_expert',
     name: 'Count Expert',
-    description: '90%+ accuracy in Speed Drill over 20 sessions',
+    description: 'Average 90%+ accuracy across your last 20 Speed Drill sessions',
     icon: '\uD83D\uDD22',
     category: 'counting',
-    requirement: { type: 'accuracy', value: 90, mode: 'speedDrill' },
+    requirement: { type: 'sustained_accuracy', value: 90, mode: 'speedDrill', window: 20 },
     tier: 'gold',
   },
   {
     id: 'six_systems',
     name: 'Count Master',
-    description: '95%+ accuracy in Speed Drill over 30 sessions',
+    description: 'Average 95%+ accuracy across your last 30 Speed Drill sessions',
     icon: '\uD83D\uDD22',
     category: 'counting',
-    requirement: { type: 'accuracy', value: 95, mode: 'speedDrill' },
-    tier: 'silver',
+    requirement: { type: 'sustained_accuracy', value: 95, mode: 'speedDrill', window: 30 },
+    tier: 'diamond',
   },
 
   // ── Deviations (3) ───────────────────────────────────
@@ -233,19 +233,19 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   {
     id: 'spread_master',
     name: 'Spread Master',
-    description: '90%+ in Bet Spread Training over 10 sessions',
+    description: 'Average 90%+ accuracy across your last 10 Bet Spread sessions',
     icon: '\uD83D\uDCB0',
     category: 'simulation',
-    requirement: { type: 'accuracy', value: 90, mode: 'betSpread' },
+    requirement: { type: 'sustained_accuracy', value: 90, mode: 'betSpread', window: 10 },
     tier: 'gold',
   },
   {
     id: 'deck_hawk',
     name: 'Deck Hawk',
-    description: '90%+ in Deck Estimation over 10 sessions',
+    description: 'Average 90%+ accuracy across your last 10 Deck Estimation sessions',
     icon: '\uD83D\uDC41',
     category: 'simulation',
-    requirement: { type: 'accuracy', value: 90, mode: 'deckEstimation' },
+    requirement: { type: 'sustained_accuracy', value: 90, mode: 'deckEstimation', window: 10 },
     tier: 'gold',
   },
 
@@ -333,7 +333,7 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     icon: '\uD83D\uDCDD',
     category: 'casino_session',
     requirement: { type: 'casino_grade', value: 95 },
-    tier: 'diamond',
+    tier: 'gold',
   },
 
   // ── Casino Session – Accuracy (4) ───────────────────
@@ -682,17 +682,17 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     description: 'Unlock 50 other achievements',
     icon: '\uD83C\uDFC6',
     category: 'counting_mastery',
-    requirement: { type: 'sessions', value: 50 },
+    requirement: { type: 'meta_unlocks', value: 50 },
     tier: 'diamond',
   },
   {
     id: 'card_counter',
-    name: 'Card Counter',
+    name: 'Achievement Hunter',
     description: 'Unlock 20 other achievements',
     icon: '\uD83C\uDFC6',
     category: 'counting_mastery',
-    requirement: { type: 'sessions', value: 20 },
-    tier: 'diamond',
+    requirement: { type: 'meta_unlocks', value: 20 },
+    tier: 'silver',
   },
 
   // ── Bankroll Tracker (17) ───────────────────────────────
@@ -714,15 +714,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     icon: '\uD83D\uDC9A',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_first_win', value: 1 },
-    tier: 'bronze',
-  },
-  {
-    id: 'tracker_first_casino',
-    name: 'Casino Visitor',
-    description: 'Log a session at your first casino',
-    icon: '\uD83C\uDFE8',
-    category: 'bankrollTracker',
-    requirement: { type: 'tracker_sessions', value: 1 },
     tier: 'bronze',
   },
   {
@@ -803,7 +794,7 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_win_streak_7',
-    name: 'On Fire',
+    name: 'Red Hot',
     description: 'Win 7 casino sessions in a row',
     icon: '\uD83C\uDF1F',
     category: 'bankrollTracker',
@@ -821,7 +812,7 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_100_hours',
-    name: 'Century of Hours',
+    name: 'Table Centurion',
     description: 'Log 100 total hours at the casino',
     icon: '\uD83D\uDD50',
     category: 'bankrollTracker',
@@ -855,6 +846,107 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     icon: '\uD83C\uDFC6',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_total_profit', value: 10000 },
+    tier: 'diamond',
+  },
+
+  // ── 2026-07 balance-pass additions (11) → 100 total ──
+  {
+    id: 'well_rounded',
+    name: 'Well-Rounded',
+    description: 'Reach 80%+ accuracy in all five training modes',
+    icon: '🎯',
+    category: 'mastery',
+    requirement: { type: 'all_modes_accuracy', value: 80 },
+    tier: 'silver',
+  },
+  {
+    id: 'renaissance_counter',
+    name: 'Renaissance Counter',
+    description: 'Reach 90%+ accuracy in all five training modes',
+    icon: '🎓',
+    category: 'mastery',
+    requirement: { type: 'all_modes_accuracy', value: 90 },
+    tier: 'gold',
+  },
+  {
+    id: 'in_the_zone',
+    name: 'In The Zone',
+    description: 'Answer 20 questions in a row correctly in a session',
+    icon: '🎯',
+    category: 'mastery',
+    requirement: { type: 'session_streak', value: 20 },
+    tier: 'silver',
+  },
+  {
+    id: 'unbreakable',
+    name: 'Unbreakable',
+    description: 'Answer 50 questions in a row correctly in a session',
+    icon: '💯',
+    category: 'mastery',
+    requirement: { type: 'session_streak', value: 50 },
+    tier: 'diamond',
+  },
+  {
+    id: 'quick_draw',
+    name: 'Quick Draw',
+    description: '90%+ accuracy in a Quick Fire Deck Estimation session',
+    icon: '⚡',
+    category: 'counting_mastery',
+    requirement: { type: 'quickfire_accuracy', value: 90 },
+    tier: 'silver',
+  },
+  {
+    id: 'blur',
+    name: 'Blur',
+    description: '95%+ accuracy at Fast speed in Speed Drill',
+    icon: '💨',
+    category: 'speed',
+    requirement: { type: 'speed_accuracy', value: 95 },
+    tier: 'gold',
+  },
+  {
+    id: 'deviation_ace',
+    name: 'Deviation Ace',
+    description: '95%+ Deviation Accuracy in a Casino Session',
+    icon: '🎯',
+    category: 'casino_session',
+    requirement: { type: 'casino_deviation_accuracy', value: 95 },
+    tier: 'gold',
+  },
+  {
+    id: 'marathon_mind',
+    name: 'Marathon Mind',
+    description: 'Train for 60+ minutes in a single session',
+    icon: '⏱️',
+    category: 'dedication',
+    requirement: { type: 'session_duration', value: 60 },
+    tier: 'silver',
+  },
+  {
+    id: 'daily_double',
+    name: 'Daily Double',
+    description: 'Play all five training modes in a single day',
+    icon: '☕',
+    category: 'dedication',
+    requirement: { type: 'modes_in_day', value: 5 },
+    tier: 'bronze',
+  },
+  {
+    id: 'night_owl',
+    name: 'Night Owl',
+    description: 'Complete a training session after midnight',
+    icon: '🌙',
+    category: 'dedication',
+    requirement: { type: 'night_session', value: 1 },
+    tier: 'bronze',
+  },
+  {
+    id: 'platinum_collector',
+    name: 'Platinum Collector',
+    description: 'Unlock 75 other achievements',
+    icon: '🏆',
+    category: 'counting_mastery',
+    requirement: { type: 'meta_unlocks', value: 75 },
     tier: 'diamond',
   },
 ]
