@@ -1,509 +1,455 @@
-import { useEffect } from 'react'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
+import { useEffect, useMemo, useState } from 'react'
 import { useStatsStore } from '../../store/stats-store'
-import type { TrendDirection } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useAppStore } from '../../store/app-store'
 import { achievementEngine } from '../../services/achievements/achievement-engine'
 import { getAchievementById } from '../../services/achievements/achievement-list'
-import type { TrainingMode, TrainingSessionResult, ModeStats } from '../../services/stats-types'
+import {
+  RANGE_ORDER,
+  RANGE_LABEL,
+  MODE_DISPLAY,
+  formatDuration,
+  formatWhen,
+  buildKpis,
+  buildTrend,
+  buildHeatmap,
+  buildModeAccuracy,
+  buildSkillRadar,
+  buildEdge,
+  buildWeakestHands,
+  deriveInsight,
+  type TimeRange,
+  type Kpi,
+} from './analytics-derive'
+import {
+  Sparkline,
+  TrendChart,
+  Heatmap,
+  HeatLegend,
+  ModeBars,
+  WeakestHands,
+  SkillRadar,
+  EdgeChart,
+} from './AnalyticsCharts'
 
-/** Display config per training mode. */
-const MODE_DISPLAY: Record<TrainingMode, { label: string; icon: string; color: string }> = {
-  speedDrill:          { label: 'Speed Drill',        icon: '\u26A1', color: '#f59e0b' },
-  tableCounting:       { label: 'Table Counting',     icon: '\uD83C\uDFB0', color: '#22c55e' },
-  deviationFlashCards: { label: 'Deviation Flash Cards', icon: '\uD83C\uDFAF', color: '#3b82f6' },
-  deviationAtTable:    { label: 'Deviation At Table',  icon: '\uD83C\uDFAF', color: '#8b5cf6' },
-  betSpread:           { label: 'Bet Spread',          icon: '\uD83D\uDCB0', color: '#ef4444' },
-  deckEstimation:      { label: 'Deck Estimation',     icon: '\uD83D\uDC41', color: '#06b6d4' },
-  casinoSession:       { label: 'Casino Session',      icon: '\uD83C\uDFB0', color: '#d946ef' },
+/** Reusable elevated panel. */
+function Panel({
+  title,
+  note,
+  children,
+  className = '',
+}: {
+  title: string
+  note?: string
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={`surface p-5 ${className}`}>
+      <div className="flex items-baseline justify-between gap-4 mb-4">
+        <h2 className="text-[0.95rem] font-semibold text-content tracking-tight">{title}</h2>
+        {note && <span className="text-xs text-content/40">{note}</span>}
+      </div>
+      {children}
+    </div>
+  )
 }
 
-const ALL_MODES: TrainingMode[] = [
-  'speedDrill', 'tableCounting', 'deviationFlashCards',
-  'deviationAtTable', 'betSpread', 'deckEstimation',
-  'casinoSession',
-]
-
-/** Format seconds into a human-readable duration. */
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return '< 1m'
-  const hours = Math.floor(seconds / 3600)
-  const mins = Math.floor((seconds % 3600) / 60)
-  if (hours > 0) return `${hours}h ${mins}m`
-  return `${mins}m`
+/** Render a KPI value string, shrinking unit suffixes marked with `~`. */
+function renderKpiValue(display: string) {
+  const segs = display.split('~')
+  const parts: { t: string; small: boolean }[] = [{ t: segs[0], small: false }]
+  for (let i = 1; i < segs.length; i++) {
+    const m = /^([^0-9]*)(.*)$/.exec(segs[i])
+    const unit = m?.[1] ?? ''
+    const rest = m?.[2] ?? ''
+    if (unit) parts.push({ t: unit, small: true })
+    if (rest) parts.push({ t: rest, small: false })
+  }
+  return parts.map((p, i) =>
+    p.small ? (
+      <small key={i} className="text-[0.5em] font-bold text-content/50 ml-0.5">{p.t}</small>
+    ) : (
+      <span key={i}>{p.t}</span>
+    ),
+  )
 }
 
-/** Format ISO timestamp to relative time. */
-function formatRelativeTime(isoString: string): string {
-  const diff = Date.now() - new Date(isoString).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'Just now'
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  if (days === 1) return 'Yesterday'
-  if (days < 30) return `${days}d ago`
-  return `${Math.floor(days / 30)}mo ago`
+/** A single KPI tile with delta pill and sparkline. */
+function KpiTile({ kpi, hero, footNote }: { kpi: Kpi; hero?: boolean; footNote?: string }) {
+  const dir = kpi.delta == null ? 'flat' : kpi.delta > 0 ? 'up' : kpi.delta < 0 ? 'down' : 'flat'
+  const pillColor =
+    dir === 'up' ? 'var(--color-success)' : dir === 'down' ? 'var(--color-error)' : 'var(--color-content)'
+  const showPill = kpi.deltaDisplay !== '' || footNote != null
+
+  return (
+    <div
+      className="surface p-4 relative overflow-hidden"
+      data-testid={`kpi-${kpi.key}`}
+      style={
+        hero
+          ? {
+              borderColor: 'color-mix(in srgb, var(--color-gold) 32%, transparent)',
+              background:
+                'linear-gradient(180deg, color-mix(in srgb, var(--color-gold) 9%, var(--color-surface)), var(--color-surface))',
+            }
+          : undefined
+      }
+    >
+      <div className="text-[11px] font-semibold tracking-[0.12em] uppercase text-content/50">{kpi.label}</div>
+      <div className="text-[clamp(1.6rem,3vw,2.05rem)] font-extrabold tracking-tight leading-none mt-2 text-content">
+        {renderKpiValue(kpi.display)}
+      </div>
+      <div className="flex items-center justify-between mt-2 min-h-[26px]">
+        {showPill ? (
+          <span
+            className="text-xs font-bold inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full"
+            style={{ color: pillColor, background: `color-mix(in srgb, ${pillColor} 14%, transparent)` }}
+          >
+            {kpi.deltaDisplay
+              ? `${dir === 'up' ? '▲' : dir === 'down' ? '▼' : ''} ${kpi.deltaDisplay}`.trim()
+              : footNote}
+          </span>
+        ) : (
+          <span />
+        )}
+        <Sparkline data={kpi.spark} />
+      </div>
+    </div>
+  )
 }
 
-/** Trend arrow icon. */
-function trendArrow(trend: TrendDirection): string {
-  if (trend === 'improving') return '\u2191'
-  if (trend === 'declining') return '\u2193'
-  return '\u2192'
-}
-
-/** Color for trend. */
-function trendColor(trend: TrendDirection): string {
-  if (trend === 'improving') return 'text-green-400'
-  if (trend === 'declining') return 'text-red-400'
-  return 'text-content/50'
-}
-
-/** Color for accuracy value. */
-function accuracyColor(accuracy: number): string {
-  if (accuracy >= 0.8) return 'text-green-400'
-  if (accuracy >= 0.6) return 'text-yellow-400'
-  return 'text-red-400'
-}
-
-/** Streak motivation text based on consecutive day count. */
-export function getStreakMotivation(streak: number): string {
-  if (streak === 0) return 'Start your streak today!'
-  if (streak <= 2) return 'Keep it going! \uD83D\uDD25'
-  if (streak <= 6) return "You're on fire! \uD83D\uDD25\uD83D\uDD25"
-  if (streak <= 13) return 'One week strong! \uD83D\uDD25\uD83D\uDD25\uD83D\uDD25'
-  return 'Unstoppable! \uD83D\uDD25\uD83D\uDD25\uD83D\uDD25\uD83D\uDD25'
+/** Bold the highlighted segments of an insight sentence. */
+function renderInsight(text: string, highlights: string[]) {
+  if (highlights.length === 0) return text
+  const pattern = highlights.map(h => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')
+  const re = new RegExp(`(${pattern})`, 'g')
+  return text.split(re).map((chunk, i) =>
+    highlights.includes(chunk) ? (
+      <b key={i} className="text-gold-bright font-bold">{chunk}</b>
+    ) : (
+      <span key={i}>{chunk}</span>
+    ),
+  )
 }
 
 /**
- * Build chart data: per-session accuracy with smart x-axis labels.
+ * Analytics dashboard (2.0) — a dark-luxury, data-first view of the user's
+ * training: an insight hook, five range-aware KPIs, an accuracy trend, a
+ * practice-consistency heatmap, a skill radar, the real Casino Session edge,
+ * per-mode accuracy, most-misplayed hands, and recent sessions.
  *
- * Uses time (HH:MM) when all sessions are on the same day,
- * date (Mon DD) when sessions span multiple days.
- */
-export function buildChartData(sessions: TrainingSessionResult[]) {
-  const chronological = [...sessions].reverse()
-  const dates = new Set(chronological.map(s => s.timestamp.slice(0, 10)))
-  const sameDay = dates.size <= 1
-
-  return chronological.map((s, i) => {
-    const d = new Date(s.timestamp)
-    const date = sameDay
-      ? `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-      : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    return {
-      label: `#${i + 1}`,
-      date,
-      [s.mode]: Math.round(s.accuracy * 100),
-    }
-  })
-}
-
-/** Compute quick insight stats across all modes. */
-export function computeQuickStats(byMode: Partial<Record<TrainingMode, ModeStats>>) {
-  const entries = Object.entries(byMode) as [TrainingMode, ModeStats][]
-  const played = entries.filter(([, s]) => s.totalSessions > 0)
-  if (played.length < 2) return null
-
-  const best = played.reduce((a, b) => a[1].accuracy > b[1].accuracy ? a : b)
-  const worst = played.reduce((a, b) => a[1].accuracy < b[1].accuracy ? a : b)
-  const mostPracticed = played.reduce((a, b) => a[1].totalSessions > b[1].totalSessions ? a : b)
-
-  return {
-    best: { mode: best[0] as TrainingMode, accuracy: best[1].accuracy },
-    worst: { mode: worst[0] as TrainingMode, accuracy: worst[1].accuracy },
-    mostPracticed: { mode: mostPracticed[0] as TrainingMode, sessions: mostPracticed[1].totalSessions },
-  }
-}
-
-/** Performance-based glow for stat cards. */
-function getPerformanceGlow(value: number | null): React.CSSProperties {
-  if (value === null || value === undefined) {
-    return {
-      border: '1px solid rgba(255, 255, 255, 0.08)',
-      boxShadow: '0 0 10px rgba(255, 255, 255, 0.03)',
-    }
-  }
-  if (value >= 90) {
-    return {
-      border: '1px solid rgba(255, 215, 0, 0.4)',
-      boxShadow: '0 0 15px rgba(255, 215, 0, 0.15), inset 0 0 10px rgba(255, 215, 0, 0.03)',
-    }
-  }
-  if (value >= 70) {
-    return {
-      border: '1px solid rgba(34, 197, 94, 0.4)',
-      boxShadow: '0 0 15px rgba(34, 197, 94, 0.15), inset 0 0 10px rgba(34, 197, 94, 0.03)',
-    }
-  }
-  if (value >= 50) {
-    return {
-      border: '1px solid rgba(234, 179, 8, 0.4)',
-      boxShadow: '0 0 15px rgba(234, 179, 8, 0.15), inset 0 0 10px rgba(234, 179, 8, 0.03)',
-    }
-  }
-  return {
-    border: '1px solid rgba(239, 68, 68, 0.4)',
-    boxShadow: '0 0 15px rgba(239, 68, 68, 0.15), inset 0 0 10px rgba(239, 68, 68, 0.03)',
-  }
-}
-
-/**
- * Analytics dashboard displaying training statistics, trends, and session history.
- *
- * Loads data from the stats store on mount and renders overview cards,
- * accuracy trend chart, mode breakdown, weakest deviations, and session history.
+ * All figures derive from real stored sessions — nothing is illustrative.
  */
 export function AnalyticsDashboard() {
   const sessions = useStatsStore(s => s.sessions)
   const lifetimeStats = useStatsStore(s => s.lifetimeStats)
   const isLoading = useStatsStore(s => s.isLoading)
   const loadStats = useStatsStore(s => s.loadStats)
-  const getAccuracyTrend = useStatsStore(s => s.getAccuracyTrend)
-  const getWeakestDeviations = useStatsStore(s => s.getWeakestDeviations)
   const getTrainingStreak = useStatsStore(s => s.getTrainingStreak)
   const resetAllStats = useStatsStore(s => s.resetAllStats)
+  const setMode = useAppStore(s => s.setMode)
+
+  const [range, setRange] = useState<TimeRange>('30d')
 
   useEffect(() => {
     loadStats()
   }, [loadStats])
 
+  // Stable "now" per mount so all derivations agree on the window.
+  const now = useMemo(() => new Date(), [])
+  const streak = getTrainingStreak()
+
+  const derived = useMemo(() => {
+    return {
+      insight: deriveInsight(sessions, range, streak, now),
+      kpis: buildKpis(sessions, range, streak, now),
+      trend: buildTrend(sessions, range, now),
+      heatmap: buildHeatmap(sessions, now),
+      modes: buildModeAccuracy(sessions, range, now),
+      radar: buildSkillRadar(sessions, range, now),
+      edge: buildEdge(sessions, range, now),
+      weakest: buildWeakestHands(sessions, range, now),
+    }
+  }, [sessions, range, streak, now])
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-content/50">Loading stats...</p>
+        <p className="text-content/50">Loading stats…</p>
       </div>
     )
   }
 
-  const streak = getTrainingStreak()
-  const weakest = getWeakestDeviations(8)
-  const overallTrend = getAccuracyTrend()
-  const chartData = buildChartData(sessions)
-
-  // Find which modes have data for chart legend
-  const modesWithData = ALL_MODES.filter(m =>
-    sessions.some(s => s.mode === m)
-  )
-
-  const quickStats = lifetimeStats ? computeQuickStats(lifetimeStats.byMode) : null
-
-  const totalSessions = lifetimeStats?.totalSessions ?? 0
-  const totalTime = lifetimeStats?.totalPracticeSeconds ?? 0
-  const overallAccuracy = lifetimeStats?.overallAccuracy ?? 0
-  const totalCorrect = lifetimeStats?.totalCorrect ?? 0
-  const totalQuestions = lifetimeStats?.totalQuestions ?? 0
+  const hasData = (lifetimeStats?.totalSessions ?? 0) > 0
+  const bestStreak = lifetimeStats?.bestStreak ?? 0
+  const radarSorted = [...derived.radar].sort((a, b) => b.value - a.value)
+  const radarColor = (v: number) =>
+    v >= 85 ? 'var(--color-success)' : v >= 75 ? 'var(--color-gold)' : 'var(--color-warning)'
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="analytics-dashboard">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Analytics</h1>
-        <p className="text-sm text-content/50">Your training stats, trends, and progress.</p>
-      </div>
-
-      {/* Section 1: Overview Cards */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">Overview</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          {/* Total Sessions */}
-          <div className="stat-card bg-contrast/5 rounded-xl p-4" style={getPerformanceGlow(null)}>
-            <p className="text-2xl md:text-3xl font-bold text-content">{totalSessions}</p>
-            <p className="text-xs text-content/50 mt-1">Total Sessions</p>
-            <p className="text-xs text-content/30">across all modes</p>
-          </div>
-
-          {/* Training Time */}
-          <div className="stat-card bg-contrast/5 rounded-xl p-4" style={getPerformanceGlow(null)}>
-            <p className="text-2xl md:text-3xl font-bold text-content">{formatDuration(totalTime)}</p>
-            <p className="text-xs text-content/50 mt-1">Training Time</p>
-            <p className="text-xs text-content/30">total time trained</p>
-          </div>
-
-          {/* Overall Accuracy */}
-          <div
-            className="stat-card bg-contrast/5 rounded-xl p-4"
-            style={getPerformanceGlow(totalSessions > 0 ? Math.round(overallAccuracy * 100) : null)}
-          >
-            <p className={`text-2xl md:text-3xl font-bold ${totalSessions > 0 ? accuracyColor(overallAccuracy) : 'text-content/30'}`}>
-              {totalSessions > 0 ? `${Math.round(overallAccuracy * 100)}%` : '--'}
-            </p>
-            <p className="text-xs text-content/50 mt-1">Overall Accuracy</p>
-            <p className="text-xs text-content/30">{totalCorrect}/{totalQuestions}</p>
-          </div>
-
-          {/* Training Streak */}
-          <div className="stat-card bg-contrast/5 rounded-xl p-4" style={getPerformanceGlow(null)}>
-            <p className="text-2xl md:text-3xl font-bold text-content">
-              {streak > 0 ? streak : '--'}
-              {streak > 0 && <span className="ml-1 text-orange-400" data-testid="streak-fire">{'\uD83D\uDD25'}</span>}
-            </p>
-            <p className="text-xs text-content/50 mt-1">Day Streak</p>
-            <p className="text-xs text-content/30" data-testid="streak-motivation">
-              {getStreakMotivation(streak)}
+    <div className="flex-1 overflow-y-auto p-4 md:p-6" data-testid="analytics-dashboard">
+      <div className="max-w-[1180px] mx-auto space-y-4">
+        {/* Header */}
+        <header className="flex items-end justify-between flex-wrap gap-4 mb-2">
+          <div>
+            <div className="text-[11px] font-semibold tracking-[0.22em] uppercase text-content/50 flex items-center gap-2 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-gold" style={{ boxShadow: '0 0 10px var(--color-gold)' }} />
+              Your training
+            </div>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">Analytics</h1>
+            <p className="text-sm text-content/50 mt-2">
+              How your Hi-Lo edge is sharpening — accuracy, consistency, and what to drill next.
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* Section 2: Accuracy Trend Chart */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">
-          Accuracy Trend
-          <span className={`ml-2 text-sm ${trendColor(overallTrend)}`}>{trendArrow(overallTrend)}</span>
-        </h2>
-        {chartData.length >= 2 ? (
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <XAxis
-                  dataKey="label"
-                  tick={{ fill: '#a3a3a3', fontSize: 12 }}
-                  axisLine={{ stroke: 'rgba(128,128,128,0.2)' }}
-                  tickLine={false}
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  tick={{ fill: '#a3a3a3', fontSize: 12 }}
-                  axisLine={{ stroke: 'rgba(128,128,128,0.2)' }}
-                  tickLine={false}
-                  tickFormatter={(v: number) => `${v}%`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--color-tooltip-bg)',
-                    border: '1px solid var(--color-tooltip-border)',
-                    borderRadius: 8,
-                    color: 'var(--color-content)',
-                  }}
-                  cursor={{ stroke: 'rgba(128,128,128,0.3)', strokeDasharray: '3 3' }}
-                  formatter={(value: number, name: string) => [`${value}%`, name]}
-                  labelFormatter={(_label: string, payload: Array<{ payload?: { date?: string } }>) => {
-                    const date = payload?.[0]?.payload?.date
-                    return date ? `Session: ${date}` : `Session: ${_label}`
-                  }}
-                />
-                <Legend />
-                {modesWithData.map(mode => (
-                  <Line
-                    key={mode}
-                    type="monotone"
-                    dataKey={mode}
-                    name={MODE_DISPLAY[mode].label}
-                    stroke={MODE_DISPLAY[mode].color}
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 7 }}
-                    connectNulls
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-8 text-center">
-            <p className="text-content/40" data-testid="chart-empty">Play more sessions to see trends</p>
-          </div>
-        )}
-      </section>
-
-      {/* Quick Stats Badges */}
-      {quickStats && (
-        <div className="flex flex-wrap gap-2" data-testid="quick-stats">
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full text-xs text-green-400" data-testid="quick-best">
-            Best Mode: {MODE_DISPLAY[quickStats.best.mode].label} ({Math.round(quickStats.best.accuracy * 100)}%)
-          </span>
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-full text-xs text-red-400" data-testid="quick-worst">
-            Needs Work: {MODE_DISPLAY[quickStats.worst.mode].label} ({Math.round(quickStats.worst.accuracy * 100)}%)
-          </span>
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-xs text-blue-400" data-testid="quick-most">
-            Most Practiced: {MODE_DISPLAY[quickStats.mostPracticed.mode].label} ({quickStats.mostPracticed.sessions} sessions)
-          </span>
-        </div>
-      )}
-
-      {/* Recent Achievements */}
-      <RecentAchievements />
-
-      {/* Section 3: Mode Breakdown */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">Mode Breakdown</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {ALL_MODES.map(mode => {
-            const display = MODE_DISPLAY[mode]
-            const modeStats = lifetimeStats?.byMode[mode]
-            const trend = getAccuracyTrend(mode)
-            const lastSession = sessions.find(s => s.mode === mode)
-
-            if (!modeStats || modeStats.totalSessions === 0) {
-              return (
-                <div key={mode} className="stat-card bg-contrast/5 rounded-xl p-4 opacity-50" style={getPerformanceGlow(null)}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">{display.icon}</span>
-                    <span className="text-sm font-medium text-content/60">{display.label}</span>
-                  </div>
-                  <p className="text-xs text-content/30">Not yet played</p>
-                </div>
-              )
-            }
-
-            const modeAccuracy = Math.round((lastSession?.accuracy ?? modeStats.accuracy) * 100)
-
-            return (
-              <div key={mode} className="stat-card bg-contrast/5 rounded-xl p-4" style={getPerformanceGlow(modeAccuracy)}>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{display.icon}</span>
-                  <span className="text-sm font-medium text-content">{display.label}</span>
-                </div>
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-content/50">Sessions</span>
-                    <span className="text-content">{modeStats.totalSessions}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-content/50">Accuracy</span>
-                    <span className={accuracyColor(lastSession?.accuracy ?? modeStats.accuracy)}>
-                      {modeAccuracy}%
-                      <span className={`ml-1 ${trendColor(trend)}`}>{trendArrow(trend)}</span>
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-content/50">Best</span>
-                    <span className={accuracyColor(modeStats.bestAccuracy)} data-testid={`mode-best-${mode}`}>
-                      {Math.round(modeStats.bestAccuracy * 100)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-content/50">Average</span>
-                    <span className={accuracyColor(modeStats.accuracy)} data-testid={`mode-avg-${mode}`}>
-                      {Math.round(modeStats.accuracy * 100)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-content/50">Best Streak</span>
-                    <span className="text-content">{modeStats.bestStreak}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-content/50">Last Played</span>
-                    <span className="text-content/70">
-                      {lastSession ? formatRelativeTime(lastSession.timestamp) : '--'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </section>
-
-      {/* Section 4: Weakest Deviations */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">Weakest Deviations</h2>
-        {weakest.length > 0 ? (
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 space-y-3">
-            {weakest.map(({ name, accuracy }) => (
-              <div key={name} className="flex items-center gap-3">
-                <span className="text-sm text-content w-48 truncate">{name}</span>
-                <div className="flex-1 h-2 bg-contrast/10 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${accuracy >= 0.8 ? 'bg-green-500' : accuracy >= 0.6 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                    style={{ width: `${Math.round(accuracy * 100)}%` }}
-                  />
-                </div>
-                <span className={`text-sm font-medium text-right whitespace-nowrap ${accuracyColor(accuracy)}`}>
-                  {Math.round(accuracy * 100)}% accuracy
-                </span>
-              </div>
+          <div className="inline-flex p-1 gap-0.5 rounded-[10px] bg-surface-2 border border-contrast/10" role="group" aria-label="Time range">
+            {RANGE_ORDER.map(r => (
+              <button
+                key={r}
+                onClick={() => setRange(r)}
+                className={`text-xs px-2.5 py-1.5 rounded-[7px] transition-colors cursor-pointer ${
+                  range === r ? 'text-gold-bright font-semibold' : 'text-content/50 hover:text-content/80'
+                }`}
+                style={range === r ? { background: 'color-mix(in srgb, var(--color-gold) 16%, transparent)' } : undefined}
+                aria-pressed={range === r}
+              >
+                {RANGE_LABEL[r]}
+              </button>
             ))}
           </div>
-        ) : (
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-8 text-center">
-            <p className="text-content/40" data-testid="deviations-empty">Complete deviation training to see weak spots</p>
-          </div>
-        )}
-      </section>
+        </header>
 
-      {/* Section 5: Session History */}
-      <section>
-        <h2 className="text-lg font-semibold text-content mb-3">Recent Sessions</h2>
-        {sessions.length > 0 ? (
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl divide-y divide-white/5">
-            {sessions.slice(0, 20).map(session => {
-              const display = MODE_DISPLAY[session.mode]
-              return (
-                <div key={session.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-                  <span className="text-lg">{display.icon}</span>
-                  <span className="text-content flex-1 truncate">{display.label}</span>
-                  <span className="text-content/40 text-xs">{formatRelativeTime(session.timestamp)}</span>
-                  <span className={`font-medium w-12 text-right ${accuracyColor(session.accuracy)}`}>
-                    {Math.round(session.accuracy * 100)}%
+        {!hasData ? (
+          <div className="surface p-10 text-center">
+            <p className="text-content/60 text-lg font-medium">No sessions recorded yet</p>
+            <p className="text-content/40 text-sm mt-1">Play a few training rounds and your analytics will appear here.</p>
+          </div>
+        ) : (
+          <>
+            {/* Insight hook */}
+            <div
+              className="flex items-center gap-3.5 rounded-[14px] p-4"
+              style={{
+                background:
+                  'linear-gradient(100deg, color-mix(in srgb, var(--color-gold) 11%, var(--color-surface)), var(--color-surface))',
+                border: '1px solid color-mix(in srgb, var(--color-gold) 26%, transparent)',
+              }}
+              data-testid="insight-strip"
+            >
+              <div
+                className="grid place-items-center w-9 h-9 rounded-[10px] text-lg flex-shrink-0"
+                style={{
+                  background: 'color-mix(in srgb, var(--color-gold) 18%, transparent)',
+                  border: '1px solid color-mix(in srgb, var(--color-gold) 30%, transparent)',
+                }}
+              >
+                {derived.insight.icon}
+              </div>
+              <div className="text-[13.5px] leading-snug text-content/90">
+                <span className="block text-[10px] font-bold tracking-[0.14em] uppercase text-content/50">This period's insight</span>
+                {renderInsight(derived.insight.text, derived.insight.highlights)}
+              </div>
+            </div>
+
+            {/* KPI row */}
+            <section className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+              {derived.kpis.map(kpi => (
+                <KpiTile
+                  key={kpi.key}
+                  kpi={kpi}
+                  hero={kpi.key === 'accuracy'}
+                  footNote={kpi.key === 'streak' && bestStreak > 0 ? `Best ${bestStreak}` : undefined}
+                />
+              ))}
+            </section>
+
+            {/* Trend + heatmap */}
+            <section className="grid lg:grid-cols-[1.9fr_1fr] gap-4">
+              <Panel title="Accuracy trend" note={derived.trend.length >= 2 ? undefined : 'need 2+ active days'}>
+                {derived.trend.length >= 2 ? (
+                  <TrendChart points={derived.trend} />
+                ) : (
+                  <div className="h-[230px] grid place-items-center text-content/40 text-sm">
+                    Train on more days to see your trend
+                  </div>
+                )}
+              </Panel>
+
+              <Panel title="Practice consistency" note="last 12 weeks">
+                <Heatmap columns={derived.heatmap.cells} />
+                <div className="flex items-center justify-between mt-3.5 text-xs text-content/50">
+                  <span className="inline-flex items-center gap-1.5 font-bold text-gold-bright">
+                    {streak > 0 ? `🔥 ${streak}-day streak` : 'No active streak'}
                   </span>
-                  <span className="text-content/40 text-xs w-12 text-right">{formatDuration(session.durationSeconds)}</span>
+                  <HeatLegend />
                 </div>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-8 text-center">
-            <p className="text-content/40" data-testid="sessions-empty">No sessions recorded yet</p>
-          </div>
-        )}
-      </section>
+              </Panel>
+            </section>
 
-      {/* Section 6: Reset Data */}
-      <section className="pb-8">
-        <button
-          onClick={() => {
-            if (window.confirm('Are you sure you want to reset all training data? This cannot be undone.')) {
-              resetAllStats()
-            }
-          }}
-          className="text-sm text-red-400/60 hover:text-red-400 transition-colors cursor-pointer"
-          data-testid="reset-all-stats"
-        >
-          Reset All Data
-        </button>
-      </section>
+            {/* Skill radar + simulated edge */}
+            <section className="grid lg:grid-cols-2 gap-4">
+              <Panel title="Skill profile" note="where you're sharp vs. rusty">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <SkillRadar axes={derived.radar} />
+                  <div className="flex-1 min-w-[150px] flex flex-col gap-2 text-[12.5px]">
+                    {radarSorted.map(a => (
+                      <div key={a.axis} className="flex items-center justify-between gap-3">
+                        <span className="text-content/50">{a.axis}</span>
+                        <b className="font-bold" style={{ color: radarColor(a.value) }}>{a.value}</b>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Panel>
+
+              <Panel title="Simulated edge" note="Casino Session net · real results">
+                {derived.edge.sessions > 0 ? (
+                  <>
+                    <div className="flex items-baseline gap-2.5">
+                      <span
+                        className="text-[1.75rem] font-extrabold tracking-tight"
+                        style={{ color: derived.edge.net >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}
+                      >
+                        {derived.edge.net >= 0 ? '+' : '−'}${Math.abs(Math.round(derived.edge.net)).toLocaleString('en-US')}
+                      </span>
+                      <span className="text-xs font-bold text-content/50">
+                        {derived.edge.sessions} sessions · {derived.edge.handsPlayed.toLocaleString('en-US')} hands
+                      </span>
+                    </div>
+                    <p className="text-xs text-content/40 mb-1.5 mt-0.5">Cumulative net profit from your Casino Sessions.</p>
+                    <EdgeChart points={derived.edge.points} />
+                  </>
+                ) : (
+                  <div className="h-[132px] grid place-items-center text-center text-content/40 text-sm px-4">
+                    Play a Casino Session to see your simulated bankroll.
+                  </div>
+                )}
+              </Panel>
+            </section>
+
+            {/* Mode accuracy + weakest hands */}
+            <section className="grid lg:grid-cols-[1.15fr_1fr] gap-4">
+              <Panel title="Accuracy by mode" note="this period">
+                {derived.modes.length > 0 ? (
+                  <ModeBars rows={derived.modes} />
+                ) : (
+                  <div className="h-24 grid place-items-center text-content/40 text-sm">No sessions in this range</div>
+                )}
+              </Panel>
+
+              <Panel title="Your weakest hands" note="most-misplayed decisions">
+                {derived.weakest.length > 0 ? (
+                  <>
+                    <WeakestHands hands={derived.weakest} />
+                    <button
+                      onClick={() => setMode('deviationTraining')}
+                      className="mt-4 inline-flex items-center gap-2 text-[13px] font-semibold px-4 py-2 rounded-[10px] cursor-pointer glow-hover"
+                      style={{
+                        color: '#10100c',
+                        background: 'linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold))',
+                        border: '1px solid color-mix(in srgb, var(--color-gold) 50%, transparent)',
+                      }}
+                    >
+                      Drill these hands →
+                    </button>
+                  </>
+                ) : (
+                  <div className="h-24 grid place-items-center text-center text-content/40 text-sm px-4">
+                    Complete Flashcards deviation training to surface your weak spots.
+                  </div>
+                )}
+              </Panel>
+            </section>
+
+            {/* Recent sessions */}
+            <Panel title="Recent sessions" note={`last ${Math.min(sessions.length, 8)}`}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[13px] border-collapse tabular-nums">
+                  <thead>
+                    <tr className="text-[10px] tracking-[0.1em] uppercase text-content/40">
+                      <th className="text-left font-semibold px-2.5 pb-2.5">When</th>
+                      <th className="text-left font-semibold px-2.5 pb-2.5">Mode</th>
+                      <th className="text-right font-semibold px-2.5 pb-2.5">Accuracy</th>
+                      <th className="text-right font-semibold px-2.5 pb-2.5">Hands</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sessions.slice(0, 8).map(s => {
+                      const acc = Math.round(s.accuracy * 100)
+                      const col = acc >= 85 ? 'var(--color-success)' : acc >= 78 ? 'var(--color-gold)' : 'var(--color-warning)'
+                      const disp = MODE_DISPLAY[s.mode]
+                      return (
+                        <tr key={s.id} className="border-t border-contrast/10">
+                          <td className="px-2.5 py-2.5 text-content/50">{formatWhen(s.timestamp, now)}</td>
+                          <td className="px-2.5 py-2.5">
+                            <span className="inline-flex items-center gap-2">
+                              <i className="w-1.5 h-1.5 rounded-full" style={{ background: disp?.color ?? 'var(--color-gold)' }} />
+                              {disp?.label ?? s.mode}
+                            </span>
+                          </td>
+                          <td className="px-2.5 py-2.5 text-right">
+                            <span
+                              className="font-bold px-2 py-0.5 rounded-full text-xs"
+                              style={{ color: col, background: `color-mix(in srgb, ${col} 14%, transparent)` }}
+                            >
+                              {acc}%
+                            </span>
+                          </td>
+                          <td className="px-2.5 py-2.5 text-right text-content/50">{s.totalQuestions}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
+
+            {/* Achievements */}
+            <RecentAchievements />
+          </>
+        )}
+
+        {/* Reset */}
+        <section className="pt-2 pb-8">
+          <button
+            onClick={() => {
+              if (window.confirm('Are you sure you want to reset all training data? This cannot be undone.')) {
+                resetAllStats()
+              }
+            }}
+            className="text-sm text-error/60 hover:text-error transition-colors cursor-pointer"
+            data-testid="reset-all-stats"
+          >
+            Reset All Data
+          </button>
+        </section>
+      </div>
     </div>
   )
 }
 
 const TIER_BADGE: Record<string, string> = {
-  bronze: '\uD83E\uDD49',
-  silver: '\uD83E\uDD48',
-  gold: '\uD83E\uDD47',
-  diamond: '\uD83D\uDC8E',
+  bronze: '🥉',
+  silver: '🥈',
+  gold: '🥇',
+  diamond: '💎',
 }
 
-/** Recent achievements section with link to full gallery. */
+/** Recent achievements strip with a link to the full gallery. */
 function RecentAchievements() {
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
   const setMode = useAppStore(s => s.setMode)
 
-  const recent = achievementEngine.getUnlocked()
+  const recent = achievementEngine
+    .getUnlocked()
     .sort((a, b) => b.unlockedAt - a.unlockedAt)
     .slice(0, 3)
     .map(u => ({ ...u, achievement: getAchievementById(u.achievementId) }))
     .filter(u => u.achievement != null)
 
   return (
-    <section data-testid="recent-achievements">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-content">
-          Recent Achievements
-          <span className="ml-2 text-sm text-content/40">({totalUnlocked} unlocked)</span>
-        </h2>
+    <Panel title={`Recent achievements`} note={`${totalUnlocked} unlocked`}>
+      <div className="flex items-center justify-end -mt-9 mb-2">
         <button
           onClick={() => setMode('achievements')}
           className="text-xs text-gold hover:text-gold/80 transition-colors cursor-pointer"
@@ -512,14 +458,10 @@ function RecentAchievements() {
           View All →
         </button>
       </div>
-
       {recent.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {recent.map(({ achievementId, unlockedAt, achievement }) => (
-            <div
-              key={achievementId}
-              className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 flex items-center gap-3"
-            >
+            <div key={achievementId} className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 flex items-center gap-3">
               <span className="text-2xl">{achievement!.icon}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-content truncate">{achievement!.name}</p>
@@ -532,10 +474,10 @@ function RecentAchievements() {
           ))}
         </div>
       ) : (
-        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-6 text-center">
-          <p className="text-content/40" data-testid="no-achievements">No achievements unlocked yet. Keep training!</p>
+        <div className="text-center text-content/40 py-4" data-testid="no-achievements">
+          No achievements unlocked yet. Keep training!
         </div>
       )}
-    </section>
+    </Panel>
   )
 }
