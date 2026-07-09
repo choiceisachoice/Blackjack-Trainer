@@ -76,6 +76,7 @@ export function CasinoTable({
   dealerHitsSoft17,
 }: CasinoTableProps) {
   void isDealPhase
+
   const centerMessage =
     gameStep === 'bot_playing' ? 'Bots playing…' :
     gameStep === 'dealer_playing' ? 'Dealer playing…' :

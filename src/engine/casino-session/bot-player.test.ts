@@ -1056,4 +1056,56 @@ describe('Bot Player', () => {
       expect(getHandValue(hands[1].cards).best).toBe(17)
     })
   })
+
+  describe('Ace splits (1×/2×/3× → up to 4 hands)', () => {
+    /** A bot holding a fresh pair of aces, with plenty of bankroll to split. */
+    function aceBot(): BotPlayer {
+      const bot = createBot(2, 25, new Set<string>(), 'bot-split')
+      bot.bankroll = 100_000
+      bot.hands = [{
+        cards: [card(Rank.Ace), card(Rank.Ace)],
+        bet: 25, isDoubled: false, isSplit: false, isBusted: false, isStanding: false,
+      }]
+      return bot
+    }
+    /** A drawCard that deals out a fixed queue (falls back to a Five). */
+    function fromQueue(cards: Card[]): () => Card {
+      let i = 0
+      return () => cards[i++] ?? card(Rank.Five)
+    }
+    const dealerUp = card(Rank.Six)
+
+    it('1× split → 2 hands; each ace gets exactly one card and stands', () => {
+      const hands = playBotTurn(aceBot(), dealerUp, fromQueue([card(Rank.Eight), card(Rank.Nine)]), testRules)
+      expect(hands).toHaveLength(2)
+      expect(hands.every(h => h.isSplit)).toBe(true)
+      expect(hands.every(h => h.cards[0].rank === Rank.Ace && h.cards.length === 2)).toBe(true)
+      expect(hands.every(h => h.isStanding)).toBe(true)
+    })
+
+    it('2× split (one ace re-splits) → 3 hands', () => {
+      // First hand draws another Ace (re-split); the rest draw non-aces.
+      const hands = playBotTurn(
+        aceBot(), dealerUp,
+        fromQueue([card(Rank.Ace), card(Rank.Nine), card(Rank.Eight), card(Rank.Seven)]),
+        testRules,
+      )
+      expect(hands).toHaveLength(3)
+      expect(hands.every(h => h.isSplit)).toBe(true)
+    })
+
+    it('3× split → exactly 4 hands (capped at maxSplitHands, never a 5th)', () => {
+      const allAces = Array.from({ length: 10 }, () => card(Rank.Ace))
+      const hands = playBotTurn(aceBot(), dealerUp, fromQueue(allAces), testRules)
+      expect(hands).toHaveLength(4)
+      expect(hands.every(h => h.isSplit)).toBe(true)
+    })
+
+    it('respects a lower maxSplitHands cap', () => {
+      const allAces = Array.from({ length: 10 }, () => card(Rank.Ace))
+      const rules3: CasinoRules = { ...testRules, maxSplitHands: 3 }
+      const hands = playBotTurn(aceBot(), dealerUp, fromQueue(allAces), rules3)
+      expect(hands).toHaveLength(3)
+    })
+  })
 })

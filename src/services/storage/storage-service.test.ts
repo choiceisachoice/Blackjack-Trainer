@@ -151,21 +151,28 @@ describe('computeLifetimeStats', () => {
   })
 
   it('aggregates daily stats correctly', () => {
+    // Use recent, RELATIVE dates. dailyStats only keeps the last 90 days, so
+    // hard-coded past dates would silently age out of the window and fail.
+    const dayStr = (daysAgo: number): string =>
+      new Date(Date.now() - daysAgo * 86_400_000).toISOString().slice(0, 10)
+    const dateA = dayStr(2)
+    const dateB = dayStr(3)
+
     const sessions: TrainingSessionResult[] = [
       makeSession({
-        timestamp: '2026-02-19T10:00:00.000Z',
+        timestamp: `${dateA}T10:00:00.000Z`,
         totalQuestions: 10,
         correctAnswers: 8,
         durationSeconds: 60,
       }),
       makeSession({
-        timestamp: '2026-02-19T14:00:00.000Z',
+        timestamp: `${dateA}T14:00:00.000Z`,
         totalQuestions: 5,
         correctAnswers: 5,
         durationSeconds: 30,
       }),
       makeSession({
-        timestamp: '2026-02-18T10:00:00.000Z',
+        timestamp: `${dateB}T10:00:00.000Z`,
         totalQuestions: 20,
         correctAnswers: 10,
         durationSeconds: 120,
@@ -175,11 +182,11 @@ describe('computeLifetimeStats', () => {
     const stats = computeLifetimeStats(sessions)
     expect(stats.dailyStats).toHaveLength(2)
 
-    const feb19 = stats.dailyStats.find(d => d.date === '2026-02-19')
-    expect(feb19).toBeDefined()
-    expect(feb19!.sessions).toBe(2)
-    expect(feb19!.totalQuestions).toBe(15)
-    expect(feb19!.totalCorrect).toBe(13)
-    expect(feb19!.practiceSeconds).toBe(90)
+    const dayA = stats.dailyStats.find(d => d.date === dateA)
+    expect(dayA).toBeDefined()
+    expect(dayA!.sessions).toBe(2)
+    expect(dayA!.totalQuestions).toBe(15)
+    expect(dayA!.totalCorrect).toBe(13)
+    expect(dayA!.practiceSeconds).toBe(90)
   })
 })

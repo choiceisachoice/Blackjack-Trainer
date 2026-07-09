@@ -1,28 +1,37 @@
 # CLAUDE.md – Blackjack Card Counting Trainer
 
 ## Project Overview
-Web-based Blackjack Card Counting Trainer with realistic shoe simulation (6 decks, 312 cards), 6 counting systems, Basic Strategy, Illustrious 18 / Fab 4 Deviations, and 5 training modes.
+Web-based Blackjack Card Counting Trainer with realistic shoe simulation (6 decks, 312 cards),
+the **Hi-Lo** counting system, Basic Strategy, Illustrious 18 / Fab 4 Deviations, training modes,
+and a full Casino Session table.
 
 **PRD Document:** See `docs/blackjack-trainer-prd.docx` for full feature specifications.
 **Decisions Log:** See `docs/decisions-log.md` for all architectural and product decisions.
 
 ## Resolved Product Decisions
-- **MVP Scope:** ALL 5 training modes included (Speed Drill, Table Counting, Deviations, Bet Spread, Deck Estimation)
-- **Persistence:** Supabase (Cloud-Sync, User Accounts, Progress Tracking)
+- **Counting system:** **Hi-Lo only** in the UI (real card counters use Hi-Lo). The engine still
+  defines the other systems — they are tested but intentionally not exposed in the UX.
+- **Training modes:** Speed Drill, **Flashcards** (all basic-strategy hands + deviations; replaced
+  the old "Table Counting"/"Deviations" modes), Bet Spread, Deck Estimation, plus the **Casino
+  Session** (full multi-seat table) and a **Learn** theory page.
+- **Persistence:** **localStorage** (offline-first). Supabase cloud sync / accounts are planned but
+  NOT yet implemented.
 - **UI Language:** English
-- **UI Theme:** Casino-realistic (green felt table, dark background, gold accents)
-- **Gamification:** Deferred to post-MVP
+- **UI Theme:** **Dark-luxury** (near-black `#070809` + gold `#d4a847`, Inter font), in the style of
+  Linear/Resend/Raycast. The Casino Session uses a realistic green-felt table within that shell.
+- **Gamification:** Achievements, levels/XP and daily/weekly challenges are implemented.
 
 ## Tech Stack
-- **Framework:** React 18+ with Vite
+- **Framework:** React 19 with Vite 7
 - **Language:** TypeScript (strict mode)
-- **Styling:** Tailwind CSS
+- **Styling:** Tailwind CSS 4 (`@theme` tokens; dark-luxury palette + Inter)
 - **State Management:** Zustand
-- **Animations:** Framer Motion (Motion)
+- **Animations:** Framer Motion
+- **Charts:** Recharts · **Icons:** lucide-react
 - **Testing:** Vitest + @testing-library/react
-- **Card Assets:** SVG-based (David Bellot CC-licensed or equivalent)
-- **Backend/Auth:** Supabase (PostgreSQL, Auth, Row-Level Security)
-- **Deployment:** Vercel (Free Tier)
+- **Card Assets:** CSS/SVG-rendered cards (rank corner index + centre pip)
+- **Persistence:** localStorage (offline-first). **Backend/Auth (Supabase)** and **Deployment** are
+  planned but NOT yet set up — deployment/infra is Christian's call.
 
 ## Dev Server Commands
 
@@ -175,11 +184,12 @@ blackjack-trainer/
 | F-002 | Blackjack Game Rules | Phase 1 | P0 | ✅ Complete |
 | F-003 | Counting Engine | Phase 2 | P0 | ✅ Complete |
 | F-004 | Basic Strategy Engine | Phase 1 | P0 | ✅ Complete |
-| F-005 | Table UI | Phase 3 | P1 | ✅ Complete (with bug fixes) |
-| F-006 | Training Modes (all 5) | Phase 4 | P1 | ✅ Complete |
-| F-007 | Analytics & Statistics | Phase 5 | P2 | 🔲 Not started |
-| F-008 | Supabase Auth & Persistence | Phase 3 | P1 | 🔲 Not started |
+| F-005 | Table UI (Casino Session) | Phase 3 | P1 | ✅ Rebuilt (dark-luxury, flow layout + animations) |
+| F-006 | Training Modes | Phase 4 | P1 | ✅ Complete (Speed Drill, Flashcards, Bet Spread, Deck Estimation) |
+| F-007 | Analytics & Statistics | Phase 5 | P2 | ✅ Complete — 2.0 redesign (dark-luxury; range-aware KPIs incl. training time, accuracy trend, practice heatmap, skill radar, real Casino Session edge from netProfit, weakest hands, insight hook). Pure derivations in `analytics-derive.ts`, hand-authored SVG charts in `AnalyticsCharts.tsx` |
+| F-008 | Supabase Auth & Persistence | Phase 3 | P1 | 🔲 Not started (localStorage only; auth is a later milestone) |
 | F-010 | Sound Effects | Phase 5 | P2 | ✅ Complete |
+| F-011 | Achievements / Levels / Challenges | Phase 5 | P2 | ✅ Complete |
 
 ## Implementation Workflow (for every feature)
 

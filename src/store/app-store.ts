@@ -11,25 +11,32 @@ const DEALING_SPEED_KEY = 'bjt_dealing_speed'
 /** Supported theme modes. */
 export type ThemeMode = 'dark' | 'light'
 
-/** Card-dealing speed presets for the casino table. */
-export type DealingSpeed = 'slow' | 'normal' | 'fast'
+/**
+ * Card-dealing speed presets for the casino table. Only two realistic paces are
+ * offered — a "fast" mode was removed as unrealistic.
+ */
+export type DealingSpeed = 'slow' | 'normal'
 
 /**
  * Multiplier applied to every animation delay. Higher = slower dealing.
- * `normal` (1.0) is the original baseline; `slow` is the default so beginners
- * can follow the count.
+ * `normal` (1.0) is the real casino baseline; `slow` gives more time to count.
  */
 export const DEALING_SPEED_MULTIPLIER: Record<DealingSpeed, number> = {
   slow: 1.5,
   normal: 1.0,
-  fast: 0.6,
 }
 
-/** Load persisted dealing speed. Defaults to slow (easier to count). */
+/** Player-facing labels — a complete pair that reads well without a "Fast". */
+export const DEALING_SPEED_LABEL: Record<DealingSpeed, string> = {
+  slow: 'Relaxed',
+  normal: 'Standard',
+}
+
+/** Load persisted dealing speed. Defaults to slow (more time to count). */
 function loadDealingSpeed(): DealingSpeed {
   try {
     const s = localStorage.getItem(DEALING_SPEED_KEY)
-    if (s === 'slow' || s === 'normal' || s === 'fast') return s
+    if (s === 'slow' || s === 'normal') return s
   } catch { /* ignore */ }
   return 'slow'
 }

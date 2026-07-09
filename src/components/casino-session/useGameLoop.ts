@@ -481,9 +481,9 @@ export function useGameLoop(
       // ═══ PHASE 2: Cards slide apart (1.0s) ═══
       // Show exactly 2 hands with 1 card each. Hand 0 active, rest dimmed.
       // For re-splits (3+ hands), extra hands revealed later during play.
-      const visArr: number[] = new Array(numHands).fill(0)
-      visArr[0] = 1
-      visArr[1] = 1
+      // Reveal EVERY split hand's first card up front (all the split cards slide
+      // apart together) so a re-split never makes a new hand appear mid-play.
+      const visArr: number[] = new Array(numHands).fill(1)
       steps.push({
         execute: () => {
           setBotSplitVisibleCards(prev => ({ ...prev, [botId]: [...visArr] }))
@@ -497,22 +497,6 @@ export function useGameLoop(
         const hand = updatedBot.hands[h]
         const hIdx = h
         const isAcesSplit = hand.cards[0]?.rank === 'A' && hand.isSplit
-
-        // Re-split: reveal this hand if not yet visible (h >= 2)
-        if (h >= 2) {
-          steps.push({
-            execute: () => {
-              setBotStatuses(prev => ({ ...prev, [botId]: 'split' }))
-              soundEngine.chipPlace()
-              setBotSplitVisibleCards(prev => {
-                const arr = [...(prev[botId] ?? visArr)]
-                arr[hIdx] = 1
-                return { ...prev, [botId]: arr }
-              })
-            },
-            delayMs: 1500,
-          })
-        }
 
         // ─── Activate this hand (0.5s) ───
         steps.push({

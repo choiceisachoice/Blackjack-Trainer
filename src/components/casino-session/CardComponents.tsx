@@ -78,6 +78,12 @@ export function TableCard({ card, faceDown, size = 'player' }: { card: Card; fac
   )
 }
 
+/**
+ * A dealt card that glides in from the shoe's direction (the table's top-right)
+ * to its resting spot. A single fixed offset + duration is used for every card,
+ * so the deal reads as one calm, consistent motion — reliable framer
+ * `initial → animate` on mount, no per-card measuring.
+ */
 export function AnimatedTableCard({
   card,
   faceDown = false,
@@ -97,13 +103,9 @@ export function AnimatedTableCard({
 
   return (
     <motion.div
-      initial={{ x: 180, y: -200, opacity: 0, scale: 0.6 }}
-      animate={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-      transition={{
-        duration: 0.4,
-        ease: [0.25, 0.1, 0.25, 1],
-        delay,
-      }}
+      initial={{ x: 170, y: -190, opacity: 0, scale: 0.7, rotate: -8 }}
+      animate={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
+      transition={{ duration: 0.62, ease: [0.2, 0.8, 0.25, 1], delay }}
     >
       <TableCard card={card} faceDown={faceDown} size={size} />
     </motion.div>
@@ -111,29 +113,41 @@ export function AnimatedTableCard({
 }
 
 /**
- * A card that flips in 3D (rotateY) between its back and its face. Used for the
- * dealer's hole card so the reveal animates smoothly instead of snapping.
+ * A card that first glides in from the shoe (like every dealt card), then flips
+ * in 3D (rotateY) between its back and its face. Used for the dealer's hole
+ * card so it deals in at the same calm speed as the rest and the reveal
+ * animates smoothly instead of snapping.
+ *
+ * The outer motion element handles the deal-in (translate/opacity/scale); the
+ * inner one handles the 3D flip — kept separate so the 2D and 3D transforms
+ * don't fight.
  */
 export function FlipCard({ card, revealed, size = 'dealer' }: { card: Card; revealed: boolean; size?: CardSize }) {
   return (
-    <div style={{ perspective: '900px' }}>
-      <motion.div
-        className={`${CARD_SIZE_CLASS[size]} relative`}
-        style={{ transformStyle: 'preserve-3d' }}
-        initial={false}
-        animate={{ rotateY: revealed ? 0 : 180 }}
-        transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-      >
-        {/* Face (visible at 0°) */}
-        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
-          <TableCard card={card} size={size} />
-        </div>
-        {/* Back (visible at 180°) */}
-        <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
-          <TableCard card={card} faceDown size={size} />
-        </div>
-      </motion.div>
-    </div>
+    <motion.div
+      initial={{ x: 170, y: -190, opacity: 0, scale: 0.7, rotate: -8 }}
+      animate={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
+      transition={{ duration: 0.62, ease: [0.2, 0.8, 0.25, 1] }}
+    >
+      <div style={{ perspective: '900px' }}>
+        <motion.div
+          className={`${CARD_SIZE_CLASS[size]} relative`}
+          style={{ transformStyle: 'preserve-3d' }}
+          initial={false}
+          animate={{ rotateY: revealed ? 0 : 180 }}
+          transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+        >
+          {/* Face (visible at 0°) */}
+          <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
+            <TableCard card={card} size={size} />
+          </div>
+          {/* Back (visible at 180°) */}
+          <div className="absolute inset-0" style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+            <TableCard card={card} faceDown size={size} />
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
   )
 }
 

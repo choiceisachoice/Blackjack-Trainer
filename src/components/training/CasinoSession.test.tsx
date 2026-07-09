@@ -11,6 +11,7 @@ vi.mock('framer-motion', () => ({
   },
   AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
   LayoutGroup: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  useAnimationControls: () => ({ set: () => {}, start: () => {} }),
 }))
 
 // Mock casino-ambient
