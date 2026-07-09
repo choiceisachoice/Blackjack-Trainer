@@ -305,7 +305,7 @@ function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
   }, [currentLevel])
 
   return (
-    <div className="surface p-5 overflow-x-auto" ref={scrollRef}>
+    <div className="surface p-5 overflow-x-auto overflow-y-hidden" ref={scrollRef}>
       <div className="relative min-w-max px-2">
         {/* connecting line */}
         <div className="absolute left-0 right-0 top-[15px] h-[3px] rounded-full"

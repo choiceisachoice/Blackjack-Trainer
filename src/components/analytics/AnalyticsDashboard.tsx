@@ -363,7 +363,7 @@ export function AnalyticsDashboard() {
 
             {/* Recent sessions */}
             <Panel title="Recent sessions" note={`last ${Math.min(sessions.length, 8)}`}>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto overflow-y-hidden">
                 <table className="w-full text-[13px] border-collapse tabular-nums">
                   <thead>
                     <tr className="text-[10px] tracking-[0.1em] uppercase text-content/40">

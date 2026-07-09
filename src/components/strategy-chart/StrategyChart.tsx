@@ -216,7 +216,7 @@ export function StrategyChart() {
       </p>
 
       {/* Scrollable chart area */}
-      <div className="overflow-x-auto pb-2">
+      <div className="overflow-x-auto overflow-y-hidden pb-2">
         <div style={{ minWidth: '600px' }}>
           {sections.map(section => (
             <div key={section.title} className="mb-5">
