@@ -1,11 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { DeviationTraining } from './DeviationTraining'
 import { useAppStore } from '../../store/app-store'
+import { useStatsStore } from '../../store/stats-store'
 import { DEFAULT_RULES } from '../../engine/rules/types'
 import { Action } from '../../engine/rules/types'
 import { lookupBasicAction } from '../../engine/strategy/flashcards'
 import { S17_STRATEGY } from '../../engine/strategy/basic-strategy-tables'
+import type { DeviationDetails } from '../../services/stats-types'
 
 /** Correct basic action for the currently-shown hand (S17 forced in beforeEach). */
 function correctForShownHand(): Action {
@@ -78,5 +80,33 @@ describe('DeviationTraining (Flashcards)', () => {
     }
 
     expect(screen.getByTestId('summary-title')).toBeInTheDocument()
+  })
+
+  it('records per-deviation results so the weakest-hands panel has real data', () => {
+    const recordSpy = vi.fn()
+    useStatsStore.setState({ recordSession: recordSpy })
+
+    const { unmount } = render(<DeviationTraining />)
+    // Scope to the labelled groups (the async backdrop rails can also render digits).
+    fireEvent.click(within(screen.getByRole('group', { name: 'Level' })).getByText('Deviations'))
+    fireEvent.click(within(screen.getByRole('group', { name: 'Number of questions' })).getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+
+    // Answer four deviation questions (Stand is always an available button).
+    for (let i = 0; i < 4; i++) {
+      fireEvent.click(screen.getByTestId('action-stand'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+
+    unmount() // useSessionSave persists on unmount
+
+    expect(recordSpy).toHaveBeenCalledTimes(1)
+    const details = recordSpy.mock.calls[0][0].details as DeviationDetails
+    expect(details.type).toBe('deviationFlashCards')
+    // perDeviation is now populated (previously always {})
+    const entries = Object.values(details.perDeviation)
+    expect(entries.length).toBeGreaterThan(0)
+    const totalRecorded = entries.reduce((s, e) => s + e.correct + e.incorrect, 0)
+    expect(totalRecorded).toBe(4)
   })
 })

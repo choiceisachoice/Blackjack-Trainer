@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { GraduationCap, Check, X } from 'lucide-react'
 import { Panel, Segmented, Button } from '../common/ui'
 import { Action } from '../../engine/rules/types'
@@ -50,13 +50,18 @@ export function DeviationTraining() {
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
 
+  // Per-deviation results accumulated across the session and saved on unmount,
+  // so Analytics' weakest-hands panel and deviation stats reflect real answers.
+  const perDeviationRef = useRef<Record<string, { correct: number; incorrect: number }>>({})
+
   const { statsRef } = useSessionSave('deviationFlashCards', (): DeviationDetails => ({
     type: 'deviationFlashCards',
     deviationSet: 'all',
-    perDeviation: {},
+    perDeviation: perDeviationRef.current,
   }))
 
   const startSession = useCallback(() => {
+    perDeviationRef.current = {}
     setSession(buildFlashSession(level, numQuestions, dealerHitsSoft17))
     setQIndex(0)
     setSelectedAction(null)
@@ -73,6 +78,15 @@ export function DeviationTraining() {
     const correct = action === question.correctAction
     setSelectedAction(action)
     setIsCorrect(correct)
+
+    // Record per-deviation results (only count-based deviation questions).
+    if (question.isDeviation && question.deviationName) {
+      const name = question.deviationName
+      const entry = perDeviationRef.current[name] ?? { correct: 0, incorrect: 0 }
+      if (correct) entry.correct++
+      else entry.incorrect++
+      perDeviationRef.current[name] = entry
+    }
 
     const newAttempts = totalAttempts + 1
     const newCorrect = totalCorrect + (correct ? 1 : 0)
