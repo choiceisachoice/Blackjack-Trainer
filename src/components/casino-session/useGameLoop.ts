@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react'
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import { soundEngine } from '../../services/sound-engine'
 import { useAppStore, DEALING_SPEED_MULTIPLIER } from '../../store/app-store'
 import { CasinoSessionEngine, canReSplitAces } from '../../engine/casino-session/session-engine'
@@ -93,6 +93,13 @@ export function useGameLoop(
   const engineRef = useRef<CasinoSessionEngine | null>(null)
   const startTimeRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  /** True once the session has been recorded, so it can never be recorded twice. */
+  const endedRef = useRef(false)
+  /** All pending gameplay timeouts, cleared together on unmount. */
+  const pendingTimeouts = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
+  /** Pause bookkeeping so the session clock excludes paused time. */
+  const isPausedRef = useRef(false)
+  const pauseStartRef = useRef(0)
   const dealResultRef = useRef<DealResult | null>(null)
   const handRecordRef = useRef<Partial<PlayerHandRecord> & { _built?: unknown }>({})
   const decisionsRef = useRef<{ action: string; correctAction: string; isCorrect: boolean; cardReceived?: Card; handValueAfter: number; handIndex?: number }[]>([])
@@ -107,6 +114,19 @@ export function useGameLoop(
 
   // Step animation
   const animation = useStepAnimation()
+
+  /**
+   * setTimeout that registers itself so the unmount cleanup can cancel it.
+   * Every gameplay delay goes through this — a stray timeout firing against a
+   * dead component would draw cards / setState after the session is gone.
+   */
+  const schedule = useCallback((fn: () => void, ms: number): void => {
+    const id = setTimeout(() => {
+      pendingTimeouts.current.delete(id)
+      fn()
+    }, ms)
+    pendingTimeouts.current.add(id)
+  }, [])
 
   // ─── State ─────────────────────────────────────────
 
@@ -146,8 +166,6 @@ export function useGameLoop(
   const [botSplitVisibleCards, setBotSplitVisibleCards] = useState<Record<string, number[]>>({})
 
   // ─── Derived ───────────────────────────────────────
-
-  const humanCards = humanHands[activeHandIndex] ?? []
 
   const seatLayout = useMemo((): SeatLayoutEntry[] => {
     const layout: SeatLayoutEntry[] = []
@@ -266,18 +284,56 @@ export function useGameLoop(
     setBotStatuses({})
     resetRoundState()
 
-    // Start timer
+    // Start timer. While paused the clock is frozen (the pause effect below
+    // shifts startTime forward on resume so paused time never counts).
+    isPausedRef.current = false
+    pauseStartRef.current = 0
     timerRef.current = setInterval(() => {
+      if (isPausedRef.current) return
       setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000))
     }, 1000)
   }, [config, recorder, resetRoundState])
 
+  // Keep the session clock honest across pauses: freeze it on pause, and on
+  // resume push startTime forward by the paused duration so a time-limited
+  // session can't expire while the player is paused.
+  useEffect(() => {
+    isPausedRef.current = isPaused
+    if (isPaused) {
+      pauseStartRef.current = Date.now()
+    } else if (pauseStartRef.current) {
+      startTimeRef.current += Date.now() - pauseStartRef.current
+      pauseStartRef.current = 0
+    }
+  }, [isPaused])
+
   const endSession = useCallback(() => {
     const engine = engineRef.current
-    if (!engine) return
+    if (!engine || endedRef.current) return // idempotent: a double-quit records once
+    endedRef.current = true
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
     const sessionResult = engine.calculateSessionResult(startTimeRef.current, Date.now())
     onSessionEnd(sessionResult)
+  }, [onSessionEnd])
+
+  // On unmount (navigate away, quit): stop the clock, cancel every pending
+  // gameplay timeout so none fire against a dead component, and flush a session
+  // that was played but never ended — otherwise those hands are silently lost.
+  useEffect(() => {
+    const timeouts = pendingTimeouts.current
+    return () => {
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+      timeouts.forEach(clearTimeout)
+      timeouts.clear()
+      const engine = engineRef.current
+      if (engine && !endedRef.current) {
+        const result = engine.calculateSessionResult(startTimeRef.current, Date.now())
+        if (result.hands.length > 0) {
+          endedRef.current = true
+          onSessionEnd(result)
+        }
+      }
+    }
   }, [onSessionEnd])
 
   // ─── Settlement ────────────────────────────────────
@@ -935,13 +991,13 @@ export function useGameLoop(
         setActiveHandIndex(nextIdx)
         // 2. Only THEN — once the switch is visible — deal the next card to
         //    the now-active hand (so the card never arrives on a dimmed hand).
-        setTimeout(() => {
+        schedule(() => {
           const newCard = engine.drawCard()
           soundEngine.cardDeal()
           updateHandCards(nextIdx, [...nextHand, newCard])
         }, scaledDelay(500))
       } else {
-        setTimeout(() => setActiveHandIndex(nextIdx), scaledDelay(400))
+        schedule(() => setActiveHandIndex(nextIdx), scaledDelay(400))
       }
     } else {
       runPostHumanFlow()
@@ -1300,7 +1356,7 @@ export function useGameLoop(
       soundEngine.cardDeal()
 
       if (isBust(newCards)) {
-        setTimeout(() => advanceToNextHand(), 600)
+        schedule(() => advanceToNextHand(), 600)
       }
       return
     }
@@ -1322,7 +1378,7 @@ export function useGameLoop(
       updateHandCards(activeHandIndex, newCards)
       soundEngine.cardDeal()
       soundEngine.chipPlace()
-      setTimeout(() => advanceToNextHand(), 600)
+      schedule(() => advanceToNextHand(), 600)
       return
     }
 
@@ -1357,7 +1413,7 @@ export function useGameLoop(
 
       const hi = activeHandIndex
 
-      setTimeout(() => {
+      schedule(() => {
         const newCard1 = engine.drawCard()
         soundEngine.cardDeal()
         updateHandCards(hi, [card1, newCard1])
@@ -1387,7 +1443,7 @@ export function useGameLoop(
 
             // Switch focus to this hand first (un-dim), then deal its card.
             setActiveHandIndex(idx)
-            setTimeout(() => {
+            schedule(() => {
               const nc = engine.drawCard()
               soundEngine.cardDeal()
               updateHandCards(idx, [...hand, nc])
@@ -1400,11 +1456,11 @@ export function useGameLoop(
               }
 
               // Auto-stand, advance to next after delay (respects dealing speed)
-              setTimeout(() => advanceAceHands(idx + 1), scaledDelay(600))
+              schedule(() => advanceAceHands(idx + 1), scaledDelay(600))
             }, scaledDelay(500))
           }
 
-          setTimeout(() => advanceAceHands(hi + 1), scaledDelay(600))
+          schedule(() => advanceAceHands(hi + 1), scaledDelay(600))
         }
       }, scaledDelay(600))
 
@@ -1451,7 +1507,7 @@ export function useGameLoop(
       soundEngine.wrong()
     }
 
-    setTimeout(() => {
+    schedule(() => {
       if (config.trainingMode && handRecordRef.current._built) {
         setHandReview(handRecordRef.current._built as PlayerHandRecord)
         setGameStep('hand_review')
