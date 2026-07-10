@@ -26,7 +26,8 @@ const APP_URL = Deno.env.get('APP_URL') ?? 'http://localhost:5173'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': APP_URL,
-  'Access-Control-Allow-Headers': 'authorization, content-type',
+  // supabase-js invoke sends apikey + x-client-info in addition to auth/content-type.
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
