@@ -1,0 +1,9 @@
+# Supabase CLI local state (never commit — machine/link-specific)
+.branches
+.temp
+
+# Local Supabase env / secrets
+.env
+.env.local
+.env.*.local
+.env.keys
