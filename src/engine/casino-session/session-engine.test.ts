@@ -883,35 +883,83 @@ describe('CasinoSessionEngine', () => {
       expect(result.playAccuracy).toBeCloseTo(66.67, 0)
     })
 
-    it('overall score weights are correct with counting', () => {
-      const engine = new CasinoSessionEngine(createTestConfig({
-        countCheckFrequency: 'every',
-      }))
-
-      // All perfect = 100 everywhere
-      const result = engine.calculateSessionResult(0, 1000)
-      // With no hands, all accuracies default to 100
-      expect(result.overallScore).toBeCloseTo(100, 0)
-      // Overall = 0.25×100 + 0.40×100 + 0.25×100 + 0.10×100 = 100
+    /** A perfect hand that exercises the bet, play, count and deviation dimensions. */
+    const perfectHand = (opts: Partial<PlayerHandRecord> = {}): PlayerHandRecord => ({
+      handNumber: 1,
+      trueCountAtBet: 3,
+      runningCountAtBet: 9,
+      remainingDecks: 3,
+      playerBet: 100,
+      correctBet: 100,
+      betCorrect: true,
+      betError: 0,
+      playerCards: [card(Rank.Ten), card(Rank.Six)],
+      dealerUpCard: card(Rank.Ten),
+      dealerHoleCard: card(Rank.Ten),
+      dealerFinalCards: [card(Rank.Ten), card(Rank.Ten)],
+      decisions: [{ action: 'Stand', correctAction: 'Stand', isCorrect: true, handValueAfter: 16 }],
+      firstAction: 'Stand',
+      correctFirstAction: 'Stand',
+      firstActionCorrect: true,
+      wasDeviationSituation: true,
+      playerFollowedDeviation: true,
+      deviationName: '16 vs 10',
+      insuranceOffered: false,
+      countChecked: true,
+      rcCorrect: true,
+      tcCorrect: true,
+      rcError: 0,
+      tcError: 0,
+      actualRC: 9,
+      actualTC: 3,
+      playerHandValue: 16,
+      dealerHandValue: 20,
+      result: 'lose',
+      profit: -100,
+      bankrollAfter: 9900,
+      botResults: [],
+      ...opts,
     })
 
-    it('overall score weights adjust when counting is disabled', () => {
-      const engine = new CasinoSessionEngine(createTestConfig({
-        countCheckFrequency: 'never',
-      }))
-
+    it('overall score is 100 when every dimension is perfect (counting on)', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ countCheckFrequency: 'every' }))
+      engine.recordHand(perfectHand())
       const result = engine.calculateSessionResult(0, 1000)
-      // Overall = 0.30×100 + 0.50×100 + 0.20×100 = 100
       expect(result.overallScore).toBeCloseTo(100, 0)
+      expect(result.grade).toBe('A+')
+    })
+
+    it('an empty session scores 0, not a phantom 100 (regression)', () => {
+      // No hands means no data — the old code defaulted every accuracy to 100
+      // and handed out an A+, which let top achievements unlock for nothing.
+      const engine = new CasinoSessionEngine(createTestConfig({ countCheckFrequency: 'every' }))
+      const result = engine.calculateSessionResult(0, 1000)
+      expect(result.overallScore).toBe(0)
+      expect(result.grade).toBe('F')
+    })
+
+    it('absent components are excluded from the grade, not scored as 100', () => {
+      // Counting off + no deviation situations: grade must rest only on bet+play,
+      // never inflated by phantom count/deviation 100s.
+      const engine = new CasinoSessionEngine(createTestConfig({ countCheckFrequency: 'never' }))
+      engine.recordHand(perfectHand({
+        countChecked: false,
+        wasDeviationSituation: false,
+        decisions: [{ action: 'Hit', correctAction: 'Stand', isCorrect: false, handValueAfter: 22 }],
+        firstActionCorrect: false,
+      }))
+      const result = engine.calculateSessionResult(0, 1000)
+      // bet 100 (weight .25) + play 0 (weight .40), renormalized → 100*.25/.65 ≈ 38.5
+      expect(result.countAccuracy).toBe(100) // display default unchanged
+      expect(result.totalCountChecks).toBe(0) // but the sample is honestly zero
+      expect(result.overallScore).toBeCloseTo(38.5, 0)
+      expect(result.overallScore).toBeLessThan(50)
     })
 
     it('grade assignment matches score ranges', () => {
-      const engine = new CasinoSessionEngine(createTestConfig())
-
-      // We need to test the grade logic
-      // Since calculateGrade is private, we test via calculateSessionResult
+      const engine = new CasinoSessionEngine(createTestConfig({ countCheckFrequency: 'every' }))
+      engine.recordHand(perfectHand())
       const result = engine.calculateSessionResult(0, 1000)
-      // No hands → all 100% → A+
       expect(result.grade).toBe('A+')
       expect(result.gradeColor).toBe('#22c55e')
     })

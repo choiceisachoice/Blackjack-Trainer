@@ -94,8 +94,12 @@ export interface CasinoSessionDetails {
   playAccuracy: number
   /** Count accuracy (0-100). */
   countAccuracy: number
+  /** How many count checks the session prompted — the sample size behind countAccuracy. */
+  totalCountChecks?: number
   /** Deviation accuracy (0-100). */
   deviationAccuracy: number
+  /** How many deviation situations actually arose — the sample size behind deviationAccuracy. */
+  totalDeviationSituations?: number
   /** Number of bots at the table. */
   numBots: number
   /** Whether the player got a blackjack during the session. */

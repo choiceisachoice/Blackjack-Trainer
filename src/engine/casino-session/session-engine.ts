@@ -931,18 +931,20 @@ export class CasinoSessionEngine {
       ? (correctInsurance / insuranceHands.length) * 100
       : 100
 
-    // Overall score (weighted)
-    let overallScore: number
-    if (this.config.countCheckFrequency === 'never') {
-      overallScore = (betAccuracy * 0.30)
-        + (playAccuracy * 0.50)
-        + (deviationAccuracy * 0.20)
-    } else {
-      overallScore = (betAccuracy * 0.25)
-        + (playAccuracy * 0.40)
-        + (countAccuracy * 0.25)
-        + (deviationAccuracy * 0.10)
-    }
+    // Overall score — weight only the components that actually have data, then
+    // renormalize. An absent component (counting turned off, or no deviation
+    // situations this session) must NOT be scored as a phantom 100%, which
+    // would inflate the grade and hand out top achievements for nothing.
+    const scoreParts: Array<{ value: number; weight: number }> = [
+      { value: betAccuracy, weight: betDecisions.length > 0 ? 0.25 : 0 },
+      { value: playAccuracy, weight: allDecisions.length > 0 ? 0.40 : 0 },
+      { value: countAccuracy, weight: countChecks.length > 0 ? 0.25 : 0 },
+      { value: deviationAccuracy, weight: deviationHands.length > 0 ? 0.10 : 0 },
+    ]
+    const totalWeight = scoreParts.reduce((sum, p) => sum + p.weight, 0)
+    const overallScore = totalWeight > 0
+      ? scoreParts.reduce((sum, p) => sum + p.value * p.weight, 0) / totalWeight
+      : 0
 
     // Grade
     const { grade, gradeColor } = this.calculateGrade(overallScore)

@@ -9,6 +9,16 @@ import { ILLUSTRIOUS_18, FAB_4 } from '../../engine/counting/deviations'
 /** Minimum accuracy for a single deviation to count as "mastered". */
 const MASTERY_ACCURACY = 0.75
 
+/**
+ * Minimum sample sizes before a casino accuracy/grade achievement can unlock.
+ * Without these, an empty denominator (counting turned off, no deviation
+ * situation, a 2-hand session) defaults to 100% and hands out gold/diamond
+ * achievements for skill that was never demonstrated.
+ */
+const MIN_COUNT_CHECKS = 5
+const MIN_DEVIATION_SITUATIONS = 3
+const MIN_GRADE_HANDS = 20
+
 const STORAGE_KEY = 'bjt_achievements'
 const SIM_COUNT_KEY = 'bjt_sim_count'
 const SIM_BEST_EDGE_KEY = 'bjt_sim_best_edge'
@@ -641,15 +651,18 @@ export class AchievementEngine {
       case 'casino_hands':
         return details.handsPlayed >= value
       case 'casino_grade':
-        return details.overallScore >= value
+        // A grade only means something over a real session, not two lucky hands.
+        return details.handsPlayed >= MIN_GRADE_HANDS && details.overallScore >= value
       case 'casino_bet_accuracy':
         return details.betAccuracy >= value
       case 'casino_play_accuracy':
         return details.playAccuracy >= value
       case 'casino_count_accuracy':
-        return details.countAccuracy >= value
+        return (details.totalCountChecks ?? 0) >= MIN_COUNT_CHECKS &&
+               details.countAccuracy >= value
       case 'casino_triple':
-        return details.betAccuracy >= value &&
+        return (details.totalCountChecks ?? 0) >= MIN_COUNT_CHECKS &&
+               details.betAccuracy >= value &&
                details.playAccuracy >= value &&
                details.countAccuracy >= value
       case 'casino_profit':
@@ -663,7 +676,8 @@ export class AchievementEngine {
       case 'casino_max_split':
         return details.maxSplitHands >= value
       case 'casino_deviation_accuracy':
-        return details.deviationAccuracy >= value
+        return (details.totalDeviationSituations ?? 0) >= MIN_DEVIATION_SITUATIONS &&
+               details.deviationAccuracy >= value
       default:
         return false
     }
@@ -680,7 +694,7 @@ export class AchievementEngine {
     for (const s of allSessions) {
       if (s.mode === 'casinoSession' && s.details.type === 'casinoSession') {
         const d = s.details as CasinoSessionDetails
-        if (d.overallScore >= 95) count++
+        if (d.handsPlayed >= MIN_GRADE_HANDS && d.overallScore >= 95) count++
       }
     }
     return count >= requiredCount

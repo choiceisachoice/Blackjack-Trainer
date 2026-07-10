@@ -412,7 +412,9 @@ describe('AchievementEngine', () => {
           betAccuracy: 80,
           playAccuracy: 90,
           countAccuracy: 75,
+          totalCountChecks: 20,
           deviationAccuracy: 80,
+          totalDeviationSituations: 10,
           numBots: 3,
           hadBlackjack: false,
           longestWinStreak: 3,
@@ -471,6 +473,34 @@ describe('AchievementEngine', () => {
       const sessionAll90 = makeCasinoSession({ betAccuracy: 92, playAccuracy: 91, countAccuracy: 90 })
       unlocked = engine.checkAfterSession(sessionAll90, stats, 0, [sessionAll90])
       expect(unlocked.some(a => a.id === 'casino_triple_threat')).toBe(true)
+    })
+
+    it('count/deviation/triple achievements need a real sample (no empty-denominator 100%)', () => {
+      const stats = makeStats({ totalSessions: 1, byMode: { casinoSession: { totalSessions: 1, totalQuestions: 40, totalCorrect: 40, accuracy: 1, bestAccuracy: 1, totalPracticeSeconds: 300, bestStreak: 0 } } })
+
+      // Counting off (0 checks) but countAccuracy defaulted to 100 → must NOT unlock.
+      const noCount = makeCasinoSession({
+        countAccuracy: 100, totalCountChecks: 0,
+        betAccuracy: 100, playAccuracy: 100,
+      })
+      let unlocked = engine.checkAfterSession(noCount, stats, 0, [noCount])
+      expect(unlocked.some(a => a.id === 'casino_triple_threat')).toBe(false)
+      expect(unlocked.some(a => a.id === 'casino_eagle_eye')).toBe(false)
+      expect(unlocked.some(a => a.id === 'tc_sharpshooter')).toBe(false)
+
+      // No deviation situations but deviationAccuracy defaulted to 100 → must NOT unlock.
+      const noDev = makeCasinoSession({ deviationAccuracy: 100, totalDeviationSituations: 0 })
+      unlocked = engine.checkAfterSession(noDev, stats, 0, [noDev])
+      expect(unlocked.some(a => a.id === 'deviation_ace')).toBe(false)
+
+      // A short session must not earn a grade achievement on a lucky hand or two.
+      const shortGrade = makeCasinoSession({ handsPlayed: 3, overallScore: 100, grade: 'A+' })
+      unlocked = engine.checkAfterSession(shortGrade, stats, 0, [shortGrade])
+      expect(unlocked.some(a => a.id === 'casino_valedictorian')).toBe(false)
+      // …but a full-length A+ session does earn it.
+      const fullGrade = makeCasinoSession({ handsPlayed: 20, overallScore: 100, grade: 'A+' })
+      unlocked = engine.checkAfterSession(fullGrade, stats, 0, [fullGrade])
+      expect(unlocked.some(a => a.id === 'casino_valedictorian')).toBe(true)
     })
 
     it('casino streak 5 counts consecutive wins', () => {
@@ -753,10 +783,16 @@ describe('AchievementEngine — balance-pass requirement types', () => {
   it('casino_deviation_accuracy: Deviation Ace needs 95%+ deviation accuracy', () => {
     const casino = (dev: number) => makeSession({
       mode: 'casinoSession', accuracy: 0.9,
-      details: { type: 'casinoSession', handsPlayed: 40, netProfit: 100, overallScore: 85, grade: 'B', betAccuracy: 90, playAccuracy: 90, countAccuracy: 90, deviationAccuracy: dev, numBots: 2, hadBlackjack: true, longestWinStreak: 3, splitAces: false, maxSplitHands: 2 },
+      details: { type: 'casinoSession', handsPlayed: 40, netProfit: 100, overallScore: 85, grade: 'B', betAccuracy: 90, playAccuracy: 90, countAccuracy: 90, totalCountChecks: 40, deviationAccuracy: dev, totalDeviationSituations: 8, numBots: 2, hadBlackjack: true, longestWinStreak: 3, splitAces: false, maxSplitHands: 2 },
     })
     expect(unlock(casino(96))).toContain('deviation_ace')
     expect(unlock(casino(80))).not.toContain('deviation_ace')
+    // No deviation situations → even a defaulted 100% must not unlock it.
+    const noDevSits = makeSession({
+      mode: 'casinoSession', accuracy: 0.9,
+      details: { type: 'casinoSession', handsPlayed: 40, netProfit: 100, overallScore: 85, grade: 'B', betAccuracy: 90, playAccuracy: 90, countAccuracy: 90, totalCountChecks: 40, deviationAccuracy: 100, totalDeviationSituations: 0, numBots: 2, hadBlackjack: true, longestWinStreak: 3, splitAces: false, maxSplitHands: 2 },
+    })
+    expect(unlock(noDevSits)).not.toContain('deviation_ace')
   })
 
   it('modes_in_day: Daily Double for all five core modes on one day', () => {
