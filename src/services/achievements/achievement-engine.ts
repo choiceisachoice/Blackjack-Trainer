@@ -151,6 +151,16 @@ export class AchievementEngine {
     return [...this.unlocked]
   }
 
+  /**
+   * Re-read the unlock set from localStorage. Used after the local caches are
+   * wiped (sign-out / a different user signing in) so the in-memory singleton
+   * cannot keep serving the previous user's unlocks.
+   */
+  reloadFromStorage(): void {
+    this.unlocked = []
+    this.loadFromStorage()
+  }
+
   /** Get number of unlocked achievements. */
   getUnlockedCount(): number {
     return this.unlocked.length

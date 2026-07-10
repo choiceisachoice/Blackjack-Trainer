@@ -6,6 +6,7 @@ import {
 import { useAppStore } from '../../store/app-store'
 import type { AppMode } from '../../store/app-store'
 import { useAuthStore, isSupabaseConfigured } from '../../store/auth-store'
+import { signOutAndClearLocal } from '../../services/supabase/cloud-sync'
 import { LevelBadge } from './LevelBadge'
 
 interface NavItem {
@@ -44,7 +45,6 @@ export function NavBar() {
   const theme = useAppStore(s => s.theme)
   const toggleTheme = useAppStore(s => s.toggleTheme)
   const authStatus = useAuthStore(s => s.status)
-  const signOut = useAuthStore(s => s.signOut)
   const showSignOut = isSupabaseConfigured && authStatus === 'signedIn'
 
   const renderItem = ({ mode, label, icon: Icon }: NavItem) => {
@@ -116,7 +116,7 @@ export function NavBar() {
           </button>
           {showSignOut && (
             <button
-              onClick={() => signOut()}
+              onClick={() => { void signOutAndClearLocal() }}
               data-testid="sign-out"
               aria-label="Sign out"
               title="Sign out"
