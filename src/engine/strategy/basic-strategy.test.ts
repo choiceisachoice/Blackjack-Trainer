@@ -87,8 +87,13 @@ describe('Soft Totals', () => {
       .toBe(Action.Double)
   })
 
-  it('Soft 18 (A,7) vs Dealer 2 = Double, else Stand', () => {
+  it('Soft 18 (A,7) vs Dealer 2 = Stand under S17 (the double is H17-only)', () => {
     expect(getOptimalAction([c(Rank.Ace), c(Rank.Seven)], c(Rank.Two), S17_RULES))
+      .toBe(Action.Stand)
+  })
+
+  it('Soft 18 (A,7) vs Dealer 3 = Double, else Stand', () => {
+    expect(getOptimalAction([c(Rank.Ace), c(Rank.Seven)], c(Rank.Three), S17_RULES))
       .toBe(Action.Double)
   })
 
@@ -97,9 +102,9 @@ describe('Soft Totals', () => {
       .toBe(Action.Hit)
   })
 
-  it('Soft 19 (A,8) vs Dealer 6 = Double, else Stand', () => {
+  it('Soft 19 (A,8) vs Dealer 6 = Stand under S17 (the double is H17-only)', () => {
     expect(getOptimalAction([c(Rank.Ace), c(Rank.Eight)], c(Rank.Six), S17_RULES))
-      .toBe(Action.Double)
+      .toBe(Action.Stand)
   })
 
   it('Soft 20 (A,9) always Stand', () => {
@@ -182,11 +187,11 @@ describe('Edge Cases', () => {
   })
 
   it('S17 vs H17 differ on specific hands (all 6 cells)', () => {
-    // 1. Hard 11 vs A:  S17=Double, H17=Hit
+    // 1. Hard 11 vs A:  S17=Hit, H17=Double
     expect(getOptimalAction([c(Rank.Six), c(Rank.Five)], c(Rank.Ace), S17_RULES))
-      .toBe(Action.Double)
-    expect(getOptimalAction([c(Rank.Six), c(Rank.Five)], c(Rank.Ace), H17_RULES))
       .toBe(Action.Hit)
+    expect(getOptimalAction([c(Rank.Six), c(Rank.Five)], c(Rank.Ace), H17_RULES))
+      .toBe(Action.Double)
 
     // 2. Hard 15 vs A:  S17=Hit, H17=Surrender
     expect(getOptimalAction([c(Rank.Ten), c(Rank.Five)], c(Rank.Ace), S17_RULES))
@@ -206,17 +211,36 @@ describe('Edge Cases', () => {
     expect(getOptimalAction([c(Rank.Ace), c(Rank.Six)], c(Rank.Two), H17_RULES))
       .toBe(Action.Double)
 
-    // 5. Soft 18 (A,7) vs 2:  S17=Double, H17=Stand
+    // 5. Soft 18 (A,7) vs 2:  S17=Stand, H17=Double  (H17 adds this double)
     expect(getOptimalAction([c(Rank.Ace), c(Rank.Seven)], c(Rank.Two), S17_RULES))
-      .toBe(Action.Double)
+      .toBe(Action.Stand)
     expect(getOptimalAction([c(Rank.Ace), c(Rank.Seven)], c(Rank.Two), H17_RULES))
-      .toBe(Action.Stand)
-
-    // 6. Soft 19 (A,8) vs 6:  S17=Double, H17=Stand
-    expect(getOptimalAction([c(Rank.Ace), c(Rank.Eight)], c(Rank.Six), S17_RULES))
       .toBe(Action.Double)
-    expect(getOptimalAction([c(Rank.Ace), c(Rank.Eight)], c(Rank.Six), H17_RULES))
+
+    // 6. Soft 19 (A,8) vs 6:  S17=Stand, H17=Double  (the classic H17-only double)
+    expect(getOptimalAction([c(Rank.Ace), c(Rank.Eight)], c(Rank.Six), S17_RULES))
       .toBe(Action.Stand)
+    expect(getOptimalAction([c(Rank.Ace), c(Rank.Eight)], c(Rank.Six), H17_RULES))
+      .toBe(Action.Double)
+  })
+
+  /**
+   * Regression guard: these three cells were once inverted between the tables,
+   * teaching the wrong play under BOTH rule sets. H17 only ever ADDS aggression
+   * here — it never turns a Double back into a Hit/Stand. Never let them flip.
+   */
+  it('H17 only ever adds doubles to these three cells, never removes them', () => {
+    const cells: Array<[string, ReturnType<typeof c>[], ReturnType<typeof c>]> = [
+      ['hard 11 vs A', [c(Rank.Six), c(Rank.Five)], c(Rank.Ace)],
+      ['soft 18 vs 2', [c(Rank.Ace), c(Rank.Seven)], c(Rank.Two)],
+      ['soft 19 vs 6', [c(Rank.Ace), c(Rank.Eight)], c(Rank.Six)],
+    ]
+    for (const [label, hand, upcard] of cells) {
+      expect(getOptimalAction(hand, upcard, S17_RULES), `${label} under S17`)
+        .not.toBe(Action.Double)
+      expect(getOptimalAction(hand, upcard, H17_RULES), `${label} under H17`)
+        .toBe(Action.Double)
+    }
   })
 })
 

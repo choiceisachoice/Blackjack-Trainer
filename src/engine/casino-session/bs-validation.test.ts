@@ -98,10 +98,11 @@ describe('BS Validation: Hard Hands (S17, 2-card)', () => {
     [10, Rank.Ten, Action.Hit],
     [10, Rank.Ace, Action.Hit],
 
-    // Hard 11: double vs all (S17)
+    // Hard 11: double vs 2-10, hit vs A (S17 — the 11 vs A double is H17-only)
     ...[Rank.Two, Rank.Three, Rank.Four, Rank.Five, Rank.Six,
-      Rank.Seven, Rank.Eight, Rank.Nine, Rank.Ten, Rank.Ace]
+      Rank.Seven, Rank.Eight, Rank.Nine, Rank.Ten]
       .map(d => [11, d, Action.Double] as [number, Rank, Action]),
+    [11, Rank.Ace, Action.Hit],
 
     // Hard 12: hit vs 2-3, stand vs 4-6, hit vs 7-A
     [12, Rank.Two, Action.Hit],

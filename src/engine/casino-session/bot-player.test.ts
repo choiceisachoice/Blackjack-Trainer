@@ -338,10 +338,11 @@ describe('Bot Player', () => {
       expect(hands[0].isDoubled).toBe(true)
     })
 
-    it('doubles hard 11 vs dealer Ace (S17)', () => {
+    it('hits hard 11 vs dealer Ace (S17 — the double is H17-only)', () => {
       const bot = createBotWithHand([card(Rank.Five), card(Rank.Six)])
       const hands = playBotTurn(bot, card(Rank.Ace), setupDrawCard([card(Rank.Ten)]), testRules)
-      expect(hands[0].isDoubled).toBe(true)
+      expect(hands[0].isDoubled).toBe(false)
+      expect(hands[0].isStanding).toBe(true) // hits to 21, then stands
     })
 
     // Hard 12 — stand vs 4-6, hit otherwise
@@ -644,12 +645,11 @@ describe('Bot Player', () => {
       expect(hands[0].isDoubled).toBe(true)
     })
 
-    it('stands soft 18 vs dealer 2 (S17 — Ds resolves to Stand)', () => {
-      // Ds vs 2: can double, so returns Double. But wait—for S17, A,7 vs 2 is 'Ds'.
-      // With 2 cards, canDouble=true, so resolved to Double.
+    it('stands soft 18 vs dealer 2 (S17 — the double is H17-only)', () => {
       const bot = createBotWithHand([card(Rank.Ace), card(Rank.Seven)])
       const hands = playBotTurn(bot, card(Rank.Two), setupDrawCard([card(Rank.Two)]), testRules)
-      expect(hands[0].isDoubled).toBe(true) // Ds with canDouble=true → Double
+      expect(hands[0].isDoubled).toBe(false)
+      expect(hands[0].isStanding).toBe(true)
     })
 
     it('stands soft 18 vs dealer 7', () => {
@@ -691,12 +691,11 @@ describe('Bot Player', () => {
       expect(hands[0].cards.length).toBe(2)
     })
 
-    it('doubles soft 19 vs dealer 6 (S17 — Ds resolves to Double)', () => {
-      // S17: A,8 vs 6 → Ds, and canDouble=true → Double
+    it('stands soft 19 vs dealer 6 (S17 — the double is the classic H17-only play)', () => {
       const bot = createBotWithHand([card(Rank.Ace), card(Rank.Eight)])
       const hands = playBotTurn(bot, card(Rank.Six), setupDrawCard([card(Rank.Two)]), testRules)
-      // Actually S17: A,8 vs 6 is 'Ds'. With 2 cards canDouble=true → Double
-      expect(hands[0].isDoubled).toBe(true)
+      expect(hands[0].isDoubled).toBe(false)
+      expect(hands[0].isStanding).toBe(true)
     })
 
     // Soft 20 (A,9) — always stand
@@ -944,11 +943,10 @@ describe('Bot Player', () => {
     const h17Rules: CasinoRules = { ...testRules, dealerHitsSoft17: true }
 
     // H17: Hard 11 vs Ace → Hit (not Double like S17)
-    it('hits hard 11 vs dealer Ace under H17', () => {
+    it('doubles hard 11 vs dealer Ace under H17', () => {
       const bot = createBotWithHand([card(Rank.Five), card(Rank.Six)])
       const hands = playBotTurn(bot, card(Rank.Ace), setupDrawCard([card(Rank.Ten)]), h17Rules) // 11+10=21
-      expect(hands[0].isDoubled).toBe(false) // H17: 11 vs A → H, not D
-      expect(hands[0].isStanding).toBe(true)
+      expect(hands[0].isDoubled).toBe(true) // H17: 11 vs A → D
     })
 
     // H17: Hard 15 vs Ace → Rh (surrender or hit)

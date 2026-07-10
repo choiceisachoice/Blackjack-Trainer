@@ -29,7 +29,7 @@ export const S17_STRATEGY: StrategyTable = {
     '8':  row('H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'),
     '9':  row('H', 'D', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'),
     '10': row('D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'H', 'H'),
-    '11': row('D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'D'),
+    '11': row('D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'H'),
     '12': row('H', 'H', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H'),
     '13': row('S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H'),
     '14': row('S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H'),
@@ -47,8 +47,8 @@ export const S17_STRATEGY: StrategyTable = {
     'A,4': row('H',  'H',  'D',  'D',  'D',  'H', 'H', 'H', 'H', 'H'),
     'A,5': row('H',  'H',  'D',  'D',  'D',  'H', 'H', 'H', 'H', 'H'),
     'A,6': row('H',  'D',  'D',  'D',  'D',  'H', 'H', 'H', 'H', 'H'),
-    'A,7': row('Ds', 'Ds', 'Ds', 'Ds', 'Ds', 'S', 'S', 'H', 'H', 'H'),
-    'A,8': row('S',  'S',  'S',  'S',  'Ds', 'S', 'S', 'S', 'S', 'S'),
+    'A,7': row('S',  'Ds', 'Ds', 'Ds', 'Ds', 'S', 'S', 'H', 'H', 'H'),
+    'A,8': row('S',  'S',  'S',  'S',  'S',  'S', 'S', 'S', 'S', 'S'),
     'A,9': row('S',  'S',  'S',  'S',  'S',  'S', 'S', 'S', 'S', 'S'),
   },
   pairs: {
@@ -69,29 +69,31 @@ export const S17_STRATEGY: StrategyTable = {
  * Basic Strategy table for **H17** (Dealer Hits on Soft 17).
  * 6-deck, DAS allowed, late surrender.
  *
- * **6 cells differ from S17 → H17:**
+ * **6 cells differ from S17 → H17.** H17 makes the dealer bust more often on the
+ * small upcards and reach 18 more often on an Ace, so the player doubles more
+ * aggressively against 2 and 6 and surrenders more against an Ace:
  *
- * | Hand          | Dealer | S17 | H17 | Reason                                  |
- * |---------------|--------|-----|-----|-----------------------------------------|
- * | Hard 11       | A      | D   | H   | Dealer Ace stronger → double less value  |
- * | Hard 15       | A      | H   | Rh  | Dealer Ace stronger → surrender better   |
- * | Hard 17       | A      | S   | Rs  | Dealer Ace stronger → surrender better   |
- * | Soft 17 (A,6) | 2      | H   | D   | Dealer 2 bustier with H17 → double up   |
- * | Soft 18 (A,7) | 2      | Ds  | S   | Marginal double no longer worth the risk |
- * | Soft 19 (A,8) | 6      | Ds  | S   | Dealer 6 less weak with H17 → just stand |
+ * | Hand          | Dealer | S17 | H17 | Reason                                     |
+ * |---------------|--------|-----|-----|--------------------------------------------|
+ * | Hard 11       | A      | H   | D   | Dealer busts more often → double is +EV     |
+ * | Hard 15       | A      | H   | Rh  | Dealer Ace stronger → surrender better      |
+ * | Hard 17       | A      | S   | Rs  | Dealer Ace stronger → surrender better      |
+ * | Soft 17 (A,6) | 2      | H   | D   | Dealer 2 bustier with H17 → double up       |
+ * | Soft 18 (A,7) | 2      | S   | Ds  | Dealer 2 bustier with H17 → double is +EV   |
+ * | Soft 19 (A,8) | 6      | S   | Ds  | Dealer 6 bustier with H17 → the classic H17 double |
  */
 export const H17_STRATEGY: StrategyTable = {
   hardTotals: {
     ...S17_STRATEGY.hardTotals,
-    '11': row('D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'H'),
+    '11': row('D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'D'),
     '15': row('S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'Rh', 'Rh'),
     '17': row('S', 'S', 'S', 'S', 'S', 'S', 'S', 'S', 'S', 'Rs'),
   },
   softTotals: {
     ...S17_STRATEGY.softTotals,
     'A,6': row('D',  'D',  'D',  'D',  'D',  'H', 'H', 'H', 'H', 'H'),
-    'A,7': row('S',  'Ds', 'Ds', 'Ds', 'Ds', 'S', 'S', 'H', 'H', 'H'),
-    'A,8': row('S',  'S',  'S',  'S',  'S',  'S', 'S', 'S', 'S', 'S'),
+    'A,7': row('Ds', 'Ds', 'Ds', 'Ds', 'Ds', 'S', 'S', 'H', 'H', 'H'),
+    'A,8': row('S',  'S',  'S',  'S',  'Ds', 'S', 'S', 'S', 'S', 'S'),
   },
   pairs: {
     ...S17_STRATEGY.pairs,
