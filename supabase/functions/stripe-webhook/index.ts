@@ -23,13 +23,24 @@ const admin = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
 
+/**
+ * The paid-period end, in seconds. Newer Stripe API versions (basil/dahlia)
+ * moved this from the subscription onto each subscription item; older ones keep
+ * it on the subscription. Read whichever is present so the endpoint's API
+ * version can't leave us with a null period.
+ */
+function resolvePeriodEnd(sub: Stripe.Subscription): string | null {
+  const item = sub.items?.data?.[0] as { current_period_end?: number } | undefined
+  const epoch = (sub as { current_period_end?: number }).current_period_end
+    ?? item?.current_period_end
+  return epoch ? new Date(epoch * 1000).toISOString() : null
+}
+
 /** Write the entitlement columns from a Stripe subscription. */
 async function syncSubscription(sub: Stripe.Subscription): Promise<void> {
   const userId = sub.metadata?.supabase_user_id
   const priceId = sub.items.data[0]?.price.id ?? null
-  const periodEnd = sub.current_period_end
-    ? new Date(sub.current_period_end * 1000).toISOString()
-    : null
+  const periodEnd = resolvePeriodEnd(sub)
 
   const patch = {
     subscription_status: sub.status, // active | trialing | past_due | canceled | …
