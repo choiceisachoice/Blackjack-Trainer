@@ -135,11 +135,11 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
       lifetimeStats,
     }))
 
-    // Check achievements after session save
-    const dayStreak = get().getTrainingStreak()
-    useAchievementStore.getState().checkAchievements(
-      result, lifetimeStats, dayStreak, allSessions,
-    )
+    // Award session XP first, then challenge XP, THEN check achievements — so a
+    // level reached from this session's own XP is already applied when the
+    // reach_level achievements are evaluated (they read persisted XP). Otherwise
+    // "I hit Level 5" wouldn't unlock until the next session.
+    useLevelStore.getState().addSessionXP(result)
 
     // Update daily challenge progress. Bucket by the user's LOCAL day, the same
     // calendar the challenge engines credit against (see services/date-utils).
@@ -152,8 +152,11 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
     const weekSessions = allSessions.filter(s => dayKey(s.timestamp) >= weekStart)
     useWeeklyChallengeStore.getState().updateProgress(result, weekSessions)
 
-    // Award session XP
-    useLevelStore.getState().addSessionXP(result)
+    // Achievements last, so they see this session's level and challenge XP.
+    const dayStreak = get().getTrainingStreak()
+    useAchievementStore.getState().checkAchievements(
+      result, lifetimeStats, dayStreak, allSessions,
+    )
   },
 
   getAccuracyTrend(mode?: TrainingMode): TrendDirection {
