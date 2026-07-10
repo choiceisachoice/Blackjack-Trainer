@@ -21,21 +21,24 @@ import { CasinoSessionTracker } from './components/training/CasinoSessionTracker
 import { LearnPage } from './components/learn/LearnPage'
 import { AchievementToast } from './components/achievements/AchievementToast'
 import { LevelUpPopup } from './components/navigation/LevelUpPopup'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
 
 /**
  * Root application component.
  * Routes to the active training mode based on app-store.currentMode.
  */
-// Modes whose page relies on the app shell for scrolling. Analytics and
-// Achievements are excluded: their pages scroll themselves (flex-1 overflow-y-auto),
-// so also scrolling here would double up and can trap scrolling to part of the view.
+// Modes whose page relies on the app shell for scrolling. Analytics, Achievements
+// and the Casino Session Tracker are excluded: their pages scroll themselves
+// (flex-1 overflow-y-auto), so also scrolling here would double up and can trap
+// scrolling to part of the view.
 const SCROLLABLE_MODES = new Set([
   'home', 'bankrollSim',
-  'casinoSession', 'strategyChart', 'casinoSessionTracker', 'learn',
+  'casinoSession', 'strategyChart', 'learn',
 ])
 
 function App() {
   const currentMode = useAppStore(s => s.currentMode)
+  const setMode = useAppStore(s => s.setMode)
   const scrollable = SCROLLABLE_MODES.has(currentMode)
 
   // Load the auth session once. Harmless (resolves to signed-out) when Supabase
@@ -70,18 +73,22 @@ function App() {
   return (
     <div className={`h-screen flex flex-col bg-casino-bg transition-colors duration-200 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <NavBar />
-      {currentMode === 'home' && <HomeScreen />}
-      {currentMode === 'speedDrill' && <SpeedDrill />}
-      {currentMode === 'deviationTraining' && <DeviationTraining />}
-      {currentMode === 'betSpread' && <BetSpread />}
-      {currentMode === 'deckEstimation' && <DeckEstimation />}
-      {currentMode === 'analytics' && <AnalyticsDashboard />}
-      {currentMode === 'bankrollSim' && <BankrollSimulator />}
-      {currentMode === 'achievements' && <AchievementsPage />}
-      {currentMode === 'casinoSession' && <CasinoSession />}
-      {currentMode === 'strategyChart' && <StrategyChart />}
-      {currentMode === 'casinoSessionTracker' && <CasinoSessionTracker />}
-      {currentMode === 'learn' && <LearnPage />}
+      {/* Reset key on the mode so switching screens clears a crashed one. A render
+          error shows a recoverable fallback instead of blanking the whole app. */}
+      <ErrorBoundary key={currentMode} onReset={() => setMode('home')}>
+        {currentMode === 'home' && <HomeScreen />}
+        {currentMode === 'speedDrill' && <SpeedDrill />}
+        {currentMode === 'deviationTraining' && <DeviationTraining />}
+        {currentMode === 'betSpread' && <BetSpread />}
+        {currentMode === 'deckEstimation' && <DeckEstimation />}
+        {currentMode === 'analytics' && <AnalyticsDashboard />}
+        {currentMode === 'bankrollSim' && <BankrollSimulator />}
+        {currentMode === 'achievements' && <AchievementsPage />}
+        {currentMode === 'casinoSession' && <CasinoSession />}
+        {currentMode === 'strategyChart' && <StrategyChart />}
+        {currentMode === 'casinoSessionTracker' && <CasinoSessionTracker />}
+        {currentMode === 'learn' && <LearnPage />}
+      </ErrorBoundary>
       <AchievementToast />
       <LevelUpPopup />
     </div>
