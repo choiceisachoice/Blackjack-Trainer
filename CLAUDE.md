@@ -14,8 +14,11 @@ and a full Casino Session table.
 - **Training modes:** Speed Drill, **Flashcards** (all basic-strategy hands + deviations; replaced
   the old "Table Counting"/"Deviations" modes), Bet Spread, Deck Estimation, plus the **Casino
   Session** (full multi-seat table) and a **Learn** theory page.
-- **Persistence:** **localStorage** (offline-first). Supabase cloud sync / accounts are planned but
-  NOT yet implemented.
+- **Persistence:** **Local-first with cloud sync.** Login is required (Supabase Auth); the app still
+  works offline via localStorage, and the cloud is the source of truth once signed in. Sessions,
+  achievements, level/XP and the bankroll log all sync (see ADR-001).
+- **Monetization:** **Stripe subscriptions** (monthly/yearly) gate a **Pro** tier. Server side runs on
+  Supabase Edge Functions; entitlement is written only by the signature-verified webhook (see ADR-002).
 - **UI Language:** English
 - **UI Theme:** **Dark-luxury** (near-black `#070809` + gold `#d4a847`, Inter font), in the style of
   Linear/Resend/Raycast. The Casino Session uses a realistic green-felt table within that shell.
@@ -30,8 +33,8 @@ and a full Casino Session table.
 - **Charts:** Recharts · **Icons:** lucide-react
 - **Testing:** Vitest + @testing-library/react
 - **Card Assets:** CSS/SVG-rendered cards (rank corner index + centre pip)
-- **Persistence:** localStorage (offline-first). **Backend/Auth (Supabase)** and **Deployment** are
-  planned but NOT yet set up — deployment/infra is Christian's call.
+- **Persistence:** localStorage + **Supabase** (Auth, Postgres w/ RLS, Edge Functions). Local-first with
+  cloud sync; login required. **Payments:** Stripe (subscriptions) via Edge Functions.
 
 ## Dev Server Commands
 
@@ -187,9 +190,10 @@ blackjack-trainer/
 | F-005 | Table UI (Casino Session) | Phase 3 | P1 | ✅ Rebuilt (dark-luxury, flow layout + animations) |
 | F-006 | Training Modes | Phase 4 | P1 | ✅ Complete (Speed Drill, Flashcards, Bet Spread, Deck Estimation) |
 | F-007 | Analytics & Statistics | Phase 5 | P2 | ✅ Complete — 2.0 redesign (dark-luxury; range-aware KPIs incl. training time, accuracy trend, practice heatmap, skill radar, real Casino Session edge from netProfit, weakest hands, insight hook). Pure derivations in `analytics-derive.ts`, hand-authored SVG charts in `AnalyticsCharts.tsx` |
-| F-008 | Supabase Auth & Persistence | Phase 3 | P1 | 🔲 Not started (localStorage only; auth is a later milestone) |
+| F-008 | Supabase Auth & Cloud Sync | Phase 3 | P1 | ✅ Complete (login required; sessions/achievements/level/bankroll sync, RLS default-deny; ADR-001) |
 | F-010 | Sound Effects | Phase 5 | P2 | ✅ Complete |
 | F-011 | Achievements / Levels / Challenges | Phase 5 | P2 | ✅ Complete |
+| F-012 | Stripe Subscriptions & Pro Gating | Phase 6 | P1 | ✅ Code complete — Edge Functions + entitlement gating; needs Stripe dashboard wiring (docs/STRIPE-SETUP.md); ADR-002 |
 
 ## Implementation Workflow (for every feature)
 
