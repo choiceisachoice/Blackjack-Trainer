@@ -230,8 +230,19 @@ class SyncedStorageService implements StorageService {
       : this.local
   }
 
-  saveSessionResult(result: TrainingSessionResult): Promise<void> {
-    return this.impl().saveSessionResult(result)
+  async saveSessionResult(result: TrainingSessionResult): Promise<void> {
+    if (this.impl() === this.local) {
+      return this.local.saveSessionResult(result)
+    }
+    try {
+      await this.cloud.saveSessionResult(result)
+    } catch (e) {
+      // Don't lose a finished session (and its XP/achievements) on a flaky
+      // connection — keep a local copy. Local sessions are re-pushed to the
+      // cloud on the next sign-in (upsert on id, so no duplicates).
+      console.error('cloud session save failed; falling back to local', e)
+      await this.local.saveSessionResult(result)
+    }
   }
   getSessionResults(mode: TrainingMode): Promise<TrainingSessionResult[]> {
     return this.impl().getSessionResults(mode)

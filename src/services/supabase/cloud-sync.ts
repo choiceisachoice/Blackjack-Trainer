@@ -14,11 +14,6 @@ import { requireSupabase, isSupabaseConfigured } from './client'
 
 const cloud = new SupabaseStorageService()
 
-/** localStorage flag key marking a user's one-time local→cloud migration as done. */
-function migratedKey(userId: string): string {
-  return `bjt_cloud_migrated_${userId}`
-}
-
 /**
  * Union-merge local and cloud bankroll sessions by id (local wins on conflict,
  * so an offline edit is preserved and pushed up). Legacy sessions created
@@ -91,12 +86,13 @@ async function runSignInSync(): Promise<void> {
     }
     setLocalOwner(userId)
 
-    if (!localStorage.getItem(migratedKey(userId))) {
-      const localSessions = await localStorageService.getAllSessionResults()
-      if (localSessions.length > 0) {
-        await cloud.saveMany(localSessions)
-      }
-      try { localStorage.setItem(migratedKey(userId), new Date().toISOString()) } catch { /* ignore */ }
+    // Push any local sessions to the cloud (idempotent upsert on id). This
+    // covers both the guest → first-account migration and any sessions that
+    // fell back to local while offline. Cheap: a signed-in user's new sessions
+    // go straight to the cloud, so local stays near-empty between syncs.
+    const localSessions = await localStorageService.getAllSessionResults()
+    if (localSessions.length > 0) {
+      await cloud.saveMany(localSessions)
     }
 
     // Achievements: union cloud + local, push local-only up, refresh the UI.
