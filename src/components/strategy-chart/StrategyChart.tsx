@@ -1,8 +1,11 @@
 import { useState } from 'react'
+import { Lock } from 'lucide-react'
 import { S17_STRATEGY, H17_STRATEGY } from '../../engine/strategy/basic-strategy-tables'
 import type { StrategyAction, StrategyTable } from '../../engine/strategy/types'
 import { ILLUSTRIOUS_18 } from '../../engine/counting/deviations'
 import { useAppStore } from '../../store/app-store'
+import { useIsPro } from '../../store/entitlement-store'
+import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
 
 /** A count-based deviation attached to a chart cell. */
 interface DevInfo {
@@ -151,7 +154,12 @@ export function StrategyChart() {
   const dealerHitsSoft17 = useAppStore(s => s.selectedRules.dealerHitsSoft17)
   // In-page rule override (defaults to the globally selected rules).
   const [h17, setH17] = useState(dealerHitsSoft17)
-  const [showDeviations, setShowDeviations] = useState(true)
+  const isPro = useIsPro()
+  const showUpgrade = useUpgradePrompt(s => s.show)
+  // The deviations overlay is a Pro feature; free users see the base chart and
+  // a locked toggle that opens the paywall.
+  const [showDeviationsPref, setShowDeviationsPref] = useState(true)
+  const showDeviations = isPro && showDeviationsPref
   const table = h17 ? H17_STRATEGY : S17_STRATEGY
   const sections = buildSections(table)
   const ruleLabel = h17 ? 'H17' : 'S17'
@@ -182,12 +190,18 @@ export function StrategyChart() {
           ))}
         </div>
         <button
-          onClick={() => setShowDeviations(v => !v)}
+          onClick={() => {
+            if (isPro) setShowDeviationsPref(v => !v)
+            else showUpgrade('Deviations are a Pro feature — see exactly when to break basic strategy by the count.')
+          }}
           aria-pressed={showDeviations}
+          data-testid="toggle-deviations"
           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer transition-colors
             ${showDeviations ? 'bg-gold/20 text-gold border-gold/40' : 'bg-contrast/5 text-content/50 border-contrast/10 hover:text-content/70'}`}
         >
-          <span className={`w-2 h-2 rounded-full ${showDeviations ? 'bg-gold' : 'bg-content/30'}`} />
+          {isPro
+            ? <span className={`w-2 h-2 rounded-full ${showDeviations ? 'bg-gold' : 'bg-content/30'}`} />
+            : <Lock size={12} className="text-gold/70" />}
           Deviations (Illustrious 18)
         </button>
       </div>

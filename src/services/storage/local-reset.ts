@@ -9,6 +9,7 @@ import { useBankrollTrackerStore } from '../../store/bankroll-tracker-store'
 import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker-store'
 import { useChallengeStore } from '../../store/challenge-store'
 import { useWeeklyChallengeStore } from '../../store/weekly-challenge-store'
+import { useEntitlementStore } from '../../store/entitlement-store'
 
 /** Every app-owned localStorage key starts with this. */
 const APP_PREFIX = 'bjt_'
@@ -84,4 +85,5 @@ export function clearLocalAppData(): void {
   useCasinoSessionTrackerStore.getState().reset()
   useChallengeStore.getState().refresh()
   useWeeklyChallengeStore.getState().refresh()
+  useEntitlementStore.getState().reset()
 }

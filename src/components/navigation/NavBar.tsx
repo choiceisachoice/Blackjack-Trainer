@@ -1,11 +1,16 @@
 import {
   Zap, Spade, GraduationCap, Coins, Layers, Club,
   BarChart3, Grid3x3, Trophy, BookOpen, Volume2, VolumeX, Sun, Moon, LogOut,
+  Lock, Crown, Settings,
   type LucideIcon,
 } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
 import type { AppMode } from '../../store/app-store'
 import { useAuthStore, isSupabaseConfigured } from '../../store/auth-store'
+import { useIsPro } from '../../store/entitlement-store'
+import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
+import { isProMode } from '../../services/pro-features'
+import { openBillingPortal } from '../../services/supabase/billing'
 import { signOutAndClearLocal } from '../../services/supabase/cloud-sync'
 import { LevelBadge } from './LevelBadge'
 
@@ -46,9 +51,13 @@ export function NavBar() {
   const toggleTheme = useAppStore(s => s.toggleTheme)
   const authStatus = useAuthStore(s => s.status)
   const showSignOut = isSupabaseConfigured && authStatus === 'signedIn'
+  const isPro = useIsPro()
+  const showBilling = isSupabaseConfigured && authStatus === 'signedIn'
+  const showUpgradeModal = useUpgradePrompt(s => s.show)
 
   const renderItem = ({ mode, label, icon: Icon }: NavItem) => {
     const active = currentMode === mode
+    const proLocked = !isPro && isProMode(mode)
     return (
       <button
         key={mode}
@@ -61,6 +70,7 @@ export function NavBar() {
       >
         <Icon size={16} className={active ? 'text-gold' : 'text-content/50 group-hover:text-gold'} />
         <span className="font-medium">{label}</span>
+        {proLocked && <Lock size={11} className="text-gold/70" aria-label="Pro feature" />}
       </button>
     )
   }
@@ -96,6 +106,28 @@ export function NavBar() {
 
         {/* Right cluster */}
         <div className="flex items-center gap-2 shrink-0">
+          {showBilling && (
+            isPro ? (
+              <button
+                onClick={() => { void openBillingPortal() }}
+                data-testid="manage-subscription"
+                aria-label="Manage subscription"
+                title="Manage subscription"
+                className="grid place-items-center w-8 h-8 rounded-lg text-gold/70 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
+              >
+                <Settings size={17} />
+              </button>
+            ) : (
+              <button
+                onClick={() => showUpgradeModal()}
+                data-testid="go-pro"
+                className="glow-hover flex items-center gap-1.5 pl-2.5 pr-3 h-8 rounded-lg bg-gold/10 border border-gold/30 text-gold text-sm font-semibold whitespace-nowrap cursor-pointer hover:bg-gold/15"
+              >
+                <Crown size={15} />
+                <span className="hidden sm:inline">Go Pro</span>
+              </button>
+            )
+          )}
           <button
             onClick={toggleSound}
             data-testid="sound-toggle"

@@ -7,7 +7,6 @@ import { handleSignedIn } from './services/supabase/cloud-sync'
 import { AuthPage } from './components/auth/AuthPage'
 import { HomeScreen } from './components/navigation/HomeScreen'
 import { NavBar } from './components/navigation/NavBar'
-import { GameTable } from './components/table/GameTable'
 import { SpeedDrill } from './components/training/SpeedDrill'
 import { DeviationTraining } from './components/training/DeviationTraining'
 import { BetSpread } from './components/training/BetSpread'
@@ -22,6 +21,10 @@ import { LearnPage } from './components/learn/LearnPage'
 import { AchievementToast } from './components/achievements/AchievementToast'
 import { LevelUpPopup } from './components/navigation/LevelUpPopup'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
+import { UpgradePanel } from './components/pro/UpgradePanel'
+import { UpgradeModalHost } from './components/pro/UpgradeModalHost'
+import { useIsPro } from './store/entitlement-store'
+import { isProMode } from './services/pro-features'
 
 /**
  * Root application component.
@@ -39,7 +42,9 @@ const SCROLLABLE_MODES = new Set([
 function App() {
   const currentMode = useAppStore(s => s.currentMode)
   const setMode = useAppStore(s => s.setMode)
-  const scrollable = SCROLLABLE_MODES.has(currentMode)
+  const isPro = useIsPro()
+  const locked = isProMode(currentMode) && !isPro
+  const scrollable = SCROLLABLE_MODES.has(currentMode) || locked
 
   // Load the auth session once. Harmless (resolves to signed-out) when Supabase
   // isn't configured yet, in which case the gate below stays inactive.
@@ -76,21 +81,30 @@ function App() {
       {/* Reset key on the mode so switching screens clears a crashed one. A render
           error shows a recoverable fallback instead of blanking the whole app. */}
       <ErrorBoundary key={currentMode} onReset={() => setMode('home')}>
-        {currentMode === 'home' && <HomeScreen />}
-        {currentMode === 'speedDrill' && <SpeedDrill />}
-        {currentMode === 'deviationTraining' && <DeviationTraining />}
-        {currentMode === 'betSpread' && <BetSpread />}
-        {currentMode === 'deckEstimation' && <DeckEstimation />}
-        {currentMode === 'analytics' && <AnalyticsDashboard />}
-        {currentMode === 'bankrollSim' && <BankrollSimulator />}
-        {currentMode === 'achievements' && <AchievementsPage />}
-        {currentMode === 'casinoSession' && <CasinoSession />}
-        {currentMode === 'strategyChart' && <StrategyChart />}
-        {currentMode === 'casinoSessionTracker' && <CasinoSessionTracker />}
-        {currentMode === 'learn' && <LearnPage />}
+        {locked ? (
+          <div className="flex-1 flex items-start justify-center p-4 md:p-8">
+            <UpgradePanel />
+          </div>
+        ) : (
+          <>
+            {currentMode === 'home' && <HomeScreen />}
+            {currentMode === 'speedDrill' && <SpeedDrill />}
+            {currentMode === 'deviationTraining' && <DeviationTraining />}
+            {currentMode === 'betSpread' && <BetSpread />}
+            {currentMode === 'deckEstimation' && <DeckEstimation />}
+            {currentMode === 'analytics' && <AnalyticsDashboard />}
+            {currentMode === 'bankrollSim' && <BankrollSimulator />}
+            {currentMode === 'achievements' && <AchievementsPage />}
+            {currentMode === 'casinoSession' && <CasinoSession />}
+            {currentMode === 'strategyChart' && <StrategyChart />}
+            {currentMode === 'casinoSessionTracker' && <CasinoSessionTracker />}
+            {currentMode === 'learn' && <LearnPage />}
+          </>
+        )}
       </ErrorBoundary>
       <AchievementToast />
       <LevelUpPopup />
+      <UpgradeModalHost />
     </div>
   )
 }

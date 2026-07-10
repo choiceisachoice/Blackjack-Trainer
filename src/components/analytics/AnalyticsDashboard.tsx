@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useAppStore } from '../../store/app-store'
+import { useIsPro } from '../../store/entitlement-store'
+import { ProTeaser } from '../pro/ProTeaser'
 import { achievementEngine } from '../../services/achievements/achievement-engine'
 import { getAchievementById } from '../../services/achievements/achievement-list'
 import {
   RANGE_ORDER,
   RANGE_LABEL,
   MODE_DISPLAY,
-  formatDuration,
   formatWhen,
   buildKpis,
   buildTrend,
@@ -149,6 +150,7 @@ export function AnalyticsDashboard() {
   const getTrainingStreak = useStatsStore(s => s.getTrainingStreak)
   const resetAllStats = useStatsStore(s => s.resetAllStats)
   const setMode = useAppStore(s => s.setMode)
+  const isPro = useIsPro()
 
   const [range, setRange] = useState<TimeRange>('30d')
 
@@ -263,6 +265,22 @@ export function AnalyticsDashboard() {
               ))}
             </section>
 
+            {/* Advanced analytics — Pro. Free users see a teaser instead. */}
+            {!isPro ? (
+              <ProTeaser
+                title="See your complete card-counting picture"
+                subtitle="Free shows your headline numbers. Pro reveals how you're actually improving — and exactly what to drill next."
+                items={[
+                  'Accuracy trend over time',
+                  'Practice consistency heatmap',
+                  'Skill radar — sharp vs. rusty dimensions',
+                  'Your weakest hands, ranked',
+                  'Simulated edge from real Casino Sessions',
+                ]}
+                upgradeHeadline="Unlock the full analytics picture of your card-counting edge."
+              />
+            ) : (
+            <>
             {/* Trend + heatmap */}
             <section className="grid lg:grid-cols-[1.9fr_1fr] gap-4">
               <Panel title="Accuracy trend" note={derived.trend.length >= 2 ? undefined : 'need 2+ active days'}>
@@ -360,6 +378,8 @@ export function AnalyticsDashboard() {
                 )}
               </Panel>
             </section>
+            </>
+            )}
 
             {/* Recent sessions */}
             <Panel title="Recent sessions" note={`last ${Math.min(sessions.length, 8)}`}>

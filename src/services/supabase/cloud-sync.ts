@@ -9,6 +9,7 @@ import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useLevelStore } from '../../store/level-store'
 import { useBankrollTrackerStore } from '../../store/bankroll-tracker-store'
+import { useEntitlementStore } from '../../store/entitlement-store'
 import type { TrackedSession } from '../../store/bankroll-tracker-store'
 import { requireSupabase, isSupabaseConfigured } from './client'
 
@@ -118,6 +119,9 @@ async function runSignInSync(): Promise<void> {
     } catch (e) {
       console.error('bankroll sync on sign-in failed', e)
     }
+
+    // Entitlement: load the Pro subscription status for gating.
+    await useEntitlementStore.getState().loadEntitlement()
 
     await useStatsStore.getState().loadStats()
   } catch (e) {
