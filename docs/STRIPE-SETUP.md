@@ -30,9 +30,12 @@ the client — it must NOT change the value (the trigger reverts it).
 ## 3. Deploy the Edge Functions
 
 ```bash
-supabase functions deploy create-checkout-session
-supabase functions deploy create-portal-session
-# The webhook has NO Supabase JWT — its auth is the Stripe signature:
+# All three use --no-verify-jwt. The webhook authenticates by Stripe signature;
+# the other two verify the user INSIDE the function (getUser on the passed token).
+# Leaving the platform JWT gate on would reject the browser's CORS preflight
+# (the OPTIONS request carries no JWT) → "Failed to send a request to the Edge Function".
+supabase functions deploy create-checkout-session --no-verify-jwt
+supabase functions deploy create-portal-session --no-verify-jwt
 supabase functions deploy stripe-webhook --no-verify-jwt
 ```
 
