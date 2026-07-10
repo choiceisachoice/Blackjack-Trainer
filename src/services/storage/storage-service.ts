@@ -8,6 +8,7 @@ import type {
 import { useAuthStore } from '../../store/auth-store'
 import { isSupabaseConfigured } from '../supabase/client'
 import { SupabaseStorageService } from '../supabase/supabase-storage'
+import { dayKey, dayKeyOffset } from '../date-utils'
 
 /** Keys used in localStorage. */
 const SESSIONS_KEY = 'bjt_sessions'
@@ -162,7 +163,7 @@ export function computeLifetimeStats(
     mode.bestStreak = Math.max(mode.bestStreak, session.bestStreak)
 
     // Daily accumulation
-    const dateStr = session.timestamp.slice(0, 10) // YYYY-MM-DD
+    const dateStr = dayKey(session.timestamp) // local YYYY-MM-DD
     if (!dailyAccum[dateStr]) {
       dailyAccum[dateStr] = { sessions: 0, totalQuestions: 0, totalCorrect: 0, practiceSeconds: 0 }
     }
@@ -193,10 +194,8 @@ export function computeLifetimeStats(
     stats.byMode[mode as TrainingSessionResult['mode']] = modeStats
   }
 
-  // Build dailyStats — last 90 days, sorted ascending
-  const cutoffDate = new Date()
-  cutoffDate.setDate(cutoffDate.getDate() - 90)
-  const cutoffStr = cutoffDate.toISOString().slice(0, 10)
+  // Build dailyStats — last 90 local days, sorted ascending
+  const cutoffStr = dayKeyOffset(-90)
 
   const dailyEntries: DailyStats[] = Object.entries(dailyAccum)
     .filter(([date]) => date >= cutoffStr)

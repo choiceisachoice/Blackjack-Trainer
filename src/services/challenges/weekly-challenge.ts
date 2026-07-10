@@ -5,6 +5,7 @@ import type {
   WeeklyChallengeStorage,
 } from './challenge-types'
 import { WEEKLY_CHALLENGE_POOL } from './weekly-challenge-pool'
+import { weekStartKey, shiftDayKey } from '../date-utils'
 
 const STORAGE_KEY = 'bjt_weekly_challenges'
 
@@ -35,14 +36,10 @@ export class WeeklyChallengeEngine {
   }
 
   /**
-   * Get the Monday (YYYY-MM-DD) of the current week (ISO 8601).
+   * Get the Monday (YYYY-MM-DD) of the current local week (ISO 8601).
    */
   getWeekId(): string {
-    const now = new Date()
-    const day = now.getDay() // 0=Sun, 1=Mon, …, 6=Sat (local)
-    const diff = day === 0 ? -6 : 1 - day // offset to Monday
-    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff)
-    return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`
+    return weekStartKey()
   }
 
   /** Get this week's challenge definition. */
@@ -281,15 +278,14 @@ export class WeeklyChallengeEngine {
       const data = JSON.parse(raw)
       if (!Array.isArray(data.completedDates)) return 0
 
+      // Day keys are `YYYY-MM-DD` on the same local calendar, so a plain
+      // lexicographic range is exact — no Date parsing, no timezone to get wrong.
       const weekId = this.getWeekId()
-      const mondayDate = new Date(weekId + 'T00:00:00Z')
-      const sundayEnd = new Date(mondayDate)
-      sundayEnd.setUTCDate(sundayEnd.getUTCDate() + 7)
+      const nextMonday = shiftDayKey(weekId, 7)
 
-      return data.completedDates.filter((dateStr: string) => {
-        const d = new Date(dateStr + 'T12:00:00Z')
-        return d >= mondayDate && d < sundayEnd
-      }).length
+      return data.completedDates.filter(
+        (dateStr: string) => dateStr >= weekId && dateStr < nextMonday,
+      ).length
     } catch {
       return 0
     }
@@ -319,17 +315,12 @@ export class WeeklyChallengeEngine {
    * Get the Monday of N weeks offset from the current week.
    */
   private getWeekIdOffset(offsetWeeks: number): string {
-    const weekId = this.getWeekId()
-    const d = new Date(weekId + 'T12:00:00Z')
-    d.setUTCDate(d.getUTCDate() + offsetWeeks * 7)
-    return d.toISOString().slice(0, 10)
+    return shiftDayKey(this.getWeekId(), offsetWeeks * 7)
   }
 
   /** Get the Monday before a given Monday date string. */
   private getPreviousMonday(mondayStr: string): string {
-    const d = new Date(mondayStr + 'T12:00:00Z')
-    d.setUTCDate(d.getUTCDate() - 7)
-    return d.toISOString().slice(0, 10)
+    return shiftDayKey(mondayStr, -7)
   }
 
   private loadFromStorage(): WeeklyChallengeStorage {

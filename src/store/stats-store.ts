@@ -12,16 +12,7 @@ import { useChallengeStore } from './challenge-store'
 import { useWeeklyChallengeStore } from './weekly-challenge-store'
 import { useLevelStore } from './level-store'
 import type { CountingSystemId } from '../engine/counting/types'
-
-/** Get the Monday (YYYY-MM-DD) of the current ISO week. */
-function getMonday(): string {
-  const now = new Date()
-  const day = now.getUTCDay() // 0=Sun, 1=Mon
-  const diff = day === 0 ? -6 : 1 - day
-  const monday = new Date(now)
-  monday.setUTCDate(now.getUTCDate() + diff)
-  return monday.toISOString().slice(0, 10)
-}
+import { dayKey, todayKey, dayKeyOffset, weekStartKey, daysBetweenKeys } from '../services/date-utils'
 
 /** Accuracy trend direction. */
 export type TrendDirection = 'improving' | 'stable' | 'declining'
@@ -150,14 +141,15 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
       result, lifetimeStats, dayStreak, allSessions,
     )
 
-    // Update daily challenge progress
-    const today = new Date().toISOString().slice(0, 10)
-    const todaySessions = allSessions.filter(s => s.timestamp.startsWith(today))
+    // Update daily challenge progress. Bucket by the user's LOCAL day, the same
+    // calendar the challenge engines credit against (see services/date-utils).
+    const today = todayKey()
+    const todaySessions = allSessions.filter(s => dayKey(s.timestamp) === today)
     useChallengeStore.getState().updateProgress(result, todaySessions)
 
-    // Update weekly challenge progress
-    const weekStart = getMonday()
-    const weekSessions = allSessions.filter(s => s.timestamp.slice(0, 10) >= weekStart)
+    // Update weekly challenge progress (local ISO week, Monday-start).
+    const weekStart = weekStartKey()
+    const weekSessions = allSessions.filter(s => dayKey(s.timestamp) >= weekStart)
     useWeeklyChallengeStore.getState().updateProgress(result, weekSessions)
 
     // Award session XP
@@ -223,23 +215,16 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
     const sessions = get().sessions
     if (sessions.length === 0) return 0
 
-    // Get unique dates (YYYY-MM-DD), sorted descending
-    const dates = [...new Set(sessions.map(s => s.timestamp.slice(0, 10)))]
+    // Unique LOCAL training days, most recent first.
+    const dates = [...new Set(sessions.map(s => dayKey(s.timestamp)))]
       .sort((a, b) => b.localeCompare(a))
 
-    // Check if today or yesterday is in the list
-    const today = new Date().toISOString().slice(0, 10)
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-
-    if (dates[0] !== today && dates[0] !== yesterday) return 0
+    // The streak is alive only if the last training day is today or yesterday.
+    if (dates[0] !== todayKey() && dates[0] !== dayKeyOffset(-1)) return 0
 
     let streak = 1
     for (let i = 1; i < dates.length; i++) {
-      const prevDate = new Date(dates[i - 1])
-      const currDate = new Date(dates[i])
-      const diffDays = (prevDate.getTime() - currDate.getTime()) / 86400000
-
-      if (Math.abs(diffDays - 1) < 0.01) {
+      if (daysBetweenKeys(dates[i], dates[i - 1]) === 1) {
         streak++
       } else {
         break

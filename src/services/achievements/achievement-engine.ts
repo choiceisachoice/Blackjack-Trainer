@@ -3,6 +3,7 @@ import type { TrainingSessionResult, LifetimeStats, TrainingMode, CasinoSessionD
 import type { SimulationResult } from '../../engine/simulation/types'
 import { ALL_ACHIEVEMENTS } from './achievement-list'
 import { LEVELS } from '../level-system'
+import { todayKey, dayKeyOffset, daysBetweenKeys } from '../date-utils'
 import { ILLUSTRIOUS_18, FAB_4 } from '../../engine/counting/deviations'
 
 /** Minimum accuracy for a single deviation to count as "mastered". */
@@ -819,18 +820,14 @@ export class AchievementEngine {
       const dates: string[] = data.completedDates ?? []
       if (dates.length === 0) return 0
 
+      // completedDates are LOCAL day keys (see daily-challenge / date-utils);
+      // compare them on the same local calendar, never against a UTC "today".
       const sorted = [...dates].sort((a, b) => b.localeCompare(a))
-      const today = new Date().toISOString().slice(0, 10)
-      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-
-      if (sorted[0] !== today && sorted[0] !== yesterday) return 0
+      if (sorted[0] !== todayKey() && sorted[0] !== dayKeyOffset(-1)) return 0
 
       let streak = 1
       for (let i = 1; i < sorted.length; i++) {
-        const prev = new Date(sorted[i - 1])
-        const curr = new Date(sorted[i])
-        const diffDays = (prev.getTime() - curr.getTime()) / 86400000
-        if (Math.abs(diffDays - 1) < 0.01) {
+        if (daysBetweenKeys(sorted[i], sorted[i - 1]) === 1) {
           streak++
         } else {
           break

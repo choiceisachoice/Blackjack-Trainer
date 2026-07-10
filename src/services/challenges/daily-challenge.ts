@@ -6,6 +6,7 @@ import type {
 } from './challenge-types'
 import { CHALLENGE_XP } from './challenge-types'
 import { CHALLENGE_POOL } from './challenge-pool'
+import { todayKey, dayKeyOffset, shiftDayKey } from '../date-utils'
 
 const STORAGE_KEY = 'bjt_daily_challenge'
 
@@ -37,7 +38,7 @@ export class DailyChallengeEngine {
 
   /** Get today's challenge definition. */
   getTodayChallenge(): ChallengeDefinition {
-    const today = this.getTodayStr()
+    const today = todayKey()
     const idx = this.hashDateToIndex(today, CHALLENGE_POOL.length)
     return CHALLENGE_POOL[idx]
   }
@@ -68,8 +69,8 @@ export class DailyChallengeEngine {
     const dates = [...this.storage.completedDates].sort((a, b) => b.localeCompare(a))
     if (dates.length === 0) return 0
 
-    const today = this.getTodayStr()
-    const yesterday = this.getDateStr(-1)
+    const today = todayKey()
+    const yesterday = dayKeyOffset(-1)
 
     // Streak must start from today or yesterday
     if (dates[0] !== today && dates[0] !== yesterday) return 0
@@ -80,10 +81,7 @@ export class DailyChallengeEngine {
 
     while (dateSet.has(checkDate)) {
       streak++
-      // Move to previous day
-      const d = new Date(checkDate + 'T12:00:00Z')
-      d.setUTCDate(d.getUTCDate() - 1)
-      checkDate = d.toISOString().slice(0, 10)
+      checkDate = shiftDayKey(checkDate, -1)
     }
 
     return streak
@@ -119,7 +117,7 @@ export class DailyChallengeEngine {
     if (wasBelowTarget && nowComplete) {
       this.storage.current.completed = true
       this.storage.current.completedAt = new Date().toISOString()
-      const today = this.getTodayStr()
+      const today = todayKey()
       if (!this.storage.completedDates.includes(today)) {
         this.storage.completedDates.push(today)
       }
@@ -249,7 +247,7 @@ export class DailyChallengeEngine {
   }
 
   private ensureTodaysChallenge(): void {
-    const today = this.getTodayStr()
+    const today = todayKey()
     if (this.storage.current.date !== today) {
       this.storage.current = this.createFreshState()
       this.saveToStorage()
@@ -257,7 +255,7 @@ export class DailyChallengeEngine {
   }
 
   private createFreshState(): DailyChallengeState {
-    const today = this.getTodayStr()
+    const today = todayKey()
     const challenge = this.getTodayChallenge()
     return {
       challengeId: challenge.id,
@@ -266,17 +264,6 @@ export class DailyChallengeEngine {
       completed: false,
       completedAt: null,
     }
-  }
-
-  private getTodayStr(): string {
-    const now = new Date()
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-  }
-
-  private getDateStr(offsetDays: number): string {
-    const d = new Date()
-    d.setDate(d.getDate() + offsetDays)
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   }
 
   private loadFromStorage(): DailyChallengeStorage {

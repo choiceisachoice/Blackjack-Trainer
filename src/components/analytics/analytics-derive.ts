@@ -1,9 +1,8 @@
 import type {
   TrainingMode,
   TrainingSessionResult,
-  LifetimeStats,
-  ModeStats,
 } from '../../services/stats-types'
+import { dayKey, shiftDayKey } from '../../services/date-utils'
 
 /** Selectable time window for the dashboard. */
 export type TimeRange = '7d' | '30d' | '90d' | 'all'
@@ -60,21 +59,10 @@ export function splitHoursMinutes(seconds: number): { hours: number; minutes: nu
 
 /** Format an ISO timestamp as a short relative label ("Today", "Yesterday", "Mar 4"). */
 export function formatWhen(iso: string, now: Date): string {
-  const day = iso.slice(0, 10)
-  const today = toDayString(now)
-  const yesterday = toDayString(new Date(now.getTime() - MS_PER_DAY))
-  if (day === today) return 'Today'
-  if (day === yesterday) return 'Yesterday'
+  const day = dayKey(iso)
+  if (day === dayKey(now)) return 'Today'
+  if (day === shiftDayKey(dayKey(now), -1)) return 'Yesterday'
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-}
-
-/**
- * UTC YYYY-MM-DD for a date. The whole codebase buckets days via
- * `timestamp.slice(0, 10)` (which is UTC), so day math stays UTC-consistent to
- * avoid timezone-boundary drift.
- */
-function toDayString(d: Date): string {
-  return d.toISOString().slice(0, 10)
 }
 
 /** Inclusive lower-bound timestamp (ms) for a range, or -Infinity for `all`. */
@@ -149,7 +137,7 @@ export interface Kpi {
 
 /** Chronological list of active days (YYYY-MM-DD) within a session set. */
 function activeDaysAsc(sessions: TrainingSessionResult[]): string[] {
-  return [...new Set(sessions.map(s => s.timestamp.slice(0, 10)))].sort((a, b) =>
+  return [...new Set(sessions.map(s => dayKey(s.timestamp)))].sort((a, b) =>
     a.localeCompare(b),
   )
 }
@@ -161,7 +149,7 @@ function dailySeries(
 ): number[] {
   const byDay = new Map<string, TrainingSessionResult[]>()
   for (const s of sessions) {
-    const day = s.timestamp.slice(0, 10)
+    const day = dayKey(s.timestamp)
     const arr = byDay.get(day)
     if (arr) arr.push(s)
     else byDay.set(day, [s])
@@ -269,7 +257,7 @@ export function buildTrend(
   const cur = filterByRange(sessions, range, now)
   const byDay = new Map<string, TrainingSessionResult[]>()
   for (const s of cur) {
-    const day = s.timestamp.slice(0, 10)
+    const day = dayKey(s.timestamp)
     const arr = byDay.get(day)
     if (arr) arr.push(s)
     else byDay.set(day, [s])
@@ -298,19 +286,19 @@ export function buildHeatmap(
 ): { cells: HeatCell[][]; maxMinutes: number } {
   const minutesByDay = new Map<string, number>()
   for (const s of sessions) {
-    const day = s.timestamp.slice(0, 10)
+    const day = dayKey(s.timestamp)
     minutesByDay.set(day, (minutesByDay.get(day) ?? 0) + s.durationSeconds / 60)
   }
 
-  // Rolling grid of `weeks*7` days ending today (UTC midnight), chunked into
-  // 7-day columns. The final cell is always today — no partial columns.
+  // Rolling grid of `weeks*7` LOCAL days ending today, chunked into 7-day
+  // columns. The final cell is always today — no partial columns.
   const totalDays = weeks * 7
-  const todayMid = Date.parse(toDayString(now))
-  const startMs = todayMid - (totalDays - 1) * MS_PER_DAY
+  const dayKeys: string[] = []
+  const endKey = dayKey(now)
+  for (let i = totalDays - 1; i >= 0; i--) dayKeys.push(shiftDayKey(endKey, -i))
 
   let maxMinutes = 0
-  for (let i = 0; i < totalDays; i++) {
-    const key = new Date(startMs + i * MS_PER_DAY).toISOString().slice(0, 10)
+  for (const key of dayKeys) {
     maxMinutes = Math.max(maxMinutes, minutesByDay.get(key) ?? 0)
   }
 
@@ -327,7 +315,7 @@ export function buildHeatmap(
   for (let w = 0; w < weeks; w++) {
     const col: HeatCell[] = []
     for (let d = 0; d < 7; d++) {
-      const key = new Date(startMs + (w * 7 + d) * MS_PER_DAY).toISOString().slice(0, 10)
+      const key = dayKeys[w * 7 + d]
       col.push({ day: key, level: level(minutesByDay.get(key) ?? 0) })
     }
     columns.push(col)
