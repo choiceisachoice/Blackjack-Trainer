@@ -133,6 +133,9 @@ export function DeckEstimation() {
   const [qfRound, setQfRound] = useState(0)
   const [qfTimer, setQfTimer] = useState(QUICK_FIRE_SECONDS)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Mirrors qfTimer so the countdown can act on expiry outside the setState
+  // updater (which React runs twice under StrictMode → double-counted timeouts).
+  const qfTimerRef = useRef(QUICK_FIRE_SECONDS)
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -224,18 +227,25 @@ export function DeckEstimation() {
     if (phase !== 'question' || !quickFire) return
     clearTimer()
 
+    qfTimerRef.current = qfTimer
     timerRef.current = setInterval(() => {
-      setQfTimer(prev => {
-        if (prev <= 1) {
-          // Time's up
-          processAnswer(null)
-          return 0
-        }
-        return prev - 1
-      })
+      const prev = qfTimerRef.current
+      if (prev <= 1) {
+        // Time's up — stop the clock and score outside the updater.
+        clearTimer()
+        qfTimerRef.current = 0
+        setQfTimer(0)
+        processAnswer(null)
+        return
+      }
+      qfTimerRef.current = prev - 1
+      setQfTimer(prev - 1)
     }, 1000)
 
     return clearTimer
+    // qfTimer is intentionally read once at interval start (not a dep — it would
+    // restart the countdown every tick).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, quickFire, clearTimer, processAnswer])
 
   // Keyboard: Enter → next in feedback

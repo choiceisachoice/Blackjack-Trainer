@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAchievementStore } from '../../store/achievement-store'
 import { soundEngine } from '../../services/sound-engine'
 import type { AchievementTier } from '../../services/achievements/achievement-types'
@@ -25,12 +25,17 @@ export function AchievementToast() {
   const newlyUnlocked = useAchievementStore(s => s.newlyUnlocked)
   const dismissNewAchievement = useAchievementStore(s => s.dismissNewAchievement)
   const [visible, setVisible] = useState(false)
+  /** The post-exit-animation dismissal timer, tracked so it can be cancelled. */
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const current = newlyUnlocked[0] ?? null
 
   // Animate in when a new achievement appears
   useEffect(() => {
     if (!current) {
+      // Reset so the next queued toast slides in fresh. Harmless: the component
+      // early-returns null while there's no current achievement.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVisible(false)
       return
     }
@@ -45,12 +50,13 @@ export function AchievementToast() {
     const dismissTimer = setTimeout(() => {
       setVisible(false)
       // Wait for exit animation before removing from queue
-      setTimeout(() => dismissNewAchievement(), 300)
+      exitTimerRef.current = setTimeout(() => dismissNewAchievement(), 300)
     }, DISMISS_DELAY)
 
     return () => {
       clearTimeout(showTimer)
       clearTimeout(dismissTimer)
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current)
     }
   }, [current, dismissNewAchievement])
 
@@ -63,7 +69,8 @@ export function AchievementToast() {
       data-testid="achievement-toast"
       onClick={() => {
         setVisible(false)
-        setTimeout(() => dismissNewAchievement(), 300)
+        if (exitTimerRef.current) clearTimeout(exitTimerRef.current)
+        exitTimerRef.current = setTimeout(() => dismissNewAchievement(), 300)
       }}
       className={`
         fixed bottom-6 left-1/2 -translate-x-1/2 z-50

@@ -73,10 +73,7 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
         newlyUnlocked: [...state.newlyUnlocked, ...newAchievements],
         totalUnlocked: achievementEngine.getUnlockedCount(),
       }))
-      // Award XP for each unlocked achievement
-      for (const achievement of newAchievements) {
-        useLevelStore.getState().addAchievementXP(achievement.tier)
-      }
+      useLevelStore.getState().addAchievementsXP(newAchievements.map(a => a.tier))
       pushNewUnlocks(newAchievements)
     }
   },
@@ -89,9 +86,7 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
         newlyUnlocked: [...state.newlyUnlocked, ...newAchievements],
         totalUnlocked: achievementEngine.getUnlockedCount(),
       }))
-      for (const achievement of newAchievements) {
-        useLevelStore.getState().addAchievementXP(achievement.tier)
-      }
+      useLevelStore.getState().addAchievementsXP(newAchievements.map(a => a.tier))
       pushNewUnlocks(newAchievements)
     }
     // A simulation always bumps the sim counters, even with no new unlock.
@@ -106,9 +101,7 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
         newlyUnlocked: [...state.newlyUnlocked, ...newAchievements],
         totalUnlocked: achievementEngine.getUnlockedCount(),
       }))
-      for (const achievement of newAchievements) {
-        useLevelStore.getState().addAchievementXP(achievement.tier)
-      }
+      useLevelStore.getState().addAchievementsXP(newAchievements.map(a => a.tier))
       pushNewUnlocks(newAchievements)
     }
   },

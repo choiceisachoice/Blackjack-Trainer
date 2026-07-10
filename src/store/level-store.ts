@@ -27,6 +27,8 @@ export interface LevelStoreActions {
   addChallengeXP(amount: number): void
   /** Add XP from an unlocked achievement. */
   addAchievementXP(tier: string): void
+  /** Add XP from several achievements unlocked at once (one popup, one cloud push). */
+  addAchievementsXP(tiers: string[]): void
   /** Dismiss the level-up popup. */
   dismissLevelUp(): void
   /** Refresh all state from the engine. */
@@ -107,6 +109,33 @@ export const useLevelStore = create<LevelStore>((set) => ({
     const xp = tierToXP(tier)
     if (xp === 0) return
 
+    const result = levelSystem.addXP(xp)
+
+    if (result.leveledUp && result.oldLevel && result.newLevel) {
+      soundEngine.levelUp()
+      set({
+        totalXP: levelSystem.getTotalXP(),
+        level: levelSystem.getLevel(),
+        progress: levelSystem.getProgressToNext(),
+        showLevelUp: true,
+        levelUpData: { oldLevel: result.oldLevel, newLevel: result.newLevel },
+      })
+    } else {
+      set({
+        totalXP: levelSystem.getTotalXP(),
+        level: levelSystem.getLevel(),
+        progress: levelSystem.getProgressToNext(),
+      })
+    }
+    pushProfileScalars()
+  },
+
+  addAchievementsXP(tiers) {
+    const xp = tiers.reduce((sum, t) => sum + tierToXP(t), 0)
+    if (xp === 0) return
+
+    // Sum first, then apply once — a single level-up popup and one cloud push,
+    // instead of one per achievement (which dropped all but the last popup).
     const result = levelSystem.addXP(xp)
 
     if (result.leveledUp && result.oldLevel && result.newLevel) {

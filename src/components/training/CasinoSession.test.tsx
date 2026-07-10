@@ -64,6 +64,7 @@ vi.mock('../../store/level-store', () => ({
       addSessionXP: vi.fn(),
       addChallengeXP: vi.fn(),
       addAchievementXP: vi.fn(),
+      addAchievementsXP: vi.fn(),
     }),
   },
 }))

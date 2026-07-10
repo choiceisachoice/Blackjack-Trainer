@@ -154,6 +154,25 @@ describe('useLevelStore', () => {
     expect(levelSystem.addXP).toHaveBeenCalledWith(200)
   })
 
+  it('addAchievementsXP sums the tiers and applies XP once', () => {
+    ;(levelSystem.addXP as ReturnType<typeof vi.fn>).mockReturnValue({ leveledUp: false })
+    ;(levelSystem.getTotalXP as ReturnType<typeof vi.fn>).mockReturnValue(0)
+    ;(levelSystem.getLevel as ReturnType<typeof vi.fn>).mockReturnValue(LEVELS[0])
+    ;(levelSystem.getProgressToNext as ReturnType<typeof vi.fn>).mockReturnValue({
+      current: 0, required: 50, percent: 0,
+    })
+
+    useLevelStore.getState().addAchievementsXP(['bronze', 'gold', 'diamond'])
+    // 25 + 100 + 200, applied in a single addXP call (one popup, one cloud push).
+    expect(levelSystem.addXP).toHaveBeenCalledTimes(1)
+    expect(levelSystem.addXP).toHaveBeenCalledWith(325)
+  })
+
+  it('addAchievementsXP does nothing for an empty list', () => {
+    useLevelStore.getState().addAchievementsXP([])
+    expect(levelSystem.addXP).not.toHaveBeenCalled()
+  })
+
   it('dismissLevelUp clears the popup', () => {
     useLevelStore.setState({
       showLevelUp: true,

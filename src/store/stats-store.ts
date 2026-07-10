@@ -171,12 +171,15 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
 
     if (prev5.length === 0) return 'stable'
 
-    const recentAvg =
-      recent5.reduce((sum, s) => sum + s.accuracy, 0) / recent5.length
-    const prevAvg =
-      prev5.reduce((sum, s) => sum + s.accuracy, 0) / prev5.length
+    // Weight by questions answered, so a 3-question session can't swing the
+    // trend as much as a 100-question one (matches analytics-derive's accuracyOf).
+    const weightedAccuracy = (group: TrainingSessionResult[]): number => {
+      const totalQ = group.reduce((sum, s) => sum + s.totalQuestions, 0)
+      if (totalQ === 0) return 0
+      return group.reduce((sum, s) => sum + s.accuracy * s.totalQuestions, 0) / totalQ
+    }
 
-    const diff = recentAvg - prevAvg
+    const diff = weightedAccuracy(recent5) - weightedAccuracy(prev5)
     if (diff > 0.05) return 'improving'
     if (diff < -0.05) return 'declining'
     return 'stable'

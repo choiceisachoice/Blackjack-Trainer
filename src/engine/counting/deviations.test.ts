@@ -339,7 +339,7 @@ describe('Fab 4 Structure', () => {
   it('all Fab 4 indices match official values', () => {
     const expected: [string, number][] = [
       ['14 vs 10', 3],
-      ['15 vs 10', 0],
+      ['15 vs 10 (surrender)', 0], // disambiguated from the I18 "15 vs 10" stand
       ['15 vs 9', 2],
       ['15 vs A', 1],
     ]

@@ -47,6 +47,9 @@ export function SpeedDrill() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [correctRC, setCorrectRC] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // Mirrors currentIndex so the drill interval can read it without doing side
+  // effects inside a setState updater (which React runs twice under StrictMode).
+  const currentIndexRef = useRef(0)
 
   // Input state
   const [userAnswer, setUserAnswer] = useState(0)
@@ -105,16 +108,18 @@ export function SpeedDrill() {
     if (phase !== 'drill') return
 
     if (playCardSound) soundEngine.cardDeal()
+    currentIndexRef.current = 0
     timerRef.current = setInterval(() => {
-      setCurrentIndex(prev => {
-        if (prev >= cards.length - 1) {
-          stopTimer()
-          setPhase('input')
-          return prev
-        }
-        if (playCardSound) soundEngine.cardDeal()
-        return prev + 1
-      })
+      // Side effects live here, not inside the setState updater.
+      const prev = currentIndexRef.current
+      if (prev >= cards.length - 1) {
+        stopTimer()
+        setPhase('input')
+        return
+      }
+      currentIndexRef.current = prev + 1
+      setCurrentIndex(prev + 1)
+      if (playCardSound) soundEngine.cardDeal()
     }, speedMs)
 
     return stopTimer

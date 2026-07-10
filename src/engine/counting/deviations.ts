@@ -244,8 +244,11 @@ export const FAB_4: Deviation[] = [
     isFab4: true,
   },
   // 2. 15 vs 10: TC >= 0 → Surrender
+  // Name is disambiguated from the Illustrious 18 "15 vs 10" (a STAND deviation):
+  // both share the same hand, but they are different plays and must be tracked
+  // separately for per-deviation mastery.
   {
-    name: '15 vs 10',
+    name: '15 vs 10 (surrender)',
     playerHand: '15',
     dealerUpcard: '10',
     trueCountThreshold: 0,
