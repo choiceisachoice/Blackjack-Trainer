@@ -36,8 +36,16 @@ function resolvePeriodEnd(sub: Stripe.Subscription): string | null {
   return epoch ? new Date(epoch * 1000).toISOString() : null
 }
 
-/** Write the entitlement columns from a Stripe subscription. */
-async function syncSubscription(sub: Stripe.Subscription): Promise<void> {
+/**
+ * Fetch the subscription fresh from Stripe and write the entitlement columns
+ * from it. Fetching — rather than trusting the event payload's status — makes
+ * the write authoritative regardless of Stripe's delivery ordering: Stripe can
+ * deliver `customer.subscription.created` (status `incomplete`) AFTER
+ * `customer.subscription.updated` (status `active`), and the stale payload would
+ * otherwise clobber the live status back to `incomplete`.
+ */
+async function syncSubscriptionById(subId: string): Promise<void> {
+  const sub = await stripe.subscriptions.retrieve(subId)
   const userId = sub.metadata?.supabase_user_id
   const priceId = sub.items.data[0]?.price.id ?? null
   const periodEnd = resolvePeriodEnd(sub)
@@ -85,15 +93,14 @@ Deno.serve(async (req) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         if (session.subscription) {
-          const sub = await stripe.subscriptions.retrieve(session.subscription as string)
-          await syncSubscription(sub)
+          await syncSubscriptionById(session.subscription as string)
         }
         break
       }
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
-        await syncSubscription(event.data.object as Stripe.Subscription)
+        await syncSubscriptionById((event.data.object as Stripe.Subscription).id)
         break
       }
       case 'invoice.payment_failed': {
