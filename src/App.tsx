@@ -23,7 +23,7 @@ import { LevelUpPopup } from './components/navigation/LevelUpPopup'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { UpgradePanel } from './components/pro/UpgradePanel'
 import { UpgradeModalHost } from './components/pro/UpgradeModalHost'
-import { useIsPro } from './store/entitlement-store'
+import { useIsPro, useEntitlementStore } from './store/entitlement-store'
 import { isProMode } from './services/pro-features'
 
 /**
@@ -55,6 +55,19 @@ function App() {
   // On sign-in: migrate local sessions to the cloud (once) and hydrate from it.
   useEffect(() => {
     if (authStatus === 'signedIn') handleSignedIn()
+  }, [authStatus])
+
+  // Returning from Stripe Checkout (?checkout=success): the entitlement webhook
+  // lands a beat after the redirect, so poll until Pro flips on. Strip the param
+  // first so a manual refresh doesn't re-trigger the poll.
+  useEffect(() => {
+    if (authStatus !== 'signedIn') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('checkout') !== 'success') return
+    params.delete('checkout')
+    const qs = params.toString()
+    window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''))
+    useEntitlementStore.getState().refreshUntilPro()
   }, [authStatus])
 
   // Login gate — only active once Supabase is configured.

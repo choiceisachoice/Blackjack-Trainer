@@ -17,6 +17,13 @@ export interface EntitlementState {
 export interface EntitlementActions {
   /** Load the signed-in user's entitlement from their profile row. */
   loadEntitlement(): Promise<void>
+  /**
+   * Re-load the entitlement repeatedly until Pro is active or the attempts run
+   * out. Used when returning from Stripe Checkout: the webhook that flips the
+   * status to `active` arrives a beat after the redirect, so a single load can
+   * still read `free`/`incomplete`.
+   */
+  refreshUntilPro(attempts?: number, intervalMs?: number): Promise<void>
   /** Reset to the free/default state (used on sign-out). */
   reset(): void
 }
@@ -25,7 +32,7 @@ export type EntitlementStore = EntitlementState & EntitlementActions
 
 const DEFAULT: EntitlementState = { status: 'free', currentPeriodEnd: null, loaded: false }
 
-export const useEntitlementStore = create<EntitlementStore>((set) => ({
+export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
   ...DEFAULT,
 
   async loadEntitlement() {
@@ -55,6 +62,14 @@ export const useEntitlementStore = create<EntitlementStore>((set) => ({
     } catch (e) {
       console.error('failed to load entitlement', e)
       set({ ...DEFAULT, loaded: true })
+    }
+  },
+
+  async refreshUntilPro(attempts = 8, intervalMs = 1500) {
+    for (let i = 0; i < attempts; i++) {
+      await get().loadEntitlement()
+      if (selectIsPro(get())) return
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, intervalMs))
     }
   },
 
