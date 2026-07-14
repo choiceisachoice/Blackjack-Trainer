@@ -35,20 +35,25 @@ describe('App routing', () => {
     useAppStore.setState({ currentMode: 'home' })
   })
 
-  it('renders the public landing at /', () => {
+  // Routes are lazy-loaded (code-split), so assertions await the chunk. The
+  // dynamic import can take a beat under full-suite CPU load, so allow more than
+  // the 1s default.
+  const T = { timeout: 5000 }
+
+  it('renders the public landing at /', async () => {
     renderAt('/')
-    expect(screen.getByRole('heading', { name: /beats the shoe/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /beats the shoe/i }, T)).toBeInTheDocument()
   })
 
-  it('renders the trainer at /app (no backend → gate open)', () => {
+  it('renders the trainer at /app (no backend → gate open)', async () => {
     renderAt('/app')
     expect(
-      screen.getAllByRole('heading', { name: 'Blackjack Card Counting Trainer' })[0]
+      (await screen.findAllByRole('heading', { name: 'Blackjack Card Counting Trainer' }, T))[0]
     ).toBeInTheDocument()
   })
 
-  it('redirects unknown routes to the landing', () => {
+  it('redirects unknown routes to the landing', async () => {
     renderAt('/does-not-exist')
-    expect(screen.getByRole('heading', { name: /beats the shoe/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /beats the shoe/i }, T)).toBeInTheDocument()
   })
 })

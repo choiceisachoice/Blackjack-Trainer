@@ -1,10 +1,13 @@
-import { useState, type ReactNode } from 'react'
+import { useState, lazy, Suspense, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Check, Zap, LayoutGrid, Target, BarChart3, Wallet, Trophy } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, type BillingPlan } from '../services/supabase/billing'
 import { PLAN_OPTIONS, PRO_BENEFITS } from '../services/pro-features'
-import { HeroCanvas } from '../components/landing/HeroCanvas'
+
+// The WebGL hero pulls in Three.js — load it as its own chunk after the hero
+// text has painted, so it never blocks the landing's first paint.
+const HeroCanvas = lazy(() => import('../components/landing/HeroCanvas').then(m => ({ default: m.HeroCanvas })))
 
 const FEATURES = [
   { icon: Zap, title: 'Speed Drill & Flashcards', pro: false, body: 'Keep the running count under time pressure, and drill every basic-strategy hand until it’s reflex.' },
@@ -213,7 +216,9 @@ export function LandingPage() {
 function HeroLayer() {
   return (
     <>
-      <HeroCanvas className="absolute inset-0 w-full h-full z-[1]" />
+      <Suspense fallback={null}>
+        <HeroCanvas className="absolute inset-0 w-full h-full z-[1]" />
+      </Suspense>
       <div className="absolute inset-0 z-[2] pointer-events-none" style={{ background: AMBIENT }} />
       <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: SCRIM }} />
       <div className="absolute inset-0 z-[4] pointer-events-none shadow-[inset_0_0_160px_18px_rgba(0,0,0,.38)]" />

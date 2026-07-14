@@ -1,13 +1,26 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
 import { useAuthStore } from './store/auth-store'
 import { handleSignedIn } from './services/supabase/cloud-sync'
 import { useEntitlementStore } from './store/entitlement-store'
-import { LandingPage } from './pages/LandingPage'
-import { LoginPage } from './pages/LoginPage'
-import { TrainerApp } from './pages/TrainerApp'
-import { AccountPage } from './pages/AccountPage'
 import { ProtectedRoute } from './routes/ProtectedRoute'
+
+// Route-level code splitting: the landing (with its Three.js hero) and the
+// trainer (recharts/framer/all modes) load as separate chunks, so visiting `/`
+// doesn't pull the whole app.
+const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })))
+const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })))
+const TrainerApp = lazy(() => import('./pages/TrainerApp').then(m => ({ default: m.TrainerApp })))
+const AccountPage = lazy(() => import('./pages/AccountPage').then(m => ({ default: m.AccountPage })))
+
+function RouteLoader() {
+  return (
+    <div className="h-screen flex items-center justify-center bg-casino-bg text-content/40">
+      <Loader2 size={28} className="animate-spin" />
+    </div>
+  )
+}
 
 /**
  * Root router shell. Holds the app-wide session effects (auth init, cloud-sync
@@ -41,13 +54,15 @@ function App() {
   }, [authStatus])
 
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/app" element={<ProtectedRoute><TrainerApp /></ProtectedRoute>} />
-      <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <Suspense fallback={<RouteLoader />}>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/app" element={<ProtectedRoute><TrainerApp /></ProtectedRoute>} />
+        <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   )
 }
 
