@@ -83,5 +83,35 @@ Copy the endpoint's **signing secret** (`whsec_…`) into `STRIPE_WEBHOOK_SECRET
 
 ## 7. Go live
 
-Swap the `sk_test_`/`whsec_`/`price_` secrets for live-mode values, set `APP_URL`
-to the production origin, and re-run one real purchase before announcing it.
+> ⚠️ **Do this at deployment time, not on localhost.** Live keys charge real
+> cards, and `APP_URL` must be the real production origin — Stripe redirects the
+> customer to `${APP_URL}/app` after paying, which only works on a public domain.
+> Live mode is entirely separate from test mode (separate keys, prices, webhook).
+
+Ordered checklist:
+
+1. **Deploy the app first** to its production domain (e.g. `https://app.example.com`)
+   — this is the prerequisite; without it the post-payment redirect is broken.
+2. In Stripe, flip the dashboard to **live mode** and re-create the product +
+   the two recurring **prices** there (test-mode price ids do NOT work live).
+   Note the new live `price_…` ids.
+3. Add a **live-mode webhook endpoint** pointing at the same function URL
+   (`https://<ref>.supabase.co/functions/v1/stripe-webhook`), same five events,
+   and copy its **live** signing secret (`whsec_…`).
+4. Grab the **live secret key** (`sk_live_…`) from the live API-keys page.
+5. Update the Supabase secrets in one go:
+   ```bash
+   supabase secrets set \
+     STRIPE_SECRET_KEY=sk_live_… \
+     STRIPE_WEBHOOK_SECRET=whsec_…(live) \
+     STRIPE_PRICE_MONTHLY=price_…(live) \
+     STRIPE_PRICE_YEARLY=price_…(live) \
+     APP_URL=https://app.example.com
+   ```
+   (No function redeploy needed — secrets are read at runtime.)
+6. Enable the **live** Customer Portal (Settings → Billing → Customer portal).
+7. Do **one real, low-value purchase** end to end, confirm `subscription_status`
+   flips to `active`, then cancel it from the portal before announcing.
+
+Test mode stays wired exactly as above, so you can keep developing against it
+without touching the live keys.
