@@ -88,8 +88,8 @@ Deno.serve(async (req) => {
       // so the webhook can resolve the user without a customer lookup.
       client_reference_id: user.id,
       subscription_data: { metadata: { supabase_user_id: user.id } },
-      success_url: `${APP_URL}/?checkout=success`,
-      cancel_url: `${APP_URL}/?checkout=cancelled`,
+      success_url: `${APP_URL}/app?checkout=success`,
+      cancel_url: `${APP_URL}/app?checkout=cancelled`,
       allow_promotion_codes: true,
     })
 

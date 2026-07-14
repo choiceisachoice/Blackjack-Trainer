@@ -4,13 +4,13 @@ import {
   Lock, Crown, Settings,
   type LucideIcon,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../store/app-store'
 import type { AppMode } from '../../store/app-store'
 import { useAuthStore, isSupabaseConfigured } from '../../store/auth-store'
 import { useIsPro } from '../../store/entitlement-store'
 import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
 import { isProMode } from '../../services/pro-features'
-import { openBillingPortal } from '../../services/supabase/billing'
 import { signOutAndClearLocal } from '../../services/supabase/cloud-sync'
 import { LevelBadge } from './LevelBadge'
 
@@ -50,10 +50,10 @@ export function NavBar() {
   const theme = useAppStore(s => s.theme)
   const toggleTheme = useAppStore(s => s.toggleTheme)
   const authStatus = useAuthStore(s => s.status)
-  const showSignOut = isSupabaseConfigured && authStatus === 'signedIn'
+  const signedIn = isSupabaseConfigured && authStatus === 'signedIn'
   const isPro = useIsPro()
-  const showBilling = isSupabaseConfigured && authStatus === 'signedIn'
   const showUpgradeModal = useUpgradePrompt(s => s.show)
+  const navigate = useNavigate()
 
   const renderItem = ({ mode, label, icon: Icon }: NavItem) => {
     const active = currentMode === mode
@@ -106,27 +106,26 @@ export function NavBar() {
 
         {/* Right cluster */}
         <div className="flex items-center gap-2 shrink-0">
-          {showBilling && (
-            isPro ? (
-              <button
-                onClick={() => { void openBillingPortal() }}
-                data-testid="manage-subscription"
-                aria-label="Manage subscription"
-                title="Manage subscription"
-                className="grid place-items-center w-8 h-8 rounded-lg text-gold/70 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
-              >
-                <Settings size={17} />
-              </button>
-            ) : (
-              <button
-                onClick={() => showUpgradeModal()}
-                data-testid="go-pro"
-                className="glow-hover flex items-center gap-1.5 pl-2.5 pr-3 h-8 rounded-lg bg-gold/10 border border-gold/30 text-gold text-sm font-semibold whitespace-nowrap cursor-pointer hover:bg-gold/15"
-              >
-                <Crown size={15} />
-                <span className="hidden sm:inline">Go Pro</span>
-              </button>
-            )
+          {signedIn && !isPro && (
+            <button
+              onClick={() => showUpgradeModal()}
+              data-testid="go-pro"
+              className="glow-hover flex items-center gap-1.5 pl-2.5 pr-3 h-8 rounded-lg bg-gold/10 border border-gold/30 text-gold text-sm font-semibold whitespace-nowrap cursor-pointer hover:bg-gold/15"
+            >
+              <Crown size={15} />
+              <span className="hidden sm:inline">Go Pro</span>
+            </button>
+          )}
+          {signedIn && (
+            <button
+              onClick={() => navigate('/account')}
+              data-testid="account"
+              aria-label="Account & billing"
+              title="Account & billing"
+              className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
+            >
+              <Settings size={17} />
+            </button>
           )}
           <button
             onClick={toggleSound}
@@ -146,9 +145,9 @@ export function NavBar() {
           >
             {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
-          {showSignOut && (
+          {signedIn && (
             <button
-              onClick={() => { void signOutAndClearLocal() }}
+              onClick={async () => { await signOutAndClearLocal(); navigate('/') }}
               data-testid="sign-out"
               aria-label="Sign out"
               title="Sign out"

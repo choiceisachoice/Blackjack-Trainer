@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { TrainerApp } from './TrainerApp'
 import { useAppStore } from '../store/app-store'
@@ -33,7 +34,7 @@ describe('TrainerApp', () => {
   })
 
   it('renders home screen by default', () => {
-    render(<TrainerApp />)
+    render(<MemoryRouter><TrainerApp /></MemoryRouter>)
     // The hero headline is animated; its accessible name stays the brand title.
     expect(
       screen.getAllByRole('heading', { name: 'Blackjack Card Counting Trainer' })[0]
@@ -42,21 +43,21 @@ describe('TrainerApp', () => {
 
   it('renders the Flashcards trainer for deviationTraining mode', () => {
     useAppStore.setState({ currentMode: 'deviationTraining' })
-    render(<TrainerApp />)
+    render(<MemoryRouter><TrainerApp /></MemoryRouter>)
     expect(screen.getByText('Basic Strategy')).toBeInTheDocument()
     expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 
   it('renders BetSpread for betSpread mode', () => {
     useAppStore.setState({ currentMode: 'betSpread' })
-    render(<TrainerApp />)
+    render(<MemoryRouter><TrainerApp /></MemoryRouter>)
     expect(screen.getByText('Bet Spread Reference')).toBeInTheDocument()
     expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 
   it('renders DeckEstimation for deckEstimation mode', () => {
     useAppStore.setState({ currentMode: 'deckEstimation' })
-    render(<TrainerApp />)
+    render(<MemoryRouter><TrainerApp /></MemoryRouter>)
     expect(screen.getByText('Decks in Shoe')).toBeInTheDocument()
     expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
@@ -73,7 +74,7 @@ describe('TrainerApp', () => {
       isLoading: false,
       loadStats: vi.fn().mockResolvedValue(undefined),
     })
-    render(<TrainerApp />)
+    render(<MemoryRouter><TrainerApp /></MemoryRouter>)
     expect(screen.getByTestId('analytics-dashboard')).toBeInTheDocument()
   })
 
@@ -81,7 +82,7 @@ describe('TrainerApp', () => {
     const modes = ['speedDrill', 'deviationTraining', 'betSpread', 'deckEstimation'] as const
     for (const mode of modes) {
       useAppStore.setState({ currentMode: mode })
-      const { unmount } = render(<TrainerApp />)
+      const { unmount } = render(<MemoryRouter><TrainerApp /></MemoryRouter>)
       // No mode should show "Coming soon" anymore
       expect(screen.queryByText('Coming soon')).not.toBeInTheDocument()
       unmount()
