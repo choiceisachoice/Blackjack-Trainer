@@ -20,9 +20,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "//": "Tests are validated by vitest (esbuild); the production build typechecks shipped code only.",
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }

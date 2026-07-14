@@ -14,7 +14,6 @@ import type {
   CasinoSessionConfig,
   CasinoSessionResult,
   DealResult,
-  PlayDecision,
   PlayerHandRecord,
 } from './types'
 import type { SessionEventRecorder } from '../../services/session-recorder'
@@ -305,8 +304,8 @@ export class CasinoSessionEngine {
     dealerUpCard: Card,
     trueCount: number,
     canSplit: boolean,
-    canDouble: boolean,
-    canSurrender: boolean,
+    _canDouble: boolean,
+    _canSurrender: boolean,
   ): { action: Action; isDeviation: boolean; deviationName?: string } {
     const bsAction = getOptimalAction(playerCards, dealerUpCard, this.casinoRules)
 
@@ -719,7 +718,7 @@ export class CasinoSessionEngine {
     playerCards: Card[],
     dealerCards: Card[],
     bet: number,
-    isDoubled: boolean,
+    _isDoubled: boolean,
     isSurrendered: boolean,
     isSplitHand: boolean = false,
   ): { result: 'win' | 'loss' | 'push' | 'blackjack' | 'surrender'; profit: number } {

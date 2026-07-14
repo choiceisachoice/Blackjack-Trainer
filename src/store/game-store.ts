@@ -12,8 +12,6 @@ import { Rank } from '../engine/shoe/types'
 import { soundEngine } from '../services/sound-engine'
 
 // ── Animation Timing Constants (ms) ──────────────────────
-/** Initial 4-card deal animation total duration. */
-const DEAL_ANIM_MS = 2200
 /** Single card slide-in duration. */
 const CARD_SLIDE_MS = 800
 /** Hole card flip duration. */

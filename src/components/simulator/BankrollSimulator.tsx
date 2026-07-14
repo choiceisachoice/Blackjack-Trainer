@@ -1,7 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -106,7 +104,7 @@ export function BankrollSimulator() {
   const [formHours, setFormHours] = useState('3')
   const [formNotes, setFormNotes] = useState('')
   const [showCasinoDropdown, setShowCasinoDropdown] = useState(false)
-  const casinoInputRef = useRef<HTMLInputElement>(null)
+  const casinoInputRef = useRef<HTMLLabelElement>(null)
 
   // ── Delete confirmation ──
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)

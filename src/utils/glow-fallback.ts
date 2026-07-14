@@ -3,7 +3,7 @@
  * Animates --glow-angle-1 and --glow-angle-2 via requestAnimationFrame.
  */
 export function initGlowFallback(): void {
-  if (typeof CSS !== 'undefined' && CSS.registerProperty) return;
+  if (typeof CSS !== 'undefined' && typeof CSS.registerProperty === 'function') return;
 
   let angle1 = 0;
   let angle2 = 180;

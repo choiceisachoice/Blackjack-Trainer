@@ -1,7 +1,7 @@
 import type { Card } from '../shoe/types'
 import { Rank } from '../shoe/types'
 import { Action } from '../rules/types'
-import { getHandValue, isBlackjack, isBust, isPair, isSoft } from '../rules/hand-utils'
+import { getHandValue, isBlackjack, isBust, isPair } from '../rules/hand-utils'
 import { getOptimalAction } from '../strategy/basic-strategy'
 import type { CasinoRules } from '../rules/types'
 import type { BotHand, BotPlayer } from './types'
