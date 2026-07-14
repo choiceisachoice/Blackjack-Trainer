@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { useAuthStore } from './store/auth-store'
 import { handleSignedIn } from './services/supabase/cloud-sync'
 import { useEntitlementStore } from './store/entitlement-store'
+import { startCheckout, consumePendingCheckout } from './services/supabase/billing'
 import { ProtectedRoute } from './routes/ProtectedRoute'
 
 // Route-level code splitting: the landing (with its Three.js hero) and the
@@ -38,6 +39,14 @@ function App() {
   // On sign-in: migrate local data to the cloud (once) and hydrate from it.
   useEffect(() => {
     if (authStatus === 'signedIn') handleSignedIn()
+  }, [authStatus])
+
+  // Resume a "Go Pro" intent a visitor made while signed out (from the landing):
+  // once signed in, jump straight into checkout instead of dropping them in the app.
+  useEffect(() => {
+    if (authStatus !== 'signedIn') return
+    const plan = consumePendingCheckout()
+    if (plan) startCheckout(plan).catch(e => console.error('pending checkout failed', e))
   }, [authStatus])
 
   // Returning from Stripe Checkout (?checkout=success): the entitlement webhook

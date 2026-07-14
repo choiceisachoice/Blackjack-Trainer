@@ -26,6 +26,10 @@ vi.mock('framer-motion', () => ({
   LayoutGroup: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }))
 
+// The landing lazy-loads the WebGL hero, which pulls in Three.js — a huge module
+// graph that makes this routing test slow/flaky. Stub it (routing is what we test).
+vi.mock('./components/landing/HeroCanvas', () => ({ HeroCanvas: () => null }))
+
 function renderAt(path: string) {
   return render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
 }

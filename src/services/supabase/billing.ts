@@ -3,6 +3,30 @@ import { requireSupabase, isSupabaseConfigured } from './client'
 /** The subscription plans offered at checkout. Price ids live server-side only. */
 export type BillingPlan = 'monthly' | 'yearly'
 
+/** localStorage key for a logged-out visitor's "Go Pro" intent. */
+const PENDING_CHECKOUT_KEY = 'bjt_pending_checkout'
+
+/**
+ * Remember that a signed-out visitor wants to buy `plan`, so the purchase can be
+ * resumed once they sign in (survives the sign-up email-confirmation round-trip,
+ * since it's the same browser).
+ */
+export function setPendingCheckout(plan: BillingPlan): void {
+  try { localStorage.setItem(PENDING_CHECKOUT_KEY, plan) } catch { /* storage unavailable */ }
+}
+
+/** Read and clear a pending "Go Pro" intent — returns the plan, or null. */
+export function consumePendingCheckout(): BillingPlan | null {
+  try {
+    const v = localStorage.getItem(PENDING_CHECKOUT_KEY)
+    if (v === 'monthly' || v === 'yearly') {
+      localStorage.removeItem(PENDING_CHECKOUT_KEY)
+      return v
+    }
+  } catch { /* storage unavailable */ }
+  return null
+}
+
 /**
  * Start Stripe Checkout for the given plan and redirect the browser to it.
  * The Edge Function chooses the actual price from a server-side allowlist — the

@@ -2,7 +2,7 @@ import { useState, lazy, Suspense, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Check, Zap, LayoutGrid, Target, BarChart3, Wallet, Trophy } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
-import { startCheckout, type BillingPlan } from '../services/supabase/billing'
+import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
 import { PLAN_OPTIONS, PRO_BENEFITS } from '../services/pro-features'
 
 // The WebGL hero pulls in Three.js — load it as its own chunk after the hero
@@ -46,7 +46,12 @@ export function LandingPage() {
 
   function startFree() { navigate(authed ? '/app' : '/login') }
   async function goPro() {
-    if (!authed) { navigate('/login'); return }
+    if (!authed) {
+      // Remember the intent so checkout resumes automatically after sign-in.
+      setPendingCheckout(plan)
+      navigate('/login')
+      return
+    }
     try { await startCheckout(plan) } catch (e) { console.error('checkout failed', e) }
   }
 
