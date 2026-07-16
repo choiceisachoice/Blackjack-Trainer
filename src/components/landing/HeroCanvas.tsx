@@ -21,16 +21,16 @@ type Def =
   | { t: 'chip'; c: string }
 
 interface Drifter {
-  sprite: THREE.Sprite
-  mat: THREE.SpriteMaterial
-  texs: THREE.CanvasTexture[]
+  sharp: THREE.Sprite
+  blur: THREE.Sprite
+  mSharp: THREE.SpriteMaterial
+  mBlur: THREE.SpriteMaterial
   bx: number
   by: number
   z: number
   sp: number
   rot0: number
   rs: number
-  lvl: number
 }
 
 const BG = 0x070809
@@ -104,8 +104,10 @@ function pillCanvas(label: string, sub: string | undefined, tone: Tone): HTMLCan
 function cardCanvas(rank: string, suit: string, red: boolean): HTMLCanvasElement {
   const dpr = 2, W = 66 * dpr, H = 92 * dpr, r = 9 * dpr, gm = 26 * dpr, bx = gm, by = gm
   const { cv, x } = newCanvas(W + gm * 2, H + gm * 2)
-  x.save(); x.shadowColor = 'rgba(232,232,238,.28)'; x.shadowBlur = 22 * dpr; x.fillStyle = '#fff'; roundRect(x, bx, by, W, H, r); x.fill(); x.restore()
-  const g = x.createLinearGradient(0, by, 0, by + H); g.addColorStop(0, '#fdfdfc'); g.addColorStop(1, '#eceae4')
+  x.save(); x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 20 * dpr; x.shadowOffsetY = 5 * dpr; x.fillStyle = '#d5d3ca'; roundRect(x, bx, by, W, H, r); x.fill(); x.restore()
+  // Muted ivory, not pure white: a big sharp card at full white sits above the
+  // bloom threshold and flares into a "sun over the hill" flash.
+  const g = x.createLinearGradient(0, by, 0, by + H); g.addColorStop(0, '#d7d5cc'); g.addColorStop(1, '#c0beb4')
   roundRect(x, bx, by, W, H, r); x.fillStyle = g; x.fill()
   x.lineWidth = 1 * dpr; x.strokeStyle = 'rgba(0,0,0,.12)'; roundRect(x, bx + 0.5, by + 0.5, W - 1, H - 1, r); x.stroke()
   x.fillStyle = red ? '#c41e3a' : '#16181d'; x.textAlign = 'left'; x.textBaseline = 'top'
@@ -146,6 +148,12 @@ function canvasTexture(cv: HTMLCanvasElement): THREE.CanvasTexture {
   return t
 }
 
+/** Hermite smoothstep — eases 0→1 between edge0 and edge1 (edge0 < edge1). */
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
+  return t * t * (3 - 2 * t)
+}
+
 function spawnX(): number { return (Math.random() * 2 - 1) * 13 + 1.5 }
 function spawnY(): number { return (Math.random() * 2 - 1) * 6 + 2 }
 
@@ -163,37 +171,48 @@ export function HeroCanvas({ className }: { className?: string }) {
       return // no WebGL (jsdom / unsupported) — the CSS layers still render.
     }
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    // Cap DPR at 1.5: UnrealBloom runs several full-viewport gaussian passes,
+    // and its cost scales with pixel count — dpr 2 on a wide hero can stall the
+    // GPU into a context loss. 1.5 stays crisp and keeps the frame budget sane.
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
     renderer.setPixelRatio(dpr)
     renderer.setClearColor(BG, 1)
 
     const scene = new THREE.Scene()
-    scene.fog = new THREE.Fog(BG, 6, 44)
+    scene.fog = new THREE.Fog(BG, 8, 40)
     const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 120)
 
     const disposables: { dispose(): void }[] = []
     const drifters: Drifter[] = DEFS.map((d) => {
       const base = d.t === 'pill' ? pillCanvas(d.l, d.sub, d.tone) : d.t === 'card' ? cardCanvas(d.r, d.s, d.red) : chipCanvas(d.c)
-      const texs = [canvasTexture(base), canvasTexture(blurCopy(base, 2.2)), canvasTexture(blurCopy(base, 5.5))]
-      texs.forEach((t) => disposables.push(t))
       const baseH = d.t === 'pill' ? 0.98 : d.t === 'card' ? 1.72 : 1.26
-      const mat = new THREE.SpriteMaterial({ map: texs[0], transparent: true, depthTest: false, depthWrite: false, fog: true })
-      disposables.push(mat)
-      const sprite = new THREE.Sprite(mat)
-      sprite.scale.set(baseH * (base.width / base.height), baseH, 1)
-      scene.add(sprite)
+      const sx = baseH * (base.width / base.height)
+      // One sharp + one blurred sprite, stacked and crossfaded by distance, so
+      // the focus pull from soft (far) to crisp (near) is continuous instead of
+      // snapping between discrete blur levels.
+      const mk = (cv: HTMLCanvasElement): { m: THREE.SpriteMaterial; s: THREE.Sprite } => {
+        const tex = canvasTexture(cv)
+        const m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, fog: true, opacity: 0 })
+        disposables.push(tex, m)
+        const s = new THREE.Sprite(m)
+        s.scale.set(sx, baseH, 1)
+        scene.add(s)
+        return { m, s }
+      }
+      const blur = mk(blurCopy(base, 3.5))
+      const sharp = mk(base)
       return {
-        sprite, mat, texs, bx: spawnX(), by: spawnY(),
+        sharp: sharp.s, blur: blur.s, mSharp: sharp.m, mBlur: blur.m,
+        bx: spawnX(), by: spawnY(),
         z: -3 - Math.random() * 38, sp: 2.0 + Math.random() * 1.3,
         rot0: d.t === 'pill' ? 0 : (Math.random() * 2 - 1) * (d.t === 'card' ? 0.28 : 0.5),
         rs: d.t === 'pill' ? 0 : (Math.random() * 2 - 1) * (d.t === 'card' ? 0.06 : 0.16),
-        lvl: 0,
       }
     })
 
     const composer = new EffectComposer(renderer)
     composer.addPass(new RenderPass(scene, camera))
-    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.45, 0.82)
+    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.30, 0.4, 0.86)
     composer.addPass(bloom)
     composer.addPass(new OutputPass())
 
@@ -217,42 +236,83 @@ export function HeroCanvas({ className }: { className?: string }) {
 
     let raf = 0
     let disposed = false
+    let running = false
+    let onScreen = true
     let last = performance.now()
     let elapsed = 0
+
+    // If the GPU drops the context (driver reset, or too many contexts after a
+    // long hot-reload session), stop cleanly instead of rendering white garbage.
+    const onContextLost = (e: Event) => {
+      e.preventDefault(); disposed = true; cancelAnimationFrame(raf)
+      // Hide the (now frozen/white) canvas so the dark CSS layers show through
+      // instead of a white freeze.
+      canvas.style.opacity = '0'
+    }
+    canvas.addEventListener('webglcontextlost', onContextLost)
+
     const frame = (now: number) => {
-      if (disposed) return
+      if (disposed || !onScreen) { running = false; return }
       const dt = Math.min((now - last) / 1000, 0.05); last = now; elapsed += dt
       ptr.x += (pointer.x - ptr.x) * 0.04; ptr.y += (pointer.y - ptr.y) * 0.04
       for (const d of drifters) {
         if (!reduce) {
           d.z += d.sp * dt
-          if (d.z > -1.6) { d.z = -43; d.bx = spawnX(); d.by = spawnY() }
+          if (d.z > -5) { d.z = -43; d.bx = spawnX(); d.by = spawnY() }
         }
-        const f = Math.max(0, Math.min(1, (-d.z - 6) / 34))
-        const lvl = f < 0.34 ? 0 : f < 0.64 ? 1 : 2
-        if (lvl !== d.lvl) { d.lvl = lvl; d.mat.map = d.texs[lvl] }
-        // Fade in from the fog AND fade out as a sprite passes very close, so a
-        // near white card can't bloom into a giant blob.
-        const near = Math.min(1, Math.max(0, (-d.z - 2) / 7))
-        d.mat.opacity = (1 - f * 0.65) * near
-        d.mat.rotation = reduce ? d.rot0 : d.rot0 + elapsed * d.rs
-        const par = 1.7 * (0.35 + 0.65 * (1 - f))
-        d.sprite.position.set(d.bx + ptr.x * par, d.by - ptr.y * par * 0.6, d.z)
+        const dist = -d.z
+        // Opacity: emerge from the far dark (smooth fade-in), hold through the
+        // mid band, then fade out BEFORE the sprite fills the frame. Narrow
+        // window ⇒ only a few objects on screen at once (no bright wash).
+        const op = (1 - smoothstep(24, 32, dist)) * smoothstep(9, 15, dist)
+        // Focus pull: crossfade blur→sharp so total coverage stays ~op (the two
+        // opacities sum through one object, never double it into a wash).
+        const clarity = 1 - smoothstep(13, 21, dist)
+        d.mSharp.opacity = op * clarity
+        d.mBlur.opacity = op * (1 - clarity)
+        const rot = reduce ? d.rot0 : d.rot0 + elapsed * d.rs
+        d.mSharp.rotation = rot; d.mBlur.rotation = rot
+        const depth01 = smoothstep(6, 40, dist)
+        const par = 1.7 * (0.35 + 0.65 * (1 - depth01))
+        const px = d.bx + ptr.x * par, py = d.by - ptr.y * par * 0.6
+        d.sharp.position.set(px, py, d.z)
+        d.blur.position.set(px, py, d.z)
       }
       composer.render()
-      if (!reduce) raf = requestAnimationFrame(frame)
+      if (!disposed && onScreen && !reduce) raf = requestAnimationFrame(frame)
+      else running = false
     }
-    raf = requestAnimationFrame(frame)
+    const start = () => {
+      if (running || disposed || !onScreen) return
+      running = true
+      last = performance.now()
+      raf = requestAnimationFrame(frame)
+    }
+
+    // Pause the whole render loop whenever the hero scrolls out of view — no
+    // point burning GPU on a canvas nobody can see, and it keeps the rest of
+    // the (long) landing page scrolling smoothly.
+    const io = new IntersectionObserver((entries) => {
+      onScreen = entries[entries.length - 1].isIntersecting
+      if (onScreen) start()
+    }, { threshold: 0 })
+    io.observe(canvas)
+    start()
 
     return () => {
       disposed = true
       cancelAnimationFrame(raf)
+      io.disconnect()
+      canvas.removeEventListener('webglcontextlost', onContextLost)
       window.removeEventListener('pointermove', onPointer)
       window.removeEventListener('resize', resize)
       disposables.forEach((o) => o.dispose())
       bloom.dispose()
       composer.dispose()
       renderer.dispose()
+      // NB: do NOT call renderer.forceContextLoss() here — it permanently kills
+      // the shared <canvas> context, so a StrictMode/HMR remount reuses a dead
+      // context and renders white.
     }
   }, [])
 
