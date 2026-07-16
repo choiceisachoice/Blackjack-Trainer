@@ -1,5 +1,5 @@
 import {
-  Zap, Spade, GraduationCap, Coins, Layers, Wallet, Club,
+  Zap, GraduationCap, Coins, Layers, Wallet, Club,
   ClipboardList, BarChart3, Grid3x3, Trophy, BookOpen, ArrowRight,
   type LucideIcon,
 } from 'lucide-react'
@@ -9,7 +9,7 @@ import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
 import { DailyChallengeCard } from './DailyChallengeCard'
 import { WeeklyChallengeCard } from './WeeklyChallengeCard'
-import { TypewriterHeadline } from './TypewriterHeadline'
+import { DashboardHeader } from './DashboardHeader'
 
 interface FeatureCard {
   mode: AppMode
@@ -34,7 +34,9 @@ const TOOL_CARDS: FeatureCard[] = [
 ]
 
 /**
- * Home screen — dark luxury landing with feature cards and challenges.
+ * Home screen — the signed-in dashboard: your progress, your challenges, and
+ * the way back into every training mode. The marketing pitch lives on the
+ * public landing page; a returning user gets their own numbers instead.
  * The app focuses on the Hi-Lo system; navigation lives in the global NavBar.
  */
 export function HomeScreen() {
@@ -45,40 +47,7 @@ export function HomeScreen() {
     <div className="relative min-h-full flex flex-col items-center px-4 pb-4">
       <div className="hero-glow" />
 
-      {/* Hero */}
-      <section className="relative z-10 flex flex-col items-center text-center pt-14 md:pt-20 mb-10">
-        <span className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-medium tracking-wide
-          text-gold/90 bg-gold/10 border border-gold/25">
-          <Spade size={12} className="fill-current" />
-          Professional Card-Counting Trainer
-        </span>
-        <TypewriterHeadline />
-        <p className="mt-5 text-content/55 text-base md:text-lg max-w-xl">
-          Learn to count cards the way the pros actually do. Master the Hi-Lo system,
-          sharpen your instincts across focused training modes, and take your edge to a realistic casino table.
-        </p>
-
-        {/* Stat chips */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 text-xs">
-          {['Hi-Lo System', 'Basic Strategy', 'Deviations', 'Realistic Casino Play'].map(s => (
-            <span key={s} className="px-3 py-1.5 rounded-full text-content/60 bg-contrast/5 border border-contrast/10">
-              {s}
-            </span>
-          ))}
-        </div>
-
-        {/* Primary CTA */}
-        <button
-          onClick={() => setMode('casinoSession')}
-          className="lift-glow mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold
-            text-black bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
-            shadow-[0_10px_30px_-12px_var(--color-gold)]"
-        >
-          <Club size={18} className="fill-current" />
-          Start a Casino Session
-          <ArrowRight size={17} />
-        </button>
-      </section>
+      <DashboardHeader />
 
       {/* Challenges */}
       <section className="relative z-10 w-full max-w-5xl mb-10 space-y-3">

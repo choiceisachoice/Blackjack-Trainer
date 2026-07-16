@@ -35,10 +35,10 @@ describe('TrainerApp', () => {
 
   it('renders home screen by default', () => {
     render(<MemoryRouter><TrainerApp /></MemoryRouter>)
-    // The hero headline is animated; its accessible name stays the brand title.
-    expect(
-      screen.getAllByRole('heading', { name: 'Blackjack Card Counting Trainer' })[0]
-    ).toBeInTheDocument()
+    // Home is the dashboard: it greets the user and lists the training modes.
+    // Its headline is the level title, so assert stable landmarks instead.
+    expect(screen.getByRole('heading', { name: 'Training Modes' })).toBeInTheDocument()
+    expect(screen.getByText(/^Welcome/)).toBeInTheDocument()
   })
 
   it('renders the Flashcards trainer for deviationTraining mode', () => {

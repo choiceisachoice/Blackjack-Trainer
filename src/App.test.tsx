@@ -57,9 +57,9 @@ describe('App routing', () => {
 
   it('renders the trainer at /app (no backend → gate open)', async () => {
     renderAt('/app')
-    expect(
-      (await screen.findAllByRole('heading', { name: 'Blackjack Card Counting Trainer' }, T))[0]
-    ).toBeInTheDocument()
+    // The home screen is the signed-in dashboard; its headline is the user's
+    // level title, so assert a stable landmark instead.
+    expect(await screen.findByRole('heading', { name: 'Training Modes' }, T)).toBeInTheDocument()
   })
 
   it('redirects unknown routes to the landing', async () => {
