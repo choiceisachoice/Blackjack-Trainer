@@ -18,12 +18,18 @@ vi.mock('recharts', () => ({
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
-      const { initial, animate, exit, transition, onAnimationComplete, ...rest } = props
+      const {
+        initial, animate, exit, transition, onAnimationComplete,
+        // The landing's scroll reveals add these — keep them off the DOM node.
+        whileInView, viewport,
+        ...rest
+      } = props
       return <div {...rest}>{children}</div>
     },
   },
   AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
   LayoutGroup: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  useReducedMotion: () => false,
 }))
 
 // The landing lazy-loads the WebGL hero, which pulls in Three.js — a huge module

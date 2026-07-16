@@ -4,6 +4,8 @@ import { Spade, Check, Zap, LayoutGrid, Target, BarChart3, Wallet, Trophy } from
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
 import { PLAN_OPTIONS, PRO_BENEFITS } from '../services/pro-features'
+import { Reveal } from '../components/landing/Reveal'
+import { ManifestoSection } from '../components/landing/ManifestoSection'
 
 // The WebGL hero pulls in Three.js — load it as its own chunk after the hero
 // text has painted, so it never blocks the landing's first paint.
@@ -118,38 +120,51 @@ export function LandingPage() {
 
       {/* Features */}
       <section id="features" className="max-w-6xl mx-auto px-6 py-20">
-        <SectionHead eyebrow="Everything in one trainer" title={<>Everything you need to <span className="text-gold-gradient">actually get good</span>.</>}
-          sub="Not flashcards in a vacuum — a full path from keeping the count to sitting at a live table and reading your own leaks." />
+        <Reveal>
+          <SectionHead eyebrow="Everything in one trainer" title={<>Everything you need to <span className="text-gold-gradient">actually get good</span>.</>}
+            sub="Not flashcards in a vacuum — a full path from keeping the count to sitting at a live table and reading your own leaks." />
+        </Reveal>
         <div className="mt-11 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(f => (
-            <div key={f.title} className="surface rounded-2xl p-[22px] transition-transform hover:-translate-y-0.5">
-              <div className="w-10 h-10 rounded-[10px] grid place-items-center bg-gold/12 border border-gold/20 text-gold mb-3.5"><f.icon size={20} /></div>
-              <h3 className="text-base font-bold flex items-center gap-2">{f.title}{f.pro && <ProTag />}</h3>
-              <p className="mt-2 text-sm text-content/60 leading-relaxed">{f.body}</p>
-            </div>
+          {FEATURES.map((f, i) => (
+            <Reveal key={f.title} delay={(i % 3) * 0.06}>
+              <div className="surface rounded-2xl p-[22px] transition-transform hover:-translate-y-0.5 h-full">
+                <div className="w-10 h-10 rounded-[10px] grid place-items-center bg-gold/12 border border-gold/20 text-gold mb-3.5"><f.icon size={20} /></div>
+                <h3 className="text-base font-bold flex items-center gap-2">{f.title}{f.pro && <ProTag />}</h3>
+                <p className="mt-2 text-sm text-content/60 leading-relaxed">{f.body}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
       {/* How it works */}
       <section className="max-w-6xl mx-auto px-6 pb-8">
-        <SectionHead eyebrow="How it works" title={<>Learn it. Drill it. Play it.</>} />
+        <Reveal>
+          <SectionHead eyebrow="How it works" title={<>Learn it. Drill it. Play it.</>} />
+        </Reveal>
         <div className="mt-11 grid gap-4 md:grid-cols-3">
-          {STEPS.map(s => (
-            <div key={s.n} className="surface rounded-2xl p-6">
-              <div className="w-7 h-7 rounded-lg grid place-items-center text-sm font-extrabold bg-gradient-to-br from-gold-bright to-gold text-casino-bg mb-3.5">{s.n}</div>
-              <h3 className="text-lg font-bold">{s.title}</h3>
-              <p className="mt-2 text-sm text-content/60">{s.body}</p>
-            </div>
+          {STEPS.map((s, i) => (
+            <Reveal key={s.n} delay={i * 0.06}>
+              <div className="surface rounded-2xl p-6 h-full">
+                <div className="w-7 h-7 rounded-lg grid place-items-center text-sm font-extrabold bg-gradient-to-br from-gold-bright to-gold text-casino-bg mb-3.5">{s.n}</div>
+                <h3 className="text-lg font-bold">{s.title}</h3>
+                <p className="mt-2 text-sm text-content/60">{s.body}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
+      {/* Manifesto — the emotional beat right before the pricing ask */}
+      <ManifestoSection />
+
       {/* Pricing */}
       <section id="pricing" className="max-w-6xl mx-auto px-6 py-20">
-        <SectionHead eyebrow="Pricing" title={<>Start free. Go <span className="text-gold-gradient">Pro</span> when you’re ready.</>}
-          sub="The free tier is genuinely enough to learn the count. Pro unlocks the real table, the deviations, and the full picture of your edge." />
-        <div className="mt-10 grid gap-4 md:grid-cols-[1fr_1.15fr] items-stretch max-w-3xl">
+        <Reveal>
+          <SectionHead eyebrow="Pricing" title={<>Start free. Go <span className="text-gold-gradient">Pro</span> when you’re ready.</>}
+            sub="The free tier is genuinely enough to learn the count. Pro unlocks the real table, the deviations, and the full picture of your edge." />
+        </Reveal>
+        <Reveal delay={0.06} className="mt-10 grid gap-4 md:grid-cols-[1fr_1.15fr] items-stretch max-w-3xl">
           {/* Free */}
           <div className="surface rounded-2xl p-7 flex flex-col">
             <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">Free</div>
@@ -178,32 +193,34 @@ export function LandingPage() {
             </div>
             <button onClick={goPro} className="mt-6 rounded-xl px-5 py-3 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer w-full">Go Pro →</button>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* FAQ */}
       <section className="max-w-6xl mx-auto px-6 pb-8">
-        <SectionHead eyebrow="Good to know" title={<>Questions, answered.</>} />
-        <div className="mt-9 max-w-3xl">
+        <Reveal>
+          <SectionHead eyebrow="Good to know" title={<>Questions, answered.</>} />
+        </Reveal>
+        <Reveal delay={0.06} className="mt-9 max-w-3xl">
           {FAQS.map(f => (
             <details key={f.q} className="border-b border-white/8 py-4 group">
               <summary className="cursor-pointer font-semibold text-base flex justify-between items-center list-none">{f.q}<span className="text-gold text-xl transition-transform group-open:rotate-45">+</span></summary>
               <p className="mt-3 text-content/60 text-sm leading-relaxed">{f.a}</p>
             </details>
           ))}
-        </div>
+        </Reveal>
       </section>
 
       {/* Final CTA */}
       <section className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="rounded-3xl border border-white/8 py-14 px-6 text-center bg-[radial-gradient(80%_120%_at_50%_0%,rgba(212,168,71,.12),transparent_60%),var(--color-surface)]">
+        <Reveal className="rounded-3xl border border-white/8 py-14 px-6 text-center bg-[radial-gradient(80%_120%_at_50%_0%,rgba(212,168,71,.12),transparent_60%),var(--color-surface)]">
           <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">Ready when you are</div>
           <h2 className="mt-3.5 text-3xl md:text-4xl font-extrabold tracking-tight max-w-[16em] mx-auto text-balance">Turn the count into an edge you can feel.</h2>
           <div className="mt-7 flex justify-center gap-3.5 flex-wrap">
             <button onClick={startFree} className="rounded-xl px-6 py-3.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer">{authed ? 'Open app →' : 'Start free →'}</button>
             <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">See Pro</a>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* Footer */}
@@ -226,7 +243,7 @@ function HeroLayer() {
       </Suspense>
       <div className="absolute inset-0 z-[2] pointer-events-none" style={{ background: AMBIENT }} />
       <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: SCRIM }} />
-      <div className="absolute inset-0 z-[4] pointer-events-none shadow-[inset_0_0_160px_18px_rgba(0,0,0,.38)]" />
+      <div className="absolute inset-0 z-[4] pointer-events-none shadow-[inset_0_0_190px_30px_rgba(0,0,0,.55)]" />
     </>
   )
 }
