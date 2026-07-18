@@ -72,8 +72,12 @@ function rankValue(rank: string): number {
  * single-card hit animations, and dealer draw staggering.
  */
 export function Hand({ cards, isDealer = false, hideFirst = false, label, isActive = false, countValues, splitNewCardDelay }: HandProps) {
-  // Track previous card count to detect initial deal vs. hit
+  // Track previous card count to detect initial deal vs. hit.
+  // Written only in an effect (after commit), so this read yields the last
+  // committed value — the previous-value idiom, safe under concurrent
+  // rendering. The rule targets refs mutated during render; this one isn't.
   const prevCardCount = useRef(0)
+  // eslint-disable-next-line react-hooks/refs -- deliberate previous-value read; see above
   const prevCardCountSnapshot = prevCardCount.current
   const isInitialDeal = prevCardCountSnapshot === 0 && cards.length >= 2
 
@@ -103,7 +107,10 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
     return 0
   }
 
-  // Pre-compute animation info for each card (used by both badges and cards)
+  // Pre-compute animation info for each card (used by both badges and cards).
+  // Flagged transitively because the delay derives from the snapshot above;
+  // this closure only consumes that already-captured value, never the ref.
+  // eslint-disable-next-line react-hooks/refs -- consumes the snapshot, not the ref
   const cardAnimations = cards.map((_, i) => {
     const animateIn = splitNewCardDelay !== undefined
       ? i === 1

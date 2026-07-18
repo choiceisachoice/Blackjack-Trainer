@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { TrainingBackdrop, RAIL_CONTENT } from './TrainingBackdrop'
+import { TrainingBackdrop } from './TrainingBackdrop'
+import { RAIL_CONTENT } from './training-rail-content'
 import { useStatsStore } from '../../store/stats-store'
 import type { LifetimeStats, TrainingSessionResult } from '../../services/stats-types'
 import { CountingSystemId } from '../../engine/counting/types'

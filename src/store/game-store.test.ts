@@ -224,19 +224,20 @@ describe('Game Store', () => {
     store.startRound()
     vi.advanceTimersByTime(2200)
 
+    // The shoe is shuffled, so the cards are unknown — but they are readable
+    // from state, so the count they must produce is not. This store counts both
+    // dealer cards at deal time, so every card on the table is in the count.
     const stateAfterDeal = useGameStore.getState()
-    // After dealing 4 cards, running count should have changed (or be 0 if they cancel)
-    // The count at least should be defined and numeric
-    expect(typeof stateAfterDeal.runningCount).toBe('number')
+    expect(stateAfterDeal.runningCount).toBe(hiLoSum(cardsOnTable(stateAfterDeal)))
 
     if (!stateAfterDeal.gameState?.isRoundOver) {
       store.stand()
       vi.advanceTimersByTime(10000)
     }
 
+    // Still exact once the dealer has drawn: hits and draws must be counted too.
     const stateAfterRound = useGameStore.getState()
-    // After full round with dealer cards, count should reflect all cards
-    expect(typeof stateAfterRound.runningCount).toBe('number')
+    expect(stateAfterRound.runningCount).toBe(hiLoSum(cardsOnTable(stateAfterRound)))
   })
 
   it('balance updates correctly after win/loss/push', () => {
@@ -298,6 +299,27 @@ describe('Game Store', () => {
 
 const c = (rank: Rank, suit: Suit = Suit.Spades): Card => ({ rank, suit })
 
+/**
+ * Independent Hi-Lo oracle: 2–6 count +1, 7–9 count 0, tens and aces count −1.
+ * Written from the published definition rather than reusing the counting
+ * engine's own tag table, so these tests check the store against the system
+ * instead of against itself.
+ */
+function hiLoSum(cards: Card[]): number {
+  return cards.reduce((n, c) => {
+    if ([Rank.Two, Rank.Three, Rank.Four, Rank.Five, Rank.Six].includes(c.rank)) return n + 1
+    if ([Rank.Seven, Rank.Eight, Rank.Nine].includes(c.rank)) return n
+    return n - 1
+  }, 0)
+}
+
+/** Every card face-up on the table, player hands first, then the dealer's. */
+function cardsOnTable(state: ReturnType<typeof useGameStore.getState>): Card[] {
+  const gs = state.gameState
+  if (!gs) return []
+  return [...gs.playerHands.flatMap(h => h.cards), ...gs.dealerHand.cards]
+}
+
 function createMockCardSource(cards: Card[]): CardSource {
   let index = 0
   return {
@@ -318,9 +340,9 @@ function setupDeterministicStore(cards: Card[]) {
   store.initGame()
   const mockShoe = createMockCardSource(cards)
   const gameEngine = new GameEngine(DEFAULT_RULES, mockShoe)
-  // Override shoe and engine (mock shoe satisfies structural typing for Shoe methods the store uses)
+  // The store's shoe is typed as CardSource, so the mock needs no cast.
   useGameStore.setState({
-    shoe: mockShoe as any,
+    shoe: mockShoe,
     gameEngine,
   })
 }
@@ -686,7 +708,7 @@ describe('Game Store – Split 21 Payout', () => {
       c(Rank.King, Suit.Hearts),     // dealer draw → 17
     ])
     const gameEngine = new GameEngine(rules, mockShoe)
-    useGameStore.setState({ shoe: mockShoe as any, gameEngine })
+    useGameStore.setState({ shoe: mockShoe, gameEngine })
 
     store.placeBet(100)
     store.startRound()
@@ -718,7 +740,7 @@ describe('Game Store – Split 21 Payout', () => {
       c(Rank.Five, Suit.Hearts),       // dealer draw → 17
     ])
     const gameEngine = new GameEngine(rules, mockShoe)
-    useGameStore.setState({ shoe: mockShoe as any, gameEngine })
+    useGameStore.setState({ shoe: mockShoe, gameEngine })
 
     store.placeBet(100)
     store.startRound()
@@ -743,7 +765,7 @@ describe('Game Store – Split 21 Payout', () => {
       c(Rank.Five, Suit.Hearts),     // dealer draw
     ])
     const gameEngine = new GameEngine(rules, mockShoe)
-    useGameStore.setState({ shoe: mockShoe as any, gameEngine })
+    useGameStore.setState({ shoe: mockShoe, gameEngine })
 
     store.placeBet(100)
     store.startRound()

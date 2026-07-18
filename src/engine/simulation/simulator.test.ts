@@ -549,8 +549,11 @@ describe('calculateAllPresets', () => {
     const results = calculateAllPresets({ sessionsPerWeek: 3, hoursPerSession: 3 })
     for (const { preset, analysis } of results) {
       expect(preset.id).toBeTruthy()
-      expect(typeof analysis.hourlyEV).toBe('number')
-      expect(typeof analysis.riskOfRuin).toBe('number')
+      // `typeof NaN === 'number'`, so a type check would still pass if the
+      // maths divided by zero. Assert the properties that actually hold.
+      expect(Number.isFinite(analysis.hourlyEV)).toBe(true)
+      expect(analysis.riskOfRuin).toBeGreaterThanOrEqual(0)
+      expect(analysis.riskOfRuin).toBeLessThanOrEqual(1)
     }
   })
 

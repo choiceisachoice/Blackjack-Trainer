@@ -4,7 +4,7 @@ import { GameEngine } from '../engine/rules/game-engine'
 import { CountingEngine } from '../engine/counting/counting-engine'
 import { getSystemById } from '../engine/counting/counting-systems'
 import { isBlackjack, isBust, getCardValue } from '../engine/rules/hand-utils'
-import type { GameState, CasinoRules } from '../engine/rules/types'
+import type { GameState, CasinoRules, CardSource } from '../engine/rules/types'
 import { DEFAULT_RULES, Action, HandResult } from '../engine/rules/types'
 import { CountingSystemId } from '../engine/counting/types'
 import type { Card } from '../engine/shoe/types'
@@ -150,7 +150,7 @@ function finishRound(
   state: GameState,
   gameEngine: GameEngine,
   countingEngine: CountingEngine,
-  shoe: Shoe,
+  shoe: CardSource,
   blackjackPayout: number,
   currentBalance: number,
   insuranceBet: number
@@ -200,7 +200,12 @@ function needsDealerPeek(gameState: GameState): boolean {
 
 /** Game store state and actions. */
 export interface GameStoreState {
-  shoe: Shoe | null
+  /**
+   * The card source. Typed as the abstraction, not the concrete Shoe: the store
+   * only ever calls deal/remaining/remainingDecks/cutCardReached/reset, which is
+   * exactly CardSource — and GameEngine and GameState already depend on it too.
+   */
+  shoe: CardSource | null
   gameEngine: GameEngine | null
   countingEngine: CountingEngine | null
   rules: CasinoRules

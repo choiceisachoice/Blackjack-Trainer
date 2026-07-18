@@ -49,17 +49,20 @@ function App() {
     if (plan) startCheckout(plan).catch(e => console.error('pending checkout failed', e))
   }, [authStatus])
 
-  // Returning from Stripe Checkout (?checkout=success): the entitlement webhook
-  // lands a beat after the redirect, so poll until Pro flips on. Strip the param
-  // first so a manual refresh doesn't re-trigger the poll.
+  // Returning from Stripe Checkout. Stripe sends ?checkout=success on completion
+  // and ?checkout=cancelled when the user backs out; clear either one so it
+  // doesn't linger in the address bar or re-trigger on a manual refresh. Only
+  // success starts the poll — the entitlement webhook lands a beat after the
+  // redirect, so we wait for Pro to flip on.
   useEffect(() => {
     if (authStatus !== 'signedIn') return
     const params = new URLSearchParams(window.location.search)
-    if (params.get('checkout') !== 'success') return
+    const outcome = params.get('checkout')
+    if (outcome !== 'success' && outcome !== 'cancelled') return
     params.delete('checkout')
     const qs = params.toString()
     window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''))
-    useEntitlementStore.getState().refreshUntilPro()
+    if (outcome === 'success') useEntitlementStore.getState().refreshUntilPro()
   }, [authStatus])
 
   return (

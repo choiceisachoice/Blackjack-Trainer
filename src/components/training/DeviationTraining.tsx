@@ -82,7 +82,11 @@ export function DeviationTraining() {
     // Record per-deviation results (only count-based deviation questions).
     if (question.isDeviation && question.deviationName) {
       const name = question.deviationName
+      // Tally in place. This runs in an event handler, not during render, so
+      // mutating the ref's contents is legitimate; the rule cannot tell the two
+      // apart here.
       const entry = perDeviationRef.current[name] ?? { correct: 0, incorrect: 0 }
+      // eslint-disable-next-line react-hooks/immutability -- event handler, not render
       if (correct) entry.correct++
       else entry.incorrect++
       perDeviationRef.current[name] = entry

@@ -45,8 +45,13 @@ export const PlayingCard = memo(function PlayingCard({
   // canFlip: false while the card is sliding in, true after slide completes
   const [canFlip, setCanFlip] = useState(!animateIn)
 
-  // Track faceDown changes for dealer reveal animation
+  // Track faceDown changes for dealer reveal animation.
+  // The ref is written only in the effect below, i.e. after commit, so reading
+  // it here yields the last *committed* value — which is exactly the intent of
+  // the previous-value idiom and is safe under concurrent rendering. The rule
+  // guards against refs mutated during render; this one never is.
   const prevFaceDown = useRef(faceDown)
+  // eslint-disable-next-line react-hooks/refs -- deliberate previous-value read; see above
   const isRevealing = prevFaceDown.current && !faceDown
 
   useEffect(() => {

@@ -55,6 +55,11 @@ export function useStepAnimation() {
     step.execute()
 
     if (step.delayMs <= 0) {
+      // Self-recursion for zero-delay steps. Flagged because the callback names
+      // the const it is being assigned to, but by the time it can run, the
+      // binding holds this very (memoised, [] deps) function — the recursion
+      // resolves correctly on every render.
+      // eslint-disable-next-line react-hooks/immutability -- deliberate self-recursion
       executeNext()
     } else {
       timerRef.current = setTimeout(executeNext, step.delayMs * speedMultiplierRef.current)

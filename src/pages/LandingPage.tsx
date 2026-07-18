@@ -53,12 +53,17 @@ export function LandingPage() {
     <div className="bg-casino-bg text-content overflow-x-hidden">
       {/* Nav */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-[rgba(9,10,12,.6)] border-b border-white/8">
-        <nav className="max-w-6xl mx-auto w-full px-6 h-[62px] flex items-center justify-between">
+        {/* Tighter padding and gaps below sm: at 360px the wordmark and the
+            actions otherwise meet with zero space between them. */}
+        <nav className="max-w-6xl mx-auto w-full px-4 sm:px-6 h-[62px] flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 font-bold">
-            <span className="w-7 h-7 rounded-lg grid place-items-center bg-gradient-to-br from-gold-bright to-gold text-casino-bg"><Spade size={15} /></span>
-            Blackjack Trainer
+            <span className="w-7 h-7 rounded-lg grid place-items-center bg-gradient-to-br from-gold-bright to-gold text-casino-bg shrink-0"><Spade size={15} /></span>
+            {/* Below 360px the wordmark plus the actions need ~342px, so it
+                would wrap to two lines inside a 62px bar. Drop to the mark
+                alone there; from 360px up it fits on one line. */}
+            <span className="hidden min-[360px]:inline whitespace-nowrap">Blackjack Trainer</span>
           </div>
-          <div className="flex items-center gap-5 text-sm text-content/70">
+          <div className="flex items-center gap-4 sm:gap-5 text-sm text-content/70 shrink-0">
             <a href="#features" className="hidden sm:inline hover:text-content">Features</a>
             <a href="#pricing" className="hidden sm:inline hover:text-content">Pricing</a>
             {authed ? (
@@ -66,7 +71,7 @@ export function LandingPage() {
             ) : (
               <>
                 <Link to="/login" className="hover:text-content">Sign in</Link>
-                <button onClick={startFree} className="rounded-lg px-4 py-2.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer">Start free</button>
+                <button onClick={startFree} className="rounded-lg px-3.5 sm:px-4 py-2.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer whitespace-nowrap">Start free</button>
               </>
             )}
           </div>

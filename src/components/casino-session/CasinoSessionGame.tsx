@@ -64,7 +64,6 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
       casinoAmbient.stop()
     }
     return () => { casinoAmbient.stop() }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundEnabled, config.casinoAmbience, state.isPaused, ambientVolume])
 
   // Time limit check

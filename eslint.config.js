@@ -21,9 +21,17 @@ export default defineConfig([
     },
     rules: {
       // Treat a leading underscore as "intentionally unused" (matches tsc).
+      // ignoreRestSiblings covers the omit-by-destructuring idiom — pulling
+      // props out specifically to keep them off a DOM node and spreading the
+      // rest. The named bindings are unused on purpose; that IS the point.
       '@typescript-eslint/no-unused-vars': [
         'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
       ],
     },
   },

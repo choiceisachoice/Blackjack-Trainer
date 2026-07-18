@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { BetSpread, getMultiplier, getCorrectBet, buildBracketSequence } from './BetSpread'
+import { BetSpread } from './BetSpread'
+import { getMultiplier, getCorrectBet, buildBracketSequence } from './bet-spread-math'
 
 /** Expected 1–16 bet multiplier for a given TC (mirrors the component). */
 function expectedMultiplier(tc: number): number {

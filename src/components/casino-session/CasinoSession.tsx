@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
 import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker-store'
@@ -23,12 +23,15 @@ export function CasinoSession() {
     countingSystem: selectedSystem,
   })
   const [result, setResult] = useState<CasinoSessionResult | null>(null)
-  const recorderRef = useRef<SessionRecorder | null>(null)
+  // State, not a ref: the recorder is handed to child components, so it is
+  // render-relevant data. As a ref it worked only because every write happened
+  // to be paired with a state update that forced the re-render.
+  const [recorder, setRecorder] = useState<SessionRecorder | null>(null)
 
   const handleStart = useCallback((config: CasinoSessionConfig) => {
-    const recorder = new SessionRecorder()
-    recorder.start(config)
-    recorderRef.current = recorder
+    const next = new SessionRecorder()
+    next.start(config)
+    setRecorder(next)
     setLastConfig(config)
     setPhase('playing')
   }, [])
@@ -137,7 +140,7 @@ export function CasinoSession() {
         result={result}
         onPlayAgain={() => { setPhase('config'); setResult(null) }}
         onHome={() => setMode('home')}
-        recorder={recorderRef.current}
+        recorder={recorder}
       />
     )
   }
@@ -145,7 +148,7 @@ export function CasinoSession() {
   return (
     <CasinoSessionGame
       config={lastConfig}
-      recorder={recorderRef.current}
+      recorder={recorder}
       soundEnabled={soundEnabled}
       onSessionEnd={handleSessionEnd}
     />

@@ -6,24 +6,11 @@ import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { BetSpreadDetails } from '../../services/stats-types'
 import { TrainingBackdrop } from './TrainingBackdrop'
+import { BET_SPREAD, rand, getMultiplier, getCorrectBet, buildBracketSequence } from './bet-spread-math'
 
 type QuestionType = 'A' | 'B' | 'C'
 type QuestionMode = 'A' | 'B' | 'C' | 'random'
 type Phase = 'settings' | 'question' | 'feedback' | 'summary'
-
-/**
- * Bet spread ladder: True-Count bracket → bet multiplier.
- * A 1–16 spread is the professional standard for Hi-Lo. The dollar amounts
- * are derived per question from that table's minimum bet (the "unit").
- */
-const BET_SPREAD: { minTC: number; maxTC: number; multiplier: number; label: string }[] = [
-  { minTC: -Infinity, maxTC: 0, multiplier: 1, label: 'TC ≤ 0' },
-  { minTC: 1, maxTC: 1, multiplier: 2, label: 'TC +1' },
-  { minTC: 2, maxTC: 2, multiplier: 4, label: 'TC +2' },
-  { minTC: 3, maxTC: 3, multiplier: 8, label: 'TC +3' },
-  { minTC: 4, maxTC: 4, multiplier: 12, label: 'TC +4' },
-  { minTC: 5, maxTC: Infinity, multiplier: 16, label: 'TC ≥ +5' },
-]
 
 /** Bet multipliers shown as options (1–16 spread). */
 const MULTIPLIERS = [1, 2, 4, 8, 12, 16]
@@ -34,26 +21,11 @@ const TABLE_MINIMUMS = [5, 10, 15, 25, 50, 100]
 const REMAINING_DECKS_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
 const QUESTION_COUNTS = [10, 20, 30, 50]
 
-/** Returns the correct multiplier for a given TC (floors to integer for bracket lookup). */
-export function getMultiplier(tc: number): number {
-  const intTC = Math.floor(tc)
-  for (const row of BET_SPREAD) {
-    if (intTC >= row.minTC && intTC <= row.maxTC) return row.multiplier
-  }
-  return 1
-}
-
-/** Returns the correct bet for a given TC at a given table minimum. */
-export function getCorrectBet(tc: number, tableMin: number): number {
-  return getMultiplier(tc) * tableMin
-}
-
 /** Format TC as "+N" or "N". */
 function formatTC(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`
 }
 
-function rand(): number { return Math.random() }
 function pick<T>(arr: readonly T[]): T { return arr[Math.floor(rand() * arr.length)] }
 
 interface Question {
@@ -72,27 +44,6 @@ function pickTargetTC(bracketIdx: number): number {
     case 5: return pick([5, 6, 7])
     default: return bracketIdx // brackets 1..4 map to TC 1..4
   }
-}
-
-/**
- * Builds a bracket sequence of the given length that covers all six bet levels
- * as evenly as possible with NO two adjacent entries equal — so the same
- * question/answer never appears twice in a row and the whole ramp is trained.
- */
-export function buildBracketSequence(count: number): number[] {
-  const counts = [0, 0, 0, 0, 0, 0]
-  const seq: number[] = []
-  for (let i = 0; i < count; i++) {
-    // Candidates: any bracket except the previous one (guarantees no repeat)…
-    let candidates = [0, 1, 2, 3, 4, 5].filter(b => b !== seq[i - 1])
-    // …preferring the least-used so the whole ramp is covered evenly.
-    const min = Math.min(...candidates.map(b => counts[b]))
-    candidates = candidates.filter(b => counts[b] === min)
-    const b = candidates[Math.floor(rand() * candidates.length)]
-    seq.push(b)
-    counts[b]++
-  }
-  return seq
 }
 
 /** Builds one concrete question in the target bracket, avoiding a repeat of prev. */
