@@ -14,6 +14,8 @@ import { Reveal } from './Reveal'
 export function ManifestoSection() {
   const { display, resting, reduced } = useTypewriter(MANIFESTO_PHRASES, 55)
   const stable = MANIFESTO_PHRASES[0] ?? ''
+  /** Longest phrase — reserves the heading box so typing never resizes it. */
+  const longest = MANIFESTO_PHRASES.reduce((a, b) => (b.length > a.length ? b : a), '')
 
   return (
     <section className="relative border-y border-white/8 py-24 overflow-hidden
@@ -23,18 +25,22 @@ export function ManifestoSection() {
           <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">
             Why counters win
           </div>
-          {/* min-height reserves both possible line counts so the section never
-              jumps as the phrase types and deletes. */}
           <h2
             aria-label={stable}
-            className="mt-6 min-h-[2.4em] flex items-center justify-center
-              text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.1] text-balance"
+            className="relative mt-6 text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.1]"
           >
-            <span aria-hidden="true">
+            {/* Invisible sizer. A fixed min-height can't work here: the phrases
+                differ in length, so on a narrow screen one wraps to three lines
+                where the next needs two, and every keystroke resizes the heading
+                and shifts the whole page below it (measured CLS 0.27 on mobile).
+                Rendering the longest phrase invisibly reserves the tallest box at
+                every breakpoint; the animated line is overlaid on top and can
+                never affect layout. No text-balance — it would let the sizer and
+                the overlay wrap differently. */}
+            <span aria-hidden="true" className="invisible">{longest}</span>
+            <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center">
               <span className="text-gold-gradient">{reduced ? stable : display}</span>
-              {!reduced && (
-                <span className={`tw-caret${resting ? '' : ' tw-caret--solid'}`} aria-hidden="true" />
-              )}
+              {!reduced && <span className={`tw-caret${resting ? '' : ' tw-caret--solid'}`} />}
             </span>
           </h2>
         </Reveal>

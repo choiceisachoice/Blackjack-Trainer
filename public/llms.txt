@@ -1,0 +1,43 @@
+# Blackjack Card Counting Trainer
+
+> A web trainer for Hi-Lo card counting. It teaches the running count, the
+> true-count conversion, basic strategy and the Illustrious 18 / Fab 4
+> deviations, then lets you apply them at a simulated multi-seat casino table
+> and shows, from your own recorded sessions, where your edge is leaking.
+
+Card counting is not a trick or a secret system. It is a small, measurable
+advantage — roughly one to two percent — that only materialises over hundreds
+of hands, and only if the count is held accurately, basic strategy is played
+exactly, and bets are sized to what the shoe actually says. The trainer exists
+to turn that from knowledge into reflex.
+
+## What it covers
+
+- [Hi-Lo counting](/): the balanced level-one system real counters use — 2–6 count +1, 7–9 count 0, tens and aces count −1
+- [True count](/): running count divided by the decks remaining in the shoe
+- [Basic strategy](/): the correct play for every hand against every dealer upcard, for both S17 and H17 rules
+- [Deviations](/): the Illustrious 18 and Fab 4, each with the true-count threshold at which the count overrides basic strategy
+- [Shoe simulation](/): six decks, 312 cards, configurable penetration, cut card checked only after a completed round
+
+## Training modes
+
+- Speed Drill — hold the running count under time pressure
+- Flashcards — every basic-strategy hand, and when to deviate
+- Deck Estimation — judge remaining decks from the shoe
+- Bet Spread — size bets by true count
+- Casino Session — a full multi-seat felt table with bots, splits, doubles and payouts
+- Analytics — accuracy trend, practice heatmap, weakest hands, real edge from recorded sessions
+
+## Access
+
+- Free tier: Speed Drill, Flashcards, basic strategy chart, personal analytics, levels and achievements. No payment details required.
+- Pro subscription: the full casino session, deviations overlaid on the strategy chart, and bankroll / risk-of-ruin tools.
+
+## Notes
+
+- This is a practice tool. It is not affiliated with any casino and does not
+  offer gambling or real-money play.
+- Counting cards mentally is legal; casinos are private businesses and set
+  their own rules.
+- The user-facing app at /app requires an account and contains only per-user
+  data — it is not useful to crawl.

@@ -207,9 +207,11 @@ export function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-white/8 py-8">
-        <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-between items-center gap-4 text-sm text-content/40">
+        {/* text-content/40 fails WCAG AA here (3.53:1 on the near-black
+            background); /60 clears the 4.5:1 threshold for this size. */}
+        <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-between items-center gap-4 text-sm text-content/60">
           <div className="flex items-center gap-2.5 font-semibold text-content/80"><span className="w-6 h-6 rounded-md grid place-items-center bg-gradient-to-br from-gold-bright to-gold text-casino-bg"><Spade size={13} /></span> Blackjack Trainer</div>
-          <div className="flex gap-5 flex-wrap"><a href="#features" className="hover:text-content/70">Features</a><a href="#pricing" className="hover:text-content/70">Pricing</a><Link to="/login" className="hover:text-content/70">Sign in</Link></div>
+          <div className="flex gap-5 flex-wrap"><a href="#features" className="hover:text-content">Features</a><a href="#pricing" className="hover:text-content">Pricing</a><Link to="/login" className="hover:text-content">Sign in</Link></div>
           <div>Practice tool — not affiliated with any casino.</div>
         </div>
       </footer>

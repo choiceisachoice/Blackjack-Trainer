@@ -1,0 +1,12 @@
+# Blackjack Card Counting Trainer
+# The landing page is public. Everything behind /app is per-user and needs a
+# login, so there is nothing there for a crawler to index.
+
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /account
+Disallow: /login
+
+# At deploy, once the domain is live, add:
+# Sitemap: https://your-domain/sitemap.xml
