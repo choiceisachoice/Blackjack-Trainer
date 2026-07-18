@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { WeeklyChallengeEngine } from './weekly-challenge'
 import { WEEKLY_CHALLENGE_POOL } from './weekly-challenge-pool'
 import type { TrainingSessionResult } from '../stats-types'
+import { CountingSystemId } from '../../engine/counting/types'
 
 /** Helper: create a minimal session result for testing. */
 function makeSession(overrides: Partial<TrainingSessionResult> = {}): TrainingSessionResult {
@@ -9,7 +10,7 @@ function makeSession(overrides: Partial<TrainingSessionResult> = {}): TrainingSe
     id: crypto.randomUUID(),
     mode: 'speedDrill',
     timestamp: new Date().toISOString(),
-    countingSystem: 'hiLo',
+    countingSystem: CountingSystemId.HiLo,
     durationSeconds: 120,
     totalQuestions: 20,
     correctAnswers: 16,

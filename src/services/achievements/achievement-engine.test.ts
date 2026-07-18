@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { AchievementEngine } from './achievement-engine'
 import { ALL_ACHIEVEMENTS } from './achievement-list'
 import type { TrainingSessionResult, LifetimeStats, TrainingMode } from '../stats-types'

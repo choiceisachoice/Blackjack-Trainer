@@ -5,6 +5,7 @@ import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import type { LifetimeStats, TrainingMode, TrainingSessionResult } from '../../services/stats-types'
+import { CountingSystemId } from '../../engine/counting/types'
 
 const STATS: LifetimeStats = {
   totalSessions: 12,
@@ -23,7 +24,7 @@ function session(mode: TrainingMode, when = new Date()): TrainingSessionResult {
     id: `id-${mode}-${when.getTime()}`,
     mode,
     timestamp: when.toISOString(),
-    countingSystem: 'hiLo',
+    countingSystem: CountingSystemId.HiLo,
     durationSeconds: 300,
     totalQuestions: 25,
     correctAnswers: 22,

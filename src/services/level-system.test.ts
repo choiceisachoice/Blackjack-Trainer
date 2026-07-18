@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { LevelSystem, LEVELS, XP_REWARDS, calculateSessionXP } from './level-system'
-import type { LevelDefinition } from './level-system'
 import type { TrainingSessionResult } from './stats-types'
+import { CountingSystemId } from '../engine/counting/types'
 
 /** Helper: create a minimal session result. */
 function makeSession(overrides: Partial<TrainingSessionResult> = {}): TrainingSessionResult {
@@ -9,7 +9,7 @@ function makeSession(overrides: Partial<TrainingSessionResult> = {}): TrainingSe
     id: crypto.randomUUID(),
     mode: 'speedDrill',
     timestamp: new Date().toISOString(),
-    countingSystem: 'hiLo',
+    countingSystem: CountingSystemId.HiLo,
     durationSeconds: 120,
     totalQuestions: 20,
     correctAnswers: 16,

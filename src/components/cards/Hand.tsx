@@ -77,8 +77,6 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
   const prevCardCountSnapshot = prevCardCount.current
   const isInitialDeal = prevCardCountSnapshot === 0 && cards.length >= 2
 
-  if (cards.length === 0) return null
-
   /**
    * Returns the animation delay for a card based on its position in the deal sequence.
    *
@@ -145,6 +143,12 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
   const displayValue = showBustText
     ? getDisplayValue(cards, hideFirst)
     : (computedBust ? `${hard}` : getDisplayValue(cards, hideFirst))
+
+  // Bail out AFTER every hook has run. Returning early above the hooks would
+  // make this component call one hook when the hand is empty and five when it
+  // isn't, so a mounted hand going from cards to empty (round reset, a split
+  // being cleared, a seat emptying) breaks React's hook order.
+  if (cards.length === 0) return null
 
   return (
     <div className="flex flex-col items-center gap-1">

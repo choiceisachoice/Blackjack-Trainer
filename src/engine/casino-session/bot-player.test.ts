@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import type { Card } from '../shoe/types'
 import { Rank, Suit } from '../shoe/types'
 import { getHandValue } from '../rules/hand-utils'
 import type { CasinoRules } from '../rules/types'
 import { DEFAULT_RULES } from '../rules/types'
 import { BOT_NAMES, createBot, playBotTurn, refillBotBankroll } from './bot-player'
-import type { BotHand, BotPlayer } from './types'
+import type { BotPlayer } from './types'
 
 /** Helper: create a card shorthand. */
 function card(rank: Rank, suit: Suit = Suit.Hearts): Card {

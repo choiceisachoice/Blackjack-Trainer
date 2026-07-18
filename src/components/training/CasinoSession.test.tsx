@@ -262,19 +262,6 @@ describe('CasinoSession', () => {
   })
 
   describe('Keyboard Shortcuts', () => {
-    function startAndDeal() {
-      render(<CasinoSession />)
-      fireEvent.click(screen.getByTestId('start-session'))
-      act(() => { vi.advanceTimersByTime(100) })
-
-      // Place bet and deal (additive chips)
-      fireEvent.click(screen.getByText('+$25'))
-      fireEvent.click(screen.getByTestId('confirm-bet'))
-
-      // Wait for deal animation + bot play + transition to human_playing
-      act(() => { vi.advanceTimersByTime(20000) })
-    }
-
     it('Escape pauses the session', () => {
       render(<CasinoSession />)
       fireEvent.click(screen.getByTestId('start-session'))

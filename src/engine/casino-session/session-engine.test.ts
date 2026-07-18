@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import type { Card } from '../shoe/types'
 import { Rank, Suit } from '../shoe/types'
 import { getHandValue } from '../rules/hand-utils'
@@ -58,7 +58,7 @@ describe('CasinoSessionEngine', () => {
       // We'll draw cards manually and verify the running count
 
       // Draw a 5 (count +1)
-      const card1 = engine.drawCard()
+      engine.drawCard()
       // We can't control which card comes out of a shuffled shoe,
       // but we can verify the count changes correctly
       const rc = engine.getRunningCount()
@@ -84,7 +84,6 @@ describe('CasinoSessionEngine', () => {
         playerSeatIndex: 2,
       }))
 
-      const rcBefore = engine.getRunningCount()
       const deal = engine.dealNewRound()
 
       // With 2 bots + 1 human + dealer = 4 players
@@ -104,7 +103,6 @@ describe('CasinoSessionEngine', () => {
       const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0 }))
 
       const deal = engine.dealNewRound()
-      const rc = engine.getRunningCount()
 
       // After dealing: 2 human cards + 1 dealer up card are counted
       // Dealer hole card is NOT counted yet (face down)
@@ -174,7 +172,6 @@ describe('CasinoSessionEngine', () => {
       }))
 
       const deal = engine.dealNewRound()
-      const rcAfterDeal = engine.getRunningCount()
 
       // Play all bots — they draw cards via engine.drawCard()
       engine.playAllBots(deal.dealerUpCard)
@@ -189,10 +186,9 @@ describe('CasinoSessionEngine', () => {
       const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0 }))
 
       const deal = engine.dealNewRound()
-      const rcBeforeDealer = engine.getRunningCount()
 
       // Play dealer hand — hole card is revealed + potentially new cards drawn
-      const dealerFinal = engine.playDealerHand([deal.dealerUpCard, deal.dealerHoleCard])
+      engine.playDealerHand([deal.dealerUpCard, deal.dealerHoleCard])
 
       const rcAfterDealer = engine.getRunningCount()
 
@@ -719,7 +715,6 @@ describe('CasinoSessionEngine', () => {
 
       // The hole card is in the deal result but not counted in RC yet
       // After playDealerHand, the hole card gets counted
-      const rcBeforeDealer = engine.getRunningCount()
       engine.playDealerHand([deal.dealerUpCard, deal.dealerHoleCard])
       // RC should have changed by at least the hole card's count value
       const rcAfterDealer = engine.getRunningCount()
@@ -914,7 +909,7 @@ describe('CasinoSessionEngine', () => {
       actualTC: 3,
       playerHandValue: 16,
       dealerHandValue: 20,
-      result: 'lose',
+      result: 'loss',
       profit: -100,
       bankrollAfter: 9900,
       botResults: [],
@@ -1322,7 +1317,6 @@ describe('CasinoSessionEngine', () => {
       }))
 
       // Manually create dealer cards: hard 17
-      const dealerCards = [card(Rank.Ten), card(Rank.Seven)]
       // playDealerHand counts the hole card, so we need a fresh engine
       // Actually, the hole card (index 1) is counted in playDealerHand
 
@@ -1472,10 +1466,6 @@ describe('CasinoSessionEngine', () => {
       }))
 
       const deal = engine.dealNewRound()
-      const seats = engine.getSeats()
-      const bot = seats.find(s => s !== null)!
-      const bankrollAfterBet = bot.bankroll
-
       engine.playAllBots(deal.dealerUpCard)
       const dealerFinal = engine.playDealerHand([deal.dealerUpCard, deal.dealerHoleCard])
       engine.settleBotHands(dealerFinal)

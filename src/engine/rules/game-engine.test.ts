@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { GameEngine } from './game-engine'
 import { Action, HandResult, DEFAULT_RULES } from './types'
-import type { CardSource, CasinoRules, GameState, Hand } from './types'
+import type { CardSource, CasinoRules } from './types'
 import { Rank, Suit } from '../shoe/types'
 import type { Card } from '../shoe/types'
 
@@ -29,17 +29,6 @@ function createCardSource(cards: Card[]): CardSource {
     reset() {
       index = 0
     },
-  }
-}
-
-function createHand(cards: Card[], overrides?: Partial<Hand>): Hand {
-  return {
-    cards,
-    bet: 10,
-    isDoubled: false,
-    isSplit: false,
-    isStanding: false,
-    ...overrides,
   }
 }
 

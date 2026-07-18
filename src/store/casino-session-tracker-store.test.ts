@@ -14,7 +14,6 @@ function makeSample(overrides: Partial<TrackedCasinoSession> & { profit: number 
     duration: 1800,
     startingBankroll: 10000,
     finalBankroll: 10000 + overrides.profit,
-    profit: overrides.profit,
     betAccuracy: 85,
     playAccuracy: 90,
     countAccuracy: 75,

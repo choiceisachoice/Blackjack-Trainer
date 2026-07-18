@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useLevelStore } from './level-store'
 import type { TrainingSessionResult } from '../services/stats-types'
+import { CountingSystemId } from '../engine/counting/types'
 
 // Mock the levelSystem singleton
 vi.mock('../services/level-system', async (importOriginal) => {
@@ -37,7 +38,7 @@ function makeSession(): TrainingSessionResult {
     id: 'test-id',
     mode: 'speedDrill',
     timestamp: '2026-03-26T12:00:00.000Z',
-    countingSystem: 'hiLo',
+    countingSystem: CountingSystemId.HiLo,
     durationSeconds: 120,
     totalQuestions: 20,
     correctAnswers: 16,

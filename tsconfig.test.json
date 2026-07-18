@@ -1,0 +1,10 @@
+{
+  "//": "Typechecks the test suite. Kept separate from tsconfig.app.json because tests need the Vitest globals and jest-dom matchers, which must never leak into shipped code. Run via `npm run typecheck:tests`.",
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test-setup.ts"],
+  "exclude": []
+}

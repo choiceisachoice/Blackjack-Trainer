@@ -1,11 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useBankrollTrackerStore } from './bankroll-tracker-store'
+import { useBankrollTrackerStore, type TrackedSession } from './bankroll-tracker-store'
+
+/** What addSession accepts: a session without the fields the store generates. */
+type SessionInput = Omit<TrackedSession, 'id' | 'createdAt'>
 
 function resetStore() {
   useBankrollTrackerStore.setState({ sessions: [], startingBankroll: 0 })
 }
 
-function addSample(overrides: Partial<Parameters<typeof useBankrollTrackerStore.getState>['0']> & { result: number; date?: string }) {
+function addSample(overrides: Partial<SessionInput> & { result: number; date?: string }) {
   useBankrollTrackerStore.getState().addSession({
     date: overrides.date ?? '2026-03-20',
     casino: 'Test Casino',

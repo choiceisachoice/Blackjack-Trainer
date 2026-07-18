@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { SessionRecorder, formatCard, formatHand } from './session-recorder'
 import type { CasinoSessionConfig } from '../engine/casino-session/types'
 import { Rank, Suit } from '../engine/shoe/types'

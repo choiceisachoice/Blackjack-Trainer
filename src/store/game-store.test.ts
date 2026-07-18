@@ -121,7 +121,6 @@ describe('Game Store', () => {
     // Only proceed if player doesn't have blackjack and round isn't over
     if (stateAfterDeal.gameState?.isRoundOver) return
 
-    const countBefore = stateAfterDeal.runningCount
     const cardsBefore = stateAfterDeal.gameState!.playerHands[0].cards.length
 
     store.hit()
@@ -221,7 +220,6 @@ describe('Game Store', () => {
     const store = useGameStore.getState()
     store.initGame()
 
-    const rcBefore = useGameStore.getState().runningCount
     store.placeBet(100)
     store.startRound()
     vi.advanceTimersByTime(2200)

@@ -10,12 +10,6 @@ import type { BotHand, BotPlayer, CasinoSessionConfig } from './types'
 
 const c = (rank: Rank, suit: Suit = Suit.Spades): Card => ({ rank, suit })
 
-/** Dealer card ranks for iteration */
-const DEALER_RANKS = [
-  Rank.Two, Rank.Three, Rank.Four, Rank.Five, Rank.Six,
-  Rank.Seven, Rank.Eight, Rank.Nine, Rank.Ten, Rank.Ace,
-]
-
 /** S17 rules with surrender allowed */
 const S17: CasinoRules = {
   ...DEFAULT_RULES,
@@ -37,15 +31,6 @@ function hardHand(total: number): Card[] {
   }
   // For 12-20, use a face card (10) + remainder
   return [c(Rank.Ten), c(rankForValue(total - 10))]
-}
-
-/** Alternate hard hand to avoid pairs when needed. */
-function hardHandAlt(total: number): Card[] {
-  if (total <= 11) {
-    return [c(Rank.Three), c(rankForValue(total - 3))]
-  }
-  // Use Jack + remainder
-  return [c(Rank.Jack), c(rankForValue(total - 10))]
 }
 
 function rankForValue(val: number): Rank {
@@ -481,7 +466,7 @@ describe('BS Validation: Bot identity stability', () => {
 
   it('bots keep same name across rounds when bankroll is sufficient', () => {
     const engine = createEngine()
-    const dr1 = engine.dealNewRound()
+    engine.dealNewRound()
     const seats1 = engine.getSeats()
     const botNames1 = seats1.filter(s => s !== null).map(s => s!.name)
 
@@ -490,7 +475,7 @@ describe('BS Validation: Bot identity stability', () => {
       if (s) s.bankroll = 5000
     }
 
-    const dr2 = engine.dealNewRound()
+    engine.dealNewRound()
     const seats2 = engine.getSeats()
     const botNames2 = seats2.filter(s => s !== null).map(s => s!.name)
 

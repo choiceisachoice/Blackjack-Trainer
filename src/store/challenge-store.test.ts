@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useChallengeStore } from './challenge-store'
 import type { TrainingSessionResult } from '../services/stats-types'
+import { CountingSystemId } from '../engine/counting/types'
 
 // Mock the dailyChallengeEngine singleton
 vi.mock('../services/challenges/daily-challenge', () => {
@@ -56,7 +57,7 @@ function makeSession(): TrainingSessionResult {
     id: 'test-id',
     mode: 'speedDrill',
     timestamp: '2026-03-26T12:00:00.000Z',
-    countingSystem: 'hiLo',
+    countingSystem: CountingSystemId.HiLo,
     durationSeconds: 120,
     totalQuestions: 20,
     correctAnswers: 16,
@@ -71,8 +72,8 @@ describe('useChallengeStore', () => {
     vi.clearAllMocks()
     // Reset store state
     useChallengeStore.setState({
-      challenge: (dailyChallengeEngine.getTodayChallenge as ReturnType<typeof vi.fn>)(),
-      state: (dailyChallengeEngine.getState as ReturnType<typeof vi.fn>)(),
+      challenge: vi.mocked(dailyChallengeEngine.getTodayChallenge)(),
+      state: vi.mocked(dailyChallengeEngine.getState)(),
       streak: 0,
       totalCompleted: 0,
       totalXP: 0,
