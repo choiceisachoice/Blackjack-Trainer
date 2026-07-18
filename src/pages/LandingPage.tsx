@@ -1,24 +1,16 @@
 import { useState, lazy, Suspense, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Spade, Check, Zap, LayoutGrid, Target, BarChart3, Wallet, Trophy } from 'lucide-react'
+import { Spade, Check } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
 import { PLAN_OPTIONS, PRO_BENEFITS } from '../services/pro-features'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
+import { FeatureShowcase } from '../components/landing/FeatureShowcase'
 
 // The WebGL hero pulls in Three.js — load it as its own chunk after the hero
 // text has painted, so it never blocks the landing's first paint.
 const HeroCanvas = lazy(() => import('../components/landing/HeroCanvas').then(m => ({ default: m.HeroCanvas })))
-
-const FEATURES = [
-  { icon: Zap, title: 'Speed Drill & Flashcards', pro: false, body: 'Keep the running count under time pressure, and drill every basic-strategy hand until it’s reflex.' },
-  { icon: LayoutGrid, title: 'Full Casino Session', pro: true, body: 'A real multi-seat felt table — bots, splits, doubles, payouts and dealer soft-17 rules. The closest thing to the pit.' },
-  { icon: Target, title: 'Deviations on the chart', pro: true, body: 'Illustrious 18 & Fab 4 overlaid on the strategy chart, with the true-count thresholds for every play.' },
-  { icon: BarChart3, title: 'Analytics that don’t lie', pro: false, body: 'Accuracy trend, practice heatmap, skill radar and your weakest hands — the full picture, from your real sessions.' },
-  { icon: Wallet, title: 'Bankroll tools', pro: true, body: 'Track real-money sessions and simulate risk of ruin, so your bet spread matches your actual edge.' },
-  { icon: Trophy, title: 'Levels & achievements', pro: false, body: '100+ goals and a 25-level track that pull you from first hand to a genuine advantage player.' },
-]
 
 const STEPS = [
   { n: '1', title: 'Learn the system', body: 'Hi-Lo tags, the true-count conversion, basic strategy and the deviations that matter — without the jargon wall.' },
@@ -124,17 +116,7 @@ export function LandingPage() {
           <SectionHead eyebrow="Everything in one trainer" title={<>Everything you need to <span className="text-gold-gradient">actually get good</span>.</>}
             sub="Not flashcards in a vacuum — a full path from keeping the count to sitting at a live table and reading your own leaks." />
         </Reveal>
-        <div className="mt-11 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f, i) => (
-            <Reveal key={f.title} delay={(i % 3) * 0.06}>
-              <div className="surface rounded-2xl p-[22px] transition-transform hover:-translate-y-0.5 h-full">
-                <div className="w-10 h-10 rounded-[10px] grid place-items-center bg-gold/12 border border-gold/20 text-gold mb-3.5"><f.icon size={20} /></div>
-                <h3 className="text-base font-bold flex items-center gap-2">{f.title}{f.pro && <ProTag />}</h3>
-                <p className="mt-2 text-sm text-content/60 leading-relaxed">{f.body}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <FeatureShowcase />
       </section>
 
       {/* How it works */}
@@ -258,7 +240,4 @@ function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: ReactNod
   )
 }
 
-function ProTag() {
-  return <span className="text-[10px] font-extrabold tracking-wider text-gold border border-gold/40 px-1.5 py-0.5 rounded-full bg-gold/8">PRO</span>
-}
 function Dot() { return <span className="w-[3px] h-[3px] rounded-full bg-content/30" /> }
