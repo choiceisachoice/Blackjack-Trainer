@@ -12,6 +12,31 @@ function card(rank: Rank, suit: Suit = Suit.Hearts): Card {
   return { rank, suit }
 }
 
+/**
+ * Independent Hi-Lo oracle: 2–6 count +1, 7–9 count 0, tens and aces count −1.
+ *
+ * Deliberately NOT the engine's own `getCountValue`. Predicting the engine with
+ * the helper the engine itself calls would only prove it calls that helper — a
+ * wrong tag table would satisfy both sides. This encodes the published Hi-Lo
+ * definition instead, so these tests check the engine against the system, not
+ * against itself.
+ */
+function hiLo(c: Card): number {
+  switch (c.rank) {
+    case Rank.Two: case Rank.Three: case Rank.Four: case Rank.Five: case Rank.Six:
+      return 1
+    case Rank.Seven: case Rank.Eight: case Rank.Nine:
+      return 0
+    default:
+      return -1
+  }
+}
+
+/** Hi-Lo running count for a set of cards. */
+function hiLoSum(cards: Card[]): number {
+  return cards.reduce((n, c) => n + hiLo(c), 0)
+}
+
 /** Creates a default test config. */
 function createTestConfig(overrides: Partial<CasinoSessionConfig> = {}): CasinoSessionConfig {
   return {
@@ -53,17 +78,15 @@ describe('CasinoSessionEngine', () => {
     it('running count updates correctly after each card', () => {
       const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0 }))
 
-      // Override the shoe by drawing specific cards and checking RC
-      // Hi-Lo: 2-6 = +1, 7-9 = 0, 10-A = -1
-      // We'll draw cards manually and verify the running count
-
-      // Draw a 5 (count +1)
-      engine.drawCard()
-      // We can't control which card comes out of a shuffled shoe,
-      // but we can verify the count changes correctly
-      const rc = engine.getRunningCount()
-      // The count should have changed by the card's Hi-Lo value
-      expect(typeof rc).toBe('number')
+      // The shoe is shuffled, so which card comes out is unknown — but drawCard
+      // returns it, so the count must move by exactly that card's Hi-Lo tag.
+      // Ten cards in a row also catches a tag table that is only wrong for some
+      // ranks.
+      for (let i = 0; i < 10; i++) {
+        const before = engine.getRunningCount()
+        const drawn = engine.drawCard()
+        expect(engine.getRunningCount()).toBe(before + hiLo(drawn))
+      }
     })
 
     it('true count calculation is correct', () => {
@@ -86,17 +109,16 @@ describe('CasinoSessionEngine', () => {
 
       const deal = engine.dealNewRound()
 
-      // With 2 bots + 1 human + dealer = 4 players
-      // Each gets 2 cards = 8 cards dealt (+ dealer hole card)
-      // RC should have changed from processing all visible cards
-      const rcAfter = engine.getRunningCount()
-      // RC changed because cards were dealt
-      // (exact value depends on random cards, but structure is correct)
-      expect(typeof rcAfter).toBe('number')
-
-      // Verify the deal result includes bot hands
       expect(deal.botHands.size).toBe(2)
       expect(deal.humanCards.length).toBe(2)
+
+      // Every card on the table is visible to a counter, so the bots' cards
+      // count exactly like the player's. Only the hole card stays out.
+      const botCards = [...deal.botHands.values()].flat()
+      expect(botCards.length).toBe(4)
+
+      const visible = [...botCards, ...deal.humanCards, deal.dealerUpCard]
+      expect(engine.getRunningCount()).toBe(hiLoSum(visible))
     })
 
     it('running count includes dealer up card but not hole card during deal', () => {
@@ -104,12 +126,21 @@ describe('CasinoSessionEngine', () => {
 
       const deal = engine.dealNewRound()
 
-      // After dealing: 2 human cards + 1 dealer up card are counted
-      // Dealer hole card is NOT counted yet (face down)
-      // So 3 cards contribute to RC
       expect(deal.humanCards.length).toBe(2)
-      expect(deal.dealerUpCard).toBeDefined()
-      expect(deal.dealerHoleCard).toBeDefined()
+
+      // A counter only counts what they can see. The hole card is face down, so
+      // it must stay out of the running count until it is revealed.
+      const visible = [...deal.humanCards, deal.dealerUpCard]
+      expect(engine.getRunningCount()).toBe(hiLoSum(visible))
+
+      // State the exclusion directly too: the engine deals the hole card
+      // straight from the shoe precisely to bypass counting. Refactoring that
+      // to the ordinary draw path would corrupt the count on every hand, and
+      // without this assertion nothing would notice.
+      const withHoleCard = hiLoSum([...visible, deal.dealerHoleCard])
+      if (hiLo(deal.dealerHoleCard) !== 0) {
+        expect(engine.getRunningCount()).not.toBe(withHoleCard)
+      }
     })
 
     it('running count persists across multiple hands', () => {
@@ -118,16 +149,18 @@ describe('CasinoSessionEngine', () => {
         penetration: 0.85, // High penetration so we don't reshuffle
       }))
 
-      engine.dealNewRound()
+      const hand1 = engine.dealNewRound()
       const rcAfterHand1 = engine.getRunningCount()
+      expect(rcAfterHand1).toBe(hiLoSum([...hand1.humanCards, hand1.dealerUpCard]))
 
-      engine.dealNewRound()
-      const rcAfterHand2 = engine.getRunningCount()
+      const hand2 = engine.dealNewRound()
 
-      // The counts are cumulative (not reset between hands)
-      // The exact values depend on cards, but we verify they're numbers
-      expect(typeof rcAfterHand1).toBe('number')
-      expect(typeof rcAfterHand2).toBe('number')
+      // Cumulative, not reset: the second hand's visible cards are added on top
+      // of the first hand's count rather than starting over.
+      expect(hand2.reshuffled).toBe(false)
+      expect(engine.getRunningCount()).toBe(
+        rcAfterHand1 + hiLoSum([...hand2.humanCards, hand2.dealerUpCard]),
+      )
     })
 
     it('running count resets on reshuffle', () => {
