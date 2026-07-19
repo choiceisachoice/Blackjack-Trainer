@@ -49,6 +49,25 @@ describe('AchievementsPage', () => {
     }
   })
 
+  it('gives every medal a containing block for its screen-reader label', () => {
+    // Regression guard, not styling. The label inside each medal is
+    // `position: absolute` (Tailwind's sr-only). Without a positioned ancestor
+    // it resolves against <html>, and its static offset far down a long list
+    // inflates the document scroll height — the page then scrolled ~1500px past
+    // its own content into black, beside the app shell's real scrollbar.
+    // jsdom computes no layout, so assert the containing block instead.
+    render(<AchievementsPage />)
+
+    for (const achievement of ALL_ACHIEVEMENTS.slice(0, 5)) {
+      const medal = screen.getByTestId(`achievement-card-${achievement.id}`)
+      expect(
+        medal.className,
+        `medal "${achievement.id}" must establish a containing block`,
+      ).toContain('relative')
+      expect(medal.querySelector('.sr-only')).not.toBeNull()
+    }
+  })
+
   it('shows unlocked count in header', () => {
     render(<AchievementsPage />)
 

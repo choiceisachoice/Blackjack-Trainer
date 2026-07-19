@@ -148,7 +148,7 @@ export function AchievementsPage() {
 
         {/* Header */}
         <div>
-          <div className="text-[11px] font-semibold tracking-[0.22em] uppercase text-content/50 flex items-center gap-2 mb-2">
+          <div className="text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-content/50 flex items-center gap-2 mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-gold" style={{ boxShadow: '0 0 10px var(--color-gold)' }} />
             Your trophies
           </div>
@@ -163,7 +163,7 @@ export function AchievementsPage() {
           <ProgressRing percent={levelProgress.required === 0 ? 100 : levelProgress.percent} size={96} color={level.color}>
             <span className="text-center">
               <span className="block text-3xl font-extrabold leading-none" style={{ color: level.color }}>{level.level}</span>
-              <span className="block text-[8px] tracking-[0.18em] uppercase text-content/50 mt-0.5">Level</span>
+              <span className="block text-[0.625rem] tracking-[0.18em] uppercase text-content/50 mt-0.5">Level</span>
             </span>
           </ProgressRing>
           <div className="relative flex-1 min-w-[220px]">
@@ -174,7 +174,7 @@ export function AchievementsPage() {
             <div className="mt-3 h-2.5 rounded-full bg-surface-2 border border-contrast/10 overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${levelProgress.required === 0 ? 100 : levelProgress.percent}%`, background: `linear-gradient(90deg, ${level.color}, var(--color-gold-bright))` }} />
             </div>
-            <div className="flex justify-between text-[11px] text-content/40 mt-1.5">
+            <div className="flex justify-between text-[0.75rem] text-content/40 mt-1.5">
               <span>{levelProgress.current.toLocaleString('en-US')} XP</span>
               <span>{levelProgress.required === 0 ? 'Max level reached' : `${(levelProgress.required - levelProgress.current).toLocaleString('en-US')} XP to level ${level.level + 1}`}</span>
             </div>
@@ -200,7 +200,7 @@ export function AchievementsPage() {
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold text-sm truncate text-content">{a.name}</div>
                     <div className="text-[11.5px] text-content/40 leading-snug mt-0.5">{a.description}</div>
-                    <div className="text-[11px] font-semibold mt-1" style={{ color: TIER_HEX[a.tier] }}>{p}% complete</div>
+                    <div className="text-[0.75rem] font-semibold mt-1" style={{ color: TIER_HEX[a.tier] }}>{p}% complete</div>
                   </div>
                 </div>
               ))}
@@ -247,7 +247,7 @@ export function AchievementsPage() {
                   <div className="flex-1 max-w-[160px] h-1 rounded-full bg-surface-2 overflow-hidden">
                     <div className="h-full bg-gold" style={{ width: `${catTotal ? (catDone / catTotal) * 100 : 0}%` }} />
                   </div>
-                  <span className="text-[11px] text-content/40">{catDone}/{catTotal}</span>
+                  <span className="text-[0.75rem] text-content/40">{catDone}/{catTotal}</span>
                 </div>
                 <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))' }}>
                   {items.map(a => (
@@ -280,7 +280,7 @@ function HeroStat({ value, label, color }: { value: number; label: string; color
   return (
     <div className="text-center">
       <div className="text-2xl font-extrabold tracking-tight" style={color ? { color } : undefined}>{value}</div>
-      <div className="text-[10px] tracking-[0.1em] uppercase text-content/40">{label}</div>
+      <div className="text-[0.6875rem] tracking-[0.1em] uppercase text-content/40">{label}</div>
     </div>
   )
 }
@@ -354,7 +354,12 @@ function Medal({ achievement, unlocked, unlockedAt, progress }: {
     : `${achievement.name} — ${achievement.description} (${Math.round(progress)}%)`
 
   return (
-    <div className="text-center" data-testid={`achievement-card-${achievement.id}`} title={title}>
+    // `relative` is load-bearing, not styling: the sr-only span below is
+    // absolutely positioned, so without a positioned ancestor it resolves
+    // against <html> and its static offset (far down a long list) inflates the
+    // document's scroll height — the page then scrolls past its own content
+    // into empty space, next to the real scrollbar of the app shell.
+    <div className="relative text-center" data-testid={`achievement-card-${achievement.id}`} title={title}>
       <div
         className="w-14 h-14 mx-auto rounded-full grid place-items-center text-[1.5rem] border-2"
         style={
@@ -365,7 +370,7 @@ function Medal({ achievement, unlocked, unlockedAt, progress }: {
       >
         <span style={unlocked ? undefined : { filter: 'grayscale(1)', opacity: 0.45 }}>{achievement.icon}</span>
       </div>
-      <div className={`text-[10px] mt-1.5 leading-tight ${unlocked ? 'text-content/70' : 'text-content/35'}`}>
+      <div className={`text-[0.6875rem] mt-1.5 leading-tight ${unlocked ? 'text-content/70' : 'text-content/35'}`}>
         {achievement.name}
       </div>
       {unlocked
