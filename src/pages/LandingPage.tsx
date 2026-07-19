@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Check } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
-import { PLAN_OPTIONS, PRO_BENEFITS } from '../services/pro-features'
+import { PLAN_OPTIONS, PRO_BENEFITS, formatCHF, yearlySaving } from '../services/pro-features'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
 import { FeatureShowcase } from '../components/landing/FeatureShowcase'
@@ -34,9 +34,8 @@ export function LandingPage() {
   const navigate = useNavigate()
   const [plan, setPlan] = useState<BillingPlan>('yearly')
 
-  const yearly = PLAN_OPTIONS.find(p => p.id === 'yearly')!
-  const monthly = PLAN_OPTIONS.find(p => p.id === 'monthly')!
-  const current = plan === 'yearly' ? yearly : monthly
+  const current = PLAN_OPTIONS.find(p => p.id === plan)!
+  const saving = yearlySaving()
 
   function startFree() { navigate(authed ? '/app' : '/login') }
   async function goPro() {
@@ -50,7 +49,7 @@ export function LandingPage() {
   }
 
   return (
-    <div className="bg-casino-bg text-content overflow-x-hidden">
+    <div className="app-canvas text-content overflow-x-hidden">
       {/* Nav */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-[rgba(9,10,12,.6)] border-b border-white/8">
         {/* Tighter padding and gaps below sm: at 360px the wordmark and the
@@ -168,8 +167,20 @@ export function LandingPage() {
           <div className="rounded-2xl p-7 flex flex-col relative border border-gold/50 bg-[linear-gradient(180deg,rgba(24,20,10,.55),var(--color-surface))] shadow-[0_0_0_1px_rgba(212,168,71,.15),0_40px_80px_-46px_rgba(212,168,71,.4)]">
             <div className="absolute -top-2.5 right-6 text-xs font-extrabold text-casino-bg bg-gradient-to-br from-gold-bright to-gold px-3 py-1 rounded-full">Most popular</div>
             <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">Pro</div>
-            <div className="mt-3.5 flex items-baseline gap-1.5"><span className="text-4xl font-extrabold">{current.price}</span><span className="text-content/60 text-sm">{current.cadence}</span></div>
-            <div className="text-xs text-gold mt-1.5 min-h-4">{current.note ?? 'Flexible — cancel anytime'}</div>
+            <div className="mt-3.5 flex items-baseline gap-2 flex-wrap">
+              {plan === 'yearly' && (
+                <span className="text-lg text-content/35 line-through tabular-nums">{formatCHF(saving.monthlyTotal)}</span>
+              )}
+              <span className="text-4xl font-extrabold tabular-nums">{formatCHF(current.amount)}</span>
+              <span className="text-content/60 text-sm">{current.cadence}</span>
+            </div>
+            {/* Derived, not written: the old copy said "2 months free" while the
+                real discount is ~4.5 months. */}
+            <div className="text-xs text-gold mt-1.5 min-h-4">
+              {plan === 'yearly'
+                ? `Save ${formatCHF(saving.saved)} — ${saving.percent}% off monthly`
+                : 'Flexible — cancel anytime'}
+            </div>
             <div className="inline-flex mt-2 self-start bg-surface-2 border border-white/8 rounded-[11px] p-1 gap-1">
               <button onClick={() => setPlan('yearly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'yearly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>Yearly</button>
               <button onClick={() => setPlan('monthly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'monthly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>Monthly</button>
@@ -241,7 +252,7 @@ function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: ReactNod
   return (
     <div className="max-w-[34em]">
       <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{eyebrow}</div>
-      <h2 className="mt-3 text-3xl md:text-[38px] font-extrabold tracking-tight leading-tight text-balance">{title}</h2>
+      <h2 className="mt-3 text-3xl md:text-[2.375rem] font-extrabold tracking-tight leading-tight text-balance">{title}</h2>
       {sub && <p className="mt-3.5 text-content/60 text-base">{sub}</p>}
     </div>
   )
