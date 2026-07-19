@@ -57,6 +57,15 @@
   --color-tooltip-border: rgba(0, 0, 0, 0.10);
 }
 
+/* Fluid base size. Everything in the UI is sized in rem, so this scales text,
+   spacing and rem-based widths together instead of leaving the interface tiny
+   on a large monitor. Laptops (≤1440px) keep the familiar 16px; a wide screen
+   grows to 20px. Same approach that fixed "everything is small on a wide
+   monitor" in Origin-Voice. */
+html {
+  font-size: clamp(16px, 5.7px + 0.71vw, 20px);
+}
+
 body {
   margin: 0;
   background-color: var(--color-casino-bg);
@@ -69,6 +78,36 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   App canvas — the surface everything sits on.
+
+   Flat near-black reads as unfinished at this size; a faint warm bloom from
+   the top edge plus a barely-there lift gives the dark depth without adding
+   decoration. Deliberately below the noise floor: no pattern, no second hue,
+   nothing that competes with the gold. Fixed attachment so it stays put while
+   inner panels scroll.
+   ───────────────────────────────────────────────────────────── */
+.app-canvas {
+  background-color: var(--color-casino-bg);
+  background-image:
+    /* Warm bloom off the top edge. Sized in px, not percent: a percentage
+       radial stretches across an ultrawide monitor until it flattens into
+       nothing, which is exactly what it did at 3440px. */
+    radial-gradient(1200px 560px at 50% -120px, rgba(212, 168, 71, 0.11), transparent 72%),
+    /* Cool lift under it, so the top of the page reads as lit rather than
+       merely tinted. */
+    linear-gradient(180deg, rgba(255, 255, 255, 0.038), transparent 30%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Light theme: the same shape, tuned for a bright ground. */
+:root[data-theme='light'] .app-canvas {
+  background-image:
+    radial-gradient(1200px 560px at 50% -120px, rgba(212, 168, 71, 0.16), transparent 72%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.03), transparent 30%);
 }
 
 /* ─────────────────────────────────────────────────────────────

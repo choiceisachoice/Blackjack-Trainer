@@ -184,7 +184,7 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
                   initial={{ opacity: 0, scale: 0.3 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: badgeDelay, duration: 0.2, ease: 'easeOut' }}
-                  className={`w-[22px] h-[22px] rounded-full text-[10px] font-bold
+                  className={`w-[22px] h-[22px] rounded-full text-[0.6875rem] font-bold
                     flex items-center justify-center
                     ${isFaceDown
                       ? 'bg-contrast/20 text-content/50'

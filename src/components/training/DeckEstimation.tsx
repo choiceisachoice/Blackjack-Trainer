@@ -79,7 +79,7 @@ function DiscardScene({ remainingCards, totalCards, size }: {
         boxShadow: 'inset 0 0 60px rgba(0,0,0,0.35), 0 10px 40px rgba(0,0,0,0.5)',
       }}
     >
-      <div className={`text-center mb-3 ${isLarge ? 'text-xs' : 'text-[10px]'} tracking-widest uppercase text-white/45 font-semibold`}>
+      <div className={`text-center mb-3 ${isLarge ? 'text-xs' : 'text-[0.6875rem]'} tracking-widest uppercase text-white/45 font-semibold`}>
         {numDecks}-Deck Shoe · Discard Tray
       </div>
       <div className="flex justify-center">
@@ -267,7 +267,7 @@ export function DeckEstimation() {
     return (
       <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
         <TrainingBackdrop mode="deckEstimation" showRails />
-        <Panel icon={Layers} title="Deck Estimation" subtitle="Estimate the decks remaining in the shoe." className="w-full max-w-md">
+        <Panel icon={Layers} title="Deck Estimation" subtitle="Estimate the decks remaining in the shoe." className="w-full max-w-xl">
           {/* Deck Count */}
           <div>
             <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Decks in Shoe</span>

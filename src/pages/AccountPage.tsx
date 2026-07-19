@@ -58,7 +58,7 @@ export function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen bg-casino-bg text-content">
+    <div className="app-canvas min-h-screen text-content">
       <div className="max-w-2xl mx-auto px-6 py-14">
         <Link to="/app" className="inline-flex items-center gap-2 text-sm text-content/60 hover:text-content">
           <ArrowLeft size={16} /> Back to app

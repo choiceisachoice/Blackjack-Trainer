@@ -14,7 +14,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-casino-bg">
+    <div className="app-canvas h-screen flex flex-col">
       <AuthPage />
     </div>
   )

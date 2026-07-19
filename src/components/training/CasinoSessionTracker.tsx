@@ -439,11 +439,11 @@ export function CasinoSessionTracker() {
               <div className="flex justify-center gap-4 mt-1">
                 <div>
                   <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
-                  <p className="text-[10px] text-content/40">Win</p>
+                  <p className="text-[0.6875rem] text-content/40">Win</p>
                 </div>
                 <div>
                   <p className="text-xl font-bold text-red-400" data-testid="losing-streak">{losingStreak}</p>
-                  <p className="text-[10px] text-content/40">Loss</p>
+                  <p className="text-[0.6875rem] text-content/40">Loss</p>
                 </div>
               </div>
             </div>
@@ -610,7 +610,7 @@ function PersonalRecordsSection() {
               {card.value}
             </p>
             {card.sub && (
-              <p className="text-[10px] text-content/40 mt-0.5 truncate">{card.sub}</p>
+              <p className="text-[0.6875rem] text-content/40 mt-0.5 truncate">{card.sub}</p>
             )}
           </div>
         ))}

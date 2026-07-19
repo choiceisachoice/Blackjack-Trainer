@@ -46,6 +46,18 @@ export function DashboardHeader() {
 
   return (
     <section className="relative z-10 w-full max-w-5xl pt-10 md:pt-14 mb-8">
+      {/* The product's name, above the dashboard card. Not marketing — the app
+          shell shows only a compact wordmark, so without this the screen opens
+          on a card with no sense of place. */}
+      <div className="text-center mb-7">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gold-gradient leading-[1.15] pb-0.5">
+          Blackjack Card Counting Trainer
+        </h1>
+        <p className="mt-2 text-sm text-content/45">
+          Hi-Lo, drilled until the count comes without thinking.
+        </p>
+      </div>
+
       <div className="surface rounded-2xl p-6 md:p-7">
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-5">
           <div className="min-w-0">

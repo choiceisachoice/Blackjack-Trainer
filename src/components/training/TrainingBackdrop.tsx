@@ -42,10 +42,14 @@ export function TrainingBackdrop({
             data-testid="backdrop-glow"
             className="absolute inset-0"
             style={{
+              // Gold only. The felt-green wash that used to sit at the bottom
+              // belongs on the casino table, not behind a settings panel — it
+              // read as a second, unrelated theme.
+              // Sized in px rather than percent: a percentage radial keeps
+              // stretching on an ultrawide monitor until it flattens out.
               background:
-                'radial-gradient(45% 38% at 50% -2%, color-mix(in srgb, var(--color-gold) 30%, transparent), transparent 66%),' +
-                'radial-gradient(90% 55% at 50% 0%, color-mix(in srgb, var(--color-gold) 12%, transparent), transparent 60%),' +
-                'radial-gradient(58% 42% at 50% 106%, color-mix(in srgb, var(--color-felt) 38%, transparent), transparent 68%)',
+                'radial-gradient(900px 420px at 50% -40px, color-mix(in srgb, var(--color-gold) 26%, transparent), transparent 70%),' +
+                'radial-gradient(1600px 700px at 50% 0%, color-mix(in srgb, var(--color-gold) 10%, transparent), transparent 65%)',
             }}
           />
         )}
@@ -86,45 +90,51 @@ function ContextRails({ mode, breakpoint }: { mode: TrainingMode; breakpoint: 'x
     : null
 
   return (
-    <>
-      {/* left — how it works */}
-      <aside className={`${bpClass} absolute left-6 top-1/2 -translate-y-1/2 w-[240px] z-0`} aria-hidden>
-        <div className="rounded-2xl border border-contrast/10 bg-surface-2/55 backdrop-blur-sm p-4">
-          <div className="text-[10px] font-bold tracking-[0.12em] uppercase text-content/40 mb-3">How it works</div>
-          <ol className="space-y-2.5">
-            {content.steps.map((step, i) => (
-              <li key={i} className="flex gap-2.5 items-start text-[12.5px] text-content/60 leading-snug">
-                <span className="flex-shrink-0 grid place-items-center w-[18px] h-[18px] rounded-full text-[10px] font-bold text-gold-bright"
-                  style={{ background: 'color-mix(in srgb, var(--color-gold) 15%, transparent)' }}>{i + 1}</span>
-                {step}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </aside>
+    // The rails flank the *content*, not the monitor. Pinning them to the
+    // viewport edges threw them ~1500px away from the centred panel on an
+    // ultrawide screen, where they read as unrelated scraps in the corners.
+    // A centred max-width track keeps them beside the panel at every size.
+    <div aria-hidden className="absolute inset-0 pointer-events-none z-0">
+      <div className="relative mx-auto h-full max-w-[86rem]">
+        {/* left — how it works */}
+        <aside className={`${bpClass} absolute left-4 top-1/2 -translate-y-1/2 w-[17rem]`}>
+          <div className="rounded-2xl border border-contrast/10 bg-surface-2/55 backdrop-blur-sm p-5">
+            <div className="text-xs font-bold tracking-[0.12em] uppercase text-content/45 mb-3">How it works</div>
+            <ol className="space-y-3">
+              {content.steps.map((step, i) => (
+                <li key={i} className="flex gap-2.5 items-start text-sm text-content/65 leading-snug">
+                  <span className="flex-shrink-0 grid place-items-center w-[1.35rem] h-[1.35rem] rounded-full text-xs font-bold text-gold-bright"
+                    style={{ background: 'color-mix(in srgb, var(--color-gold) 15%, transparent)' }}>{i + 1}</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </aside>
 
-      {/* right — last run + pro-tip */}
-      <aside className={`${bpClass} absolute right-6 top-1/2 -translate-y-1/2 w-[240px] z-0`} aria-hidden>
-        <div className="rounded-2xl border border-contrast/10 bg-surface-2/55 backdrop-blur-sm p-4">
-          <div className="text-[10px] font-bold tracking-[0.12em] uppercase text-content/40 mb-2">Your last run</div>
-          {lastAcc != null ? (
-            <>
-              <div className="text-[1.6rem] font-extrabold text-gold-bright tracking-tight leading-none">
-                {lastAcc}<span className="text-[0.5em] text-content/50 font-semibold">%</span>
-              </div>
-              <div className="text-xs text-content/55 mt-1.5 leading-snug">
-                {bestAcc != null ? `Best in this mode: ${bestAcc}%.` : 'Keep it up.'}
-              </div>
-            </>
-          ) : (
-            <div className="text-xs text-content/50 leading-snug">No runs yet — start your first and watch your progress here.</div>
-          )}
-        </div>
-        <div className="rounded-2xl border border-contrast/10 bg-surface-2/55 backdrop-blur-sm p-4 mt-3">
-          <div className="text-[10px] font-bold tracking-[0.12em] uppercase text-content/40 mb-2">Pro tip</div>
-          <p className="text-[12.5px] text-content/60 leading-relaxed">{content.tip}</p>
-        </div>
-      </aside>
-    </>
+        {/* right — last run + pro-tip */}
+        <aside className={`${bpClass} absolute right-4 top-1/2 -translate-y-1/2 w-[17rem]`}>
+          <div className="rounded-2xl border border-contrast/10 bg-surface-2/55 backdrop-blur-sm p-5">
+            <div className="text-xs font-bold tracking-[0.12em] uppercase text-content/45 mb-2">Your last run</div>
+            {lastAcc != null ? (
+              <>
+                <div className="text-[2rem] font-extrabold text-gold-bright tracking-tight leading-none">
+                  {lastAcc}<span className="text-[0.5em] text-content/50 font-semibold">%</span>
+                </div>
+                <div className="text-sm text-content/55 mt-2 leading-snug">
+                  {bestAcc != null ? `Best in this mode: ${bestAcc}%.` : 'Keep it up.'}
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-content/50 leading-snug">No runs yet — start your first and watch your progress here.</div>
+            )}
+          </div>
+          <div className="rounded-2xl border border-contrast/10 bg-surface-2/55 backdrop-blur-sm p-5 mt-3">
+            <div className="text-xs font-bold tracking-[0.12em] uppercase text-content/45 mb-2">Pro tip</div>
+            <p className="text-sm text-content/65 leading-relaxed">{content.tip}</p>
+          </div>
+        </aside>
+      </div>
+    </div>
   )
 }

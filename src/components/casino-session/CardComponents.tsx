@@ -17,8 +17,8 @@ export function MiniCard({ card, faceDown }: { card: Card; faceDown?: boolean })
   return (
     <div className={`w-8 h-11 md:w-10 md:h-14 rounded bg-white border border-gray-300 shadow flex flex-col items-center justify-center leading-none flex-shrink-0
       ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-      <span className="text-[9px] md:text-xs font-bold">{card.rank}</span>
-      <span className="text-[8px] md:text-[10px]">{SUIT_MAP[card.suit]}</span>
+      <span className="text-[0.65rem] md:text-xs font-bold">{card.rank}</span>
+      <span className="text-[0.625rem] md:text-[0.6875rem]">{SUIT_MAP[card.suit]}</span>
     </div>
   )
 }
@@ -39,16 +39,16 @@ const CARD_SIZE_CLASS: Record<CardSize, string> = {
 
 /** Corner index (rank over suit) — stays visible when cards are fanned. */
 const CARD_CORNER_CLASS: Record<CardSize, string> = {
-  dealer: 'text-[13px] md:text-[15px]',
-  player: 'text-[12px] md:text-[13px]',
-  bot: 'text-[12px] md:text-[13px]',
+  dealer: 'text-[0.85rem] md:text-[0.95rem]',
+  player: 'text-[0.8125rem] md:text-[0.85rem]',
+  bot: 'text-[0.8125rem] md:text-[0.85rem]',
 }
 
 /** Large centre suit pip. */
 const CARD_PIP_CLASS: Record<CardSize, string> = {
-  dealer: 'text-[26px] md:text-[30px]',
-  player: 'text-[22px] md:text-[24px]',
-  bot: 'text-[22px] md:text-[24px]',
+  dealer: 'text-[1.625rem] md:text-[1.875rem]',
+  player: 'text-[1.375rem] md:text-[1.5rem]',
+  bot: 'text-[1.375rem] md:text-[1.5rem]',
 }
 
 export function TableCard({ card, faceDown, size = 'player' }: { card: Card; faceDown?: boolean; size?: CardSize }) {
@@ -167,7 +167,7 @@ export function BotStatusBadge({ status }: { status: BotStatus }) {
         scale: style.animate ? [1, 1.05, 1] : 1,
       }}
       transition={style.animate ? { repeat: Infinity, duration: 1 } : { duration: 0.2 }}
-      className={`text-[10px] md:text-xs font-semibold px-1.5 py-0.5 rounded ${style.bg} ${style.text}`}
+      className={`text-[0.6875rem] md:text-xs font-semibold px-1.5 py-0.5 rounded ${style.bg} ${style.text}`}
       data-testid="bot-status"
     >
       {BOT_STATUS_LABEL[status]}

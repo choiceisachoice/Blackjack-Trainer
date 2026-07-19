@@ -53,10 +53,10 @@ function BetChip({ amount, active }: { amount: number; active?: boolean }) {
 function NamePlate({ name, bankroll, you }: { name: string; bankroll: number; you?: boolean }) {
   return (
     <div className="flex flex-col items-center leading-tight">
-      <span className={`text-[11px] md:text-xs font-semibold ${you ? 'text-gold-bright' : 'text-white/70'}`}>
+      <span className={`text-[0.75rem] md:text-xs font-semibold ${you ? 'text-gold-bright' : 'text-white/70'}`}>
         {you ? '★ YOU' : name}
       </span>
-      <span className="text-[10px] text-white/40 tabular-nums">{formatDollar(bankroll)}</span>
+      <span className="text-[0.6875rem] text-white/40 tabular-nums">{formatDollar(bankroll)}</span>
     </div>
   )
 }
@@ -116,9 +116,9 @@ export function HumanSeat({
               className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-opacity duration-500 ease-out
                 ${i === activeHandIndex && gameStep === 'human_playing' ? 'ring-2 ring-gold bg-black/20' : gameStep === 'human_playing' ? 'opacity-40' : ''}`}
             >
-              <span className="text-[9px] text-gold font-semibold uppercase tracking-wide">Hand {i + 1}</span>
-              <Hand cards={hand} animateFrom={1} totalClass="text-[11px]" />
-              {handDoubled.has(i) && <span className="text-[8px] text-gold">Doubled</span>}
+              <span className="text-[0.65rem] text-gold font-semibold uppercase tracking-wide">Hand {i + 1}</span>
+              <Hand cards={hand} animateFrom={1} totalClass="text-[0.75rem]" />
+              {handDoubled.has(i) && <span className="text-[0.625rem] text-gold">Doubled</span>}
             </motion.div>
           ))}
         </div>
@@ -144,7 +144,7 @@ export function HumanSeat({
         </motion.div>
       )}
 
-      {isSurrendered && <span className="text-[9px] text-warning font-semibold">Surrendered</span>}
+      {isSurrendered && <span className="text-[0.65rem] text-warning font-semibold">Surrendered</span>}
 
       <NamePlate name="YOU" bankroll={bankroll} you />
 
@@ -218,10 +218,10 @@ export function BotSeat({
                   hasActiveHand ? (isHandActive ? 'ring-2 ring-gold bg-black/20' : 'opacity-40') : ''
                 }`}
                 style={{ transition: 'opacity 0.4s ease' }}>
-                <span className={`text-[8px] font-semibold uppercase ${hasActiveHand && isHandActive ? 'text-gold' : 'text-white/40'}`}>H{hi + 1}</span>
-                <Hand cards={shownCards} animateFrom={1} totalClass="text-[10px]" />
+                <span className={`text-[0.625rem] font-semibold uppercase ${hasActiveHand && isHandActive ? 'text-gold' : 'text-white/40'}`}>H{hi + 1}</span>
+                <Hand cards={shownCards} animateFrom={1} totalClass="text-[0.6875rem]" />
                 {resultLabel && gameStep === 'settlement' && (
-                  <span className={`text-[8px] font-bold ${
+                  <span className={`text-[0.625rem] font-bold ${
                     (hand.profit ?? 0) > 0 ? 'text-success' : (hand.profit ?? 0) < 0 ? 'text-error' : 'text-white/50'
                   }`}>{resultLabel}</span>
                 )}
@@ -238,19 +238,19 @@ export function BotSeat({
           flash on re-splits). */}
       {hasSplit && !splitVisibleCards && gameStep !== 'betting' && (() => {
         const pairCards = bot.hands.map(h => h.cards[0]).filter(Boolean).slice(0, 2)
-        return <Hand cards={pairCards} animateFrom={pairCards.length} totalClass="text-[10px]" />
+        return <Hand cards={pairCards} animateFrom={pairCards.length} totalClass="text-[0.6875rem]" />
       })()}
 
       {/* Single hand (no split) */}
       {!hasSplit && gameStep !== 'betting' && (() => {
         const hand = bot.hands[0]
         const visibleCards = hand && visibleLimit !== undefined ? hand.cards.slice(0, visibleLimit) : hand?.cards ?? []
-        return <Hand cards={visibleCards} totalClass="text-[10px]" />
+        return <Hand cards={visibleCards} totalClass="text-[0.6875rem]" />
       })()}
 
       {/* Per-bot settlement result label */}
       {botSettlement && gameStep === 'settlement' && (
-        <span className={`text-[9px] md:text-[10px] font-bold ${
+        <span className={`text-[0.65rem] md:text-[0.6875rem] font-bold ${
           botSettlement.profit > 0 ? 'text-success' : botSettlement.profit < 0 ? 'text-error' : 'text-white/50'
         }`} data-testid="bot-settlement">
           {hasSplit ? 'Total: ' : (botSettlement.result === 'blackjack' ? 'BJ! ' : botSettlement.result === 'win' ? 'Win ' : botSettlement.result === 'push' ? 'Push ' : botSettlement.result === 'surrender' ? 'Surr ' : 'Loss ')}

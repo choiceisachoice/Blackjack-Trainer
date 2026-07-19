@@ -27,8 +27,8 @@ function MiniCard({ rank, suit, red = false, className = '' }: {
       className={`rounded-[5px] bg-[linear-gradient(160deg,#f2f0ea,#d9d6cc)] shadow-[0_6px_14px_-6px_rgba(0,0,0,.85)]
         flex flex-col items-center justify-center leading-none select-none ${className}`}
     >
-      <span className={`text-[11px] font-bold ${red ? 'text-[#c41e3a]' : 'text-[#16181d]'}`}>{rank}</span>
-      <span className={`text-[10px] ${red ? 'text-[#c41e3a]' : 'text-[#16181d]'}`}>{suit}</span>
+      <span className={`text-[0.75rem] font-bold ${red ? 'text-[#c41e3a]' : 'text-[#16181d]'}`}>{rank}</span>
+      <span className={`text-[0.6875rem] ${red ? 'text-[#c41e3a]' : 'text-[#16181d]'}`}>{suit}</span>
     </div>
   )
 }
@@ -48,11 +48,11 @@ export function SpeedDrillVisual() {
       {cards.map(c => (
         <div key={c.rank + c.suit} className="flex flex-col items-center gap-1.5">
           <MiniCard rank={c.rank} suit={c.suit} red={c.red} className="w-9 h-[52px]" />
-          <span className="text-[11px] font-semibold tabular-nums text-content/45">{c.tag}</span>
+          <span className="text-[0.75rem] font-semibold tabular-nums text-content/45">{c.tag}</span>
         </div>
       ))}
       <div className="ml-1 flex flex-col items-start gap-1 pb-5">
-        <span className="text-[10px] uppercase tracking-[0.14em] text-content/35">Running</span>
+        <span className="text-[0.6875rem] uppercase tracking-[0.14em] text-content/35">Running</span>
         <span className="text-lg font-extrabold tabular-nums text-gold leading-none">+1</span>
       </div>
     </div>
@@ -120,7 +120,7 @@ export function FeltTableVisual() {
         ))}
       </div>
 
-      <span className="absolute right-4 bottom-4 text-[10px] font-semibold tabular-nums
+      <span className="absolute right-4 bottom-4 text-[0.6875rem] font-semibold tabular-nums
         text-gold/90 bg-black/35 border border-gold/25 rounded-full px-2 py-0.5">
         TC +3
       </span>
@@ -141,12 +141,12 @@ export function DeviationChartVisual() {
     <div aria-hidden className="inline-block">
       <div className="flex gap-[3px] pl-[22px] mb-[3px]">
         {dealers.map(d => (
-          <span key={d} className="w-[26px] text-center text-[9px] font-semibold text-content/35 tabular-nums">{d}</span>
+          <span key={d} className="w-[26px] text-center text-[0.65rem] font-semibold text-content/35 tabular-nums">{d}</span>
         ))}
       </div>
       {players.map(p => (
         <div key={p} className="flex gap-[3px] mb-[3px] items-center">
-          <span className="w-[19px] text-right text-[9px] font-semibold text-content/35 tabular-nums">{p}</span>
+          <span className="w-[19px] text-right text-[0.65rem] font-semibold text-content/35 tabular-nums">{p}</span>
           {dealers.map(d => {
             // Basic strategy for this slice: hit everything up to 16, stand on 17.
             const stand = p === '17'
@@ -155,7 +155,7 @@ export function DeviationChartVisual() {
               <span
                 key={d}
                 style={{ background: stand ? ACTION.stand : ACTION.hit }}
-                className={`w-[26px] h-[19px] rounded-[3px] grid place-items-center text-[9px] font-bold text-black/75
+                className={`w-[26px] h-[19px] rounded-[3px] grid place-items-center text-[0.65rem] font-bold text-black/75
                   ${isDeviation ? 'ring-2 ring-gold ring-offset-1 ring-offset-[#0b0c0e] relative z-10' : 'opacity-60'}`}
               >
                 {stand ? 'S' : 'H'}
@@ -164,7 +164,7 @@ export function DeviationChartVisual() {
           })}
         </div>
       ))}
-      <div className="mt-2.5 inline-flex items-center gap-1.5 text-[10px] font-semibold
+      <div className="mt-2.5 inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold
         text-gold bg-gold/10 border border-gold/30 rounded-full px-2 py-0.5">
         TC ≥ 0 → Stand
       </div>

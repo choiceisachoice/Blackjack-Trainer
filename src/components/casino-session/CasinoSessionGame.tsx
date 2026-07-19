@@ -201,20 +201,20 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5" data-testid="shoe-progress">
-            <span className="text-content/40 text-[10px]">Shoe</span>
+            <span className="text-content/40 text-[0.6875rem]">Shoe</span>
             <div className="w-16 h-1.5 bg-contrast/10 rounded-full overflow-hidden">
               <div className="h-full bg-gold/60 rounded-full transition-all" style={{ width: `${Math.min(100, shoeProgress * 100)}%` }} />
             </div>
           </div>
           <div className="flex items-center gap-1" data-testid="speed-control">
-            <span className="text-content/40 text-[10px]">Speed</span>
+            <span className="text-content/40 text-[0.6875rem]">Speed</span>
             <div className="inline-flex p-0.5 rounded-md bg-contrast/10 border border-contrast/10">
               {(['slow', 'normal'] as DealingSpeed[]).map(s => (
                 <button
                   key={s}
                   onClick={() => setDealingSpeed(s)}
                   aria-pressed={dealingSpeed === s}
-                  className={`px-2 py-0.5 rounded text-[10px] transition-colors cursor-pointer
+                  className={`px-2 py-0.5 rounded text-[0.6875rem] transition-colors cursor-pointer
                     ${dealingSpeed === s ? 'bg-gold text-black font-semibold' : 'text-content/50 hover:text-content'}`}
                 >
                   {DEALING_SPEED_LABEL[s]}
@@ -224,7 +224,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
           </div>
           {soundEnabled && config.casinoAmbience && (
             <div className="flex items-center gap-1" data-testid="volume-slider">
-              <span className="text-content/40 text-[10px]">{Math.round(ambientVolume * 100)}%</span>
+              <span className="text-content/40 text-[0.6875rem]">{Math.round(ambientVolume * 100)}%</span>
               <input
                 type="range" min="0" max="1" step="0.01"
                 value={ambientVolume}

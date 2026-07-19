@@ -220,7 +220,7 @@ export function BetSpread() {
     return (
       <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
         <TrainingBackdrop mode="betSpread" showRails />
-        <Panel icon={Coins} title="Bet Spread" subtitle="Size your bet by the True Count at a real table." className="w-full max-w-md">
+        <Panel icon={Coins} title="Bet Spread" subtitle="Size your bet by the True Count at a real table." className="w-full max-w-xl">
           {/* Bet Spread Reference (multiplier ladder) */}
           <div className="rounded-xl p-4 bg-contrast/5 border border-contrast/10">
             <p className="text-xs font-semibold tracking-widest uppercase text-content/40 mb-3 text-center">Bet Spread Reference</p>
@@ -234,7 +234,7 @@ export function BetSpread() {
                 </div>
               ))}
             </div>
-            <p className="text-[11px] text-content/40 mt-3 text-center">
+            <p className="text-[0.75rem] text-content/40 mt-3 text-center">
               Bet = multiplier × the table minimum (shown each question).
             </p>
           </div>
@@ -286,7 +286,7 @@ export function BetSpread() {
   if (phase === 'summary') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="surface w-full max-w-md p-7 flex flex-col items-center gap-6">
+        <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
           <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">Session Complete!</h3>
           <div className="grid grid-cols-2 gap-3 w-full text-center">
             <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">

@@ -92,8 +92,8 @@ export function NavBar() {
             <Spade size={17} className="fill-current" />
           </span>
           <span className="hidden sm:flex flex-col leading-none text-left">
-            <span className="text-[13px] font-extrabold tracking-[0.18em] text-gold-gradient">BLACKJACK</span>
-            <span className="text-[9px] font-medium tracking-[0.32em] text-content/40">TRAINER</span>
+            <span className="text-[0.85rem] font-extrabold tracking-[0.18em] text-gold-gradient">BLACKJACK</span>
+            <span className="text-[0.65rem] font-medium tracking-[0.32em] text-content/40">TRAINER</span>
           </span>
         </button>
 

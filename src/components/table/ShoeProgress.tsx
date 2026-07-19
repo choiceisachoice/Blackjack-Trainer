@@ -114,7 +114,7 @@ export function ShoeHousing({ cardCount, totalCards, penetration }: {
         />
       </div>
 
-      <span className="text-[11px] text-content/40 uppercase tracking-widest font-medium">
+      <span className="text-[0.75rem] text-content/40 uppercase tracking-widest font-medium">
         Shoe
       </span>
     </div>
@@ -227,7 +227,7 @@ export function DiscardTray({
         />
       </div>
 
-      <span className="text-[11px] text-content/40 uppercase tracking-widest font-medium">
+      <span className="text-[0.75rem] text-content/40 uppercase tracking-widest font-medium">
         Discard
       </span>
     </div>

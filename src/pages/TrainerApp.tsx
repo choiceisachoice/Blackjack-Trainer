@@ -42,7 +42,7 @@ export function TrainerApp() {
   const scrollable = SCROLLABLE_MODES.has(currentMode) || locked
 
   return (
-    <div className={`h-screen flex flex-col bg-casino-bg transition-colors duration-200 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+    <div className={`app-canvas h-screen flex flex-col transition-colors duration-200 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
       <NavBar />
       {/* Reset key on the mode so switching screens clears a crashed one. A render
           error shows a recoverable fallback instead of blanking the whole app. */}

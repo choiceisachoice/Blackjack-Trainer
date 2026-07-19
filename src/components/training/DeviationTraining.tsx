@@ -139,7 +139,7 @@ export function DeviationTraining() {
     return (
       <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
         <TrainingBackdrop mode="deviationFlashCards" showRails />
-        <Panel icon={GraduationCap} title="Flashcards" subtitle="Drill every hand — and when to deviate." className="w-full max-w-md">
+        <Panel icon={GraduationCap} title="Flashcards" subtitle="Drill every hand — and when to deviate." className="w-full max-w-xl">
           {/* Level */}
           <div>
             <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Level</span>
@@ -181,7 +181,7 @@ export function DeviationTraining() {
   if (phase === 'summary') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="surface w-full max-w-md p-7 flex flex-col items-center gap-6">
+        <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
           <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">Session Complete!</h3>
           <div className="grid grid-cols-2 gap-3 w-full text-center">
             <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">

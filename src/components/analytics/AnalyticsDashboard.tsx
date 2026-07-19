@@ -97,7 +97,7 @@ function KpiTile({ kpi, hero, footNote }: { kpi: Kpi; hero?: boolean; footNote?:
           : undefined
       }
     >
-      <div className="text-[11px] font-semibold tracking-[0.12em] uppercase text-content/50">{kpi.label}</div>
+      <div className="text-[0.75rem] font-semibold tracking-[0.12em] uppercase text-content/50">{kpi.label}</div>
       <div className="text-[clamp(1.6rem,3vw,2.05rem)] font-extrabold tracking-tight leading-none mt-2 text-content">
         {renderKpiValue(kpi.display)}
       </div>
@@ -195,7 +195,7 @@ export function AnalyticsDashboard() {
         {/* Header */}
         <header className="flex items-end justify-between flex-wrap gap-4 mb-2">
           <div>
-            <div className="text-[11px] font-semibold tracking-[0.22em] uppercase text-content/50 flex items-center gap-2 mb-2">
+            <div className="text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-content/50 flex items-center gap-2 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gold" style={{ boxShadow: '0 0 10px var(--color-gold)' }} />
               Your training
             </div>
@@ -248,7 +248,7 @@ export function AnalyticsDashboard() {
                 {derived.insight.icon}
               </div>
               <div className="text-[13.5px] leading-snug text-content/90">
-                <span className="block text-[10px] font-bold tracking-[0.14em] uppercase text-content/50">This period's insight</span>
+                <span className="block text-[0.6875rem] font-bold tracking-[0.14em] uppercase text-content/50">This period's insight</span>
                 {renderInsight(derived.insight.text, derived.insight.highlights)}
               </div>
             </div>
@@ -361,7 +361,7 @@ export function AnalyticsDashboard() {
                     <WeakestHands hands={derived.weakest} />
                     <button
                       onClick={() => setMode('deviationTraining')}
-                      className="mt-4 inline-flex items-center gap-2 text-[13px] font-semibold px-4 py-2 rounded-[10px] cursor-pointer glow-hover"
+                      className="mt-4 inline-flex items-center gap-2 text-[0.85rem] font-semibold px-4 py-2 rounded-[10px] cursor-pointer glow-hover"
                       style={{
                         color: '#10100c',
                         background: 'linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold))',
@@ -384,9 +384,9 @@ export function AnalyticsDashboard() {
             {/* Recent sessions */}
             <Panel title="Recent sessions" note={`last ${Math.min(sessions.length, 8)}`}>
               <div className="overflow-x-auto overflow-y-hidden">
-                <table className="w-full text-[13px] border-collapse tabular-nums">
+                <table className="w-full text-[0.85rem] border-collapse tabular-nums">
                   <thead>
-                    <tr className="text-[10px] tracking-[0.1em] uppercase text-content/40">
+                    <tr className="text-[0.6875rem] tracking-[0.1em] uppercase text-content/40">
                       <th className="text-left font-semibold px-2.5 pb-2.5">When</th>
                       <th className="text-left font-semibold px-2.5 pb-2.5">Mode</th>
                       <th className="text-right font-semibold px-2.5 pb-2.5">Accuracy</th>

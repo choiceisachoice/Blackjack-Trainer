@@ -150,11 +150,11 @@ export function ModeBars({ rows }: { rows: ModeAccuracy[] }) {
     <div className="flex flex-col gap-3.5">
       {rows.map(r => (
         <div key={r.mode} className="grid items-center gap-3" style={{ gridTemplateColumns: '130px 1fr 44px' }}>
-          <div className="text-[13px] font-medium text-content flex items-center gap-1.5">
+          <div className="text-[0.85rem] font-medium text-content flex items-center gap-1.5">
             <span className="truncate">{r.label}</span>
             {r.tag && (
               <span
-                className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-px rounded"
+                className="text-[0.65rem] font-bold uppercase tracking-wide px-1.5 py-px rounded"
                 style={{
                   color: r.tag === 'best' ? 'var(--color-success)' : 'var(--color-warning)',
                   background: r.tag === 'best'
@@ -169,7 +169,7 @@ export function ModeBars({ rows }: { rows: ModeAccuracy[] }) {
           <div className="h-2.5 rounded-full bg-contrast/5 border border-contrast/10 overflow-hidden">
             <div className="h-full rounded-full" style={{ width: `${Math.round(r.accuracy * 100)}%`, background: barColor(r.accuracy) }} />
           </div>
-          <div className="text-[13px] font-bold text-right text-content">{Math.round(r.accuracy * 100)}%</div>
+          <div className="text-[0.85rem] font-bold text-right text-content">{Math.round(r.accuracy * 100)}%</div>
         </div>
       ))}
     </div>
@@ -184,11 +184,11 @@ export function WeakestHands({ hands }: { hands: { name: string; accuracy: numbe
         const miss = Math.round((1 - h.accuracy) * 100)
         return (
           <div key={h.name} className="grid items-center gap-3" style={{ gridTemplateColumns: '1fr 90px 40px' }}>
-            <span className="text-[13px] font-medium text-content truncate">{h.name}</span>
+            <span className="text-[0.85rem] font-medium text-content truncate">{h.name}</span>
             <div className="h-2 rounded-full bg-contrast/5 border border-contrast/10 overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${miss}%`, background: 'linear-gradient(90deg, var(--color-warning), var(--color-error))' }} />
             </div>
-            <span className="text-[13px] font-bold text-right" style={{ color: 'var(--color-error)' }}>{miss}%</span>
+            <span className="text-[0.85rem] font-bold text-right" style={{ color: 'var(--color-error)' }}>{miss}%</span>
           </div>
         )
       })}

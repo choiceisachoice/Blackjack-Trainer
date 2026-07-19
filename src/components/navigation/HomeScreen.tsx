@@ -90,7 +90,7 @@ export function HomeScreen() {
           data-testid="mode-card-casinoSession"
           className="lift-glow group relative flex items-center gap-4 w-full p-5 rounded-2xl text-left cursor-pointer
             border border-gold/30 overflow-hidden
-            bg-[linear-gradient(110deg,color-mix(in_srgb,var(--color-felt)_22%,var(--color-surface)),var(--color-surface))]"
+            bg-[linear-gradient(110deg,color-mix(in_srgb,var(--color-gold)_12%,var(--color-surface)),var(--color-surface))]"
         >
           <span className="grid place-items-center w-12 h-12 rounded-xl text-gold bg-gold/15 border border-gold/30 shrink-0">
             <Club size={24} className="fill-current" />

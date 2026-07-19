@@ -183,7 +183,7 @@ export function SpeedDrill() {
     return (
       <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
         <TrainingBackdrop mode="speedDrill" showRails />
-        <div className="surface w-full max-w-md p-7">
+        <div className="surface w-full max-w-xl p-7 md:p-8">
           {/* Header */}
           <div className="flex items-center gap-3 mb-7">
             <span className="grid place-items-center w-11 h-11 rounded-xl text-gold bg-gold/10 border border-gold/20">
@@ -253,7 +253,9 @@ export function SpeedDrill() {
     const progress = ((currentIndex + 1) / cards.length) * 100
 
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 bg-felt-dark">
+      // Neutral ground, not felt green: this is a counting drill, not a table.
+      // The felt belongs to the Casino Session, where it means something.
+      <div className="app-canvas flex-1 flex flex-col items-center justify-center gap-6 px-4">
         {/* Progress */}
         <div className="w-full max-w-sm">
           <div className="flex justify-between text-xs text-content/50 mb-1">
@@ -371,7 +373,7 @@ export function SpeedDrill() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-4">
-      <div className="surface w-full max-w-md p-7 flex flex-col items-center gap-6">
+      <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
         {/* Result banner */}
         <div className="flex flex-col items-center text-center gap-3">
           <span className={`grid place-items-center w-16 h-16 rounded-full border
