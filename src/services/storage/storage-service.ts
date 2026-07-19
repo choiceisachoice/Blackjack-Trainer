@@ -68,6 +68,18 @@ export class LocalStorageService implements StorageService {
     this.writeSessions(sessions)
   }
 
+  /**
+   * Replace the whole local session array.
+   *
+   * Needed by the sign-in migration: when a legacy session gets a fresh uuid,
+   * the new id has to be written back locally too. Going through
+   * `saveSessionResult` would append instead of replace and duplicate the
+   * entire history on every sync.
+   */
+  async replaceAllSessionResults(results: TrainingSessionResult[]): Promise<void> {
+    this.writeSessions(results)
+  }
+
   async getSessionResults(mode: TrainingMode): Promise<TrainingSessionResult[]> {
     return this.readSessions().filter(s => s.mode === mode)
   }

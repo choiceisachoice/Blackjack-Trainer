@@ -11,9 +11,24 @@ import { useLevelStore } from '../../store/level-store'
 import { useBankrollTrackerStore } from '../../store/bankroll-tracker-store'
 import { useEntitlementStore } from '../../store/entitlement-store'
 import type { TrackedSession } from '../../store/bankroll-tracker-store'
+import type { TrainingSessionResult } from '../stats-types'
 import { requireSupabase, isSupabaseConfigured } from './client'
 
 const cloud = new SupabaseStorageService()
+
+/** Matches a canonical uuid; anything else is a legacy id that needs replacing. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * Give a training session a uuid if it doesn't have one.
+ *
+ * Mirrors `normalizeId` for bankroll sessions: the cloud primary key is a uuid,
+ * but sessions recorded by older builds carry short local ids. Sessions that
+ * already have a uuid are returned unchanged, so this is idempotent.
+ */
+export function normalizeSessionId(s: TrainingSessionResult): TrainingSessionResult {
+  return UUID_RE.test(s.id) ? s : { ...s, id: crypto.randomUUID() }
+}
 
 /**
  * Union-merge local and cloud bankroll sessions by id (local wins on conflict,
@@ -91,9 +106,19 @@ async function runSignInSync(): Promise<void> {
     // covers both the guest → first-account migration and any sessions that
     // fell back to local while offline. Cheap: a signed-in user's new sessions
     // go straight to the cloud, so local stays near-empty between syncs.
+    // Legacy sessions predate uuid ids (older builds used short counters like
+    // "a0"). The cloud primary key is a uuid, and the push is ONE upsert, so a
+    // single legacy row makes Postgres reject the whole batch (22P02) — which
+    // aborted this entire sync, taking achievements, level, bankroll and stats
+    // hydration with it. Reassign those ids and write them back locally first,
+    // so local and cloud agree and the next sync doesn't duplicate anything.
     const localSessions = await localStorageService.getAllSessionResults()
     if (localSessions.length > 0) {
-      await cloud.saveMany(localSessions)
+      const normalized = localSessions.map(normalizeSessionId)
+      if (normalized.some((s, i) => s.id !== localSessions[i].id)) {
+        await localStorageService.replaceAllSessionResults(normalized)
+      }
+      await cloud.saveMany(normalized)
     }
 
     // Achievements: union cloud + local, push local-only up, refresh the UI.
