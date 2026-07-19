@@ -9,9 +9,22 @@ describe('LearnPage', () => {
     expect(screen.getByText('What is card counting?')).toBeInTheDocument()
     expect(screen.getByText('The Hi-Lo count')).toBeInTheDocument()
     expect(screen.getByText('Illustrious 18 & Fab 4')).toBeInTheDocument()
-    expect(screen.getByText('Basic Strategy')).toBeInTheDocument()
+    // Target the accordion topic, not the words: "Basic Strategy" is also a term
+    // introduced in the Part 1 lesson, so a bare text match now finds both.
+    expect(screen.getByTestId('topic-basic-strategy')).toBeInTheDocument()
     // Mode guide
     expect(screen.getByText('The Training Modes')).toBeInTheDocument()
+  })
+
+  it('teaches the game before it teaches counting', () => {
+    render(<LearnPage />)
+    // Part 1 must come first in the DOM: the counting chapters use "upcard",
+    // "soft", "bust" and "Basic Strategy" without defining them.
+    const basics = screen.getByTestId('blackjack-basics')
+    const firstCountingTopic = screen.getByTestId('topic-what-is-counting')
+    expect(
+      basics.compareDocumentPosition(firstCountingTopic) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
   })
 
   it('opens the first topic by default and toggles others', () => {

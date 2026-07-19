@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { ChevronDown, BookOpen, Sigma, Grid3x3, Coins, Zap, GraduationCap, Layers, Club } from 'lucide-react'
+import { ChevronDown, BookOpen, Sigma, Grid3x3, Coins, Zap, GraduationCap, Layers, Club, Spade } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { BlackjackBasics } from './BlackjackBasics'
 
 interface Topic {
   id: string
@@ -163,10 +164,32 @@ export function LearnPage() {
             <BookOpen size={26} />
           </span>
           <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Learn</h1>
-          <p className="mt-2 text-sm text-content/50">Everything you need to understand card counting — in plain language.</p>
+          <p className="mt-2 text-sm text-content/50">
+            Start at the top if you’re new. Everything below assumes only what came before it.
+          </p>
         </div>
 
-        {/* Concept sections */}
+        {/* Part one: the game itself. Read in order — the counting chapters
+            below rely on every term introduced here. */}
+        <section className="mb-10">
+          <h2 className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-3">
+            <Spade size={13} className="text-gold" />
+            Part 1 — The game
+          </h2>
+          <p className="text-sm text-content/50 mb-4 max-w-[52ch]">
+            Never played blackjack? Read this once and the rest of the page will make sense.
+          </p>
+          <BlackjackBasics />
+        </section>
+
+        {/* Part two: counting. Reference-style — open what you need. */}
+        <h2 className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-3">
+          <Sigma size={13} className="text-gold" />
+          Part 2 — Counting cards
+        </h2>
+        <p className="text-sm text-content/50 mb-4 max-w-[52ch]">
+          The edge itself. Tap any topic to open it.
+        </p>
         <div className="space-y-8">
           {SECTIONS.map(section => (
             <section key={section.title}>
