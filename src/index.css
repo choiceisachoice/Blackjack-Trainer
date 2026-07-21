@@ -92,22 +92,31 @@ body {
 .app-canvas {
   background-color: var(--color-casino-bg);
   background-image:
-    /* Warm bloom off the top edge. Sized in px, not percent: a percentage
-       radial stretches across an ultrawide monitor until it flattens into
-       nothing, which is exactly what it did at 3440px. */
-    radial-gradient(1200px 560px at 50% -120px, rgba(212, 168, 71, 0.11), transparent 72%),
-    /* Cool lift under it, so the top of the page reads as lit rather than
-       merely tinted. */
-    linear-gradient(180deg, rgba(255, 255, 255, 0.038), transparent 30%);
+    /* 1. Warm bloom over the top edge. Sized in viewport units so it stays a
+          proportional pool of light on a 13" laptop and on a 34" ultrawide —
+          a fixed 1200px glow covered barely a third of the width at 3440px,
+          which is why earlier attempts read as "no change at all". */
+    radial-gradient(90vw 55vh at 50% -8vh, rgba(212, 168, 71, 0.10), transparent 70%),
+    /* 2. Full-height tonal fall from top to bottom. This is the part that
+          actually removes the flatness: it covers the whole surface rather
+          than one corner of it. */
+    linear-gradient(180deg,
+      rgba(255, 255, 255, 0.055) 0%,
+      rgba(255, 255, 255, 0.022) 28%,
+      rgba(255, 255, 255, 0.006) 60%,
+      transparent 100%),
+    /* 3. Soft vignette so the field has a shape instead of a hard edge. */
+    radial-gradient(130vw 110vh at 50% 38%, transparent 45%, rgba(0, 0, 0, 0.5) 100%);
   background-attachment: fixed;
   background-repeat: no-repeat;
 }
 
-/* Light theme: the same shape, tuned for a bright ground. */
+/* Light theme: the same three layers, inverted where they need to be. */
 :root[data-theme='light'] .app-canvas {
   background-image:
-    radial-gradient(1200px 560px at 50% -120px, rgba(212, 168, 71, 0.16), transparent 72%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.03), transparent 30%);
+    radial-gradient(90vw 55vh at 50% -8vh, rgba(212, 168, 71, 0.18), transparent 70%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.045) 0%, rgba(0, 0, 0, 0.015) 30%, transparent 65%),
+    radial-gradient(130vw 110vh at 50% 38%, transparent 55%, rgba(0, 0, 0, 0.08) 100%);
 }
 
 /* ─────────────────────────────────────────────────────────────
