@@ -14,6 +14,10 @@ const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ defaul
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })))
 const TrainerApp = lazy(() => import('./pages/TrainerApp').then(m => ({ default: m.TrainerApp })))
 const AccountPage = lazy(() => import('./pages/AccountPage').then(m => ({ default: m.AccountPage })))
+// Legal pages: static content, public, their own small chunk.
+const TermsPage = lazy(() => import('./pages/legal/TermsPage').then(m => ({ default: m.TermsPage })))
+const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage').then(m => ({ default: m.PrivacyPage })))
+const ContactPage = lazy(() => import('./pages/legal/ContactPage').then(m => ({ default: m.ContactPage })))
 
 function RouteLoader() {
   return (
@@ -72,6 +76,9 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/app" element={<ProtectedRoute><TrainerApp /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

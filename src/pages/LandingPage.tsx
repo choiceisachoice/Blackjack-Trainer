@@ -227,7 +227,14 @@ export function LandingPage() {
             background); /60 clears the 4.5:1 threshold for this size. */}
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-between items-center gap-4 text-sm text-content/60">
           <div className="flex items-center gap-2.5 font-semibold text-content/80"><span className="w-6 h-6 rounded-md grid place-items-center bg-gradient-to-br from-gold-bright to-gold text-casino-bg"><Spade size={13} /></span> Blackjack Trainer</div>
-          <div className="flex gap-5 flex-wrap"><a href="#features" className="hover:text-content">Features</a><a href="#pricing" className="hover:text-content">Pricing</a><Link to="/login" className="hover:text-content">Sign in</Link></div>
+          <div className="flex gap-5 flex-wrap">
+            <a href="#features" className="hover:text-content">Features</a>
+            <a href="#pricing" className="hover:text-content">Pricing</a>
+            <Link to="/login" className="hover:text-content">Sign in</Link>
+            <Link to="/terms" className="hover:text-content">Terms</Link>
+            <Link to="/privacy" className="hover:text-content">Privacy</Link>
+            <Link to="/contact" className="hover:text-content">Contact</Link>
+          </div>
           <div>Practice tool — not affiliated with any casino.</div>
         </div>
       </footer>
