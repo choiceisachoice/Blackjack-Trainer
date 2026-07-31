@@ -57,10 +57,23 @@ async function syncSubscriptionById(subId: string): Promise<void> {
   }
 
   // Prefer the user id carried in metadata; fall back to matching the customer.
-  if (userId) {
-    await admin.from('profiles').update(patch).eq('id', userId)
-  } else {
-    await admin.from('profiles').update(patch).eq('stripe_customer_id', sub.customer as string)
+  //
+  // `.select()` + a row-count check is load-bearing, not defensive noise:
+  // supabase-js does NOT throw on failure, it returns `{ data, error }`. Without
+  // this, a failed write — or a correct write that matched zero rows because the
+  // customer id was never stored — returned normally and the caller answered
+  // Stripe with 200. The customer had paid, the entitlement was never granted,
+  // and nothing anywhere recorded that it went wrong.
+  const query = admin.from('profiles').update(patch).select('id')
+  const { data, error } = userId
+    ? await query.eq('id', userId)
+    : await query.eq('stripe_customer_id', sub.customer as string)
+
+  if (error) throw new Error(`entitlement update failed: ${error.message}`)
+  if (!data || data.length === 0) {
+    throw new Error(
+      `entitlement update matched no profile (user=${userId ?? 'n/a'}, customer=${sub.customer})`,
+    )
   }
 }
 
@@ -78,6 +91,12 @@ Deno.serve(async (req) => {
   }
 
   // Idempotency: first insert wins; a retry hits the unique key and is a no-op.
+  //
+  // The ledger row is claimed here but only *committed* after the handler
+  // succeeds — see the delete in the catch below. Writing it up front and
+  // leaving it there turned Stripe's at-least-once delivery into at-most-once:
+  // a handler that threw returned 500, Stripe retried, the retry hit the unique
+  // key, answered "Already processed" 200, and the event was lost for good.
   const { error: insertErr } = await admin
     .from('stripe_events')
     .insert({ id: event.id, type: event.type })
@@ -106,10 +125,14 @@ Deno.serve(async (req) => {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
         if (invoice.subscription) {
-          await admin
+          const { error } = await admin
             .from('profiles')
             .update({ subscription_status: 'past_due' })
             .eq('stripe_customer_id', invoice.customer as string)
+          // A failed downgrade leaves someone on Pro who has stopped paying.
+          // Throwing hands it to the catch above, which releases the ledger
+          // claim so Stripe retries.
+          if (error) throw new Error(`past_due downgrade failed: ${error.message}`)
         }
         break
       }
@@ -118,6 +141,21 @@ Deno.serve(async (req) => {
         break
     }
   } catch (e) {
+    // Release the idempotency claim so Stripe's retry can actually do the work.
+    // If this cleanup itself fails the event is stuck, so it is logged loudly —
+    // that is the one case a human has to look at.
+    const { error: releaseErr } = await admin
+      .from('stripe_events')
+      .delete()
+      .eq('id', event.id)
+    if (releaseErr) {
+      console.error(
+        `STUCK EVENT ${event.id} (${event.type}): handler failed AND the ledger claim ` +
+        `could not be released. Stripe's retry will be swallowed as a duplicate. ` +
+        `Delete this row by hand and replay the event.`,
+        releaseErr,
+      )
+    }
     console.error(`handler for ${event.type} failed`, e)
     return new Response('Handler error', { status: 500 })
   }
