@@ -94,6 +94,7 @@ export type AppMode =
   | 'strategyChart'
   | 'casinoSessionTracker'
   | 'learn'
+  | 'plan'
 
 /** App-level state for navigation and global settings. */
 export interface AppStoreState {

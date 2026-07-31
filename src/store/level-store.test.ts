@@ -177,7 +177,7 @@ describe('useLevelStore', () => {
   it('dismissLevelUp clears the popup', () => {
     useLevelStore.setState({
       showLevelUp: true,
-      levelUpData: { oldLevel: LEVELS[0], newLevel: LEVELS[1] },
+      levelUpData: { oldLevel: LEVELS[0], newLevel: LEVELS[1], breakdown: [] },
     })
     useLevelStore.getState().dismissLevelUp()
     expect(useLevelStore.getState().showLevelUp).toBe(false)

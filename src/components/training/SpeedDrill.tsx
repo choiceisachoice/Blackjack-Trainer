@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Zap, Play, Check, X, RotateCcw, Minus, Plus } from 'lucide-react'
 import { Shoe } from '../../engine/shoe/shoe'
 import { CountingEngine } from '../../engine/counting/counting-engine'
 import { getSystemById } from '../../engine/counting/counting-systems'
 import { useAppStore } from '../../store/app-store'
+import { useStatsStore } from '../../store/stats-store'
+import { useIsPro } from '../../store/entitlement-store'
+import { CURRICULUM, stageIndex, deriveStageProgress, getReadStages } from '../../services/curriculum'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { Card } from '../../engine/shoe/types'
@@ -34,6 +37,69 @@ const SUIT_SYMBOL: Record<string, string> = {
  * Flashes cards one at a time, then asks the player for the running count.
  * Tracks streaks and accuracy across attempts.
  */
+/**
+ * The three Hi-Lo values, on the screen that asks you to use them.
+ *
+ * Nothing in this drill named them. Grep for the tags across the whole file
+ * returned zero hits: cards flashed, a number was demanded, and the rule
+ * producing that number appeared nowhere in the pre-drill path. A beginner
+ * routed here could only guess, score 0%, and conclude the app was not for
+ * them.
+ *
+ * Collapses to a one-line reminder once the counting stage is done — by then it
+ * is clutter, not teaching. The expanded default is for the person who needs
+ * it; the collapsed state is for everyone who does not.
+ */
+function HiLoPrimer() {
+  const sessions = useStatsStore(s => s.sessions)
+  const isPro = useIsPro()
+  const learned = useMemo(() => {
+    const stage = CURRICULUM[stageIndex('hi-lo')]
+    return deriveStageProgress(stage, sessions, getReadStages(), isPro).done
+  }, [sessions, isPro])
+
+  const [open, setOpen] = useState(!learned)
+
+  const GROUPS = [
+    { cards: '2 3 4 5 6', value: '+1', tone: 'text-success', note: 'low cards' },
+    { cards: '7 8 9', value: '0', tone: 'text-content/50', note: 'neutral' },
+    { cards: '10 J Q K A', value: '−1', tone: 'text-error', note: 'tens and aces' },
+  ]
+
+  return (
+    <div className="mb-6 rounded-xl border border-gold/25 bg-gold/[.04] overflow-hidden" data-testid="hilo-primer">
+      <button
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 cursor-pointer text-left"
+      >
+        <span className="text-sm font-semibold text-gold">The Hi-Lo values</span>
+        <span className="text-xs text-content/45">{open ? 'Hide' : 'Show'}</span>
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4">
+          <div className="flex flex-col gap-1.5">
+            {GROUPS.map(g => (
+              <div key={g.value} className="flex items-center justify-between gap-4 text-sm">
+                <span className="font-mono tracking-wider text-content/80">{g.cards}</span>
+                <span className="flex items-baseline gap-2">
+                  <span className="text-xs text-content/40">{g.note}</span>
+                  <b className={`tabular-nums font-bold ${g.tone}`}>{g.value}</b>
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-content/50 leading-relaxed">
+            Start at zero and add each card’s value as it appears. The total is the
+            running count — that is the number this drill asks for.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function SpeedDrill() {
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const selectedRules = useAppStore(s => s.selectedRules)
@@ -194,6 +260,8 @@ export function SpeedDrill() {
               <p className="text-sm text-content/50">Flash cards, then call the running count.</p>
             </div>
           </div>
+
+          <HiLoPrimer />
 
           {/* Card count */}
           <div className="mb-5">

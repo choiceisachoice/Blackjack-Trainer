@@ -4,6 +4,7 @@ import { DashboardHeader } from './DashboardHeader'
 import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
+import { isProMode } from '../../services/pro-features'
 import type { LifetimeStats, TrainingMode, TrainingSessionResult } from '../../services/stats-types'
 import { CountingSystemId } from '../../engine/counting/types'
 
@@ -64,10 +65,47 @@ describe('DashboardHeader — first run', () => {
     expect(screen.queryByText(/-day streak/)).not.toBeInTheDocument()
   })
 
-  it('offers the generic call to action when there is no history', () => {
+  it('points a brand-new account at a free mode, not the paywall', () => {
+    // The Casino Session is Pro-gated: using it as the no-history fallback made
+    // the app open on a paywall for every new free account.
     useStatsStore.setState({ lifetimeStats: { ...STATS, totalSessions: 0 } })
     render(<DashboardHeader />)
-    expect(screen.getByRole('button', { name: /Start a Casino Session/ })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Start/ }))
+    const mode = useAppStore.getState().currentMode
+    expect(isProMode(mode), `first-run CTA opened Pro mode "${mode}"`).toBe(false)
+  })
+
+  it('sends an unplaced account to Learn, never past its own plan', () => {
+    // The old fallback was `speedDrill` unconditionally — stage three of seven,
+    // which assumes you already know the Hi-Lo values. With no placement there
+    // is no stage to follow, so reading is the honest destination.
+    useStatsStore.setState({ lifetimeStats: { ...STATS, totalSessions: 0 } })
+    render(<DashboardHeader />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Start/ }))
+    expect(useAppStore.getState().currentMode).toBe('learn')
+  })
+
+  it('follows the plan stage once the learner has been placed', () => {
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    useStatsStore.setState({ lifetimeStats: { ...STATS, totalSessions: 0 } })
+    render(<DashboardHeader />)
+
+    // Named after the stage, so the button says where it goes.
+    fireEvent.click(screen.getByRole('button', { name: /The Hi-Lo count/ }))
+    expect(useAppStore.getState().currentMode).toBe('speedDrill')
+  })
+
+  it('never sends a learner placed at the rules into a counting drill', () => {
+    // The measured regression: "I've never played blackjack" placed someone at
+    // stage one, and the CTA dropped them into stage three.
+    localStorage.setItem('bjt_placement', 'rules')
+    useStatsStore.setState({ lifetimeStats: { ...STATS, totalSessions: 0 } })
+    render(<DashboardHeader />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Start/ }))
+    expect(useAppStore.getState().currentMode).not.toBe('speedDrill')
   })
 })
 
@@ -122,8 +160,11 @@ describe('DashboardHeader — resume', () => {
     render(<DashboardHeader />)
 
     expect(screen.queryByText(/Continue/)).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /Start a Casino Session/ }))
-    expect(useAppStore.getState().currentMode).toBe('casinoSession')
+    fireEvent.click(screen.getByRole('button', { name: /Start/ }))
+    // No placement in this test, so the plan has nothing to point at and Learn
+    // is the honest destination — the important part is that a retired mode
+    // never routes into the void.
+    expect(useAppStore.getState().currentMode).toBe('learn')
   })
 })
 

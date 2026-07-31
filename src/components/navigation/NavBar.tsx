@@ -1,6 +1,6 @@
 import {
   Zap, Spade, GraduationCap, Coins, Layers, Club,
-  BarChart3, Grid3x3, Trophy, BookOpen, Volume2, VolumeX, Sun, Moon, LogOut,
+  BarChart3, Grid3x3, Trophy, BookOpen, Route, Volume2, VolumeX, Sun, Moon, LogOut,
   Lock, Crown, Settings,
   type LucideIcon,
 } from 'lucide-react'
@@ -31,6 +31,8 @@ const TRAIN_ITEMS: NavItem[] = [
 
 /** Secondary "tools" features. */
 const TOOL_ITEMS: NavItem[] = [
+  // The plan answers "what do I do next"; Learn is the reference beside it.
+  { mode: 'plan', label: 'Plan', icon: Route },
   { mode: 'learn', label: 'Learn', icon: BookOpen },
   { mode: 'analytics', label: 'Analytics', icon: BarChart3 },
   { mode: 'strategyChart', label: 'Strategy', icon: Grid3x3 },

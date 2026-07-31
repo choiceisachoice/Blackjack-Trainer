@@ -1,12 +1,20 @@
 import { levelSystem } from '../level-system'
 import { achievementEngine } from '../achievements/achievement-engine'
+import { hasSeenOnboarding, setOnboardingSeen } from '../onboarding'
 import { requireSupabase, isSupabaseConfigured } from './client'
 
-/** The monotonic progress scalars mirrored in the `profiles` row. */
+/**
+ * The monotonic profile state mirrored in the `profiles` row.
+ *
+ * All fields only ever move one way — the numbers grow, and `onboardingSeen`
+ * goes false → true — so reconciling by max (logical OR for the boolean) is
+ * always safe and never loses progress.
+ */
 interface ProfileScalars {
   levelXp: number
   simCount: number
   simBestEdge: number
+  onboardingSeen: boolean
 }
 
 /** Current user id from the local session (fast, no network). */
@@ -21,6 +29,7 @@ function localScalars(): ProfileScalars {
     levelXp: levelSystem.getTotalXP(),
     simCount: achievementEngine.getSimCount(),
     simBestEdge: achievementEngine.getBestSimEdge(),
+    onboardingSeen: hasSeenOnboarding(),
   }
 }
 
@@ -28,15 +37,16 @@ function localScalars(): ProfileScalars {
 async function fetchCloud(userId: string): Promise<ProfileScalars> {
   const { data, error } = await requireSupabase()
     .from('profiles')
-    .select('level_xp, sim_count, sim_best_edge')
+    .select('level_xp, sim_count, sim_best_edge, onboarding_seen')
     .eq('id', userId)
     .maybeSingle()
   if (error) throw error
-  if (!data) return { levelXp: 0, simCount: 0, simBestEdge: 0 }
+  if (!data) return { levelXp: 0, simCount: 0, simBestEdge: 0, onboardingSeen: false }
   return {
     levelXp: data.level_xp ?? 0,
     simCount: data.sim_count ?? 0,
     simBestEdge: data.sim_best_edge ?? 0,
+    onboardingSeen: data.onboarding_seen ?? false,
   }
 }
 
@@ -50,6 +60,7 @@ async function upsertCloud(userId: string, s: ProfileScalars): Promise<void> {
         level_xp: s.levelXp,
         sim_count: s.simCount,
         sim_best_edge: s.simBestEdge,
+        onboarding_seen: s.onboardingSeen,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'id' },
@@ -77,9 +88,13 @@ export async function syncProfileOnSignIn(): Promise<void> {
     levelXp: Math.max(local.levelXp, cloud.levelXp),
     simCount: Math.max(local.simCount, cloud.simCount),
     simBestEdge: Math.max(local.simBestEdge, cloud.simBestEdge),
+    // OR, not "cloud wins": dismissing the checklist on one device must not
+    // make it reappear on another.
+    onboardingSeen: local.onboardingSeen || cloud.onboardingSeen,
   }
   levelSystem.setTotalXP(merged.levelXp)
   achievementEngine.setSimCounters(merged.simCount, merged.simBestEdge)
+  setOnboardingSeen(merged.onboardingSeen)
   await upsertCloud(userId, merged)
 }
 

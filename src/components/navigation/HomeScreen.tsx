@@ -7,9 +7,10 @@ import { useAppStore } from '../../store/app-store'
 import type { AppMode } from '../../store/app-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
+import { TrainingPlan } from '../plan/TrainingPlan'
 import { DailyChallengeCard } from './DailyChallengeCard'
 import { WeeklyChallengeCard } from './WeeklyChallengeCard'
-import { DashboardHeader } from './DashboardHeader'
+import { DashboardHeader, ProductTitle } from './DashboardHeader'
 
 interface FeatureCard {
   mode: AppMode
@@ -40,16 +41,47 @@ const TOOL_CARDS: FeatureCard[] = [
  * The app focuses on the Hi-Lo system; navigation lives in the global NavBar.
  */
 export function HomeScreen() {
+  // No `min-h-full` here: that asked for a second full viewport on top of the
+  // 62px header and produced a scrollbar on every visit (see TrainerApp). The
+  // shell now hands down the remaining height; this only has to fill it.
+  return (
+    <div className="relative w-full flex flex-col items-center px-4 pb-4">
+      <div className="hero-glow" />
+
+      {/*
+        The plan is the home screen now, and it owns what surrounds it.
+
+        Before this, three things competed to answer "what do I do?" — eight
+        equal-weight mode tiles, two challenge cards and an onboarding checklist.
+        Now there is one answer, and browsing lives underneath it.
+
+        The `before`/`after` slots render only once the plan itself is showing:
+        a brand-new account gets the welcome and the questionnaire on a clean
+        screen, with no mode grid underneath to shrug at. That decision lives
+        inside TrainingPlan because that is where the state lives.
+      */}
+      <TrainingPlan
+        embedded
+        before={<ProductTitle />}
+        after={<HomeSections />}
+      />
+    </div>
+  )
+}
+
+/** Everything below the plan: the daily loop, then the browsable modes. */
+function HomeSections() {
   const setMode = useAppStore(s => s.setMode)
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
 
   return (
-    <div className="relative min-h-full flex flex-col items-center px-4 pb-4">
-      <div className="hero-glow" />
-
+    <div className="relative z-10 w-full flex flex-col items-center mt-12">
+      {/* Your numbers, below the answer. "How am I doing" is a real question,
+          but it is not the one someone opens the app with. */}
       <DashboardHeader />
 
-      {/* Challenges */}
+      {/* Challenges sit under the plan, not above it: they are today's nudge,
+          not the destination. */}
       <section className="relative z-10 w-full max-w-5xl mb-10 space-y-3">
         <DailyChallengeCard />
         <WeeklyChallengeCard />

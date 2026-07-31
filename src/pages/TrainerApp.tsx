@@ -12,12 +12,14 @@ import { CasinoSession } from '../components/casino-session/CasinoSession'
 import { StrategyChart } from '../components/strategy-chart/StrategyChart'
 import { CasinoSessionTracker } from '../components/training/CasinoSessionTracker'
 import { LearnPage } from '../components/learn/LearnPage'
+import { TrainingPlan } from '../components/plan/TrainingPlan'
 import { AchievementToast } from '../components/achievements/AchievementToast'
 import { LevelUpPopup } from '../components/navigation/LevelUpPopup'
 import { ErrorBoundary } from '../components/common/ErrorBoundary'
 import { UpgradePanel } from '../components/pro/UpgradePanel'
 import { UpgradeModalHost } from '../components/pro/UpgradeModalHost'
 import { useIsPro } from '../store/entitlement-store'
+import { useLearnerSync } from '../hooks/use-learner-sync'
 import { isProMode } from '../services/pro-features'
 
 // Modes whose page relies on the app shell for scrolling. Analytics, Achievements
@@ -26,7 +28,7 @@ import { isProMode } from '../services/pro-features'
 // scrolling to part of the view.
 const SCROLLABLE_MODES = new Set([
   'home', 'bankrollSim',
-  'casinoSession', 'strategyChart', 'learn',
+  'casinoSession', 'strategyChart', 'learn', 'plan',
 ])
 
 /**
@@ -41,12 +43,32 @@ export function TrainerApp() {
   const locked = isProMode(currentMode) && !isPro
   const scrollable = SCROLLABLE_MODES.has(currentMode) || locked
 
+  // Feed the training plan's stage to the challenge engines, so all of them
+  // agree on where this learner is.
+  useLearnerSync()
+
+  // No redirect here any more: `home` *is* the plan, so an unplaced learner
+  // already lands on the questionnaire without navigation being hijacked.
+
+  // The shell is exactly one viewport tall and never scrolls itself.
+  //
+  // It used to carry `overflow-y-auto` for some modes while the NavBar (62px,
+  // in flow) sat inside it and the mode content asked for `min-h-full` — i.e.
+  // another full viewport. Result: a scrollbar on every home visit whose
+  // overflow was *exactly the header height*, independent of content. Measured
+  // at 1280x800: shell 800px, content 862px, header 62px.
+  //
+  // Now the header takes its natural height and the mode content gets the
+  // remainder via `flex-1 min-h-0`, scrolling inside itself. `min-h-0` is
+  // load-bearing: a flex child defaults to `min-height:auto`, which refuses to
+  // shrink below its content and would push the overflow back onto the shell.
   return (
-    <div className={`app-canvas h-screen flex flex-col transition-colors duration-200 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+    <div className="app-canvas h-screen flex flex-col overflow-hidden transition-colors duration-200">
       <NavBar />
       {/* Reset key on the mode so switching screens clears a crashed one. A render
           error shows a recoverable fallback instead of blanking the whole app. */}
-      <ErrorBoundary key={currentMode} onReset={() => setMode('home')}>
+      <div className={`flex-1 min-h-0 flex flex-col ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+        <ErrorBoundary key={currentMode} onReset={() => setMode('home')}>
         {locked ? (
           <div className="flex-1 flex items-start justify-center p-4 md:p-8">
             <UpgradePanel />
@@ -65,9 +87,11 @@ export function TrainerApp() {
             {currentMode === 'strategyChart' && <StrategyChart />}
             {currentMode === 'casinoSessionTracker' && <CasinoSessionTracker />}
             {currentMode === 'learn' && <LearnPage />}
+            {currentMode === 'plan' && <TrainingPlan />}
           </>
         )}
-      </ErrorBoundary>
+        </ErrorBoundary>
+      </div>
       <AchievementToast />
       <LevelUpPopup />
       <UpgradeModalHost />

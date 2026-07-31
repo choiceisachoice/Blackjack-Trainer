@@ -36,6 +36,83 @@
 
   /* ── Typography ── */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /*
+   * The display face.
+   *
+   * Deliberately *not* wired into `--font-sans`: adopting it app-wide would
+   * restyle every screen in the product, which is a change to look at on
+   * purpose rather than to inherit from a loading-screen task. Swap the two
+   * values to adopt it everywhere.
+   */
+  --font-display: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+}
+
+/*
+ * Instrument Sans — SIL Open Font License 1.1, licence in /public/fonts.
+ *
+ * A contemporary grotesk with slightly narrow proportions and a little
+ * personality in the g, a and R. Chosen over the obvious product sans because
+ * the obvious product sans is what every dashboard already uses, and over an
+ * editorial serif because a serif here would be costume rather than character.
+ *
+ * `swap`, not `block`: if the preload has somehow not landed, text is readable
+ * immediately and improves a moment later. A loading screen that withholds its
+ * own words waiting for a font has its priorities backwards.
+ */
+/*
+ * The app's own entrance, handed off from the loading screen.
+ *
+ * Anything marked `intro-enter` sits behind a dark blur while the loading
+ * screen is up and resolves once it leaves — so the hero does not animate
+ * unseen behind an overlay and then simply be there, which is what made the
+ * landing look like it had skipped its own opening.
+ *
+ * Keyed off the *absence* of the attribute, so the default is visible: a page
+ * rendered without the loading screen at all is never left blurred out.
+ */
+.intro-enter {
+  /*
+   * 480ms and no delay. It ran 900ms behind a 120ms wait, which put a full
+   * second of nothing between the loading screen finishing and the page being
+   * readable — after the bar had already announced it was done. A transition
+   * that outlasts about half a second stops reading as motion and starts
+   * reading as latency.
+   */
+  transition:
+    opacity 380ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 380ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-intro='playing'] .intro-enter {
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(8px) scale(1.01);
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro-enter,
+  [data-intro='playing'] .intro-enter {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
+  }
+}
+
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('/fonts/instrument-sans-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('/fonts/instrument-sans-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 /* ── Light Theme Overrides ── */
@@ -59,11 +136,27 @@
 
 /* Fluid base size. Everything in the UI is sized in rem, so this scales text,
    spacing and rem-based widths together instead of leaving the interface tiny
-   on a large monitor. Laptops (≤1440px) keep the familiar 16px; a wide screen
-   grows to 20px. Same approach that fixed "everything is small on a wide
-   monitor" in Origin-Voice. */
+   on a large monitor.
+
+   The first version ran 16px → 20px between 1440px and 2200px of viewport,
+   which put the entire 25% range inside the window sizes people actually use:
+   a maximised browser on a wide monitor got 20px while a second, narrower
+   window got the 16px floor, and the same app looked like two different
+   products side by side.
+
+   This curve is deliberately shallower and starts higher. Phones keep 16px —
+   the dense screens (strategy chart, casino table) have the least room there —
+   and every desktop-sized window sits between 17.5px and 20px, so the spread
+   across two open browsers is ~14% rather than 25%. The 20px ceiling is
+   unchanged, so the largest window looks exactly as it did. */
 html {
-  font-size: clamp(16px, 5.7px + 0.71vw, 20px);
+  font-size: clamp(16px, 12.2px + 0.38vw, 20px);
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: clamp(17.5px, 12.2px + 0.38vw, 20px);
+  }
 }
 
 body {
@@ -206,8 +299,58 @@ body {
     transparent);
 }
 
+/*
+ * Entrance animation for first-run screens.
+ *
+ * Two rules, both learned the hard way on the welcome screen:
+ *
+ * 1. CSS, not a JS animation library. A JS entrance starts at opacity 0 and
+ *    needs requestAnimationFrame to reveal the element; when rAF does not run,
+ *    the content never appears.
+ * 2. Motion only — never opacity. A staggered entrance uses animation-delay,
+ *    and any fill mode that covers the delay paints the element in its `from`
+ *    state until the animation actually advances. A hidden or backgrounded tab
+ *    freezes animations at time zero, so a fade-from-zero leaves the screen
+ *    blank for as long as it stays hidden. Measured: 7 of 15 elements here,
+ *    including the headline and the only button.
+ *
+ * Animating transform alone means the worst case is content sitting 14px low —
+ * readable, clickable, merely un-animated. Motion enhances; it never gates.
+ */
+@keyframes rise-in {
+  from { transform: translateY(14px); }
+  to   { transform: none; }
+}
+
+.rise-in {
+  animation: rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * Handover from the loading screen.
+ *
+ * The loader vanished and the next screen appeared in the same frame, which
+ * reads as a jump-cut. This fades the arriving screen in over the dark canvas
+ * the loader already occupied, so the transition is dark → dark → content
+ * rather than one hard swap.
+ *
+ * Opacity IS animated here, unlike `.rise-in` — but only from 0.55, never from
+ * 0. If the animation never runs the screen is still legible; the worst case is
+ * slightly dimmed content, not a blank page.
+ */
+@keyframes settle-in {
+  from { opacity: 0.55; transform: translateY(10px) scale(0.994); }
+  to   { opacity: 1; transform: none; }
+}
+
+.settle-in {
+  animation: settle-in 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Respect users who prefer less motion */
 @media (prefers-reduced-motion: reduce) {
+  .rise-in,
+  .settle-in { animation: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

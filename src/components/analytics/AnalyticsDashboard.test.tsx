@@ -2,6 +2,7 @@ import { render, screen, fireEvent, within } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AnalyticsDashboard } from './AnalyticsDashboard'
 import { useStatsStore } from '../../store/stats-store'
+import { useAppStore } from '../../store/app-store'
 import type { TrainingSessionResult, LifetimeStats, SessionDetails } from '../../services/stats-types'
 import { CountingSystemId } from '../../engine/counting/types'
 
@@ -45,6 +46,7 @@ describe('AnalyticsDashboard', () => {
       loadStats: noopLoadStats,
     })
     noopLoadStats.mockClear()
+    localStorage.clear()
   })
 
   it('renders the empty state when no sessions exist', () => {
@@ -140,5 +142,63 @@ describe('AnalyticsDashboard', () => {
     expect(confirmSpy).toHaveBeenCalled()
     expect(resetSpy).not.toHaveBeenCalled()
     confirmSpy.mockRestore()
+  })
+})
+
+describe('AnalyticsDashboard — the training plan strip', () => {
+  const withData = (sessions: TrainingSessionResult[]) =>
+    useStatsStore.setState({
+      sessions,
+      lifetimeStats: { ...emptyLifetimeStats, totalSessions: sessions.length, totalQuestions: 10, totalCorrect: 8 },
+      isLoading: false,
+      loadStats: noopLoadStats,
+    })
+
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('says nothing about a plan the learner has not been placed on', () => {
+    // An empty progress bar would imply a plan exists.
+    withData([makeSession()])
+    render(<AnalyticsDashboard />)
+    expect(screen.queryByTestId('analytics-plan-strip')).toBeNull()
+  })
+
+  it('names the stage the learner is on', () => {
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    withData([makeSession()])
+    render(<AnalyticsDashboard />)
+
+    const strip = screen.getByTestId('analytics-plan-strip')
+    expect(within(strip).getByText('The Hi-Lo count')).toBeInTheDocument()
+    // Placed at index 2 of 7 → five stages remain.
+    expect(within(strip).getByText(/0 of 5 stages/)).toBeInTheDocument()
+  })
+
+  it('counts cleared stages the same way the plan does', () => {
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    withData(Array.from({ length: 3 }, () => makeSession({ accuracy: 0.95 })))
+    render(<AnalyticsDashboard />)
+
+    const strip = screen.getByTestId('analytics-plan-strip')
+    expect(within(strip).getByText(/1 of 5 stages/)).toBeInTheDocument()
+    expect(within(strip).getByText('True count')).toBeInTheDocument()
+  })
+
+  it('opens the plan', () => {
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    withData([makeSession()])
+    render(<AnalyticsDashboard />)
+
+    fireEvent.click(screen.getByTestId('analytics-plan-strip'))
+    expect(useAppStore.getState().currentMode).toBe('plan')
+  })
+
+  it('stays hidden in the empty state, where there are no numbers to place', () => {
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    useStatsStore.setState({ sessions: [], lifetimeStats: emptyLifetimeStats, isLoading: false, loadStats: noopLoadStats })
+    render(<AnalyticsDashboard />)
+    expect(screen.queryByTestId('analytics-plan-strip')).toBeNull()
   })
 })

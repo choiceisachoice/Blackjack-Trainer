@@ -3,7 +3,16 @@ import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useAppStore } from '../../store/app-store'
 import { useIsPro } from '../../store/entitlement-store'
+import { Route, ChevronRight } from 'lucide-react'
 import { ProTeaser } from '../pro/ProTeaser'
+import {
+  deriveCurriculum,
+  currentStage,
+  getPlacement,
+  getReadStages,
+  stageIndex,
+} from '../../services/curriculum'
+import type { TrainingSessionResult } from '../../services/stats-types'
 import { achievementEngine } from '../../services/achievements/achievement-engine'
 import { getAchievementById } from '../../services/achievements/achievement-list'
 import {
@@ -142,6 +151,60 @@ function renderInsight(text: string, highlights: string[]) {
  *
  * All figures derive from real stored sessions — nothing is illustrative.
  */
+/**
+ * The training plan, condensed to one row: how far along the path the learner
+ * is and what they are working on.
+ *
+ * Renders nothing before the placement test — there is no plan to report, and
+ * an empty progress bar would imply one exists.
+ */
+function PlanStrip({
+  sessions,
+  isPro,
+  onOpen,
+}: {
+  sessions: TrainingSessionResult[]
+  isPro: boolean
+  onOpen: () => void
+}) {
+  const placement = getPlacement()
+  if (!placement) return null
+
+  const progress = deriveCurriculum(sessions, getReadStages(), isPro)
+  const active = currentStage(progress, placement)
+  const from = stageIndex(placement)
+  const total = progress.length - from
+  const done = progress.slice(from).filter(p => p.done).length
+
+  return (
+    <button
+      onClick={onOpen}
+      data-testid="analytics-plan-strip"
+      className="w-full text-left surface p-4 flex items-center gap-4 hover:border-gold/35
+        border border-transparent transition-colors cursor-pointer"
+    >
+      <span className="grid place-items-center w-9 h-9 rounded-lg shrink-0 text-gold bg-gold/10 border border-gold/20">
+        <Route size={17} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
+          Training plan · {done} of {total} stages
+        </span>
+        <span className="block mt-0.5 font-semibold truncate">
+          {active ? active.stage.title : 'Every stage complete'}
+        </span>
+        <span className="block mt-2 h-1.5 rounded-full bg-contrast/10 overflow-hidden">
+          <span
+            className="block h-full rounded-full bg-gold transition-[width] duration-300"
+            style={{ width: `${(done / Math.max(total, 1)) * 100}%` }}
+          />
+        </span>
+      </span>
+      <ChevronRight size={16} className="shrink-0 text-content/30" />
+    </button>
+  )
+}
+
 export function AnalyticsDashboard() {
   const sessions = useStatsStore(s => s.sessions)
   const lifetimeStats = useStatsStore(s => s.lifetimeStats)
@@ -228,6 +291,10 @@ export function AnalyticsDashboard() {
           </div>
         ) : (
           <>
+            {/* Where these numbers sit in the plan. Analytics answers "how am I
+                doing"; without this it never answers "at what". */}
+            <PlanStrip sessions={sessions} isPro={isPro} onOpen={() => setMode('plan')} />
+
             {/* Insight hook */}
             <div
               className="flex items-center gap-3.5 rounded-[14px] p-4"

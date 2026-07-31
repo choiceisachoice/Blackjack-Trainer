@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useLevelStore } from '../../store/level-store'
+import { hasSeenLevelIntro, markLevelIntroSeen } from '../../services/level-intro'
 
 const TIER_LABELS: Record<string, string> = {
   beginner: 'Beginner',
@@ -26,11 +27,21 @@ export function LevelUpPopup() {
   const levelUpData = useLevelStore(s => s.levelUpData)
   const dismissLevelUp = useLevelStore(s => s.dismissLevelUp)
 
+  // Whether to show the one-time explainer. Read once via a lazy initialiser so
+  // it stays stable for the life of this popup even after we mark it seen, and
+  // declared BEFORE any conditional return so hook order is fixed (a hook after
+  // an early `return null` caused "rendered fewer hooks than expected").
+  //
+  // Not a ref: writing a ref during render is a React rule violation that
+  // breaks under concurrent rendering. `useState`'s initialiser is the
+  // sanctioned way to compute a value exactly once.
+  const [showIntro] = useState(() => !hasSeenLevelIntro())
+
   // Dismiss on Escape / Enter for keyboard accessibility
   useEffect(() => {
     if (!showLevelUp) return
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Enter') dismissLevelUp()
+      if (e.key === 'Escape' || e.key === 'Enter') { markLevelIntroSeen(); dismissLevelUp() }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -38,24 +49,31 @@ export function LevelUpPopup() {
 
   if (!showLevelUp || !levelUpData) return null
 
-  const { oldLevel, newLevel } = levelUpData
+  const { oldLevel, newLevel, breakdown } = levelUpData
+  const totalXP = breakdown.reduce((sum, b) => sum + b.amount, 0)
 
+  const dismiss = () => { markLevelIntroSeen(); dismissLevelUp() }
+
+  // Overlay pattern copied from UpgradeModalHost, which gets this right in the
+  // same app: `grid place-items-center p-4 overflow-y-auto` + `my-auto` so a
+  // tall card on a short (landscape phone) window scrolls to reach the button
+  // instead of trapping it off-screen, and a backdrop click dismisses. The old
+  // version was `flex items-center` with 48px padding and no scroll — on a
+  // small viewport "Continue" was unreachable and the modal locked the app.
   return (
     <div
       data-testid="level-up-popup"
       role="dialog"
       aria-modal="true"
       aria-label={`Level up to level ${newLevel.level}, ${newLevel.title}`}
-      className="fixed inset-0 z-[9999] flex items-center justify-center"
-      style={{
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        animation: 'levelFadeIn 0.3s ease',
-      }}
+      className="fixed inset-0 z-[9999] grid place-items-center p-4 overflow-y-auto"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)', animation: 'levelFadeIn 0.3s ease' }}
+      onClick={dismiss}
     >
       <div
-        className="text-center max-w-[500px] mx-4"
+        className="text-center w-full max-w-[440px] my-auto p-8 sm:p-10"
+        onClick={e => e.stopPropagation()}
         style={{
-          padding: '48px',
           borderRadius: '24px',
           backgroundColor: 'var(--color-surface-2)',
           border: `2px solid ${newLevel.color}`,
@@ -78,9 +96,17 @@ export function LevelUpPopup() {
           Lv.{oldLevel.level} {oldLevel.title}
         </div>
 
-        <div className="text-2xl text-content/30 mb-2">
+        <div className="text-2xl text-content/30 mb-2" aria-hidden>
           &#8595;
         </div>
+
+        {/* A multi-level jump is otherwise invisible — the old and new numbers
+            just differ by more than one with no explanation. */}
+        {newLevel.level - oldLevel.level > 1 && (
+          <div className="text-xs text-content/45 mb-2" data-testid="level-up-jump">
+            Jumped {newLevel.level - oldLevel.level} levels
+          </div>
+        )}
 
         {/* New level number */}
         <div
@@ -106,6 +132,48 @@ export function LevelUpPopup() {
           {newLevel.title}
         </div>
 
+        {/*
+          What this actually is, in plain words.
+
+          The popup used to show only numbers and titles — "Lv.1 Rookie →
+          Lv.3 Card Player, BEGINNER" — which means nothing to someone seeing
+          it for the first time. It is also deliberately honest about the
+          limit: levels in this app unlock NOTHING (that is what Pro does).
+          Implying a reward that does not exist would be worse than silence.
+        */}
+        {/* Where the XP came from. A jump with no explanation is a mystery;
+            "Speed drill +75, Daily challenge +100" is something a beginner can
+            actually connect to what they just did. */}
+        {breakdown.length > 0 && (
+          <div
+            className="mx-auto max-w-[300px] mb-7 rounded-xl border border-contrast/10 bg-black/20 divide-y divide-contrast/8"
+            data-testid="level-up-breakdown"
+          >
+            {breakdown.map((b, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 px-4 py-2 text-sm">
+                <span className="text-content/60 text-left">{b.label}</span>
+                <span className="tabular-nums font-semibold text-gold">+{b.amount}</span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between gap-4 px-4 py-2 text-sm">
+              <span className="text-content/45 uppercase tracking-wider text-[0.7rem] font-bold">Total</span>
+              <span className="tabular-nums font-bold text-content">+{totalXP} XP</span>
+            </div>
+          </div>
+        )}
+
+        {showIntro && (
+          <p
+            className="text-sm text-content/55 leading-relaxed mb-7 mx-auto max-w-[38ch] text-left"
+            data-testid="level-up-explainer"
+          >
+            <b className="text-content/80">What is this?</b> Your level tracks how much
+            you have trained. You earn points for finished drills and daily challenges — the
+            more accurate you are, the more you get. Levels don’t unlock anything; they are
+            simply a record of the work.
+          </p>
+        )}
+
         {/* Tier badge */}
         <div
           className="inline-block px-4 py-1 rounded-xl text-xs font-semibold tracking-[2px] uppercase mb-8"
@@ -120,7 +188,7 @@ export function LevelUpPopup() {
         {/* Continue button */}
         <div>
           <button
-            onClick={dismissLevelUp}
+            onClick={dismiss}
             data-testid="level-up-dismiss"
             className="px-8 py-3 rounded-lg text-base font-semibold cursor-pointer transition-all duration-200 hover:brightness-125"
             style={{
