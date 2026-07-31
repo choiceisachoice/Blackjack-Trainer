@@ -242,19 +242,33 @@ class SyncedStorageService implements StorageService {
       : this.local
   }
 
+  /**
+   * Save a finished session — locally first, and to the cloud in the background.
+   *
+   * This is the one write in the app that sits directly between a person and
+   * their reward. It used to `await` the cloud before the store was updated, so
+   * on a slow connection the XP, the achievements and the level-up all waited on
+   * a network round trip: the drill ended and then nothing happened for a
+   * second, at exactly the moment that should feel immediate.
+   *
+   * Now the local write is the one that gates the UI — it is synchronous in
+   * practice — and the cloud push is fire-and-forget. That is not a shortcut: a
+   * push that fails leaves a local copy behind, and local sessions are re-pushed
+   * on the next sign-in (upsert on id, so no duplicates). The old code already
+   * relied on exactly that fallback; the only change is that it no longer waits
+   * to find out whether it is needed.
+   *
+   * Deliberately *not* applied to anything touching identity, entitlement or
+   * money. Showing "you are Pro" before the signed webhook has confirmed it is
+   * not a faster interface, it is a wrong one.
+   */
   async saveSessionResult(result: TrainingSessionResult): Promise<void> {
-    if (this.impl() === this.local) {
-      return this.local.saveSessionResult(result)
-    }
-    try {
-      await this.cloud.saveSessionResult(result)
-    } catch (e) {
-      // Don't lose a finished session (and its XP/achievements) on a flaky
-      // connection — keep a local copy. Local sessions are re-pushed to the
-      // cloud on the next sign-in (upsert on id, so no duplicates).
-      console.error('cloud session save failed; falling back to local', e)
-      await this.local.saveSessionResult(result)
-    }
+    await this.local.saveSessionResult(result)
+    if (this.impl() === this.local) return
+
+    this.cloud.saveSessionResult(result).catch(e => {
+      console.error('cloud session save failed; the local copy stands', e)
+    })
   }
   getSessionResults(mode: TrainingMode): Promise<TrainingSessionResult[]> {
     return this.impl().getSessionResults(mode)

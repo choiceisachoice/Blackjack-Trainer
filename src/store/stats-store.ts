@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { storage } from '../services/storage/storage-service'
+import { computeLifetimeStats, storage } from '../services/storage/storage-service'
 import type {
   TrainingSessionResult,
   TrainingMode,
@@ -127,9 +127,14 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
 
     await storage.saveSessionResult(result)
 
-    // Update cached state
-    const lifetimeStats = await storage.getLifetimeStats()
+    // Lifetime stats are derived from the list already in hand, not re-read from
+    // storage. Re-reading meant a second network round trip on the finish path,
+    // and — now that the cloud write no longer blocks — it would have returned
+    // figures that did not yet include the session the player just finished.
+    // Computing from `allSessions` is both instant and consistent with what is
+    // on screen.
     const allSessions = [result, ...get().sessions]
+    const lifetimeStats = computeLifetimeStats(allSessions)
     set(() => ({
       sessions: allSessions,
       lifetimeStats,

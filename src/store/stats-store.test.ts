@@ -4,9 +4,13 @@ import type { TrainingSessionResult } from '../services/stats-types'
 import { CountingSystemId } from '../engine/counting/types'
 import { storage } from '../services/storage/storage-service'
 
-// Mock storage service
-vi.mock('../services/storage/storage-service', () => {
+// Mock the storage *service*, but keep the real `computeLifetimeStats`.
+// The store now derives lifetime stats itself instead of re-reading them, and
+// stubbing that derivation would leave the assertions checking a fake.
+vi.mock('../services/storage/storage-service', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/storage/storage-service')>()
   return {
+    computeLifetimeStats: actual.computeLifetimeStats,
     storage: {
       saveSessionResult: vi.fn(async () => {}),
       getAllSessionResults: vi.fn(async () => []),
