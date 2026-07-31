@@ -25,7 +25,13 @@ const FAQS = [
   { q: 'Can I cancel anytime?', a: 'Yes. Manage or cancel your subscription yourself from your account at any time — you keep Pro until the end of the period you paid for.' },
 ]
 
-const AMBIENT = 'radial-gradient(55% 45% at 68% 6%, rgba(212,168,71,.12), transparent 62%)'
+/*
+ * The hero used to carry an ambient gold wash over the canvas. It read as a
+ * pale haze rather than as atmosphere and sat oddly against the cards coming out
+ * of focus, so it is gone: the ground behind the hero is the ground colour and
+ * nothing else. The scrim below stays — that one is not decoration, it is what
+ * keeps the headline legible over a moving canvas.
+ */
 const SCRIM = 'radial-gradient(46% 50% at 33% 55%, rgba(7,8,9,.9) 26%, rgba(7,8,9,.5) 52%, transparent 76%), linear-gradient(180deg, transparent 58%, var(--color-casino-bg) 97%)'
 
 export function LandingPage() {
@@ -80,7 +86,7 @@ export function LandingPage() {
       {/* Hero */}
       <section className="relative min-h-[calc(100vh-62px)] flex items-center overflow-hidden">
         <HeroLayer />
-        <div className="relative z-[5] w-full">
+        <div className="relative z-[5] w-full intro-enter">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">Hi-Lo card counting, trained properly</div>
             <h1 className="mt-4 text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.02] text-balance max-w-[15ch]">
@@ -248,7 +254,6 @@ function HeroLayer() {
       <Suspense fallback={null}>
         <HeroCanvas className="absolute inset-0 w-full h-full z-[1]" />
       </Suspense>
-      <div className="absolute inset-0 z-[2] pointer-events-none" style={{ background: AMBIENT }} />
       <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: SCRIM }} />
       <div className="absolute inset-0 z-[4] pointer-events-none shadow-[inset_0_0_190px_30px_rgba(0,0,0,.55)]" />
     </>

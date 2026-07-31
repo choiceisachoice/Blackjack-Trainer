@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
@@ -101,13 +101,27 @@ function pillCanvas(label: string, sub: string | undefined, tone: Tone): HTMLCan
   return cv
 }
 
+/**
+ * How much dimmer an out-of-focus card is than a sharp one of the same size.
+ *
+ * A blurred sprite covers several times the area, so at equal opacity it lays
+ * down several times the light — that asymmetry is what washed the hero out.
+ * But 0.42 went too far the other way and the cards all but vanished; the
+ * chips still read while the playing cards did not, which is the wrong half of
+ * the composition to lose. 0.7 keeps the correction and the cards.
+ */
+const BLUR_DIM = 0.7
+
 function cardCanvas(rank: string, suit: string, red: boolean): HTMLCanvasElement {
   const dpr = 2, W = 66 * dpr, H = 92 * dpr, r = 9 * dpr, gm = 26 * dpr, bx = gm, by = gm
   const { cv, x } = newCanvas(W + gm * 2, H + gm * 2)
-  x.save(); x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 20 * dpr; x.shadowOffsetY = 5 * dpr; x.fillStyle = '#d5d3ca'; roundRect(x, bx, by, W, H, r); x.fill(); x.restore()
-  // Muted ivory, not pure white: a big sharp card at full white sits above the
-  // bloom threshold and flares into a "sun over the hill" flash.
-  const g = x.createLinearGradient(0, by, 0, by + H); g.addColorStop(0, '#d7d5cc'); g.addColorStop(1, '#c0beb4')
+  x.save(); x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 20 * dpr; x.shadowOffsetY = 5 * dpr; x.fillStyle = '#d3d6da'; roundRect(x, bx, by, W, H, r); x.fill(); x.restore()
+  // Muted and *neutral*, not ivory. Still below the bloom threshold so a big
+  // sharp card never flares into a "sun over the hill" flash — but the warmth is
+  // gone: measured, the old ivory ran +11 red over blue, and a field of those
+  // blurred across the hero cast the whole section brown. The background was
+  // never the warm thing; the cards were.
+  const g = x.createLinearGradient(0, by, 0, by + H); g.addColorStop(0, '#dcdfe4'); g.addColorStop(1, '#c6cad0')
   roundRect(x, bx, by, W, H, r); x.fillStyle = g; x.fill()
   x.lineWidth = 1 * dpr; x.strokeStyle = 'rgba(0,0,0,.12)'; roundRect(x, bx + 0.5, by + 0.5, W - 1, H - 1, r); x.stroke()
   x.fillStyle = red ? '#c41e3a' : '#16181d'; x.textAlign = 'left'; x.textBaseline = 'top'
@@ -159,6 +173,17 @@ function spawnY(): number { return (Math.random() * 2 - 1) * 6 + 2 }
 
 export function HeroCanvas({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  /**
+   * Bumped when the GPU hands the context back, which tears this effect down and
+   * builds the scene again.
+   *
+   * Losing the context used to be terminal: the handler hid the canvas and
+   * nothing ever brought it back, so a driver reset or a busy first paint left
+   * the hero permanently black — the page looked broken and only a reload fixed
+   * it. A lost context is a normal thing for a browser to do; not recovering
+   * from it is not.
+   */
+  const [generation, setGeneration] = useState(0)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -176,7 +201,26 @@ export function HeroCanvas({ className }: { className?: string }) {
     // GPU into a context loss. 1.5 stays crisp and keeps the frame budget sane.
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
     renderer.setPixelRatio(dpr)
-    renderer.setClearColor(BG, 1)
+    /*
+     * Clear to the *linear* form of the page background.
+     *
+     * Clearing to `BG` directly looks obviously right and is not: the composer
+     * renders into a linear target and `OutputPass` converts the result to sRGB
+     * on the way out, so a clear of #070809 came back out at roughly #2F3033.
+     * Measured against a canvas-off baseline, that put the whole hero 25
+     * luminance levels above the page behind it — a pale wash over the entire
+     * section that no amount of tuning the cards or the bloom could remove,
+     * because it was not coming from them.
+     *
+     * Converting first means the conversion on the way out lands on the colour
+     * that was actually wanted.
+     *
+     * (A transparent clear also removes the mismatch, and was tried — but with
+     * the composer in the path the sprites came out at zero alpha and the hero
+     * rendered empty. Opaque and pre-converted keeps both the cards and the
+     * colour.)
+     */
+    renderer.setClearColor(new THREE.Color(BG).convertSRGBToLinear(), 1)
 
     const scene = new THREE.Scene()
     scene.fog = new THREE.Fog(BG, 8, 40)
@@ -212,7 +256,11 @@ export function HeroCanvas({ className }: { className?: string }) {
 
     const composer = new EffectComposer(renderer)
     composer.addPass(new RenderPass(scene, camera))
-    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.30, 0.4, 0.86)
+    // Strength and threshold both pulled well down. Measured against a
+    // canvas-off baseline, the old settings lifted the whole hero by 22–38
+    // luminance levels over a background that should sit near 10 — a wash
+    // across the entire frame rather than a glow on anything in particular.
+    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.16, 0.4, 0.88)
     composer.addPass(bloom)
     composer.addPass(new OutputPass())
 
@@ -244,12 +292,19 @@ export function HeroCanvas({ className }: { className?: string }) {
     // If the GPU drops the context (driver reset, or too many contexts after a
     // long hot-reload session), stop cleanly instead of rendering white garbage.
     const onContextLost = (e: Event) => {
+      // Preventing the default is what makes the browser willing to give the
+      // context back at all; without it there is no restore event to wait for.
       e.preventDefault(); disposed = true; cancelAnimationFrame(raf)
       // Hide the (now frozen/white) canvas so the dark CSS layers show through
       // instead of a white freeze.
       canvas.style.opacity = '0'
     }
+    const onContextRestored = () => {
+      canvas.style.opacity = ''
+      setGeneration(g => g + 1)
+    }
     canvas.addEventListener('webglcontextlost', onContextLost)
+    canvas.addEventListener('webglcontextrestored', onContextRestored)
 
     const frame = (now: number) => {
       if (disposed || !onScreen) { running = false; return }
@@ -265,11 +320,18 @@ export function HeroCanvas({ className }: { className?: string }) {
         // mid band, then fade out BEFORE the sprite fills the frame. Narrow
         // window ⇒ only a few objects on screen at once (no bright wash).
         const op = (1 - smoothstep(24, 32, dist)) * smoothstep(9, 15, dist)
-        // Focus pull: crossfade blur→sharp so total coverage stays ~op (the two
-        // opacities sum through one object, never double it into a wash).
+        // Focus pull: crossfade blur→sharp.
+        //
+        // The blurred copy is dimmed rather than carrying the same opacity as
+        // the sharp one. Keeping them equal made the two sum to `op` through a
+        // single object, which sounds right and is not: the blurred sprite
+        // spreads its texture over several times the area, so at equal opacity
+        // it deposits several times the light. That is where the pale wash over
+        // the whole hero came from — not from any one card being too bright, but
+        // from every out-of-focus card being too bright for its size.
         const clarity = 1 - smoothstep(13, 21, dist)
         d.mSharp.opacity = op * clarity
-        d.mBlur.opacity = op * (1 - clarity)
+        d.mBlur.opacity = op * (1 - clarity) * BLUR_DIM
         const rot = reduce ? d.rot0 : d.rot0 + elapsed * d.rs
         d.mSharp.rotation = rot; d.mBlur.rotation = rot
         const depth01 = smoothstep(6, 40, dist)
@@ -304,6 +366,7 @@ export function HeroCanvas({ className }: { className?: string }) {
       cancelAnimationFrame(raf)
       io.disconnect()
       canvas.removeEventListener('webglcontextlost', onContextLost)
+      canvas.removeEventListener('webglcontextrestored', onContextRestored)
       window.removeEventListener('pointermove', onPointer)
       window.removeEventListener('resize', resize)
       disposables.forEach((o) => o.dispose())
@@ -314,7 +377,7 @@ export function HeroCanvas({ className }: { className?: string }) {
       // the shared <canvas> context, so a StrictMode/HMR remount reuses a dead
       // context and renders white.
     }
-  }, [])
+  }, [generation])
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" />
 }
