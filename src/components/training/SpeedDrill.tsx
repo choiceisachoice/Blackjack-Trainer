@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Zap, Play, Check, X, RotateCcw, Minus, Plus } from 'lucide-react'
 import { Shoe } from '../../engine/shoe/shoe'
 import { CountingEngine } from '../../engine/counting/counting-engine'
@@ -338,30 +338,44 @@ export function SpeedDrill() {
           </div>
         </div>
 
-        {/* Card Display */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.1 }}
-            className={`w-[250px] h-[350px] rounded-2xl bg-white border-2 border-gray-300
-              shadow-2xl flex flex-col justify-between p-4 ${isRed ? 'text-red-600' : 'text-gray-900'}`}
-          >
-            <div className="flex flex-col leading-none">
-              <span className="text-4xl font-bold">{card.rank}</span>
-              <span className="text-3xl">{SUIT_SYMBOL[card.suit]}</span>
-            </div>
-            <div className="flex items-center justify-center">
-              <span className="text-7xl opacity-20">{SUIT_SYMBOL[card.suit]}</span>
-            </div>
-            <div className="flex flex-col items-end leading-none rotate-180">
-              <span className="text-4xl font-bold">{card.rank}</span>
-              <span className="text-3xl">{SUIT_SYMBOL[card.suit]}</span>
-            </div>
-          </motion.div>
-        </AnimatePresence>
+        {/*
+          Card Display
+
+          The card is the drill: the whole task is to read a rank before it goes
+          away. So its arrival may decorate that, never gate it.
+
+          Two things were wrong here and both had the same consequence. It
+          entered from `opacity: 0`, so a frozen animation — a backgrounded tab
+          restored, a stalled frame loop, a device under load — left it
+          invisible while the timer kept counting down. And `AnimatePresence
+          mode="wait"` made the next card's *arrival* conditional on the
+          previous card's exit reporting completion, which is the same
+          dependency inversion that once left a black panel over the whole app.
+
+          Now: no exit, no presence wrapper, and the entrance moves on transform
+          alone. Scale degrades to "slightly small and perfectly readable"; the
+          old opacity degraded to "gone".
+        */}
+        <motion.div
+          key={currentIndex}
+          initial={{ scale: 0.94 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.1 }}
+          className={`w-[250px] h-[350px] rounded-2xl bg-white border-2 border-gray-300
+            shadow-2xl flex flex-col justify-between p-4 ${isRed ? 'text-red-600' : 'text-gray-900'}`}
+        >
+          <div className="flex flex-col leading-none">
+            <span className="text-4xl font-bold">{card.rank}</span>
+            <span className="text-3xl">{SUIT_SYMBOL[card.suit]}</span>
+          </div>
+          <div className="flex items-center justify-center">
+            <span className="text-7xl opacity-20">{SUIT_SYMBOL[card.suit]}</span>
+          </div>
+          <div className="flex flex-col items-end leading-none rotate-180">
+            <span className="text-4xl font-bold">{card.rank}</span>
+            <span className="text-3xl">{SUIT_SYMBOL[card.suit]}</span>
+          </div>
+        </motion.div>
 
         {/* Countdown bar */}
         <div className="w-[250px] h-1 bg-contrast/10 rounded-full overflow-hidden">
