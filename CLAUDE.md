@@ -14,20 +14,32 @@ and a full Casino Session table.
 - **Training modes:** Speed Drill, **Flashcards** (all basic-strategy hands + deviations; replaced
   the old "Table Counting"/"Deviations" modes), Bet Spread, Deck Estimation, plus the **Casino
   Session** (full multi-seat table) and a **Learn** theory page.
+- **Training Plan:** the modes are no longer a flat menu. A placement test puts a learner on a
+  **curriculum** of stages, and the **Plan** answers "what do I do next" on every visit. The
+  curriculum is a pure module (`src/services/curriculum.ts`); a threshold decides *when* a stage
+  is finished, never whether the work happened — a failed attempt still counts as practice.
 - **Persistence:** **Local-first with cloud sync.** Login is required (Supabase Auth); the app still
   works offline via localStorage, and the cloud is the source of truth once signed in. Sessions,
   achievements, level/XP and the bankroll log all sync (see ADR-001).
 - **Monetization:** **Stripe subscriptions** (monthly/yearly) gate a **Pro** tier. Server side runs on
   Supabase Edge Functions; entitlement is written only by the signature-verified webhook (see ADR-002).
 - **UI Language:** English
-- **UI Theme:** **Dark-luxury** (near-black `#070809` + gold `#d4a847`, Inter font), in the style of
+- **UI Theme:** **Dark-luxury** (near-black `#070809` + gold `#d4a847`), in the style of
   Linear/Resend/Raycast. The Casino Session uses a realistic green-felt table within that shell.
+- **First paint:** every visit opens on a **loading screen** tied to real load state — it holds at
+  89% while auth and the route chunk are outstanding and gives up after 9s rather than stranding
+  anyone. Two timelines: the first load of a session gets the welcome, every load after it gets
+  the bar alone (`src/components/common/intro-sequence.ts`).
 - **Gamification:** Achievements, levels/XP and daily/weekly challenges are implemented.
 
 ## Tech Stack
 - **Framework:** React 19 with Vite 7
 - **Language:** TypeScript (strict mode)
-- **Styling:** Tailwind CSS 4 (`@theme` tokens; dark-luxury palette + Inter)
+- **Styling:** Tailwind CSS 4 (`@theme` tokens; dark-luxury palette). Two faces: **Inter**
+  for the interface (`--font-sans`) and **Instrument Sans** for display type
+  (`--font-display`, used by the loading screen). Instrument Sans is self-hosted and
+  subsetted in `public/fonts`; Inter is still pulled from Google Fonts at the top of
+  `src/index.css` — see "Known gaps" below.
 - **State Management:** Zustand
 - **Animations:** Framer Motion
 - **Charts:** Recharts · **Icons:** lucide-react
@@ -47,8 +59,9 @@ npm run dev
 # → Opens at http://localhost:5173
 
 # Dev Server stoppen (stop):
-# Press Ctrl+C in the terminal, or:
-kill $(lsof -t -i:5173)    # Kill Vite default port
+# Press Ctrl+C in the terminal. This is a Windows machine — `lsof` does not
+# exist here. To free the port when a process is orphaned, from PowerShell:
+#   Get-NetTCPConnection -LocalPort 5173 | Select-Object -Expand OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force }
 
 # Run tests:
 npm run test               # Watch mode
@@ -194,6 +207,34 @@ blackjack-trainer/
 | F-010 | Sound Effects | Phase 5 | P2 | ✅ Complete |
 | F-011 | Achievements / Levels / Challenges | Phase 5 | P2 | ✅ Complete |
 | F-012 | Stripe Subscriptions & Pro Gating | Phase 6 | P1 | ✅ Code complete — Edge Functions + entitlement gating; needs Stripe dashboard wiring (docs/STRIPE-SETUP.md); ADR-002 |
+
+## Known gaps — read before shipping
+
+Live risks that exist right now. None of them is a nice-to-have, and each names who
+owns it, because "someone should" is how these survive to production.
+
+1. **The entitlement migration is committed but not deployed.**
+   `supabase/migrations/20260724120000_close_entitlement_hole.sql` closes a path by which
+   Pro access could be granted without the signature-verified webhook. It is in git and
+   **not** in the database. Until `npx supabase db push` runs against the live project, the
+   hole is shut in code and open where it counts. **Darius executes** — it is a production
+   deploy.
+
+2. **Inter is loaded from Google Fonts at runtime.** `src/index.css` line 1 is an
+   `@import` against `fonts.googleapis.com`. Two problems: it is a render-blocking
+   third-party request on the critical path, and it transmits every visitor's IP to Google.
+   For a site aimed at CH/EU users that is a real GDPR/DSG exposure — German courts have
+   already ruled against embedded Google Fonts, and this app ships a Privacy page. The fix
+   is the pattern already used for Instrument Sans: self-host a subsetted woff2 in
+   `public/fonts`, add `@font-face`, drop the `@import`. Inter is OFL, so this is allowed.
+
+3. **Stripe runs on sandbox keys.** Live keys belong at deployment on the real domain,
+   never on localhost, and never in the repo.
+
+4. **The payment-path audit findings are not written down anywhere.** They live only in a
+   chat transcript, which means they are one lost session away from never being fixed.
+   They need to reach Christian (supervisor/CISO) before go-live. Whoever has them: put
+   them in `docs/` first, then send them.
 
 ## Implementation Workflow (for every feature)
 
