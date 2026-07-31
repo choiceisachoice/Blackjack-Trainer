@@ -1,6 +1,6 @@
 import { useState, lazy, Suspense, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Spade, Check } from 'lucide-react'
+import { Spade, Check, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
 import { PLAN_OPTIONS, PRO_BENEFITS, formatCHF, yearlySaving } from '../services/pro-features'
@@ -39,19 +39,42 @@ export function LandingPage() {
   const authed = !isSupabaseConfigured || signedIn
   const navigate = useNavigate()
   const [plan, setPlan] = useState<BillingPlan>('yearly')
+  /**
+   * Checkout state for the one button on this page that spends money.
+   *
+   * `startCheckout` calls an Edge Function and only then redirects, so there is
+   * a real window in which nothing has visibly happened. Without `busy` the
+   * button looked untouched for the whole of it and a second click opened a
+   * *second* Stripe Checkout session; without `error` a failure went to the
+   * console and the visitor was left with a button that appeared not to work.
+   * This is the public front door — the same treatment `UpgradePanel` already
+   * gives the paywall inside the app.
+   */
+  const [busy, setBusy] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   const current = PLAN_OPTIONS.find(p => p.id === plan)!
   const saving = yearlySaving()
 
   function startFree() { navigate(authed ? '/app' : '/login') }
   async function goPro() {
+    if (busy) return
     if (!authed) {
       // Remember the intent so checkout resumes automatically after sign-in.
       setPendingCheckout(plan)
       navigate('/login')
       return
     }
-    try { await startCheckout(plan) } catch (e) { console.error('checkout failed', e) }
+    setCheckoutError(null)
+    setBusy(true)
+    try {
+      await startCheckout(plan) // redirects on success, so this normally never returns
+      // Deliberately no `setBusy(false)` here: the browser is on its way to
+      // Stripe. Re-enabling would offer a second checkout during the redirect.
+    } catch (e) {
+      setCheckoutError(e instanceof Error ? e.message : 'Could not start checkout.')
+      setBusy(false)
+    }
   }
 
   return (
@@ -195,7 +218,22 @@ export function LandingPage() {
               <div className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" /><span className="text-content">Everything in Free, plus:</span></div>
               {PRO_BENEFITS.map(b => (<div key={b} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{b}</div>))}
             </div>
-            <button onClick={goPro} className="mt-6 rounded-xl px-5 py-3 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer w-full">Go Pro →</button>
+            <button
+              onClick={goPro}
+              disabled={busy}
+              className="mt-6 rounded-xl px-5 py-3 font-semibold bg-gradient-to-br from-gold-bright to-gold
+                text-casino-bg cursor-pointer w-full inline-flex items-center justify-center gap-2
+                disabled:opacity-60 disabled:cursor-default"
+            >
+              {busy && <Loader2 size={16} className="animate-spin" />}
+              Go Pro →
+            </button>
+            {/* `role="alert"` so the failure is announced, not merely drawn: the
+                visitor who most needs this message may not be looking at the
+                button they just pressed. */}
+            {checkoutError && (
+              <p className="mt-3 text-sm text-error" role="alert">{checkoutError}</p>
+            )}
           </div>
         </Reveal>
       </section>
