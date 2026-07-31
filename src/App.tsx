@@ -1,11 +1,12 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
 import { useAuthStore } from './store/auth-store'
 import { handleSignedIn } from './services/supabase/cloud-sync'
 import { useEntitlementStore } from './store/entitlement-store'
 import { startCheckout, consumePendingCheckout } from './services/supabase/billing'
 import { ProtectedRoute } from './routes/ProtectedRoute'
+import { AppLoader } from './components/common/AppLoader'
+import { IntroGate } from './components/common/IntroGate'
 
 // Route-level code splitting: the landing (with its Three.js hero) and the
 // trainer (recharts/framer/all modes) load as separate chunks, so visiting `/`
@@ -18,13 +19,19 @@ const AccountPage = lazy(() => import('./pages/AccountPage').then(m => ({ defaul
 const TermsPage = lazy(() => import('./pages/legal/TermsPage').then(m => ({ default: m.TermsPage })))
 const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage').then(m => ({ default: m.PrivacyPage })))
 const ContactPage = lazy(() => import('./pages/legal/ContactPage').then(m => ({ default: m.ContactPage })))
+// The ternary matters: guarding only the <Route> leaves the dynamic import in
+// place, and Rollup emits a DevPreview chunk into the production build that
+// nothing can ever reach. Branching on the statically-known DEV flag lets the
+// bundler drop the import entirely.
+const DevPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/DevPreview').then(m => ({ default: m.DevPreview })))
+  : null
+const LoaderGallery = import.meta.env.DEV
+  ? lazy(() => import('./pages/LoaderGallery').then(m => ({ default: m.LoaderGallery })))
+  : null
 
 function RouteLoader() {
-  return (
-    <div className="h-screen flex items-center justify-center bg-casino-bg text-content/40">
-      <Loader2 size={28} className="animate-spin" />
-    </div>
-  )
+  return <AppLoader />
 }
 
 /**
@@ -69,7 +76,39 @@ function App() {
     if (outcome === 'success') useEntitlementStore.getState().refreshUntilPro()
   }, [authStatus])
 
+  /**
+   * Whether the route behind the loading screen has actually finished arriving.
+   *
+   * Auth resolving is not the same thing. The landing page's hero is a separate
+   * half-megabyte Three.js chunk behind its own `Suspense`, so handing over on
+   * auth alone drops the visitor onto a page whose centrepiece is still
+   * downloading — a black hero, or the card animation playing behind the overlay
+   * and being over by the time anyone looks. Both were reported; both are this.
+   *
+   * Pre-warming the chunks the current route needs makes the loading screen wait
+   * for the thing it is covering, which is the only honest meaning of "ready".
+   */
+  const [chunksReady, setChunksReady] = useState(false)
+
+  useEffect(() => {
+    const path = window.location.pathname
+    const wanted =
+      path === '/'
+        ? [import('./pages/LandingPage'), import('./components/landing/HeroCanvas')]
+        : path.startsWith('/app')
+          ? [import('./pages/TrainerApp')]
+          : []
+    let alive = true
+    // `allSettled`: a chunk that fails to load must not hold the screen hostage.
+    // The route's own Suspense boundary and error handling take it from there.
+    Promise.allSettled(wanted).then(() => { if (alive) setChunksReady(true) })
+    return () => { alive = false }
+  }, [])
+
+  const appReady = authStatus !== 'loading' && chunksReady
+
   return (
+    <IntroGate appReady={appReady}>
     <Suspense fallback={<RouteLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -79,9 +118,15 @@ function App() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        {/* First-run harness. The screens a new account sees sit behind auth,
+            which makes the most important moment in the product the hardest one
+            to look at. DEV-only, so it cannot reach production. */}
+        {DevPreview && <Route path="/dev" element={<DevPreview />} />}
+        {LoaderGallery && <Route path="/dev/loaders" element={<LoaderGallery />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
+    </IntroGate>
   )
 }
 

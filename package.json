@@ -17,6 +17,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.96.0",
     "framer-motion": "^12.34.1",
+    "ldrs": "^1.1.9",
     "lucide-react": "^1.23.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

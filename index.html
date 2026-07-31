@@ -6,6 +6,15 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#070809" />
 
+    <!-- The display face, preloaded.
+         The loading screen is the first thing painted and its typography is
+         half of what it is, so the font cannot arrive late. Same origin,
+         subset to latin, ~15kB per weight — it is in cache before React has
+         finished mounting, which is what makes a real typeface usable on a
+         screen that exists precisely because things are still loading. -->
+    <link rel="preload" href="/fonts/instrument-sans-700.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/instrument-sans-400.woff2" as="font" type="font/woff2" crossorigin />
+
     <title>Blackjack Card Counting Trainer — Learn Hi-Lo Properly</title>
     <!-- Kept under ~155 characters so search results don't truncate it. -->
     <meta

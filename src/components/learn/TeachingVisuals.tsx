@@ -23,9 +23,16 @@ const SUIT_SYMBOL: Record<Suit, string> = {
 
 const isRed = (s: Suit) => s === Suit.Hearts || s === Suit.Diamonds
 
-type CardSize = 'sm' | 'md'
+type CardSize = 'xs' | 'sm' | 'md'
 
+/**
+ * `xs` exists for the loading screen, where a card rides the head of the
+ * progress bar and has to stand proud of a 22px slot without dwarfing it. It is
+ * the smallest a card can be and still read as a card rather than as a white
+ * block — below this the rank and the pip stop being separable.
+ */
 const SIZE: Record<CardSize, { box: string; rank: string; suit: string }> = {
+  xs: { box: 'w-6 h-[34px] rounded-[3px]', rank: 'text-[0.62rem]', suit: 'text-[0.55rem]' },
   sm: { box: 'w-9 h-[52px] rounded-md', rank: 'text-[0.85rem]', suit: 'text-[0.75rem]' },
   md: { box: 'w-12 h-[68px] rounded-lg', rank: 'text-lg', suit: 'text-sm' },
 }

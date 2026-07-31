@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
+import { AppLoader } from '../components/common/AppLoader'
 
 /**
  * Gate for authenticated routes (`/app`, `/account`). When Supabase isn't
@@ -14,13 +14,9 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (!isSupabaseConfigured) return <>{children}</>
 
-  if (status === 'loading') {
-    return (
-      <div className="h-screen flex items-center justify-center bg-casino-bg text-content/50">
-        <Loader2 size={28} className="animate-spin" />
-      </div>
-    )
-  }
+  // The signed-in wait: a returning subscriber resolving their session. This is
+  // the single most common load in the product, so it gets the real screen.
+  if (status === 'loading') return <AppLoader label="Signing you in" />
   if (status === 'signedOut') return <Navigate to="/login" replace />
 
   return <>{children}</>
