@@ -263,12 +263,21 @@ class SyncedStorageService implements StorageService {
    * not a faster interface, it is a wrong one.
    */
   async saveSessionResult(result: TrainingSessionResult): Promise<void> {
-    await this.local.saveSessionResult(result)
-    if (this.impl() === this.local) return
+    // The two writes are started independently, and that ordering is load-bearing.
+    // Awaiting the local one first meant a *local* failure — a full quota, private
+    // browsing — also skipped the cloud push, cancelling the more durable of the
+    // two copies because the fragile one had failed. They fail separately now.
+    const localWrite = this.local.saveSessionResult(result)
 
-    this.cloud.saveSessionResult(result).catch(e => {
-      console.error('cloud session save failed; the local copy stands', e)
-    })
+    if (this.impl() !== this.local) {
+      this.cloud.saveSessionResult(result).catch(e => {
+        console.error('cloud session save failed; the local copy stands', e)
+      })
+    }
+
+    // Still surfaced to the caller: `recordSession` logs it and carries on, and
+    // a silent local failure would otherwise be indistinguishable from success.
+    await localWrite
   }
   getSessionResults(mode: TrainingMode): Promise<TrainingSessionResult[]> {
     return this.impl().getSessionResults(mode)

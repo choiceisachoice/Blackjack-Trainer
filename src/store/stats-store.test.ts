@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useStatsStore } from './stats-store'
+import { useLevelStore } from './level-store'
+import { useAchievementStore } from './achievement-store'
 import type { TrainingSessionResult } from '../services/stats-types'
 import { CountingSystemId } from '../engine/counting/types'
 import { storage } from '../services/storage/storage-service'
@@ -221,5 +223,82 @@ describe('stats-store', () => {
     expect(useStatsStore.getState().sessions).toHaveLength(0)
     expect(useStatsStore.getState().lifetimeStats).toBeNull()
     expect(mockedStorage.clearAll).toHaveBeenCalledOnce()
+  })
+})
+
+/**
+ * What a finished session must survive.
+ *
+ * `recordSession` is called from two places and awaited by neither:
+ * `useSessionSave` fires it on unmount *and* on `pagehide`, and
+ * `CasinoSession` calls it outright. Both matter here.
+ *
+ *  - **Nothing may hang off persistence.** The write used to come first, so a
+ *    local failure — quota, private browsing, a serialisation error — took the
+ *    session, the XP, the challenge progress and the achievement check with it,
+ *    and did so as an unhandled rejection with nothing on screen.
+ *  - **Nothing important may sit behind an `await`.** On `pagehide` the page is
+ *    being torn down. Work scheduled after the first suspension point is not
+ *    guaranteed to run, so the reward path has to be finished before then.
+ */
+describe('recording a session that cannot be persisted', () => {
+  const params = {
+    mode: 'speedDrill' as const,
+    startTime: Date.now() - 60_000,
+    totalQuestions: 10,
+    correctAnswers: 8,
+    bestStreak: 4,
+    details: {
+      type: 'speedDrill' as const,
+      cardsPerRound: 10,
+      speedMs: 1000,
+      rcErrors: [0, 1, 0, 0, 0, 0, 2, 0, 0, 0],
+    },
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useStatsStore.setState({ sessions: [], lifetimeStats: null, isLoading: false })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('still counts the session, the XP and the achievements', async () => {
+    const xp = vi.spyOn(useLevelStore.getState(), 'addSessionXP')
+    const achievements = vi.spyOn(useAchievementStore.getState(), 'checkAchievements')
+    mockedStorage.saveSessionResult.mockRejectedValueOnce(new Error('QuotaExceededError'))
+
+    await useStatsStore.getState().recordSession(params)
+
+    const state = useStatsStore.getState()
+    expect(state.sessions).toHaveLength(1)
+    expect(state.lifetimeStats?.totalSessions).toBe(1)
+    expect(xp).toHaveBeenCalledOnce()
+    expect(achievements).toHaveBeenCalledOnce()
+  })
+
+  it('does not reject, because neither caller awaits it', async () => {
+    // An unhandled rejection here is not a logging nuisance — it is the entire
+    // failure mode being invisible.
+    mockedStorage.saveSessionResult.mockRejectedValueOnce(new Error('nope'))
+    await expect(useStatsStore.getState().recordSession(params)).resolves.toBeUndefined()
+  })
+
+  it('applies the session and its rewards before it waits on anything', async () => {
+    const xp = vi.spyOn(useLevelStore.getState(), 'addSessionXP')
+    // A write that never settles stands in for a page being torn down mid-flight.
+    mockedStorage.saveSessionResult.mockImplementationOnce(() => new Promise<void>(() => {}))
+
+    const pending = useStatsStore.getState().recordSession(params)
+
+    // No `await` above: everything asserted here ran synchronously, before the
+    // first suspension point. This is the property that makes the `pagehide`
+    // path safe, and it cannot be observed any other way.
+    expect(useStatsStore.getState().sessions).toHaveLength(1)
+    expect(xp).toHaveBeenCalledOnce()
+
+    void pending
   })
 })

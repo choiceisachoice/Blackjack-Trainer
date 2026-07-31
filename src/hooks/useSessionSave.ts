@@ -52,7 +52,12 @@ export function useSessionSave(
     if (savedRef.current || stats.totalQuestions < MIN_QUESTIONS) return
     savedRef.current = true
 
-    useStatsStore.getState().recordSession({
+    // Deliberately not awaited, and safe to leave that way: `recordSession`
+    // applies the session and its rewards synchronously and only then attempts
+    // persistence, swallowing a failure rather than rejecting. That ordering is
+    // what makes this call site correct — `save` also runs from `pagehide`,
+    // where anything scheduled after a suspension point may never run at all.
+    void useStatsStore.getState().recordSession({
       mode,
       startTime: startTimeRef.current,
       totalQuestions: stats.totalQuestions,

@@ -111,6 +111,19 @@ describe('saving a finished session', () => {
     expect((await local.getAllSessionResults()).map(s => s.id)).toContain(session.id)
   })
 
+  it('still pushes to the cloud when the local write fails', async () => {
+    // The durable copy must not be cancelled by the fragile one. A full quota
+    // used to skip the cloud push entirely, which is the wrong way round: the
+    // cloud is the copy that survives the reload.
+    const { storage, LocalStorageService } = await import('./storage-service')
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.spyOn(LocalStorageService.prototype, 'saveSessionResult')
+      .mockRejectedValueOnce(new Error('QuotaExceededError'))
+
+    await expect(storage.saveSessionResult(makeSession())).rejects.toThrow('QuotaExceededError')
+    expect(cloudCalls).toBe(1)
+  })
+
   it('writes locally first, every time — not only as a fallback', async () => {
     // The old behaviour only kept a local copy when the cloud threw. That made
     // the local store a repair mechanism; now it is the source the UI reads.

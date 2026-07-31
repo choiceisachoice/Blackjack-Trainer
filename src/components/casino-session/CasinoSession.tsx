@@ -86,7 +86,10 @@ export function CasinoSession() {
     }
     const totalDecisions = sessionResult.totalPlayDecisions + sessionResult.totalBetDecisions
     const correctDecisions = sessionResult.correctPlayDecisions + sessionResult.correctBetDecisions
-    useStatsStore.getState().recordSession({
+    // Fire-and-forget by design: the session, the XP and the achievements are
+    // all applied synchronously inside, and persistence is best-effort and
+    // cannot reject. See the tail of `recordSession`.
+    void useStatsStore.getState().recordSession({
       mode: 'casinoSession',
       startTime: sessionResult.startTime,
       totalQuestions: totalDecisions,

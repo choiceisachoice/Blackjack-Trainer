@@ -125,8 +125,6 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
       details,
     }
 
-    await storage.saveSessionResult(result)
-
     // Lifetime stats are derived from the list already in hand, not re-read from
     // storage. Re-reading meant a second network round trip on the finish path,
     // and — now that the cloud write no longer blocks — it would have returned
@@ -162,6 +160,30 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
     useAchievementStore.getState().checkAchievements(
       result, lifetimeStats, dayStreak, allSessions,
     )
+
+    /*
+     * Persistence comes last, and cannot cost anything above it.
+     *
+     * Two reasons, and both were live defects. The write used to run *first*,
+     * so a local failure — quota, private browsing, a serialisation error —
+     * skipped the session, the XP, the challenge progress and the achievement
+     * check, and did it as an unhandled rejection with nothing on screen.
+     *
+     * And neither caller awaits this. `useSessionSave` fires it on unmount and
+     * again on `pagehide`, where the page is already being torn down: work
+     * scheduled after the first suspension point is not guaranteed to run. So
+     * everything that matters is finished synchronously before this line, and
+     * what is left is genuinely best-effort.
+     *
+     * Swallowed on purpose rather than rethrown: there is no caller to catch it.
+     * The session stands for this run either way, and if the player is signed in
+     * the cloud copy stands past the reload too.
+     */
+    try {
+      await storage.saveSessionResult(result)
+    } catch (e) {
+      console.error('session could not be persisted; it still counts for this run', e)
+    }
   },
 
   getAccuracyTrend(mode?: TrainingMode): TrendDirection {
