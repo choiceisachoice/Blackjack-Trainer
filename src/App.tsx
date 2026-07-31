@@ -7,6 +7,7 @@ import { startCheckout, consumePendingCheckout } from './services/supabase/billi
 import { ProtectedRoute } from './routes/ProtectedRoute'
 import { AppLoader } from './components/common/AppLoader'
 import { IntroGate } from './components/common/IntroGate'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
 
 // Route-level code splitting: the landing (with its Three.js hero) and the
 // trainer (recharts/framer/all modes) load as separate chunks, so visiting `/`
@@ -109,6 +110,25 @@ function App() {
 
   return (
     <IntroGate appReady={appReady}>
+    {/*
+      Above the routes *and* above Suspense, deliberately.
+
+      Above the routes, because `ErrorBoundary` previously wrapped only the
+      trainer's modes: a render error on the landing page, `/login`, `/account`
+      or a legal page unmounted the tree to a blank white screen — on exactly
+      the routes a first-time visitor arrives at.
+
+      Above Suspense, because a lazy route's `import()` rejects during render,
+      and a boundary *inside* the suspended tree never sees it. That is the
+      stale-chunk case: a deploy renames the hashed files and every tab still
+      holding the old page requests one that is gone. The boundary recognises
+      that specific failure and offers a reload, which is the only thing that
+      recovers it.
+
+      `onReset` is not wired: re-rendering the same route is the right retry
+      here, and there is nowhere safer to send someone from the root.
+    */}
+    <ErrorBoundary fullScreen>
     <Suspense fallback={<RouteLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -126,6 +146,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
+    </ErrorBoundary>
     </IntroGate>
   )
 }
