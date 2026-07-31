@@ -4,6 +4,15 @@ import { CHALLENGE_POOL } from './challenge-pool'
 import type { TrainingSessionResult } from '../stats-types'
 import { CountingSystemId } from '../../engine/counting/types'
 
+/**
+ * A learner nothing is withheld from, so selection spans the whole pool.
+ *
+ * These tests pin specific challenges by hashing the date over the full pool;
+ * the engine's default context narrows it to what a free, unplaced user can
+ * open, which would shift every index.
+ */
+const ALL_ACCESS = { stage: null, isPro: true } as const
+
 /** Helper: create a minimal session result for testing. */
 function makeSession(overrides: Partial<TrainingSessionResult> = {}): TrainingSessionResult {
   return {
@@ -28,7 +37,7 @@ describe('DailyChallengeEngine', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 2, 26, 12, 0, 0))
     localStorage.clear()
-    engine = new DailyChallengeEngine()
+    engine = new DailyChallengeEngine(ALL_ACCESS)
   })
 
   afterEach(() => {
@@ -135,7 +144,7 @@ describe('DailyChallengeEngine', () => {
 
       // Override engine to use this challenge
       vi.setSystemTime(findDateForChallenge('warm_up'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('warm_up')
 
       const s1 = makeSession({ timestamp: new Date().toISOString() })
@@ -152,7 +161,7 @@ describe('DailyChallengeEngine', () => {
 
     it('tracks play_hands by summing totalQuestions', () => {
       vi.setSystemTime(findDateForChallenge('deal_me_in'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('deal_me_in')
 
       const s1 = makeSession({ totalQuestions: 15, timestamp: new Date().toISOString() })
@@ -167,7 +176,7 @@ describe('DailyChallengeEngine', () => {
 
     it('tracks play_minutes by summing durationSeconds / 60', () => {
       vi.setSystemTime(findDateForChallenge('focused_practice'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('focused_practice')
 
       const s1 = makeSession({ durationSeconds: 300, timestamp: new Date().toISOString() })
@@ -182,7 +191,7 @@ describe('DailyChallengeEngine', () => {
 
     it('tracks practice_mode by counting sessions of the required mode', () => {
       vi.setSystemTime(findDateForChallenge('quick_practice'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('quick_practice')
 
       // Wrong mode - should not count
@@ -199,7 +208,7 @@ describe('DailyChallengeEngine', () => {
 
     it('tracks deviation_correct by summing correct answers from deviation sessions', () => {
       vi.setSystemTime(findDateForChallenge('deviation_student'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('deviation_student')
 
       const s1 = makeSession({
@@ -232,7 +241,7 @@ describe('DailyChallengeEngine', () => {
 
     it('filters sessions by mode for mode-specific cumulative challenges', () => {
       vi.setSystemTime(findDateForChallenge('deviation_day'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('deviation_day')
 
       // deviationAtTable does NOT count for deviationFlashCards mode requirement
@@ -251,7 +260,7 @@ describe('DailyChallengeEngine', () => {
   describe('updateProgress (single_session)', () => {
     it('tracks achieve_accuracy from session accuracy (keeps max)', () => {
       vi.setSystemTime(findDateForChallenge('sharp_eye'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('sharp_eye')
 
       const s1 = makeSession({ accuracy: 0.7, totalQuestions: 10 })
@@ -266,7 +275,7 @@ describe('DailyChallengeEngine', () => {
 
     it('tracks win_streak from bestStreak (keeps max)', () => {
       vi.setSystemTime(findDateForChallenge('winning_streak'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('winning_streak')
 
       const s1 = makeSession({ bestStreak: 3 })
@@ -281,7 +290,7 @@ describe('DailyChallengeEngine', () => {
 
     it('tracks earn_profit from casino session netProfit (keeps max)', () => {
       vi.setSystemTime(findDateForChallenge('money_management'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('money_management')
 
       const s1 = makeSession({
@@ -313,7 +322,7 @@ describe('DailyChallengeEngine', () => {
 
     it('tracks count_check from casino session countAccuracy', () => {
       vi.setSystemTime(findDateForChallenge('count_master'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('count_master')
 
       const s1 = makeSession({
@@ -332,7 +341,7 @@ describe('DailyChallengeEngine', () => {
 
     it('tracks speed_time from speedDrill average time', () => {
       vi.setSystemTime(findDateForChallenge('lightning_speed'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine.getTodayChallenge().id).toBe('lightning_speed')
 
       // Speed drill: durationSeconds / totalQuestions * 1000 = avg ms per question
@@ -365,7 +374,7 @@ describe('DailyChallengeEngine', () => {
 
     it('respects requiredMode for single_session challenges', () => {
       vi.setSystemTime(findDateForChallenge('count_master'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
 
       // Wrong mode should not update progress
       const wrongMode = makeSession({ mode: 'speedDrill' })
@@ -425,13 +434,13 @@ describe('DailyChallengeEngine', () => {
       const oldProgress = engine.getState().progress
 
       // Create a fresh engine instance — should load from localStorage
-      const engine2 = new DailyChallengeEngine()
+      const engine2 = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine2.getState().progress).toBe(oldProgress)
     })
 
     it('handles corrupted localStorage gracefully', () => {
       localStorage.setItem('bjt_daily_challenge', '{corrupted json!!!}')
-      const engine2 = new DailyChallengeEngine()
+      const engine2 = new DailyChallengeEngine(ALL_ACCESS)
       // Should not throw, and should initialize fresh state
       expect(engine2.getState().progress).toBe(0)
       expect(engine2.getState().completed).toBe(false)
@@ -439,7 +448,7 @@ describe('DailyChallengeEngine', () => {
 
     it('handles missing localStorage key gracefully', () => {
       localStorage.removeItem('bjt_daily_challenge')
-      const engine2 = new DailyChallengeEngine()
+      const engine2 = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine2.getState().progress).toBe(0)
     })
 
@@ -459,7 +468,7 @@ describe('DailyChallengeEngine', () => {
     it('persists completedDates, totalCompleted, and totalXP', () => {
       forceComplete(engine, '2026-03-26')
 
-      const engine2 = new DailyChallengeEngine()
+      const engine2 = new DailyChallengeEngine(ALL_ACCESS)
       expect(engine2.getTotalCompleted()).toBeGreaterThanOrEqual(1)
       expect(engine2.getTotalXP()).toBeGreaterThan(0)
     })
@@ -470,7 +479,7 @@ describe('DailyChallengeEngine', () => {
   describe('edge cases', () => {
     it('does not allow progress beyond completion', () => {
       vi.setSystemTime(findDateForChallenge('warm_up'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
 
       const sessions = Array.from({ length: 5 }, () =>
         makeSession({ timestamp: new Date().toISOString() })
@@ -487,7 +496,7 @@ describe('DailyChallengeEngine', () => {
 
     it('completedAt is set when challenge is first completed', () => {
       vi.setSystemTime(findDateForChallenge('warm_up'))
-      engine = new DailyChallengeEngine()
+      engine = new DailyChallengeEngine(ALL_ACCESS)
 
       const s1 = makeSession({ timestamp: new Date().toISOString() })
       const s2 = makeSession({ timestamp: new Date().toISOString() })
@@ -507,7 +516,7 @@ describe('DailyChallengeEngine', () => {
  * Brute-forces through dates until we find a match.
  */
 function findDateForChallenge(challengeId: string): Date {
-  const engine = new DailyChallengeEngine()
+  const engine = new DailyChallengeEngine(ALL_ACCESS)
   const poolIndex = CHALLENGE_POOL.findIndex(c => c.id === challengeId)
   if (poolIndex === -1) throw new Error(`Challenge ${challengeId} not in pool`)
 

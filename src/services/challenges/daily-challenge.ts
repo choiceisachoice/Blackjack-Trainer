@@ -6,6 +6,7 @@ import type {
 } from './challenge-types'
 import { CHALLENGE_XP } from './challenge-types'
 import { CHALLENGE_POOL } from './challenge-pool'
+import { selectChallenge, hashToIndex, isReachable, type LearnerContext } from './challenge-selection'
 import { todayKey, dayKeyOffset, shiftDayKey } from '../date-utils'
 
 const STORAGE_KEY = 'bjt_daily_challenge'
@@ -18,8 +19,15 @@ const STORAGE_KEY = 'bjt_daily_challenge'
  */
 export class DailyChallengeEngine {
   private storage: DailyChallengeStorage
+  private context: LearnerContext
 
-  constructor() {
+  /**
+   * @param context Where the learner stands. Defaults to unplaced and free —
+   *   the safe assumption until the store knows better, because it can only
+   *   narrow the pool to things anyone can open.
+   */
+  constructor(context: LearnerContext = { stage: null, isPro: false }) {
+    this.context = context
     this.storage = this.loadFromStorage()
     this.ensureTodaysChallenge()
   }
@@ -29,18 +37,52 @@ export class DailyChallengeEngine {
    * Deterministic: same date always returns the same index.
    */
   hashDateToIndex(dateStr: string, poolSize: number): number {
-    let hash = 5381
-    for (let i = 0; i < dateStr.length; i++) {
-      hash = ((hash << 5) + hash + dateStr.charCodeAt(i)) | 0
-    }
-    return ((hash % poolSize) + poolSize) % poolSize
+    return hashToIndex(dateStr, poolSize)
   }
 
-  /** Get today's challenge definition. */
+  /**
+   * Tell the engine where the learner stands, so selection can fit them.
+   *
+   * Set by the challenge store from the training plan and the entitlement.
+   * Until it is set, selection behaves as it always did.
+   */
+  setLearnerContext(context: LearnerContext): void {
+    this.context = context
+    this.ensureTodaysChallenge()
+
+    // The engine is constructed before the store knows who the learner is, so
+    // a fresh day can be picked with the default context. Re-pick when the
+    // stored challenge turns out to be out of reach — but only while progress
+    // is still zero, so nobody ever loses work to a re-selection.
+    const current = this.getTodayChallenge()
+    if (this.storage.current.progress === 0 && !isReachable(current, context)) {
+      const replacement = selectChallenge(CHALLENGE_POOL, todayKey(), context)
+      if (replacement.id !== current.id) {
+        this.storage.current = { ...this.storage.current, challengeId: replacement.id }
+        this.saveToStorage()
+      }
+    }
+  }
+
+  /**
+   * Get today's challenge definition.
+   *
+   * Once a day's challenge has been chosen it is read back from storage rather
+   * than reselected. Progress is stored against it, so re-deriving it from the
+   * current context would swap the challenge out from under a half-finished
+   * one the moment the learner completed a stage or upgraded to Pro.
+   */
   getTodayChallenge(): ChallengeDefinition {
     const today = todayKey()
-    const idx = this.hashDateToIndex(today, CHALLENGE_POOL.length)
-    return CHALLENGE_POOL[idx]
+    // Optional chaining is load-bearing: the constructor builds default storage
+    // by asking for today's challenge, so this runs once before `storage` is
+    // assigned. No stored state then — selecting fresh is the correct answer.
+    const current = this.storage?.current
+    if (current?.date === today) {
+      const stored = CHALLENGE_POOL.find(c => c.id === current.challengeId)
+      if (stored) return stored
+    }
+    return selectChallenge(CHALLENGE_POOL, today, this.context)
   }
 
   /** Get the current state for today's challenge. */

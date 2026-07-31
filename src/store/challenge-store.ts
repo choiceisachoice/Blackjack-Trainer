@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { TrainingSessionResult } from '../services/stats-types'
 import type { ChallengeDefinition, DailyChallengeState } from '../services/challenges/challenge-types'
 import { dailyChallengeEngine } from '../services/challenges/daily-challenge'
+import type { LearnerContext } from '../services/challenges/challenge-selection'
 import { CHALLENGE_XP } from '../services/challenges/challenge-types'
 import { soundEngine } from '../services/sound-engine'
 import { useLevelStore } from './level-store'
@@ -28,6 +29,11 @@ export interface ChallengeStoreActions {
   updateProgress(session: TrainingSessionResult, todaySessions: TrainingSessionResult[]): void
   /** Refresh all state from the engine (e.g. at midnight). */
   refresh(): void
+  /**
+   * Point the engine at the learner's current stage and tier, so tomorrow's
+   * challenge fits what they are training rather than the calendar alone.
+   */
+  syncLearner(context: LearnerContext): void
   /** Clear the justCompleted flag. */
   dismissCompletion(): void
   /** Reset all challenge data. */
@@ -64,6 +70,14 @@ export const useChallengeStore = create<ChallengeStore>((set) => ({
       totalCompleted: dailyChallengeEngine.getTotalCompleted(),
       totalXP: dailyChallengeEngine.getTotalXP(),
       justCompleted,
+    })
+  },
+
+  syncLearner(context) {
+    dailyChallengeEngine.setLearnerContext(context)
+    set({
+      challenge: dailyChallengeEngine.getTodayChallenge(),
+      state: dailyChallengeEngine.getState(),
     })
   },
 

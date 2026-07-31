@@ -4,6 +4,15 @@ import { WEEKLY_CHALLENGE_POOL } from './weekly-challenge-pool'
 import type { TrainingSessionResult } from '../stats-types'
 import { CountingSystemId } from '../../engine/counting/types'
 
+/**
+ * A learner nothing is withheld from, so selection spans the whole pool.
+ *
+ * These tests pin specific challenges by hashing the date over the full pool;
+ * the engine's default context narrows it to what a free, unplaced user can
+ * open, which would shift every index.
+ */
+const ALL_ACCESS = { stage: null, isPro: true } as const
+
 /** Helper: create a minimal session result for testing. */
 function makeSession(overrides: Partial<TrainingSessionResult> = {}): TrainingSessionResult {
   return {
@@ -29,7 +38,7 @@ describe('WeeklyChallengeEngine', () => {
     // Wednesday 2026-03-25 12:00 local — week of Mon 2026-03-23
     vi.setSystemTime(new Date(2026, 2, 25, 12, 0, 0))
     localStorage.clear()
-    engine = new WeeklyChallengeEngine()
+    engine = new WeeklyChallengeEngine(ALL_ACCESS)
   })
 
   afterEach(() => {
@@ -46,19 +55,19 @@ describe('WeeklyChallengeEngine', () => {
 
     it('returns previous Monday when on Sunday', () => {
       vi.setSystemTime(new Date(2026, 2, 29, 12, 0, 0)) // Sunday noon local
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getWeekId()).toBe('2026-03-23')
     })
 
     it('returns same day when on Monday', () => {
       vi.setSystemTime(new Date(2026, 2, 23, 0, 1, 0)) // Monday 00:01 local
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getWeekId()).toBe('2026-03-23')
     })
 
     it('advances to next week on next Monday', () => {
       vi.setSystemTime(new Date(2026, 2, 30, 0, 1, 0)) // next Monday 00:01 local
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getWeekId()).toBe('2026-03-30')
     })
   })
@@ -122,7 +131,7 @@ describe('WeeklyChallengeEngine', () => {
   describe('updateProgress (cumulative)', () => {
     it('tracks play_hands across the whole week', () => {
       vi.setSystemTime(findWeekForChallenge('weekly_grinder'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('weekly_grinder')
 
       const s1 = makeSession({ totalQuestions: 80, timestamp: new Date().toISOString() })
@@ -137,7 +146,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('tracks play_sessions with mode filter', () => {
       vi.setSystemTime(findWeekForChallenge('casino_regular'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('casino_regular')
 
       // Wrong mode
@@ -158,7 +167,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('tracks play_minutes by summing durationSeconds / 60', () => {
       vi.setSystemTime(findWeekForChallenge('weekly_practice'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('weekly_practice')
 
       const s1 = makeSession({ durationSeconds: 3600, timestamp: new Date().toISOString() }) // 60 min
@@ -173,7 +182,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('tracks deviation_correct by summing correct answers from deviation sessions', () => {
       vi.setSystemTime(findWeekForChallenge('deviation_expert'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('deviation_expert')
 
       const s1 = makeSession({
@@ -186,7 +195,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('tracks earn_profit by summing netProfit from casino sessions', () => {
       vi.setSystemTime(findWeekForChallenge('profit_hunter'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('profit_hunter')
 
       const casinoDetails = (profit: number) => ({
@@ -212,7 +221,7 @@ describe('WeeklyChallengeEngine', () => {
   describe('updateProgress (weekly-specific types)', () => {
     it('tracks unique_days by counting distinct dates', () => {
       vi.setSystemTime(findWeekForChallenge('consistent_player'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('consistent_player')
 
       const weekId = engine.getWeekId()
@@ -230,7 +239,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('unique_days counts same day only once', () => {
       vi.setSystemTime(findWeekForChallenge('consistent_player'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
 
       const weekId = engine.getWeekId()
       const s1 = makeSession({ timestamp: `${weekId}T10:00:00.000Z` })
@@ -242,7 +251,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('tracks unique_modes by counting distinct modes', () => {
       vi.setSystemTime(findWeekForChallenge('mode_explorer'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('mode_explorer')
 
       const s1 = makeSession({ mode: 'speedDrill', timestamp: new Date().toISOString() })
@@ -256,7 +265,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('tracks sessions_with_accuracy above minAccuracy threshold', () => {
       vi.setSystemTime(findWeekForChallenge('accuracy_week'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('accuracy_week')
       // minAccuracy is 85, target is 5 sessions
 
@@ -270,7 +279,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('tracks daily_challenges_completed from daily challenge storage', () => {
       vi.setSystemTime(findWeekForChallenge('daily_warrior'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('daily_warrior')
 
       const weekId = engine.getWeekId()
@@ -295,7 +304,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('tracks win_streak from session bestStreak (keeps max)', () => {
       vi.setSystemTime(findWeekForChallenge('streak_master'))
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine.getThisWeekChallenge().id).toBe('streak_master')
 
       const s1 = makeSession({
@@ -371,7 +380,7 @@ describe('WeeklyChallengeEngine', () => {
     it('returns correct remaining time until end of week', () => {
       // Use a week without DST transition for predictable duration
       vi.setSystemTime(new Date(2026, 1, 25, 12, 0, 0)) // Wed Feb 25 noon local
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       const remaining = engine.getTimeRemaining()
       // End of week = Sun Mar 1 23:59:59 local
       // From Wed 12:00 → Sun 23:59:59 = 4 days + 11h + 59m + 59s
@@ -382,7 +391,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('returns small values near end of week', () => {
       vi.setSystemTime(new Date(2026, 2, 29, 22, 30, 0)) // Sunday 22:30 local
-      engine = new WeeklyChallengeEngine()
+      engine = new WeeklyChallengeEngine(ALL_ACCESS)
       const remaining = engine.getTimeRemaining()
       expect(remaining.days).toBe(0)
       expect(remaining.hours).toBe(1)
@@ -398,20 +407,20 @@ describe('WeeklyChallengeEngine', () => {
       engine.updateProgress(s, [s])
       const oldProgress = engine.getState().progress
 
-      const engine2 = new WeeklyChallengeEngine()
+      const engine2 = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine2.getState().progress).toBe(oldProgress)
     })
 
     it('handles corrupted localStorage gracefully', () => {
       localStorage.setItem('bjt_weekly_challenges', '{bad json!!!')
-      const engine2 = new WeeklyChallengeEngine()
+      const engine2 = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine2.getState().progress).toBe(0)
       expect(engine2.getState().completed).toBe(false)
     })
 
     it('handles missing localStorage key', () => {
       localStorage.removeItem('bjt_weekly_challenges')
-      const engine2 = new WeeklyChallengeEngine()
+      const engine2 = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine2.getState().progress).toBe(0)
     })
 
@@ -430,7 +439,7 @@ describe('WeeklyChallengeEngine', () => {
 
     it('persists completedWeeks, totalCompleted, totalXP', () => {
       forceComplete(engine, '2026-03-23')
-      const engine2 = new WeeklyChallengeEngine()
+      const engine2 = new WeeklyChallengeEngine(ALL_ACCESS)
       expect(engine2.getTotalCompleted()).toBeGreaterThanOrEqual(1)
       expect(engine2.getTotalXP()).toBeGreaterThan(0)
     })
@@ -457,7 +466,7 @@ function formatLocalDate(d: Date): string {
  * Uses local time to match the engine's getWeekId().
  */
 function findWeekForChallenge(challengeId: string): Date {
-  const engine = new WeeklyChallengeEngine()
+  const engine = new WeeklyChallengeEngine(ALL_ACCESS)
   const poolIndex = WEEKLY_CHALLENGE_POOL.findIndex(c => c.id === challengeId)
   if (poolIndex === -1) throw new Error(`Challenge ${challengeId} not in pool`)
 

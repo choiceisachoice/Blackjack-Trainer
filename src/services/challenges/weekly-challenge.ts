@@ -5,6 +5,12 @@ import type {
   WeeklyChallengeStorage,
 } from './challenge-types'
 import { WEEKLY_CHALLENGE_POOL } from './weekly-challenge-pool'
+import {
+  selectChallenge,
+  isReachable,
+  hashToIndex as hashKeyToIndex,
+  type LearnerContext,
+} from './challenge-selection'
 import { weekStartKey, shiftDayKey } from '../date-utils'
 
 const STORAGE_KEY = 'bjt_weekly_challenges'
@@ -17,8 +23,14 @@ const STORAGE_KEY = 'bjt_weekly_challenges'
  */
 export class WeeklyChallengeEngine {
   private storage: WeeklyChallengeStorage
+  private context: LearnerContext
 
-  constructor() {
+  /**
+   * @param context Where the learner stands. Defaults to unplaced and free —
+   *   the safe assumption until the store knows better.
+   */
+  constructor(context: LearnerContext = { stage: null, isPro: false }) {
+    this.context = context
     this.storage = this.loadFromStorage()
     this.ensureThisWeeksChallenge()
   }
@@ -28,11 +40,28 @@ export class WeeklyChallengeEngine {
    * Deterministic: same string always returns the same index.
    */
   hashToIndex(str: string, poolSize: number): number {
-    let hash = 5381
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) + hash + str.charCodeAt(i)) | 0
+    return hashKeyToIndex(str, poolSize)
+  }
+
+  /**
+   * Tell the engine where the learner stands, so selection can fit them.
+   *
+   * Every mode-bound weekly challenge requires the Pro-gated Casino Session, so
+   * without this a free account's weekly challenge was unwinnable outright
+   * whenever the hash landed on one.
+   */
+  setLearnerContext(context: LearnerContext): void {
+    this.context = context
+    this.ensureThisWeeksChallenge()
+
+    const current = this.getThisWeekChallenge()
+    if (this.storage.current.progress === 0 && !isReachable(current, context)) {
+      const replacement = selectChallenge(WEEKLY_CHALLENGE_POOL, this.getWeekId(), context, 'week')
+      if (replacement.id !== current.id) {
+        this.storage.current = { ...this.storage.current, challengeId: replacement.id }
+        this.saveToStorage()
+      }
     }
-    return ((hash % poolSize) + poolSize) % poolSize
   }
 
   /**
@@ -42,11 +71,23 @@ export class WeeklyChallengeEngine {
     return weekStartKey()
   }
 
-  /** Get this week's challenge definition. */
+  /**
+   * Get this week's challenge definition.
+   *
+   * Read back from storage once chosen, so a mid-week change of context cannot
+   * swap out a challenge that already has progress against it.
+   */
   getThisWeekChallenge(): WeeklyChallengeDefinition {
     const weekId = this.getWeekId()
-    const idx = this.hashToIndex(weekId, WEEKLY_CHALLENGE_POOL.length)
-    return WEEKLY_CHALLENGE_POOL[idx]
+    // Optional chaining is load-bearing: the constructor builds default storage
+    // by asking for this week's challenge, so this runs once before `storage`
+    // is assigned. No stored state then — selecting fresh is correct.
+    const current = this.storage?.current
+    if (current?.weekId === weekId) {
+      const stored = WEEKLY_CHALLENGE_POOL.find(c => c.id === current.challengeId)
+      if (stored) return stored
+    }
+    return selectChallenge(WEEKLY_CHALLENGE_POOL, weekId, this.context, 'week')
   }
 
   /** Get the current state for this week's challenge. */

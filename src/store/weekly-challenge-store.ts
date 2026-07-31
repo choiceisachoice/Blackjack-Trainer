@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { TrainingSessionResult } from '../services/stats-types'
 import type { WeeklyChallengeDefinition, WeeklyChallengeState } from '../services/challenges/challenge-types'
 import { weeklyChallengeEngine } from '../services/challenges/weekly-challenge'
+import type { LearnerContext } from '../services/challenges/challenge-selection'
 import { soundEngine } from '../services/sound-engine'
 import { useLevelStore } from './level-store'
 
@@ -27,6 +28,12 @@ export interface WeeklyChallengeStoreActions {
   updateProgress(session: TrainingSessionResult, weekSessions: TrainingSessionResult[]): void
   /** Refresh all state from the engine (e.g. at week boundary). */
   refresh(): void
+  /**
+   * Point the engine at the learner's current stage and tier. Every mode-bound
+   * weekly challenge needs the Pro-gated Casino Session, so without this a free
+   * account could draw a week it had no way to finish.
+   */
+  syncLearner(context: LearnerContext): void
   /** Clear the justCompleted flag. */
   dismissCompletion(): void
   /** Reset all weekly challenge data. */
@@ -63,6 +70,14 @@ export const useWeeklyChallengeStore = create<WeeklyChallengeStore>((set) => ({
       totalCompleted: weeklyChallengeEngine.getTotalCompleted(),
       totalXP: weeklyChallengeEngine.getTotalXP(),
       justCompleted,
+    })
+  },
+
+  syncLearner(context) {
+    weeklyChallengeEngine.setLearnerContext(context)
+    set({
+      challenge: weeklyChallengeEngine.getThisWeekChallenge(),
+      state: weeklyChallengeEngine.getState(),
     })
   },
 
