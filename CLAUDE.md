@@ -210,31 +210,43 @@ blackjack-trainer/
 
 ## Known gaps — read before shipping
 
-Live risks that exist right now. None of them is a nice-to-have, and each names who
-owns it, because "someone should" is how these survive to production.
+Live risks that exist right now. Each names who owns it, because "someone should" is how
+these survive to production. Items that have been closed are recorded as closed rather than
+deleted — the next reader needs to know the difference between "never an issue" and "was an
+issue and was dealt with".
 
-1. **The entitlement migration is committed but not deployed.**
-   `supabase/migrations/20260724120000_close_entitlement_hole.sql` closes a path by which
-   Pro access could be granted without the signature-verified webhook. It is in git and
-   **not** in the database. Until `npx supabase db push` runs against the live project, the
-   hole is shut in code and open where it counts. **Darius executes** — it is a production
-   deploy.
+1. **Stripe runs on sandbox keys.** Live keys belong at deployment on the real domain,
+   never on localhost, and never in the repo. **Darius executes**, as a coordinated cutover.
 
-2. **Inter is loaded from Google Fonts at runtime.** `src/index.css` line 1 is an
-   `@import` against `fonts.googleapis.com`. Two problems: it is a render-blocking
-   third-party request on the critical path, and it transmits every visitor's IP to Google.
-   For a site aimed at CH/EU users that is a real GDPR/DSG exposure — German courts have
-   already ruled against embedded Google Fonts, and this app ships a Privacy page. The fix
-   is the pattern already used for Instrument Sans: self-host a subsetted woff2 in
-   `public/fonts`, add `@font-face`, drop the `@import`. Inter is OFL, so this is allowed.
-
-3. **Stripe runs on sandbox keys.** Live keys belong at deployment on the real domain,
-   never on localhost, and never in the repo.
-
-4. **The payment-path audit findings are not written down anywhere.** They live only in a
+2. **The payment-path audit findings are not written down anywhere.** They live only in a
    chat transcript, which means they are one lost session away from never being fixed.
    They need to reach Christian (supervisor/CISO) before go-live. Whoever has them: put
    them in `docs/` first, then send them.
+
+3. **Closing the entitlement hole did not evict anyone already through it.** The migration
+   below is deployed, but any account that used the exploit keeps its status. Audit before
+   go-live — a row with no `stripe_customer_id` never came from the webhook:
+
+   ```sql
+   select id, subscription_status, stripe_customer_id, current_period_end
+   from public.profiles where subscription_status <> 'free';
+   ```
+
+### Closed
+
+- **The entitlement migration is deployed** (1 Aug 2026). `pg_policies` on
+  `public.profiles` returns exactly `profiles: read own` (SELECT) and `profiles: update own`
+  (UPDATE) — no ALL, no INSERT, no DELETE — and `protect_entitlement_columns` reads
+  `BEFORE INSERT OR UPDATE`. Verified against the running database, not inferred from a
+  successful push.
+- **Inter is self-hosted.** The `fonts.googleapis.com` `@import` is gone; one 48kB latin
+  variable file (400–800) in `public/fonts`, preloaded, OFL beside it. Verified in a
+  browser: zero requests to Google. That closes the GDPR/DSG exposure and removes a
+  render-blocking third-party request from in front of the loading screen.
+
+A full audit of the app along four axes — visual, comprehensibility, feedback, animation —
+lives in `docs/AUDIT-2026-07-31.md`, with each item's verdict and what was deliberately
+*not* changed.
 
 ## Implementation Workflow (for every feature)
 
