@@ -38,6 +38,10 @@ vi.mock('framer-motion', () => {
   return {
     motion,
     AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
+    // The app declares one motion policy at the root and several components
+    // ask for the preference directly; a mock that omits either renders
+    // `undefined` as a component and takes the whole tree down.
+    MotionConfig: ({ children }: React.PropsWithChildren) => <>{children}</>,
     LayoutGroup: ({ children }: React.PropsWithChildren) => <>{children}</>,
     useReducedMotion: () => false,
   }

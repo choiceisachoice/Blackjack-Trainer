@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Zap, Play, Check, X, RotateCcw, Minus, Plus } from 'lucide-react'
 import { Shoe } from '../../engine/shoe/shoe'
 import { CountingEngine } from '../../engine/counting/counting-engine'
@@ -104,6 +104,7 @@ export function SpeedDrill() {
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const selectedRules = useAppStore(s => s.selectedRules)
 
+  const reduced = useReducedMotion()
   const [phase, setPhase] = useState<Phase>('settings')
   const [cardCount, setCardCount] = useState(20)
   const [speedMs, setSpeedMs] = useState(1000)
@@ -404,7 +405,7 @@ export function SpeedDrill() {
         */}
         <motion.div
           key={currentIndex}
-          initial={{ scale: 0.94 }}
+          initial={reduced ? false : { scale: 0.94 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.1 }}
           className={`w-[250px] h-[350px] rounded-2xl bg-white border-2 border-gray-300

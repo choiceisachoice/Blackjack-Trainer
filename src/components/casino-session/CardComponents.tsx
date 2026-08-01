@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { Card } from '../../engine/shoe/types'
 import { SUIT_MAP } from './helpers'
 
@@ -97,13 +97,24 @@ export function AnimatedTableCard({
   delay?: number
   size?: CardSize
 }) {
+  // Called before the early return below: a hook after a conditional return is
+  // a hook that sometimes does not run.
+  const reduced = useReducedMotion()
+
   if (!animateIn) {
     return <TableCard card={card} faceDown={faceDown} size={size} />
   }
 
   return (
     <motion.div
-      initial={{ x: 170, y: -190, opacity: 0, scale: 0.7, rotate: -8 }}
+      /*
+        `false`, not a smaller offset, when the visitor asked for less motion.
+        `MotionConfig reducedMotion="user"` disables transform animations but
+        does *not* clear `initial` — so an unguarded offset does not calm the
+        deal, it strands the card 170px right and 190px above where it belongs,
+        permanently. Verified in a browser, not assumed.
+      */
+      initial={reduced ? false : { x: 170, y: -190, opacity: 0, scale: 0.7, rotate: -8 }}
       animate={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
       transition={{ duration: 0.62, ease: [0.2, 0.8, 0.25, 1], delay }}
     >
@@ -123,9 +134,12 @@ export function AnimatedTableCard({
  * don't fight.
  */
 export function FlipCard({ card, revealed, size = 'dealer' }: { card: Card; revealed: boolean; size?: CardSize }) {
+  const reduced = useReducedMotion()
   return (
     <motion.div
-      initial={{ x: 170, y: -190, opacity: 0, scale: 0.7, rotate: -8 }}
+      // Same reason as `AnimatedTableCard`: an unguarded offset strands the
+      // dealer's hole card off-table instead of merely not gliding.
+      initial={reduced ? false : { x: 170, y: -190, opacity: 0, scale: 0.7, rotate: -8 }}
       animate={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
       transition={{ duration: 0.62, ease: [0.2, 0.8, 0.25, 1] }}
     >
@@ -158,6 +172,10 @@ import type { BotStatus } from './helpers'
 
 export function BotStatusBadge({ status }: { status: BotStatus }) {
   const style = BOT_STATUS_STYLE[status]
+  const reduced = useReducedMotion()
+  // "Thinking..." pulses forever. A loop is the one kind of motion someone with
+  // a vestibular sensitivity cannot look away from, so it is the first to go.
+  const pulse = style.animate && !reduced
   return (
     <motion.span
       key={status}
@@ -165,11 +183,11 @@ export function BotStatusBadge({ status }: { status: BotStatus }) {
       // remounts it and replays this entrance — an opacity entrance hid the
       // badge afresh on each change, not merely the first, and "BUST!" is a
       // result the player has to be able to read.
-      initial={{ scale: 0.8 }}
+      initial={reduced ? false : { scale: 0.8 }}
       animate={{
-        scale: style.animate ? [1, 1.05, 1] : 1,
+        scale: pulse ? [1, 1.05, 1] : 1,
       }}
-      transition={style.animate ? { repeat: Infinity, duration: 1 } : { duration: 0.2 }}
+      transition={pulse ? { repeat: Infinity, duration: 1 } : { duration: 0.2 }}
       className={`text-[0.6875rem] md:text-xs font-semibold px-1.5 py-0.5 rounded ${style.bg} ${style.text}`}
       data-testid="bot-status"
     >

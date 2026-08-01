@@ -15,6 +15,9 @@ vi.mock('framer-motion', () => ({
     },
   },
   AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  // Components ask for the motion preference directly; a mock without it
+  // renders `undefined` where a hook's result is expected.
+  useReducedMotion: () => false,
 }))
 
 describe('SpeedDrill', () => {

@@ -10,6 +10,9 @@ vi.mock('framer-motion', () => ({
       return <div {...rest}>{children}</div>
     },
   },
+  // Components ask for the motion preference directly; a mock without it
+  // renders `undefined` where a hook's result is expected.
+  useReducedMotion: () => false,
 }))
 
 // Deterministic random values

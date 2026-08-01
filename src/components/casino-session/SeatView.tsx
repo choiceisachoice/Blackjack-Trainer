@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { Card } from '../../engine/shoe/types'
 import type { BotPlayer, BotRoundResult } from '../../engine/casino-session/types'
 import { AnimatedTableCard, BotStatusBadge } from './CardComponents'
@@ -91,6 +91,7 @@ export function HumanSeat({
   isActivePlayer,
   isDimmed,
 }: HumanSeatProps) {
+  const reduced = useReducedMotion()
   const isSplit = humanHands.length > 1
   const humanCards = humanHands[activeHandIndex] ?? []
 
@@ -110,7 +111,7 @@ export function HumanSeat({
               key={`hand-${i}`}
               // Slide the two hands apart from the centre — as if the pair is
               // being separated — instead of popping into place.
-              initial={{ x: i === 0 ? 40 : -40, scale: 0.94 }}
+              initial={reduced ? false : { x: i === 0 ? 40 : -40, scale: 0.94 }}
               animate={{ x: 0, scale: 1 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-opacity duration-500 ease-out
@@ -136,7 +137,7 @@ export function HumanSeat({
       */}
       {humanSettlement && gameStep === 'settlement' && (
         <motion.div
-          initial={{ scale: 0.8 }}
+          initial={reduced ? false : { scale: 0.8 }}
           animate={{ scale: 1 }}
           className={`text-sm md:text-base font-black whitespace-nowrap drop-shadow-lg px-2 py-0.5 rounded ${
             humanSettlement.label === 'Blackjack!'
@@ -160,8 +161,11 @@ export function HumanSeat({
         <motion.div
           className="absolute -inset-2 rounded-xl pointer-events-none"
           style={{ boxShadow: '0 0 20px rgba(212, 168, 67, 0.4), 0 0 40px rgba(212, 168, 67, 0.15)' }}
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+          // Opacity loops survive `reducedMotion` — it only disables transform
+          // and layout — so this one has to be switched off by hand. A pulse is
+          // the kind of motion you cannot look away from.
+          animate={reduced ? { opacity: 0.8 } : { opacity: [0.5, 1, 0.5] }}
+          transition={reduced ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
         />
       )}
     </div>
@@ -193,6 +197,7 @@ export function BotSeat({
   activeSplitHand,
   splitVisibleCards,
 }: BotSeatProps) {
+  const reducedBot = useReducedMotion()
   const hasSplit = bot.hands.length > 1
   const showSplitHands = hasSplit && splitVisibleCards !== undefined
 
@@ -218,7 +223,7 @@ export function BotSeat({
 
             return (
               <motion.div key={`${bot.id}-h${hi}`}
-                initial={{ x: hi === 0 ? 18 : -18, opacity: 0.6 }}
+                initial={reducedBot ? false : { x: hi === 0 ? 18 : -18, opacity: 0.6 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
                 className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg ${
@@ -273,8 +278,10 @@ export function BotSeat({
         <motion.div
           className="absolute -inset-2 rounded-xl pointer-events-none"
           style={{ boxShadow: '0 0 15px rgba(234, 179, 8, 0.3)' }}
-          animate={{ opacity: [0.3, 0.8, 0.3] }}
-          transition={{ duration: 1, repeat: Infinity }}
+          // Same as the human seat's glow: an opacity loop is invisible to
+          // `reducedMotion` and has to be stopped explicitly.
+          animate={reducedBot ? { opacity: 0.6 } : { opacity: [0.3, 0.8, 0.3] }}
+          transition={reducedBot ? { duration: 0 } : { duration: 1, repeat: Infinity }}
         />
       )}
     </div>

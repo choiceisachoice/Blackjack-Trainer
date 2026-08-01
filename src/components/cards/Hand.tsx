@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
 import type { Card } from '../../types'
 import { PlayingCard } from './PlayingCard'
@@ -72,6 +72,9 @@ function rankValue(rank: string): number {
  * single-card hit animations, and dealer draw staggering.
  */
 export function Hand({ cards, isDealer = false, hideFirst = false, label, isActive = false, countValues, splitNewCardDelay }: HandProps) {
+  // The count badge pops in on scale; guarded so a reduced-motion visitor gets
+  // it at full size rather than stranded at 30%.
+  const reduced = useReducedMotion()
   // Track previous card count to detect initial deal vs. hit.
   // Written only in an effect (after commit), so this read yields the last
   // committed value — the previous-value idiom, safe under concurrent
@@ -181,7 +184,7 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
             return (
               <div key={`badge-${card.rank}-${card.suit}-${i}-${isFaceDown}`} className="w-[5rem] md:w-[6.25rem] flex-shrink-0 flex justify-center">
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.3 }}
+                  initial={reduced ? false : { opacity: 0, scale: 0.3 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: badgeDelay, duration: 0.2, ease: 'easeOut' }}
                   className={`w-[22px] h-[22px] rounded-full text-[0.6875rem] font-bold

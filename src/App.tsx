@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { MotionConfig } from 'framer-motion'
 import { useAuthStore } from './store/auth-store'
 import { handleSignedIn } from './services/supabase/cloud-sync'
 import { useEntitlementStore } from './store/entitlement-store'
@@ -109,6 +110,24 @@ function App() {
   const appReady = authStatus !== 'loading' && chunksReady
 
   return (
+    /*
+      Reduced motion, decided once for the whole app.
+
+      CSS was already covered: `index.css` carries a global
+      `@media (prefers-reduced-motion: reduce)` reset that flattens every
+      animation and transition. What no CSS rule can reach is framer-motion,
+      which animates by writing inline styles frame by frame — so the casino
+      session, the hands, the seats and the drill all kept moving for someone
+      who had asked the system to stop, and those are the screens people sit in
+      front of for an hour.
+
+      One policy here rather than a hook threaded through a dozen components:
+      "user" disables transform and layout animations while leaving opacity
+      alone. Which is also why the entrances in this codebase were moved onto
+      transform — `reducedMotion` does not touch opacity, so anything still
+      fading in would keep fading in regardless of the setting.
+    */
+    <MotionConfig reducedMotion="user">
     <IntroGate appReady={appReady}>
     {/*
       Above the routes *and* above Suspense, deliberately.
@@ -148,6 +167,7 @@ function App() {
     </Suspense>
     </ErrorBoundary>
     </IntroGate>
+    </MotionConfig>
   )
 }
 
