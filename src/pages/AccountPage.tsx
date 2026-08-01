@@ -35,6 +35,17 @@ export function AccountPage() {
   const currentPeriodEnd = useEntitlementStore(s => s.currentPeriodEnd)
   const loadEntitlement = useEntitlementStore(s => s.loadEntitlement)
   const [busy, setBusy] = useState<null | 'portal' | 'checkout'>(null)
+  /**
+   * Why a failure here needs saying out loud.
+   *
+   * Both actions call an Edge Function and only then redirect, so a failure
+   * leaves the page looking exactly as it did before: the button spun, stopped,
+   * and nothing else happened. That is bad on the upgrade path and worse on the
+   * *cancel* path — someone trying to stop paying, told nothing, reasonably
+   * concludes the product will not let them, and the next step is their bank
+   * rather than support.
+   */
+  const [billingError, setBillingError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isSupabaseConfigured && !loaded) void loadEntitlement()
@@ -44,13 +55,27 @@ export function AccountPage() {
   const periodEnd = formatDate(currentPeriodEnd)
   const renewLabel = status === 'trialing' ? 'Trial ends' : status === 'past_due' ? 'Payment due by' : 'Renews on'
 
+  // Both leave `busy` set on the success path on purpose: the browser is on its
+  // way to Stripe, and re-enabling would offer a second session mid-redirect.
   async function manage() {
+    setBillingError(null)
     setBusy('portal')
-    try { await openBillingPortal() } catch (e) { console.error('portal failed', e); setBusy(null) }
+    try {
+      await openBillingPortal()
+    } catch (e) {
+      setBillingError(e instanceof Error ? e.message : 'Could not open the billing portal.')
+      setBusy(null)
+    }
   }
   async function upgrade() {
+    setBillingError(null)
     setBusy('checkout')
-    try { await startCheckout('yearly') } catch (e) { console.error('checkout failed', e); setBusy(null) }
+    try {
+      await startCheckout('yearly')
+    } catch (e) {
+      setBillingError(e instanceof Error ? e.message : 'Could not start checkout.')
+      setBusy(null)
+    }
   }
   async function handleSignOut() {
     await signOut()
@@ -92,6 +117,12 @@ export function AccountPage() {
                   </button>
                 )}
               </div>
+              {/* `role="alert"` so it is announced rather than merely drawn —
+                  the person who most needs this is not necessarily looking at
+                  the button they just pressed. */}
+              {billingError && (
+                <p className="mt-4 text-sm text-error" role="alert">{billingError}</p>
+              )}
               {!isPro && (
                 <Link to="/#pricing" className="inline-block mt-4 text-sm text-gold hover:text-gold-bright">Compare plans →</Link>
               )}
