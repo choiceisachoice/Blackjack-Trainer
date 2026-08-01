@@ -114,8 +114,12 @@ export function AnimatedTableCard({
         deal, it strands the card 170px right and 190px above where it belongs,
         permanently. Verified in a browser, not assumed.
       */
-      initial={reduced ? false : { x: 170, y: -190, opacity: 0, scale: 0.7, rotate: -8 }}
-      animate={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
+      initial={reduced ? false : { x: 170, y: -190, scale: 0.7, rotate: -8 }}
+      // No opacity in the entrance. A stalled frame loop used to leave the card
+      // invisible *and* off-position; now it is merely off-position, which is
+      // recoverable the moment a frame runs. A card that glides in at full
+      // opacity also reads more like a dealt card than one that fades in.
+      animate={{ x: 0, y: 0, scale: 1, rotate: 0 }}
       transition={{ duration: 0.62, ease: [0.2, 0.8, 0.25, 1], delay }}
     >
       <TableCard card={card} faceDown={faceDown} size={size} />
@@ -139,8 +143,8 @@ export function FlipCard({ card, revealed, size = 'dealer' }: { card: Card; reve
     <motion.div
       // Same reason as `AnimatedTableCard`: an unguarded offset strands the
       // dealer's hole card off-table instead of merely not gliding.
-      initial={reduced ? false : { x: 170, y: -190, opacity: 0, scale: 0.7, rotate: -8 }}
-      animate={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
+      initial={reduced ? false : { x: 170, y: -190, scale: 0.7, rotate: -8 }}
+      animate={{ x: 0, y: 0, scale: 1, rotate: 0 }}
       transition={{ duration: 0.62, ease: [0.2, 0.8, 0.25, 1] }}
     >
       <div style={{ perspective: '900px' }}>

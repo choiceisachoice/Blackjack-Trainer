@@ -12,6 +12,9 @@
          subset to latin, ~15kB per weight — it is in cache before React has
          finished mounting, which is what makes a real typeface usable on a
          screen that exists precisely because things are still loading. -->
+    <!-- Inter is the interface face on every screen, so it is preloaded too;
+         self-hosted since the Google Fonts import was removed. -->
+    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/instrument-sans-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/instrument-sans-400.woff2" as="font" type="font/woff2" crossorigin />
 

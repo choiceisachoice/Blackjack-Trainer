@@ -178,10 +178,19 @@ export function useGameLoop(
     return layout
   }, [seats, config.playerSeatIndex])
 
+  /**
+   * `gameStep` and `elapsedSeconds` are triggers, not inputs.
+   *
+   * The body reads `engineRef.current`, which the linter cannot follow, so it
+   * reports both as unnecessary. Removing them would freeze the shoe indicator
+   * on its first value for the rest of the session — the rule is wrong here in
+   * a way that breaks the feature rather than merely tidying it.
+   */
   const shoeProgress = useMemo(() => {
     const engine = engineRef.current
     if (!engine) return 0
     return engine.getCardsDealt() / engine.getTotalCards()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- triggers for a ref read, not inputs
   }, [gameStep, elapsedSeconds])
 
   const totalCards = config.numDecks * 52
@@ -1002,7 +1011,7 @@ export function useGameLoop(
     } else {
       runPostHumanFlow()
     }
-  }, [activeHandIndex, humanHands, updateHandCards, runPostHumanFlow])
+  }, [activeHandIndex, humanHands, updateHandCards, runPostHumanFlow, schedule])
 
   // ─── Betting Phase ─────────────────────────────────
 
@@ -1284,6 +1293,11 @@ export function useGameLoop(
         setGameStep('human_playing')
       }
     }
+    // `currentBet` is a deliberate trigger: the body reads `currentBetRef.current`,
+    // which the linter cannot follow. Dropping it would change when this callback
+    // is recreated, and with it when anything holding it re-runs — not a trade
+    // worth making inside the game loop for a lint line.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- trigger for a ref read
   }, [currentBet, seatLayout, config.playerSeatIndex, animation, computeBotsAndBuildSteps, buildDealerSteps, recorder, settleDealerRound])
 
   // ─── Human Play ────────────────────────────────────
@@ -1466,7 +1480,7 @@ export function useGameLoop(
 
       return
     }
-  }, [humanHands, activeHandIndex, gameStep, currentBet, config, isSurrendered, handDoubled, updateHandCards, advanceToNextHand, runPostHumanFlow, recorder])
+  }, [humanHands, activeHandIndex, gameStep, currentBet, config, isSurrendered, handDoubled, updateHandCards, advanceToNextHand, runPostHumanFlow, recorder, schedule])
 
   // ─── Count Check ───────────────────────────────────
 
@@ -1515,6 +1529,10 @@ export function useGameLoop(
         proceedAfterHand()
       }
     }, 2000)
+    // `proceedAfterHand` cannot go in here: it is declared *below* this callback,
+    // so naming it in the dependency array is a temporal-dead-zone ReferenceError.
+    // The linter's suggestion is not merely unwise here, it does not run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- declared later; naming it here throws
   }, [rcInput, tcInput, config, recorder])
 
   // ─── Next Hand / End ───────────────────────────────

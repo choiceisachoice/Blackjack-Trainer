@@ -67,6 +67,19 @@ export function ShoeHousing({ cardCount, totalCards, penetration }: {
           }}
         />
 
+        {/*
+          Deliberately animating `width`, not a transform.
+
+          The usual rule is the opposite, and the drill's countdown was moved to
+          `scaleX` for exactly that reason. It does not apply here: the fill is a
+          `repeating-linear-gradient` standing in for the edges of stacked cards,
+          and scaling an element scales what it paints — the card edges would be
+          squashed thinner instead of fewer of them showing, which is the one
+          thing this graphic exists to convey.
+
+          The cost is bounded: this runs once per deal over 0.5s on a small
+          element, not every frame for the length of a drill.
+        */}
         {/* Card block – vertical card edges, shrinks from left */}
         <motion.div
           animate={{ width: blockWidth }}
@@ -199,7 +212,9 @@ export function DiscardTray({
             />
           ))}
 
-          {/* Card stack – horizontal card edges, grows from bottom */}
+          {/* Card stack – horizontal card edges, grows from bottom.
+              `height` for the same reason as the block above: scaling would
+              squash the card edges rather than reveal fewer of them. */}
           {hasCards && (
             <motion.div
               animate={{ height: stackHeight }}

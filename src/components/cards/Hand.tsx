@@ -127,8 +127,22 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
   const hard = hardTotal(cards)
   const computedBust = !hideFirst && hard > 21 && softTotal(cards) > 21
 
-  // Delay showing BUST text by 500ms when a new card causes bust,
-  // so it appears after the card slide animation completes.
+  /*
+    Delay showing BUST text by 500ms when a new card causes bust, so it appears
+    after the card slide animation completes.
+
+    KNOWN DEFECT — see audit item 12. This effect has no dependency array, so it
+    re-runs after *every* render and its cleanup cancels the pending 500ms
+    timer. Any unrelated re-render inside that window — likely in the casino
+    loop — kills the timer and it is never restarted, so the player sees the
+    total instead of "BUST".
+
+    The linter's suggested dependency array does not fix it: `prevCardCountSnapshot`
+    changes on the very next render, so the effect re-runs and cancels anyway.
+    The real fix is to stop the timer being owned by the effect's cleanup, which
+    is a change to live table timing and wants a test that reproduces the swallow
+    first. Left deliberately, recorded rather than guessed at.
+  */
   const [showBustText, setShowBustText] = useState(false)
   const bustDelayCardCount = useRef(-1)
   useEffect(() => {
