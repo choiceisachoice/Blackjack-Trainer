@@ -57,7 +57,41 @@ export function NavBar() {
   const showUpgradeModal = useUpgradePrompt(s => s.show)
   const navigate = useNavigate()
 
-  const renderItem = ({ mode, label, icon: Icon }: NavItem) => {
+  /**
+   * @param compact Drop the label until there is genuinely room for it.
+   *
+   * ## Why anything is hidden at all
+   *
+   * The strip is `overflow-x-auto no-scrollbar`, so what did not fit was never
+   * truncated — it was *hidden*. At 1520px "Strategy" and "Awards" sat 212px
+   * outside the visible area with no scrollbar, no fade and nothing to suggest
+   * they existed. Two features, invisible, on a common laptop.
+   *
+   * ## The measurements
+   *
+   * Taken in a browser, not estimated: the ten items need **850px** with the
+   * tools compact and **1169px** with every label — the five tool labels alone
+   * cost 319. The wordmark is ~120, the level badge ~230, and signing in adds
+   * **210** for Go Pro, settings and sign-out. That last figure is why the dev
+   * harness cannot be trusted here on its own: it runs without Supabase and so
+   * always renders signed *out*, which is 210px more generous than production.
+   *
+   * ## The order things go in
+   *
+   * Navigation, then status, then decoration — and navigation never goes. So
+   * the wordmark yields first, then the level badge, and the tool labels last,
+   * each at the width where the signed-in bar still has slack:
+   *
+   *   <1400  brand icon only
+   *   <1700  no level badge
+   *   <2100  tools are icons with `title`/`aria-label`
+   *
+   * Ten labelled items, a badge and the account controls together need roughly
+   * two thousand pixels. That is not a threshold anyone reaches by accident,
+   * and it is the honest reading of a bar carrying more than it can hold — the
+   * real fix is fewer top-level destinations, which is a product decision.
+   */
+  const renderItem = ({ mode, label, icon: Icon }: NavItem, compact = false) => {
     const active = currentMode === mode
     const proLocked = !isPro && isProMode(mode)
     return (
@@ -65,13 +99,19 @@ export function NavBar() {
         key={mode}
         onClick={() => setMode(mode)}
         data-testid={`nav-${mode}`}
-        className={`glow-hover group relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm whitespace-nowrap cursor-pointer
+        // Named on the element, not only by its text: an icon whose label is
+        // not drawn is otherwise a button that only its author can identify.
+        title={label}
+        aria-label={label}
+        className={`glow-hover group relative flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm whitespace-nowrap cursor-pointer
           ${active
             ? 'text-gold bg-gold/10 border border-gold/30'
             : 'text-content/60 hover:text-content border border-transparent hover:bg-contrast/5'}`}
       >
         <Icon size={16} className={active ? 'text-gold' : 'text-content/50 group-hover:text-gold'} />
-        <span className="font-medium">{label}</span>
+        {/* Hidden with `display`, so it leaves the layout *and* keeps no stray
+            flex gap behind — but stays in the document for assistive tech. */}
+        <span className={`font-medium ${compact ? 'hidden min-[2100px]:inline' : ''}`}>{label}</span>
         {proLocked && <Lock size={11} className="text-gold/70" aria-label="Pro feature" />}
       </button>
     )
@@ -93,17 +133,22 @@ export function NavBar() {
             transition-shadow duration-200 group-hover:shadow-[0_0_18px_-4px_var(--color-gold)]">
             <Spade size={17} className="fill-current" />
           </span>
-          <span className="hidden sm:flex flex-col leading-none text-left">
+          {/* The wordmark is the first thing to go when space runs short: the
+              spade still identifies the app and still links home, and losing
+              decoration costs less than losing a way to reach a feature. */}
+          <span className="hidden min-[1400px]:flex flex-col leading-none text-left">
             <span className="text-[0.85rem] font-extrabold tracking-[0.18em] text-gold-gradient">BLACKJACK</span>
             <span className="text-[0.65rem] font-medium tracking-[0.32em] text-content/40">TRAINER</span>
           </span>
         </button>
 
         {/* Nav links (scrollable on small screens) */}
+        {/* The training modes keep their labels — they are what the product is
+            for. The tools group is the one that collapses. */}
         <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 min-w-0">
-          {TRAIN_ITEMS.map(renderItem)}
+          {TRAIN_ITEMS.map(item => renderItem(item))}
           <span className="mx-1 h-5 w-px bg-contrast/10 shrink-0" aria-hidden />
-          {TOOL_ITEMS.map(renderItem)}
+          {TOOL_ITEMS.map(item => renderItem(item, true))}
         </nav>
 
         {/* Right cluster */}
@@ -115,7 +160,7 @@ export function NavBar() {
               className="glow-hover flex items-center gap-1.5 pl-2.5 pr-3 h-8 rounded-lg bg-gold/10 border border-gold/30 text-gold text-sm font-semibold whitespace-nowrap cursor-pointer hover:bg-gold/15"
             >
               <Crown size={15} />
-              <span className="hidden sm:inline">Go Pro</span>
+              <span className="hidden min-[1400px]:inline">Go Pro</span>
             </button>
           )}
           {signedIn && (
@@ -158,7 +203,19 @@ export function NavBar() {
               <LogOut size={17} />
             </button>
           )}
-          <div className="hidden sm:block pl-1">
+          {/*
+            Status, not navigation — so it yields before any nav item does, and
+            it yields early because it is the single widest thing in this bar
+            (~230px). The same figure is on the home screen.
+
+            Its threshold also carries the case the dev harness cannot show. The
+            harness runs without Supabase, so it renders *signed out*: no
+            "Go Pro", no settings, no sign-out. Signed in, this cluster is around
+            180px wider, which is exactly enough to put the overflow back. The
+            measurements below were taken signed out; this number is the margin
+            for the state that ships.
+          */}
+          <div className="hidden min-[1700px]:block pl-1">
             <LevelBadge />
           </div>
         </div>
