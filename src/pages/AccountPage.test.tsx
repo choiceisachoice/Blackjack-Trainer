@@ -12,6 +12,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  * problem into a support ticket or a chargeback.
  */
 
+const signOutAndClearLocal = vi.fn<() => Promise<void>>()
+vi.mock('../services/supabase/cloud-sync', () => ({
+  signOutAndClearLocal: () => signOutAndClearLocal(),
+}))
+
 const openBillingPortal = vi.fn<() => Promise<void>>()
 const startCheckout = vi.fn<(plan: string) => Promise<void>>()
 
@@ -33,6 +38,8 @@ beforeEach(() => {
   cleanup()
   openBillingPortal.mockReset()
   startCheckout.mockReset()
+  signOutAndClearLocal.mockReset()
+  signOutAndClearLocal.mockResolvedValue(undefined)
 })
 
 describe('AccountPage', () => {
@@ -90,5 +97,26 @@ describe('when the billing portal will not open', () => {
 
     fireEvent.click(manageButton())
     expect(openBillingPortal).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('signing out from the account page', () => {
+  it('goes through the same wipe the nav bar uses', async () => {
+    // It used to call the auth store's bare `signOut`, which revokes the session
+    // and leaves every local cache behind for the next account to inherit.
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-sign-out'))
+    await waitFor(() => expect(signOutAndClearLocal).toHaveBeenCalledOnce(), T)
+  })
+
+  it('cannot be fired twice', async () => {
+    signOutAndClearLocal.mockImplementation(() => new Promise<void>(() => {}))
+    renderPage()
+
+    fireEvent.click(screen.getByTestId('account-sign-out'))
+    await waitFor(() => expect(screen.getByTestId('account-sign-out')).toBeDisabled(), T)
+
+    fireEvent.click(screen.getByTestId('account-sign-out'))
+    expect(signOutAndClearLocal).toHaveBeenCalledTimes(1)
   })
 })

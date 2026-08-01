@@ -4,6 +4,7 @@ import { ArrowLeft, Crown, LogOut, ExternalLink, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { useEntitlementStore, useIsPro } from '../store/entitlement-store'
 import { openBillingPortal, startCheckout } from '../services/supabase/billing'
+import { signOutAndClearLocal } from '../services/supabase/cloud-sync'
 
 /** Human-readable label + tone for a subscription status. */
 function planLabel(status: string, isPro: boolean): { title: string; tone: 'gold' | 'muted' | 'warn' } {
@@ -28,7 +29,6 @@ function formatDate(ms: number | null): string | null {
 export function AccountPage() {
   const navigate = useNavigate()
   const email = useAuthStore(s => s.user?.email ?? null)
-  const signOut = useAuthStore(s => s.signOut)
   const isPro = useIsPro()
   const status = useEntitlementStore(s => s.status)
   const loaded = useEntitlementStore(s => s.loaded)
@@ -46,6 +46,7 @@ export function AccountPage() {
    * rather than support.
    */
   const [billingError, setBillingError] = useState<string | null>(null)
+  const [signingOut, setSigningOut] = useState(false)
 
   useEffect(() => {
     if (isSupabaseConfigured && !loaded) void loadEntitlement()
@@ -77,8 +78,19 @@ export function AccountPage() {
       setBusy(null)
     }
   }
+  /**
+   * The same sign-out the nav bar performs, and it was not before.
+   *
+   * This page called the auth store's bare `signOut`, which revokes the session
+   * and leaves every local cache in place — training history, achievements,
+   * level and the real-money bankroll log. `handleSignedIn` then treats all of
+   * it as belonging to whoever signs in next on this machine. Two ways out of
+   * the app, two different behaviours, and this was the wrong one.
+   */
   async function handleSignOut() {
-    await signOut()
+    if (signingOut) return
+    setSigningOut(true)
+    await signOutAndClearLocal()
     navigate('/')
   }
 
@@ -134,8 +146,13 @@ export function AccountPage() {
         <div className="surface rounded-2xl p-6 mt-4">
           <div className="text-sm uppercase tracking-wide text-content/50 font-semibold">Account</div>
           {email && <div className="mt-2 text-content">{email}</div>}
-          <button onClick={handleSignOut} className="mt-4 inline-flex items-center gap-2 text-sm text-content/60 hover:text-error transition-colors cursor-pointer">
-            <LogOut size={16} /> Sign out
+          <button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            data-testid="account-sign-out"
+            className="mt-4 inline-flex items-center gap-2 text-sm text-content/60 hover:text-error transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
+          >
+            {signingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />} Sign out
           </button>
         </div>
       </div>

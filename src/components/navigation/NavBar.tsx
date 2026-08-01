@@ -1,9 +1,10 @@
 import {
   Zap, Spade, GraduationCap, Coins, Layers, Club,
   BarChart3, Grid3x3, Trophy, BookOpen, Route, Volume2, VolumeX, Sun, Moon, LogOut,
-  Lock, Crown, Settings,
+  Lock, Crown, Settings, Loader2,
   type LucideIcon,
 } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../store/app-store'
 import type { AppMode } from '../../store/app-store'
@@ -56,6 +57,22 @@ export function NavBar() {
   const isPro = useIsPro()
   const showUpgradeModal = useUpgradePrompt(s => s.show)
   const navigate = useNavigate()
+  /**
+   * Signing out is a security action, so it does not get optimistic treatment —
+   * but it must not look broken either. Without a pending state the button did
+   * nothing visible for the whole round trip and could be fired repeatedly.
+   */
+  const [signingOut, setSigningOut] = useState(false)
+
+  const signOut = async () => {
+    if (signingOut) return
+    setSigningOut(true)
+    // `signOutAndClearLocal` clears this device before it talks to the server
+    // and never rejects, so navigating afterwards is unconditional: a failed
+    // revoke must not leave someone parked on a signed-in screen.
+    await signOutAndClearLocal()
+    navigate('/')
+  }
 
   /**
    * @param compact Drop the label until there is genuinely room for it.
@@ -194,13 +211,14 @@ export function NavBar() {
           </button>
           {signedIn && (
             <button
-              onClick={async () => { await signOutAndClearLocal(); navigate('/') }}
+              onClick={signOut}
+              disabled={signingOut}
               data-testid="sign-out"
               aria-label="Sign out"
               title="Sign out"
-              className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
+              className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
             >
-              <LogOut size={17} />
+              {signingOut ? <Loader2 size={17} className="animate-spin" /> : <LogOut size={17} />}
             </button>
           )}
           {/*

@@ -58,8 +58,42 @@ async function syncBankrollOnSignIn(userId: string): Promise<void> {
  * copy is untouched — signing back in restores everything.
  */
 export async function signOutAndClearLocal(): Promise<void> {
-  await useAuthStore.getState().signOut()
+  // 1. The wipe, first and unconditionally. It is synchronous and cannot fail on
+  //    a network, and it used to run *after* the server call — so a failed call
+  //    skipped it entirely and left the previous user's data for `handleSignedIn`
+  //    to push into whoever signed in next.
   clearLocalAppData()
+
+  // 2. Ask the server to revoke, while the access token still exists to revoke
+  //    with. Best effort: a failure here costs the remote session, not this one.
+  try {
+    await useAuthStore.getState().signOut()
+  } catch (e) {
+    console.error('server sign-out failed; the local session is cleared regardless', e)
+  }
+
+  // 3. Make certain the stored session is gone.
+  //
+  //    supabase-js returns early from `_signOut` when the API call fails with
+  //    anything other than 401/403/404 — *before* it removes the persisted
+  //    session. So on a flaky connection the token survives and the next reload
+  //    signs the user straight back in: a sign-out that does not sign anyone
+  //    out. Removing the key directly is the only way to guarantee it, and it is
+  //    narrow — only `sb-*-auth-token`, nothing else.
+  forgetStoredAuthSession()
+  useAuthStore.setState({ status: 'signedOut', session: null, user: null })
+}
+
+/** Drop any persisted Supabase auth session from this browser. */
+function forgetStoredAuthSession(): void {
+  try {
+    const doomed: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && /^sb-.*-auth-token/.test(key)) doomed.push(key)
+    }
+    doomed.forEach(key => localStorage.removeItem(key))
+  } catch { /* storage unavailable — nothing persisted, nothing to forget */ }
 }
 
 /** In-flight sign-in sync, so a repeat call joins it instead of racing it. */
