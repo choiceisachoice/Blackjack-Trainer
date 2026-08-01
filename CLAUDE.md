@@ -37,9 +37,9 @@ and a full Casino Session table.
 - **Language:** TypeScript (strict mode)
 - **Styling:** Tailwind CSS 4 (`@theme` tokens; dark-luxury palette). Two faces: **Inter**
   for the interface (`--font-sans`) and **Instrument Sans** for display type
-  (`--font-display`, used by the loading screen). Instrument Sans is self-hosted and
-  subsetted in `public/fonts`; Inter is still pulled from Google Fonts at the top of
-  `src/index.css` — see "Known gaps" below.
+  (`--font-display`, used by the loading screen). Both self-hosted and subsetted in
+  `public/fonts` with their OFL licences beside them — no runtime request leaves the origin
+  for a font, deliberately.
 - **State Management:** Zustand
 - **Animations:** Framer Motion
 - **Charts:** Recharts · **Icons:** lucide-react
