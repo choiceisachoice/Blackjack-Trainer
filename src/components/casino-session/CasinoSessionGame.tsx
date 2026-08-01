@@ -139,11 +139,19 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
 
   return (
     <div className="flex-1 flex flex-col relative overflow-hidden" style={{ background: '#0c0c0c' }}>
-      {/* Pause Overlay */}
+      {/*
+        Pause Overlay.
+
+        No entrance, and that is the point: this panel holds Resume and Quit, so
+        a stalled fade-in left the session paused behind invisible controls. The
+        rule that falls out of it, and out of every other case like it in this
+        change — an arrival is instant or moves on transform; only a *departure*
+        may fade, because a stalled departure leaves something on screen and a
+        stalled arrival leaves nothing.
+      */}
       <AnimatePresence>
         {state.isPaused && (
           <motion.div
-            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-6"
@@ -161,11 +169,11 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         )}
       </AnimatePresence>
 
-      {/* Reshuffle Notification Overlay */}
+      {/* Reshuffle Notification Overlay. Same rule as the pause panel above:
+          it exists to be read, so it arrives rather than fades in. */}
       <AnimatePresence>
         {state.showReshuffle && (
           <motion.div
-            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-40 flex items-center justify-center"

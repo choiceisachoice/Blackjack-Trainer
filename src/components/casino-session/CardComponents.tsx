@@ -161,9 +161,12 @@ export function BotStatusBadge({ status }: { status: BotStatus }) {
   return (
     <motion.span
       key={status}
-      initial={{ opacity: 0, scale: 0.8 }}
+      // Transform only. The badge is keyed on the status, so every transition
+      // remounts it and replays this entrance — an opacity entrance hid the
+      // badge afresh on each change, not merely the first, and "BUST!" is a
+      // result the player has to be able to read.
+      initial={{ scale: 0.8 }}
       animate={{
-        opacity: 1,
         scale: style.animate ? [1, 1.05, 1] : 1,
       }}
       transition={style.animate ? { repeat: Infinity, duration: 1 } : { duration: 0.2 }}

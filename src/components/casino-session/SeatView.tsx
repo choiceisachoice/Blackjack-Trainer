@@ -126,11 +126,18 @@ export function HumanSeat({
         <Hand cards={humanCards.slice(0, humanVisibleCards)} totalClass="text-sm" />
       )}
 
-      {/* Per-player settlement result label */}
+      {/*
+        Per-player settlement result label.
+
+        Transform only. This is the answer to "what just happened to my hand",
+        so a frozen frame loop must leave it small-then-settling, never absent —
+        it used to enter from `opacity: 0` and a stalled animation left the
+        player looking at a settled table with no result on it.
+      */}
       {humanSettlement && gameStep === 'settlement' && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
           className={`text-sm md:text-base font-black whitespace-nowrap drop-shadow-lg px-2 py-0.5 rounded ${
             humanSettlement.label === 'Blackjack!'
               ? 'bg-gold text-black'
