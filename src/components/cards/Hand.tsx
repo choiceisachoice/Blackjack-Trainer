@@ -127,37 +127,46 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
   const hard = hardTotal(cards)
   const computedBust = !hideFirst && hard > 21 && softTotal(cards) > 21
 
-  /*
-    Delay showing BUST text by 500ms when a new card causes bust, so it appears
-    after the card slide animation completes.
-
-    KNOWN DEFECT — see audit item 12. This effect has no dependency array, so it
-    re-runs after *every* render and its cleanup cancels the pending 500ms
-    timer. Any unrelated re-render inside that window — likely in the casino
-    loop — kills the timer and it is never restarted, so the player sees the
-    total instead of "BUST".
-
-    The linter's suggested dependency array does not fix it: `prevCardCountSnapshot`
-    changes on the very next render, so the effect re-runs and cancels anyway.
-    The real fix is to stop the timer being owned by the effect's cleanup, which
-    is a change to live table timing and wants a test that reproduces the swallow
-    first. Left deliberately, recorded rather than guessed at.
-  */
+  // Delay showing BUST text by 500ms when a new card causes bust, so it appears
+  // after the card slide animation completes.
   const [showBustText, setShowBustText] = useState(false)
+  /** Which card count the running delay belongs to; -1 when none is running. */
   const bustDelayCardCount = useRef(-1)
+  /** The delay itself, owned here rather than by the effect's cleanup. */
+  const bustTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
-    if (computedBust && cards.length > prevCardCountSnapshot) {
-      // New card causes bust → delay display
+    const newCardCausedBust = computedBust && cards.length > prevCardCountSnapshot
+
+    // Start the delay once per bust. The guard on `bustDelayCardCount` is what
+    // makes this idempotent: a re-render during the wait finds the delay already
+    // claimed for this card count and leaves it alone.
+    if (newCardCausedBust && bustDelayCardCount.current !== cards.length) {
       bustDelayCardCount.current = cards.length
       setShowBustText(false)
-      const t = setTimeout(() => setShowBustText(true), 500)
-      return () => clearTimeout(t)
+      if (bustTimer.current) clearTimeout(bustTimer.current)
+      bustTimer.current = setTimeout(() => {
+        bustTimer.current = null
+        setShowBustText(true)
+      }, 500)
+      return
     }
+
+    // Not in an active delay → sync immediately. Covers the hand resetting, a
+    // hand that never busted, and a bust already on screen.
     if (bustDelayCardCount.current !== cards.length) {
-      // Not in an active bust delay → sync immediately
       setShowBustText(computedBust)
     }
-  })
+  }, [computedBust, cards.length, prevCardCountSnapshot])
+
+  // The only place the delay is cancelled. It used to be cancelled by the
+  // effect's cleanup, which runs after *every* render — so any unrelated
+  // re-render inside the 500ms killed it, and nothing restarted it: by then the
+  // card-count snapshot had caught up and neither branch above fires again. The
+  // player was shown the total where the table meant to say BUST.
+  useEffect(() => () => {
+    if (bustTimer.current) clearTimeout(bustTimer.current)
+  }, [])
 
   // Update prevCardCount ref after all reads
   useEffect(() => {
