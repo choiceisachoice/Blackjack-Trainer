@@ -116,6 +116,15 @@ export function SpeedDrill() {
   // Mirrors currentIndex so the drill interval can read it without doing side
   // effects inside a setState updater (which React runs twice under StrictMode).
   const currentIndexRef = useRef(0)
+  /**
+   * When the drill's interval was created, on the same clock the countdown reads.
+   *
+   * The interval fires on a fixed schedule from this instant, so the moment any
+   * given card runs out is *knowable* — `start + (index + 1) * speedMs` — rather
+   * than something a second, independent animation has to approximate.
+   */
+  const drillStartedAt = useRef(0)
+  const countdownRef = useRef<HTMLDivElement | null>(null)
 
   // Input state
   const [userAnswer, setUserAnswer] = useState(0)
@@ -175,6 +184,7 @@ export function SpeedDrill() {
 
     if (playCardSound) soundEngine.cardDeal()
     currentIndexRef.current = 0
+    drillStartedAt.current = performance.now()
     timerRef.current = setInterval(() => {
       // Side effects live here, not inside the setState updater.
       const prev = currentIndexRef.current
@@ -190,6 +200,42 @@ export function SpeedDrill() {
 
     return stopTimer
   }, [phase, cards.length, speedMs, stopTimer, playCardSound])
+
+  /**
+   * The countdown, driven off the interval's own schedule.
+   *
+   * It used to be a separate animation with a matching duration — two clocks for
+   * one fact, throttled by different rules, so the bar could not be relied on to
+   * empty when the card actually changed. And when frames stall an animation
+   * simply stops reporting: the bar sat at "a full second left" over a card that
+   * had already gone, which is worse than showing nothing.
+   *
+   * Reading `dueAt - now` means the bar cannot disagree with the interval by
+   * more than a frame, and a stall leaves it stale for exactly as long as the
+   * frames are stalled instead of lying indefinitely.
+   *
+   * Written straight to the node rather than through state: this runs every
+   * frame for the whole drill, and re-rendering the card that many times a
+   * second to move one bar would be the wrong trade — the same reason the
+   * loading screen writes its own transforms.
+   *
+   * Declared after the interval effect on purpose, so `drillStartedAt` is set
+   * before the first frame reads it.
+   */
+  useEffect(() => {
+    if (phase !== 'drill') return
+    let raf = 0
+    const frame = (now: number) => {
+      const dueAt = drillStartedAt.current + (currentIndexRef.current + 1) * speedMs
+      const left = (dueAt - now) / speedMs
+      if (countdownRef.current) {
+        countdownRef.current.style.transform = `scaleX(${left < 0 ? 0 : left > 1 ? 1 : left})`
+      }
+      raf = requestAnimationFrame(frame)
+    }
+    raf = requestAnimationFrame(frame)
+    return () => cancelAnimationFrame(raf)
+  }, [phase, speedMs])
 
   const handleSubmit = useCallback(() => {
     const tolerance = isFractional ? 0.5 : 0
@@ -377,14 +423,15 @@ export function SpeedDrill() {
           </div>
         </motion.div>
 
-        {/* Countdown bar */}
+        {/* Countdown bar. Position is written by the frame loop above. */}
         <div className="w-[250px] h-1 bg-contrast/10 rounded-full overflow-hidden">
-          <motion.div
-            key={currentIndex}
-            className="h-full bg-gold/70 rounded-full"
-            initial={{ width: '100%' }}
-            animate={{ width: '0%' }}
-            transition={{ duration: speedMs / 1000, ease: 'linear' }}
+          <div
+            ref={countdownRef}
+            data-testid="drill-countdown"
+            className="h-full w-full bg-gold/70 rounded-full origin-left"
+            // `scaleX`, not `width`: width forces layout on every frame, and this
+            // one runs continuously for the length of the drill.
+            style={{ transform: 'scaleX(1)', willChange: 'transform' }}
           />
         </div>
 

@@ -95,3 +95,78 @@ describe('the drill card under a frozen animation', () => {
     expect(effectiveOpacity(face)).toBe(1)
   })
 })
+
+/**
+ * The countdown bar must measure the thing it sits under.
+ *
+ * Cards advance on a `setInterval`; the bar used to be an independent animation
+ * with a matching duration. Two clocks for one fact — and they are throttled by
+ * different rules, so the bar could not be relied on to reach zero when the card
+ * actually changed. Worse, when frames stall the animation simply stops
+ * reporting while the interval keeps firing: a bar frozen at "a full second
+ * left" over a card that has already gone.
+ *
+ * It now reads the same wall clock and the same schedule as the interval, so it
+ * cannot disagree by more than a frame. `performance.now()` and
+ * `requestAnimationFrame` are both faked here and advance with the timers,
+ * which is what makes this measurable rather than assertable by eye.
+ */
+describe('the countdown bar', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    useAppStore.setState({
+      currentMode: 'speedDrill',
+      selectedSystem: CountingSystemId.HiLo,
+      selectedRules: DEFAULT_RULES,
+    })
+  })
+  afterEach(() => { vi.useRealTimers() })
+
+  /** How full the bar is, 0..1, read off the transform the frame loop writes. */
+  const barFill = (): number => {
+    const el = document.querySelector('[data-testid="drill-countdown"]') as HTMLElement | null
+    if (!el) throw new Error('countdown bar not found')
+    const m = /scaleX\(([\d.]+)\)/.exec(el.style.transform)
+    if (!m) throw new Error(`bar is not driven by a transform: "${el.style.transform}"`)
+    return Number(m[1])
+  }
+
+  it('runs on a transform, never on width', () => {
+    // Animating `width` forces layout on every frame; this one runs for the
+    // whole drill, so it is the worst place in the app to do that.
+    startDrill()
+    const el = document.querySelector('[data-testid="drill-countdown"]') as HTMLElement
+    expect(el.style.transform).toMatch(/scaleX/)
+    expect(el.style.width).toBe('')
+  })
+
+  it('is full when a card appears', () => {
+    startDrill()
+    act(() => { vi.advanceTimersByTime(16) })
+    expect(barFill()).toBeGreaterThan(0.95)
+  })
+
+  it('is about half way through the card period', () => {
+    startDrill()
+    act(() => { vi.advanceTimersByTime(500) })
+    const fill = barFill()
+    expect(fill).toBeGreaterThan(0.4)
+    expect(fill).toBeLessThan(0.6)
+  })
+
+  it('empties as the card it measures runs out', () => {
+    // The property the two-clock version could not promise: the bar reaching
+    // zero and the card changing are the same moment.
+    startDrill()
+    act(() => { vi.advanceTimersByTime(980) })
+    expect(screen.getByText(/Card 1 \//)).toBeInTheDocument()
+    expect(barFill()).toBeLessThan(0.1)
+  })
+
+  it('refills for the next card', () => {
+    startDrill()
+    act(() => { vi.advanceTimersByTime(1016) })
+    expect(screen.getByText(/Card 2 \//)).toBeInTheDocument()
+    expect(barFill()).toBeGreaterThan(0.9)
+  })
+})
