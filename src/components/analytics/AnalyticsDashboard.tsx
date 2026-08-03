@@ -212,6 +212,7 @@ export function AnalyticsDashboard() {
   const loadStats = useStatsStore(s => s.loadStats)
   const getTrainingStreak = useStatsStore(s => s.getTrainingStreak)
   const resetAllStats = useStatsStore(s => s.resetAllStats)
+  const [resetError, setResetError] = useState<string | null>(null)
   const setMode = useAppStore(s => s.setMode)
   const isPro = useIsPro()
 
@@ -496,19 +497,43 @@ export function AnalyticsDashboard() {
           </>
         )}
 
-        {/* Reset */}
-        <section className="pt-2 pb-8">
+        {/*
+          Reset.
+
+          It said "reset all training data" and cleared the session history and
+          nothing else — `storage.clearAll()` removes one key. Level, XP,
+          achievements and challenge progress all survived, so anyone asking for
+          a clean slate did not get one and was told they had. Wording that
+          overstates a destructive, irreversible action is the worst kind to get
+          wrong, so the promise now matches the behaviour rather than the other
+          way round: wiping the earned rewards too would be a bigger decision
+          than a relabelling, and belongs in a deliberate "delete everything"
+          feature, not here.
+        */}
+        <section className="pt-2 pb-8 flex flex-col items-start gap-2">
           <button
-            onClick={() => {
-              if (window.confirm('Are you sure you want to reset all training data? This cannot be undone.')) {
-                resetAllStats()
+            onClick={async () => {
+              if (!window.confirm(
+                'Delete your training history? Your sessions and the analytics '
+                + 'built from them go for good. Your level, XP and achievements stay.'
+              )) return
+              setResetError(null)
+              try {
+                await resetAllStats()
+              } catch (e) {
+                // Previously fire-and-forget: a failed clear left the old data on
+                // screen with nothing said, after the user had confirmed.
+                setResetError(e instanceof Error ? e.message : 'Could not delete your history.')
               }
             }}
             className="text-sm text-error/60 hover:text-error transition-colors cursor-pointer"
             data-testid="reset-all-stats"
           >
-            Reset All Data
+            Delete training history
           </button>
+          {resetError && (
+            <p className="text-sm text-error" role="alert">{resetError}</p>
+          )}
         </section>
       </div>
     </div>

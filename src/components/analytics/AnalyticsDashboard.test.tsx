@@ -132,6 +132,36 @@ describe('AnalyticsDashboard', () => {
     confirmSpy.mockRestore()
   })
 
+  it('tells the user when the deletion fails', async () => {
+    // It was fire-and-forget: a failed clear left the old data on screen with
+    // nothing said, after the user had already confirmed a destructive action.
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const resetSpy = vi.fn().mockRejectedValue(new Error('offline'))
+    useStatsStore.setState({ lifetimeStats: emptyLifetimeStats, resetAllStats: resetSpy })
+    render(<AnalyticsDashboard />)
+
+    fireEvent.click(screen.getByTestId('reset-all-stats'))
+
+    expect(await screen.findByRole('alert', {}, { timeout: 5000 })).toHaveTextContent('offline')
+    confirmSpy.mockRestore()
+  })
+
+  it('promises only what it actually deletes', () => {
+    // The old wording said "reset all training data". It cleared the session
+    // history and nothing else — level, XP, achievements and challenge progress
+    // all survived, so anyone asking for a clean slate was told they had one.
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    useStatsStore.setState({ lifetimeStats: emptyLifetimeStats, resetAllStats: vi.fn() })
+    render(<AnalyticsDashboard />)
+
+    fireEvent.click(screen.getByTestId('reset-all-stats'))
+
+    const asked = confirmSpy.mock.calls[0][0] as string
+    expect(asked).toMatch(/level|XP|achievements/i)
+    expect(asked).not.toMatch(/all training data/i)
+    confirmSpy.mockRestore()
+  })
+
   it('does not reset when confirmation is cancelled', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
     const resetSpy = vi.fn().mockResolvedValue(undefined)
