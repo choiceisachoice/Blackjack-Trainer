@@ -6,6 +6,7 @@ import { handleSignedIn } from './services/supabase/cloud-sync'
 import { useEntitlementStore } from './store/entitlement-store'
 import { startCheckout, consumePendingCheckout } from './services/supabase/billing'
 import { ProtectedRoute } from './routes/ProtectedRoute'
+import { ScrollToTop } from './routes/ScrollToTop'
 import { AppLoader } from './components/common/AppLoader'
 import { IntroGate } from './components/common/IntroGate'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
@@ -148,6 +149,9 @@ function App() {
       here, and there is nowhere safer to send someone from the root.
     */}
     <ErrorBoundary fullScreen>
+    {/* Outside Suspense: the scroll has to be reset even when the next route's
+        chunk is still loading, or the fallback renders at the old offset. */}
+    <ScrollToTop />
     <Suspense fallback={<RouteLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
