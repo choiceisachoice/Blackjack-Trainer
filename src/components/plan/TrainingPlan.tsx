@@ -28,10 +28,11 @@ import {
   type StageTrend,
   type StageEffort,
 } from '../../services/curriculum'
-import { SkillAssessment, PlacementResult } from './SkillAssessment'
+import { StartingPoint } from './StartingPoint'
 import {
   getProfile,
   setProfile,
+  profileForLevel,
   goalStage,
   isBeyondGoal,
   derivePace,
@@ -45,20 +46,14 @@ import { weekStartKey } from '../../services/date-utils'
 import { deriveRhythm, rhythmMessage } from '../../services/training-rhythm'
 import { WelcomeScreen } from '../onboarding/WelcomeScreen'
 import { hasSeenWelcome, setWelcomeSeen } from '../../services/onboarding'
-import type { Placement } from '../../services/skill-assessment'
+import { setRecommendation } from '../../services/recommendation'
 
 /**
  * Used only when the profile is somehow missing while a placement exists —
  * storage cleared between the two writes, say. The full path and a middling
  * pace are the assumptions that hide the least from the learner.
  */
-const FALLBACK_PROFILE: LearnerProfile = {
-  goal: 'serious',
-  commitment: 'casual',
-  casino: 'never',
-  maths: 'okay',
-  source: 'other',
-}
+const FALLBACK_PROFILE: LearnerProfile = profileForLevel()
 
 /**
  * The training plan: one ordered path, entered at the stage the placement test
@@ -99,7 +94,6 @@ export function TrainingPlan({
   const challengeState = useChallengeStore(s => s.state)
 
   const [placement, setPlacementState] = useState(() => getPlacement())
-  const [justPlaced, setJustPlaced] = useState<Placement | null>(null)
   const [profile, setProfileState] = useState<LearnerProfile | null>(() => getProfile())
   const [readStages, setReadStages] = useState(() => getReadStages())
   // Only ever shown to an account that has neither been greeted nor placed —
@@ -127,44 +121,35 @@ export function TrainingPlan({
     )
   }
 
-  // ── 1. No placement yet → offer the test, but never insist ──
-  if (!placement && !justPlaced && !skipped) {
+  // ── 1. Not placed yet → the one question, but never insist ──
+  //
+  // There is no step 2 any more. The answer used to lead to a result screen
+  // explaining the placement, which was a page of reading standing between
+  // someone and the app they had just signed up for. Answering now drops
+  // straight through to the plan — which is the home screen — and the reason
+  // for the placement is carried by the recommendation that appears there.
+  if (!placement && !skipped) {
     return (
-      <SkillAssessment
-        isPro={isPro}
+      <StartingPoint
         onSkip={() => {
           setPlacementSkipped()
           setSkipped(true)
         }}
-        onDone={(p, answered) => {
-          setPlacement(p.stage)
-          setProfile(answered)
-          setProfileState(answered)
-          setJustPlaced(p)
+        onPick={option => {
+          const derived = profileForLevel()
+          setPlacement(option.stage)
+          setProfile(derived)
+          setProfileState(derived)
+          // Remembered so the home screen can open with a first move that
+          // matches the answer, rather than the same greeting for everyone.
+          setRecommendation(option.value)
+          setPlacementState(option.stage)
         }}
       />
     )
   }
 
-  // ── 2. Just finished the test → show where they landed ──
-  if (justPlaced) {
-    return (
-      <div className="app-canvas flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="max-w-2xl mx-auto py-8">
-          <PlacementResult
-            placement={justPlaced}
-            profile={profile ?? FALLBACK_PROFILE}
-            onStart={() => {
-              setPlacementState(justPlaced.stage)
-              setJustPlaced(null)
-            }}
-          />
-        </div>
-      </div>
-    )
-  }
-
-  // ── 3. The plan ──
+  // ── 2. The plan ──
   // Works with or without a placement. Someone who skipped the test still gets
   // the real path — the curriculum is a fact about card counting, not a
   // personalisation — they simply start at the beginning of it.
@@ -210,7 +195,6 @@ export function TrainingPlan({
     clearPlacementSkip()
     setSkipped(false)
     setPlacementState(null)
-    setJustPlaced(null)
   }
 
   /**
@@ -228,7 +212,17 @@ export function TrainingPlan({
 
   return (
     <div
-      className={embedded ? 'w-full' : 'app-canvas flex-1 overflow-y-auto p-4 md:p-6'}
+      className={
+        embedded
+          // Centring lives here rather than in the slot content. The slots are
+          // handed `max-w-*` blocks, and a max-width inside a plain full-width
+          // parent is left-aligned, not centred — so the title and the
+          // recommendation sat hard left while the plan below them (which has
+          // its own `mx-auto`) was centred. Making the wrapper a centring
+          // column fixes every slot at once instead of one component at a time.
+          ? 'w-full flex flex-col items-center'
+          : 'app-canvas flex-1 overflow-y-auto p-4 md:p-6'
+      }
       data-testid="training-plan"
     >
       {before}
@@ -553,7 +547,9 @@ export function TrainingPlan({
           data-testid="plan-retake"
           className="mt-8 inline-flex items-center gap-2 text-sm text-content/50 hover:text-content cursor-pointer"
         >
-          <RotateCcw size={15} /> {placed ? 'Retake the placement test' : 'Take the placement test'}
+          {/* No longer a "test" — it is one question, and calling it a test
+              makes it sound like something worth avoiding. */}
+          <RotateCcw size={15} /> {placed ? 'Change where I start' : 'Choose where I start'}
         </button>
 
         {!embedded && <div aria-hidden className="w-full h-16 shrink-0" />}

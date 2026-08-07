@@ -8,7 +8,6 @@ import { useChallengeStore } from '../../store/challenge-store'
 import { stageXP } from '../../services/stage-rewards'
 import { getPlacement, getReadStages, hasSkippedPlacement, CURRICULUM } from '../../services/curriculum'
 import { getProfile } from '../../services/learner-profile'
-import { buildChecks } from '../../services/skill-assessment'
 import type { TrainingMode, TrainingSessionResult } from '../../services/stats-types'
 
 // Pro state is the one input the plan cannot derive from sessions, so it is the
@@ -70,10 +69,10 @@ describe('TrainingPlan', () => {
     localStorage.removeItem('bjt_welcome_seen')
     render(<TrainingPlan />)
     expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
-    expect(screen.queryByTestId('skill-assessment')).toBeNull()
+    expect(screen.queryByTestId('starting-point')).toBeNull()
 
     fireEvent.click(screen.getByTestId('welcome-start'))
-    expect(screen.getByTestId('skill-assessment')).toBeInTheDocument()
+    expect(screen.getByTestId('starting-point')).toBeInTheDocument()
   })
 
   it('greets a Pro account with its own copy', () => {
@@ -93,7 +92,7 @@ describe('TrainingPlan', () => {
     localStorage.setItem('bjt_welcome_seen', 'true')
     render(<TrainingPlan />)
     expect(screen.queryByTestId('welcome-screen')).toBeNull()
-    expect(screen.getByTestId('skill-assessment')).toBeInTheDocument()
+    expect(screen.getByTestId('starting-point')).toBeInTheDocument()
   })
 
   it('does not greet a placed learner who is retaking the test', () => {
@@ -101,40 +100,59 @@ describe('TrainingPlan', () => {
     render(<TrainingPlan />)
     fireEvent.click(screen.getByTestId('plan-retake'))
     expect(screen.queryByTestId('welcome-screen')).toBeNull()
-    expect(screen.getByTestId('skill-assessment')).toBeInTheDocument()
+    expect(screen.getByTestId('starting-point')).toBeInTheDocument()
   })
 
   it('sends an unplaced user to the assessment after the greeting', () => {
     localStorage.setItem('bjt_welcome_seen', 'true')
     render(<TrainingPlan />)
-    expect(screen.getByTestId('skill-assessment')).toBeInTheDocument()
+    expect(screen.getByTestId('starting-point')).toBeInTheDocument()
     expect(screen.queryByTestId('training-plan')).not.toBeInTheDocument()
   })
 
-  it('walks assessment → result → plan, and remembers the placement', () => {
+  it('goes question → plan in one click, with nothing in between', () => {
+    // The whole point of the change: there is no second question, no card test
+    // and no result screen. One answer and the app is open.
     render(<TrainingPlan />)
 
-    const checks = buildChecks()
-    // Intent first: everyone answers what they want and how much time they have.
-    fireEvent.click(screen.getByTestId('goal-serious'))
-    fireEvent.click(screen.getByTestId('time-casual'))
-    fireEvent.click(screen.getByTestId('casino-never'))
-    fireEvent.click(screen.getByTestId('maths-okay'))
-    fireEvent.click(screen.getByTestId('source-search'))
     fireEvent.click(screen.getByTestId('entry-new'))
-    // Answer everything wrong — a true beginner lands at the rules.
-    for (let i = 0; i < 10; i++) {
-      const on = checks.find(c => screen.queryByTestId(`check-${c.stage}-${c.options[0]}`))
-      if (!on) break
-      fireEvent.click(screen.getByTestId(`check-${on.stage}-${on.options.find(o => o !== on.correct)}`))
-      fireEvent.click(screen.getByTestId('check-next'))
-    }
 
-    expect(screen.getByTestId('placement-result')).toBeInTheDocument()
-    expect(getPlacement()).toBe('rules')
-
-    fireEvent.click(screen.getByTestId('placement-start'))
     expect(screen.getByTestId('training-plan')).toBeInTheDocument()
+    expect(screen.queryByTestId('starting-point')).toBeNull()
+    expect(getPlacement()).toBe('rules')
+  })
+
+  it('places each answer at its own stage', () => {
+    // Every rung has to lead somewhere different, or two of the options are
+    // secretly the same question.
+    const cases = [
+      ['entry-new', 'rules'],
+      ['entry-rules', 'basic-strategy'],
+      ['entry-strategy', 'hi-lo'],
+      ['entry-counting', 'true-count'],
+      ['entry-truecount', 'deviations'],
+      ['entry-deviations', 'bet-spread'],
+      ['entry-table', 'table'],
+    ] as const
+
+    for (const [testId, stage] of cases) {
+      localStorage.removeItem('bjt_placement')
+      const { unmount } = render(<TrainingPlan />)
+      fireEvent.click(screen.getByTestId(testId))
+      expect(getPlacement(), testId).toBe(stage)
+      unmount()
+    }
+  })
+
+  it('writes a usable profile without asking for one', () => {
+    render(<TrainingPlan />)
+    fireEvent.click(screen.getByTestId('entry-strategy'))
+
+    // The goal and pace questions are gone, but the plan still needs both.
+    const profile = getProfile()
+    expect(profile).not.toBeNull()
+    expect(profile?.goal).toBe('serious')
+    expect(profile?.commitment).toBe('casual')
   })
 
   it('shows the whole path with the placed stage up next', () => {
@@ -534,18 +552,22 @@ describe('TrainingPlan', () => {
 
     it('offers a way past the test on the first question', () => {
       render(<TrainingPlan />)
-      expect(screen.getByTestId('assessment-skip')).toBeInTheDocument()
+      expect(screen.getByTestId('starting-point-skip')).toBeInTheDocument()
     })
 
-    it('stops offering the exit once answering has begun', () => {
+    it('leaves the question entirely once it is answered', () => {
+      // There is only one question now, so "stop offering the exit after the
+      // first answer" has become "the whole screen is done after the first
+      // answer" — exit included.
       render(<TrainingPlan />)
-      fireEvent.click(screen.getByTestId('goal-curious'))
-      expect(screen.queryByTestId('assessment-skip')).toBeNull()
+      fireEvent.click(screen.getByTestId('entry-strategy'))
+      expect(screen.queryByTestId('starting-point-skip')).toBeNull()
+      expect(screen.queryByTestId('starting-point')).toBeNull()
     })
 
     it('shows the real plan to someone who skipped, not an empty shell', () => {
       render(<TrainingPlan />)
-      fireEvent.click(screen.getByTestId('assessment-skip'))
+      fireEvent.click(screen.getByTestId('starting-point-skip'))
 
       expect(screen.getByTestId('training-plan')).toBeInTheDocument()
       // The whole path, from the beginning — the curriculum is a fact about
@@ -557,33 +579,33 @@ describe('TrainingPlan', () => {
 
     it('claims nothing was skipped when no test was taken', () => {
       render(<TrainingPlan />)
-      fireEvent.click(screen.getByTestId('assessment-skip'))
+      fireEvent.click(screen.getByTestId('starting-point-skip'))
       expect(screen.queryByText('skipped by placement')).toBeNull()
     })
 
     it('remembers the decision instead of asking again', () => {
       const { unmount } = render(<TrainingPlan />)
-      fireEvent.click(screen.getByTestId('assessment-skip'))
+      fireEvent.click(screen.getByTestId('starting-point-skip'))
       expect(hasSkippedPlacement()).toBe(true)
       unmount()
 
       render(<TrainingPlan />)
       expect(screen.getByTestId('training-plan')).toBeInTheDocument()
-      expect(screen.queryByTestId('skill-assessment')).toBeNull()
+      expect(screen.queryByTestId('starting-point')).toBeNull()
     })
 
     it('keeps the test one click away, and taking it works', () => {
       render(<TrainingPlan />)
-      fireEvent.click(screen.getByTestId('assessment-skip'))
+      fireEvent.click(screen.getByTestId('starting-point-skip'))
 
       fireEvent.click(screen.getByTestId('plan-take-test'))
-      expect(screen.getByTestId('skill-assessment')).toBeInTheDocument()
+      expect(screen.getByTestId('starting-point')).toBeInTheDocument()
       expect(hasSkippedPlacement()).toBe(false)
     })
 
     it('lets an unplaced learner start a drill straight away', () => {
       render(<TrainingPlan />)
-      fireEvent.click(screen.getByTestId('assessment-skip'))
+      fireEvent.click(screen.getByTestId('starting-point-skip'))
       fireEvent.click(screen.getByTestId('plan-drill-hi-lo'))
       expect(useAppStore.getState().currentMode).toBe('speedDrill')
     })
@@ -662,6 +684,6 @@ describe('TrainingPlan', () => {
     render(<TrainingPlan />)
 
     fireEvent.click(screen.getByTestId('plan-retake'))
-    expect(screen.getByTestId('skill-assessment')).toBeInTheDocument()
+    expect(screen.getByTestId('starting-point')).toBeInTheDocument()
   })
 })

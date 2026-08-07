@@ -8,15 +8,11 @@ import {
   nextGoalUp,
   sessionsPerWeek,
   derivePace,
-  playsForRealMoney,
-  mathsMultiplier,
-  CASINO_OPTIONS,
-  MATHS_OPTIONS,
-  SOURCE_OPTIONS,
   estimateToGoal,
   isBeyondGoal,
   getProfile,
   setProfile,
+  profileForLevel,
   type Goal,
 } from './learner-profile'
 import { CURRICULUM, stageIndex } from './curriculum'
@@ -178,27 +174,26 @@ describe('persistence', () => {
   })
 
   it('round-trips', () => {
-    const full = {
-      goal: 'profit', commitment: 'regular', casino: 'real', maths: 'slow', source: 'video',
-    } as const
+    const full = { goal: 'profit', commitment: 'regular' } as const
     setProfile(full)
     expect(getProfile()).toEqual(full)
   })
 
-  it('keeps a profile saved before the extra questions existed', () => {
-    // An account that answered the earlier two-question version must not be
-    // marched through the whole thing again.
-    localStorage.setItem('bjt_learner_profile', JSON.stringify({ goal: 'profit', commitment: 'regular' }))
-    expect(getProfile()).toEqual({
-      goal: 'profit', commitment: 'regular', casino: 'never', maths: 'okay', source: 'other',
-    })
+  it('loads a profile written before the extra answers were dropped', () => {
+    // Accounts still carry `casino`, `maths` and `source` from the old
+    // questionnaire. They must load, not be rejected — being logged out of your
+    // own plan by an update is worse than the fields being useless.
+    localStorage.setItem('bjt_learner_profile', JSON.stringify({
+      goal: 'profit', commitment: 'regular', casino: 'real', maths: 'slow', source: 'video',
+    }))
+    expect(getProfile()).toEqual({ goal: 'profit', commitment: 'regular' })
   })
 
-  it('replaces nonsense in the optional answers instead of discarding the profile', () => {
+  it('ignores nonsense in the dropped fields rather than discarding the profile', () => {
     localStorage.setItem('bjt_learner_profile', JSON.stringify({
       goal: 'curious', commitment: 'light', casino: 'mars', maths: 7, source: null,
     }))
-    expect(getProfile()).toMatchObject({ goal: 'curious', casino: 'never', maths: 'okay', source: 'other' })
+    expect(getProfile()).toEqual({ goal: 'curious', commitment: 'light' })
   })
 
   it('still rejects a profile whose goal is not a real option', () => {
@@ -217,41 +212,52 @@ describe('persistence', () => {
   })
 })
 
-describe('the universal questions', () => {
-  it('offers options everyone can answer without knowing any jargon', () => {
-    const jargon = /true count|running count|deviation|illustrious|hi-lo/i
-    for (const o of [...CASINO_OPTIONS, ...MATHS_OPTIONS, ...SOURCE_OPTIONS]) {
-      expect(o.label, o.value).not.toMatch(jargon)
-      expect(o.hint.length, o.value).toBeGreaterThan(0)
+describe('the derived starting profile', () => {
+  // The goal and pace questions are no longer asked. Both are derived, and both
+  // stay editable in the plan — these tests pin the defaults so a change to
+  // them has to be deliberate.
+
+  it('gives everyone the full path rather than guessing a smaller goal', () => {
+    // Narrowing someone's path on their behalf hides later stages from them.
+    // The full path shows everything and closes nothing off.
+    expect(profileForLevel().goal).toBe('serious')
+    expect(goalStage(profileForLevel().goal)).toBe(CURRICULUM[CURRICULUM.length - 1].id)
+  })
+
+  it('marks nothing as beyond the goal for a freshly derived profile', () => {
+    const { goal } = profileForLevel()
+    for (const stage of CURRICULUM) {
+      expect(isBeyondGoal(stage.id, goal), stage.id).toBe(false)
     }
   })
 
-  it('flags only the learner with money actually at risk', () => {
-    expect(playsForRealMoney('real')).toBe(true)
-    expect(playsForRealMoney('online')).toBe(false)
-    expect(playsForRealMoney('never')).toBe(false)
+  it('starts on a middling pace, not the extremes', () => {
+    const { commitment } = profileForLevel()
+    const rates = COMMITMENT_OPTIONS.map(o => o.sessionsPerWeek)
+    const mine = sessionsPerWeek(commitment)
+    expect(mine).toBeGreaterThan(Math.min(...rates))
+    expect(mine).toBeLessThan(Math.max(...rates))
   })
 
-  it('asks for more repetition where the arithmetic bites, and nowhere else', () => {
-    expect(mathsMultiplier('quick')).toBe(1)
-    expect(mathsMultiplier('okay')).toBeGreaterThan(1)
-    expect(mathsMultiplier('slow')).toBeGreaterThan(mathsMultiplier('okay'))
+  it('produces a profile that survives a save and load', () => {
+    setProfile(profileForLevel())
+    expect(getProfile()).toEqual(profileForLevel())
+  })
+})
+
+describe('the estimate no longer bends to a guessed input', () => {
+  it('depends only on where you are, where you are going, and your pace', () => {
+    // The arithmetic multiplier went with the mental-maths question. Two calls
+    // with the same three arguments must now be identical — there is no fourth
+    // input left to make them differ.
+    const a = estimateToGoal('rules', 'serious', 'casual')
+    const b = estimateToGoal('rules', 'serious', 'casual')
+    expect(a).toEqual(b)
   })
 
-  it('lengthens the estimate for someone slow at sums', () => {
-    const quick = estimateToGoal('rules', 'serious', 'casual', 'quick')
-    const slow = estimateToGoal('rules', 'serious', 'casual', 'slow')
-    expect(slow.sessions).toBeGreaterThan(quick.sessions)
-    expect(slow.stages).toBe(quick.stages)
-  })
-
-  it('leaves the recall-only stages alone', () => {
-    // Basic strategy is memory, not arithmetic — its requirement must not move.
-    const onlyRecall = estimateToGoal('basic-strategy', 'curious', 'casual', 'slow')
-    const baseline = estimateToGoal('basic-strategy', 'curious', 'casual', 'quick')
-    const strategyOnly = estimateToGoal('basic-strategy', 'stop-losing', 'casual', 'slow')
-    expect(onlyRecall.sessions).toBeGreaterThan(baseline.sessions) // spans hi-lo + true-count
-    expect(strategyOnly.sessions).toBeGreaterThan(0)
+  it('counts exactly what the curriculum demands, with nothing added', () => {
+    const demanded = CURRICULUM.reduce((n, s) => n + (s.drill?.minSessions ?? 0), 0)
+    expect(estimateToGoal('rules', 'serious', 'casual').sessions).toBe(demanded)
   })
 })
 

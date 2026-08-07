@@ -42,9 +42,12 @@ export function buildWelcomeCopy(isPro: boolean): WelcomeCopy {
   // Kept to one line each. The welcome screen has to be one complete thought
   // that fits on a laptop without scrolling; three paragraphs of explanation
   // pushed the only button off a 600px window.
+  // "A few questions, with real cards" was true of the old placement test and
+  // became a lie the moment that test was replaced by a single question. The
+  // promise a welcome screen makes has to be the one the next screen keeps.
   const shared: WelcomeStep = {
-    title: 'Answer a few questions',
-    body: 'Short ones, with real cards. Most people answer two.',
+    title: 'Answer one question',
+    body: 'Where you are starting from. That is the only thing we ask.',
   }
 
   if (isPro) {

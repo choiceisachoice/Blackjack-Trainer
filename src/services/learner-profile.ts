@@ -135,77 +135,6 @@ export function sessionsPerWeek(commitment: Commitment): number {
   return COMMITMENT_OPTIONS.find(o => o.value === commitment)?.sessionsPerWeek ?? 5
 }
 
-// ── Table experience ─────────────────────────────────────────────────
-
-export type CasinoExperience = 'never' | 'online' | 'real'
-
-export interface ChoiceOption<T extends string> {
-  value: T
-  label: string
-  hint: string
-}
-
-/**
- * Whether the learner has actually sat at a table.
- *
- * Everyone can answer it, which is the point — it belongs in the block a
- * beginner meets before any question about counting. It also decides whether
- * the app should be talking to someone who has real money at risk.
- */
-export const CASINO_OPTIONS: ChoiceOption<CasinoExperience>[] = [
-  { value: 'never', label: 'Never — I’ve only seen it in films', hint: 'No table time at all. That is a fine place to start.' },
-  { value: 'online', label: 'Online or with friends', hint: 'You’ve played hands, just not in a casino.' },
-  { value: 'real', label: 'Yes, in a real casino', hint: 'You know what the table feels like with money on it.' },
-]
-
-/** Whether this learner has money at risk today. */
-export function playsForRealMoney(casino: CasinoExperience): boolean {
-  return casino === 'real'
-}
-
-// ── Mental arithmetic ────────────────────────────────────────────────
-
-export type MathsComfort = 'quick' | 'okay' | 'slow'
-
-/**
- * How comfortable the learner is doing small sums under time pressure.
- *
- * Not a personality quiz: the true-count conversion is division done in your
- * head while a dealer waits, and it is the single stage where this makes a
- * measurable difference to how many repetitions someone needs.
- */
-export const MATHS_OPTIONS: ChoiceOption<MathsComfort>[] = [
-  { value: 'quick', label: 'Quick — small sums are automatic', hint: 'Dividing by three in your head is no trouble.' },
-  { value: 'okay', label: 'Fine, given a second', hint: 'You get there, just not instantly.' },
-  { value: 'slow', label: 'Honestly, not my strength', hint: 'We’ll allow more practice where the arithmetic bites.' },
-]
-
-/**
- * Extra repetitions the counting stages need for this learner.
- *
- * Applied only to the stages whose difficulty is arithmetic — the rules and
- * basic strategy are recall, not sums, so inflating those would be a made-up
- * number dressed as personalisation.
- */
-export function mathsMultiplier(maths: MathsComfort): number {
-  return maths === 'slow' ? 1.5 : maths === 'okay' ? 1.2 : 1
-}
-
-/** The stages whose difficulty is arithmetic rather than recall. */
-const ARITHMETIC_STAGES: StageId[] = ['hi-lo', 'true-count', 'bet-spread']
-
-// ── Where they came from ─────────────────────────────────────────────
-
-export type Source = 'search' | 'video' | 'friend' | 'social' | 'other'
-
-export const SOURCE_OPTIONS: ChoiceOption<Source>[] = [
-  { value: 'search', label: 'I searched for it', hint: 'Google, or somewhere like it.' },
-  { value: 'video', label: 'A video or a podcast', hint: 'YouTube, a stream, an episode.' },
-  { value: 'friend', label: 'Someone told me about it', hint: 'A friend, a forum, a group chat.' },
-  { value: 'social', label: 'Social media', hint: 'A post or an ad that caught your eye.' },
-  { value: 'other', label: 'Somewhere else', hint: 'Or you’d rather not say.' },
-]
-
 // ── Estimate ─────────────────────────────────────────────────────────
 
 export interface Estimate {
@@ -226,26 +155,19 @@ export interface Estimate {
  *
  * Returns zero everything when the learner is already at or past their goal.
  */
-export function estimateToGoal(
-  from: StageId,
-  goal: Goal,
-  commitment: Commitment,
-  maths: MathsComfort = 'quick',
-): Estimate {
+export function estimateToGoal(from: StageId, goal: Goal, commitment: Commitment): Estimate {
   const start = stageIndex(from)
   const end = stageIndex(goalStage(goal))
   if (start > end) return { stages: 0, sessions: 0, weeks: 0 }
 
   const span = CURRICULUM.slice(start, end + 1)
-  // Arithmetic-heavy stages take more repetitions for someone who does not do
-  // sums quickly. Recall stages are left alone — stretching those too would be
-  // an invented number wearing the costume of personalisation.
-  const needed = (stage: (typeof CURRICULUM)[number]) => {
-    const base = stage.drill?.minSessions ?? 0
-    return ARITHMETIC_STAGES.includes(stage.id)
-      ? Math.ceil(base * mathsMultiplier(maths))
-      : base
-  }
+  // What the curriculum demands, and nothing else.
+  //
+  // This used to be inflated for the arithmetic-heavy stages when the learner
+  // told us they were slow at mental sums. That question is gone, and rather
+  // than keep the multiplier on a guessed input, it goes too: a number nobody
+  // supplied is an invented number wearing the costume of personalisation.
+  const needed = (stage: (typeof CURRICULUM)[number]) => stage.drill?.minSessions ?? 0
 
   const sessions = span.reduce((n, s) => n + needed(s), 0)
   const perWeek = sessionsPerWeek(commitment)
@@ -303,30 +225,53 @@ export function isBeyondGoal(stage: StageId, goal: Goal): boolean {
 
 const PROFILE_KEY = 'bjt_learner_profile'
 
+/**
+ * What the plan needs to know beyond where the learner starts.
+ *
+ * Down from five fields to two. Casino experience, mental arithmetic and "how
+ * did you find us" were dropped with the questionnaire: the first two only fed
+ * a result screen that no longer exists, and the third never fed anything at
+ * all — it was analytics collected from someone who had not yet seen the
+ * product.
+ *
+ * Neither survivor is asked up front any more. Both are derived from the single
+ * starting-point answer and stay editable inside the plan, which is where they
+ * were editable before as well — asking a question whose answer is already
+ * changeable one screen later is asking it twice.
+ */
 export interface LearnerProfile {
   goal: Goal
   commitment: Commitment
-  casino: CasinoExperience
-  maths: MathsComfort
-  source: Source
 }
-
-const oneOf = <T extends string>(options: ChoiceOption<T>[] | { value: T }[]) =>
-  (v: unknown): v is T => options.some(o => o.value === v)
 
 const isGoal = (v: unknown): v is Goal => GOAL_OPTIONS.some(o => o.value === v)
 const isCommitment = (v: unknown): v is Commitment => COMMITMENT_OPTIONS.some(o => o.value === v)
-const isCasino = oneOf(CASINO_OPTIONS)
-const isMaths = oneOf(MATHS_OPTIONS)
-const isSource = oneOf(SOURCE_OPTIONS)
 
 /**
- * The stored profile, or null if the learner has not answered yet.
+ * The starting profile for someone who has just picked their level.
  *
- * Only the two answers that steer the plan — goal and commitment — are
- * required. The rest were added later and are filled with neutral defaults when
- * missing, so an account that answered the earlier, shorter questionnaire keeps
- * its plan instead of being marched through the whole thing again.
+ * Deliberately the same for every level, and that is not an oversight.
+ *
+ * The goal decides where the path *ends*. Nothing in "I have never played"
+ * says whether that person wants to understand counting or take it to a table,
+ * so narrowing their path on their behalf would be a guess presented as a
+ * setting — and the guess that costs most is the one that quietly hides the
+ * later stages. The full path shows everything and closes nothing off.
+ *
+ * The pace is the middle option for the same reason. Both are one tap away in
+ * the plan, and a learner who has done a few sessions has told us far more
+ * about their real pace than a question ever could.
+ */
+export function profileForLevel(): LearnerProfile {
+  return { goal: 'serious', commitment: 'casual' }
+}
+
+/**
+ * The stored profile, or null if none has been written yet.
+ *
+ * Both fields are required. A profile from an older build carrying the three
+ * dropped fields still loads — the extras are simply ignored — so nobody is
+ * marched through anything again after an update.
  */
 export function getProfile(): LearnerProfile | null {
   try {
@@ -335,16 +280,10 @@ export function getProfile(): LearnerProfile | null {
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null) return null
 
-    const { goal, commitment, casino, maths, source } = parsed as Record<string, unknown>
+    const { goal, commitment } = parsed as Record<string, unknown>
     if (!isGoal(goal) || !isCommitment(commitment)) return null
 
-    return {
-      goal,
-      commitment,
-      casino: isCasino(casino) ? casino : 'never',
-      maths: isMaths(maths) ? maths : 'okay',
-      source: isSource(source) ? source : 'other',
-    }
+    return { goal, commitment }
   } catch {
     return null
   }
