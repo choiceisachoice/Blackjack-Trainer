@@ -2,23 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 
 /**
- * The landing hero's animated background: a Linear-style field of product-surface
- * pills, playing cards and gold chips drifting toward the camera in real 3D
- * (Three.js — perspective + depth fog + depth-of-field blur + UnrealBloom glow +
- * pointer parallax). The canvas is opaque (clears to the app background) so bloom
- * composites cleanly; the CSS scrim/ambient/vignette layers sit on top. Honours
+ * The landing hero's animated background: playing cards and casino chips
+ * drifting toward the camera in real 3D
+ * (Three.js — perspective + depth fog + depth-of-field blur +
+ * pointer parallax). The canvas is opaque (clears to the app background); the CSS
+ * scrim/ambient/vignette layers sit on top. Honours
  * reduced-motion (one static frame) and no-ops where WebGL is unavailable.
  */
-type Tone = 'gold' | 'green' | 'red' | 'neutral'
-
 type Def =
-  | { t: 'pill'; l: string; sub?: string; tone: Tone }
   | { t: 'card'; r: string; s: string; red: boolean }
-  | { t: 'chip'; c: string }
+  | { t: 'chip'; c: string; fill: string; ink: string }
 
 interface Drifter {
   sharp: THREE.Sprite
@@ -37,32 +33,40 @@ const BG = 0x070809
 const cc = String.fromCharCode
 const SUIT = { spade: cc(9824), heart: cc(9829), diamond: cc(9830), club: cc(9827) }
 
-const TONES: Record<Tone, { glow: string; border: string; dot: string; dotGlow: string }> = {
-  gold: { glow: 'rgba(212,168,71,.7)', border: 'rgba(212,168,71,.46)', dot: '#f0cd82', dotGlow: '#d4a847' },
-  green: { glow: 'rgba(55,196,107,.4)', border: 'rgba(255,255,255,.12)', dot: '#37c46b', dotGlow: '#37c46b' },
-  red: { glow: 'rgba(229,86,107,.4)', border: 'rgba(255,255,255,.12)', dot: '#e5566b', dotGlow: '#e5566b' },
-  neutral: { glow: 'rgba(255,255,255,.08)', border: 'rgba(255,255,255,.11)', dot: '#c9ccd2', dotGlow: 'rgba(0,0,0,0)' },
-}
-
+/**
+ * What drifts past.
+ *
+ * Cards and chips only. There used to be eight product-UI pills in here as well
+ * — "Weakest Hands", "Skill Radar", "True Count +3" and so on — floating in
+ * space above the headline. They were interface taken out of its interface: a
+ * first-time visitor has never seen this product, so none of those labels mean
+ * anything yet, and a hero full of unexplained jargon reads as debris rather
+ * than as a preview. Cards and chips say "blackjack" without a word.
+ *
+ * The count is held near the old total on purpose. Dropping eight of eighteen
+ * objects and leaving it there would have halved the density of the field, and
+ * a scatter that thin reads as an accident rather than a composition.
+ */
 const DEFS: Def[] = [
-  { t: 'pill', l: 'Awards', tone: 'gold' },
-  { t: 'pill', l: 'Analytics', tone: 'green' },
-  { t: 'pill', l: 'Strategy Chart', tone: 'gold' },
-  { t: 'pill', l: 'Learn', tone: 'neutral' },
-  { t: 'pill', l: 'True Count', sub: '+3', tone: 'gold' },
-  { t: 'pill', l: 'Skill Radar', tone: 'green' },
-  { t: 'pill', l: 'Weakest Hands', tone: 'red' },
-  { t: 'pill', l: 'Illustrious 18', tone: 'gold' },
   { t: 'card', r: 'A', s: SUIT.spade, red: false },
   { t: 'card', r: 'K', s: SUIT.heart, red: true },
   { t: 'card', r: '10', s: SUIT.diamond, red: true },
   { t: 'card', r: 'Q', s: SUIT.spade, red: false },
   { t: 'card', r: '9', s: SUIT.heart, red: true },
   { t: 'card', r: 'J', s: SUIT.diamond, red: true },
-  { t: 'chip', c: SUIT.spade },
-  { t: 'chip', c: '25' },
-  { t: 'chip', c: SUIT.heart },
-  { t: 'chip', c: SUIT.club },
+  { t: 'card', r: '7', s: SUIT.club, red: false },
+  { t: 'card', r: '5', s: SUIT.diamond, red: true },
+  { t: 'card', r: 'A', s: SUIT.heart, red: true },
+  { t: 'card', r: '8', s: SUIT.club, red: false },
+  // Denominations, not suits. A chip with a heart printed on it is not a thing
+  // that exists; a red 5, a green 25 and a black 100 are what anyone who has
+  // stood at a table recognises without being told. Repeats are deliberate —
+  // real stacks repeat.
+  { t: 'chip', c: '5', fill: '#c41e3a', ink: '#ffffff' },
+  { t: 'chip', c: '25', fill: '#15803d', ink: '#ffffff' },
+  { t: 'chip', c: '100', fill: '#1c1917', ink: '#f2f1ee' },
+  { t: 'chip', c: '25', fill: '#15803d', ink: '#ffffff' },
+  { t: 'chip', c: '100', fill: '#1c1917', ink: '#f2f1ee' },
 ]
 
 function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
@@ -71,34 +75,23 @@ function roundRect(c: CanvasRenderingContext2D, x: number, y: number, w: number,
   c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath()
 }
 
+/**
+ * Lighten (`amount > 0`) or darken a `#rrggbb` toward white or black.
+ *
+ * Plain arithmetic on purpose — see the note at the gradient that uses it.
+ */
+function shade(hex: string, amount: number): string {
+  const n = parseInt(hex.slice(1), 16)
+  const towards = amount > 0 ? 255 : 0
+  const k = Math.abs(amount)
+  const mix = (c: number) => Math.round(c + (towards - c) * k)
+  const r = mix((n >> 16) & 255), g = mix((n >> 8) & 255), b = mix(n & 255)
+  return `rgb(${r},${g},${b})`
+}
+
 function newCanvas(w: number, h: number): { cv: HTMLCanvasElement; x: CanvasRenderingContext2D } {
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h
   return { cv, x: cv.getContext('2d') as CanvasRenderingContext2D }
-}
-
-function pillCanvas(label: string, sub: string | undefined, tone: Tone): HTMLCanvasElement {
-  const dpr = 2, fs = 17 * dpr, padX = 18 * dpr, padY = 11 * dpr, dotR = 5 * dpr, gap = 11 * dpr, gm = 30 * dpr
-  const t = TONES[tone]
-  const m = document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D
-  m.font = `600 ${fs}px Inter, system-ui, sans-serif`
-  const tw = m.measureText(label).width
-  const subw = sub ? m.measureText('  ' + sub).width : 0
-  const w = Math.ceil(dotR * 2 + gap + tw + subw + padX * 2)
-  const h = Math.ceil(fs + padY * 2)
-  const { cv, x } = newCanvas(w + gm * 2, h + gm * 2)
-  const bx = gm, by = gm, r = h / 2
-  x.save(); x.shadowColor = t.glow; x.shadowBlur = 26 * dpr; x.fillStyle = 'rgba(0,0,0,1)'; roundRect(x, bx, by, w, h, r); x.fill(); x.restore()
-  const g = x.createLinearGradient(0, by, 0, by + h)
-  g.addColorStop(0, 'rgba(32,35,44,.96)'); g.addColorStop(1, 'rgba(15,17,23,.95)')
-  roundRect(x, bx, by, w, h, r); x.fillStyle = g; x.fill()
-  x.lineWidth = 1.2 * dpr; x.strokeStyle = t.border; roundRect(x, bx + 0.6, by + 0.6, w - 1.2, h - 1.2, r); x.stroke()
-  const cy = by + h / 2, dx = bx + padX + dotR
-  x.save(); x.shadowColor = t.dotGlow; x.shadowBlur = 10 * dpr; x.beginPath(); x.arc(dx, cy, dotR, 0, 7); x.fillStyle = t.dot; x.fill(); x.restore()
-  x.textBaseline = 'middle'
-  const tx = dx + dotR + gap
-  x.font = `600 ${fs}px Inter, system-ui, sans-serif`; x.fillStyle = '#eef0f2'; x.fillText(label, tx, cy + 1)
-  if (sub) { x.font = `500 ${fs}px Inter, system-ui, sans-serif`; x.fillStyle = '#9a9ea7'; x.fillText('  ' + sub, tx + tw, cy + 1) }
-  return cv
 }
 
 /**
@@ -116,7 +109,7 @@ function cardCanvas(rank: string, suit: string, red: boolean): HTMLCanvasElement
   const dpr = 2, W = 66 * dpr, H = 92 * dpr, r = 9 * dpr, gm = 26 * dpr, bx = gm, by = gm
   const { cv, x } = newCanvas(W + gm * 2, H + gm * 2)
   x.save(); x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 20 * dpr; x.shadowOffsetY = 5 * dpr; x.fillStyle = '#d3d6da'; roundRect(x, bx, by, W, H, r); x.fill(); x.restore()
-  // Muted and *neutral*, not ivory. Still below the bloom threshold so a big
+  // Muted and *neutral*, not ivory — bright enough to read, dim enough that a big
   // sharp card never flares into a "sun over the hill" flash — but the warmth is
   // gone: measured, the old ivory ran +11 red over blue, and a field of those
   // blurred across the hero cast the whole section brown. The background was
@@ -131,21 +124,59 @@ function cardCanvas(rank: string, suit: string, red: boolean): HTMLCanvasElement
   return cv
 }
 
-function chipCanvas(center: string): HTMLCanvasElement {
+/**
+ * A casino chip, in its denomination's colour.
+ *
+ * Every chip here used to be gold — the same gold gradient, gold rim and gold
+ * outer glow, whatever was printed on it. Two things were wrong with that.
+ *
+ * Gold is this product's accent colour. Spending it on background scenery means
+ * it no longer marks the things that matter, and on this page it was being spent
+ * four times over on objects drifting past. Real chips are coloured by value —
+ * red 5, green 25, black 100 — so they can carry their own colour and the accent
+ * goes back to being an accent. The same change was made to the chips on the Pro
+ * tile; these were missed, and for a while the page contradicted itself.
+ *
+ * The outer glow is gone with it. It was a 24px coloured halo baked into the
+ * sprite, sitting underneath a scene-wide bloom pass — two glows stacked on one
+ * object, which is the thing that reads as cheap.
+ */
+function chipCanvas(value: string, fill: string, ink: string): HTMLCanvasElement {
   const dpr = 2, D = 64 * dpr, gm = 28 * dpr, cx = gm + D / 2, cy = gm + D / 2, R = D / 2
   const { cv, x } = newCanvas(D + gm * 2, D + gm * 2)
-  x.save(); x.shadowColor = 'rgba(212,168,71,.6)'; x.shadowBlur = 24 * dpr; x.beginPath(); x.arc(cx, cy, R, 0, 7); x.fillStyle = '#000'; x.fill(); x.restore()
-  const g = x.createRadialGradient(cx - R * 0.32, cy - R * 0.32, R * 0.15, cx, cy, R)
-  g.addColorStop(0, '#f6dc98'); g.addColorStop(0.55, '#d8ad4e'); g.addColorStop(1, '#a9781f')
+
+  // A drop shadow, not a glow: it seats the chip in the scene instead of making
+  // it emit light.
+  x.save()
+  x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 18 * dpr; x.shadowOffsetY = 5 * dpr
+  x.beginPath(); x.arc(cx, cy, R, 0, 7); x.fillStyle = '#000'; x.fill()
+  x.restore()
+
+  const g = x.createRadialGradient(cx - R * 0.34, cy - R * 0.34, R * 0.12, cx, cy, R)
+  // Computed here rather than with `color-mix()`: `addColorStop` throws a
+  // SyntaxError on any colour the browser cannot parse, so an unsupported
+  // function would not degrade — it would take the whole hero down.
+  g.addColorStop(0, shade(fill, 0.28))
+  g.addColorStop(0.5, fill)
+  g.addColorStop(1, shade(fill, -0.28))
   x.beginPath(); x.arc(cx, cy, R, 0, 7); x.fillStyle = g; x.fill()
-  x.lineWidth = 3 * dpr; x.strokeStyle = 'rgba(120,84,20,.7)'; x.beginPath(); x.arc(cx, cy, R - 2 * dpr, 0, 7); x.stroke()
-  x.fillStyle = 'rgba(255,248,226,.85)'
+
+  x.lineWidth = 3 * dpr; x.strokeStyle = 'rgba(0,0,0,.45)'
+  x.beginPath(); x.arc(cx, cy, R - 2 * dpr, 0, 7); x.stroke()
+
+  // Edge spots — the detail that makes a disc read as a chip.
+  x.fillStyle = 'rgba(255,255,255,.88)'
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2, sx = cx + Math.cos(a) * (R - 6 * dpr), sy = cy + Math.sin(a) * (R - 6 * dpr)
     x.save(); x.translate(sx, sy); x.rotate(a); x.fillRect(-5 * dpr, -2.5 * dpr, 10 * dpr, 5 * dpr); x.restore()
   }
-  x.beginPath(); x.arc(cx, cy, R * 0.62, 0, 7); x.strokeStyle = 'rgba(120,84,20,.55)'; x.lineWidth = 2 * dpr; x.stroke()
-  x.fillStyle = '#4a3410'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = `800 ${22 * dpr}px Georgia, serif`; x.fillText(center, cx, cy + 2 * dpr)
+
+  x.beginPath(); x.arc(cx, cy, R * 0.62, 0, 7)
+  x.strokeStyle = 'rgba(255,255,255,.30)'; x.lineWidth = 2 * dpr; x.stroke()
+
+  x.fillStyle = ink; x.textAlign = 'center'; x.textBaseline = 'middle'
+  x.font = `800 ${22 * dpr}px Inter, system-ui, sans-serif`
+  x.fillText(value, cx, cy + 2 * dpr)
   return cv
 }
 
@@ -228,8 +259,10 @@ export function HeroCanvas({ className }: { className?: string }) {
 
     const disposables: { dispose(): void }[] = []
     const drifters: Drifter[] = DEFS.map((d) => {
-      const base = d.t === 'pill' ? pillCanvas(d.l, d.sub, d.tone) : d.t === 'card' ? cardCanvas(d.r, d.s, d.red) : chipCanvas(d.c)
-      const baseH = d.t === 'pill' ? 0.98 : d.t === 'card' ? 1.72 : 1.26
+      const base = d.t === 'card'
+        ? cardCanvas(d.r, d.s, d.red)
+        : chipCanvas(d.c, d.fill, d.ink)
+      const baseH = d.t === 'card' ? 1.72 : 1.26
       const sx = baseH * (base.width / base.height)
       // One sharp + one blurred sprite, stacked and crossfaded by distance, so
       // the focus pull from soft (far) to crisp (near) is continuous instead of
@@ -249,19 +282,29 @@ export function HeroCanvas({ className }: { className?: string }) {
         sharp: sharp.s, blur: blur.s, mSharp: sharp.m, mBlur: blur.m,
         bx: spawnX(), by: spawnY(),
         z: -3 - Math.random() * 38, sp: 2.0 + Math.random() * 1.3,
-        rot0: d.t === 'pill' ? 0 : (Math.random() * 2 - 1) * (d.t === 'card' ? 0.28 : 0.5),
-        rs: d.t === 'pill' ? 0 : (Math.random() * 2 - 1) * (d.t === 'card' ? 0.06 : 0.16),
+        rot0: (Math.random() * 2 - 1) * (d.t === 'card' ? 0.28 : 0.5),
+        rs: (Math.random() * 2 - 1) * (d.t === 'card' ? 0.06 : 0.16),
       }
     })
 
     const composer = new EffectComposer(renderer)
     composer.addPass(new RenderPass(scene, camera))
-    // Strength and threshold both pulled well down. Measured against a
-    // canvas-off baseline, the old settings lifted the whole hero by 22–38
-    // luminance levels over a background that should sit near 10 — a wash
-    // across the entire frame rather than a glow on anything in particular.
-    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.16, 0.4, 0.88)
-    composer.addPass(bloom)
+    /*
+      No bloom pass.
+
+      It had already been tuned down twice — the previous note here records that
+      the original settings lifted the whole frame by 22–38 luminance levels
+      over a background meant to sit near 10 — and it ended at strength 0.16
+      with a 0.88 threshold. Now that the sprites no longer carry baked coloured
+      halos of their own, almost nothing in the scene crosses that threshold, so
+      the pass was running several full-viewport gaussian blurs per frame to
+      change a handful of pixels.
+
+      Removing it is the honest version of tuning it to nothing, and it takes
+      the second half of the double glow with it. A dark scene does not need
+      light bleeding off its objects to look expensive; it needs contrast and
+      restraint, both of which the halo was working against.
+    */
     composer.addPass(new OutputPass())
 
     const pointer = { x: 0, y: 0 }
@@ -370,7 +413,6 @@ export function HeroCanvas({ className }: { className?: string }) {
       window.removeEventListener('pointermove', onPointer)
       window.removeEventListener('resize', resize)
       disposables.forEach((o) => o.dispose())
-      bloom.dispose()
       composer.dispose()
       renderer.dispose()
       // NB: do NOT call renderer.forceContextLoss() here — it permanently kills
