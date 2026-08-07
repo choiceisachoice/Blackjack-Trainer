@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Zap, GraduationCap, Coins, Layers, Wallet, Club,
   ClipboardList, BarChart3, Grid3x3, Trophy, BookOpen, ArrowRight,
@@ -8,6 +9,8 @@ import type { AppMode } from '../../store/app-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
 import { TrainingPlan } from '../plan/TrainingPlan'
+import { StartHere } from '../onboarding/StartHere'
+import { GuidedTour } from '../onboarding/GuidedTour'
 import { DailyChallengeCard } from './DailyChallengeCard'
 import { WeeklyChallengeCard } from './WeeklyChallengeCard'
 import { DashboardHeader, ProductTitle } from './DashboardHeader'
@@ -41,12 +44,20 @@ const TOOL_CARDS: FeatureCard[] = [
  * The app focuses on the Hi-Lo system; navigation lives in the global NavBar.
  */
 export function HomeScreen() {
+  // The tour is owned here rather than by the card that launches it: it points
+  // at things all over this screen, and it has to outlive the card — taking the
+  // suggestion puts the card away, and a tour unmounted by its own trigger
+  // would close on its first frame.
+  const [touring, setTouring] = useState(false)
+
   // No `min-h-full` here: that asked for a second full viewport on top of the
   // 62px header and produced a scrollbar on every visit (see TrainerApp). The
   // shell now hands down the remaining height; this only has to fill it.
   return (
     <div className="relative w-full flex flex-col items-center px-4 pb-4">
       <div className="hero-glow" />
+
+      {touring && <GuidedTour onClose={() => setTouring(false)} />}
 
       {/*
         The plan is the home screen now, and it owns what surrounds it.
@@ -62,7 +73,16 @@ export function HomeScreen() {
       */}
       <TrainingPlan
         embedded
-        before={<ProductTitle />}
+        before={
+          <>
+            <ProductTitle />
+            {/* Sits above the plan because it answers a question the plan
+                assumes you already have: not "what is my next stage" but
+                "what do I do with any of this". It removes itself once
+                acted on, so a returning user never sees it. */}
+            <StartHere onTour={() => setTouring(true)} />
+          </>
+        }
         after={<HomeSections />}
       />
     </div>
