@@ -1,10 +1,54 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { Card } from '../../engine/shoe/types'
 import type { BotPlayer, BotRoundResult } from '../../engine/casino-session/types'
 import { DealerView } from './DealerView'
 import { HumanSeat, BotSeat } from './SeatView'
 import { TableLegend } from './TableLegend'
 import { ShoeHousing, DiscardTray } from '../table/ShoeProgress'
-import type { BotStatus, GameStep } from './helpers'
+import { fitTable, TABLE_DESIGN, type TableFit, type BotStatus, type GameStep } from './helpers'
+
+/**
+ * Fit the table to whatever room it has been given.
+ *
+ * Returns the wrapper ref to attach and the fit to apply. Kept here rather than
+ * in a shared hooks folder because nothing else needs it: the table is the only
+ * screen drawn at a fixed design size.
+ */
+function useTableFit(): { ref: React.RefObject<HTMLDivElement | null>; fit: TableFit } {
+  const ref = useRef<HTMLDivElement>(null)
+  const [fit, setFit] = useState<TableFit>(() => ({ scale: 1, sceneHeight: TABLE_DESIGN.height }))
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const measure = () => {
+      const r = el.getBoundingClientRect()
+      const next = fitTable({ width: r.width, height: r.height })
+      // Only write when something actually moved. A ResizeObserver that feeds
+      // state which resizes the observed box is a loop waiting to happen; this
+      // is the exit condition.
+      setFit(prev =>
+        Math.abs(prev.scale - next.scale) < 0.001 &&
+        Math.abs(prev.sceneHeight - next.sceneHeight) < 0.5
+          ? prev
+          : next,
+      )
+    }
+
+    measure()
+
+    // ResizeObserver rather than a window listener: the table's box also
+    // changes when the surrounding chrome does — a toolbar wrapping onto two
+    // lines, the summary panel opening — and none of those resize the window.
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  return { ref, fit }
+}
 
 interface SeatLayoutEntry {
   type: 'bot' | 'human'
@@ -82,12 +126,44 @@ export function CasinoTable({
     gameStep === 'dealer_playing' ? 'Dealer playing…' :
     gameStep === 'insurance' ? 'Insurance?' : null
 
+  const { ref: fitRef, fit } = useTableFit()
+
+  // The wrapper keeps `overflow-y-auto`, as it had before. A scaled element
+  // keeps its *unscaled* layout size, so growing the table never produces a
+  // scrollbar — but in the one pathological case (a box shorter than the
+  // scene's floor) the seats have to stay reachable rather than be cut off.
   return (
-    <div className="flex-1 relative min-h-0 flex flex-col items-center justify-start px-2 md:px-6 pt-3 pb-2 overflow-y-auto" data-testid="casino-table">
+    <div
+      ref={fitRef}
+      className="flex-1 relative min-h-0 flex flex-col items-center justify-center px-2 md:px-6 pt-3 pb-2 overflow-y-auto"
+      data-testid="casino-table"
+    >
+      {/*
+        Drawn once at `TABLE_DESIGN` and scaled to fit, rather than reflowed.
+
+        It used to be `w-full max-w-[1120px]` with `flex-1` height, and both
+        halves of that misbehaved on a large screen. The width stopped at
+        1120px, so on a 3440px monitor the table sat as a third-width island
+        while every card, chip and label inside it kept its hard-coded pixel
+        size — the whole scene read as a postage stamp. The `flex-1` height
+        meanwhile handed all the spare vertical space to the one middle band,
+        stretching the felt into a large empty field between the legend and the
+        seats.
+
+        Now the width sets one scale for the whole scene and the height follows
+        it, so the felt still fills its box exactly — but the cards, chips and
+        labels grow with it instead of staying pinned to hard-coded pixels.
+      */}
       <div
-        className="relative w-full max-w-[1120px] flex-1 min-h-0 flex flex-col"
+        className="relative flex flex-col"
         data-testid="felt-table"
         style={{
+          width: TABLE_DESIGN.width,
+          height: fit.sceneHeight,
+          transform: `scale(${fit.scale})`,
+          // Scaling from the centre keeps the table optically centred in its
+          // box at every size without a second layout pass.
+          transformOrigin: 'center center',
           borderRadius: '14px 14px 46% 46% / 14px 14px 32% 32%',
           background: 'radial-gradient(ellipse 110% 80% at 50% -8%, #1a6b3c 0%, #15603a 48%, #0d4a2a 92%)',
           border: '12px solid #5c3a1e',

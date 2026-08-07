@@ -48,6 +48,90 @@ export const DEFAULT_CONFIG: CasinoSessionConfig = {
 
 // ─── Helpers ─────────────────────────────────────────
 
+/**
+ * The table's design size, in CSS pixels.
+ *
+ * The table is drawn once at this size and then scaled to fit, rather than
+ * reflowed. Everything inside it — card widths, seat blocks, chip diameters,
+ * type sizes — is specified in fixed pixels, so a table that changes size by
+ * changing its box keeps postage-stamp contents inside a bigger frame. Scaling
+ * the whole scene is the only way those numbers stay in proportion to it.
+ *
+ * The height is chosen to sit *above* the layout's minimum, not at some ideal:
+ * the previous flexible version was in daily use at box heights from roughly
+ * 500px upward, so the content demonstrably fits well below 640. Erring high
+ * would have made the table shrink on a short window — a regression on the one
+ * size that was never the problem.
+ */
+export const TABLE_DESIGN = { width: 1120, height: 640 } as const
+
+/**
+ * The largest the table is allowed to grow.
+ *
+ * Without a ceiling, a 3440px monitor would inflate the felt until the cards
+ * were the size of coasters. This keeps the table generous on a big screen and
+ * still recognisably a table.
+ */
+export const TABLE_MAX_SCALE = 1.7
+
+export interface Size {
+  width: number
+  height: number
+}
+
+/** The shortest the scene may get before the seats start fighting the dealer. */
+export const TABLE_MIN_HEIGHT = 420
+
+export interface TableFit {
+  /** Factor to apply to the whole scene. */
+  scale: number
+  /** Height to draw the scene at, *before* scaling. */
+  sceneHeight: number
+}
+
+/**
+ * Fit the table to its box.
+ *
+ * ## Why the scale comes from the width alone
+ *
+ * The obvious version takes `min(w/dw, h/dh)` — fit both axes. Tried, and it
+ * traded one screen for another: an ultrawide gained 70%, but a 1280x720 laptop
+ * *lost* 19%, because a short box forced the whole scene down. Shrinking the
+ * one size that was never the problem is not a fix.
+ *
+ * So the width sets the scale, and the height follows: the scene is drawn
+ * taller or shorter so that, once scaled, it exactly fills the box. That is
+ * what the old flexible layout did with its `flex-1` middle band, kept intact —
+ * the difference is that now the whole scene grows with the screen instead of
+ * stopping at 1120px while its contents stay pinned to hard-coded pixels.
+ *
+ * Returns a scale of **1** for an unmeasured box. Zero would paint nothing, and
+ * a first frame of nothing is the failure mode this codebase keeps meeting.
+ */
+export function fitTable(
+  available: Size,
+  design: Size = TABLE_DESIGN,
+  maxScale = TABLE_MAX_SCALE,
+): TableFit {
+  const fallback = { scale: 1, sceneHeight: design.height }
+  if (design.width <= 0 || design.height <= 0) return fallback
+
+  const raw = available.width / design.width
+  if (!Number.isFinite(raw) || raw <= 0) return fallback
+
+  const scale = Math.min(raw, maxScale)
+
+  // The height the scene must be drawn at so that scaling lands exactly on the
+  // box. Floored, so a very short window compresses the felt rather than
+  // clipping the seats off the bottom.
+  const wanted = available.height / scale
+  const sceneHeight = Number.isFinite(wanted)
+    ? Math.max(TABLE_MIN_HEIGHT, wanted)
+    : design.height
+
+  return { scale, sceneHeight }
+}
+
 export function formatDollar(n: number): string {
   const sign = n < 0 ? '-' : ''
   return `${sign}$${Math.abs(n).toLocaleString()}`
