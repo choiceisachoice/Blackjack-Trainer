@@ -73,17 +73,23 @@ export const COMPLETE_MS = 380
 /**
  * How long the completion owns the screen.
  *
- * Long enough for the whole moment to play and then be read: the loading
- * composition clears, the ring lands, the tick draws, the word rises, and it
- * holds. Roughly 760ms of that is the animation itself, so this is a beat of
- * stillness on top rather than a pause with nothing in it — which is what the
- * earlier, shorter hold amounted to.
+ * The moment is made of three overlapping moves, and their real end is the only
+ * number that matters here. From `IntroSequence`: the tick finishes at 320ms
+ * (120 delay + 200), the ring at 600ms (140 + 460), the word at **700ms**
+ * (180 + 520). So the completion has fully arrived at 700ms, and whatever this
+ * constant adds beyond that is stillness — the beat that makes it a moment
+ * rather than a step.
  *
- * Around 700ms of it is the completion animating itself in, so the rest is the
- * stillness that makes it a moment rather than a step. At 1250 there were about
- * 170ms of that left — the thing was over as soon as it had arrived.
+ * At 1450 that beat was 750ms and read as a wait: the screen was finished and
+ * still there. 1100 leaves **400ms**, which is long enough to register as a
+ * deliberate pause and short enough that nobody is waiting through it.
+ *
+ * Two earlier comments here quoted "roughly 760ms" and "around 700ms" for the
+ * animation, and claimed 1250 left "about 170ms" of stillness — it would have
+ * left 550. Both were stale. The delays above are the source; if the completion
+ * animation changes, re-derive from it rather than trusting this paragraph.
  */
-export const COMPLETE_HOLD_MS = 1450
+export const COMPLETE_HOLD_MS = 1100
 
 /**
  * The handover.

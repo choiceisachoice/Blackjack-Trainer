@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { IntroSequence } from './IntroSequence'
 import { isRepeatVisit } from './intro-session'
 
@@ -13,6 +13,24 @@ import { isRepeatVisit } from './intro-session'
  */
 const FADE_MS = 160
 
+/**
+ * How long a *repeat* load is allowed to finish in before it gets any screen
+ * at all.
+ *
+ * The rule this enforces: a loading screen must never take longer than the
+ * thing it covers. On a refresh the chunks are cached and the session is
+ * usually resolved in a couple of hundred milliseconds, but the abbreviated
+ * timeline ran a fixed ~920ms regardless — so the indicator became the slowest
+ * part of the load. It was no longer reporting anything, it was performing, and
+ * that is exactly what it looked like: a bar that snapped across the screen for
+ * no reason and vanished.
+ *
+ * Below this threshold nothing is shown, because nothing needed covering. Above
+ * it the bar appears and stays as long as the load actually does. The welcome
+ * keeps its meaning by happening when you arrive, not on every reload.
+ */
+export const GRACE_MS = 250
+
 type Phase = 'playing' | 'fading' | 'done'
 
 /**
@@ -26,11 +44,18 @@ type Phase = 'playing' | 'fading' | 'done'
  * dissolve rather than a cut: when the overlay fades, what appears behind it has
  * already loaded, laid out and settled. Nothing pops in.
  *
- * Shown on **every** load rather than once per browser. That is what separates
- * a loading screen from an entrance: it is tied to work actually happening, and
- * work happens every time. The cost is real — a returning visitor pays the
- * floor on each visit — and the floor is deliberately the smallest number that
- * still reads as deliberate rather than as a flash.
+ * Tied to work actually happening, which is what separates a loading screen
+ * from an entrance. Three outcomes, in order of how often they occur:
+ *
+ *  - **First load of a session** — the full welcome. There is genuine cold-start
+ *    work to cover (auth resolving, route chunks arriving) and this is the one
+ *    moment the introduction is worth anyone's time.
+ *  - **A refresh that is quick** — nothing at all. See `GRACE_MS`.
+ *  - **A refresh that is slow** — the bar alone, for as long as the load takes.
+ *
+ * An earlier version showed the abbreviated bar on every repeat load, floor and
+ * all. That charged a returning visitor ~920ms for a load that had usually
+ * finished in a fifth of it.
  *
  * **The unmount is driven by a clock, not by the animation.** An earlier version
  * handed the overlay to `AnimatePresence` and let the exit animation decide when
@@ -83,14 +108,58 @@ export function IntroGate({
    */
   const [isBrief] = useState(() => brief ?? isRepeatVisit())
 
+  /**
+   * Whether this load is still deciding if it needs a screen at all.
+   *
+   * Only a repeat load waits: the ceremony covers the first paint and must be
+   * up from the very first frame, so it never enters this state.
+   */
+  const [deciding, setDeciding] = useState(isBrief)
+
   const beginReveal = useCallback(() => setRevealing(true), [])
   const finish = useCallback(() => setPhase('fading'), [])
+
+  // Read inside the timer below, so the grace period can be resolved in one
+  // place instead of racing a second effect that watches `appReady`.
+  const readyRef = useRef(appReady)
+  useEffect(() => { readyRef.current = appReady }, [appReady])
+
+  /**
+   * The grace period, resolved by a single timer.
+   *
+   * Deliberately one decision point. The obvious shape is two effects — one
+   * counting down, another watching `appReady` — and that version both raced
+   * itself and tripped `react-hooks/set-state-in-effect`, which was right to
+   * complain: state written synchronously from an effect body over a value that
+   * changes underneath it. Asking the question once, when the clock runs out,
+   * is simpler and has no ordering to get wrong.
+   */
+  useEffect(() => {
+    if (!deciding) return
+    const timer = setTimeout(() => {
+      // Ready in time: the load never needed covering, so nothing was shown and
+      // there is nothing to hand over. Otherwise the bar has earned its place.
+      if (readyRef.current) setPhase('done')
+      else setDeciding(false)
+    }, GRACE_MS)
+    return () => clearTimeout(timer)
+  }, [deciding])
 
   useEffect(() => {
     if (phase !== 'fading') return
     const timer = setTimeout(() => setPhase('done'), FADE_MS)
     return () => clearTimeout(timer)
   }, [phase])
+
+  /**
+   * Whether anything is on screen.
+   *
+   * Everything the gate does to the page — the overlay, the scroll lock, the
+   * `data-intro` flag the app's own entrance keys off — hangs off this one
+   * value. During the grace period the answer is no, so a quick refresh is not
+   * briefly scroll-locked and blurred before flashing into place.
+   */
+  const showing = phase !== 'done' && !deciding
 
   /**
    * Tell the document that a loading screen is up.
@@ -103,24 +172,24 @@ export function IntroGate({
    * on this component existing.
    */
   useEffect(() => {
-    if (revealing || phase === 'done') return
+    if (revealing || !showing) return
     document.documentElement.dataset.intro = 'playing'
     return () => { delete document.documentElement.dataset.intro }
-  }, [phase, revealing])
+  }, [showing, revealing])
 
   // Scroll lock. Restores the previous value rather than assuming `visible`,
   // so a modal that locked scrolling before this mounted keeps its lock.
   useEffect(() => {
-    if (phase === 'done') return
+    if (!showing) return
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = previous }
-  }, [phase])
+  }, [showing])
 
   return (
     <>
       {children}
-      {phase !== 'done' && (
+      {showing && (
         <div
           className="fixed inset-0 z-[10000]"
           // Opacity is an inline style rather than a utility class on purpose.

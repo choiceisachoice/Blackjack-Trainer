@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, cleanup, act } from '@testing-library/react'
-import { IntroGate } from './IntroGate'
+import { IntroGate, GRACE_MS } from './IntroGate'
 import { resetIntroSession } from './intro-session'
 import {
   BRIEF,
@@ -109,9 +109,14 @@ describe('IntroGate', () => {
     expect(document.body.style.overflow).toBe('scroll')
   })
 
-  it('shows on every load, because that is what a loading screen is', () => {
-    // Deliberately not gated on "has this browser seen it". The screen is tied
-    // to work that happens on each visit, so it appears on each visit.
+  it('is tied to the page load, not to whether this browser has seen it', () => {
+    // Not gated on a persistent "seen it" flag: the screen exists to cover work
+    // that really happens, and it happens on each *session*. Both renders here
+    // are one page load as far as the policy is concerned — the module memo
+    // holds the decision for the life of the page — so both get the screen.
+    //
+    // What a *second* page load gets is a different question, answered in
+    // "shows a quick reload nothing at all" and "gives a slow reload the bar".
     const first = render(<IntroGate appReady><div /></IntroGate>)
     expect(screen.getByTestId('intro-sequence')).toBeInTheDocument()
     first.unmount()
@@ -248,12 +253,54 @@ describe('IntroGate', () => {
     // module memo goes (the page was rebuilt); the session flag stays.
     resetIntroSession({ keepSession: true })
     render(<IntroGate appReady><div /></IntroGate>)
+    expect(screen.queryByText(EYEBROW)).toBeNull()
+  })
+
+  it('shows a quick reload nothing at all', async () => {
+    // A loading screen must not outlast what it covers. On a cached reload the
+    // app is ready in a fraction of the abbreviated timeline, so running that
+    // timeline made the indicator the slowest part of the load — a bar that
+    // reported nothing and simply performed.
+    render(<IntroGate appReady><div /></IntroGate>)
+    resetIntroSession({ keepSession: true })
+    cleanup()
+
+    render(<IntroGate appReady><div /></IntroGate>)
+    expect(screen.queryByTestId('intro-sequence')).toBeNull()
+
+    await advance(GRACE_MS + 200)
+    expect(screen.queryByTestId('intro-sequence')).toBeNull()
+    // And nothing was done to the page on the way past: no scroll lock, no
+    // entrance flag for the app to animate out of.
+    expect(document.documentElement.dataset.intro).toBeUndefined()
+    expect(document.body.style.overflow).not.toBe('hidden')
+  })
+
+  it('gives a slow reload the bar, once the wait has earned it', async () => {
+    render(<IntroGate appReady><div /></IntroGate>)
+    resetIntroSession({ keepSession: true })
+    cleanup()
+
+    render(<IntroGate appReady={false}><div /></IntroGate>)
+    // Nothing during the grace period, however slow the load turns out to be.
+    expect(screen.queryByTestId('intro-sequence')).toBeNull()
+
+    await advance(GRACE_MS + 100)
+    // Still loading when the clock ran out, so the bar appears — the track and
+    // the count, which are the part that reports real work.
     expect(screen.getByTestId('intro-sequence')).toBeInTheDocument()
+    expect(screen.getByTestId('intro-status')).toBeInTheDocument()
+    // But never the welcome. That belongs to arriving, not to reloading.
     expect(screen.queryByText(EYEBROW)).toBeNull()
     expect(screen.queryByTestId('intro-complete-layer')).toBeNull()
-    // But it is still a loading screen: the track and the count are the part
-    // that reports real work, and they stay.
-    expect(screen.getByTestId('intro-status')).toBeInTheDocument()
+  })
+
+  it('never withholds the welcome from a genuine first visit', async () => {
+    // The asymmetry is deliberate: showing the ceremony too often is a small
+    // cost, withholding it from someone arriving for the first time is not.
+    render(<IntroGate appReady><div /></IntroGate>)
+    expect(screen.getByTestId('intro-sequence')).toBeInTheDocument()
+    expect(screen.getByText(EYEBROW)).toBeInTheDocument()
   })
 
   it('still waits for the app on the abbreviated timeline', async () => {
@@ -272,7 +319,12 @@ describe('IntroGate', () => {
   it('releases the app before the curtain on the abbreviated timeline too', async () => {
     // The handover hole was fixed once, on one timeline. A second set of
     // durations is a second chance to reintroduce it.
-    render(<IntroGate appReady brief><div /></IntroGate>)
+    //
+    // Started unready on purpose: a ready abbreviated load now shows nothing at
+    // all, so asserting the handover requires a load slow enough to have one.
+    const { rerender } = render(<IntroGate appReady={false} brief><div /></IntroGate>)
+    await advance(GRACE_MS + 50)
+    rerender(<IntroGate appReady brief><div /></IntroGate>)
 
     let releasedWhileStillCovered = false
     const window = BRIEF_MIN_VISIBLE_MS + BRIEF.COMPLETE_MS + BRIEF.COMPLETE_HOLD_MS + BRIEF.EXIT_MS + 400
