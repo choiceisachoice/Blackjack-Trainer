@@ -269,9 +269,9 @@ describe('the abbreviated timeline', () => {
 
 describe('the words', () => {
   it('read as one sentence across two levels, and say nothing twice', () => {
-    expect(`${WORDMARK_STRONG}${WORDMARK_LIGHT}`).toBe('BlackjackTrainer.com')
+    expect(`${WORDMARK_STRONG}${WORDMARK_LIGHT}`).toBe('black-jack-training.com')
     expect(`${EYEBROW} ${WORDMARK_STRONG}${WORDMARK_LIGHT}`)
-      .toBe('Welcome to BlackjackTrainer.com')
+      .toBe('Welcome to black-jack-training.com')
     expect(EYEBROW.length).toBeLessThan(14)
     // The status says what is happening in the product's own language — a table
     // being prepared, not assets being fetched.

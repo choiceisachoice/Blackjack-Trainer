@@ -380,7 +380,7 @@ export function IntroSequence({
         {/*
           The introduction — the only part a returning visitor does not get. What
           stays below is the whole of the loading screen proper: the track, the
-          card, the count. Saying "Welcome to BlackjackTrainer.com" to someone on
+          card, the count. Saying "Welcome to black-jack-training.com" to someone on
           their fourth session of the day is not a welcome, it is a toll booth.
         */}
         {!brief && (

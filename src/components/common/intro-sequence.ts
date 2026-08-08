@@ -257,7 +257,7 @@ export function percentAt(progress: number): number {
  * a table being prepared, not assets being fetched.
  */
 export const EYEBROW = 'Welcome to'
-export const WORDMARK_STRONG = 'BlackjackTrainer'
+export const WORDMARK_STRONG = 'black-jack-training'
 export const WORDMARK_LIGHT = '.com'
 export const STATUS = 'Preparing the table'
 /** What the status says once there is nothing left to prepare. */

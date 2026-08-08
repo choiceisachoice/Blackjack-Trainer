@@ -8,5 +8,4 @@ Disallow: /app
 Disallow: /account
 Disallow: /login
 
-# At deploy, once the domain is live, add:
-# Sitemap: https://your-domain/sitemap.xml
+Sitemap: https://black-jack-training.com/sitemap.xml
