@@ -75,6 +75,37 @@ describe('arriving at the page', () => {
   })
 })
 
+describe('being able to look at what you typed', () => {
+  it('hides both fields to begin with', () => {
+    show()
+    expect(screen.getByTestId('reset-password-new')).toHaveAttribute('type', 'password')
+    expect(screen.getByTestId('reset-password-confirm')).toHaveAttribute('type', 'password')
+  })
+
+  it('reveals both fields together, not just the one clicked', () => {
+    // Revealing half of a pair you are asked to match is no help at all.
+    show()
+    fireEvent.click(screen.getByTestId('reset-password-new-reveal'))
+    expect(screen.getByTestId('reset-password-new')).toHaveAttribute('type', 'text')
+    expect(screen.getByTestId('reset-password-confirm')).toHaveAttribute('type', 'text')
+  })
+
+  it('hides them again on a second click', () => {
+    show()
+    fireEvent.click(screen.getByTestId('reset-password-new-reveal'))
+    fireEvent.click(screen.getByTestId('reset-password-confirm-reveal'))
+    expect(screen.getByTestId('reset-password-new')).toHaveAttribute('type', 'password')
+  })
+
+  it('tells a screen reader what the button will do, not what it looks like', () => {
+    show()
+    const toggle = screen.getByTestId('reset-password-new-reveal')
+    expect(toggle).toHaveAttribute('aria-label', 'Show password')
+    fireEvent.click(toggle)
+    expect(screen.getByTestId('reset-password-new-reveal')).toHaveAttribute('aria-label', 'Hide password')
+  })
+})
+
 describe('setting the new password', () => {
   it('saves it and takes the learner into the app', async () => {
     show()

@@ -155,6 +155,40 @@ describe('auth-store', () => {
     expect(auth.updateUser).toHaveBeenCalledWith({ password: 'longenough' })
   })
 
+  it('signs out every other session after a password change', async () => {
+    // The whole security value of a reset. `updateUser` does not revoke
+    // anything on its own, so without this an intruder's refresh token keeps
+    // minting access tokens and the password change achieves nothing against
+    // the one case the flow exists for.
+    await useAuthStore.getState().updatePassword('longenough')
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: 'others' })
+  })
+
+  it('keeps the current session — the user stays where they are', async () => {
+    await useAuthStore.getState().updatePassword('longenough')
+    // 'global' would log them out of the device they are sitting at, which
+    // buys nothing and costs a login.
+    expect(auth.signOut).not.toHaveBeenCalledWith({ scope: 'global' })
+    expect(auth.signOut).not.toHaveBeenCalledWith()
+  })
+
+  it('does not revoke anything when the password change failed', async () => {
+    auth.updateUser.mockResolvedValue({ data: {}, error: { message: 'Password should be at least 6 characters' } })
+    await useAuthStore.getState().updatePassword('abc')
+    expect(auth.signOut).not.toHaveBeenCalled()
+  })
+
+  it('still reports success if revoking the other sessions fails', async () => {
+    // The password is already changed server-side and cannot be un-changed.
+    // Reporting a failed reset here would be a lie that sends the user round
+    // the loop again with a password that already works.
+    auth.signOut.mockRejectedValueOnce(new Error('network down'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    expect(await useAuthStore.getState().updatePassword('longenough')).toBeNull()
+    expect(console.error).toHaveBeenCalled()
+  })
+
   it('signOut clears the session', async () => {
     useAuthStore.setState({ status: 'signedIn', user: { id: 'u1' } as never, session: {} as never })
     await useAuthStore.getState().signOut()

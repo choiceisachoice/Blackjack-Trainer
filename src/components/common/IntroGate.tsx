@@ -3,6 +3,26 @@ import { IntroSequence } from './IntroSequence'
 import { isRepeatVisit } from './intro-session'
 
 /**
+ * Routes that never get a loading screen, welcome or otherwise.
+ *
+ * These are not entrances. Someone arriving at `/reset-password` clicked a link
+ * in an email because they have just lost access to their account — the worst
+ * possible moment to be shown five seconds of branding before the form appears.
+ * A loading screen belongs on the way in, not in front of an emergency exit.
+ *
+ * Read from `window.location` rather than from the router, and that is the
+ * accurate signal rather than the convenient one: this gate is about the *page
+ * load*, not about navigation. Only a fresh load can show an intro at all —
+ * which is exactly what following a link from an email is. Navigating here from
+ * inside the app cannot bring one back, because it is long finished.
+ *
+ * It also keeps the gate independent of the router it happens to sit above.
+ * Reaching for `useLocation` coupled a page-load concern to router context and
+ * broke every test that renders this component on its own.
+ */
+const NO_INTRO_PATHS = ['/reset-password']
+
+/**
  * How long the overlay lingers after the sequence hands over.
  *
  * Short, because the sequence performs its own transition: it retracts a
@@ -84,10 +104,19 @@ export function IntroGate({
   brief?: boolean
   children: ReactNode
 }) {
+  const [suppressed] = useState(() => {
+    try {
+      return NO_INTRO_PATHS.includes(window.location.pathname)
+    } catch {
+      return false
+    }
+  })
+
   // Covering from the first paint, not from an effect: mounting the overlay a
   // frame late lets the app flash behind it, which is the one thing a loading
-  // screen exists to prevent.
-  const [phase, setPhase] = useState<Phase>('playing')
+  // screen exists to prevent. Except where it is suppressed outright, where
+  // starting at `done` means not one frame of overlay is ever painted.
+  const [phase, setPhase] = useState<Phase>(() => (suppressed ? 'done' : 'playing'))
 
   /**
    * Whether the app behind may start its own entrance.
@@ -159,7 +188,7 @@ export function IntroGate({
    * value. During the grace period the answer is no, so a quick refresh is not
    * briefly scroll-locked and blurred before flashing into place.
    */
-  const showing = phase !== 'done' && !deciding
+  const showing = phase !== 'done' && !deciding && !suppressed
 
   /**
    * Tell the document that a loading screen is up.

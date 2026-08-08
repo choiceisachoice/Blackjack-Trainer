@@ -160,6 +160,32 @@ export const useAuthStore = create<AuthStore>((set) => ({
       set({ error: error.message })
       return error.message
     }
+
+    /*
+      Sign out every *other* session.
+
+      `updateUser({ password })` does not do this — Supabase's own dashboard
+      calls exactly this line after changing a password, for exactly this
+      reason. Without it a password reset does nothing to an intruder: their
+      refresh token keeps minting new access tokens indefinitely, and the person
+      who just reset their password believes they have locked someone out when
+      they have not. A false sense of security is worse than none, and this
+      account carries a subscription and a real-money bankroll log.
+
+      `others`, not `global`: the device in front of the user stays signed in.
+      Making them log in again where they already are buys nothing.
+
+      Best effort. The password is already changed server-side and cannot be
+      un-changed, so a failure here must not be reported as a failed reset — it
+      is logged instead, and the honest fallback is that the other session dies
+      when its refresh token next needs renewing.
+    */
+    try {
+      await supabase.auth.signOut({ scope: 'others' })
+    } catch (e) {
+      console.error('could not sign out other sessions after a password change', e)
+    }
+
     return null
   },
 

@@ -295,6 +295,41 @@ describe('IntroGate', () => {
     expect(screen.queryByTestId('intro-complete-layer')).toBeNull()
   })
 
+  it('shows nothing at all on the password-reset page', async () => {
+    // Someone lands there from an email because they have just lost access to
+    // their account. Five seconds of branding in front of the form is the worst
+    // possible use of that moment — and it was what happened.
+    const path = window.location.pathname
+    window.history.replaceState({}, '', '/reset-password')
+    try {
+      render(<IntroGate appReady={false}><div>form</div></IntroGate>)
+      expect(screen.queryByTestId('intro-sequence')).toBeNull()
+
+      // Not even while the app is still loading, which is when an overlay
+      // would otherwise be most justified.
+      await advance(GRACE_MS + MIN_VISIBLE_MS)
+      expect(screen.queryByTestId('intro-sequence')).toBeNull()
+      // And nothing done to the page on the way past.
+      expect(document.documentElement.dataset.intro).toBeUndefined()
+      expect(document.body.style.overflow).not.toBe('hidden')
+      expect(screen.getByText('form')).toBeInTheDocument()
+    } finally {
+      window.history.replaceState({}, '', path)
+    }
+  })
+
+  it('still shows the welcome on every other route', async () => {
+    // The suppression is a named list, not a general retreat.
+    const path = window.location.pathname
+    window.history.replaceState({}, '', '/login')
+    try {
+      render(<IntroGate appReady><div /></IntroGate>)
+      expect(screen.getByTestId('intro-sequence')).toBeInTheDocument()
+    } finally {
+      window.history.replaceState({}, '', path)
+    }
+  })
+
   it('never withholds the welcome from a genuine first visit', async () => {
     // The asymmetry is deliberate: showing the ceremony too often is a small
     // cost, withholding it from someone arriving for the first time is not.
