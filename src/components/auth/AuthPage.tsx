@@ -2,7 +2,15 @@ import { useState } from 'react'
 import { Spade, Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth-store'
 
-type Mode = 'signin' | 'signup'
+/**
+ * `reset` is a third mode rather than a separate route.
+ *
+ * Someone who has just failed to sign in is already looking at this card; a
+ * route change would throw away the email they have typed and the place they
+ * are in. The mode toggle stays a two-way switch — reset is reached from a link
+ * under the form, because it is a recovery path, not a way to use the product.
+ */
+type Mode = 'signin' | 'signup' | 'reset'
 
 /**
  * Login / registration screen shown when Supabase is configured and no user is
@@ -11,6 +19,7 @@ type Mode = 'signin' | 'signup'
 export function AuthPage() {
   const signIn = useAuthStore(s => s.signIn)
   const signUp = useAuthStore(s => s.signUp)
+  const requestPasswordReset = useAuthStore(s => s.requestPasswordReset)
   const error = useAuthStore(s => s.error)
   const clearError = useAuthStore(s => s.clearError)
 
@@ -33,9 +42,27 @@ export function AuthPage() {
     setBusy(true)
     setNotice(null)
     try {
-      if (mode === 'signup') {
-        const err = await signUp(email.trim(), password, username.trim() || undefined)
-        if (!err) setNotice('Account created. Check your email to confirm, then sign in.')
+      if (mode === 'reset') {
+        const err = await requestPasswordReset(email.trim())
+        /*
+          The same message whether or not that address has an account.
+
+          Anything else turns this form into an account checker: type addresses,
+          read the replies, learn who is registered. The store already declines
+          to report an unknown address; this is the other half of it, and the
+          two have to agree or the wording gives away what the code refused to.
+        */
+        if (!err) setNotice('If that address has an account, a reset link is on its way.')
+      } else if (mode === 'signup') {
+        const { error, needsConfirmation } = await signUp(email.trim(), password, username.trim() || undefined)
+        // Only mention email when an email is actually coming. With email
+        // confirmation off — which is how the project is configured — the
+        // account is live immediately and the auth listener takes the learner
+        // into the app, so a "check your inbox" notice would send them looking
+        // for a message that will never arrive.
+        if (!error && needsConfirmation) {
+          setNotice('Account created. Check your email for the confirmation link, then sign in.')
+        }
       } else {
         await signIn(email.trim(), password)
       }
@@ -61,7 +88,9 @@ export function AuthPage() {
           </span>
           <h1 className="text-2xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">Blackjack Trainer</h1>
           <p className="text-sm text-content/50 mt-1">
-            {mode === 'signin' ? 'Sign in to sync your progress.' : 'Create an account to get started.'}
+            {mode === 'reset' ? 'We’ll email you a link to set a new one.'
+              : mode === 'signin' ? 'Sign in to sync your progress.'
+              : 'Create an account to get started.'}
           </p>
         </div>
 
@@ -74,7 +103,7 @@ export function AuthPage() {
               onClick={() => switchMode(m)}
               aria-pressed={mode === m}
               className={`flex-1 px-3 py-1.5 rounded-md text-sm font-semibold cursor-pointer transition-colors
-                ${mode === m ? 'bg-gold text-black' : 'text-content/60 hover:text-content'}`}
+                ${(mode === 'reset' ? 'signin' : mode) === m ? 'bg-gold text-black' : 'text-content/60 hover:text-content'}`}
             >
               {m === 'signin' ? 'Sign In' : 'Register'}
             </button>
@@ -108,19 +137,24 @@ export function AuthPage() {
             />
           </Field>
 
-          <Field label="Password">
-            <input
-              type="password"
-              required
-              minLength={6}
-              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className={inputClass}
-              placeholder="••••••••"
-              data-testid="auth-password"
-            />
-          </Field>
+          {/* No password field when asking for a link — there is nothing to
+              type yet, and a required field they cannot fill would block the
+              form. */}
+          {mode !== 'reset' && (
+            <Field label="Password">
+              <input
+                type="password"
+                required
+                minLength={6}
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className={inputClass}
+                placeholder="••••••••"
+                data-testid="auth-password"
+              />
+            </Field>
+          )}
 
           {error && (
             <p className="text-sm text-error bg-error/10 border border-error/20 rounded-lg px-3 py-2" data-testid="auth-error">
@@ -142,8 +176,33 @@ export function AuthPage() {
               shadow-[0_10px_30px_-12px_var(--color-gold)] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {busy && <Loader2 size={16} className="animate-spin" />}
-            {mode === 'signin' ? 'Sign In' : 'Create Account'}
+            {mode === 'reset' ? 'Send reset link' : mode === 'signin' ? 'Sign In' : 'Create Account'}
           </button>
+
+          {/* Recovery lives under the form, not in the mode toggle: it is a way
+              back in when something has gone wrong, not a way to use the app. */}
+          {mode === 'signin' && (
+            <button
+              type="button"
+              onClick={() => switchMode('reset')}
+              data-testid="auth-forgot"
+              className="w-full text-center text-sm text-content/45 hover:text-content
+                cursor-pointer transition-colors"
+            >
+              Forgotten your password?
+            </button>
+          )}
+          {mode === 'reset' && (
+            <button
+              type="button"
+              onClick={() => switchMode('signin')}
+              data-testid="auth-back-to-signin"
+              className="w-full text-center text-sm text-content/45 hover:text-content
+                cursor-pointer transition-colors"
+            >
+              Back to sign in
+            </button>
+          )}
         </form>
       </div>
     </div>
