@@ -16,7 +16,7 @@ type Mode = 'signin' | 'signup' | 'reset'
  * Login / registration screen shown when Supabase is configured and no user is
  * signed in. Dark-luxury styling to match the app shell.
  */
-export function AuthPage() {
+export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
   const signIn = useAuthStore(s => s.signIn)
   const signUp = useAuthStore(s => s.signUp)
   const requestPasswordReset = useAuthStore(s => s.requestPasswordReset)
@@ -28,7 +28,10 @@ export function AuthPage() {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [busy, setBusy] = useState(false)
-  const [notice, setNotice] = useState<string | null>(null)
+  // Seeded from the caller so an arrival can explain itself — e.g. landing
+  // here straight after a password change, which would otherwise look like
+  // an unexplained logout.
+  const [notice, setNotice] = useState<string | null>(initialNotice ?? null)
 
   const switchMode = (m: Mode) => {
     setMode(m)

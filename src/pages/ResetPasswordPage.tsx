@@ -87,9 +87,17 @@ export function ResetPasswordPage() {
     setBusy(true)
     try {
       const err = await updatePassword(password)
-      // Already signed in on the recovery session, so there is nothing left to
-      // do but let them into the app.
-      if (!err) navigate('/app', { replace: true })
+      // To the sign-in screen, not into the app. The password change signs
+      // every session out, including the recovery one this page is running on
+      // — see the note in `updatePassword`. Carrying the confirmation across in
+      // router state so the next screen can say what just happened instead of
+      // looking like an unexplained logout.
+      if (!err) {
+        navigate('/login', {
+          replace: true,
+          state: { notice: 'Password changed. Sign in with your new one.' },
+        })
+      }
     } finally {
       setBusy(false)
     }
@@ -111,7 +119,7 @@ export function ResetPasswordPage() {
               is being removed — and someone who simply forgot needs to know why
               their tablet will ask them to sign in again. */}
           <p className="mt-1 text-sm text-content/55">
-            You stay signed in here. Any other device gets signed out.
+            You will be signed out everywhere and asked to sign in again.
           </p>
         </div>
 

@@ -155,21 +155,18 @@ describe('auth-store', () => {
     expect(auth.updateUser).toHaveBeenCalledWith({ password: 'longenough' })
   })
 
-  it('signs out every other session after a password change', async () => {
-    // The whole security value of a reset. `updateUser` does not revoke
-    // anything on its own, so without this an intruder's refresh token keeps
-    // minting access tokens and the password change achieves nothing against
-    // the one case the flow exists for.
+  it('signs out every session after a password change, including this one', async () => {
+    // The whole security value of a reset. `updateUser` revokes nothing on its
+    // own, so without this an intruder's refresh token keeps minting access
+    // tokens and the change achieves nothing against the one case the flow
+    // exists for.
+    //
+    // `global` rather than `others`, per OWASP's "don't automatically log the
+    // user in": the recovery link had already created a session before the new
+    // password was set, and someone resetting on a shared machine walks away
+    // leaving it open. This is the only point at which it can be closed.
     await useAuthStore.getState().updatePassword('longenough')
-    expect(auth.signOut).toHaveBeenCalledWith({ scope: 'others' })
-  })
-
-  it('keeps the current session — the user stays where they are', async () => {
-    await useAuthStore.getState().updatePassword('longenough')
-    // 'global' would log them out of the device they are sitting at, which
-    // buys nothing and costs a login.
-    expect(auth.signOut).not.toHaveBeenCalledWith({ scope: 'global' })
-    expect(auth.signOut).not.toHaveBeenCalledWith()
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: 'global' })
   })
 
   it('does not revoke anything when the password change failed', async () => {

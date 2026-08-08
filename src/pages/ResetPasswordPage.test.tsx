@@ -15,7 +15,7 @@ vi.mock('../services/supabase/client', () => ({
   requireSupabase: () => ({ auth: {} }),
 }))
 
-const navigate = vi.fn()
+const navigate = vi.fn<(to: string, opts: { replace?: boolean; state?: { notice?: string } }) => void>()
 vi.mock('react-router-dom', async importOriginal => ({
   ...(await importOriginal<typeof import('react-router-dom')>()),
   useNavigate: () => navigate,
@@ -107,13 +107,27 @@ describe('being able to look at what you typed', () => {
 })
 
 describe('setting the new password', () => {
-  it('saves it and takes the learner into the app', async () => {
+  it('saves it and sends the learner to sign in, not into the app', async () => {
+    // Per OWASP: do not log someone in automatically after a reset. The change
+    // signs every session out anyway, including the recovery one this page runs
+    // on, so there is nothing to carry into the app.
     show()
     fill('longenough')
     fireEvent.click(screen.getByTestId('reset-password-submit'))
 
     await waitFor(() => expect(updatePassword).toHaveBeenCalledWith('longenough'))
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/app', { replace: true }))
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/login', expect.objectContaining({ replace: true })))
+  })
+
+  it('tells the next screen what just happened', async () => {
+    // Arriving at a sign-in form unannounced reads as an unexplained logout.
+    show()
+    fill('longenough')
+    fireEvent.click(screen.getByTestId('reset-password-submit'))
+
+    await waitFor(() => expect(navigate).toHaveBeenCalled())
+    const [, options] = navigate.mock.calls[0]
+    expect(options.state.notice).toMatch(/password changed/i)
   })
 
   it('refuses a mismatch before sending anything', async () => {
