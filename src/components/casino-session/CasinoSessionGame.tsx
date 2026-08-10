@@ -17,9 +17,22 @@ interface CasinoSessionGameProps {
   recorder: SessionRecorder | null
   soundEnabled: boolean
   onSessionEnd: (result: CasinoSessionResult) => void
+  /**
+   * The session is still mounted but not on screen — the player navigated to
+   * another mode.
+   *
+   * Staying mounted is what lets them come back to the same hand. It also means
+   * the clock would keep running behind their back, and a time-limited session
+   * could expire while they read the Learn page. So being backgrounded pauses.
+   *
+   * Coming back deliberately does NOT auto-resume: the pause overlay is already
+   * on screen and unpausing is one click. Resuming for them would restart
+   * animations mid-flight for someone who is not looking yet.
+   */
+  backgrounded?: boolean
 }
 
-export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd }: CasinoSessionGameProps) {
+export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd, backgrounded = false }: CasinoSessionGameProps) {
   const {
     state,
     actions,
@@ -41,6 +54,19 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     initSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /**
+   * Freeze the session while it is off screen.
+   *
+   * One direction only. Backgrounding pauses; returning does not resume,
+   * because the player may have paused deliberately before leaving and
+   * un-pausing for them would discard that decision. The overlay is already up
+   * and resuming is one click.
+   */
+  useEffect(() => {
+    if (backgrounded) actions.setPaused(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [backgrounded])
 
   // Dealing speed (live, persisted)
   const dealingSpeed = useAppStore(s => s.dealingSpeed)

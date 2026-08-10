@@ -144,6 +144,24 @@ export function AccountPage() {
                     <div className="font-bold text-lg">{plan.title}</div>
                     {isPro && periodEnd && <div className="text-sm text-content/50">{renewLabel} {periodEnd}</div>}
                     {!isPro && <div className="text-sm text-content/50">Upgrade to unlock the casino table, deviations and full analytics.</div>}
+                    {cancelAtPeriodEnd && (
+                      /**
+                       * The part of cancelling nobody thinks about.
+                       *
+                       * The Casino Session, Bet Spread, Deck Estimation and the
+                       * Bankroll tools are Pro. A paused session is kept alive
+                       * in the browser, which makes it easy to assume it will
+                       * still be there afterwards — it will not. Access ends
+                       * with the period, and the mode goes behind the paywall
+                       * with whatever is in it. Better said here than
+                       * discovered on the day it happens.
+                       */
+                      <div className="mt-2 text-sm text-warning" data-testid="pro-ends-notice">
+                        When access ends, the Pro modes close — the casino table, bet spread,
+                        deck estimation and the bankroll tools. A session you paused to finish
+                        later will not be reachable after that date.
+                      </div>
+                    )}
                   </div>
                 </div>
                 {isPro ? (

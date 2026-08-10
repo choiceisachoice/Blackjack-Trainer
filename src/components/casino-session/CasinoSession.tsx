@@ -13,7 +13,16 @@ import { CasinoSessionConfigView } from './CasinoSessionConfig'
 import { CasinoSessionSummary } from './CasinoSessionSummary'
 import { CasinoSessionGame } from './CasinoSessionGame'
 
-export function CasinoSession() {
+interface CasinoSessionProps {
+  /**
+   * The session stays mounted while another mode is on screen, so the player
+   * can come back to the same hand. See `TrainerApp` for why it is mounted
+   * outside the mode switch.
+   */
+  backgrounded?: boolean
+}
+
+export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {}) {
   const setMode = useAppStore(s => s.setMode)
   const soundEnabled = useAppStore(s => s.soundEnabled)
   const selectedSystem = useAppStore(s => s.selectedSystem)
@@ -45,11 +54,11 @@ export function CasinoSession() {
   /**
    * A session that is unmounted is a session that is over.
    *
-   * The engine, the shoe and the clock live in refs inside `CasinoSessionGame`;
-   * `TrainerApp` renders this component conditionally, so a mode change destroys
-   * them. Reporting the end here keeps the guard honest — otherwise it would go
-   * on protecting a session that no longer exists, and the next navigation would
-   * raise a dialog about nothing.
+   * The engine, the shoe and the clock live in refs inside `CasinoSessionGame`.
+   * `TrainerApp` now keeps this component mounted across mode changes, so this
+   * runs on the ways out that really do destroy it: leaving the app, losing Pro,
+   * or a crash the ErrorBoundary resets. Reporting the end keeps the guard from
+   * protecting a session that no longer exists.
    */
   useEffect(() => () => { useLiveSessionStore.getState().endSession() }, [])
 
@@ -179,6 +188,7 @@ export function CasinoSession() {
       recorder={recorder}
       soundEnabled={soundEnabled}
       onSessionEnd={handleSessionEnd}
+      backgrounded={backgrounded}
     />
   )
 }

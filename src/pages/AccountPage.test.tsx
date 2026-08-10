@@ -180,6 +180,24 @@ describe('a subscription that has been cancelled', () => {
     expect(screen.getByText(/Payment due by/i)).toBeInTheDocument()
   })
 
+  it('warns that the Pro modes close, including a paused session', () => {
+    // A paused Casino Session is kept alive in the browser, which makes it easy
+    // to assume it survives the subscription. It does not: the mode goes behind
+    // the paywall on the end date with whatever is in it.
+    useEntitlementStore.setState({ status: 'active', currentPeriodEnd: IN_A_MONTH, cancelAtPeriodEnd: true })
+    renderPage()
+
+    const notice = screen.getByTestId('pro-ends-notice')
+    expect(notice).toHaveTextContent(/casino table/i)
+    expect(notice).toHaveTextContent(/paused/i)
+  })
+
+  it('says nothing of the sort while the subscription is renewing', () => {
+    useEntitlementStore.setState({ status: 'active', currentPeriodEnd: IN_A_MONTH, cancelAtPeriodEnd: false })
+    renderPage()
+    expect(screen.queryByTestId('pro-ends-notice')).toBeNull()
+  })
+
   it('keeps the portal reachable so the cancellation can be undone', () => {
     // Stripe lets a customer resume a subscription cancelled at period end. If
     // this page hid the button once cancelled, changing your mind would need an

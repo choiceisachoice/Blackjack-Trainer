@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { useAppStore } from '../store/app-store'
+import { useLiveSessionStore } from '../store/live-session-store'
 import { HomeScreen } from '../components/navigation/HomeScreen'
 import { NavBar } from '../components/navigation/NavBar'
 import { SpeedDrill } from '../components/training/SpeedDrill'
@@ -44,6 +46,29 @@ export function TrainerApp() {
   const locked = isProMode(currentMode) && !isPro
   const scrollable = SCROLLABLE_MODES.has(currentMode) || locked
 
+  /**
+   * The Casino Session outlives a mode change.
+   *
+   * Its engine, shoe, hands and clock live in refs inside `useGameLoop`, so
+   * unmounting the component destroys the session outright — which is exactly
+   * what used to happen on a click of the wordmark. Keeping it mounted and
+   * merely hidden is what lets someone come back to the same hand; `display:
+   * none` leaves React state and refs untouched.
+   *
+   * It therefore lives OUTSIDE the ErrorBoundary keyed on `currentMode`. That
+   * key is what makes a crashed screen recoverable, and it would remount the
+   * session on every mode change — undoing the whole point.
+   */
+  const casinoLive = useLiveSessionStore(s => s.activeMode === 'casinoSession')
+  const casinoVisible = currentMode === 'casinoSession' && !locked
+  // Losing Pro takes the session with it: a paused hand behind a paywall is
+  // not something to keep alive, and the guard must stop protecting it.
+  const casinoMounted = (casinoVisible || casinoLive) && isPro
+
+  useEffect(() => {
+    if (!isPro) useLiveSessionStore.getState().endSession()
+  }, [isPro])
+
   // Feed the training plan's stage to the challenge engines, so all of them
   // agree on where this learner is.
   useLearnerSync()
@@ -69,6 +94,19 @@ export function TrainerApp() {
       {/* Reset key on the mode so switching screens clears a crashed one. A render
           error shows a recoverable fallback instead of blanking the whole app. */}
       <div className={`flex-1 min-h-0 flex flex-col ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+        {/* Persistent, so a mode change does not destroy a running session.
+            Hidden rather than unmounted; its own boundary, unkeyed. */}
+        {casinoMounted && (
+          <div
+            className={casinoVisible ? 'flex-1 min-h-0 flex flex-col' : 'hidden'}
+            data-testid="casino-session-mount"
+            aria-hidden={!casinoVisible}
+          >
+            <ErrorBoundary onReset={() => setMode('home')}>
+              <CasinoSession backgrounded={!casinoVisible} />
+            </ErrorBoundary>
+          </div>
+        )}
         <ErrorBoundary key={currentMode} onReset={() => setMode('home')}>
         {locked ? (
           <div className="flex-1 flex items-start justify-center p-4 md:p-8">
@@ -84,7 +122,9 @@ export function TrainerApp() {
             {currentMode === 'analytics' && <AnalyticsDashboard />}
             {currentMode === 'bankrollSim' && <BankrollSimulator />}
             {currentMode === 'achievements' && <AchievementsPage />}
-            {currentMode === 'casinoSession' && <CasinoSession />}
+            {/* The Casino Session is not listed here: it is mounted above so it
+                survives a mode change. Putting it back would give it a second,
+                keyed instance — two engines, two shoes, one visible. */}
             {currentMode === 'strategyChart' && <StrategyChart />}
             {currentMode === 'casinoSessionTracker' && <CasinoSessionTracker />}
             {currentMode === 'learn' && <LearnPage />}
