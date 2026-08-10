@@ -1,0 +1,88 @@
+# Security headers for black-jack-training.com
+#
+# ─── WHY THIS FILE IS NOT DEPLOYED BY THE REPO ───────────────────────
+#
+# The app is built by Nixpacks and served by Caddy, and neither is configured
+# from this repository. The headers therefore have to be set one layer out, by
+# the Traefik that Dokploy puts in front of every application.
+#
+# That means this file lives on the server, not in the image — which is exactly
+# why a copy is kept here. A missing header produces no error and no failed
+# deploy. It produces silence, and a gap nobody notices. If the VPS is rebuilt,
+# Dokploy reinstalled, or this app recreated, re-apply the steps below.
+#
+# ─── INSTALL ─────────────────────────────────────────────────────────
+#
+#  1. Dokploy → Settings → Web Server → Traefik file editor.
+#  2. Create `security-headers.yml` inside the dynamic configuration
+#     directory (`/etc/dokploy/traefik/dynamic`). Traefik's file provider
+#     watches it and reloads on save — no restart needed.
+#  3. Paste everything below the marker line.
+#  4. For EACH domain (apex and www): Application → Domains → edit →
+#     Middlewares → add `security-headers@file` → save.
+#
+#     The `@file` suffix names the provider the middleware came from. Without
+#     it Traefik looks in the wrong provider and silently routes without the
+#     middleware — the site keeps working and the headers keep missing, which
+#     is the worst possible failure shape.
+#
+#  5. Verify from outside, not from the dashboard:
+#       curl -sI https://black-jack-training.com/ | grep -i -E 'content-security|strict-transport|x-frame'
+#     Nothing printed means it did not take effect.
+#
+# ─── ABOUT THE POLICY ────────────────────────────────────────────────
+#
+# The CSP is strict because this app earns it: no third-party script, no CDN
+# font, no analytics, no Stripe.js — checkout is a top-level redirect, not an
+# embed. The only external origin is Supabase.
+#
+# Two deliberate loosenings, both verified against the real build:
+#   'unsafe-inline' in style-src — Framer Motion animates via inline style
+#     attributes; there is no nonce path for that in a static build.
+#   blob: in worker-src and img-src — Three.js and canvas exports use blob
+#     URLs. Same-origin blobs, not a remote fetch.
+#
+# `stsIncludeSubdomains` is deliberately false: the DNS zone still has a
+# wildcard A record pointing at the old host, and forcing HTTPS onto machines
+# outside this deployment would break something invisible from here. Revisit
+# once that wildcard is gone.
+#
+# ─────────────────────────── PASTE FROM HERE ─────────────────────────
+
+http:
+  middlewares:
+    security-headers:
+      headers:
+        # HSTS. No includeSubdomains — see the note above.
+        stsSeconds: 31536000
+        stsIncludeSubdomains: false
+        stsPreload: false
+        forceSTSHeader: true
+
+        contentTypeNosniff: true
+        frameDeny: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        permissionsPolicy: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+
+        contentSecurityPolicy: >-
+          default-src 'self';
+          script-src 'self';
+          style-src 'self' 'unsafe-inline';
+          img-src 'self' data: blob:;
+          font-src 'self';
+          connect-src 'self' https://*.supabase.co wss://*.supabase.co;
+          worker-src 'self' blob:;
+          manifest-src 'self';
+          media-src 'self';
+          frame-src 'none';
+          object-src 'none';
+          base-uri 'self';
+          form-action 'self';
+          frame-ancestors 'none';
+          upgrade-insecure-requests
+
+        # Stop announcing the backend. Not a defence on its own, but there is
+        # no reason to hand out the server name and version for free.
+        customResponseHeaders:
+          Server: ""
+          X-Powered-By: ""
