@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAppStore } from '../../store/app-store'
+import { useLiveSessionStore } from '../../store/live-session-store'
 import { useStatsStore } from '../../store/stats-store'
 import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker-store'
 import { SessionRecorder } from '../../services/session-recorder'
@@ -27,6 +28,30 @@ export function CasinoSession() {
   // render-relevant data. As a ref it worked only because every write happened
   // to be paired with a state update that forced the re-render.
   const [recorder, setRecorder] = useState<SessionRecorder | null>(null)
+
+  /**
+   * Tell the navigation guard when there is something to protect.
+   *
+   * Only from `playing` onward. The configuration screen holds no progress, and
+   * asking "discard your session?" there would teach people to click the dialog
+   * away — after which it protects nothing on the screen where it matters.
+   */
+  useEffect(() => {
+    const live = useLiveSessionStore.getState()
+    if (phase === 'playing') live.beginSession('casinoSession')
+    else live.endSession()
+  }, [phase])
+
+  /**
+   * A session that is unmounted is a session that is over.
+   *
+   * The engine, the shoe and the clock live in refs inside `CasinoSessionGame`;
+   * `TrainerApp` renders this component conditionally, so a mode change destroys
+   * them. Reporting the end here keeps the guard honest — otherwise it would go
+   * on protecting a session that no longer exists, and the next navigation would
+   * raise a dialog about nothing.
+   */
+  useEffect(() => () => { useLiveSessionStore.getState().endSession() }, [])
 
   const handleStart = useCallback((config: CasinoSessionConfig) => {
     const next = new SessionRecorder()

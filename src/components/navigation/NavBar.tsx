@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../store/app-store'
 import type { AppMode } from '../../store/app-store'
+import { useLiveSessionStore } from '../../store/live-session-store'
 import { useAuthStore, isSupabaseConfigured } from '../../store/auth-store'
 import { useIsPro } from '../../store/entitlement-store'
 import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
@@ -47,7 +48,19 @@ const TOOL_ITEMS: NavItem[] = [
  */
 export function NavBar() {
   const currentMode = useAppStore(s => s.currentMode)
-  const setMode = useAppStore(s => s.setMode)
+  const rawSetMode = useAppStore(s => s.setMode)
+  const requestLeave = useLiveSessionStore(s => s.requestLeave)
+  /**
+   * Every mode change in this bar goes through the live-session guard.
+   *
+   * Not through `setMode` directly: the wordmark and the nav items are the two
+   * clicks that used to end a running Casino Session without a word, and a
+   * guard that each button has to remember to call is a guard the next button
+   * will forget.
+   */
+  const setMode = (mode: Parameters<typeof rawSetMode>[0]) => {
+    if (requestLeave(mode)) rawSetMode(mode)
+  }
   const soundEnabled = useAppStore(s => s.soundEnabled)
   const toggleSound = useAppStore(s => s.toggleSound)
   const theme = useAppStore(s => s.theme)

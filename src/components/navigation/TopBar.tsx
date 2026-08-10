@@ -1,4 +1,5 @@
 import { useAppStore } from '../../store/app-store'
+import { useLiveSessionStore } from '../../store/live-session-store'
 import { getSystemById } from '../../engine/counting/counting-systems'
 
 const MODE_LABELS: Record<string, string> = {
@@ -22,7 +23,13 @@ const MODE_LABELS: Record<string, string> = {
  */
 export function TopBar() {
   const currentMode = useAppStore(s => s.currentMode)
-  const setMode = useAppStore(s => s.setMode)
+  const rawSetMode = useAppStore(s => s.setMode)
+  const requestLeave = useLiveSessionStore(s => s.requestLeave)
+  // Same guard as the NavBar: this "← Home" is the other way out of a running
+  // session, and an unguarded second exit makes the first guard decorative.
+  const setMode = (mode: Parameters<typeof rawSetMode>[0]) => {
+    if (requestLeave(mode)) rawSetMode(mode)
+  }
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const soundEnabled = useAppStore(s => s.soundEnabled)
   const toggleSound = useAppStore(s => s.toggleSound)
