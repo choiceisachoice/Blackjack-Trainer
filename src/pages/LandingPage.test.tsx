@@ -138,6 +138,24 @@ describe('the landing page checkout', () => {
   })
 })
 
+describe('the price shown on the public page', () => {
+  it('states that it is the final amount, VAT included', () => {
+    // Swiss consumer price rules want an all-in figure, and a visitor who reads
+    // one number on the page and meets a larger one at checkout does not come
+    // back. The note is part of the price, not decoration.
+    renderPage()
+    expect(screen.getByTestId('pricing-vat-note')).toHaveTextContent(/final price/i)
+    expect(screen.getByTestId('pricing-vat-note')).toHaveTextContent(/8\.1%/)
+    expect(screen.getByTestId('pricing-vat-note')).toHaveTextContent(/Switzerland/i)
+  })
+
+  it('keeps the note when the visitor switches to monthly', () => {
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: /^Monthly$/i }))
+    expect(screen.getByTestId('pricing-vat-note')).toBeInTheDocument()
+  })
+})
+
 /**
  * Selling the same person a second subscription.
  *

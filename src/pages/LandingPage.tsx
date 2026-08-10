@@ -4,7 +4,7 @@ import { Spade, Check, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
 import { useHasSubscription } from '../store/entitlement-store'
-import { PLAN_OPTIONS, PRO_BENEFITS, formatCHF, yearlySaving } from '../services/pro-features'
+import { PLAN_OPTIONS, PRO_BENEFITS, formatCHF, yearlySaving, VAT_NOTE } from '../services/pro-features'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
 import { FeatureShowcase } from '../components/landing/FeatureShowcase'
@@ -226,6 +226,7 @@ export function LandingPage() {
                 ? `Save ${formatCHF(saving.saved)} — ${saving.percent}% off monthly`
                 : 'Flexible — cancel anytime'}
             </div>
+            <div className="text-xs text-content/45 mt-1" data-testid="pricing-vat-note">{VAT_NOTE}</div>
             <div className="inline-flex mt-2 self-start bg-surface-2 border border-white/8 rounded-[11px] p-1 gap-1">
               <button onClick={() => setPlan('yearly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'yearly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>Yearly</button>
               <button onClick={() => setPlan('monthly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'monthly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>Monthly</button>

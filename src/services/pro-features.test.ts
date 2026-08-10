@@ -6,6 +6,8 @@ import {
   FEATURE_GROUPS,
   formatCHF,
   yearlySaving,
+  VAT_NOTE,
+  CH_VAT_PERCENT,
   isProMode,
   type PlanOption,
 } from './pro-features'
@@ -145,5 +147,30 @@ describe('isProMode', () => {
     for (const mode of ['home', 'speedDrill', 'deviationTraining', 'learn', 'achievements'] as const) {
       expect(isProMode(mode)).toBe(false)
     }
+  })
+})
+
+/**
+ * The operator is a Swiss company selling to consumers, so the amount on the
+ * page has to be the amount charged, and the note has to say whose VAT it is.
+ */
+describe('the VAT note', () => {
+  it('names the rate, so the note and the Stripe tax rate cannot drift apart silently', () => {
+    expect(VAT_NOTE).toContain(String(CH_VAT_PERCENT))
+  })
+
+  it('says the displayed amount is what gets charged', () => {
+    expect(VAT_NOTE.toLowerCase()).toContain('final price')
+  })
+
+  it('scopes the VAT to Switzerland rather than claiming it applies to everyone', () => {
+    // The note is shown to every visitor — detecting the country in the browser
+    // is wrong for anyone travelling or on a VPN. So it has to be a sentence
+    // that stays true no matter who reads it.
+    expect(VAT_NOTE).toMatch(/Switzerland/)
+  })
+
+  it('uses the current Swiss rate', () => {
+    expect(CH_VAT_PERCENT).toBe(8.1)
   })
 })

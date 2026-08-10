@@ -5,6 +5,7 @@ import {
   FEATURE_GROUPS,
   formatCHF,
   yearlySaving,
+  VAT_NOTE,
 } from '../../services/pro-features'
 import type { ComparisonRow } from '../../services/pro-features'
 import { startCheckout } from '../../services/supabase/billing'
@@ -147,6 +148,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
               ? `Save ${formatCHF(saving.saved)} against ${formatCHF(monthly.amount)}/month`
               : 'Flexible — switch to yearly anytime'}
           </div>
+          <div className="mt-1 text-xs text-content/45" data-testid="paywall-vat-note">{VAT_NOTE}</div>
 
           {/* Above the feature list on purpose: the groups make this column tall
               enough to push a bottom-anchored button off-screen, and someone who

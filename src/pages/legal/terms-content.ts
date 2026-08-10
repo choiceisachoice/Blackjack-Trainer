@@ -59,6 +59,7 @@ export const TERMS_DOC: LegalDoc = {
       blocks: [
         'The Service has a free tier and a paid "Pro" subscription. Pro is billed monthly or yearly through our payment processor, Stripe, and renews automatically until you cancel.',
         'You can cancel at any time from your account; your Pro access continues until the end of the period you have already paid for. Except where the law requires otherwise, payments already made are non-refundable. We may change prices or features, and will give reasonable notice of material changes before they affect you.',
+        'All prices shown on the Service are in Swiss francs and are final prices: the amount displayed is the amount charged. For customers in Switzerland they include Swiss value added tax (VAT) at the applicable statutory rate, and the VAT is shown separately on your invoice and payment receipt. If taxes or duties apply where you live, they are your responsibility.',
       ],
     },
     {

@@ -52,6 +52,11 @@ describe('Terms of Use — required topics', () => {
     ['no financial advice', /not financial|not .*advice/],
     ['responsible gambling', /responsibl/],
     ['governing law', /governed by/],
+    // The operator is a Swiss company selling to consumers, so the listed
+    // amounts have to be all-in and the Terms have to say so.
+    ['that the listed prices are final', /final price/],
+    ['that Swiss VAT is included', /value added tax|vat/],
+    ['where the VAT is shown', /invoice|receipt/],
   ])('states %s', (_label, re) => {
     expect(t).toMatch(re)
   })

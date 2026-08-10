@@ -36,6 +36,22 @@ const PLAN_PRICES: Record<string, string | undefined> = {
  */
 const BILLABLE_STATUSES = new Set(['active', 'trialing', 'past_due'])
 
+/**
+ * Optional Stripe Tax Rate id (`txr_…`) applied to the subscription.
+ *
+ * The operator is a Swiss company and the displayed prices are final prices, so
+ * this rate must be created in Stripe as **inclusive** — it splits the VAT out
+ * of the 7.90 rather than adding to it. Without that, a customer would see one
+ * figure on the page and a larger one on the card.
+ *
+ * Kept as a secret rather than a constant for two reasons: the rate lives in
+ * Stripe (and differs between test and live mode, like every other id), and
+ * whether VAT is charged at all depends on the company's registration — a
+ * question for the accountant, not for a deploy. Unset means no tax line, which
+ * is the correct behaviour for a business that is not VAT-registered.
+ */
+const TAX_RATE_ID = Deno.env.get('STRIPE_TAX_RATE_CH')?.trim() || undefined
+
 Deno.serve(async (req) => {
   const cors = corsHeaders(req)
   const json = (body: unknown, status = 200): Response =>
@@ -126,7 +142,13 @@ Deno.serve(async (req) => {
       // The user id is also carried by the customer metadata; keep it here too
       // so the webhook can resolve the user without a customer lookup.
       client_reference_id: user.id,
-      subscription_data: { metadata: { supabase_user_id: user.id } },
+      subscription_data: {
+        metadata: { supabase_user_id: user.id },
+        // Only sent when configured — an empty array would still be an
+        // instruction, and Stripe treats "no tax rates" differently from
+        // "this subscription is exempt".
+        ...(TAX_RATE_ID ? { default_tax_rates: [TAX_RATE_ID] } : {}),
+      },
       success_url: `${APP_URL}/app?checkout=success`,
       cancel_url: `${APP_URL}/app?checkout=cancelled`,
       allow_promotion_codes: true,
