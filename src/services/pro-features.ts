@@ -40,8 +40,8 @@ export interface PlanOption {
 }
 
 export const PLAN_OPTIONS: PlanOption[] = [
-  { id: 'monthly', label: 'Monthly', amount: 7.9, cadence: '/month' },
-  { id: 'yearly', label: 'Yearly', amount: 59, cadence: '/year' },
+  { id: 'monthly', label: 'Monthly', amount: 8.9, cadence: '/month' },
+  { id: 'yearly', label: 'Yearly', amount: 69, cadence: '/year' },
 ]
 
 /** Format a CHF amount, dropping the decimals on whole francs (59 → "CHF 59"). */

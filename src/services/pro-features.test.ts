@@ -32,9 +32,20 @@ describe('yearlySaving', () => {
     // The copy used to claim "2 months free" while the actual discount was
     // ~4.5 months. Deriving it means the claim cannot drift from the price again.
     const s = yearlySaving()
-    expect(s.monthlyTotal).toBeCloseTo(94.8, 2) // 7.90 x 12
-    expect(s.saved).toBeCloseTo(35.8, 2)        // 94.80 - 59
-    expect(s.percent).toBe(38)
+    expect(s.monthlyTotal).toBeCloseTo(106.8, 2) // 8.90 x 12
+    expect(s.saved).toBeCloseTo(37.8, 2)         // 106.80 - 69
+    expect(s.percent).toBe(35)
+  })
+
+  it('matches the amounts Stripe actually charges', () => {
+    // These two numbers exist twice: here, and as live Stripe Prices. Nothing
+    // reconciles them automatically, and the failure is silent — the page would
+    // advertise one figure while the card is charged another. Changing a price
+    // in Stripe means changing it here, and this test is the reminder.
+    const monthly = PLAN_OPTIONS.find(p => p.id === 'monthly')!
+    const yearly = PLAN_OPTIONS.find(p => p.id === 'yearly')!
+    expect(monthly.amount).toBe(8.9)
+    expect(yearly.amount).toBe(69)
   })
 
   it('tracks a price change instead of going stale', () => {
