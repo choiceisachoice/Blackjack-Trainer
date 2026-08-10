@@ -3,6 +3,7 @@ import { useGameStore } from './game-store'
 import { Action, HandResult, DEFAULT_RULES } from '../engine/rules/types'
 import type { CardSource } from '../engine/rules/types'
 import { GameEngine } from '../engine/rules/game-engine'
+import { isBlackjack } from '../engine/rules/hand-utils'
 import { Rank, Suit } from '../engine/shoe/types'
 import type { Card } from '../engine/shoe/types'
 
@@ -174,10 +175,26 @@ describe('Game Store', () => {
     vi.advanceTimersByTime(10000)
 
     const stateAfterDouble = useGameStore.getState()
-    // Player hand should have exactly one more card
-    expect(stateAfterDouble.gameState!.playerHands[0].cards.length).toBe(cardsBefore + 1)
-    // Round should be over (double → stand → dealer → settle)
-    expect(stateAfterDouble.gameState!.isRoundOver).toBe(true)
+    const after = stateAfterDouble.gameState!
+
+    // The round is over either way: double is deal-one-card-and-stand.
+    expect(after.isRoundOver).toBe(true)
+
+    // …but "one more card" only holds when the double actually happened.
+    //
+    // `double()` peeks for a dealer blackjack first, and on a hit it settles
+    // the round then and there without dealing — correctly, because there is
+    // nothing left to double into. The deal-time guards above cannot see that:
+    // the dealer's Ace is face up, the ten is not, and the peek happens inside
+    // `double()`. With an unseeded shoe that is roughly one deal in forty, which
+    // is exactly often enough to fail a full-suite run now and then and be green
+    // on every re-run — the worst kind of test to leave in place.
+    const dealerHadBlackjack = isBlackjack(after.dealerHand.cards)
+    if (dealerHadBlackjack) {
+      expect(after.playerHands[0].cards.length).toBe(cardsBefore)
+    } else {
+      expect(after.playerHands[0].cards.length).toBe(cardsBefore + 1)
+    }
   })
 
   it('newRound after cutCard resets shoe', () => {
