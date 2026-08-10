@@ -96,3 +96,25 @@ export function selectIsPro(state: EntitlementState): boolean {
 export function useIsPro(): boolean {
   return useEntitlementStore(selectIsPro)
 }
+
+/**
+ * Whether this account actually has a subscription being billed.
+ *
+ * Deliberately NOT `selectIsPro`. That one answers "may this session use the
+ * Pro features", and it says yes whenever there is no billing backend at all —
+ * local development, tests, the offline build. Perfectly correct for unlocking
+ * a feature, and completely wrong as the basis for "has this person already
+ * been sold something", which is what the checkout path needs to know.
+ *
+ * Conflating the two would mean an offline build silently refuses to sell, and
+ * — the direction that costs money — a stale local unlock being treated as
+ * proof of payment.
+ */
+export function selectHasSubscription(state: EntitlementState): boolean {
+  return PRO_STATUSES.has(state.status)
+}
+
+/** Reactive hook: does this account have a billable subscription? */
+export function useHasSubscription(): boolean {
+  return useEntitlementStore(selectHasSubscription)
+}

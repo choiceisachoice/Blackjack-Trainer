@@ -127,7 +127,7 @@ describe('setting the new password', () => {
 
     await waitFor(() => expect(navigate).toHaveBeenCalled())
     const [, options] = navigate.mock.calls[0]
-    expect(options.state.notice).toMatch(/password changed/i)
+    expect(options.state?.notice).toMatch(/password changed/i)
   })
 
   it('refuses a mismatch before sending anything', async () => {

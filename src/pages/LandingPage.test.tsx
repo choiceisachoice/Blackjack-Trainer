@@ -13,12 +13,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  * which starts a second Stripe Checkout session.
  */
 
-const startCheckout = vi.fn<(plan: string) => Promise<void>>()
+const startCheckout = vi.fn<(plan: string) => Promise<'redirecting' | 'already-subscribed'>>()
 const setPendingCheckout = vi.fn()
 
 vi.mock('../services/supabase/billing', () => ({
   startCheckout: (plan: string) => startCheckout(plan),
   setPendingCheckout: (plan: string) => setPendingCheckout(plan),
+}))
+
+const navigate = vi.fn<(to: string) => void>()
+vi.mock('react-router-dom', async importOriginal => ({
+  ...(await importOriginal<typeof import('react-router-dom')>()),
+  useNavigate: () => navigate,
 }))
 
 // Three.js behind a lazy import — irrelevant here and enormous.
@@ -50,6 +56,7 @@ vi.mock('framer-motion', () => {
 })
 
 import { LandingPage } from './LandingPage'
+import { useEntitlementStore } from '../store/entitlement-store'
 
 /** Supabase is unconfigured under test, so the page treats the visitor as signed in. */
 function renderPage() {
@@ -71,14 +78,16 @@ beforeEach(() => {
   cleanup()
   startCheckout.mockReset()
   setPendingCheckout.mockReset()
+  navigate.mockReset()
+  useEntitlementStore.setState({ status: 'free', currentPeriodEnd: null, loaded: true })
 })
 
 describe('the landing page checkout', () => {
   it('cannot be fired twice while the first attempt is still in flight', async () => {
     // The consequence of getting this wrong is not cosmetic: two clicks create
     // two Stripe Checkout sessions.
-    let release: () => void = () => {}
-    startCheckout.mockImplementation(() => new Promise<void>(resolve => { release = resolve }))
+    let release: (outcome: 'redirecting') => void = () => {}
+    startCheckout.mockImplementation(() => new Promise<'redirecting'>(resolve => { release = resolve }))
 
     renderPage()
 
@@ -88,7 +97,7 @@ describe('the landing page checkout', () => {
     fireEvent.click(goPro())
     expect(startCheckout).toHaveBeenCalledTimes(1)
 
-    release()
+    release('redirecting')
   })
 
   it('tells the visitor when checkout could not be started', async () => {
@@ -122,9 +131,58 @@ describe('the landing page checkout', () => {
 
     // The retry hangs, so the only thing that can remove the message is the
     // click itself clearing it.
-    startCheckout.mockImplementation(() => new Promise<void>(() => {}))
+    startCheckout.mockImplementation(() => new Promise<'redirecting'>(() => {}))
     fireEvent.click(goPro())
 
     await waitFor(() => expect(screen.queryByRole('alert')).toBeNull(), T)
+  })
+})
+
+/**
+ * Selling the same person a second subscription.
+ *
+ * The landing page stays reachable after someone subscribes — it is the site's
+ * front door, and a paying customer lands on it whenever they type the domain.
+ * Clicking the price there used to start checkout again: two subscriptions on
+ * one Stripe customer, two charges, and an app that looked entirely normal
+ * because the webhook writes both into the same profile row. The customer finds
+ * out on their card statement.
+ */
+describe('a visitor who already subscribes', () => {
+  it('is sent to their account instead of into checkout', async () => {
+    useEntitlementStore.setState({ status: 'active', currentPeriodEnd: null, loaded: true })
+
+    renderPage()
+    fireEvent.click(goPro())
+
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/account'), T)
+    expect(startCheckout).not.toHaveBeenCalled()
+  })
+
+  it('is still protected when the page thinks they are on the free plan', async () => {
+    // The entitlement can be stale, or simply never loaded — this is the page a
+    // signed-out visitor sees first. The client guard therefore cannot be the
+    // one that protects the customer; the Edge Function asks Stripe and refuses.
+    // What this page owes the user is to act on that answer rather than leave
+    // them looking at a button that did nothing.
+    startCheckout.mockResolvedValue('already-subscribed')
+
+    renderPage()
+    fireEvent.click(goPro())
+
+    await waitFor(() => expect(startCheckout).toHaveBeenCalledTimes(1), T)
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/account'), T)
+  })
+
+  it('treats past_due as subscribed rather than as a chance to sell again', async () => {
+    // A failed renewal is a subscription in trouble, not an absent one. Selling
+    // a second one here would bill someone whose first payment just bounced.
+    useEntitlementStore.setState({ status: 'past_due', currentPeriodEnd: null, loaded: true })
+
+    renderPage()
+    fireEvent.click(goPro())
+
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/account'), T)
+    expect(startCheckout).not.toHaveBeenCalled()
   })
 })

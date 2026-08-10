@@ -72,7 +72,16 @@ export function AccountPage() {
     setBillingError(null)
     setBusy('checkout')
     try {
-      await startCheckout('yearly')
+      const outcome = await startCheckout('yearly')
+      if (outcome === 'already-subscribed') {
+        // Stripe refused to sell a second subscription. Reaching this means the
+        // page showed the upgrade button while the account was in fact paying,
+        // i.e. this profile row and Stripe disagree. Re-read the entitlement so
+        // the page starts telling the truth.
+        await loadEntitlement()
+        setBillingError('You already have Pro on this account — no second subscription was created.')
+        setBusy(null)
+      }
     } catch (e) {
       setBillingError(e instanceof Error ? e.message : 'Could not start checkout.')
       setBusy(null)

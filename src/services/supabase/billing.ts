@@ -28,19 +28,36 @@ export function consumePendingCheckout(): BillingPlan | null {
 }
 
 /**
+ * What happened when checkout was requested.
+ *
+ * `already-subscribed` is not an error and not a success — the server refused
+ * to sell a second subscription to someone who already pays for one. The caller
+ * has to do something with that (send them to their account, refresh a stale
+ * entitlement), which is why it comes back as a value rather than a throw.
+ */
+export type CheckoutOutcome = 'redirecting' | 'already-subscribed'
+
+/**
  * Start Stripe Checkout for the given plan and redirect the browser to it.
  * The Edge Function chooses the actual price from a server-side allowlist — the
- * client never sends a price or an amount.
+ * client never sends a price or an amount, and it refuses outright if this
+ * customer already has a billable subscription at Stripe.
+ *
+ * Returns `redirecting` right before the browser leaves, so in practice that
+ * value is rarely observed.
  */
-export async function startCheckout(plan: BillingPlan): Promise<void> {
+export async function startCheckout(plan: BillingPlan): Promise<CheckoutOutcome> {
   if (!isSupabaseConfigured) throw new Error('Billing is unavailable in this environment.')
   const { data, error } = await requireSupabase().functions.invoke('create-checkout-session', {
     body: { plan },
   })
   if (error) throw error
-  const url = (data as { url?: string })?.url
+  const result = data as { url?: string; alreadySubscribed?: boolean } | null
+  if (result?.alreadySubscribed) return 'already-subscribed'
+  const url = result?.url
   if (!url) throw new Error('Could not start checkout.')
   window.location.href = url
+  return 'redirecting'
 }
 
 /**

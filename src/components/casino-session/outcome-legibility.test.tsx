@@ -40,11 +40,17 @@ const seatProps = {
   activeHandIndex: 0,
   currentBet: 50,
   bankroll: 1000,
-  handDoubled: false,
+  // A set of the hand indices that were doubled — empty here. It used to be a
+  // boolean; the fixture kept the old shape after the component moved to split
+  // hands, and only the type checker noticed.
+  handDoubled: new Set<number>(),
   isSurrendered: false,
   gameStep: 'settlement' as const,
   isActivePlayer: false,
   isDimmed: false,
+  // Settlement is the opposite end of the round from the deal, so `false` is
+  // the value this fixture has always implied — it simply predates the prop.
+  isDealPhase: false,
 }
 
 beforeEach(() => { vi.useFakeTimers() })

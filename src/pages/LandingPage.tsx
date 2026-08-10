@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Check, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
+import { useHasSubscription } from '../store/entitlement-store'
 import { PLAN_OPTIONS, PRO_BENEFITS, formatCHF, yearlySaving } from '../services/pro-features'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
@@ -37,6 +38,7 @@ const SCRIM = 'radial-gradient(46% 50% at 33% 55%, rgba(7,8,9,.9) 26%, rgba(7,8,
 export function LandingPage() {
   const signedIn = useAuthStore(s => s.status === 'signedIn')
   const authed = !isSupabaseConfigured || signedIn
+  const hasSubscription = useHasSubscription()
   const navigate = useNavigate()
   const [plan, setPlan] = useState<BillingPlan>('yearly')
   /**
@@ -65,12 +67,26 @@ export function LandingPage() {
       navigate('/login')
       return
     }
+    // Someone who already pays does not get sent to a payment form. This is the
+    // convenience half of the guard — it can be wrong in the safe direction,
+    // because the entitlement may not have been loaded on a page a signed-out
+    // visitor usually sees first. The half that actually protects the customer
+    // is in the Edge Function, which asks Stripe.
+    if (hasSubscription) {
+      navigate('/account')
+      return
+    }
     setCheckoutError(null)
     setBusy(true)
     try {
-      await startCheckout(plan) // redirects on success, so this normally never returns
-      // Deliberately no `setBusy(false)` here: the browser is on its way to
-      // Stripe. Re-enabling would offer a second checkout during the redirect.
+      const outcome = await startCheckout(plan) // redirects on success, so this normally never returns
+      // Deliberately no `setBusy(false)` on the redirect path: the browser is on
+      // its way to Stripe. Re-enabling would offer a second checkout during it.
+      if (outcome === 'already-subscribed') {
+        // The server knows better than this page did. Their account page is
+        // where the existing subscription can be seen and managed.
+        navigate('/account')
+      }
     } catch (e) {
       setCheckoutError(e instanceof Error ? e.message : 'Could not start checkout.')
       setBusy(false)

@@ -27,6 +27,15 @@ const PLAN_PRICES: Record<string, string | undefined> = {
   yearly: Deno.env.get('STRIPE_PRICE_YEARLY'),
 }
 
+/**
+ * Subscription states that mean "this person is already being billed".
+ *
+ * The same three the client grants Pro for (`entitlement-store.ts`), and for
+ * the same reason: `past_due` is a grace window on a subscription that still
+ * exists, not an invitation to sell a second one.
+ */
+const BILLABLE_STATUSES = new Set(['active', 'trialing', 'past_due'])
+
 Deno.serve(async (req) => {
   const cors = corsHeaders(req)
   const json = (body: unknown, status = 200): Response =>
@@ -74,6 +83,40 @@ Deno.serve(async (req) => {
       })
       customerId = customer.id
       await admin.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id)
+    } else {
+      // Refuse a second subscription for someone who already pays.
+      //
+      // Nothing stopped this before. A subscriber who came back to the public
+      // landing page and clicked the price bought again: two subscriptions on
+      // one customer, two charges, and — because the webhook writes both into
+      // the same profile row — an app that looked completely normal. The
+      // customer would find out on their card statement, which is the worst
+      // possible way to find out.
+      //
+      // The check belongs here rather than in the browser. The landing page is
+      // public, the client's entitlement can be stale or absent, and a client
+      // is not something to trust with "may this person be charged".
+      //
+      // Asked of Stripe, not of our own `profiles` row, because Stripe is the
+      // system that will actually bill the card. A row that drifted out of sync
+      // is precisely the case this needs to survive.
+      //
+      // `incomplete` is deliberately NOT blocking: an abandoned checkout leaves
+      // one behind for about a day, and treating that as "already subscribed"
+      // would lock someone out of retrying a payment they never completed.
+      const existing = await stripe.subscriptions.list({
+        customer: customerId,
+        status: 'all',
+        limit: 100,
+      })
+      const live = existing.data.find(s => BILLABLE_STATUSES.has(s.status))
+      if (live) {
+        // 200 rather than 409: this is an outcome the UI has to act on, and
+        // supabase-js turns a non-2xx into an opaque error whose body has to be
+        // dug out of a Response. A result the caller can read is worth more
+        // here than the tidier status code.
+        return json({ alreadySubscribed: true, subscriptionId: live.id })
+      }
     }
 
     const session = await stripe.checkout.sessions.create({

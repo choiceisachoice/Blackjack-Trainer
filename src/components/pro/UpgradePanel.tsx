@@ -9,6 +9,7 @@ import {
 import type { ComparisonRow } from '../../services/pro-features'
 import { startCheckout } from '../../services/supabase/billing'
 import type { BillingPlan } from '../../services/supabase/billing'
+import { useEntitlementStore } from '../../store/entitlement-store'
 
 interface UpgradePanelProps {
   /** Optional context line, e.g. the locked feature the user tried to open. */
@@ -27,7 +28,9 @@ interface UpgradePanelProps {
 export function UpgradePanel({ headline }: UpgradePanelProps) {
   const [busy, setBusy] = useState<BillingPlan | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [plan, setPlan] = useState<BillingPlan>('yearly')
+  const loadEntitlement = useEntitlementStore(s => s.loadEntitlement)
 
   const saving = yearlySaving()
   const selected = PLAN_OPTIONS.find(p => p.id === plan)!
@@ -36,9 +39,20 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
 
   const choose = async () => {
     setError(null)
+    setNotice(null)
     setBusy(plan)
     try {
-      await startCheckout(plan) // redirects on success
+      const outcome = await startCheckout(plan) // redirects on success
+      if (outcome === 'already-subscribed') {
+        // Stripe already bills this account, so this paywall is on screen only
+        // because the local entitlement is out of date. Re-reading it normally
+        // unmounts the panel outright. If it does not — the profile row and
+        // Stripe genuinely disagree — the message below is the only thing
+        // standing between the user and a button that appears to do nothing.
+        await loadEntitlement()
+        setNotice('You already have Pro on this account. If it still looks locked, reload the page.')
+        setBusy(null)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not start checkout.')
       setBusy(null)
@@ -169,6 +183,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
       </div>
 
       {error && <p className="text-sm text-error" role="alert">{error}</p>}
+      {notice && <p className="text-sm text-gold" role="status" data-testid="upgrade-notice">{notice}</p>}
 
       <p className="text-xs text-content/40 text-center">
         Secure checkout by Stripe. Cancel anytime from your account.
