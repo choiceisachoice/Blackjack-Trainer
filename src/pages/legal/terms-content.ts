@@ -1,4 +1,5 @@
 import { LEGAL_META as M } from './legal-meta'
+import { CH_VAT_PERCENT } from '../../services/pro-features'
 import type { LegalDoc } from './legal-types'
 
 /**
@@ -59,60 +60,72 @@ export const TERMS_DOC: LegalDoc = {
       blocks: [
         'The Service has a free tier and a paid "Pro" subscription. Pro is billed monthly or yearly through our payment processor, Stripe, and renews automatically until you cancel.',
         'You can cancel at any time from your account; your Pro access continues until the end of the period you have already paid for. Except where the law requires otherwise, payments already made are non-refundable. We may change prices or features, and will give reasonable notice of material changes before they affect you.',
-        'All prices shown on the Service are in Swiss francs and are final prices: the amount displayed is the amount charged. For customers in Switzerland they include Swiss value added tax (VAT) at the applicable statutory rate, and the VAT is shown separately on your invoice and payment receipt. If taxes or duties apply where you live, they are your responsibility.',
       ],
     },
     {
-      heading: '7. No financial or gambling advice',
+      // A section of its own, not a sentence tucked into the subscription
+      // clause. Swiss price-disclosure rules for consumers turn on this, and
+      // an auditor asking "where do you state that your prices are gross?"
+      // needs to be pointed at a heading, not at the middle of a paragraph.
+      heading: '7. Prices and Swiss VAT',
+      blocks: [
+        'All prices shown on this website and inside the Service are in Swiss francs and are final prices for consumers: the amount displayed is the amount charged. Nothing is added at checkout.',
+        `For customers in Switzerland, these prices include Swiss value added tax (VAT) at the applicable statutory rate (currently ${CH_VAT_PERCENT}%). The VAT is contained in the price shown and is stated separately on your invoice and payment receipt.`,
+        'The Service is offered to private individuals. Prices are therefore quoted inclusive of VAT and never exclusive of it.',
+        'If taxes or duties apply where you live outside Switzerland, they are your responsibility.',
+      ],
+    },
+    {
+      heading: '8. No financial or gambling advice',
       blocks: [
         'Anything the Service shows — including strategy charts, bet-spread suggestions, bankroll figures and risk-of-ruin estimates — is for education only. It is not financial, investment or gambling advice, and it does not guarantee any result. Any decision you make about real gambling is entirely your own.',
         'Gamble only if it is legal where you are, only with money you can afford to lose, and responsibly.',
       ],
     },
     {
-      heading: '8. Card counting and casinos',
+      heading: '9. Card counting and casinos',
       blocks: [
         'Counting cards mentally is legal — it is thinking. However, casinos are private businesses that set their own rules and may refuse or restrict play. We are not affiliated with any casino and are not responsible for how any casino treats you.',
       ],
     },
     {
-      heading: '9. Intellectual property',
+      heading: '10. Intellectual property',
       blocks: [
         'The Service, its content and its design are owned by the operator or its licensors. We grant you a limited, personal, non-transferable right to use the Service under these Terms; no other rights are granted.',
       ],
     },
     {
-      heading: '10. Disclaimers',
+      heading: '11. Disclaimers',
       blocks: [
         'The Service is provided "as is" and "as available". We do not warrant that it will be uninterrupted, error-free, or that its content is complete or accurate for any particular purpose.',
       ],
     },
     {
-      heading: '11. Limitation of liability',
+      heading: '12. Limitation of liability',
       blocks: [
         'To the fullest extent permitted by law, the operator is not liable for any indirect, incidental or consequential loss, or for any gambling losses, arising from your use of the Service. Nothing in these Terms limits liability that cannot be limited by law.',
       ],
     },
     {
-      heading: '12. Suspension and termination',
+      heading: '13. Suspension and termination',
       blocks: [
         'You may stop using the Service and delete your account at any time. We may suspend or end your access if you breach these Terms or misuse the Service.',
       ],
     },
     {
-      heading: '13. Changes to these Terms',
+      heading: '14. Changes to these Terms',
       blocks: [
         'We may update these Terms. When we do, we will update this page and its date, and continued use after a change means you accept the updated Terms.',
       ],
     },
     {
-      heading: '14. Governing law',
+      heading: '15. Governing law',
       blocks: [
         `These Terms are governed by the laws of ${M.governingLaw}, without affecting any mandatory consumer protections you have where you live.`,
       ],
     },
     {
-      heading: '15. Contact',
+      heading: '16. Contact',
       blocks: [
         `Questions about these Terms: ${M.contactEmail}.`,
       ],
