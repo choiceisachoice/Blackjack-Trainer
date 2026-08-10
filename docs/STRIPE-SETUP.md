@@ -113,5 +113,46 @@ Ordered checklist:
 7. Do **one real, low-value purchase** end to end, confirm `subscription_status`
    flips to `active`, then cancel it from the portal before announcing.
 
-Test mode stays wired exactly as above, so you can keep developing against it
-without touching the live keys.
+> ⚠️ There is only **one** set of Supabase secrets, so this is a switch, not a
+> parallel setup. The moment `STRIPE_SECRET_KEY` holds an `sk_live_…`, the test
+> card `4242…` no longer works against production. Do the full test-mode run
+> first; you do not get to keep both.
+
+## 8. VAT — Swiss customers only
+
+The operator is a Swiss company selling to consumers. Swiss customers owe Swiss
+VAT; customers elsewhere owe nothing here and must see no VAT line at all.
+
+**A fixed Tax Rate cannot express that.** The Checkout Session is created before
+the customer types an address, so at that point their country is unknown —
+attaching a Swiss rate applies it to everyone, and a German customer's invoice
+would claim Swiss VAT. Use **Stripe Tax**, which decides from the address the
+customer actually enters.
+
+Order matters; enabling the flag before the dashboard is ready makes Stripe
+reject every session, and nobody can buy anything:
+
+1. **Stripe → Tax**: activate Stripe Tax and add the **Switzerland**
+   registration. Only registered jurisdictions get taxed; everywhere else
+   produces no tax line, which is exactly the wanted behaviour.
+2. **Product catalogue → both prices**: set **tax behaviour to `inclusive`**.
+   The page shows final prices, so the VAT must be split *out* of 7.90, not
+   added to it. Stripe allows this only while the behaviour is still
+   `unspecified` — once set, it is permanent and a change means new prices.
+3. Set the head-office address and a product tax code (digital services /
+   SaaS) under **Settings → Tax**.
+4. Only now: `supabase secrets set STRIPE_AUTOMATIC_TAX=on`
+5. Redeploy `create-checkout-session`.
+6. Buy once from a Swiss address and once with a non-Swiss address: the first
+   invoice shows the VAT split out, the second shows no tax line and the same
+   total.
+
+Stripe Tax charges a per-transaction fee. A manually created Tax Rate
+(`txr_…`) is cheaper but country-blind, so it is only correct for a business
+that sells exclusively into one country and never checks.
+
+The price note on the site (`VAT_NOTE` in `src/services/pro-features.ts`) names
+Switzerland explicitly rather than being hidden from foreign visitors. Swiss
+price-disclosure rules want the all-in figure shown to consumers, and a
+sentence that says *who* the VAT applies to stays true for every reader —
+unlike geolocation, which is wrong for anyone travelling or on a VPN.

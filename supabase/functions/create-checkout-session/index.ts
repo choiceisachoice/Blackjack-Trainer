@@ -37,20 +37,26 @@ const PLAN_PRICES: Record<string, string | undefined> = {
 const BILLABLE_STATUSES = new Set(['active', 'trialing', 'past_due'])
 
 /**
- * Optional Stripe Tax Rate id (`txr_…`) applied to the subscription.
+ * Whether Stripe works out the tax itself, from the customer's billing address.
  *
- * The operator is a Swiss company and the displayed prices are final prices, so
- * this rate must be created in Stripe as **inclusive** — it splits the VAT out
- * of the 7.90 rather than adding to it. Without that, a customer would see one
- * figure on the page and a larger one on the card.
+ * VAT here is owed for customers in Switzerland and for nobody else. A fixed
+ * tax rate cannot express that: the Checkout Session is created *before* the
+ * customer types an address, so at that moment there is no way to know which
+ * country they are in. Attaching a Swiss rate would apply it to everyone, and
+ * a German customer's invoice would claim Swiss VAT.
  *
- * Kept as a secret rather than a constant for two reasons: the rate lives in
- * Stripe (and differs between test and live mode, like every other id), and
- * whether VAT is charged at all depends on the company's registration — a
- * question for the accountant, not for a deploy. Unset means no tax line, which
- * is the correct behaviour for a business that is not VAT-registered.
+ * Stripe Tax decides at payment time from the address actually entered: Swiss
+ * address → 8.1% split out of the price and shown; anywhere the operator has no
+ * registration → no tax line at all. That is the rule, enforced by the party
+ * that can see the address.
+ *
+ * Behind a flag because it depends on dashboard state this deploy cannot check:
+ * Stripe Tax must be active, the Swiss registration entered, and both prices set
+ * to `tax_behavior: inclusive`. Enabling it before any of that is true makes
+ * Stripe reject every session — i.e. no one can buy anything. Off by default,
+ * switched on once the dashboard is ready.
  */
-const TAX_RATE_ID = Deno.env.get('STRIPE_TAX_RATE_CH')?.trim() || undefined
+const AUTOMATIC_TAX = /^(1|true|on|yes)$/i.test(Deno.env.get('STRIPE_AUTOMATIC_TAX')?.trim() ?? '')
 
 Deno.serve(async (req) => {
   const cors = corsHeaders(req)
@@ -142,16 +148,25 @@ Deno.serve(async (req) => {
       // The user id is also carried by the customer metadata; keep it here too
       // so the webhook can resolve the user without a customer lookup.
       client_reference_id: user.id,
-      subscription_data: {
-        metadata: { supabase_user_id: user.id },
-        // Only sent when configured — an empty array would still be an
-        // instruction, and Stripe treats "no tax rates" differently from
-        // "this subscription is exempt".
-        ...(TAX_RATE_ID ? { default_tax_rates: [TAX_RATE_ID] } : {}),
-      },
+      subscription_data: { metadata: { supabase_user_id: user.id } },
       success_url: `${APP_URL}/app?checkout=success`,
       cancel_url: `${APP_URL}/app?checkout=cancelled`,
       allow_promotion_codes: true,
+      ...(AUTOMATIC_TAX
+        ? {
+            automatic_tax: { enabled: true },
+            // Stripe needs an address to decide the country, and it needs to be
+            // asked for rather than guessed: an IP is wrong for anyone abroad
+            // or on a VPN, and getting the country wrong here means charging or
+            // not charging VAT wrongly.
+            billing_address_collection: 'required' as const,
+            // Required by Stripe whenever automatic tax runs against an
+            // existing customer: the address the customer types has to be
+            // written back, or the next invoice has nothing to work from and
+            // renewals would be taxed differently from the first payment.
+            customer_update: { address: 'auto' as const },
+          }
+        : {}),
     })
 
     return json({ url: session.url })
