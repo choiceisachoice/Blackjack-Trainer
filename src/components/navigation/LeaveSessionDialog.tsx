@@ -17,12 +17,15 @@ import { useAppStore } from '../../store/app-store'
  * this dialog by accident is one Enter or one Escape away from being back where
  * they were, and the destructive answer is never the one a stray keypress hits.
  *
- * The wording says exactly what happens today: leaving **ends** the session.
- * Keeping it alive across a mode change means not unmounting the component that
- * owns the engine, and that is a change to the app shell which has not been
- * made yet. Until it has, a dialog promising "you can come back to the same
- * hand" would be a comfortable lie — and the next person to read this file
- * would believe it.
+ * The wording says exactly what happens: the session is paused and kept.
+ * `TrainerApp` mounts it outside the mode switch and only hides it, so the
+ * engine, shoe and count are still there on return. Calling this "discard"
+ * would overstate the danger, and a dialog that cries wolf gets clicked away
+ * unread just as fast as one that stays silent.
+ *
+ * It still asks. Leaving mid-hand is a decision worth a beat of confirmation,
+ * and the one case where the session really does end — losing Pro — takes the
+ * paused hand with it.
  */
 export function LeaveSessionDialog() {
   const pending = useLiveSessionStore(s => s.pending)
@@ -69,11 +72,11 @@ export function LeaveSessionDialog() {
           </span>
           <div>
             <h2 id="leave-session-title" className="text-lg font-semibold">
-              Leave and end this session?
+              Leave your session?
             </h2>
             <p id="leave-session-body" className="mt-1 text-sm text-content/60">
-              Your session is still running. Leaving now ends it, and the hands you have
-              played will not be counted.
+              It will be paused and kept exactly where it is — come back and you continue
+              on the same hand, with the same shoe and count.
             </p>
           </div>
         </div>
@@ -92,9 +95,9 @@ export function LeaveSessionDialog() {
             onClick={leave}
             data-testid="leave-session-leave"
             className="px-4 py-2.5 rounded-xl font-semibold cursor-pointer
-              border border-error/40 text-error hover:bg-error/10 transition-colors"
+              border border-white/12 text-content hover:border-gold/55 transition-colors"
           >
-            Leave and end session
+            Pause and leave
           </button>
         </div>
       </div>
