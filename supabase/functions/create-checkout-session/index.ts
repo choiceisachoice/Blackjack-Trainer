@@ -1,9 +1,13 @@
 // ADR-002: create a Stripe Checkout Session for the signed-in user.
 //
-// Auth: requires the caller's Supabase JWT (the platform verifies it because
-// this function is deployed WITH jwt verification). We still fetch the user to
-// get their id. The plan is chosen from a server-side allowlist — the client
-// never sends a price id or an amount.
+// Auth: the caller's Supabase JWT, verified INSIDE this function by `getUser`.
+// It is deployed with `--no-verify-jwt` on purpose: the platform gate rejects
+// the browser's CORS preflight, which carries no Authorization header, and the
+// user sees "Failed to send a request to the Edge Function". Turning the gate
+// off does not weaken anything — an unauthenticated caller gets a 401 below.
+//
+// The plan is chosen from a server-side allowlist — the client never sends a
+// price id or an amount.
 //
 // Secrets (supabase secrets set): STRIPE_SECRET_KEY, STRIPE_PRICE_MONTHLY,
 // STRIPE_PRICE_YEARLY, APP_URL. Platform-provided: SUPABASE_URL,
@@ -11,6 +15,7 @@
 
 import Stripe from 'https://esm.sh/stripe@18?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno'
+import { APP_URL, corsHeaders } from '../_shared/cors.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2025-01-27.acacia',
@@ -22,24 +27,15 @@ const PLAN_PRICES: Record<string, string | undefined> = {
   yearly: Deno.env.get('STRIPE_PRICE_YEARLY'),
 }
 
-const APP_URL = Deno.env.get('APP_URL') ?? 'http://localhost:5173'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': APP_URL,
-  // supabase-js invoke sends apikey + x-client-info in addition to auth/content-type.
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
-
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
+  const cors = corsHeaders(req)
+  const json = (body: unknown, status = 200): Response =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    })
+
+  if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   try {

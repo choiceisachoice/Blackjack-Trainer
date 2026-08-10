@@ -1,36 +1,30 @@
 // ADR-002: open the Stripe Customer Portal for the signed-in user, so they can
 // manage / cancel their subscription and payment method without us building any
-// billing UI. JWT-authed (deployed with jwt verification).
+// billing UI. The caller's JWT is verified INSIDE this function by `getUser`;
+// it is deployed with `--no-verify-jwt` because the platform gate would reject
+// the browser's CORS preflight, which carries no Authorization header.
 //
 // Secrets: STRIPE_SECRET_KEY, APP_URL. Platform: SUPABASE_URL,
 // SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY.
 
 import Stripe from 'https://esm.sh/stripe@18?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno'
+import { APP_URL, corsHeaders } from '../_shared/cors.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2025-01-27.acacia',
   httpClient: Stripe.createFetchHttpClient(),
 })
 
-const APP_URL = Deno.env.get('APP_URL') ?? 'http://localhost:5173'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': APP_URL,
-  // supabase-js invoke sends apikey + x-client-info in addition to auth/content-type.
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
-
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders })
+  const cors = corsHeaders(req)
+  const json = (body: unknown, status = 200): Response =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    })
+
+  if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   try {
