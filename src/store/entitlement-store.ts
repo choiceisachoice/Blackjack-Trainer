@@ -10,6 +10,17 @@ export interface EntitlementState {
   status: string
   /** End of the paid period (epoch ms), or null. */
   currentPeriodEnd: number | null
+  /**
+   * Whether the subscription is set to end at `currentPeriodEnd` instead of
+   * renewing.
+   *
+   * Independent of `status`, and that is the whole point: Stripe leaves a
+   * cancelled-at-period-end subscription `active`, because the customer paid
+   * for the period and keeps it. Without this, "still active" and "cancelled,
+   * running out" are indistinguishable — and the app would tell someone who
+   * just cancelled that their subscription renews.
+   */
+  cancelAtPeriodEnd: boolean
   /** Whether the entitlement has been loaded from the cloud at least once. */
   loaded: boolean
 }
@@ -30,7 +41,12 @@ export interface EntitlementActions {
 
 export type EntitlementStore = EntitlementState & EntitlementActions
 
-const DEFAULT: EntitlementState = { status: 'free', currentPeriodEnd: null, loaded: false }
+const DEFAULT: EntitlementState = {
+  status: 'free',
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false,
+  loaded: false,
+}
 
 export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
   ...DEFAULT,
@@ -47,7 +63,7 @@ export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('subscription_status, current_period_end')
+        .select('subscription_status, current_period_end, cancel_at_period_end')
         .eq('id', userId)
         .maybeSingle()
       if (error) throw error
@@ -57,6 +73,7 @@ export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
         currentPeriodEnd: data?.current_period_end
           ? new Date(data.current_period_end).getTime()
           : null,
+        cancelAtPeriodEnd: data?.cancel_at_period_end === true,
         loaded: true,
       })
     } catch (e) {

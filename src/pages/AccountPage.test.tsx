@@ -18,7 +18,7 @@ vi.mock('../services/supabase/cloud-sync', () => ({
 }))
 
 const openBillingPortal = vi.fn<() => Promise<void>>()
-const startCheckout = vi.fn<(plan: string) => Promise<void>>()
+const startCheckout = vi.fn<(plan: string) => Promise<'redirecting' | 'already-subscribed'>>()
 
 vi.mock('../services/supabase/billing', () => ({
   openBillingPortal: () => openBillingPortal(),
@@ -26,6 +26,7 @@ vi.mock('../services/supabase/billing', () => ({
 }))
 
 import { AccountPage } from './AccountPage'
+import { useEntitlementStore } from '../store/entitlement-store'
 
 /** Supabase is unconfigured under test, so everything is unlocked and the
  *  Pro "Manage subscription" path is the one on screen. */
@@ -40,6 +41,12 @@ beforeEach(() => {
   startCheckout.mockReset()
   signOutAndClearLocal.mockReset()
   signOutAndClearLocal.mockResolvedValue(undefined)
+  useEntitlementStore.setState({
+    status: 'free',
+    currentPeriodEnd: null,
+    cancelAtPeriodEnd: false,
+    loaded: true,
+  })
 })
 
 describe('AccountPage', () => {
@@ -118,5 +125,68 @@ describe('signing out from the account page', () => {
 
     fireEvent.click(screen.getByTestId('account-sign-out'))
     expect(signOutAndClearLocal).toHaveBeenCalledTimes(1)
+  })
+})
+
+/**
+ * Telling someone their cancellation worked.
+ *
+ * The Stripe portal cancels at period end — correct, the customer paid for the
+ * period and keeps it. Stripe expresses that by leaving `status` as `active`
+ * and setting `cancel_at_period_end`. The page read only the status, so after
+ * cancelling it went on saying "Pro — active … Renews on <date>".
+ *
+ * The access was right and the sentence was a lie, which is the worse half:
+ * someone who cancels and is then promised a renewal concludes it did not work,
+ * and the next thing they contact is their bank.
+ */
+describe('a subscription that has been cancelled', () => {
+  const IN_A_MONTH = new Date('2026-09-10T12:00:00Z').getTime()
+
+  it('is not described as active', () => {
+    useEntitlementStore.setState({ status: 'active', currentPeriodEnd: IN_A_MONTH, cancelAtPeriodEnd: true })
+    renderPage()
+
+    expect(screen.getByText('Pro — cancelled')).toBeInTheDocument()
+    expect(screen.queryByText('Pro — active')).toBeNull()
+  })
+
+  it('says when access ends instead of promising a renewal', () => {
+    useEntitlementStore.setState({ status: 'active', currentPeriodEnd: IN_A_MONTH, cancelAtPeriodEnd: true })
+    renderPage()
+
+    expect(screen.getByText(/Access ends on/i)).toBeInTheDocument()
+    expect(screen.queryByText(/Renews on/i)).toBeNull()
+  })
+
+  it('still promises a renewal while the subscription really is renewing', () => {
+    // The counter-case. Without it, a change that always shows "Access ends on"
+    // would pass every test above and be just as wrong in the other direction.
+    useEntitlementStore.setState({ status: 'active', currentPeriodEnd: IN_A_MONTH, cancelAtPeriodEnd: false })
+    renderPage()
+
+    expect(screen.getByText(/Renews on/i)).toBeInTheDocument()
+    expect(screen.queryByText(/Access ends on/i)).toBeNull()
+    expect(screen.getByText('Pro — active')).toBeInTheDocument()
+  })
+
+  it('reports a failed payment ahead of a scheduled ending', () => {
+    // Both can be true at once. One needs the customer to act today; the other
+    // is already settled and merely running out.
+    useEntitlementStore.setState({ status: 'past_due', currentPeriodEnd: IN_A_MONTH, cancelAtPeriodEnd: true })
+    renderPage()
+
+    expect(screen.getByText('Pro — payment due')).toBeInTheDocument()
+    expect(screen.getByText(/Payment due by/i)).toBeInTheDocument()
+  })
+
+  it('keeps the portal reachable so the cancellation can be undone', () => {
+    // Stripe lets a customer resume a subscription cancelled at period end. If
+    // this page hid the button once cancelled, changing your mind would need an
+    // email to support.
+    useEntitlementStore.setState({ status: 'active', currentPeriodEnd: IN_A_MONTH, cancelAtPeriodEnd: true })
+    renderPage()
+
+    expect(manageButton()).toBeEnabled()
   })
 })

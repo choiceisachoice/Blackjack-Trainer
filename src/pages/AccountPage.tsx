@@ -6,14 +6,26 @@ import { useEntitlementStore, useIsPro } from '../store/entitlement-store'
 import { openBillingPortal, startCheckout } from '../services/supabase/billing'
 import { signOutAndClearLocal } from '../services/supabase/cloud-sync'
 
-/** Human-readable label + tone for a subscription status. */
-function planLabel(status: string, isPro: boolean): { title: string; tone: 'gold' | 'muted' | 'warn' } {
+/**
+ * Human-readable label + tone for a subscription status.
+ *
+ * `cancelAtPeriodEnd` is checked before `trialing`/`active` because it is the
+ * thing the person most recently did and most needs to see confirmed. Stripe
+ * leaves a cancelled subscription `active` until the period runs out, so
+ * without this the page would answer a cancellation with "Pro — active".
+ */
+function planLabel(
+  status: string,
+  isPro: boolean,
+  cancelAtPeriodEnd: boolean,
+): { title: string; tone: 'gold' | 'muted' | 'warn' } {
   if (!isPro) return { title: 'Free plan', tone: 'muted' }
-  switch (status) {
-    case 'trialing': return { title: 'Pro — trial', tone: 'gold' }
-    case 'past_due': return { title: 'Pro — payment due', tone: 'warn' }
-    default: return { title: 'Pro — active', tone: 'gold' }
-  }
+  // A failed payment outranks a scheduled ending: one needs action now, the
+  // other is already settled.
+  if (status === 'past_due') return { title: 'Pro — payment due', tone: 'warn' }
+  if (cancelAtPeriodEnd) return { title: 'Pro — cancelled', tone: 'muted' }
+  if (status === 'trialing') return { title: 'Pro — trial', tone: 'gold' }
+  return { title: 'Pro — active', tone: 'gold' }
 }
 
 function formatDate(ms: number | null): string | null {
@@ -33,6 +45,7 @@ export function AccountPage() {
   const status = useEntitlementStore(s => s.status)
   const loaded = useEntitlementStore(s => s.loaded)
   const currentPeriodEnd = useEntitlementStore(s => s.currentPeriodEnd)
+  const cancelAtPeriodEnd = useEntitlementStore(s => s.cancelAtPeriodEnd)
   const loadEntitlement = useEntitlementStore(s => s.loadEntitlement)
   const [busy, setBusy] = useState<null | 'portal' | 'checkout'>(null)
   /**
@@ -52,9 +65,14 @@ export function AccountPage() {
     if (isSupabaseConfigured && !loaded) void loadEntitlement()
   }, [loaded, loadEntitlement])
 
-  const plan = planLabel(status, isPro)
+  const plan = planLabel(status, isPro, cancelAtPeriodEnd)
   const periodEnd = formatDate(currentPeriodEnd)
-  const renewLabel = status === 'trialing' ? 'Trial ends' : status === 'past_due' ? 'Payment due by' : 'Renews on'
+  const renewLabel =
+    status === 'past_due' ? 'Payment due by'
+    // "Access ends on", not "Renews on". Same date, opposite promise.
+    : cancelAtPeriodEnd ? 'Access ends on'
+    : status === 'trialing' ? 'Trial ends'
+    : 'Renews on'
 
   // Both leave `busy` set on the success path on purpose: the browser is on its
   // way to Stripe, and re-enabling would offer a second session mid-redirect.

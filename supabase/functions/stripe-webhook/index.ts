@@ -54,6 +54,12 @@ async function syncSubscriptionById(subId: string): Promise<void> {
     subscription_status: sub.status, // active | trialing | past_due | canceled | …
     subscription_price_id: priceId,
     current_period_end: periodEnd,
+    // A cancellation scheduled for the end of the paid period does NOT change
+    // `status` — Stripe keeps it `active`, because the customer paid for the
+    // period and still has it. Without this flag the profile row after a
+    // cancellation is identical to the row before it, and the account page goes
+    // on promising a renewal that will never happen.
+    cancel_at_period_end: sub.cancel_at_period_end === true,
   }
 
   // Prefer the user id carried in metadata; fall back to matching the customer.
