@@ -4,26 +4,30 @@ import type { TrainingMode } from '../../services/stats-types'
  * Per-mode content for the settings-screen context rails: a short "how it
  * works" sequence and a pro-tip. Keyed by the stats `TrainingMode` so the rail
  * can also pull that mode's real last-run figures.
+ *
+ * Translation keys rather than text: the rail is the first thing someone reads
+ * on a mode they have not tried, which is exactly when being in the wrong
+ * language costs the most.
  */
 export const RAIL_CONTENT: Partial<Record<TrainingMode, { steps: string[]; tip: string }>> = {
   speedDrill: {
-    steps: ['Cards flash by briefly.', 'Keep the running count as they go.', 'Enter your final count at the end.'],
-    tip: 'Count in pairs (+2 / 0 / −2) rather than card by card — much faster at casino speed.',
+    steps: ['training.rail.speedDrill.s1', 'training.rail.speedDrill.s2', 'training.rail.speedDrill.s3'],
+    tip: 'training.rail.speedDrill.tip',
   },
   deviationFlashCards: {
-    steps: ['A hand + dealer card + true count.', 'Pick the correct action.', 'Do you deviate from basic strategy right?'],
-    tip: 'The Illustrious 18 carry most of the deviation edge — master those first.',
+    steps: ['training.rail.deviationFlashCards.s1', 'training.rail.deviationFlashCards.s2', 'training.rail.deviationFlashCards.s3'],
+    tip: 'training.rail.deviationFlashCards.tip',
   },
   betSpread: {
-    steps: ['A true count is shown.', 'Choose the optimal bet size.', 'Closer to optimal = more points.'],
-    tip: 'Rule of thumb: bet ≈ (true count − 1) × unit. It usually turns profitable from TC +2.',
+    steps: ['training.rail.betSpread.s1', 'training.rail.betSpread.s2', 'training.rail.betSpread.s3'],
+    tip: 'training.rail.betSpread.tip',
   },
   deckEstimation: {
-    steps: ['Watch the thickness of the discard tray.', 'Estimate the decks remaining.', 'The closer you are, the higher your score.'],
-    tip: 'Count in decks, not cards — a full deck is ~19 mm in the discard tray.',
+    steps: ['training.rail.deckEstimation.s1', 'training.rail.deckEstimation.s2', 'training.rail.deckEstimation.s3'],
+    tip: 'training.rail.deckEstimation.tip',
   },
   casinoSession: {
-    steps: ['Take your seat and keep the count silently.', 'Size each bet by the true count.', 'Play every hand — deviations included.'],
-    tip: 'Raise your bet only when the count is in your favor — flat-bet the rest to stay under the radar.',
+    steps: ['training.rail.casinoSession.s1', 'training.rail.casinoSession.s2', 'training.rail.casinoSession.s3'],
+    tip: 'training.rail.casinoSession.tip',
   },
 }

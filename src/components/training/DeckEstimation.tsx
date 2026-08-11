@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Layers, Check, X } from 'lucide-react'
 import { Panel, Segmented, Button } from '../common/ui'
 import { DiscardTray } from '../table/ShoeProgress'
@@ -102,6 +103,7 @@ function DiscardScene({ remainingCards, totalCards, size }: {
  * Supports normal (untimed) and Quick Fire (3s per round, 10 rounds) modes.
  */
 export function DeckEstimation() {
+  const { t } = useTranslation()
   const [deckCount, setDeckCount] = useState<DeckCount>(6)
   const [accuracyMode, setAccuracyMode] = useState<AccuracyMode>('half')
   const [quickFire, setQuickFire] = useState(false)
@@ -267,45 +269,45 @@ export function DeckEstimation() {
     return (
       <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
         <TrainingBackdrop mode="deckEstimation" showRails />
-        <Panel icon={Layers} title="Deck Estimation" subtitle="Estimate the decks remaining in the shoe." className="w-full max-w-xl">
+        <Panel icon={Layers} title={t('training.deck.title')} subtitle={t('training.deck.sub')} className="w-full max-w-xl">
           {/* Deck Count */}
           <div>
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Decks in Shoe</span>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.deck.decksInShoe')}</span>
             <Segmented
               fluid
-              ariaLabel="Decks in shoe"
+              ariaLabel={t('training.deck.decksInShoe')}
               value={deckCount}
               onChange={v => setDeckCount(v as DeckCount)}
-              options={([6, 8] as DeckCount[]).map(d => ({ label: `${d} Decks`, value: d }))}
+              options={([6, 8] as DeckCount[]).map(d => ({ label: t('training.deck.nDecks', { n: d }), value: d }))}
             />
           </div>
 
           {/* Precision */}
           <div>
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Precision</span>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.deck.precision')}</span>
             <Segmented
               fluid
-              ariaLabel="Precision"
+              ariaLabel={t('training.deck.precision')}
               value={accuracyMode}
               onChange={setAccuracyMode}
               options={[
-                { label: 'Half Decks', value: 'half' as AccuracyMode },
-                { label: 'Whole Decks', value: 'whole' as AccuracyMode },
+                { label: t('training.deck.halfDecks'), value: 'half' as AccuracyMode },
+                { label: t('training.deck.wholeDecks'), value: 'whole' as AccuracyMode },
               ]}
             />
           </div>
 
           {/* Mode (custom pair to keep the quick-fire-toggle testid) */}
           <div>
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Mode</span>
-            <div role="group" aria-label="Mode" className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.deck.mode')}</span>
+            <div role="group" aria-label={t('training.deck.mode')} className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
               <button
                 onClick={() => setQuickFire(false)}
                 aria-pressed={!quickFire}
                 className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer
                   ${!quickFire ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
               >
-                Normal
+                {t('training.deck.normal')}
               </button>
               <button
                 onClick={() => setQuickFire(true)}
@@ -314,18 +316,18 @@ export function DeckEstimation() {
                 className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer
                   ${quickFire ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
               >
-                Quick Fire
+                {t('training.deck.quickFire')}
               </button>
             </div>
             {quickFire && (
               <p className="text-xs text-warning mt-2">
-                {QUICK_FIRE_ROUNDS} rounds, {QUICK_FIRE_SECONDS}s each
+                {t('training.deck.quickFireHint', { rounds: QUICK_FIRE_ROUNDS, secs: QUICK_FIRE_SECONDS })}
               </p>
             )}
           </div>
 
           <Button size="lg" className="w-full mt-1" onClick={startTraining} data-testid="start-training">
-            Start Training
+            {t('training.flash.start')}
           </Button>
         </Panel>
       </div>
@@ -338,24 +340,24 @@ export function DeckEstimation() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
         <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
           <h3 className="text-xl font-bold text-gold text-center mb-4" data-testid="summary-title">
-            Quick Fire Complete!
+            {t('training.deck.quickFireComplete')}
           </h3>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between">
-              <span className="text-content/60">Correct:</span>
+              <span className="text-content/60">{t('training.deck.correctLabel')}</span>
               <span className="text-content font-bold">{stats.correct}/{stats.total} ({accuracy}%)</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-content/60">Avg Error:</span>
-              <span className="text-content font-bold" data-testid="avg-error">&plusmn;{avgError} decks</span>
+              <span className="text-content/60">{t('training.deck.avgErrorLabel')}</span>
+              <span className="text-content font-bold" data-testid="avg-error">{t('training.deck.avgErrorValue', { v: avgError })}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-content/60">Best Streak:</span>
+              <span className="text-content/60">{t('training.deck.bestStreakLabel')}</span>
               <span className="text-content font-bold">{stats.bestStreak}</span>
             </div>
           </div>
           <Button onClick={() => setPhase('settings')} data-testid="back-to-settings" className="w-full">
-            Back to Settings
+            {t('training.common.backToSettings')}
           </Button>
         </div>
       </div>
@@ -368,11 +370,11 @@ export function DeckEstimation() {
       <div className="flex-1 overflow-y-auto flex flex-col items-center gap-6 px-4 py-6">
         {/* Stats bar */}
         <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
-          <span>Correct: {stats.correct}/{stats.total} ({accuracy}%)</span>
+          <span>{t('training.common.correctOf', { n: stats.correct, total: stats.total, pct: accuracy })}</span>
           <span>
             {quickFire
-              ? `Round ${qfRound}/${QUICK_FIRE_ROUNDS}`
-              : `Streak: ${stats.streak} (Best: ${stats.bestStreak})`}
+              ? t('training.deck.round', { n: qfRound, total: QUICK_FIRE_ROUNDS })
+              : t('training.deck.streakBest', { n: stats.streak, best: stats.bestStreak })}
           </span>
         </div>
 
@@ -391,7 +393,7 @@ export function DeckEstimation() {
         {/* Realistic discard tray on felt — estimate the decks played */}
         <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="large" />
 
-        <p className="text-content font-medium text-center">How many decks remain?</p>
+        <p className="text-content font-medium text-center">{t('training.deck.howMany')}</p>
 
         {/* Deck option buttons */}
         <div className="flex flex-wrap gap-2 justify-center max-w-lg">
@@ -419,8 +421,8 @@ export function DeckEstimation() {
     <div className="flex-1 overflow-y-auto flex flex-col items-center gap-6 px-4 py-6">
       {/* Stats bar */}
       <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
-        <span>Correct: {stats.correct}/{stats.total} ({accuracy}%)</span>
-        <span>Avg Error: &plusmn;{avgError} decks</span>
+        <span>{t('training.common.correctOf', { n: stats.correct, total: stats.total, pct: accuracy })}</span>
+        <span>{t('training.deck.avgErrorInline', { v: avgError })}</span>
       </div>
 
       {/* Result card */}
@@ -432,20 +434,20 @@ export function DeckEstimation() {
           </span>
           <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
             {isCorrect
-              ? (closeEnough ? 'Close enough!' : 'Correct!')
-              : (selectedAnswer === null ? 'Time\'s up!' : 'Wrong!')}
+              ? (closeEnough ? t('training.deck.closeEnough') : t('training.common.correctBang'))
+              : (selectedAnswer === null ? t('training.deck.timesUp') : t('training.common.wrongBang'))}
           </h3>
         </div>
 
         {/* Explanation */}
         <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
           <p className="text-content/70 text-sm" data-testid="feedback-explanation">
-            ~{correctDecks.toFixed(1)} decks remaining
-            {selectedAnswer !== null && ` (you said ${selectedAnswer})`}
+            {t('training.deck.remaining', { n: correctDecks.toFixed(1) })}
+            {selectedAnswer !== null && t('training.deck.youSaid', { v: selectedAnswer })}
           </p>
           {!isCorrect && selectedAnswer !== null && (
             <p className="text-content/50 text-xs">
-              Off by {errorDecks.toFixed(1)} decks
+              {t('training.deck.offBy', { v: errorDecks.toFixed(1) })}
             </p>
           )}
         </div>
@@ -456,7 +458,7 @@ export function DeckEstimation() {
         </div>
 
         <Button onClick={handleNext} data-testid="next-question" className="w-full">
-          {quickFire && qfRound >= QUICK_FIRE_ROUNDS ? 'See Results' : 'Next'}
+          {quickFire && qfRound >= QUICK_FIRE_ROUNDS ? t('training.common.seeResults') : t('training.common.next')}
         </Button>
       </div>
     </div>

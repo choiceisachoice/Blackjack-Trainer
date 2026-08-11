@@ -4,14 +4,20 @@ import type { Deviation } from '../../engine/counting/types'
 
 export type DeviationSet = 'i18' | 'fab4' | 'all'
 
-/** Human-readable action labels. */
-export const ACTION_LABEL: Record<string, string> = {
-  [Action.Hit]: 'Hit',
-  [Action.Stand]: 'Stand',
-  [Action.Double]: 'Double',
-  [Action.Split]: 'Split',
-  [Action.Surrender]: 'Surrender',
-  [Action.Insurance]: 'Insurance',
+/**
+ * Translation keys for the action names.
+ *
+ * Keys rather than English, because these five words are the vocabulary of the
+ * whole app — they appear on the flashcard buttons, in its feedback and on the
+ * strategy chart. One place to translate them, not three.
+ */
+export const ACTION_KEY: Record<string, string> = {
+  [Action.Hit]: 'actions.hit',
+  [Action.Stand]: 'actions.stand',
+  [Action.Double]: 'actions.double',
+  [Action.Split]: 'actions.split',
+  [Action.Surrender]: 'actions.surrender',
+  [Action.Insurance]: 'actions.insurance',
 }
 
 /** Returns the deviation set based on user selection. */

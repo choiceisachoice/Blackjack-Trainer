@@ -2,9 +2,22 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { TrainingBackdrop } from './TrainingBackdrop'
 import { RAIL_CONTENT } from './training-rail-content'
+import en from '../../i18n/messages/en.json'
 import { useStatsStore } from '../../store/stats-store'
 import type { LifetimeStats, TrainingSessionResult } from '../../services/stats-types'
 import { CountingSystemId } from '../../engine/counting/types'
+
+/**
+ * The rail content is translation keys, so the assertions resolve them the way
+ * the component does. Going through en.json rather than the raw key also means
+ * a key with no message fails the test instead of rendering its own path.
+ */
+const rail = (key: string) => {
+  const value = key.split('.').slice(1).reduce<unknown>(
+    (node, part) => (node as Record<string, unknown>)[part], en.training)
+  if (typeof value !== 'string') throw new Error(`no message for ${key}`)
+  return value
+}
 
 const emptyLifetime: LifetimeStats = {
   totalSessions: 0, totalQuestions: 0, totalCorrect: 0, totalPracticeSeconds: 0,
@@ -43,8 +56,8 @@ describe('TrainingBackdrop', () => {
     render(<TrainingBackdrop mode="casinoSession" showRails showGlow={false} railBreakpoint="2xl" />)
     expect(screen.queryByTestId('backdrop-glow')).not.toBeInTheDocument()
     expect(screen.getByText('How it works')).toBeInTheDocument()
-    expect(screen.getByText(RAIL_CONTENT.casinoSession!.steps[0])).toBeInTheDocument()
-    expect(screen.getByText(RAIL_CONTENT.casinoSession!.tip)).toBeInTheDocument()
+    expect(screen.getByText(rail(RAIL_CONTENT.casinoSession!.steps[0]))).toBeInTheDocument()
+    expect(screen.getByText(rail(RAIL_CONTENT.casinoSession!.tip))).toBeInTheDocument()
   })
 
   it('does not render rails when showRails is false', () => {
@@ -56,9 +69,9 @@ describe('TrainingBackdrop', () => {
     render(<TrainingBackdrop mode="speedDrill" showRails />)
     expect(screen.getByText('How it works')).toBeInTheDocument()
     for (const step of RAIL_CONTENT.speedDrill!.steps) {
-      expect(screen.getByText(step)).toBeInTheDocument()
+      expect(screen.getByText(rail(step))).toBeInTheDocument()
     }
-    expect(screen.getByText(RAIL_CONTENT.speedDrill!.tip)).toBeInTheDocument()
+    expect(screen.getByText(rail(RAIL_CONTENT.speedDrill!.tip))).toBeInTheDocument()
   })
 
   it('shows the last-run accuracy when a session exists for the mode', () => {

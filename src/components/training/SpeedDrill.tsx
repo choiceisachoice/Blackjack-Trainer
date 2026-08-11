@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Zap, Play, Check, X, RotateCcw, Minus, Plus } from 'lucide-react'
 import { Shoe } from '../../engine/shoe/shoe'
@@ -19,9 +20,9 @@ type Phase = 'settings' | 'drill' | 'input' | 'result'
 
 const CARD_COUNTS = [10, 20, 30, 52] as const
 const SPEED_OPTIONS = [
-  { label: 'Slow', ms: 2000 },
-  { label: 'Normal', ms: 1000 },
-  { label: 'Fast', ms: 500 },
+  { labelKey: 'training.speed.slow', ms: 2000 },
+  { labelKey: 'training.speed.normal', ms: 1000 },
+  { labelKey: 'training.speed.fast', ms: 500 },
 ] as const
 
 const SUIT_SYMBOL: Record<string, string> = {
@@ -51,6 +52,7 @@ const SUIT_SYMBOL: Record<string, string> = {
  * it; the collapsed state is for everyone who does not.
  */
 function HiLoPrimer() {
+  const { t } = useTranslation()
   const sessions = useStatsStore(s => s.sessions)
   const isPro = useIsPro()
   const learned = useMemo(() => {
@@ -61,9 +63,9 @@ function HiLoPrimer() {
   const [open, setOpen] = useState(!learned)
 
   const GROUPS = [
-    { cards: '2 3 4 5 6', value: '+1', tone: 'text-success', note: 'low cards' },
-    { cards: '7 8 9', value: '0', tone: 'text-content/50', note: 'neutral' },
-    { cards: '10 J Q K A', value: '−1', tone: 'text-error', note: 'tens and aces' },
+    { cards: '2 3 4 5 6', value: '+1', tone: 'text-success', note: t('training.primer.lowCards') },
+    { cards: '7 8 9', value: '0', tone: 'text-content/50', note: t('training.primer.neutral') },
+    { cards: '10 J Q K A', value: '−1', tone: 'text-error', note: t('training.primer.tensAces') },
   ]
 
   return (
@@ -73,8 +75,8 @@ function HiLoPrimer() {
         aria-expanded={open}
         className="w-full flex items-center justify-between gap-3 px-4 py-3 cursor-pointer text-left"
       >
-        <span className="text-sm font-semibold text-gold">The Hi-Lo values</span>
-        <span className="text-xs text-content/45">{open ? 'Hide' : 'Show'}</span>
+        <span className="text-sm font-semibold text-gold">{t('training.primer.title')}</span>
+        <span className="text-xs text-content/45">{open ? t('training.common.hide') : t('training.common.show')}</span>
       </button>
 
       {open && (
@@ -91,8 +93,7 @@ function HiLoPrimer() {
             ))}
           </div>
           <p className="mt-3 text-xs text-content/50 leading-relaxed">
-            Start at zero and add each card’s value as it appears. The total is the
-            running count — that is the number this drill asks for.
+            {t('training.primer.body')}
           </p>
         </div>
       )}
@@ -101,6 +102,7 @@ function HiLoPrimer() {
 }
 
 export function SpeedDrill() {
+  const { t } = useTranslation()
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const selectedRules = useAppStore(s => s.selectedRules)
 
@@ -303,8 +305,8 @@ export function SpeedDrill() {
               <Zap size={22} />
             </span>
             <div>
-              <h2 className="text-xl font-bold text-content">Speed Drill</h2>
-              <p className="text-sm text-content/50">Flash cards, then call the running count.</p>
+              <h2 className="text-xl font-bold text-content">{t('training.speed.title')}</h2>
+              <p className="text-sm text-content/50">{t('training.speed.sub')}</p>
             </div>
           </div>
 
@@ -312,7 +314,7 @@ export function SpeedDrill() {
 
           {/* Card count */}
           <div className="mb-5">
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Number of Cards</span>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.speed.numberOfCards')}</span>
             <div className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
               {CARD_COUNTS.map(n => (
                 <button
@@ -330,17 +332,17 @@ export function SpeedDrill() {
 
           {/* Speed */}
           <div className="mb-7">
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Speed</span>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.speed.speed')}</span>
             <div className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
               {SPEED_OPTIONS.map(s => (
                 <button
-                  key={s.label}
+                  key={s.labelKey}
                   onClick={() => setSpeedMs(s.ms)}
                   aria-pressed={speedMs === s.ms}
                   className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer
                     ${speedMs === s.ms ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
                 >
-                  {s.label}
+                  {t(s.labelKey)}
                 </button>
               ))}
             </div>
@@ -354,7 +356,7 @@ export function SpeedDrill() {
               shadow-[0_10px_30px_-12px_var(--color-gold)]"
           >
             <Play size={18} className="fill-current" />
-            Start Drill
+            {t('training.speed.start')}
           </button>
         </div>
       </div>
@@ -374,7 +376,7 @@ export function SpeedDrill() {
         {/* Progress */}
         <div className="w-full max-w-sm">
           <div className="flex justify-between text-xs text-content/50 mb-1">
-            <span>Card {currentIndex + 1} / {cards.length}</span>
+            <span>{t('training.speed.cardProgress', { n: currentIndex + 1, total: cards.length })}</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="h-1.5 bg-contrast/10 rounded-full overflow-hidden">
@@ -440,7 +442,7 @@ export function SpeedDrill() {
           onClick={handleAbort}
           className="text-sm text-content/40 hover:text-content/70 transition-colors cursor-pointer"
         >
-          Stop (ESC)
+          {t('training.speed.stopEsc')}
         </button>
       </div>
     )
@@ -450,12 +452,12 @@ export function SpeedDrill() {
   if (phase === 'input') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
-        <h2 className="text-xl font-bold text-content">What is the Running Count?</h2>
+        <h2 className="text-xl font-bold text-content">{t('training.speed.question')}</h2>
 
         <div className="flex items-center gap-4">
           <button
             onClick={() => setUserAnswer(prev => prev - 1)}
-            aria-label="Decrease count"
+            aria-label={t('training.speed.decrease')}
             className="grid place-items-center w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20
               text-content transition-colors cursor-pointer"
           >
@@ -472,7 +474,7 @@ export function SpeedDrill() {
           />
           <button
             onClick={() => setUserAnswer(prev => prev + 1)}
-            aria-label="Increase count"
+            aria-label={t('training.speed.increase')}
             className="grid place-items-center w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20
               text-content transition-colors cursor-pointer"
           >
@@ -481,7 +483,7 @@ export function SpeedDrill() {
         </div>
 
         {isFractional && (
-          <p className="text-xs text-content/40">Wong Halves: answer accepted within &plusmn;0.5</p>
+          <p className="text-xs text-content/40">{t('training.speed.wongHalves')}</p>
         )}
 
         <button
@@ -491,7 +493,7 @@ export function SpeedDrill() {
             bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
             shadow-[0_10px_30px_-12px_var(--color-gold)]"
         >
-          Submit
+          {t('training.speed.submit')}
         </button>
       </div>
     )
@@ -512,26 +514,26 @@ export function SpeedDrill() {
           </span>
           <h2 className={`text-xl font-bold ${isCorrect ? 'text-success' : 'text-error'}`}>
             {isCorrect
-              ? `Correct! RC = ${formatCount(correctRC)}`
-              : `Wrong! RC = ${formatCount(correctRC)}`}
+              ? t('training.speed.correctRc', { rc: formatCount(correctRC) })
+              : t('training.speed.wrongRc', { rc: formatCount(correctRC) })}
           </h2>
           {!isCorrect && (
-            <p className="text-sm text-content/50">You said {formatCount(userAnswer)}</p>
+            <p className="text-sm text-content/50">{t('training.speed.youSaid', { value: formatCount(userAnswer) })}</p>
           )}
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 w-full text-center">
           <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-            <div className="text-xs text-content/50">Streak</div>
+            <div className="text-xs text-content/50">{t('training.common.streak')}</div>
             <div className="text-xl font-bold text-content">{streak}</div>
           </div>
           <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-            <div className="text-xs text-content/50">Best Streak</div>
+            <div className="text-xs text-content/50">{t('training.common.bestStreak')}</div>
             <div className="text-xl font-bold text-gold">{bestStreak}</div>
           </div>
           <div className="rounded-xl px-4 py-3 col-span-2 bg-contrast/5 border border-contrast/10">
-            <div className="text-xs text-content/50">Accuracy</div>
+            <div className="text-xs text-content/50">{t('training.common.accuracy')}</div>
             <div className="text-xl font-bold text-content">
               {totalCorrect}/{totalAttempts} ({accuracy}%)
             </div>
@@ -548,14 +550,14 @@ export function SpeedDrill() {
               shadow-[0_10px_30px_-12px_var(--color-gold)]"
           >
             <RotateCcw size={17} />
-            Try Again
+            {t('training.common.tryAgain')}
           </button>
           <button
             onClick={() => setPhase('settings')}
             className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-medium
               hover:bg-contrast/15 transition-colors cursor-pointer"
           >
-            Back to Menu
+            {t('training.common.backToMenu')}
           </button>
         </div>
       </div>

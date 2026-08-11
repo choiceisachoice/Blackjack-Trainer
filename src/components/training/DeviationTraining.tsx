@@ -3,7 +3,8 @@ import { GraduationCap, Check, X } from 'lucide-react'
 import { Panel, Segmented, Button } from '../common/ui'
 import { Action } from '../../engine/rules/types'
 import { buildFlashSession, enabledActions, type FlashLevel, type FlashQuestion } from '../../engine/strategy/flashcards'
-import { ACTION_LABEL, ALL_ACTIONS, formatTC } from './deviation-utils'
+import { Trans, useTranslation } from 'react-i18next'
+import { ACTION_KEY, ALL_ACTIONS, formatTC } from './deviation-utils'
 import { useAppStore } from '../../store/app-store'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
@@ -15,9 +16,9 @@ type Phase = 'settings' | 'question' | 'feedback' | 'summary'
 const QUESTION_COUNTS = [10, 20, 30, 50]
 
 const LEVEL_HELP: Record<FlashLevel, string> = {
-  basic: 'Learn what to do at every hand — no counting yet.',
-  deviations: 'Harder: the count is high or low — do you change your play?',
-  mixed: 'A blend of both — basic hands plus count-based decisions.',
+  basic: 'training.flash.helpBasic',
+  deviations: 'training.flash.helpDeviations',
+  mixed: 'training.flash.helpMixed',
 }
 
 /** Display label for a hand. */
@@ -32,6 +33,7 @@ function formatHand(q: FlashQuestion): string {
  * count-based deviations. Finite sessions, no repeated questions in a row.
  */
 export function DeviationTraining() {
+  const { t } = useTranslation()
   const dealerHitsSoft17 = useAppStore(s => s.selectedRules.dealerHitsSoft17)
 
   const [level, setLevel] = useState<FlashLevel>('basic')
@@ -139,30 +141,30 @@ export function DeviationTraining() {
     return (
       <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
         <TrainingBackdrop mode="deviationFlashCards" showRails />
-        <Panel icon={GraduationCap} title="Flashcards" subtitle="Drill every hand — and when to deviate." className="w-full max-w-xl">
+        <Panel icon={GraduationCap} title={t('training.flash.title')} subtitle={t('training.flash.sub')} className="w-full max-w-xl">
           {/* Level */}
           <div>
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Level</span>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.common.level')}</span>
             <Segmented
               fluid
-              ariaLabel="Level"
+              ariaLabel={t('training.common.level')}
               value={level}
               onChange={setLevel}
               options={[
-                { value: 'basic' as FlashLevel, label: 'Basic Strategy' },
-                { value: 'deviations' as FlashLevel, label: 'Deviations' },
-                { value: 'mixed' as FlashLevel, label: 'Mixed' },
+                { value: 'basic' as FlashLevel, label: t('training.flash.levelBasic') },
+                { value: 'deviations' as FlashLevel, label: t('training.flash.levelDeviations') },
+                { value: 'mixed' as FlashLevel, label: t('training.flash.levelMixed') },
               ]}
             />
-            <p className="text-xs text-content/40 mt-2">{LEVEL_HELP[level]}</p>
+            <p className="text-xs text-content/40 mt-2">{t(LEVEL_HELP[level])}</p>
           </div>
 
           {/* Number of questions */}
           <div>
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">Questions</span>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.common.questions')}</span>
             <Segmented
               fluid
-              ariaLabel="Number of questions"
+              ariaLabel={t('training.flash.numQuestionsAria')}
               value={numQuestions}
               onChange={setNumQuestions}
               options={QUESTION_COUNTS.map(n => ({ label: String(n), value: n }))}
@@ -170,7 +172,7 @@ export function DeviationTraining() {
           </div>
 
           <Button size="lg" className="w-full mt-1" onClick={startSession} data-testid="start-training">
-            Start Training
+            {t('training.flash.start')}
           </Button>
         </Panel>
       </div>
@@ -182,23 +184,23 @@ export function DeviationTraining() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
-          <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">Session Complete!</h3>
+          <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">{t('training.common.sessionComplete')}</h3>
           <div className="grid grid-cols-2 gap-3 w-full text-center">
             <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-              <div className="text-xs text-content/50">Accuracy</div>
+              <div className="text-xs text-content/50">{t('training.common.accuracy')}</div>
               <div className="text-xl font-bold text-content">{accuracy}%</div>
             </div>
             <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-              <div className="text-xs text-content/50">Correct</div>
+              <div className="text-xs text-content/50">{t('training.common.correct')}</div>
               <div className="text-xl font-bold text-content">{totalCorrect}/{totalAttempts}</div>
             </div>
             <div className="rounded-xl px-4 py-3 col-span-2 bg-contrast/5 border border-contrast/10">
-              <div className="text-xs text-content/50">Best Streak</div>
+              <div className="text-xs text-content/50">{t('training.common.bestStreak')}</div>
               <div className="text-xl font-bold text-gold">{bestStreak}</div>
             </div>
           </div>
           <Button className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
-            Back to Settings
+            {t('training.common.backToSettings')}
           </Button>
         </div>
       </div>
@@ -214,31 +216,31 @@ export function DeviationTraining() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
         {/* Stats bar */}
         <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
-          <span data-testid="question-progress">Question {qIndex + 1}/{session.length}</span>
-          <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
-          <span>Streak: {currentStreak}</span>
+          <span data-testid="question-progress">{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
+          <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
+          <span>{t('training.common.streakOf', { n: currentStreak })}</span>
         </div>
 
         {/* Situation card */}
         <div className="surface p-6 max-w-md w-full">
           <div className="space-y-3 mb-6">
             <div className="flex justify-between items-center">
-              <span className="text-content/60 text-sm">Your Hand</span>
+              <span className="text-content/60 text-sm">{t('training.flash.yourHand')}</span>
               <span className="text-content font-bold text-lg" data-testid="player-hand">{formatHand(question)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-content/60 text-sm">Dealer Shows</span>
+              <span className="text-content/60 text-sm">{t('training.flash.dealerShows')}</span>
               <span className="text-content font-bold text-lg" data-testid="dealer-card">{question.dealer}</span>
             </div>
             {question.trueCount !== null && (
               <div className="flex justify-between items-center">
-                <span className="text-content/60 text-sm">True Count</span>
+                <span className="text-content/60 text-sm">{t('training.flash.trueCount')}</span>
                 <span className="text-gold font-bold text-lg" data-testid="true-count">{formatTC(question.trueCount)}</span>
               </div>
             )}
           </div>
 
-          <p className="text-content font-medium text-center mb-4">What do you do?</p>
+          <p className="text-content font-medium text-center mb-4">{t('training.flash.whatDoYouDo')}</p>
 
           <div className="flex flex-wrap gap-2 justify-center">
             {ALL_ACTIONS.map(action => {
@@ -253,7 +255,7 @@ export function DeviationTraining() {
                     ${on ? 'bg-contrast/10 hover:bg-contrast/20 text-content cursor-pointer'
                          : 'bg-contrast/5 text-content/20 cursor-not-allowed'}`}
                 >
-                  {ACTION_LABEL[action]}
+                  {t(ACTION_KEY[action])}
                 </button>
               )
             })}
@@ -268,9 +270,9 @@ export function DeviationTraining() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
       <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
-        <span>Question {qIndex + 1}/{session.length}</span>
-        <span>Correct: {totalCorrect}/{totalAttempts} ({accuracy}%)</span>
-        <span>Streak: {currentStreak}</span>
+        <span>{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
+        <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
+        <span>{t('training.common.streakOf', { n: currentStreak })}</span>
       </div>
 
       <div className="surface p-6 max-w-md w-full">
@@ -280,30 +282,42 @@ export function DeviationTraining() {
             {isCorrect ? <Check size={24} /> : <X size={24} />}
           </span>
           <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
-            {isCorrect ? 'Correct!' : 'Wrong!'}
+            {isCorrect ? t('training.common.correctBang') : t('training.common.wrongBang')}
           </h3>
         </div>
 
         <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
           {!isCorrect && selectedAction && (
             <p className="text-content/70 text-sm">
-              You chose <span className="text-error font-medium">{ACTION_LABEL[selectedAction]}</span>,
-              correct was <span className="text-success font-medium">{ACTION_LABEL[question.correctAction]}</span>.
+              <Trans
+                i18nKey="training.flash.youChose"
+                values={{ chosen: t(ACTION_KEY[selectedAction]), right: t(ACTION_KEY[question.correctAction]) }}
+                components={{
+                  w: <span className="text-error font-medium" />,
+                  r: <span className="text-success font-medium" />,
+                }}
+              />
             </p>
           )}
           <p className="text-content/70 text-sm" data-testid="feedback-explanation">
-            {question.trueCount === null ? (
-              <>Basic Strategy: <span className="text-gold font-medium">{ACTION_LABEL[question.correctAction]}</span>.</>
-            ) : deviated ? (
-              <>At TC {formatTC(question.trueCount)}, <span className="text-gold font-medium">{ACTION_LABEL[question.correctAction]}</span> — a deviation from the basic play ({ACTION_LABEL[question.basicAction]}).</>
-            ) : (
-              <>At TC {formatTC(question.trueCount)}, stick with basic strategy: <span className="text-gold font-medium">{ACTION_LABEL[question.correctAction]}</span> (no deviation here).</>
-            )}
+            <Trans
+              i18nKey={
+                question.trueCount === null ? 'training.flash.basicIs'
+                  : deviated ? 'training.flash.deviation'
+                  : 'training.flash.noDeviation'
+              }
+              values={{
+                action: t(ACTION_KEY[question.correctAction]),
+                basic: t(ACTION_KEY[question.basicAction]),
+                tc: question.trueCount === null ? '' : formatTC(question.trueCount),
+              }}
+              components={{ h: <span className="text-gold font-medium" /> }}
+            />
           </p>
         </div>
 
         <Button onClick={handleNext} data-testid="next-question" className="w-full">
-          {qIndex + 1 >= session.length ? 'See Results' : 'Next'}
+          {qIndex + 1 >= session.length ? t('training.common.seeResults') : t('training.common.next')}
         </Button>
       </div>
     </div>

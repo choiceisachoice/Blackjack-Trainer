@@ -158,7 +158,7 @@ describe('DeckEstimation', () => {
 
     // Advance 1 more → time's up
     act(() => { vi.advanceTimersByTime(1000) })
-    expect(screen.getByTestId('feedback-result')).toHaveTextContent("Time's up!")
+    expect(screen.getByTestId('feedback-result')).toHaveTextContent("Time’s up!")
   })
 
   it('quick fire mode runs 10 rounds total', () => {

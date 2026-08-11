@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useStatsStore } from '../../store/stats-store'
 import type { TrainingMode } from '../../services/stats-types'
 import { RAIL_CONTENT } from './training-rail-content'
@@ -70,6 +71,7 @@ export function TrainingBackdrop({
 
 /** The two flanking rails: how-it-works (left) and last-run + tip (right). */
 function ContextRails({ mode, breakpoint }: { mode: TrainingMode; breakpoint: 'xl' | '2xl' }) {
+  const { t } = useTranslation()
   const content = RAIL_CONTENT[mode]!
   // Literal class strings so Tailwind's JIT keeps both variants.
   const bpClass = breakpoint === '2xl' ? 'hidden 2xl:block' : 'hidden xl:block'
@@ -99,13 +101,13 @@ function ContextRails({ mode, breakpoint }: { mode: TrainingMode; breakpoint: 'x
         {/* left — how it works */}
         <aside className={`${bpClass} absolute left-4 top-1/2 -translate-y-1/2 w-[17rem]`}>
           <div className="rounded-2xl border border-contrast/10 bg-surface-2/55 backdrop-blur-sm p-5">
-            <div className="text-xs font-bold tracking-[0.12em] uppercase text-content/45 mb-3">How it works</div>
+            <div className="text-xs font-bold tracking-[0.12em] uppercase text-content/45 mb-3">{t('training.rail.howItWorks')}</div>
             <ol className="space-y-3">
               {content.steps.map((step, i) => (
                 <li key={i} className="flex gap-2.5 items-start text-sm text-content/65 leading-snug">
                   <span className="flex-shrink-0 grid place-items-center w-[1.35rem] h-[1.35rem] rounded-full text-xs font-bold text-gold-bright"
                     style={{ background: 'color-mix(in srgb, var(--color-gold) 15%, transparent)' }}>{i + 1}</span>
-                  {step}
+                  {t(step)}
                 </li>
               ))}
             </ol>
@@ -115,23 +117,23 @@ function ContextRails({ mode, breakpoint }: { mode: TrainingMode; breakpoint: 'x
         {/* right — last run + pro-tip */}
         <aside className={`${bpClass} absolute right-4 top-1/2 -translate-y-1/2 w-[17rem]`}>
           <div className="rounded-2xl border border-contrast/10 bg-surface-2/55 backdrop-blur-sm p-5">
-            <div className="text-xs font-bold tracking-[0.12em] uppercase text-content/45 mb-2">Your last run</div>
+            <div className="text-xs font-bold tracking-[0.12em] uppercase text-content/45 mb-2">{t('training.rail.yourLastRun')}</div>
             {lastAcc != null ? (
               <>
                 <div className="text-[2rem] font-extrabold text-gold-bright tracking-tight leading-none">
                   {lastAcc}<span className="text-[0.5em] text-content/50 font-semibold">%</span>
                 </div>
                 <div className="text-sm text-content/55 mt-2 leading-snug">
-                  {bestAcc != null ? `Best in this mode: ${bestAcc}%.` : 'Keep it up.'}
+                  {bestAcc != null ? t('training.rail.bestInMode', { pct: bestAcc }) : t('training.rail.keepItUp')}
                 </div>
               </>
             ) : (
-              <div className="text-sm text-content/50 leading-snug">No runs yet — start your first and watch your progress here.</div>
+              <div className="text-sm text-content/50 leading-snug">{t('training.rail.noRuns')}</div>
             )}
           </div>
           <div className="rounded-2xl border border-contrast/10 bg-surface-2/55 backdrop-blur-sm p-5 mt-3">
-            <div className="text-xs font-bold tracking-[0.12em] uppercase text-content/45 mb-2">Pro tip</div>
-            <p className="text-sm text-content/65 leading-relaxed">{content.tip}</p>
+            <div className="text-xs font-bold tracking-[0.12em] uppercase text-content/45 mb-2">{t('training.rail.proTip')}</div>
+            <p className="text-sm text-content/65 leading-relaxed">{t(content.tip)}</p>
           </div>
         </aside>
       </div>
