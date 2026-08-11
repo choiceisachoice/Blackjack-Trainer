@@ -156,7 +156,61 @@
     "sections": {
       "featuresEyebrow": "Alles in einem Trainer",
       "featuresTitle": "Alles, um <1>wirklich gut zu werden</1>.",
-      "howEyebrow": "So funktioniert es"
+      "howEyebrow": "So funktioniert es",
+      "featuresSub": "Keine Karteikarten im luftleeren Raum — ein durchgehender Weg vom Halten der Zählung bis zum echten Tisch und zum Lesen der eigenen Schwächen."
+    },
+    "showcase": {
+      "freeLabel": "Gratis",
+      "proLabel": "Pro",
+      "freeHead": "Das Zählen richtig lernen.",
+      "freeSub": "Keine Karte nötig — und wirklich genug, um die Fähigkeit aufzubauen.",
+      "proHead": "Bring es an den Tisch.",
+      "proSub": "Wo aus der Übung ein echter Vorteil wird.",
+      "t1title": "Speed Drill & Karteikarten",
+      "t1body": "Halte den Running Count unter Zeitdruck und übe jede Basisstrategie-Hand, bis sie Reflex ist.",
+      "t2title": "Auswertung, die nicht schmeichelt",
+      "t2body": "Trefferquoten-Verlauf, Übungs-Heatmap und deine schwächsten Hände — aus deinen echten Sessions.",
+      "t3title": "Level & Erfolge",
+      "t3body": "Über 100 Ziele und eine 25-Stufen-Strecke, die dich von der ersten Hand bis zum echten Vorteilsspiel ziehen.",
+      "t4title": "Vollständige Casino-Session",
+      "t4body": "Ein echter Filztisch mit mehreren Plätzen — Bots, Splits, Doubles, Auszahlungen und Soft-17-Regel. So nah am Pit wie es geht.",
+      "t5title": "Abweichungen in der Tabelle",
+      "t5body": "Illustrious 18 & Fab 4 über die Strategietabelle gelegt, mit dem True-Count-Schwellenwert für jeden Zug.",
+      "t6title": "Bankroll-Werkzeuge",
+      "t6body": "Erfasse Echtgeld-Sessions und simuliere das Ruinrisiko, damit deine Einsatzspreizung zu deinem tatsächlichen Vorteil passt."
+    },
+    "manifesto": {
+      "eyebrow": "Warum Zähler gewinnen",
+      "p1": "Zählen ist kein Geheimsystem, und es ist kein Trick, den die Casinos übersehen haben. Es ist ein kleiner, messbarer Vorteil — ein bis zwei Prozent — der sich erst über Hunderte von Händen zeigt, und nur, wenn du ihn perfekt spielst.",
+      "p2": "Das heißt: die Zählung halten, während am Tisch geredet wird, die Basisstrategie exakt spielen, auch wenn du müde bist, und die Einsätze danach bemessen, was der Schuh dir tatsächlich sagt. Nichts davon ist Wissen, das man einmal liest. Es ist ein Reflex, und Reflexe werden trainiert.",
+      "p3": "Genau dafür gibt es diesen Trainer.",
+      "phrases": [
+        "Dreh die Chancen zu deinen Gunsten.",
+        "Zähl die Karten. Schlag die Bank.",
+        "Wo Disziplin das Glück schlägt.",
+        "Beherrsche Hi-Lo. Beherrsche den Schuh.",
+        "Spiel die Zählung, nicht das Bauchgefühl.",
+        "Sieh den True Count. Nutz den Moment.",
+        "Die Bank gewinnt immer — bis du zählst.",
+        "Setz gross, wenn das Deck heiß läuft.",
+        "Vom Anfänger zum Vorteilsspieler.",
+        "Lies den Schuh wie ein Profi.",
+        "Dein Vorteil ist Können, kein Geheimnis.",
+        "Schärfe deinen Instinkt, Hand für Hand.",
+        "Denk in True Counts.",
+        "Geduld zahlt sich aus — in jedem Schuh.",
+        "Steigt die Zählung, steigt der Einsatz.",
+        "Kleiner Vorteil, perfekt gespielt.",
+        "Erst Basisstrategie. Dann Abweichungen.",
+        "Vorteil wird verdient, Hand um Hand.",
+        "Heute trainieren. Morgen tischreif."
+      ]
+    },
+    "freeCard": {
+      "l1": "Speed Drill & Karteikarten",
+      "l2": "Strategietabelle (Grundlagen)",
+      "l3": "Deine Basis-Auswertung",
+      "l4": "Erfolge, Level & der Lern-Guide"
     }
   }
 }

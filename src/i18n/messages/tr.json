@@ -156,7 +156,61 @@
     "sections": {
       "featuresEyebrow": "Hepsi tek bir eğitmende",
       "featuresTitle": "<1>Gerçekten iyi olmak</1> için gereken her şey.",
-      "howEyebrow": "Nasıl çalışır"
+      "howEyebrow": "Nasıl çalışır",
+      "featuresSub": "Boşlukta bilgi kartları değil — sayımı tutmaktan gerçek bir masaya oturmaya ve kendi açıklarınızı okumaya kadar eksiksiz bir yol."
+    },
+    "showcase": {
+      "freeLabel": "Ücretsiz",
+      "proLabel": "Pro",
+      "freeHead": "Sayımı hakkıyla öğrenin.",
+      "freeSub": "Kart gerekmez — ve beceriyi kurmaya gerçekten yeter.",
+      "proHead": "Masaya taşıyın.",
+      "proSub": "Sayımın alıştırma olmaktan çıkıp gerçek bir avantaja dönüştüğü yer.",
+      "t1title": "Hız & bilgi kartları",
+      "t1body": "Running count’u zaman baskısı altında tutun ve her temel strateji elini refleks olana kadar çalışın.",
+      "t2title": "Yalan söylemeyen analiz",
+      "t2body": "Doğruluk eğrisi, çalışma ısı haritası ve en zayıf elleriniz — gerçek oturumlarınızdan.",
+      "t3title": "Seviyeler & başarımlar",
+      "t3body": "100’den fazla hedef ve sizi ilk elden gerçek avantaj oyununa taşıyan 25 seviyelik bir yol.",
+      "t4title": "Tam kumarhane oturumu",
+      "t4body": "Çok koltuklu gerçek bir çuha masa — botlar, bölmeler, katılar, ödemeler ve soft 17 kuralı. Pit’e en yakın hâli.",
+      "t5title": "Tabloda sapmalar",
+      "t5body": "Illustrious 18 ve Fab 4, strateji tablosunun üzerine bindirilmiş; her oyun için gerçek sayım eşiğiyle.",
+      "t6title": "Kasa araçları",
+      "t6body": "Gerçek parayla oynanan oturumları kaydedin ve iflas riskini simüle edin; böylece bahis aralığınız gerçek avantajınıza uysun."
+    },
+    "manifesto": {
+      "eyebrow": "Sayıcılar neden kazanır",
+      "p1": "Sayım gizli bir sistem değil, kumarhanelerin gözden kaçırdığı bir numara da değil. Küçük ve ölçülebilir bir avantaj — yüzde bir iki — ve ancak yüzlerce el sonunda, o da mükemmel oynarsanız ortaya çıkar.",
+      "p2": "Bu; masa konuşurken sayımı tutmak, yorgunken bile temel stratejiyi tam uygulamak ve bahislerinizi ayakkabının gerçekten söylediğine göre ayarlamak demek. Bunların hiçbiri bir kez okunup geçilecek bilgi değil. Bu bir reflekstir ve refleksler çalışılarak kazanılır.",
+      "p3": "Bu eğitmenin bütün amacı tam olarak bu.",
+      "phrases": [
+        "Olasılıkları lehinize çevirin.",
+        "Kartları sayın. Kasayı yenin.",
+        "Disiplinin şansı yendiği yer.",
+        "Hi-Lo’yu öğrenin. Ayakkabıya hâkim olun.",
+        "Sezgiyi değil, sayımı oynayın.",
+        "Gerçek sayımı görün. Fırsatı yakalayın.",
+        "Kasa hep kazanır — siz sayana kadar.",
+        "Deste ısınınca büyük oynayın.",
+        "Başlangıçtan avantaj oyuncusuna.",
+        "Ayakkabıyı bir profesyonel gibi okuyun.",
+        "Avantajınız bir beceridir, sır değil.",
+        "İçgüdünüzü el el keskinleştirin.",
+        "Gerçek sayımla düşünün.",
+        "Sabır kazandırır — her ayakkabıda.",
+        "Sayım yükselince bahsi yükseltin.",
+        "Küçük avantaj, kusursuz oynanmış.",
+        "Önce temel strateji. Sonra sapmalar.",
+        "Avantaj el el kazanılır.",
+        "Bugün çalışın. Yarın masaya hazır."
+      ]
+    },
+    "freeCard": {
+      "l1": "Hız & bilgi kartları",
+      "l2": "Strateji tablosu (temel)",
+      "l3": "Temel analizleriniz",
+      "l4": "Başarımlar, seviyeler & rehber"
     }
   }
 }

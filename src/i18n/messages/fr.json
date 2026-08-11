@@ -156,7 +156,61 @@
     "sections": {
       "featuresEyebrow": "Tout dans un seul entraîneur",
       "featuresTitle": "Tout pour <1>devenir vraiment bon</1>.",
-      "howEyebrow": "Comment ça marche"
+      "howEyebrow": "Comment ça marche",
+      "featuresSub": "Pas des cartes mémoire hors sol — un parcours complet, du maintien du compte à la vraie table, jusqu’à lire vos propres failles."
+    },
+    "showcase": {
+      "freeLabel": "Gratuit",
+      "proLabel": "Pro",
+      "freeHead": "Apprendre le comptage pour de vrai.",
+      "freeSub": "Sans carte bancaire — et vraiment de quoi construire la compétence.",
+      "proHead": "Emmenez-le à la table.",
+      "proSub": "Là où le comptage cesse d’être un exercice et devient un vrai avantage.",
+      "t1title": "Vitesse & cartes mémoire",
+      "t1body": "Tenez le running count sous pression, et travaillez chaque main de stratégie de base jusqu’au réflexe.",
+      "t2title": "Une analyse qui ne ment pas",
+      "t2body": "Courbe de précision, carte de chaleur et vos mains les plus faibles — issues de vos vraies sessions.",
+      "t3title": "Niveaux & trophées",
+      "t3body": "Plus de 100 objectifs et un parcours de 25 niveaux qui vous mènent de la première main au vrai jeu d’avantage.",
+      "t4title": "Session de casino complète",
+      "t4body": "Une vraie table de feutre multi-places — bots, splits, doubles, paiements et règle du soft 17. Au plus près de la fosse.",
+      "t5title": "Les déviations sur le tableau",
+      "t5body": "Illustrious 18 et Fab 4 superposés au tableau de stratégie, avec le seuil de true count pour chaque coup.",
+      "t6title": "Outils de bankroll",
+      "t6body": "Suivez vos sessions en argent réel et simulez le risque de ruine, pour que votre écart de mises colle à votre avantage réel."
+    },
+    "manifesto": {
+      "eyebrow": "Pourquoi les compteurs gagnent",
+      "p1": "Le comptage n’est pas un système secret, ni une astuce que les casinos auraient ratée. C’est un avantage petit et mesurable — un ou deux pour cent — qui n’apparaît qu’au bout de centaines de mains, et seulement si vous le jouez parfaitement.",
+      "p2": "Cela veut dire tenir le compte pendant que la table parle, appliquer la stratégie de base exactement même fatigué, et dimensionner vos mises selon ce que le sabot dit vraiment. Rien de tout cela n’est un savoir qui se lit une fois. C’est un réflexe, et les réflexes se travaillent.",
+      "p3": "C’est toute la raison d’être de cet entraîneur.",
+      "phrases": [
+        "Faites pencher les probabilités.",
+        "Comptez les cartes. Battez la banque.",
+        "Là où la discipline bat la chance.",
+        "Maîtrisez le Hi-Lo. Maîtrisez le sabot.",
+        "Jouez le compte, pas l’intuition.",
+        "Voyez le true count. Saisissez l’instant.",
+        "La banque gagne toujours — jusqu’à ce que vous comptiez.",
+        "Misez gros quand le sabot chauffe.",
+        "Du débutant au joueur d’avantage.",
+        "Lisez le sabot comme un pro.",
+        "Votre avantage est une compétence, pas un secret.",
+        "Aiguisez votre instinct, main après main.",
+        "Pensez en true counts.",
+        "La patience paie — à chaque sabot.",
+        "Quand le compte monte, montez la mise.",
+        "Petit avantage, joué à la perfection.",
+        "La stratégie de base d’abord. Les déviations ensuite.",
+        "L’avantage se gagne, main après main.",
+        "Entraînez-vous aujourd’hui. Prêt demain."
+      ]
+    },
+    "freeCard": {
+      "l1": "Vitesse & cartes mémoire",
+      "l2": "Tableau de stratégie (bases)",
+      "l3": "Vos analyses de base",
+      "l4": "Trophées, niveaux & le guide"
     }
   }
 }

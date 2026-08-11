@@ -156,7 +156,61 @@
     "sections": {
       "featuresEyebrow": "Tutto in un solo allenatore",
       "featuresTitle": "Tutto per <1>diventare davvero bravo</1>.",
-      "howEyebrow": "Come funziona"
+      "howEyebrow": "Come funziona",
+      "featuresSub": "Non carte mnemoniche nel vuoto — un percorso completo, dal tenere il conteggio al tavolo vero, fino a leggere le tue falle."
+    },
+    "showcase": {
+      "freeLabel": "Gratuito",
+      "proLabel": "Pro",
+      "freeHead": "Imparare il conteggio come si deve.",
+      "freeSub": "Nessuna carta richiesta — e davvero abbastanza per costruire l’abilità.",
+      "proHead": "Portalo al tavolo.",
+      "proSub": "Dove il conteggio smette di essere un esercizio e diventa un vantaggio vero.",
+      "t1title": "Velocità & carte mnemoniche",
+      "t1body": "Tieni il running count sotto pressione e allena ogni mano di strategia di base fino al riflesso.",
+      "t2title": "Analisi che non mente",
+      "t2body": "Andamento della precisione, mappa di calore e le tue mani più deboli — dalle tue sessioni reali.",
+      "t3title": "Livelli & premi",
+      "t3body": "Oltre 100 obiettivi e un percorso a 25 livelli che ti portano dalla prima mano al vero gioco di vantaggio.",
+      "t4title": "Sessione di casinò completa",
+      "t4body": "Un vero tavolo in panno multi-posto — bot, split, raddoppi, pagamenti e regola del soft 17. Il più vicino possibile al pit.",
+      "t5title": "Le deviazioni sulla tabella",
+      "t5body": "Illustrious 18 e Fab 4 sovrapposti alla tabella di strategia, con la soglia di true count per ogni giocata.",
+      "t6title": "Strumenti di bankroll",
+      "t6body": "Registra le sessioni in denaro reale e simula il rischio di rovina, così lo spread delle puntate corrisponde al tuo vantaggio effettivo."
+    },
+    "manifesto": {
+      "eyebrow": "Perché i contatori vincono",
+      "p1": "Il conteggio non è un sistema segreto, e non è un trucco che i casinò non hanno notato. È un vantaggio piccolo e misurabile — uno o due per cento — che emerge solo su centinaia di mani, e solo se lo giochi alla perfezione.",
+      "p2": "Vuol dire tenere il conteggio mentre al tavolo si chiacchiera, applicare la strategia di base con precisione anche quando sei stanco, e dimensionare le puntate su ciò che il sabot sta davvero dicendo. Niente di tutto questo è una nozione da leggere una volta. È un riflesso, e i riflessi si allenano.",
+      "p3": "È esattamente il motivo per cui esiste questo allenatore.",
+      "phrases": [
+        "Gira le probabilità a tuo favore.",
+        "Conta le carte. Batti il banco.",
+        "Dove la disciplina batte la fortuna.",
+        "Padroneggia l’Hi-Lo. Padroneggia il sabot.",
+        "Gioca il conteggio, non l’istinto.",
+        "Vedi il true count. Cogli il momento.",
+        "Il banco vince sempre — finché non conti tu.",
+        "Punta forte quando il mazzo scotta.",
+        "Da principiante a giocatore di vantaggio.",
+        "Leggi il sabot come un professionista.",
+        "Il tuo vantaggio è abilità, non un segreto.",
+        "Affina l’istinto, una mano alla volta.",
+        "Ragiona in true count.",
+        "La pazienza paga — a ogni sabot.",
+        "Se il conteggio sale, sale la puntata.",
+        "Piccolo vantaggio, giocato alla perfezione.",
+        "Prima la strategia di base. Poi le deviazioni.",
+        "Il vantaggio si guadagna, mano dopo mano.",
+        "Allenati oggi. Pronto al tavolo domani."
+      ]
+    },
+    "freeCard": {
+      "l1": "Velocità & carte mnemoniche",
+      "l2": "Tabella di strategia (basi)",
+      "l3": "Le tue analisi di base",
+      "l4": "Premi, livelli & la guida"
     }
   }
 }

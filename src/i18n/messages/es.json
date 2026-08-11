@@ -156,7 +156,61 @@
     "sections": {
       "featuresEyebrow": "Todo en un solo entrenador",
       "featuresTitle": "Todo para <1>llegar a ser bueno de verdad</1>.",
-      "howEyebrow": "Cómo funciona"
+      "howEyebrow": "Cómo funciona",
+      "featuresSub": "No tarjetas en el vacío: un recorrido completo, de sostener la cuenta a sentarte en una mesa real y leer tus propias fugas."
+    },
+    "showcase": {
+      "freeLabel": "Gratis",
+      "proLabel": "Pro",
+      "freeHead": "Aprender el conteo en serio.",
+      "freeSub": "Sin tarjeta — y de verdad suficiente para construir la habilidad.",
+      "proHead": "Llévalo a la mesa.",
+      "proSub": "Donde el conteo deja de ser un ejercicio y se convierte en ventaja real.",
+      "t1title": "Velocidad y tarjetas",
+      "t1body": "Mantén el running count bajo presión y practica cada mano de estrategia básica hasta que sea reflejo.",
+      "t2title": "Analíticas que no mienten",
+      "t2body": "Tendencia de acierto, mapa de calor y tus manos más débiles, a partir de tus sesiones reales.",
+      "t3title": "Niveles y logros",
+      "t3body": "Más de 100 objetivos y un recorrido de 25 niveles que te llevan de la primera mano al juego con ventaja de verdad.",
+      "t4title": "Sesión de casino completa",
+      "t4body": "Una mesa de fieltro real con varias plazas: bots, splits, dobles, pagos y regla de soft 17. Lo más parecido al pit.",
+      "t5title": "Las desviaciones en la tabla",
+      "t5body": "Illustrious 18 y Fab 4 superpuestos a la tabla de estrategia, con el umbral de true count para cada jugada.",
+      "t6title": "Herramientas de bankroll",
+      "t6body": "Registra sesiones con dinero real y simula el riesgo de ruina, para que tu spread de apuestas encaje con tu ventaja real."
+    },
+    "manifesto": {
+      "eyebrow": "Por qué ganan los contadores",
+      "p1": "Contar no es un sistema secreto, ni un truco que a los casinos se les haya escapado. Es una ventaja pequeña y medible — uno o dos por ciento — que solo aparece a lo largo de cientos de manos, y solo si la juegas a la perfección.",
+      "p2": "Eso significa sostener la cuenta mientras la mesa habla, aplicar la estrategia básica con exactitud aunque estés cansado, y ajustar tus apuestas a lo que el zapato realmente está diciendo. Nada de eso es un conocimiento que se lea una vez. Es un reflejo, y los reflejos se entrenan.",
+      "p3": "Para eso existe este entrenador.",
+      "phrases": [
+        "Pon las probabilidades de tu lado.",
+        "Cuenta las cartas. Gana a la banca.",
+        "Donde la disciplina le gana a la suerte.",
+        "Domina el Hi-Lo. Domina el zapato.",
+        "Juega la cuenta, no la corazonada.",
+        "Ve el true count. Aprovecha el momento.",
+        "La banca siempre gana — hasta que cuentas.",
+        "Apuesta fuerte cuando la baraja se calienta.",
+        "De principiante a jugador con ventaja.",
+        "Lee el zapato como un profesional.",
+        "Tu ventaja es una habilidad, no un secreto.",
+        "Afina el instinto, mano a mano.",
+        "Piensa en true counts.",
+        "La paciencia paga — en cada zapato.",
+        "Si sube la cuenta, sube la apuesta.",
+        "Ventaja pequeña, jugada a la perfección.",
+        "Primero la estrategia básica. Luego las desviaciones.",
+        "La ventaja se gana, mano a mano.",
+        "Entrena hoy. Listo para la mesa mañana."
+      ]
+    },
+    "freeCard": {
+      "l1": "Velocidad y tarjetas",
+      "l2": "Tabla de estrategia (básico)",
+      "l3": "Tus analíticas básicas",
+      "l4": "Logros, niveles y la guía"
     }
   }
 }

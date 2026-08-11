@@ -156,7 +156,61 @@
     "sections": {
       "featuresEyebrow": "Everything in one trainer",
       "featuresTitle": "Everything you need to <1>actually get good</1>.",
-      "howEyebrow": "How it works"
+      "howEyebrow": "How it works",
+      "featuresSub": "Not flashcards in a vacuum — a full path from keeping the count to sitting at a live table and reading your own leaks."
+    },
+    "showcase": {
+      "freeLabel": "Free",
+      "proLabel": "Pro",
+      "freeHead": "Learn the count properly.",
+      "freeSub": "No card required — and genuinely enough to build the skill.",
+      "proHead": "Take it to the table.",
+      "proSub": "Where the count stops being a drill and turns into an actual edge.",
+      "t1title": "Speed Drill & Flashcards",
+      "t1body": "Keep the running count under time pressure, and drill every basic-strategy hand until it’s reflex.",
+      "t2title": "Analytics that don’t lie",
+      "t2body": "Accuracy trend, practice heatmap and your weakest hands — from your real sessions.",
+      "t3title": "Levels & achievements",
+      "t3body": "100+ goals and a 25-level track that pull you from first hand to genuine advantage play.",
+      "t4title": "Full Casino Session",
+      "t4body": "A real multi-seat felt table — bots, splits, doubles, payouts and dealer soft-17 rules. The closest thing to the pit.",
+      "t5title": "Deviations on the chart",
+      "t5body": "Illustrious 18 & Fab 4 overlaid on the strategy chart, with the true-count threshold for every play.",
+      "t6title": "Bankroll tools",
+      "t6body": "Track real-money sessions and simulate risk of ruin, so your bet spread matches your actual edge."
+    },
+    "manifesto": {
+      "eyebrow": "Why counters win",
+      "p1": "Counting isn’t a secret system, and it isn’t a trick the casinos haven’t noticed. It’s a small, measurable edge — a percent or two — that shows up only over hundreds of hands, and only if you play it perfectly.",
+      "p2": "That means holding the count while the table talks, keeping basic strategy exact when you’re tired, and sizing your bets to what the shoe is actually telling you. None of that is knowledge you can read once. It’s a reflex, and reflexes are trained.",
+      "p3": "That’s the whole point of this trainer.",
+      "phrases": [
+        "Turn the odds in your favor.",
+        "Count the cards. Beat the house.",
+        "Where discipline beats luck.",
+        "Master the Hi-Lo. Own the shoe.",
+        "Play the count, not the hunch.",
+        "See the true count. Seize the moment.",
+        "The house always wins — until you count.",
+        "Bet big when the deck runs hot.",
+        "From beginner to advantage player.",
+        "Read the shoe like a pro.",
+        "Your edge is a skill, not a secret.",
+        "Sharpen your instincts, one hand at a time.",
+        "Think in true counts.",
+        "Patience pays — every single shoe.",
+        "When the count climbs, raise your bet.",
+        "Small edge, played to perfection.",
+        "Basic strategy first. Deviations next.",
+        "Advantage is earned, hand by hand.",
+        "Train today. Table-ready tomorrow."
+      ]
+    },
+    "freeCard": {
+      "l1": "Speed Drill & Flashcards",
+      "l2": "Strategy Chart (basics)",
+      "l3": "Your basic analytics",
+      "l4": "Awards, levels & the Learn guide"
     }
   }
 }

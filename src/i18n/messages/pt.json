@@ -156,7 +156,61 @@
     "sections": {
       "featuresEyebrow": "Tudo num só treinador",
       "featuresTitle": "Tudo para <1>ficar mesmo bom</1>.",
-      "howEyebrow": "Como funciona"
+      "howEyebrow": "Como funciona",
+      "featuresSub": "Não são cartões no vazio — um percurso completo, de manter a contagem até à mesa a sério e ler as suas próprias falhas."
+    },
+    "showcase": {
+      "freeLabel": "Gratuito",
+      "proLabel": "Pro",
+      "freeHead": "Aprender a contagem a sério.",
+      "freeSub": "Sem cartão — e mesmo suficiente para construir a competência.",
+      "proHead": "Leve-a para a mesa.",
+      "proSub": "Onde a contagem deixa de ser exercício e passa a ser vantagem a sério.",
+      "t1title": "Velocidade e cartões",
+      "t1body": "Mantenha o running count sob pressão e treine cada mão de estratégia básica até ser reflexo.",
+      "t2title": "Análises que não mentem",
+      "t2body": "Tendência de acerto, mapa de calor e as suas mãos mais fracas — a partir das suas sessões reais.",
+      "t3title": "Níveis e conquistas",
+      "t3body": "Mais de 100 objetivos e um percurso de 25 níveis que o levam da primeira mão ao jogo com vantagem a sério.",
+      "t4title": "Sessão de casino completa",
+      "t4body": "Uma verdadeira mesa de feltro com vários lugares — bots, splits, dobros, pagamentos e regra do soft 17. O mais perto do pit.",
+      "t5title": "Os desvios na tabela",
+      "t5body": "Illustrious 18 e Fab 4 sobrepostos à tabela de estratégia, com o limiar de true count para cada jogada.",
+      "t6title": "Ferramentas de bankroll",
+      "t6body": "Registe sessões a dinheiro real e simule o risco de ruína, para o seu spread de apostas bater certo com a sua vantagem real."
+    },
+    "manifesto": {
+      "eyebrow": "Porque é que os contadores ganham",
+      "p1": "Contar não é um sistema secreto, nem um truque que os casinos não tenham notado. É uma vantagem pequena e mensurável — um ou dois por cento — que só aparece ao fim de centenas de mãos, e só se a jogar na perfeição.",
+      "p2": "Isso significa manter a contagem enquanto a mesa conversa, aplicar a estratégia básica com exatidão mesmo cansado, e dimensionar as apostas ao que o sabot está mesmo a dizer. Nada disto é conhecimento que se leia uma vez. É um reflexo, e os reflexos treinam-se.",
+      "p3": "É exatamente para isso que este treinador existe.",
+      "phrases": [
+        "Vire as probabilidades a seu favor.",
+        "Conte as cartas. Vença a banca.",
+        "Onde a disciplina vence a sorte.",
+        "Domine o Hi-Lo. Domine o sabot.",
+        "Jogue a contagem, não o palpite.",
+        "Veja o true count. Aproveite o momento.",
+        "A banca ganha sempre — até você contar.",
+        "Aposte alto quando o baralho aquece.",
+        "De principiante a jogador com vantagem.",
+        "Leia o sabot como um profissional.",
+        "A sua vantagem é uma competência, não um segredo.",
+        "Afie o instinto, mão a mão.",
+        "Pense em true counts.",
+        "A paciência compensa — em cada sabot.",
+        "Quando a contagem sobe, a aposta sobe.",
+        "Vantagem pequena, jogada na perfeição.",
+        "Primeiro a estratégia básica. Depois os desvios.",
+        "A vantagem ganha-se, mão a mão.",
+        "Treine hoje. Pronto para a mesa amanhã."
+      ]
+    },
+    "freeCard": {
+      "l1": "Velocidade & cartões",
+      "l2": "Tabela de estratégia (bases)",
+      "l3": "As suas análises básicas",
+      "l4": "Conquistas, níveis & o guia"
     }
   }
 }

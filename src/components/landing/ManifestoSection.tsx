@@ -1,5 +1,5 @@
+import { useTranslation } from 'react-i18next'
 import { useTypewriter } from '../../hooks/use-typewriter'
-import { MANIFESTO_PHRASES } from './manifesto-phrases'
 import { Reveal } from './Reveal'
 
 /**
@@ -12,10 +12,19 @@ import { Reveal } from './Reveal'
  * competing attention magnets means neither wins.
  */
 export function ManifestoSection() {
-  const { display, resting, reduced } = useTypewriter(MANIFESTO_PHRASES, 55)
-  const stable = MANIFESTO_PHRASES[0] ?? ''
+  const { t } = useTranslation()
+  /*
+    Read from the active translation, not from a module constant. The sizer
+    below reserves the box using the LONGEST phrase, and phrase lengths differ
+    per language — a German set measured against English boxes would resize the
+    heading mid-word, which is exactly the layout shift the sizer exists to
+    prevent.
+  */
+  const phrases = t('landing.manifesto.phrases', { returnObjects: true }) as string[]
+  const { display, resting, reduced } = useTypewriter(phrases, 55)
+  const stable = phrases[0] ?? ''
   /** Longest phrase — reserves the heading box so typing never resizes it. */
-  const longest = MANIFESTO_PHRASES.reduce((a, b) => (b.length > a.length ? b : a), '')
+  const longest = phrases.reduce((a, b) => (b.length > a.length ? b : a), '')
 
   return (
     <section className="relative border-y border-white/8 py-24 overflow-hidden
@@ -23,7 +32,7 @@ export function ManifestoSection() {
       <div className="max-w-4xl mx-auto px-6 text-center">
         <Reveal>
           <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">
-            Why counters win
+            {t('landing.manifesto.eyebrow')}
           </div>
           <h2
             aria-label={stable}
@@ -48,17 +57,13 @@ export function ManifestoSection() {
         <Reveal delay={0.1}>
           <div className="mt-8 max-w-[46em] mx-auto flex flex-col gap-4 text-content/60 leading-relaxed">
             <p>
-              Counting isn’t a secret system, and it isn’t a trick the casinos haven’t noticed.
-              It’s a small, measurable edge — a percent or two — that shows up only over hundreds
-              of hands, and only if you play it perfectly.
+              {t('landing.manifesto.p1')}
             </p>
             <p>
-              That means holding the count while the table talks, keeping basic strategy exact when
-              you’re tired, and sizing your bets to what the shoe is actually telling you. None of
-              that is knowledge you can read once. It’s a reflex, and reflexes are trained.
+              {t('landing.manifesto.p2')}
             </p>
             <p className="text-content/80">
-              That’s the whole point of this trainer.
+              {t('landing.manifesto.p3')}
             </p>
           </div>
         </Reveal>

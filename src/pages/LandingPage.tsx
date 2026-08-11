@@ -176,7 +176,7 @@ export function LandingPage() {
       <section id="features" className="max-w-6xl mx-auto px-6 py-20">
         <Reveal>
           <SectionHead eyebrow={t('landing.sections.featuresEyebrow')} title={<Trans i18nKey="landing.sections.featuresTitle" components={[<span key="0" />, <span key="1" className="text-gold-gradient" />]} />}
-            sub="Not flashcards in a vacuum — a full path from keeping the count to sitting at a live table and reading your own leaks." />
+            sub={t('landing.sections.featuresSub')} />
         </Reveal>
         <FeatureShowcase />
       </section>
@@ -217,8 +217,8 @@ export function LandingPage() {
             <div className="mt-3.5 flex items-baseline gap-1.5"><span className="text-4xl font-extrabold">CHF 0</span><span className="text-content/60 text-sm">{t('pricing.forever')}</span></div>
             <div className="text-xs text-gold mt-1.5">{t('pricing.noCard')}</div>
             <div className="mt-5 flex flex-col gap-2.5 text-sm text-content/60">
-              {['Speed Drill & Flashcards', 'Strategy Chart (basics)', 'Your basic analytics', 'Awards, levels & the Learn guide'].map(t => (
-                <div key={t} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{t}</div>
+              {[t('landing.freeCard.l1'), t('landing.freeCard.l2'), t('landing.freeCard.l3'), t('landing.freeCard.l4')].map(item => (
+                <div key={item} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{item}</div>
               ))}
             </div>
             <button onClick={startFree} className="mt-6 rounded-xl px-5 py-3 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors cursor-pointer w-full">{t('landing.nav.startFree')}</button>

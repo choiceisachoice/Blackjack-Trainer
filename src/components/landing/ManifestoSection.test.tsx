@@ -1,7 +1,14 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { ManifestoSection } from './ManifestoSection'
-import { MANIFESTO_PHRASES } from './manifesto-phrases'
+import en from '../../i18n/messages/en.json'
+
+/**
+ * The phrases moved into the translations, so the tests read them from there.
+ * Their own module is gone: two lists of taglines, one translated and one not,
+ * is a drift waiting to happen — and the untranslated one would keep passing.
+ */
+const MANIFESTO_PHRASES = en.landing.manifesto.phrases
 
 /** Stub matchMedia so the typewriter/Reveal see a specific motion preference. */
 function stubReducedMotion(reduce: boolean): void {
@@ -23,7 +30,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('MANIFESTO_PHRASES', () => {
+describe('the manifesto phrases', () => {
   it('carries the marketing taglines without the app brand title', () => {
     expect(MANIFESTO_PHRASES.length).toBeGreaterThan(10)
     // The brand title is an app concern — it must not leak into the landing loop.
@@ -53,7 +60,7 @@ describe('ManifestoSection', () => {
   it('renders the supporting copy regardless of motion preference', () => {
     stubReducedMotion(true)
     render(<ManifestoSection />)
-    expect(screen.getByText(/small, measurable edge/)).toBeInTheDocument()
-    expect(screen.getByText(/reflexes are trained/)).toBeInTheDocument()
+    expect(screen.getByText(new RegExp('small, measurable edge'))).toBeInTheDocument()
+    expect(screen.getByText(new RegExp('reflexes are trained'))).toBeInTheDocument()
   })
 })
