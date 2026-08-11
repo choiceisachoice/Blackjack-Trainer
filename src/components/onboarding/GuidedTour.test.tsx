@@ -3,8 +3,12 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { GuidedTour } from './GuidedTour'
 import { TOUR_STOPS } from './tour-stops'
 import { hasSeenTour } from '../../services/recommendation'
+import i18next from 'i18next'
 
 vi.mock('framer-motion', () => ({ useReducedMotion: () => false }))
+
+/** The stops carry keys; the callout shows the message they name. */
+const text = (key: string) => i18next.t(key)
 
 /**
  * jsdom has no layout: `getBoundingClientRect` is all zeros and
@@ -60,7 +64,7 @@ describe('finding things to point at', () => {
   it('walks the stops in page order', () => {
     mountAnchors(ALL)
     render(<GuidedTour onClose={() => {}} />)
-    expect(screen.getByTestId('tour-title')).toHaveTextContent(TOUR_STOPS[0].title)
+    expect(screen.getByTestId('tour-title')).toHaveTextContent(text(TOUR_STOPS[0].titleKey))
     expect(screen.getByText(`1 / ${ALL.length}`)).toBeInTheDocument()
   })
 })
@@ -75,10 +79,10 @@ describe('moving through it', () => {
     expect(screen.queryByTestId('tour-back')).toBeNull()
 
     fireEvent.click(screen.getByTestId('tour-next'))
-    expect(screen.getByTestId('tour-title')).toHaveTextContent(TOUR_STOPS[1].title)
+    expect(screen.getByTestId('tour-title')).toHaveTextContent(text(TOUR_STOPS[1].titleKey))
 
     fireEvent.click(screen.getByTestId('tour-back'))
-    expect(screen.getByTestId('tour-title')).toHaveTextContent(TOUR_STOPS[0].title)
+    expect(screen.getByTestId('tour-title')).toHaveTextContent(text(TOUR_STOPS[0].titleKey))
   })
 
   it('closes at the end and remembers it ran', () => {
@@ -115,10 +119,10 @@ describe('moving through it', () => {
     render(<GuidedTour onClose={onClose} />)
 
     fireEvent.keyDown(window, { key: 'ArrowRight' })
-    expect(screen.getByTestId('tour-title')).toHaveTextContent(TOUR_STOPS[1].title)
+    expect(screen.getByTestId('tour-title')).toHaveTextContent(text(TOUR_STOPS[1].titleKey))
 
     fireEvent.keyDown(window, { key: 'ArrowLeft' })
-    expect(screen.getByTestId('tour-title')).toHaveTextContent(TOUR_STOPS[0].title)
+    expect(screen.getByTestId('tour-title')).toHaveTextContent(text(TOUR_STOPS[0].titleKey))
 
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -152,8 +156,12 @@ describe('what it draws', () => {
 
   it('gives every stop a title and a body', () => {
     for (const stop of TOUR_STOPS) {
-      expect(stop.title.length).toBeGreaterThan(0)
-      expect(stop.body.length).toBeGreaterThan(0)
+      // Resolved, not just present: a key with no message renders its own
+      // path into the callout, which looks like a bug and reads like one.
+      expect(text(stop.titleKey).length).toBeGreaterThan(0)
+      expect(text(stop.titleKey)).not.toBe(stop.titleKey)
+      expect(text(stop.bodyKey).length).toBeGreaterThan(0)
+      expect(text(stop.bodyKey)).not.toBe(stop.bodyKey)
     }
   })
 })

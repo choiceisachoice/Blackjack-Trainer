@@ -3,6 +3,10 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { WelcomeScreen } from './WelcomeScreen'
 import { buildWelcomeCopy, freeStageCount } from './welcome-content'
 import { CURRICULUM } from '../../services/curriculum'
+import i18next from 'i18next'
+
+/** The copy is built from messages now, so the tests need a translator. */
+const copyFor = (isPro: boolean) => buildWelcomeCopy(isPro, i18next.t)
 
 afterEach(() => {
   cleanup()
@@ -11,19 +15,19 @@ afterEach(() => {
 
 describe('welcome copy', () => {
   it('says something different to a paying account', () => {
-    const free = buildWelcomeCopy(false)
-    const pro = buildWelcomeCopy(true)
+    const free = copyFor(false)
+    const pro = copyFor(true)
     expect(pro.headline).not.toBe(free.headline)
     expect(pro.subhead).not.toBe(free.subhead)
     expect(pro.eyebrow).not.toBe(free.eyebrow)
   })
 
   it('derives its numbers instead of stating them', () => {
-    const free = buildWelcomeCopy(false)
+    const free = copyFor(false)
     expect(free.subhead).toContain(`${CURRICULUM.length} stages`)
     expect(free.steps[2].body).toContain(`${freeStageCount()} of the ${CURRICULUM.length} stages`)
 
-    const pro = buildWelcomeCopy(true)
+    const pro = copyFor(true)
     expect(pro.subhead).toContain(`All ${CURRICULUM.length} stages`)
   })
 
@@ -34,14 +38,14 @@ describe('welcome copy', () => {
   })
 
   it('mentions the paywall to a free account and never to a paying one', () => {
-    expect(buildWelcomeCopy(false).footnote).toMatch(/Pro unlocks/)
-    expect(buildWelcomeCopy(true).footnote).toBeNull()
+    expect(copyFor(false).footnote).toMatch(/Pro unlocks/)
+    expect(copyFor(true).footnote).toBeNull()
   })
 
   it('keeps every step to a single short line, so the screen fits a laptop', () => {
     // Three paragraphs of explanation pushed the only button off a 600px window.
     for (const isPro of [false, true]) {
-      for (const step of buildWelcomeCopy(isPro).steps) {
+      for (const step of copyFor(isPro).steps) {
         expect(step.body.length, step.title).toBeLessThanOrEqual(80)
       }
     }
@@ -49,8 +53,8 @@ describe('welcome copy', () => {
 
   it('offers exactly one action, whichever tier', () => {
     for (const isPro of [false, true]) {
-      expect(buildWelcomeCopy(isPro).cta.length).toBeGreaterThan(0)
-      expect(buildWelcomeCopy(isPro).steps).toHaveLength(3)
+      expect(copyFor(isPro).cta.length).toBeGreaterThan(0)
+      expect(copyFor(isPro).steps).toHaveLength(3)
     }
   })
 })
@@ -58,7 +62,7 @@ describe('welcome copy', () => {
 describe('WelcomeScreen', () => {
   it('greets a free account', () => {
     render(<WelcomeScreen isPro={false} onStart={vi.fn()} />)
-    const copy = buildWelcomeCopy(false)
+    const copy = copyFor(false)
 
     expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
     expect(screen.getByText(copy.headline)).toBeInTheDocument()
@@ -68,14 +72,14 @@ describe('WelcomeScreen', () => {
 
   it('greets a Pro account differently', () => {
     render(<WelcomeScreen isPro onStart={vi.fn()} />)
-    expect(screen.getByText(buildWelcomeCopy(true).headline)).toBeInTheDocument()
+    expect(screen.getByText(copyFor(true).headline)).toBeInTheDocument()
     // Nothing left to sell.
     expect(screen.queryByTestId('welcome-footnote')).toBeNull()
   })
 
   it('lists all three steps in order', () => {
     render(<WelcomeScreen isPro={false} onStart={vi.fn()} />)
-    for (const step of buildWelcomeCopy(false).steps) {
+    for (const step of copyFor(false).steps) {
       expect(screen.getByText(step.title)).toBeInTheDocument()
     }
   })

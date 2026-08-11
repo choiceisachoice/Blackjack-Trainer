@@ -589,5 +589,77 @@
     "personalRecords": "Kişisel rekorlar",
     "nSessions": "{{n}} oturum",
     "nHands": "{{n}} el"
+  },
+  "welcome": {
+    "stepOne": {
+      "title": "Tek bir soruyu yanıtlayın",
+      "body": "Nereden başladığınızı. Sorduğumuz tek şey bu."
+    },
+    "stepPlan": {
+      "title": "Yanıta göre kurulmuş bir plan alın",
+      "body": "Sıralı tek bir yol. Gerçekte bulunduğunuz yerden başlarsınız."
+    },
+    "stepTrain": {
+      "title": "Çalışın, puanı uygulama tutsun",
+      "bodyPro": "Her alıştırma bulunduğunuz aşamaya sayılır — başka hiçbir şey değil.",
+      "bodyFree": "Her alıştırma bulunduğunuz aşamaya sayılır. {{stages}} aşamanın {{free}} tanesi ücretsizdir."
+    },
+    "pro": {
+      "eyebrow": "Pro’ya hoş geldiniz",
+      "headline": "Her şey açık. Nereden başlayacağınızı bulalım.",
+      "subhead": "{{stages}} aşamanın tamamı ve her antrenman modu açık. Geriye yalnızca nereden başlayacağınız kalıyor — bunu tahmin etmek zorunda olmamalısınız."
+    },
+    "free": {
+      "eyebrow": "Hoş geldiniz",
+      "headline": "Kart sayma — öğrenilmesi gereken sırayla.",
+      "subhead": "Hiç oynamamış olmaktan gerçek masada sayım tutmaya uzanan tek bir yol — {{stages}} aşama ve en hızlısı doğru olanından başlamaktır."
+    },
+    "cta": "Başlangıç noktamı bul",
+    "footnote": "Pro gerisini açar. Şimdi sizden bir şey istenmiyor."
+  },
+  "tour": {
+    "back": "Geri",
+    "next": "Sonraki",
+    "done": "Bitti",
+    "nextStep": "Sonraki adım",
+    "endTour": "Turu bitir",
+    "plan": {
+      "title": "Bu sizin planınız ve sırada bu var",
+      "body": "Bulunduğunuz yerden gerçek masada sayım tutmaya uzanan sıralı bir yol ve şu an bulunduğunuz aşama. Alıştırmasını belirtilen eşiğe kadar tamamlayın, sonraki açılır — burada hiçbir şey okunarak açılmaz."
+    },
+    "challenge": {
+      "title": "Bugünün görevi",
+      "body": "Bulunduğunuz aşamaya göre seçilmiş küçük bir günlük hedef. Zorunluluk değil, teşviktir — atlarsanız yalnızca seriyi kaybedersiniz."
+    },
+    "modes": {
+      "title": "Antrenman modları",
+      "body": "Her alıştırma tek bir beceriyi çalıştırır: burada sayma hızı, bilgi kartlarında doğru oyun, bet spread’de bahis büyüklüğü. Planınız sizi doğru olana yönlendirir ama hepsi her zaman açıktır."
+    },
+    "casino": {
+      "title": "Gerçeğin kendisi",
+      "body": "Aynı anda sayım tuttuğunuz, elleri oynadığınız ve bahisleri ayarladığınız tam dolu bir masa. Bütün alıştırmalar bunun içindir."
+    },
+    "learn": {
+      "title": "Öğren — teori",
+      "body": "Planın her aşamasının burada bir bölümü var, sıfırdan başlayan biri için yazılmış. Bir alıştırma anlamsız gelmeye başlarsa yanıt burada."
+    },
+    "analytics": {
+      "title": "Analizler",
+      "body": "Zaman içindeki isabetiniz, en çok hangi elleri yanlış oynadığınız ve gerçekte ne kadar çalıştığınız. Birkaç oturumdan sonra bakmaya değer — öncesinde azdır ve bunu açıkça söyler."
+    },
+    "awards": {
+      "title": "Ödüller",
+      "body": "Antrenmanla açtığınız kilometre taşları. Harcanan süreyi değil gerçek ilerlemeyi ölçerler; bu yüzden uygulamanın sizden ne beklediğinin de kaba bir haritasıdır."
+    },
+    "chart": {
+      "title": "Strateji tablosu",
+      "body": "Tüm temel strateji tek yerde — ezberlemek yerine bakmak için. Hamleler yeniyken bir alıştırmanın yanında açık tutun."
+    }
+  },
+  "startHere": {
+    "eyebrow": "Nereden başlamalı",
+    "showAround": "Önce etrafı gezdir",
+    "dismiss": "Kapat",
+    "dismissAria": "Bu öneriyi kapat"
   }
 }

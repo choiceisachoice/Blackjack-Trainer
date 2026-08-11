@@ -589,5 +589,77 @@
     "personalRecords": "Record personali",
     "nSessions": "{{n}} sessioni",
     "nHands": "{{n}} mani"
+  },
+  "welcome": {
+    "stepOne": {
+      "title": "Rispondi a una domanda",
+      "body": "Da dove parti. È l’unica cosa che ti chiediamo."
+    },
+    "stepPlan": {
+      "title": "Ricevi un piano costruito su quella risposta",
+      "body": "Un percorso ordinato. Parti da dove sei davvero."
+    },
+    "stepTrain": {
+      "title": "Allenati, al punteggio pensa l’app",
+      "bodyPro": "Ogni esercizio conta per la tappa in cui sei — nient’altro.",
+      "bodyFree": "Ogni esercizio conta per la tappa in cui sei. {{free}} delle {{stages}} tappe sono gratuite."
+    },
+    "pro": {
+      "eyebrow": "Benvenuto in Pro",
+      "headline": "È tutto aperto. Troviamo il tuo punto di partenza.",
+      "subhead": "Tutte le {{stages}} tappe e ogni modalità sono sbloccate. Resta solo da dove cominciare — e non dovresti doverlo indovinare."
+    },
+    "free": {
+      "eyebrow": "Benvenuto",
+      "headline": "Il conteggio delle carte, nell’ordine in cui va imparato.",
+      "subhead": "Un percorso da chi non ha mai giocato al conteggio a un tavolo vero — {{stages}} tappe, e il modo più rapido è iniziare da quella giusta."
+    },
+    "cta": "Trova il mio punto di partenza",
+    "footnote": "Pro sblocca il resto. Ora non ti viene chiesto nulla."
+  },
+  "tour": {
+    "back": "Indietro",
+    "next": "Avanti",
+    "done": "Fatto",
+    "nextStep": "Passo successivo",
+    "endTour": "Termina il tour",
+    "plan": {
+      "title": "Questo è il tuo piano, e questo viene dopo",
+      "body": "Un percorso ordinato da dove sei fino al conteggio a un tavolo vero, e la tappa in cui ti trovi ora. Completa il suo esercizio fino alla soglia indicata e si apre la successiva — qui niente si sblocca leggendo."
+    },
+    "challenge": {
+      "title": "La sfida di oggi",
+      "body": "Un piccolo obiettivo quotidiano scelto per la tua tappa. È uno stimolo, non un obbligo — saltarlo costa solo la serie."
+    },
+    "modes": {
+      "title": "Le modalità di allenamento",
+      "body": "Ogni esercizio allena un’abilità: qui la velocità di conteggio, nelle flashcard la giocata corretta, nel bet spread la misura della puntata. Il piano ti indirizza, ma sono tutti sempre aperti."
+    },
+    "casino": {
+      "title": "La cosa vera",
+      "body": "Un tavolo al completo in cui tieni il conteggio, giochi le mani e misuri le puntate insieme. È a questo che servono tutti gli esercizi."
+    },
+    "learn": {
+      "title": "Impara — la teoria",
+      "body": "Ogni tappa del piano ha qui un capitolo, scritto per chi parte da zero. Se un esercizio smette di avere senso, la risposta è qui."
+    },
+    "analytics": {
+      "title": "Analisi",
+      "body": "La tua precisione nel tempo, le mani che sbagli più spesso e quanto hai davvero praticato. Vale la pena dopo qualche sessione — prima è scarna, e lo dichiara."
+    },
+    "awards": {
+      "title": "Riconoscimenti",
+      "body": "Traguardi che sblocchi allenandoti. Misurano i progressi reali, non il tempo speso: sono anche una mappa di ciò che l’app si aspetta tu sappia fare."
+    },
+    "chart": {
+      "title": "La tabella di strategia",
+      "body": "Tutta la strategia di base in un posto, da consultare invece che memorizzare. Tienila aperta accanto a un esercizio finché le mosse sono nuove."
+    }
+  },
+  "startHere": {
+    "eyebrow": "Da dove iniziare",
+    "showAround": "Prima fammi fare un giro",
+    "dismiss": "Nascondi",
+    "dismissAria": "Nascondi questo suggerimento"
   }
 }

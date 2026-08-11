@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ArrowRight, Compass, X, BookOpen, Zap } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
 import { getPlacement } from '../../services/curriculum'
@@ -27,6 +28,7 @@ import {
  * answered it is not a suggestion.
  */
 export function StartHere({ onTour }: { onTour: () => void }) {
+  const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
   const [placement] = useState(() => getPlacement())
   const [done, setDone] = useState(() => isRecommendationDone())
@@ -53,8 +55,8 @@ export function StartHere({ onTour }: { onTour: () => void }) {
       <button
         onClick={() => put()}
         data-testid="start-here-dismiss"
-        aria-label="Dismiss this suggestion"
-        title="Dismiss"
+        aria-label={t('startHere.dismissAria')}
+        title={t('startHere.dismiss')}
         className="absolute top-4 right-4 grid place-items-center w-8 h-8 rounded-lg
           text-content/35 hover:text-content hover:bg-contrast/8 cursor-pointer transition-colors"
       >
@@ -67,7 +69,7 @@ export function StartHere({ onTour }: { onTour: () => void }) {
         </span>
         <div className="min-w-0">
           <div className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-gold/80">
-            Where to begin
+            {t('startHere.eyebrow')}
           </div>
           <h2
             className="mt-1.5 text-lg md:text-xl font-bold tracking-tight leading-snug"
@@ -106,7 +108,7 @@ export function StartHere({ onTour }: { onTour: () => void }) {
                 border border-contrast/15 bg-contrast/[.03] text-content/80
                 hover:border-gold/40 hover:text-content cursor-pointer transition-colors"
             >
-              <Compass size={16} /> Show me around first
+              <Compass size={16} /> {t('startHere.showAround')}
             </button>
           </div>
         </div>

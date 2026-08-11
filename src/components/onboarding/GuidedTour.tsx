@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useReducedMotion } from 'framer-motion'
 import { ArrowRight, ArrowLeft, X } from 'lucide-react'
 import { TOUR_STOPS, visibleStops, type TourStop } from './tour-stops'
@@ -44,6 +45,7 @@ const anchorEl = (anchor: string): HTMLElement | null =>
  * condition that may never arrive is how a page locks up.
  */
 export function GuidedTour({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
   const reduced = useReducedMotion()
   const [stops] = useState<TourStop[]>(() =>
     visibleStops(TOUR_STOPS, a => anchorEl(a) !== null),
@@ -212,7 +214,7 @@ export function GuidedTour({ onClose }: { onClose: () => void }) {
       <button
         className="absolute inset-0 w-full h-full cursor-pointer"
         onClick={next}
-        aria-label="Next step"
+        aria-label={t('tour.nextStep')}
         tabIndex={-1}
       />
 
@@ -259,7 +261,7 @@ export function GuidedTour({ onClose }: { onClose: () => void }) {
           <button
             onClick={finish}
             data-testid="tour-skip"
-            aria-label="End the tour"
+            aria-label={t('tour.endTour')}
             className="grid place-items-center w-7 h-7 -mt-1 -mr-1 rounded-lg text-content/40
               hover:text-content hover:bg-contrast/8 cursor-pointer transition-colors"
           >
@@ -268,9 +270,9 @@ export function GuidedTour({ onClose }: { onClose: () => void }) {
         </div>
 
         <h3 className="mt-2 text-[1.05rem] font-bold tracking-tight" data-testid="tour-title">
-          {stop.title}
+          {t(stop.titleKey)}
         </h3>
-        <p className="mt-1.5 text-sm text-content/65 leading-relaxed">{stop.body}</p>
+        <p className="mt-1.5 text-sm text-content/65 leading-relaxed">{t(stop.bodyKey)}</p>
 
         <div className="mt-4 flex items-center gap-2">
           {index > 0 && (
@@ -280,7 +282,7 @@ export function GuidedTour({ onClose }: { onClose: () => void }) {
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold
                 text-content/60 hover:text-content hover:bg-contrast/8 cursor-pointer transition-colors"
             >
-              <ArrowLeft size={14} /> Back
+              <ArrowLeft size={14} /> {t('tour.back')}
             </button>
           )}
           <button
@@ -289,7 +291,7 @@ export function GuidedTour({ onClose }: { onClose: () => void }) {
             className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold
               bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer"
           >
-            {last ? 'Done' : 'Next'} {!last && <ArrowRight size={14} />}
+            {last ? t('tour.done') : t('tour.next')} {!last && <ArrowRight size={14} />}
           </button>
         </div>
       </div>

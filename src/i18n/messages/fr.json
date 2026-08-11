@@ -589,5 +589,77 @@
     "personalRecords": "Records personnels",
     "nSessions": "{{n}} sessions",
     "nHands": "{{n}} mains"
+  },
+  "welcome": {
+    "stepOne": {
+      "title": "Répondez à une question",
+      "body": "D’où vous partez. C’est tout ce que nous demandons."
+    },
+    "stepPlan": {
+      "title": "Recevez un plan bâti sur votre réponse",
+      "body": "Un parcours ordonné. Vous démarrez là où vous en êtes vraiment."
+    },
+    "stepTrain": {
+      "title": "Entraînez-vous, l’app compte les points",
+      "bodyPro": "Chaque exercice compte pour l’étape en cours — rien d’autre.",
+      "bodyFree": "Chaque exercice compte pour l’étape en cours. {{free}} des {{stages}} étapes sont gratuites."
+    },
+    "pro": {
+      "eyebrow": "Bienvenue dans Pro",
+      "headline": "Tout est ouvert. Trouvons votre point de départ.",
+      "subhead": "Les {{stages}} étapes et tous les modes sont débloqués. Reste seulement le point de départ — et ce n’est pas à vous de le deviner."
+    },
+    "free": {
+      "eyebrow": "Bienvenue",
+      "headline": "Le comptage des cartes, dans l’ordre où il faut l’apprendre.",
+      "subhead": "Un parcours, du tout début au comptage à une vraie table — {{stages}} étapes, et le plus rapide est de commencer à la bonne."
+    },
+    "cta": "Trouver mon point de départ",
+    "footnote": "Pro débloque le reste. Rien ne vous est demandé maintenant."
+  },
+  "tour": {
+    "back": "Retour",
+    "next": "Suivant",
+    "done": "Terminé",
+    "nextStep": "Étape suivante",
+    "endTour": "Terminer la visite",
+    "plan": {
+      "title": "Voici votre plan, et voici la suite",
+      "body": "Un parcours ordonné de votre niveau actuel jusqu’au comptage à une vraie table, et l’étape où vous en êtes. Terminez son exercice au seuil indiqué et la suivante s’ouvre — rien ne se débloque en le lisant."
+    },
+    "challenge": {
+      "title": "Le défi du jour",
+      "body": "Un petit objectif quotidien choisi selon votre étape. Une incitation, pas une obligation — le sauter ne coûte que la série."
+    },
+    "modes": {
+      "title": "Les modes d’entraînement",
+      "body": "Chaque exercice travaille une compétence : ici la vitesse de comptage, dans les cartes mémo le jeu correct, dans le bet spread le dimensionnement des mises. Votre plan vous oriente, mais tous restent accessibles."
+    },
+    "casino": {
+      "title": "La vraie table",
+      "body": "Une table complète où vous tenez le compte, jouez les mains et dimensionnez les mises en même temps. C’est ce que tous les exercices préparent."
+    },
+    "learn": {
+      "title": "Apprendre — la théorie",
+      "body": "Chaque étape du plan a ici son chapitre, écrit pour quelqu’un qui part de zéro. Si un exercice cesse d’avoir du sens, la réponse est ici."
+    },
+    "analytics": {
+      "title": "Analyses",
+      "body": "Votre précision dans le temps, les mains que vous ratez le plus, et le temps réellement pratiqué. À regarder après quelques sessions — avant, c’est maigre, et la page le dit."
+    },
+    "awards": {
+      "title": "Récompenses",
+      "body": "Des jalons débloqués par l’entraînement. Ils suivent les progrès réels plutôt que le temps passé — donc aussi une carte de ce que l’app attend de vous."
+    },
+    "chart": {
+      "title": "Le tableau de stratégie",
+      "body": "Toute la stratégie de base au même endroit, à consulter plutôt qu’à mémoriser. Gardez-la ouverte à côté d’un exercice tant que les coups sont nouveaux."
+    }
+  },
+  "startHere": {
+    "eyebrow": "Par où commencer",
+    "showAround": "Faites-moi visiter d’abord",
+    "dismiss": "Masquer",
+    "dismissAria": "Masquer cette suggestion"
   }
 }

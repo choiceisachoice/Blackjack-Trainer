@@ -589,5 +589,77 @@
     "personalRecords": "Recordes pessoais",
     "nSessions": "{{n}} sessões",
     "nHands": "{{n}} mãos"
+  },
+  "welcome": {
+    "stepOne": {
+      "title": "Responda a uma pergunta",
+      "body": "De onde parte. É a única coisa que perguntamos."
+    },
+    "stepPlan": {
+      "title": "Receba um plano feito à volta da resposta",
+      "body": "Um percurso ordenado. Começa onde realmente está."
+    },
+    "stepTrain": {
+      "title": "Treine e deixe a app contar",
+      "bodyPro": "Cada exercício conta para a etapa em que está — nada mais.",
+      "bodyFree": "Cada exercício conta para a etapa em que está. {{free}} das {{stages}} etapas são gratuitas."
+    },
+    "pro": {
+      "eyebrow": "Bem-vindo ao Pro",
+      "headline": "Está tudo aberto. Vamos ver por onde começa.",
+      "subhead": "As {{stages}} etapas e todos os modos estão desbloqueados. Falta só por onde começar — e isso não devia ter de adivinhar."
+    },
+    "free": {
+      "eyebrow": "Bem-vindo",
+      "headline": "A contagem de cartas, pela ordem em que tem de ser aprendida.",
+      "subhead": "Um percurso de quem nunca jogou até contar numa mesa a sério — {{stages}} etapas, e o mais rápido é começar na certa."
+    },
+    "cta": "Encontrar o meu ponto de partida",
+    "footnote": "O Pro desbloqueia o resto. Agora não lhe é pedido nada."
+  },
+  "tour": {
+    "back": "Voltar",
+    "next": "Seguinte",
+    "done": "Concluído",
+    "nextStep": "Passo seguinte",
+    "endTour": "Terminar a visita",
+    "plan": {
+      "title": "Este é o seu plano, e isto vem a seguir",
+      "body": "Um percurso ordenado de onde está até contar numa mesa a sério, e a etapa em que está agora. Termine o exercício até ao limiar indicado e a seguinte abre — aqui nada se desbloqueia por ser lido."
+    },
+    "challenge": {
+      "title": "O desafio de hoje",
+      "body": "Um pequeno objetivo diário escolhido para a sua etapa. É um empurrão, não uma obrigação — saltá-lo só custa a sequência."
+    },
+    "modes": {
+      "title": "Os modos de treino",
+      "body": "Cada exercício treina uma competência: aqui a velocidade de contagem, nos cartões a jogada correta, no bet spread o tamanho da aposta. O seu plano encaminha-o, mas estão todos sempre abertos."
+    },
+    "casino": {
+      "title": "A coisa a sério",
+      "body": "Uma mesa completa onde mantém a contagem, joga as mãos e ajusta as apostas ao mesmo tempo. É para isto que servem todos os exercícios."
+    },
+    "learn": {
+      "title": "Aprender — a teoria",
+      "body": "Cada etapa do plano tem aqui um capítulo, escrito para quem parte do zero. Se um exercício deixar de fazer sentido, a resposta está aqui."
+    },
+    "analytics": {
+      "title": "Análises",
+      "body": "A sua precisão ao longo do tempo, as mãos que mais falha e quanto praticou de facto. Vale a pena depois de algumas sessões — antes disso é pouco, e a página assume-o."
+    },
+    "awards": {
+      "title": "Prémios",
+      "body": "Marcos que desbloqueia a treinar. Medem o progresso real e não o tempo passado, pelo que são também um mapa do que a app espera de si."
+    },
+    "chart": {
+      "title": "A tabela de estratégia",
+      "body": "Toda a estratégia básica num só sítio, para consultar em vez de decorar. Mantenha-a aberta ao lado de um exercício enquanto as jogadas forem novas."
+    }
+  },
+  "startHere": {
+    "eyebrow": "Por onde começar",
+    "showAround": "Mostre-me primeiro",
+    "dismiss": "Dispensar",
+    "dismissAria": "Dispensar esta sugestão"
   }
 }

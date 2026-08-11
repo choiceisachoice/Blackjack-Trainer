@@ -13,8 +13,9 @@
 export interface TourStop {
   /** `data-testid` of the element to point at. */
   anchor: string
-  title: string
-  body: string
+  /** Translation keys — the tour is the first English a new user would meet. */
+  titleKey: string
+  bodyKey: string
 }
 
 export const TOUR_STOPS: TourStop[] = [
@@ -23,44 +24,16 @@ export const TOUR_STOPS: TourStop[] = [
     // spotlighting it dimmed nothing and pointed the arrow past the fold. The
     // "up next" card is the part of the plan this sentence is really about.
     anchor: 'plan-up-next',
-    title: 'This is your plan, and this is next',
-    body: 'One ordered path from where you are to counting a live table, and the stage you are on now. Finish its drill to the bar it names and the next one opens — nothing here unlocks by being read.',
+    titleKey: 'tour.plan.title',
+    bodyKey: 'tour.plan.body',
   },
-  {
-    anchor: 'daily-challenge-card',
-    title: 'Today’s challenge',
-    body: 'A small daily target picked to match the stage you are on. It is a nudge, not a requirement — skipping it costs you nothing but the streak.',
-  },
-  {
-    anchor: 'mode-card-speedDrill',
-    title: 'The training modes',
-    body: 'Each drill trains one skill: counting speed here, correct play in Flashcards, bet sizing in Bet Spread. Your plan sends you to the right one, but they are all open whenever you want them.',
-  },
-  {
-    anchor: 'mode-card-casinoSession',
-    title: 'The real thing',
-    body: 'A full multi-seat table where you hold the count, play the hands and size the bets at once. This is what all the drills are practice for.',
-  },
-  {
-    anchor: 'learn-button',
-    title: 'Learn — the theory',
-    body: 'Every stage of the plan has a chapter here, written for someone starting from nothing. If a drill stops making sense, this is where the answer is.',
-  },
-  {
-    anchor: 'analytics-button',
-    title: 'Analytics',
-    body: 'Your accuracy over time, which hands you get wrong most, and how much you have actually practised. Worth a look after a few sessions — it is thin before that, and honestly so.',
-  },
-  {
-    anchor: 'achievements-button',
-    title: 'Awards',
-    body: 'Milestones you unlock by training. They track real progress rather than time spent, so they are also a rough map of what the app expects you to be able to do.',
-  },
-  {
-    anchor: 'strategy-chart-button',
-    title: 'The strategy chart',
-    body: 'The whole basic-strategy table in one place, to look up rather than memorise. Keep it open beside a drill while the moves are still new.',
-  },
+  { anchor: 'daily-challenge-card', titleKey: 'tour.challenge.title', bodyKey: 'tour.challenge.body' },
+  { anchor: 'mode-card-speedDrill', titleKey: 'tour.modes.title', bodyKey: 'tour.modes.body' },
+  { anchor: 'mode-card-casinoSession', titleKey: 'tour.casino.title', bodyKey: 'tour.casino.body' },
+  { anchor: 'learn-button', titleKey: 'tour.learn.title', bodyKey: 'tour.learn.body' },
+  { anchor: 'analytics-button', titleKey: 'tour.analytics.title', bodyKey: 'tour.analytics.body' },
+  { anchor: 'achievements-button', titleKey: 'tour.awards.title', bodyKey: 'tour.awards.body' },
+  { anchor: 'strategy-chart-button', titleKey: 'tour.chart.title', bodyKey: 'tour.chart.body' },
 ]
 
 /** The stops whose anchors are actually on the page right now. */

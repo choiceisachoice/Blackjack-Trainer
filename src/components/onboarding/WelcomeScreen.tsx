@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Spade, ArrowRight, Crown } from 'lucide-react'
 import { buildWelcomeCopy } from './welcome-content'
 
@@ -26,7 +27,8 @@ const rise = (delay: number, className = '') => ({
  * eight training modes at this moment is a shrug, not a welcome.
  */
 export function WelcomeScreen({ isPro, onStart }: { isPro: boolean; onStart: () => void }) {
-  const copy = buildWelcomeCopy(isPro)
+  const { t } = useTranslation()
+  const copy = buildWelcomeCopy(isPro, t)
 
   return (
     <div

@@ -589,5 +589,77 @@
     "personalRecords": "Personal Records",
     "nSessions": "{{n}} sessions",
     "nHands": "{{n}} hands"
+  },
+  "welcome": {
+    "stepOne": {
+      "title": "Answer one question",
+      "body": "Where you are starting from. That is the only thing we ask."
+    },
+    "stepPlan": {
+      "title": "Get a plan built around the answer",
+      "body": "One ordered path. You start where you actually are."
+    },
+    "stepTrain": {
+      "title": "Train, and let it keep score",
+      "bodyPro": "Every drill counts toward the stage you are on — nothing else does.",
+      "bodyFree": "Every drill counts toward the stage you are on. {{free}} of the {{stages}} stages are free."
+    },
+    "pro": {
+      "eyebrow": "Welcome to Pro",
+      "headline": "Everything is open. Let’s find where you start.",
+      "subhead": "All {{stages}} stages and every training mode are unlocked. The only thing left is where to begin — and that is not a guess you should have to make."
+    },
+    "free": {
+      "eyebrow": "Welcome",
+      "headline": "Card counting, in the order it has to be learned.",
+      "subhead": "One path from never having played to holding a count at a live table — {{stages}} stages, and the fastest way through is to start at the right one."
+    },
+    "cta": "Find my starting point",
+    "footnote": "Pro unlocks the rest. Nothing is asked of you now."
+  },
+  "tour": {
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "nextStep": "Next step",
+    "endTour": "End the tour",
+    "plan": {
+      "title": "This is your plan, and this is next",
+      "body": "One ordered path from where you are to counting a live table, and the stage you are on now. Finish its drill to the bar it names and the next one opens — nothing here unlocks by being read."
+    },
+    "challenge": {
+      "title": "Today’s challenge",
+      "body": "A small daily target picked to match the stage you are on. It is a nudge, not a requirement — skipping it costs you nothing but the streak."
+    },
+    "modes": {
+      "title": "The training modes",
+      "body": "Each drill trains one skill: counting speed here, correct play in Flashcards, bet sizing in Bet Spread. Your plan sends you to the right one, but they are all open whenever you want them."
+    },
+    "casino": {
+      "title": "The real thing",
+      "body": "A full multi-seat table where you hold the count, play the hands and size the bets at once. This is what all the drills are practice for."
+    },
+    "learn": {
+      "title": "Learn — the theory",
+      "body": "Every stage of the plan has a chapter here, written for someone starting from nothing. If a drill stops making sense, this is where the answer is."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "body": "Your accuracy over time, which hands you get wrong most, and how much you have actually practised. Worth a look after a few sessions — it is thin before that, and honestly so."
+    },
+    "awards": {
+      "title": "Awards",
+      "body": "Milestones you unlock by training. They track real progress rather than time spent, so they are also a rough map of what the app expects you to be able to do."
+    },
+    "chart": {
+      "title": "The strategy chart",
+      "body": "The whole basic-strategy table in one place, to look up rather than memorise. Keep it open beside a drill while the moves are still new."
+    }
+  },
+  "startHere": {
+    "eyebrow": "Where to begin",
+    "showAround": "Show me around first",
+    "dismiss": "Dismiss",
+    "dismissAria": "Dismiss this suggestion"
   }
 }

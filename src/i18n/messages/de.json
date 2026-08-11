@@ -589,5 +589,77 @@
     "personalRecords": "Persönliche Bestwerte",
     "nSessions": "{{n}} Sessions",
     "nHands": "{{n}} Hände"
+  },
+  "welcome": {
+    "stepOne": {
+      "title": "Eine Frage beantworten",
+      "body": "Wo du startest. Mehr wollen wir nicht wissen."
+    },
+    "stepPlan": {
+      "title": "Einen Plan rund um die Antwort bekommen",
+      "body": "Ein geordneter Weg. Du startest da, wo du wirklich stehst."
+    },
+    "stepTrain": {
+      "title": "Trainieren — den Rest zählt die App",
+      "bodyPro": "Jede Übung zählt für die Stufe, auf der du stehst — sonst nichts.",
+      "bodyFree": "Jede Übung zählt für die Stufe, auf der du stehst. {{free}} der {{stages}} Stufen sind kostenlos."
+    },
+    "pro": {
+      "eyebrow": "Willkommen bei Pro",
+      "headline": "Alles ist offen. Finden wir heraus, wo du anfängst.",
+      "subhead": "Alle {{stages}} Stufen und jeder Trainingsmodus sind frei. Offen ist nur noch der Anfang — und den solltest du nicht raten müssen."
+    },
+    "free": {
+      "eyebrow": "Willkommen",
+      "headline": "Kartenzählen — in der Reihenfolge, in der man es lernen muss.",
+      "subhead": "Ein Weg vom ersten Mal bis zum sicheren Count am echten Tisch — {{stages}} Stufen, und am schnellsten kommt durch, wer an der richtigen anfängt."
+    },
+    "cta": "Meinen Startpunkt finden",
+    "footnote": "Pro schaltet den Rest frei. Jetzt wird nichts von dir verlangt."
+  },
+  "tour": {
+    "back": "Zurück",
+    "next": "Weiter",
+    "done": "Fertig",
+    "nextStep": "Nächster Schritt",
+    "endTour": "Rundgang beenden",
+    "plan": {
+      "title": "Das ist dein Plan — und das kommt als Nächstes",
+      "body": "Ein geordneter Weg von deinem Stand bis zum Count am echten Tisch — und die Stufe, auf der du gerade bist. Schaffe ihre Übung bis zur genannten Marke, dann öffnet sich die nächste. Vom Lesen allein schaltet hier nichts frei."
+    },
+    "challenge": {
+      "title": "Die heutige Aufgabe",
+      "body": "Ein kleines Tagesziel, passend zu deiner Stufe. Ein Anstoss, keine Pflicht — wer sie auslässt, verliert nur die Serie."
+    },
+    "modes": {
+      "title": "Die Trainingsmodi",
+      "body": "Jede Übung trainiert eine Fähigkeit: hier das Tempo beim Zählen, in den Lernkarten das richtige Spiel, im Bet Spread die Einsatzhöhe. Dein Plan schickt dich zur passenden — offen sind sie alle, jederzeit."
+    },
+    "casino": {
+      "title": "Der Ernstfall",
+      "body": "Ein voll besetzter Tisch, an dem du gleichzeitig zählst, spielst und Einsätze bemisst. Dafür sind alle Übungen die Vorbereitung."
+    },
+    "learn": {
+      "title": "Lernen — die Theorie",
+      "body": "Zu jeder Stufe des Plans gibt es hier ein Kapitel, geschrieben für jemanden, der bei null anfängt. Wenn eine Übung keinen Sinn mehr ergibt, steht die Antwort hier."
+    },
+    "analytics": {
+      "title": "Auswertung",
+      "body": "Deine Trefferquote über die Zeit, die Hände, die dir am häufigsten danebengehen, und wie viel du wirklich geübt hast. Nach ein paar Sessions lohnt der Blick — vorher ist wenig da, und das sagt die Seite auch."
+    },
+    "awards": {
+      "title": "Auszeichnungen",
+      "body": "Meilensteine, die du durch Training freischaltest. Sie messen echten Fortschritt statt verbrachter Zeit — und sind damit auch eine grobe Landkarte dessen, was die App dir zutraut."
+    },
+    "chart": {
+      "title": "Die Strategietabelle",
+      "body": "Die ganze Basisstrategie an einem Ort — zum Nachschlagen, nicht zum Auswendiglernen. Lass sie neben einer Übung offen, solange die Züge noch neu sind."
+    }
+  },
+  "startHere": {
+    "eyebrow": "Wo anfangen",
+    "showAround": "Zeig mir erst alles",
+    "dismiss": "Ausblenden",
+    "dismissAria": "Diesen Vorschlag ausblenden"
   }
 }
