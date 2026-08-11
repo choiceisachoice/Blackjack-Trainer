@@ -943,5 +943,446 @@
       "p2": "Yüksek kartlar sizin işinize yarar: 3:2 ödeyen daha çok blackjack, daha iyi çiftlemeler ve zor bir elde kart çekmek zorunda kalan bir krupiye. Düşük kartlar krupiyenin işine yarar.",
       "p3": "Sayım, ayakkabının hangi yöne kaydığını izlemekten ve lehinize olduğunda daha çok yatırmaktan ibarettir. Sıradaki bölüm bu."
     }
+  },
+  "ach": {
+    "first_hand": {
+      "name": "İlk el",
+      "desc": "İlk antrenman turunuzu tamamlayın"
+    },
+    "card_sharp": {
+      "name": "Kart ustası",
+      "desc": "5 farklı antrenman modu oynayın"
+    },
+    "data_driven": {
+      "name": "Veriyle hareket",
+      "desc": "İlk bankroll simülasyonunuzu çalıştırın"
+    },
+    "on_fire": {
+      "name": "Alev almış",
+      "desc": "Üst üste 3 gün çalışın"
+    },
+    "week_warrior": {
+      "name": "Hafta savaşçısı",
+      "desc": "Üst üste 7 gün çalışın"
+    },
+    "unstoppable": {
+      "name": "Durdurulamaz",
+      "desc": "Üst üste 14 gün çalışın"
+    },
+    "legendary": {
+      "name": "Efsanevi",
+      "desc": "Üst üste 30 gün çalışın"
+    },
+    "dedicated_student": {
+      "name": "Çalışkan öğrenci",
+      "desc": "Toplam 1 saat çalışın"
+    },
+    "serious_grinder": {
+      "name": "Sıkı çalışan",
+      "desc": "Toplam 10 saat çalışın"
+    },
+    "professional_trainee": {
+      "name": "Profesyonel adayı",
+      "desc": "Toplam 50 saat çalışın"
+    },
+    "century": {
+      "name": "Yüzlük",
+      "desc": "100 antrenman turu oynayın"
+    },
+    "thousand_hands": {
+      "name": "Bin el",
+      "desc": "1.000 bilgi kartı sorusu yanıtlayın"
+    },
+    "marathon_mind": {
+      "name": "Maraton zihni",
+      "desc": "Tek oturumda 60+ dakika çalışın"
+    },
+    "daily_double": {
+      "name": "Günün tamamı",
+      "desc": "Beş antrenman modunu da tek günde oynayın"
+    },
+    "night_owl": {
+      "name": "Gece kuşu",
+      "desc": "Gece yarısından sonra bir tur tamamlayın"
+    },
+    "count_rookie": {
+      "name": "Acemi sayıcı",
+      "desc": "5 Speed Drill turu tamamlayın"
+    },
+    "count_expert": {
+      "name": "Uzman sayıcı",
+      "desc": "Son 20 Speed Drill turunda ortalama %90+ tutturun"
+    },
+    "six_systems": {
+      "name": "Sayım ustası",
+      "desc": "Son 30 Speed Drill turunda ortalama %95+ tutturun"
+    },
+    "quick_counter": {
+      "name": "Hızlı sayıcı",
+      "desc": "Normal hızda %80+ ile bir Speed Drill tamamlayın"
+    },
+    "lightning_fast": {
+      "name": "Şimşek hızında",
+      "desc": "Hızlı tempoda %80+ ile bir Speed Drill tamamlayın"
+    },
+    "blur": {
+      "name": "Göz açıp kapayana dek",
+      "desc": "Speed Drill’de hızlı tempoda %95+ isabet"
+    },
+    "sharp_eye": {
+      "name": "Keskin göz",
+      "desc": "Bir turda %80 isabete ulaşın"
+    },
+    "precision": {
+      "name": "Hassasiyet",
+      "desc": "Bir turda %90 isabete ulaşın"
+    },
+    "sniper": {
+      "name": "Keskin nişancı",
+      "desc": "Bir turda %95 isabete ulaşın"
+    },
+    "perfection": {
+      "name": "Kusursuzluk",
+      "desc": "Bir turda %100 yapın (en az 10 soru)"
+    },
+    "well_rounded": {
+      "name": "Her yönden iyi",
+      "desc": "Beş antrenman modunun hepsinde %80+ tutturun"
+    },
+    "renaissance_counter": {
+      "name": "Çok yönlü sayıcı",
+      "desc": "Beş antrenman modunun hepsinde %90+ tutturun"
+    },
+    "in_the_zone": {
+      "name": "Konsantre",
+      "desc": "Bir turda üst üste 20 soruyu doğru yanıtlayın"
+    },
+    "unbreakable": {
+      "name": "Kırılmaz",
+      "desc": "Bir turda üst üste 50 soruyu doğru yanıtlayın"
+    },
+    "tc_sharpshooter": {
+      "name": "TC nişancısı",
+      "desc": "Bir casino oturumunda %95+ sayım isabeti"
+    },
+    "system_scholar": {
+      "name": "Tahmin uzmanı",
+      "desc": "Deste tahmininde %95+ isabet"
+    },
+    "counting_grinder": {
+      "name": "Bilgi kartı işçisi",
+      "desc": "5.000 bilgi kartı sorusu yanıtlayın"
+    },
+    "deviation_virtuoso": {
+      "name": "Sapma virtüözü",
+      "desc": "Sapma bilgi kartlarında %95+ isabet"
+    },
+    "master_collector": {
+      "name": "Usta koleksiyoncu",
+      "desc": "Başka 50 ödülü açın"
+    },
+    "card_counter": {
+      "name": "Ödül avcısı",
+      "desc": "Başka 20 ödülü açın"
+    },
+    "quick_draw": {
+      "name": "Hızlı çekiş",
+      "desc": "Hızlı turda deste tahmininde %90+ isabet"
+    },
+    "platinum_collector": {
+      "name": "Platin koleksiyoncu",
+      "desc": "Başka 75 ödülü açın"
+    },
+    "deviation_student": {
+      "name": "Sapma öğrencisi",
+      "desc": "5 bilgi kartı turu tamamlayın"
+    },
+    "illustrious_18": {
+      "name": "Illustrious 18",
+      "desc": "Bilgi kartlarında %90+ isabet"
+    },
+    "table_general": {
+      "name": "Bilgi kartı ustası",
+      "desc": "Bilgi kartlarında %95+ isabet"
+    },
+    "fab_four_master": {
+      "name": "Fab Four",
+      "desc": "Fab 4’ün dört teslim sapmasının hepsinde ustalaşın"
+    },
+    "deviation_sage": {
+      "name": "Sapma bilgesi",
+      "desc": "Illustrious 18’in 18 sapmasının hepsinde ustalaşın"
+    },
+    "first_daily": {
+      "name": "İlk günlük görev",
+      "desc": "İlk günlük görevinizi tamamlayın"
+    },
+    "challenge_regular": {
+      "name": "Görev müdavimi",
+      "desc": "10 günlük görev tamamlayın"
+    },
+    "daily_devotion": {
+      "name": "Günlük bağlılık",
+      "desc": "Günlük görevlerde 7 günlük seri tutun"
+    },
+    "first_weekly": {
+      "name": "Haftalık savaşçı",
+      "desc": "İlk haftalık görevinizi tamamlayın"
+    },
+    "weekly_master": {
+      "name": "Haftalık usta",
+      "desc": "10 haftalık görev tamamlayın"
+    },
+    "level_5": {
+      "name": "Yükselen yıldız",
+      "desc": "Seviye 5’e ulaşın"
+    },
+    "level_10": {
+      "name": "Masa profesyoneli",
+      "desc": "Seviye 10’a ulaşın"
+    },
+    "level_15": {
+      "name": "Kart sayıcı",
+      "desc": "Seviye 15’e ulaşın"
+    },
+    "level_20": {
+      "name": "Usta akıl",
+      "desc": "Seviye 20’ye ulaşın"
+    },
+    "level_25": {
+      "name": "Büyükusta",
+      "desc": "Seviye 25’e ulaşın — en üst rütbe"
+    },
+    "five_thousand_hands": {
+      "name": "Beş bin",
+      "desc": "Tüm modlarda toplam 5.000 soru yanıtlayın"
+    },
+    "ten_thousand_hands": {
+      "name": "On bin",
+      "desc": "Tüm modlarda toplam 10.000 soru yanıtlayın"
+    },
+    "twenty_hours": {
+      "name": "Yirmi saat",
+      "desc": "Toplam 20 saat çalışın"
+    },
+    "hundred_hours": {
+      "name": "Yüz saat",
+      "desc": "Toplam 100 saat çalışın"
+    },
+    "five_hundred_sessions": {
+      "name": "Kıdemli oyuncu",
+      "desc": "500 antrenman turu tamamlayın"
+    },
+    "spread_master": {
+      "name": "Spread ustası",
+      "desc": "Son 10 bet spread turunda ortalama %90+ tutturun"
+    },
+    "deck_hawk": {
+      "name": "Deste şahini",
+      "desc": "Son 10 deste tahmini turunda ortalama %90+ tutturun"
+    },
+    "risk_analyst": {
+      "name": "Risk analisti",
+      "desc": "5 farklı bankroll simülasyonu çalıştırın"
+    },
+    "edge_hunter": {
+      "name": "Avantaj avcısı",
+      "desc": "Ağırlıklı avantajı %1’i aşan bir yapılandırma bulun"
+    },
+    "triple_perfect": {
+      "name": "Üçlü kusursuz",
+      "desc": "3 turda %100 yapın (her birinde en az 10 soru)"
+    },
+    "ten_perfects": {
+      "name": "Mükemmeliyetçi",
+      "desc": "10 turda %100 yapın (her birinde en az 10 soru)"
+    },
+    "mega_profit": {
+      "name": "Mega kâr",
+      "desc": "Tek bir casino oturumunda 10.000 $+ kazanın"
+    },
+    "unstoppable_run": {
+      "name": "Durdurulamaz seri",
+      "desc": "Bir casino oturumunda üst üste 10 el kazanın"
+    },
+    "casino_first_session": {
+      "name": "İlk oturum",
+      "desc": "İlk casino oturumunuzu tamamlayın"
+    },
+    "casino_full_table": {
+      "name": "Dolu masa",
+      "desc": "Masada 5 botla bir oturum oynayın"
+    },
+    "casino_marathon": {
+      "name": "Maraton",
+      "desc": "50+ elli bir oturum oynayın"
+    },
+    "casino_passing_grade": {
+      "name": "Geçer not",
+      "desc": "Bir casino oturumunda C veya üzeri not alın"
+    },
+    "casino_honor_student": {
+      "name": "Onur öğrencisi",
+      "desc": "Bir casino oturumunda B veya üzeri not alın"
+    },
+    "casino_valedictorian": {
+      "name": "Sınıf birincisi",
+      "desc": "Bir casino oturumunda A+ (%95+) alın"
+    },
+    "casino_bet_master": {
+      "name": "Bahis ustası",
+      "desc": "Bir casino oturumunda %90+ bahis isabeti"
+    },
+    "casino_perfect_play": {
+      "name": "Kusursuz oyun",
+      "desc": "Bir casino oturumunda %95+ oyun isabeti"
+    },
+    "casino_eagle_eye": {
+      "name": "Kartal gözü",
+      "desc": "Bir casino oturumunda %90+ sayım isabeti"
+    },
+    "casino_triple_threat": {
+      "name": "Üçlü tehdit",
+      "desc": "Tek oturumda bahis, oyun VE sayımda %90+"
+    },
+    "casino_in_the_green": {
+      "name": "Artıda",
+      "desc": "Bir casino oturumunu kârla bitirin"
+    },
+    "casino_high_roller": {
+      "name": "Yüksek oyuncu",
+      "desc": "Tek bir casino oturumunda 1.000 $+ kazanın"
+    },
+    "casino_whale": {
+      "name": "Balina",
+      "desc": "Tek bir casino oturumunda 5.000 $+ kazanın"
+    },
+    "casino_natural": {
+      "name": "Doğal",
+      "desc": "Bir casino oturumunda blackjack yapın"
+    },
+    "casino_hot_streak": {
+      "name": "Sıcak seri",
+      "desc": "Bir casino oturumunda üst üste 5 el kazanın"
+    },
+    "casino_splitting_aces": {
+      "name": "Asları bölmek",
+      "desc": "Bir casino oturumunda asları bölün"
+    },
+    "casino_four_of_a_kind": {
+      "name": "Dört el birden",
+      "desc": "Bir casino oturumunda 4 ele kadar bölün"
+    },
+    "casino_session_grinder": {
+      "name": "Oturum işçisi",
+      "desc": "10 casino oturumu oynayın"
+    },
+    "casino_pro": {
+      "name": "Casino profesyoneli",
+      "desc": "3 casino oturumunda A+ alın"
+    },
+    "deviation_ace": {
+      "name": "Sapma ası",
+      "desc": "Bir casino oturumunda %95+ sapma isabeti"
+    },
+    "tracker_first_session": {
+      "name": "İlk kayıt",
+      "desc": "İlk gerçek casino oturumunuzu kaydedin"
+    },
+    "tracker_first_win": {
+      "name": "İlk kazanç",
+      "desc": "İlk kazançlı casino oturumunuzu kaydedin"
+    },
+    "tracker_5_sessions": {
+      "name": "Başlangıç",
+      "desc": "5 casino oturumu kaydedin"
+    },
+    "tracker_long_session": {
+      "name": "Maraton oyuncusu",
+      "desc": "3+ saatlik bir oturum kaydedin"
+    },
+    "tracker_10_sessions": {
+      "name": "Düzenli oyuncu",
+      "desc": "10 casino oturumu kaydedin"
+    },
+    "tracker_win_streak_3": {
+      "name": "Sıcak el",
+      "desc": "Üst üste 3 casino oturumu kazanın"
+    },
+    "tracker_profit_1000": {
+      "name": "İlk bin",
+      "desc": "Toplam 1.000 $ kâra ulaşın"
+    },
+    "tracker_25_hours": {
+      "name": "Zaman yatırımcısı",
+      "desc": "Casinoda toplam 25 saat kaydedin"
+    },
+    "tracker_comeback": {
+      "name": "Geri dönüş kralı",
+      "desc": "Üst üste 3 kayıptan sonra bir oturum kazanın"
+    },
+    "tracker_50_sessions": {
+      "name": "Tecrübeli oyuncu",
+      "desc": "50 casino oturumu kaydedin"
+    },
+    "tracker_win_streak_7": {
+      "name": "Kızgın",
+      "desc": "Üst üste 7 casino oturumu kazanın"
+    },
+    "tracker_profit_5000": {
+      "name": "Beş bin kulübü",
+      "desc": "Toplam 5.000 $ kâra ulaşın"
+    },
+    "tracker_100_hours": {
+      "name": "Masa yüzbaşısı",
+      "desc": "Casinoda toplam 100 saat kaydedin"
+    },
+    "tracker_big_win": {
+      "name": "Büyük gece",
+      "desc": "Tek bir oturumda 500 $+ kazanın"
+    },
+    "tracker_100_sessions": {
+      "name": "Casino efsanesi",
+      "desc": "100 casino oturumu kaydedin"
+    },
+    "tracker_profit_10000": {
+      "name": "On bin",
+      "desc": "Toplam 10.000 $ kâra ulaşın"
+    },
+    "casino_deans_list": {
+      "name": "Onur listesi",
+      "desc": "Bir casino oturumunda A veya üzeri not alın"
+    }
+  },
+  "awards": {
+    "title": "Ödüller",
+    "yourTrophies": "Kupalarınız",
+    "level": "Seviye",
+    "closest": "Açılmaya en yakın",
+    "collection": "Koleksiyon",
+    "unlocked": "Açıldı",
+    "locked": "Kilitli",
+    "unknownDate": "Bilinmiyor",
+    "percentComplete": "%{{pct}} tamamlandı",
+    "unlockedOn": "{{name}} — {{desc}} ({{date}} tarihinde açıldı)",
+    "inProgress": "{{name}} — {{desc}} (%{{pct}})",
+    "unlockedBang": "Ödül açıldı!",
+    "cat": {
+      "getting_started": "İlk adımlar",
+      "dedication": "Kararlılık",
+      "mastery": "Ustalık",
+      "speed": "Hız",
+      "counting": "Sayım",
+      "deviations": "Sapmalar",
+      "simulation": "Bet spread, tahmin ve simülasyon",
+      "casino_session": "Casino oturumu",
+      "challenges": "Günlük ve haftalık görevler",
+      "level_system": "Seviye sistemi",
+      "milestones": "Kilometre taşları",
+      "extreme": "Uç görevler",
+      "counting_mastery": "Sayım ustalığı",
+      "bankrollTracker": "Bankroll takibi"
+    },
+    "all": "Tümü"
   }
 }

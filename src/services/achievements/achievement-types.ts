@@ -101,12 +101,12 @@ export interface AchievementRequirement {
 
 /** A single achievement definition. */
 export interface Achievement {
-  /** Unique identifier. */
+  /**
+   * Unique identifier — and the stem of this achievement's two message keys,
+   * `ach.<id>.name` and `ach.<id>.desc`. The text itself lives in the message
+   * files, so the 102 entries stay a table of requirements.
+   */
   id: string
-  /** Display name. */
-  name: string
-  /** Human-readable description of how to unlock. */
-  description: string
   /** Emoji icon for display. */
   icon: string
   /** Category for grouping in the gallery. */

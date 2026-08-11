@@ -15,7 +15,7 @@ import {
 } from '../../services/curriculum'
 import type { TrainingSessionResult } from '../../services/stats-types'
 import { achievementEngine } from '../../services/achievements/achievement-engine'
-import { getAchievementById } from '../../services/achievements/achievement-list'
+import { getAchievementById, achievementName } from '../../services/achievements/achievement-list'
 import {
   RANGE_ORDER,
   RANGE_LABEL,
@@ -551,6 +551,7 @@ const TIER_BADGE: Record<string, string> = {
 
 /** Recent achievements strip with a link to the full gallery. */
 function RecentAchievements() {
+  const { t, i18n } = useTranslation()
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
   const setMode = useAppStore(s => s.setMode)
 
@@ -578,9 +579,9 @@ function RecentAchievements() {
             <div key={achievementId} className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 flex items-center gap-3">
               <span className="text-2xl">{achievement!.icon}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-content truncate">{achievement!.name}</p>
+                <p className="text-sm font-medium text-content truncate">{achievementName(achievement!, t)}</p>
                 <p className="text-xs text-content/40">
-                  {new Date(unlockedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  {new Date(unlockedAt).toLocaleDateString(i18n.language, { month: 'short', day: 'numeric' })}
                 </p>
               </div>
               <span className="text-lg">{TIER_BADGE[achievement!.tier]}</span>

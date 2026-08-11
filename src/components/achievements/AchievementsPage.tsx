@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useStatsStore } from '../../store/stats-store'
 import { useLevelStore } from '../../store/level-store'
 import { achievementEngine } from '../../services/achievements/achievement-engine'
-import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
+import { ALL_ACHIEVEMENTS, achievementName, achievementDescription } from '../../services/achievements/achievement-list'
 import { LEVELS } from '../../services/level-system'
 import type { Achievement, AchievementCategory, AchievementTier } from '../../services/achievements/achievement-types'
 
@@ -11,21 +12,22 @@ import type { Achievement, AchievementCategory, AchievementTier } from '../../se
 type FilterMode = 'all' | 'unlocked' | 'locked'
 
 /** Category display config. */
-const CATEGORY_DISPLAY: Record<AchievementCategory, { label: string; icon: string }> = {
-  getting_started:  { label: 'Getting Started', icon: '🎰' },
-  dedication:       { label: 'Dedication',      icon: '🔥' },
-  mastery:          { label: 'Mastery',          icon: '✅' },
-  speed:            { label: 'Speed',            icon: '⚡' },
-  counting:         { label: 'Counting',         icon: '🔢' },
-  deviations:       { label: 'Deviations',       icon: '📋' },
-  simulation:       { label: 'Bet Spread, Estimation & Simulation', icon: '🏦' },
-  casino_session:   { label: 'Casino Session',   icon: '🎰' },
-  challenges:       { label: 'Daily & Weekly Challenges', icon: '📅' },
-  level_system:     { label: 'Level System',     icon: '⭐' },
-  milestones:       { label: 'Milestones',       icon: '🎯' },
-  extreme:          { label: 'Extreme Challenges', icon: '💯' },
-  counting_mastery: { label: 'Counting Mastery', icon: '🔢' },
-  bankrollTracker:  { label: 'Bankroll Tracker', icon: '💰' },
+// Only the icons live here now; every label is `awards.cat.<category>`.
+const CATEGORY_ICON: Record<AchievementCategory, string> = {
+  getting_started:  '🎰',
+  dedication:       '🔥',
+  mastery:          '✅',
+  speed:            '⚡',
+  counting:         '🔢',
+  deviations:       '📋',
+  simulation:       '🏦',
+  casino_session:   '🎰',
+  challenges:       '📅',
+  level_system:     '⭐',
+  milestones:       '🎯',
+  extreme:          '💯',
+  counting_mastery: '🔢',
+  bankrollTracker:  '💰',
 }
 
 const CATEGORY_ORDER: AchievementCategory[] = [
@@ -43,9 +45,14 @@ const TIER_HEX: Record<AchievementTier, string> = {
   diamond: '#9fe9ff',
 }
 
-/** Format a timestamp to a readable date. */
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+/**
+ * Format a timestamp to a readable date, in the reader's language.
+ *
+ * The locale used to be pinned to `en-US`, so a German reader was shown
+ * "Aug 11, 2026" on a page that was otherwise entirely in German.
+ */
+function formatDate(ts: number, locale: string): string {
+  return new Date(ts).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 /** A circular progress ring (SVG). Optionally renders centered content. */
@@ -84,6 +91,7 @@ function ProgressRing({ percent, size, color, track = 'var(--color-contrast)', w
  * All figures come from real stores (level/XP, stats, unlock state).
  */
 export function AchievementsPage() {
+  const { t } = useTranslation()
   const unlockedIds = useAchievementStore(s => s.unlockedIds)
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
   const sessions = useStatsStore(s => s.sessions)
@@ -150,9 +158,9 @@ export function AchievementsPage() {
         <div>
           <div className="text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-content/50 flex items-center gap-2 mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-gold" style={{ boxShadow: '0 0 10px var(--color-gold)' }} />
-            Your trophies
+            {t('awards.yourTrophies')}
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">Awards</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">{t('awards.title')}</h1>
           <p className="text-sm text-content/50" data-testid="unlock-count">{totalUnlocked}/{total} unlocked</p>
         </div>
 
@@ -163,7 +171,7 @@ export function AchievementsPage() {
           <ProgressRing percent={levelProgress.required === 0 ? 100 : levelProgress.percent} size={96} color={level.color}>
             <span className="text-center">
               <span className="block text-3xl font-extrabold leading-none" style={{ color: level.color }}>{level.level}</span>
-              <span className="block text-[0.625rem] tracking-[0.18em] uppercase text-content/50 mt-0.5">Level</span>
+              <span className="block text-[0.625rem] tracking-[0.18em] uppercase text-content/50 mt-0.5">{t('awards.level')}</span>
             </span>
           </ProgressRing>
           <div className="relative flex-1 min-w-[220px]">
@@ -189,7 +197,7 @@ export function AchievementsPage() {
         {/* 2 — Next up */}
         {closest.length > 0 && (
           <section>
-            <SectionTitle>Closest to unlocking</SectionTitle>
+            <SectionTitle>{t('awards.closest')}</SectionTitle>
             <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))' }}>
               {closest.map(({ a, p }) => (
                 <div key={a.id} className="flex items-center gap-3.5 p-4 rounded-2xl border border-contrast/15 bg-surface"
@@ -198,9 +206,9 @@ export function AchievementsPage() {
                     <span className="text-[1.3rem]">{a.icon}</span>
                   </ProgressRing>
                   <div className="min-w-0 flex-1">
-                    <div className="font-semibold text-sm truncate text-content">{a.name}</div>
-                    <div className="text-[11.5px] text-content/40 leading-snug mt-0.5">{a.description}</div>
-                    <div className="text-[0.75rem] font-semibold mt-1" style={{ color: TIER_HEX[a.tier] }}>{p}% complete</div>
+                    <div className="font-semibold text-sm truncate text-content">{achievementName(a, t)}</div>
+                    <div className="text-[11.5px] text-content/40 leading-snug mt-0.5">{achievementDescription(a, t)}</div>
+                    <div className="text-[0.75rem] font-semibold mt-1" style={{ color: TIER_HEX[a.tier] }}>{t('awards.percentComplete', { pct: p })}</div>
                   </div>
                 </div>
               ))}
@@ -217,9 +225,9 @@ export function AchievementsPage() {
         {/* 4 — Collection */}
         <section>
           <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
-            <SectionTitle className="mb-0">Collection</SectionTitle>
+            <SectionTitle className="mb-0">{t('awards.collection')}</SectionTitle>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-content/40">{overallPercent}% complete</span>
+              <span className="text-xs text-content/40">{t('awards.percentComplete', { pct: overallPercent })}</span>
               <div className="flex gap-2">
                 {(['all', 'unlocked', 'locked'] as FilterMode[]).map(f => (
                   <button
@@ -229,7 +237,7 @@ export function AchievementsPage() {
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer
                       ${filter === f ? 'bg-gold/20 text-gold border border-gold/40' : 'bg-contrast/5 text-content/50 border border-contrast/10 hover:text-content/70'}`}
                   >
-                    {f === 'all' ? 'All' : f === 'unlocked' ? 'Unlocked' : 'Locked'}
+                    {t(`awards.${f === 'all' ? 'all' : f === 'unlocked' ? 'unlocked' : 'locked'}`)}
                   </button>
                 ))}
               </div>
@@ -242,8 +250,8 @@ export function AchievementsPage() {
             return (
               <div key={cat} className="mt-6">
                 <div className="flex items-center gap-2.5 mb-3">
-                  <span className="text-lg">{CATEGORY_DISPLAY[cat].icon}</span>
-                  <span className="text-sm font-semibold text-content">{CATEGORY_DISPLAY[cat].label}</span>
+                  <span className="text-lg">{CATEGORY_ICON[cat]}</span>
+                  <span className="text-sm font-semibold text-content">{t(`awards.cat.${cat}`)}</span>
                   <div className="flex-1 max-w-[160px] h-1 rounded-full bg-surface-2 overflow-hidden">
                     <div className="h-full bg-gold" style={{ width: `${catTotal ? (catDone / catTotal) * 100 : 0}%` }} />
                   </div>
@@ -348,10 +356,13 @@ function Medal({ achievement, unlocked, unlockedAt, progress }: {
   unlockedAt?: number
   progress: number
 }) {
+  const { t, i18n } = useTranslation()
   const tc = TIER_HEX[achievement.tier]
+  const name = achievementName(achievement, t)
+  const desc = achievementDescription(achievement, t)
   const title = unlocked
-    ? `${achievement.name} — ${achievement.description} (unlocked ${unlockedAt ? formatDate(unlockedAt) : ''})`
-    : `${achievement.name} — ${achievement.description} (${Math.round(progress)}%)`
+    ? t('awards.unlockedOn', { name, desc, date: unlockedAt ? formatDate(unlockedAt, i18n.language) : '' })
+    : t('awards.inProgress', { name, desc, pct: Math.round(progress) })
 
   return (
     // `relative` is load-bearing, not styling: the sr-only span below is
@@ -371,10 +382,10 @@ function Medal({ achievement, unlocked, unlockedAt, progress }: {
         <span style={unlocked ? undefined : { filter: 'grayscale(1)', opacity: 0.45 }}>{achievement.icon}</span>
       </div>
       <div className={`text-[0.6875rem] mt-1.5 leading-tight ${unlocked ? 'text-content/70' : 'text-content/35'}`}>
-        {achievement.name}
+        {name}
       </div>
       {unlocked
-        ? <span className="sr-only" data-testid={`unlocked-date-${achievement.id}`}>{unlockedAt ? formatDate(unlockedAt) : 'Unknown'}</span>
+        ? <span className="sr-only" data-testid={`unlocked-date-${achievement.id}`}>{unlockedAt ? formatDate(unlockedAt, i18n.language) : t('awards.unknownDate')}</span>
         : <span className="sr-only" data-testid={`progress-${achievement.id}`}>{Math.round(progress)}%</span>}
     </div>
   )

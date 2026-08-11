@@ -1,12 +1,19 @@
 import type { Achievement } from './achievement-types'
+import type { Translate } from '../../i18n/translate'
 
-/** All 102 achievements in the game. */
+/**
+ * All 102 achievements in the game.
+ *
+ * The name and the description are not stored here: each achievement's `id` is
+ * the stem of its two message keys (`ach.<id>.name`, `ach.<id>.desc`), read
+ * through {@link achievementName} and {@link achievementDescription}. Keeping
+ * 204 strings out of this file also keeps it what it is — a table of
+ * requirements — rather than half data and half copy.
+ */
 export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Getting Started (3) ──────────────────────────────
   {
     id: 'first_hand',
-    name: 'First Hand',
-    description: 'Complete your first training session',
     icon: '\uD83C\uDFB0',
     category: 'getting_started',
     requirement: { type: 'sessions', value: 1 },
@@ -14,8 +21,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'card_sharp',
-    name: 'Card Sharp',
-    description: 'Play 5 different training modes',
     icon: '\uD83C\uDCCF',
     category: 'getting_started',
     requirement: { type: 'mode_complete', value: 5 },
@@ -23,8 +28,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'data_driven',
-    name: 'Data Driven',
-    description: 'Run your first bankroll simulation',
     icon: '\uD83D\uDCCA',
     category: 'getting_started',
     requirement: { type: 'bankroll_sim', value: 1 },
@@ -34,8 +37,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Dedication (8) ───────────────────────────────────
   {
     id: 'on_fire',
-    name: 'On Fire',
-    description: 'Train 3 days in a row',
     icon: '\uD83D\uDD25',
     category: 'dedication',
     requirement: { type: 'streak', value: 3 },
@@ -43,8 +44,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'week_warrior',
-    name: 'Week Warrior',
-    description: 'Train 7 days in a row',
     icon: '\uD83D\uDD25',
     category: 'dedication',
     requirement: { type: 'streak', value: 7 },
@@ -52,8 +51,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'unstoppable',
-    name: 'Unstoppable',
-    description: 'Train 14 days in a row',
     icon: '\uD83D\uDD25',
     category: 'dedication',
     requirement: { type: 'streak', value: 14 },
@@ -61,8 +58,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'legendary',
-    name: 'Legendary',
-    description: 'Train 30 days in a row',
     icon: '\uD83D\uDD25',
     category: 'dedication',
     requirement: { type: 'streak', value: 30 },
@@ -70,8 +65,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'dedicated_student',
-    name: 'Dedicated Student',
-    description: 'Train for a total of 1 hour',
     icon: '\u23F1\uFE0F',
     category: 'dedication',
     requirement: { type: 'time', value: 60 },
@@ -79,8 +72,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'serious_grinder',
-    name: 'Serious Grinder',
-    description: 'Train for a total of 10 hours',
     icon: '\u23F1\uFE0F',
     category: 'dedication',
     requirement: { type: 'time', value: 600 },
@@ -88,8 +79,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'professional_trainee',
-    name: 'Professional Trainee',
-    description: 'Train for a total of 50 hours',
     icon: '\u23F1\uFE0F',
     category: 'dedication',
     requirement: { type: 'time', value: 3000 },
@@ -97,8 +86,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'century',
-    name: 'Century',
-    description: 'Play 100 training sessions',
     icon: '\uD83C\uDFAF',
     category: 'dedication',
     requirement: { type: 'sessions', value: 100 },
@@ -106,8 +93,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'thousand_hands',
-    name: 'Thousand Hands',
-    description: 'Answer 1,000 flashcard questions',
     icon: '\uD83C\uDFAF',
     category: 'dedication',
     requirement: { type: 'hands', value: 1000, mode: 'deviationFlashCards' },
@@ -117,8 +102,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Mastery (4) ──────────────────────────────────────
   {
     id: 'sharp_eye',
-    name: 'Sharp Eye',
-    description: 'Reach 80% accuracy in a session',
     icon: '\u2705',
     category: 'mastery',
     requirement: { type: 'accuracy', value: 80 },
@@ -126,8 +109,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'precision',
-    name: 'Precision',
-    description: 'Reach 90% accuracy in a session',
     icon: '\u2705',
     category: 'mastery',
     requirement: { type: 'accuracy', value: 90 },
@@ -135,8 +116,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'sniper',
-    name: 'Sniper',
-    description: 'Reach 95% accuracy in a session',
     icon: '\u2705',
     category: 'mastery',
     requirement: { type: 'accuracy', value: 95 },
@@ -144,8 +123,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'perfection',
-    name: 'Perfection',
-    description: 'Score 100% in a session (min 10 questions)',
     icon: '\u2705',
     category: 'mastery',
     requirement: { type: 'perfect', value: 10 },
@@ -155,8 +132,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Speed (2) ────────────────────────────────────────
   {
     id: 'quick_counter',
-    name: 'Quick Counter',
-    description: 'Complete Speed Drill at Normal speed with 80%+',
     icon: '\u26A1',
     category: 'speed',
     requirement: { type: 'speed', value: 1, mode: 'speedDrill' },
@@ -164,8 +139,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'lightning_fast',
-    name: 'Lightning Fast',
-    description: 'Complete Speed Drill at Fast speed with 80%+',
     icon: '\u26A1',
     category: 'speed',
     requirement: { type: 'speed', value: 2, mode: 'speedDrill' },
@@ -174,8 +147,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Counting (3) ─────────────────────────────────────
   {
     id: 'count_rookie',
-    name: 'Count Rookie',
-    description: 'Complete 5 Speed Drill sessions',
     icon: '\uD83D\uDD22',
     category: 'counting',
     requirement: { type: 'sessions', value: 5, mode: 'speedDrill' },
@@ -183,8 +154,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'count_expert',
-    name: 'Count Expert',
-    description: 'Average 90%+ accuracy across your last 20 Speed Drill sessions',
     icon: '\uD83D\uDD22',
     category: 'counting',
     requirement: { type: 'sustained_accuracy', value: 90, mode: 'speedDrill', window: 20 },
@@ -192,8 +161,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'six_systems',
-    name: 'Count Master',
-    description: 'Average 95%+ accuracy across your last 30 Speed Drill sessions',
     icon: '\uD83D\uDD22',
     category: 'counting',
     requirement: { type: 'sustained_accuracy', value: 95, mode: 'speedDrill', window: 30 },
@@ -203,8 +170,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Deviations (3) ───────────────────────────────────
   {
     id: 'deviation_student',
-    name: 'Deviation Student',
-    description: 'Complete 5 Flashcards sessions',
     icon: '\uD83D\uDCCB',
     category: 'deviations',
     requirement: { type: 'sessions', value: 5, mode: 'deviationFlashCards' },
@@ -212,8 +177,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'illustrious_18',
-    name: 'Illustrious 18',
-    description: '90%+ accuracy in Flashcards',
     icon: '\uD83D\uDCCB',
     category: 'deviations',
     requirement: { type: 'accuracy', value: 90, mode: 'deviationFlashCards' },
@@ -221,8 +184,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'table_general',
-    name: 'Flashcard Master',
-    description: '95%+ accuracy in Flashcards',
     icon: '\uD83D\uDCCB',
     category: 'deviations',
     requirement: { type: 'accuracy', value: 95, mode: 'deviationFlashCards' },
@@ -232,8 +193,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Bet Spread & Estimation (2) ──────────────────────
   {
     id: 'spread_master',
-    name: 'Spread Master',
-    description: 'Average 90%+ accuracy across your last 10 Bet Spread sessions',
     icon: '\uD83D\uDCB0',
     category: 'simulation',
     requirement: { type: 'sustained_accuracy', value: 90, mode: 'betSpread', window: 10 },
@@ -241,8 +200,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'deck_hawk',
-    name: 'Deck Hawk',
-    description: 'Average 90%+ accuracy across your last 10 Deck Estimation sessions',
     icon: '\uD83D\uDC41',
     category: 'simulation',
     requirement: { type: 'sustained_accuracy', value: 90, mode: 'deckEstimation', window: 10 },
@@ -252,8 +209,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Simulation (3) ───────────────────────────────────
   {
     id: 'risk_analyst',
-    name: 'Risk Analyst',
-    description: 'Run 5 different bankroll simulations',
     icon: '\uD83C\uDFE6',
     category: 'simulation',
     requirement: { type: 'bankroll_sim', value: 5 },
@@ -261,8 +216,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'edge_hunter',
-    name: 'Edge Hunter',
-    description: 'Find a configuration with >1% weighted edge',
     icon: '\uD83D\uDC8E',
     category: 'simulation',
     requirement: { type: 'bankroll_sim', value: 100 },
@@ -272,8 +225,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Casino Session – Getting Started (3) ─────────────
   {
     id: 'casino_first_session',
-    name: 'First Session',
-    description: 'Complete your first Casino Session',
     icon: '\uD83C\uDFB0',
     category: 'casino_session',
     requirement: { type: 'sessions', value: 1, mode: 'casinoSession' },
@@ -281,8 +232,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_full_table',
-    name: 'Full Table',
-    description: 'Play a session with 5 bots at the table',
     icon: '\uD83C\uDFB0',
     category: 'casino_session',
     requirement: { type: 'casino_bots', value: 5 },
@@ -290,8 +239,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_marathon',
-    name: 'Marathon',
-    description: 'Play a session with 50+ hands',
     icon: '\uD83C\uDFB0',
     category: 'casino_session',
     requirement: { type: 'casino_hands', value: 50 },
@@ -301,8 +248,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Casino Session – Grades (4) ─────────────────────
   {
     id: 'casino_passing_grade',
-    name: 'Passing Grade',
-    description: 'Achieve grade C or better in a Casino Session',
     icon: '\uD83D\uDCDD',
     category: 'casino_session',
     requirement: { type: 'casino_grade', value: 70 },
@@ -310,8 +255,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_honor_student',
-    name: 'Honor Student',
-    description: 'Achieve grade B or better in a Casino Session',
     icon: '\uD83D\uDCDD',
     category: 'casino_session',
     requirement: { type: 'casino_grade', value: 80 },
@@ -319,8 +262,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_deans_list',
-    name: "Dean's List",
-    description: 'Achieve grade A or better in a Casino Session',
     icon: '\uD83D\uDCDD',
     category: 'casino_session',
     requirement: { type: 'casino_grade', value: 90 },
@@ -328,8 +269,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_valedictorian',
-    name: 'Valedictorian',
-    description: 'Achieve grade A+ (95%+) in a Casino Session',
     icon: '\uD83D\uDCDD',
     category: 'casino_session',
     requirement: { type: 'casino_grade', value: 95 },
@@ -339,8 +278,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Casino Session – Accuracy (4) ───────────────────
   {
     id: 'casino_bet_master',
-    name: 'Bet Master',
-    description: '90%+ Bet Accuracy in a Casino Session',
     icon: '\uD83C\uDFAF',
     category: 'casino_session',
     requirement: { type: 'casino_bet_accuracy', value: 90 },
@@ -348,8 +285,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_perfect_play',
-    name: 'Perfect Play',
-    description: '95%+ Play Accuracy in a Casino Session',
     icon: '\uD83C\uDFAF',
     category: 'casino_session',
     requirement: { type: 'casino_play_accuracy', value: 95 },
@@ -357,8 +292,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_eagle_eye',
-    name: 'Eagle Eye',
-    description: '90%+ Count Accuracy in a Casino Session',
     icon: '\uD83C\uDFAF',
     category: 'casino_session',
     requirement: { type: 'casino_count_accuracy', value: 90 },
@@ -366,8 +299,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_triple_threat',
-    name: 'Triple Threat',
-    description: '90%+ in Bet, Play AND Count in a single session',
     icon: '\uD83C\uDFAF',
     category: 'casino_session',
     requirement: { type: 'casino_triple', value: 90 },
@@ -377,8 +308,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Casino Session – Profit (3) ─────────────────────
   {
     id: 'casino_in_the_green',
-    name: 'In The Green',
-    description: 'End a Casino Session with a profit',
     icon: '\uD83D\uDCB0',
     category: 'casino_session',
     requirement: { type: 'casino_profit', value: 1 },
@@ -386,8 +315,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_high_roller',
-    name: 'High Roller',
-    description: 'Earn $1,000+ in a single Casino Session',
     icon: '\uD83D\uDCB0',
     category: 'casino_session',
     requirement: { type: 'casino_profit', value: 1000 },
@@ -395,8 +322,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_whale',
-    name: 'Whale',
-    description: 'Earn $5,000+ in a single Casino Session',
     icon: '\uD83D\uDCB0',
     category: 'casino_session',
     requirement: { type: 'casino_profit', value: 5000 },
@@ -406,8 +331,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Casino Session – Special Moments (4) ────────────
   {
     id: 'casino_natural',
-    name: 'Natural',
-    description: 'Get a Blackjack in a Casino Session',
     icon: '\uD83C\uDCCF',
     category: 'casino_session',
     requirement: { type: 'casino_blackjack', value: 1 },
@@ -415,8 +338,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_hot_streak',
-    name: 'Hot Streak',
-    description: 'Win 5 hands in a row in a Casino Session',
     icon: '\uD83C\uDCCF',
     category: 'casino_session',
     requirement: { type: 'casino_streak', value: 5 },
@@ -424,8 +345,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_splitting_aces',
-    name: 'Splitting Aces',
-    description: 'Split Aces in a Casino Session',
     icon: '\uD83C\uDCCF',
     category: 'casino_session',
     requirement: { type: 'casino_split_aces', value: 1 },
@@ -433,8 +352,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_four_of_a_kind',
-    name: 'Four of a Kind',
-    description: 'Split up to 4 hands in a Casino Session',
     icon: '\uD83C\uDCCF',
     category: 'casino_session',
     requirement: { type: 'casino_max_split', value: 4 },
@@ -444,8 +361,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Casino Session – Dedication (2) ─────────────────
   {
     id: 'casino_session_grinder',
-    name: 'Session Grinder',
-    description: 'Play 10 Casino Sessions',
     icon: '\uD83D\uDD25',
     category: 'casino_session',
     requirement: { type: 'sessions', value: 10, mode: 'casinoSession' },
@@ -453,8 +368,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'casino_pro',
-    name: 'Casino Pro',
-    description: 'Achieve grade A+ in 3 Casino Sessions',
     icon: '\uD83C\uDFC6',
     category: 'casino_session',
     requirement: { type: 'casino_grade_count', value: 3 },
@@ -464,8 +377,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Daily & Weekly Challenges (5) ───────────────────
   {
     id: 'first_daily',
-    name: 'First Daily',
-    description: 'Complete your first daily challenge',
     icon: '\u2615',
     category: 'challenges',
     requirement: { type: 'daily_completed', value: 1 },
@@ -473,8 +384,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'challenge_regular',
-    name: 'Challenge Regular',
-    description: 'Complete 10 daily challenges',
     icon: '\uD83D\uDCC5',
     category: 'challenges',
     requirement: { type: 'daily_completed', value: 10 },
@@ -482,8 +391,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'daily_devotion',
-    name: 'Daily Devotion',
-    description: 'Maintain a 7-day daily challenge streak',
     icon: '\uD83D\uDD25',
     category: 'challenges',
     requirement: { type: 'daily_streak', value: 7 },
@@ -491,8 +398,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'first_weekly',
-    name: 'Weekly Warrior',
-    description: 'Complete your first weekly challenge',
     icon: '\uD83D\uDCC6',
     category: 'challenges',
     requirement: { type: 'weekly_completed', value: 1 },
@@ -500,8 +405,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'weekly_master',
-    name: 'Weekly Master',
-    description: 'Complete 10 weekly challenges',
     icon: '\uD83C\uDFC5',
     category: 'challenges',
     requirement: { type: 'weekly_completed', value: 10 },
@@ -511,8 +414,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Level System (5) ──────────────────────────────────
   {
     id: 'level_5',
-    name: 'Rising Star',
-    description: 'Reach Level 5',
     icon: '\u2B50',
     category: 'level_system',
     requirement: { type: 'reach_level', value: 5 },
@@ -520,8 +421,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'level_10',
-    name: 'Table Pro',
-    description: 'Reach Level 10',
     icon: '\u2B50',
     category: 'level_system',
     requirement: { type: 'reach_level', value: 10 },
@@ -529,8 +428,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'level_15',
-    name: 'Card Counter',
-    description: 'Reach Level 15',
     icon: '\uD83C\uDF1F',
     category: 'level_system',
     requirement: { type: 'reach_level', value: 15 },
@@ -538,8 +435,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'level_20',
-    name: 'Mastermind',
-    description: 'Reach Level 20',
     icon: '\uD83C\uDF1F',
     category: 'level_system',
     requirement: { type: 'reach_level', value: 20 },
@@ -547,8 +442,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'level_25',
-    name: 'Grandmaster',
-    description: 'Reach Level 25 — the ultimate rank',
     icon: '\uD83D\uDC51',
     category: 'level_system',
     requirement: { type: 'reach_level', value: 25 },
@@ -558,8 +451,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Milestones (5) ────────────────────────────────────
   {
     id: 'five_thousand_hands',
-    name: 'Five Thousand',
-    description: 'Answer 5,000 total questions across all modes',
     icon: '\uD83C\uDFAF',
     category: 'milestones',
     requirement: { type: 'total_hands', value: 5000 },
@@ -567,8 +458,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'ten_thousand_hands',
-    name: 'Ten Thousand',
-    description: 'Answer 10,000 total questions across all modes',
     icon: '\uD83C\uDFAF',
     category: 'milestones',
     requirement: { type: 'total_hands', value: 10000 },
@@ -576,8 +465,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'twenty_hours',
-    name: 'Twenty Hours',
-    description: 'Train for a total of 20 hours',
     icon: '\u23F0',
     category: 'milestones',
     requirement: { type: 'total_hours', value: 20 },
@@ -585,8 +472,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'hundred_hours',
-    name: 'Century of Hours',
-    description: 'Train for a total of 100 hours',
     icon: '\u23F0',
     category: 'milestones',
     requirement: { type: 'total_hours', value: 100 },
@@ -594,8 +479,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'five_hundred_sessions',
-    name: 'Veteran Player',
-    description: 'Complete 500 training sessions',
     icon: '\uD83C\uDFC6',
     category: 'milestones',
     requirement: { type: 'sessions', value: 500 },
@@ -605,8 +488,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Extreme Challenges (4) ────────────────────────────
   {
     id: 'triple_perfect',
-    name: 'Triple Perfect',
-    description: 'Achieve 100% accuracy in 3 sessions (min 10 questions each)',
     icon: '\uD83D\uDCAF',
     category: 'extreme',
     requirement: { type: 'perfect_sessions', value: 3 },
@@ -614,8 +495,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'ten_perfects',
-    name: 'Perfectionist',
-    description: 'Achieve 100% accuracy in 10 sessions (min 10 questions each)',
     icon: '\uD83D\uDCAF',
     category: 'extreme',
     requirement: { type: 'perfect_sessions', value: 10 },
@@ -623,8 +502,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'mega_profit',
-    name: 'Mega Profit',
-    description: 'Earn $10,000+ in a single Casino Session',
     icon: '\uD83D\uDCB5',
     category: 'extreme',
     requirement: { type: 'casino_profit', value: 10000 },
@@ -632,8 +509,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'unstoppable_run',
-    name: 'Unstoppable Run',
-    description: 'Win 10 hands in a row in a Casino Session',
     icon: '\uD83D\uDD25',
     category: 'extreme',
     requirement: { type: 'casino_streak', value: 10 },
@@ -642,8 +517,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Counting Mastery (6) ──────────────────────────────
   {
     id: 'tc_sharpshooter',
-    name: 'TC Sharpshooter',
-    description: '95%+ Count Accuracy in a Casino Session',
     icon: '\uD83D\uDD22',
     category: 'counting_mastery',
     requirement: { type: 'casino_count_accuracy', value: 95 },
@@ -651,8 +524,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'system_scholar',
-    name: 'Estimation Expert',
-    description: '95%+ accuracy in Deck Estimation',
     icon: '\uD83D\uDCDA',
     category: 'counting_mastery',
     requirement: { type: 'accuracy', value: 95, mode: 'deckEstimation' },
@@ -660,8 +531,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'counting_grinder',
-    name: 'Flashcard Grinder',
-    description: 'Answer 5,000 flashcard questions',
     icon: '\uD83D\uDD22',
     category: 'counting_mastery',
     requirement: { type: 'hands', value: 5000, mode: 'deviationFlashCards' },
@@ -669,8 +538,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'deviation_virtuoso',
-    name: 'Deviation Virtuoso',
-    description: '95%+ accuracy in Deviation Flash Cards',
     icon: '\uD83D\uDCCB',
     category: 'counting_mastery',
     requirement: { type: 'accuracy', value: 95, mode: 'deviationFlashCards' },
@@ -678,8 +545,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'master_collector',
-    name: 'Master Collector',
-    description: 'Unlock 50 other achievements',
     icon: '\uD83C\uDFC6',
     category: 'counting_mastery',
     requirement: { type: 'meta_unlocks', value: 50 },
@@ -687,8 +552,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'card_counter',
-    name: 'Achievement Hunter',
-    description: 'Unlock 20 other achievements',
     icon: '\uD83C\uDFC6',
     category: 'counting_mastery',
     requirement: { type: 'meta_unlocks', value: 20 },
@@ -700,8 +563,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // Bronze (5)
   {
     id: 'tracker_first_session',
-    name: 'First Entry',
-    description: 'Log your first real casino session',
     icon: '\uD83D\uDCDD',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_sessions', value: 1 },
@@ -709,8 +570,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_first_win',
-    name: 'First Win',
-    description: 'Log your first winning casino session',
     icon: '\uD83D\uDC9A',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_first_win', value: 1 },
@@ -718,8 +577,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_5_sessions',
-    name: 'Getting Started',
-    description: 'Log 5 casino sessions',
     icon: '\uD83C\uDFB0',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_sessions', value: 5 },
@@ -727,8 +584,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_long_session',
-    name: 'Marathon Player',
-    description: 'Log a session lasting 3+ hours',
     icon: '\u23F1\uFE0F',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_session_hours', value: 3 },
@@ -738,8 +593,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // Silver (5)
   {
     id: 'tracker_10_sessions',
-    name: 'Regular Player',
-    description: 'Log 10 casino sessions',
     icon: '\uD83C\uDCCF',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_sessions', value: 10 },
@@ -747,8 +600,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_win_streak_3',
-    name: 'Hot Hand',
-    description: 'Win 3 casino sessions in a row',
     icon: '\uD83D\uDD25',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_win_streak', value: 3 },
@@ -756,8 +607,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_profit_1000',
-    name: 'First Grand',
-    description: 'Reach $1,000 total profit',
     icon: '\uD83D\uDCB0',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_total_profit', value: 1000 },
@@ -765,8 +614,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_25_hours',
-    name: 'Time Investor',
-    description: 'Log 25 total hours at the casino',
     icon: '\u231A',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_total_hours', value: 25 },
@@ -774,8 +621,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_comeback',
-    name: 'Comeback King',
-    description: 'Win a session after 3 consecutive losses',
     icon: '\uD83D\uDCAA',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_comeback', value: 3 },
@@ -785,8 +630,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // Gold (5)
   {
     id: 'tracker_50_sessions',
-    name: 'Seasoned Player',
-    description: 'Log 50 casino sessions',
     icon: '\u2660\uFE0F',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_sessions', value: 50 },
@@ -794,8 +637,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_win_streak_7',
-    name: 'Red Hot',
-    description: 'Win 7 casino sessions in a row',
     icon: '\uD83C\uDF1F',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_win_streak', value: 7 },
@@ -803,8 +644,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_profit_5000',
-    name: 'Five Grand Club',
-    description: 'Reach $5,000 total profit',
     icon: '\uD83D\uDC8E',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_total_profit', value: 5000 },
@@ -812,8 +651,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_100_hours',
-    name: 'Table Centurion',
-    description: 'Log 100 total hours at the casino',
     icon: '\uD83D\uDD50',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_total_hours', value: 100 },
@@ -821,8 +658,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_big_win',
-    name: 'Big Night',
-    description: 'Win $500+ in a single session',
     icon: '\uD83E\uDD11',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_single_session_profit', value: 500 },
@@ -832,8 +667,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // Diamond (2)
   {
     id: 'tracker_100_sessions',
-    name: 'Casino Legend',
-    description: 'Log 100 casino sessions',
     icon: '\uD83D\uDC51',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_sessions', value: 100 },
@@ -841,8 +674,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'tracker_profit_10000',
-    name: 'Ten Grand',
-    description: 'Reach $10,000 total profit',
     icon: '\uD83C\uDFC6',
     category: 'bankrollTracker',
     requirement: { type: 'tracker_total_profit', value: 10000 },
@@ -852,8 +683,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── 2026-07 balance-pass additions (11) → 100 total ──
   {
     id: 'well_rounded',
-    name: 'Well-Rounded',
-    description: 'Reach 80%+ accuracy in all five training modes',
     icon: '🎯',
     category: 'mastery',
     requirement: { type: 'all_modes_accuracy', value: 80 },
@@ -861,8 +690,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'renaissance_counter',
-    name: 'Renaissance Counter',
-    description: 'Reach 90%+ accuracy in all five training modes',
     icon: '🎓',
     category: 'mastery',
     requirement: { type: 'all_modes_accuracy', value: 90 },
@@ -870,8 +697,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'in_the_zone',
-    name: 'In The Zone',
-    description: 'Answer 20 questions in a row correctly in a session',
     icon: '🎯',
     category: 'mastery',
     requirement: { type: 'session_streak', value: 20 },
@@ -879,8 +704,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'unbreakable',
-    name: 'Unbreakable',
-    description: 'Answer 50 questions in a row correctly in a session',
     icon: '💯',
     category: 'mastery',
     requirement: { type: 'session_streak', value: 50 },
@@ -888,8 +711,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'quick_draw',
-    name: 'Quick Draw',
-    description: '90%+ accuracy in a Quick Fire Deck Estimation session',
     icon: '⚡',
     category: 'counting_mastery',
     requirement: { type: 'quickfire_accuracy', value: 90 },
@@ -897,8 +718,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'blur',
-    name: 'Blur',
-    description: '95%+ accuracy at Fast speed in Speed Drill',
     icon: '💨',
     category: 'speed',
     requirement: { type: 'speed_accuracy', value: 95 },
@@ -906,8 +725,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'deviation_ace',
-    name: 'Deviation Ace',
-    description: '95%+ Deviation Accuracy in a Casino Session',
     icon: '🎯',
     category: 'casino_session',
     requirement: { type: 'casino_deviation_accuracy', value: 95 },
@@ -915,8 +732,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'marathon_mind',
-    name: 'Marathon Mind',
-    description: 'Train for 60+ minutes in a single session',
     icon: '⏱️',
     category: 'dedication',
     requirement: { type: 'session_duration', value: 60 },
@@ -924,8 +739,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'daily_double',
-    name: 'Daily Double',
-    description: 'Play all five training modes in a single day',
     icon: '☕',
     category: 'dedication',
     requirement: { type: 'modes_in_day', value: 5 },
@@ -933,8 +746,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'night_owl',
-    name: 'Night Owl',
-    description: 'Complete a training session after midnight',
     icon: '🌙',
     category: 'dedication',
     requirement: { type: 'night_session', value: 1 },
@@ -942,8 +753,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'platinum_collector',
-    name: 'Platinum Collector',
-    description: 'Unlock 75 other achievements',
     icon: '🏆',
     category: 'counting_mastery',
     requirement: { type: 'meta_unlocks', value: 75 },
@@ -953,8 +762,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   // ── Deviation-set mastery (enabled by per-deviation tracking) ──
   {
     id: 'fab_four_master',
-    name: 'Fab Four',
-    description: 'Master all four Fab 4 surrender deviations',
     icon: '🛡️',
     category: 'deviations',
     requirement: { type: 'deviation_set_mastery', value: 3, deviationSet: 'fab4' },
@@ -962,8 +769,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
   },
   {
     id: 'deviation_sage',
-    name: 'Deviation Sage',
-    description: 'Master all 18 Illustrious 18 deviations',
     icon: '📜',
     category: 'deviations',
     requirement: { type: 'deviation_set_mastery', value: 3, deviationSet: 'i18' },
@@ -974,4 +779,14 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
 /** Lookup achievement by ID. */
 export function getAchievementById(id: string): Achievement | undefined {
   return ALL_ACHIEVEMENTS.find(a => a.id === id)
+}
+
+/** The achievement's name, in the reader's language. */
+export function achievementName(a: Achievement, t: Translate): string {
+  return t(`ach.${a.id}.name`)
+}
+
+/** What the achievement asks for, in the reader's language. */
+export function achievementDescription(a: Achievement, t: Translate): string {
+  return t(`ach.${a.id}.desc`)
 }

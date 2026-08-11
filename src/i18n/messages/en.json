@@ -943,5 +943,446 @@
       "p2": "High cards help you: more blackjacks at 3:2, better doubles, and a dealer forced to draw into a stiff hand more often. Low cards help the dealer.",
       "p3": "Counting is nothing more than keeping track of which way the shoe has drifted — and betting more when it favours you. That is the next chapter."
     }
+  },
+  "ach": {
+    "first_hand": {
+      "name": "First Hand",
+      "desc": "Complete your first training session"
+    },
+    "card_sharp": {
+      "name": "Card Sharp",
+      "desc": "Play 5 different training modes"
+    },
+    "data_driven": {
+      "name": "Data Driven",
+      "desc": "Run your first bankroll simulation"
+    },
+    "on_fire": {
+      "name": "On Fire",
+      "desc": "Train 3 days in a row"
+    },
+    "week_warrior": {
+      "name": "Week Warrior",
+      "desc": "Train 7 days in a row"
+    },
+    "unstoppable": {
+      "name": "Unstoppable",
+      "desc": "Train 14 days in a row"
+    },
+    "legendary": {
+      "name": "Legendary",
+      "desc": "Train 30 days in a row"
+    },
+    "dedicated_student": {
+      "name": "Dedicated Student",
+      "desc": "Train for a total of 1 hour"
+    },
+    "serious_grinder": {
+      "name": "Serious Grinder",
+      "desc": "Train for a total of 10 hours"
+    },
+    "professional_trainee": {
+      "name": "Professional Trainee",
+      "desc": "Train for a total of 50 hours"
+    },
+    "century": {
+      "name": "Century",
+      "desc": "Play 100 training sessions"
+    },
+    "thousand_hands": {
+      "name": "Thousand Hands",
+      "desc": "Answer 1,000 flashcard questions"
+    },
+    "marathon_mind": {
+      "name": "Marathon Mind",
+      "desc": "Train for 60+ minutes in a single session"
+    },
+    "daily_double": {
+      "name": "Daily Double",
+      "desc": "Play all five training modes in a single day"
+    },
+    "night_owl": {
+      "name": "Night Owl",
+      "desc": "Complete a training session after midnight"
+    },
+    "count_rookie": {
+      "name": "Count Rookie",
+      "desc": "Complete 5 Speed Drill sessions"
+    },
+    "count_expert": {
+      "name": "Count Expert",
+      "desc": "Average 90%+ accuracy across your last 20 Speed Drill sessions"
+    },
+    "six_systems": {
+      "name": "Count Master",
+      "desc": "Average 95%+ accuracy across your last 30 Speed Drill sessions"
+    },
+    "quick_counter": {
+      "name": "Quick Counter",
+      "desc": "Complete Speed Drill at Normal speed with 80%+"
+    },
+    "lightning_fast": {
+      "name": "Lightning Fast",
+      "desc": "Complete Speed Drill at Fast speed with 80%+"
+    },
+    "blur": {
+      "name": "Blur",
+      "desc": "95%+ accuracy at Fast speed in Speed Drill"
+    },
+    "sharp_eye": {
+      "name": "Sharp Eye",
+      "desc": "Reach 80% accuracy in a session"
+    },
+    "precision": {
+      "name": "Precision",
+      "desc": "Reach 90% accuracy in a session"
+    },
+    "sniper": {
+      "name": "Sniper",
+      "desc": "Reach 95% accuracy in a session"
+    },
+    "perfection": {
+      "name": "Perfection",
+      "desc": "Score 100% in a session (min 10 questions)"
+    },
+    "well_rounded": {
+      "name": "Well-Rounded",
+      "desc": "Reach 80%+ accuracy in all five training modes"
+    },
+    "renaissance_counter": {
+      "name": "Renaissance Counter",
+      "desc": "Reach 90%+ accuracy in all five training modes"
+    },
+    "in_the_zone": {
+      "name": "In The Zone",
+      "desc": "Answer 20 questions in a row correctly in a session"
+    },
+    "unbreakable": {
+      "name": "Unbreakable",
+      "desc": "Answer 50 questions in a row correctly in a session"
+    },
+    "tc_sharpshooter": {
+      "name": "TC Sharpshooter",
+      "desc": "95%+ Count Accuracy in a Casino Session"
+    },
+    "system_scholar": {
+      "name": "Estimation Expert",
+      "desc": "95%+ accuracy in Deck Estimation"
+    },
+    "counting_grinder": {
+      "name": "Flashcard Grinder",
+      "desc": "Answer 5,000 flashcard questions"
+    },
+    "deviation_virtuoso": {
+      "name": "Deviation Virtuoso",
+      "desc": "95%+ accuracy in Deviation Flash Cards"
+    },
+    "master_collector": {
+      "name": "Master Collector",
+      "desc": "Unlock 50 other achievements"
+    },
+    "card_counter": {
+      "name": "Achievement Hunter",
+      "desc": "Unlock 20 other achievements"
+    },
+    "quick_draw": {
+      "name": "Quick Draw",
+      "desc": "90%+ accuracy in a Quick Fire Deck Estimation session"
+    },
+    "platinum_collector": {
+      "name": "Platinum Collector",
+      "desc": "Unlock 75 other achievements"
+    },
+    "deviation_student": {
+      "name": "Deviation Student",
+      "desc": "Complete 5 Flashcards sessions"
+    },
+    "illustrious_18": {
+      "name": "Illustrious 18",
+      "desc": "90%+ accuracy in Flashcards"
+    },
+    "table_general": {
+      "name": "Flashcard Master",
+      "desc": "95%+ accuracy in Flashcards"
+    },
+    "fab_four_master": {
+      "name": "Fab Four",
+      "desc": "Master all four Fab 4 surrender deviations"
+    },
+    "deviation_sage": {
+      "name": "Deviation Sage",
+      "desc": "Master all 18 Illustrious 18 deviations"
+    },
+    "first_daily": {
+      "name": "First Daily",
+      "desc": "Complete your first daily challenge"
+    },
+    "challenge_regular": {
+      "name": "Challenge Regular",
+      "desc": "Complete 10 daily challenges"
+    },
+    "daily_devotion": {
+      "name": "Daily Devotion",
+      "desc": "Maintain a 7-day daily challenge streak"
+    },
+    "first_weekly": {
+      "name": "Weekly Warrior",
+      "desc": "Complete your first weekly challenge"
+    },
+    "weekly_master": {
+      "name": "Weekly Master",
+      "desc": "Complete 10 weekly challenges"
+    },
+    "level_5": {
+      "name": "Rising Star",
+      "desc": "Reach Level 5"
+    },
+    "level_10": {
+      "name": "Table Pro",
+      "desc": "Reach Level 10"
+    },
+    "level_15": {
+      "name": "Card Counter",
+      "desc": "Reach Level 15"
+    },
+    "level_20": {
+      "name": "Mastermind",
+      "desc": "Reach Level 20"
+    },
+    "level_25": {
+      "name": "Grandmaster",
+      "desc": "Reach Level 25 — the ultimate rank"
+    },
+    "five_thousand_hands": {
+      "name": "Five Thousand",
+      "desc": "Answer 5,000 total questions across all modes"
+    },
+    "ten_thousand_hands": {
+      "name": "Ten Thousand",
+      "desc": "Answer 10,000 total questions across all modes"
+    },
+    "twenty_hours": {
+      "name": "Twenty Hours",
+      "desc": "Train for a total of 20 hours"
+    },
+    "hundred_hours": {
+      "name": "Century of Hours",
+      "desc": "Train for a total of 100 hours"
+    },
+    "five_hundred_sessions": {
+      "name": "Veteran Player",
+      "desc": "Complete 500 training sessions"
+    },
+    "spread_master": {
+      "name": "Spread Master",
+      "desc": "Average 90%+ accuracy across your last 10 Bet Spread sessions"
+    },
+    "deck_hawk": {
+      "name": "Deck Hawk",
+      "desc": "Average 90%+ accuracy across your last 10 Deck Estimation sessions"
+    },
+    "risk_analyst": {
+      "name": "Risk Analyst",
+      "desc": "Run 5 different bankroll simulations"
+    },
+    "edge_hunter": {
+      "name": "Edge Hunter",
+      "desc": "Find a configuration with >1% weighted edge"
+    },
+    "triple_perfect": {
+      "name": "Triple Perfect",
+      "desc": "Achieve 100% accuracy in 3 sessions (min 10 questions each)"
+    },
+    "ten_perfects": {
+      "name": "Perfectionist",
+      "desc": "Achieve 100% accuracy in 10 sessions (min 10 questions each)"
+    },
+    "mega_profit": {
+      "name": "Mega Profit",
+      "desc": "Earn $10,000+ in a single Casino Session"
+    },
+    "unstoppable_run": {
+      "name": "Unstoppable Run",
+      "desc": "Win 10 hands in a row in a Casino Session"
+    },
+    "casino_first_session": {
+      "name": "First Session",
+      "desc": "Complete your first Casino Session"
+    },
+    "casino_full_table": {
+      "name": "Full Table",
+      "desc": "Play a session with 5 bots at the table"
+    },
+    "casino_marathon": {
+      "name": "Marathon",
+      "desc": "Play a session with 50+ hands"
+    },
+    "casino_passing_grade": {
+      "name": "Passing Grade",
+      "desc": "Achieve grade C or better in a Casino Session"
+    },
+    "casino_honor_student": {
+      "name": "Honor Student",
+      "desc": "Achieve grade B or better in a Casino Session"
+    },
+    "casino_valedictorian": {
+      "name": "Valedictorian",
+      "desc": "Achieve grade A+ (95%+) in a Casino Session"
+    },
+    "casino_bet_master": {
+      "name": "Bet Master",
+      "desc": "90%+ Bet Accuracy in a Casino Session"
+    },
+    "casino_perfect_play": {
+      "name": "Perfect Play",
+      "desc": "95%+ Play Accuracy in a Casino Session"
+    },
+    "casino_eagle_eye": {
+      "name": "Eagle Eye",
+      "desc": "90%+ Count Accuracy in a Casino Session"
+    },
+    "casino_triple_threat": {
+      "name": "Triple Threat",
+      "desc": "90%+ in Bet, Play AND Count in a single session"
+    },
+    "casino_in_the_green": {
+      "name": "In The Green",
+      "desc": "End a Casino Session with a profit"
+    },
+    "casino_high_roller": {
+      "name": "High Roller",
+      "desc": "Earn $1,000+ in a single Casino Session"
+    },
+    "casino_whale": {
+      "name": "Whale",
+      "desc": "Earn $5,000+ in a single Casino Session"
+    },
+    "casino_natural": {
+      "name": "Natural",
+      "desc": "Get a Blackjack in a Casino Session"
+    },
+    "casino_hot_streak": {
+      "name": "Hot Streak",
+      "desc": "Win 5 hands in a row in a Casino Session"
+    },
+    "casino_splitting_aces": {
+      "name": "Splitting Aces",
+      "desc": "Split Aces in a Casino Session"
+    },
+    "casino_four_of_a_kind": {
+      "name": "Four of a Kind",
+      "desc": "Split up to 4 hands in a Casino Session"
+    },
+    "casino_session_grinder": {
+      "name": "Session Grinder",
+      "desc": "Play 10 Casino Sessions"
+    },
+    "casino_pro": {
+      "name": "Casino Pro",
+      "desc": "Achieve grade A+ in 3 Casino Sessions"
+    },
+    "deviation_ace": {
+      "name": "Deviation Ace",
+      "desc": "95%+ Deviation Accuracy in a Casino Session"
+    },
+    "tracker_first_session": {
+      "name": "First Entry",
+      "desc": "Log your first real casino session"
+    },
+    "tracker_first_win": {
+      "name": "First Win",
+      "desc": "Log your first winning casino session"
+    },
+    "tracker_5_sessions": {
+      "name": "Getting Started",
+      "desc": "Log 5 casino sessions"
+    },
+    "tracker_long_session": {
+      "name": "Marathon Player",
+      "desc": "Log a session lasting 3+ hours"
+    },
+    "tracker_10_sessions": {
+      "name": "Regular Player",
+      "desc": "Log 10 casino sessions"
+    },
+    "tracker_win_streak_3": {
+      "name": "Hot Hand",
+      "desc": "Win 3 casino sessions in a row"
+    },
+    "tracker_profit_1000": {
+      "name": "First Grand",
+      "desc": "Reach $1,000 total profit"
+    },
+    "tracker_25_hours": {
+      "name": "Time Investor",
+      "desc": "Log 25 total hours at the casino"
+    },
+    "tracker_comeback": {
+      "name": "Comeback King",
+      "desc": "Win a session after 3 consecutive losses"
+    },
+    "tracker_50_sessions": {
+      "name": "Seasoned Player",
+      "desc": "Log 50 casino sessions"
+    },
+    "tracker_win_streak_7": {
+      "name": "Red Hot",
+      "desc": "Win 7 casino sessions in a row"
+    },
+    "tracker_profit_5000": {
+      "name": "Five Grand Club",
+      "desc": "Reach $5,000 total profit"
+    },
+    "tracker_100_hours": {
+      "name": "Table Centurion",
+      "desc": "Log 100 total hours at the casino"
+    },
+    "tracker_big_win": {
+      "name": "Big Night",
+      "desc": "Win $500+ in a single session"
+    },
+    "tracker_100_sessions": {
+      "name": "Casino Legend",
+      "desc": "Log 100 casino sessions"
+    },
+    "tracker_profit_10000": {
+      "name": "Ten Grand",
+      "desc": "Reach $10,000 total profit"
+    },
+    "casino_deans_list": {
+      "name": "Dean's List",
+      "desc": "Achieve grade A or better in a Casino Session"
+    }
+  },
+  "awards": {
+    "title": "Awards",
+    "yourTrophies": "Your trophies",
+    "level": "Level",
+    "closest": "Closest to unlocking",
+    "collection": "Collection",
+    "unlocked": "Unlocked",
+    "locked": "Locked",
+    "unknownDate": "Unknown",
+    "percentComplete": "{{pct}}% complete",
+    "unlockedOn": "{{name}} — {{desc}} (unlocked {{date}})",
+    "inProgress": "{{name}} — {{desc}} ({{pct}}%)",
+    "unlockedBang": "Achievement Unlocked!",
+    "cat": {
+      "getting_started": "Getting Started",
+      "dedication": "Dedication",
+      "mastery": "Mastery",
+      "speed": "Speed",
+      "counting": "Counting",
+      "deviations": "Deviations",
+      "simulation": "Bet Spread, Estimation & Simulation",
+      "casino_session": "Casino Session",
+      "challenges": "Daily & Weekly Challenges",
+      "level_system": "Level System",
+      "milestones": "Milestones",
+      "extreme": "Extreme Challenges",
+      "counting_mastery": "Counting Mastery",
+      "bankrollTracker": "Bankroll Tracker"
+    },
+    "all": "All"
   }
 }

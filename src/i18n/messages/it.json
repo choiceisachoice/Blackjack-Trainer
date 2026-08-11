@@ -943,5 +943,446 @@
       "p2": "Le carte alte ti aiutano: più blackjack a 3:2, raddoppi migliori e un banco costretto più spesso a pescare su una mano scomoda. Le carte basse aiutano il banco.",
       "p3": "Contare non è altro che tenere traccia di come si è spostato lo shoe — e puntare di più quando è a tuo favore. È il capitolo successivo."
     }
+  },
+  "ach": {
+    "first_hand": {
+      "name": "Prima mano",
+      "desc": "Completa la tua prima sessione di allenamento"
+    },
+    "card_sharp": {
+      "name": "Asso di carte",
+      "desc": "Gioca 5 modalità di allenamento diverse"
+    },
+    "data_driven": {
+      "name": "Uomo dei numeri",
+      "desc": "Esegui la tua prima simulazione di bankroll"
+    },
+    "on_fire": {
+      "name": "In fiamme",
+      "desc": "Allenati per 3 giorni di fila"
+    },
+    "week_warrior": {
+      "name": "Guerriero della settimana",
+      "desc": "Allenati per 7 giorni di fila"
+    },
+    "unstoppable": {
+      "name": "Inarrestabile",
+      "desc": "Allenati per 14 giorni di fila"
+    },
+    "legendary": {
+      "name": "Leggendario",
+      "desc": "Allenati per 30 giorni di fila"
+    },
+    "dedicated_student": {
+      "name": "Studente diligente",
+      "desc": "Allenati per un totale di 1 ora"
+    },
+    "serious_grinder": {
+      "name": "Lavoratore instancabile",
+      "desc": "Allenati per un totale di 10 ore"
+    },
+    "professional_trainee": {
+      "name": "Aspirante professionista",
+      "desc": "Allenati per un totale di 50 ore"
+    },
+    "century": {
+      "name": "Centenario",
+      "desc": "Gioca 100 sessioni di allenamento"
+    },
+    "thousand_hands": {
+      "name": "Mille mani",
+      "desc": "Rispondi a 1.000 domande delle flashcard"
+    },
+    "marathon_mind": {
+      "name": "Mente da maratona",
+      "desc": "Allenati per 60+ minuti in una sola sessione"
+    },
+    "daily_double": {
+      "name": "En plein giornaliero",
+      "desc": "Gioca tutte e cinque le modalità in un solo giorno"
+    },
+    "night_owl": {
+      "name": "Nottambulo",
+      "desc": "Completa una sessione dopo mezzanotte"
+    },
+    "count_rookie": {
+      "name": "Contatore alle prime armi",
+      "desc": "Completa 5 sessioni di Speed Drill"
+    },
+    "count_expert": {
+      "name": "Contatore esperto",
+      "desc": "Ottieni una media del 90%+ sulle tue ultime 20 sessioni di Speed Drill"
+    },
+    "six_systems": {
+      "name": "Maestro del conteggio",
+      "desc": "Ottieni una media del 95%+ sulle tue ultime 30 sessioni di Speed Drill"
+    },
+    "quick_counter": {
+      "name": "Contatore veloce",
+      "desc": "Completa uno Speed Drill a velocità Normale con l’80%+"
+    },
+    "lightning_fast": {
+      "name": "Veloce come un lampo",
+      "desc": "Completa uno Speed Drill a velocità Veloce con l’80%+"
+    },
+    "blur": {
+      "name": "Solo un lampo",
+      "desc": "95%+ di precisione a velocità Veloce nello Speed Drill"
+    },
+    "sharp_eye": {
+      "name": "Occhio attento",
+      "desc": "Raggiungi l’80% di precisione in una sessione"
+    },
+    "precision": {
+      "name": "Precisione",
+      "desc": "Raggiungi il 90% di precisione in una sessione"
+    },
+    "sniper": {
+      "name": "Cecchino",
+      "desc": "Raggiungi il 95% di precisione in una sessione"
+    },
+    "perfection": {
+      "name": "Perfezione",
+      "desc": "Fai 100% in una sessione (min. 10 domande)"
+    },
+    "well_rounded": {
+      "name": "Ben rotondo",
+      "desc": "Raggiungi l’80%+ in tutte e cinque le modalità"
+    },
+    "renaissance_counter": {
+      "name": "Contatore rinascimentale",
+      "desc": "Raggiungi il 90%+ in tutte e cinque le modalità"
+    },
+    "in_the_zone": {
+      "name": "In trance agonistica",
+      "desc": "Rispondi correttamente a 20 domande di fila in una sessione"
+    },
+    "unbreakable": {
+      "name": "Infrangibile",
+      "desc": "Rispondi correttamente a 50 domande di fila in una sessione"
+    },
+    "tc_sharpshooter": {
+      "name": "Cecchino del TC",
+      "desc": "95%+ di precisione nel conteggio in una sessione al casinò"
+    },
+    "system_scholar": {
+      "name": "Esperto di stima",
+      "desc": "95%+ di precisione nella stima dei mazzi"
+    },
+    "counting_grinder": {
+      "name": "Macinatore di flashcard",
+      "desc": "Rispondi a 5.000 domande delle flashcard"
+    },
+    "deviation_virtuoso": {
+      "name": "Virtuoso delle deviazioni",
+      "desc": "95%+ di precisione nelle flashcard sulle deviazioni"
+    },
+    "master_collector": {
+      "name": "Maestro collezionista",
+      "desc": "Sblocca altri 50 riconoscimenti"
+    },
+    "card_counter": {
+      "name": "Cacciatore di riconoscimenti",
+      "desc": "Sblocca altri 20 riconoscimenti"
+    },
+    "quick_draw": {
+      "name": "Estrazione rapida",
+      "desc": "90%+ di precisione in una stima dei mazzi a Fuoco rapido"
+    },
+    "platinum_collector": {
+      "name": "Collezionista di platino",
+      "desc": "Sblocca altri 75 riconoscimenti"
+    },
+    "deviation_student": {
+      "name": "Studente delle deviazioni",
+      "desc": "Completa 5 sessioni di flashcard"
+    },
+    "illustrious_18": {
+      "name": "Illustrious 18",
+      "desc": "90%+ di precisione nelle flashcard"
+    },
+    "table_general": {
+      "name": "Maestro delle flashcard",
+      "desc": "95%+ di precisione nelle flashcard"
+    },
+    "fab_four_master": {
+      "name": "Fab Four",
+      "desc": "Padroneggia tutte e quattro le deviazioni di resa dei Fab 4"
+    },
+    "deviation_sage": {
+      "name": "Saggio delle deviazioni",
+      "desc": "Padroneggia tutte le 18 deviazioni degli Illustrious 18"
+    },
+    "first_daily": {
+      "name": "Prima sfida del giorno",
+      "desc": "Completa la tua prima sfida giornaliera"
+    },
+    "challenge_regular": {
+      "name": "Habitué delle sfide",
+      "desc": "Completa 10 sfide giornaliere"
+    },
+    "daily_devotion": {
+      "name": "Dedizione quotidiana",
+      "desc": "Mantieni una serie di 7 giorni di sfide giornaliere"
+    },
+    "first_weekly": {
+      "name": "Combattente settimanale",
+      "desc": "Completa la tua prima sfida settimanale"
+    },
+    "weekly_master": {
+      "name": "Maestro settimanale",
+      "desc": "Completa 10 sfide settimanali"
+    },
+    "level_5": {
+      "name": "Astro nascente",
+      "desc": "Raggiungi il livello 5"
+    },
+    "level_10": {
+      "name": "Professionista del tavolo",
+      "desc": "Raggiungi il livello 10"
+    },
+    "level_15": {
+      "name": "Contatore di carte",
+      "desc": "Raggiungi il livello 15"
+    },
+    "level_20": {
+      "name": "Mente sopraffina",
+      "desc": "Raggiungi il livello 20"
+    },
+    "level_25": {
+      "name": "Gran maestro",
+      "desc": "Raggiungi il livello 25 — il rango supremo"
+    },
+    "five_thousand_hands": {
+      "name": "Cinquemila",
+      "desc": "Rispondi in totale a 5.000 domande in tutte le modalità"
+    },
+    "ten_thousand_hands": {
+      "name": "Diecimila",
+      "desc": "Rispondi in totale a 10.000 domande in tutte le modalità"
+    },
+    "twenty_hours": {
+      "name": "Venti ore",
+      "desc": "Allenati per un totale di 20 ore"
+    },
+    "hundred_hours": {
+      "name": "Cento ore",
+      "desc": "Allenati per un totale di 100 ore"
+    },
+    "five_hundred_sessions": {
+      "name": "Giocatore veterano",
+      "desc": "Completa 500 sessioni di allenamento"
+    },
+    "spread_master": {
+      "name": "Maestro dello spread",
+      "desc": "Ottieni una media del 90%+ sulle tue ultime 10 sessioni di bet spread"
+    },
+    "deck_hawk": {
+      "name": "Falco dei mazzi",
+      "desc": "Ottieni una media del 90%+ sulle tue ultime 10 sessioni di stima dei mazzi"
+    },
+    "risk_analyst": {
+      "name": "Analista del rischio",
+      "desc": "Esegui 5 simulazioni di bankroll diverse"
+    },
+    "edge_hunter": {
+      "name": "Cacciatore di vantaggio",
+      "desc": "Trova una configurazione con oltre l’1% di vantaggio ponderato"
+    },
+    "triple_perfect": {
+      "name": "Tripletta perfetta",
+      "desc": "Ottieni il 100% in 3 sessioni (min. 10 domande ciascuna)"
+    },
+    "ten_perfects": {
+      "name": "Perfezionista",
+      "desc": "Ottieni il 100% in 10 sessioni (min. 10 domande ciascuna)"
+    },
+    "mega_profit": {
+      "name": "Mega profitto",
+      "desc": "Guadagna oltre 10.000 $ in una sola sessione al casinò"
+    },
+    "unstoppable_run": {
+      "name": "Serie inarrestabile",
+      "desc": "Vinci 10 mani di fila in una sessione al casinò"
+    },
+    "casino_first_session": {
+      "name": "Prima sessione",
+      "desc": "Completa la tua prima sessione al casinò"
+    },
+    "casino_full_table": {
+      "name": "Tavolo pieno",
+      "desc": "Gioca una sessione con 5 bot al tavolo"
+    },
+    "casino_marathon": {
+      "name": "Maratona",
+      "desc": "Gioca una sessione con 50+ mani"
+    },
+    "casino_passing_grade": {
+      "name": "Sufficienza",
+      "desc": "Ottieni voto C o superiore in una sessione al casinò"
+    },
+    "casino_honor_student": {
+      "name": "Studente modello",
+      "desc": "Ottieni voto B o superiore in una sessione al casinò"
+    },
+    "casino_valedictorian": {
+      "name": "Il migliore del corso",
+      "desc": "Ottieni voto A+ (95%+) in una sessione al casinò"
+    },
+    "casino_bet_master": {
+      "name": "Maestro delle puntate",
+      "desc": "90%+ di precisione nelle puntate in una sessione al casinò"
+    },
+    "casino_perfect_play": {
+      "name": "Gioco perfetto",
+      "desc": "95%+ di precisione di gioco in una sessione al casinò"
+    },
+    "casino_eagle_eye": {
+      "name": "Occhio d’aquila",
+      "desc": "90%+ di precisione nel conteggio in una sessione al casinò"
+    },
+    "casino_triple_threat": {
+      "name": "Tripla minaccia",
+      "desc": "90%+ in puntata, gioco E conteggio in una sola sessione"
+    },
+    "casino_in_the_green": {
+      "name": "In attivo",
+      "desc": "Chiudi una sessione al casinò in attivo"
+    },
+    "casino_high_roller": {
+      "name": "Giocatore d’alto bordo",
+      "desc": "Guadagna oltre 1.000 $ in una sola sessione al casinò"
+    },
+    "casino_whale": {
+      "name": "Balena",
+      "desc": "Guadagna oltre 5.000 $ in una sola sessione al casinò"
+    },
+    "casino_natural": {
+      "name": "Naturale",
+      "desc": "Fai blackjack in una sessione al casinò"
+    },
+    "casino_hot_streak": {
+      "name": "Serie calda",
+      "desc": "Vinci 5 mani di fila in una sessione al casinò"
+    },
+    "casino_splitting_aces": {
+      "name": "Assi divisi",
+      "desc": "Dividi gli assi in una sessione al casinò"
+    },
+    "casino_four_of_a_kind": {
+      "name": "Poker d’assi",
+      "desc": "Arriva a 4 mani con gli split in una sessione al casinò"
+    },
+    "casino_session_grinder": {
+      "name": "Macinatore di sessioni",
+      "desc": "Gioca 10 sessioni al casinò"
+    },
+    "casino_pro": {
+      "name": "Professionista del casinò",
+      "desc": "Ottieni voto A+ in 3 sessioni al casinò"
+    },
+    "deviation_ace": {
+      "name": "Asso delle deviazioni",
+      "desc": "95%+ di precisione sulle deviazioni in una sessione al casinò"
+    },
+    "tracker_first_session": {
+      "name": "Prima registrazione",
+      "desc": "Registra la tua prima sessione reale al casinò"
+    },
+    "tracker_first_win": {
+      "name": "Prima vittoria",
+      "desc": "Registra la tua prima sessione vinta al casinò"
+    },
+    "tracker_5_sessions": {
+      "name": "Si comincia",
+      "desc": "Registra 5 sessioni al casinò"
+    },
+    "tracker_long_session": {
+      "name": "Giocatore da maratona",
+      "desc": "Registra una sessione di 3+ ore"
+    },
+    "tracker_10_sessions": {
+      "name": "Giocatore abituale",
+      "desc": "Registra 10 sessioni al casinò"
+    },
+    "tracker_win_streak_3": {
+      "name": "Mano calda",
+      "desc": "Vinci 3 sessioni al casinò di fila"
+    },
+    "tracker_profit_1000": {
+      "name": "Primo migliaio",
+      "desc": "Raggiungi 1.000 $ di profitto totale"
+    },
+    "tracker_25_hours": {
+      "name": "Investitore di tempo",
+      "desc": "Registra 25 ore totali al casinò"
+    },
+    "tracker_comeback": {
+      "name": "Re della rimonta",
+      "desc": "Vinci una sessione dopo 3 sconfitte consecutive"
+    },
+    "tracker_50_sessions": {
+      "name": "Giocatore navigato",
+      "desc": "Registra 50 sessioni al casinò"
+    },
+    "tracker_win_streak_7": {
+      "name": "Incandescente",
+      "desc": "Vinci 7 sessioni al casinò di fila"
+    },
+    "tracker_profit_5000": {
+      "name": "Club dei cinquemila",
+      "desc": "Raggiungi 5.000 $ di profitto totale"
+    },
+    "tracker_100_hours": {
+      "name": "Centurione del tavolo",
+      "desc": "Registra 100 ore totali al casinò"
+    },
+    "tracker_big_win": {
+      "name": "Serata grossa",
+      "desc": "Vinci oltre 500 $ in una sola sessione"
+    },
+    "tracker_100_sessions": {
+      "name": "Leggenda del casinò",
+      "desc": "Registra 100 sessioni al casinò"
+    },
+    "tracker_profit_10000": {
+      "name": "Diecimila",
+      "desc": "Raggiungi 10.000 $ di profitto totale"
+    },
+    "casino_deans_list": {
+      "name": "Albo d’onore",
+      "desc": "Ottieni voto A o superiore in una sessione al casinò"
+    }
+  },
+  "awards": {
+    "title": "Riconoscimenti",
+    "yourTrophies": "I tuoi trofei",
+    "level": "Livello",
+    "closest": "Più vicini allo sblocco",
+    "collection": "Collezione",
+    "unlocked": "Sbloccato",
+    "locked": "Bloccato",
+    "unknownDate": "Sconosciuta",
+    "percentComplete": "{{pct}}% completato",
+    "unlockedOn": "{{name}} — {{desc}} (sbloccato il {{date}})",
+    "inProgress": "{{name}} — {{desc}} ({{pct}}%)",
+    "unlockedBang": "Riconoscimento sbloccato!",
+    "cat": {
+      "getting_started": "Primi passi",
+      "dedication": "Costanza",
+      "mastery": "Padronanza",
+      "speed": "Velocità",
+      "counting": "Conteggio",
+      "deviations": "Deviazioni",
+      "simulation": "Bet spread, stima e simulazione",
+      "casino_session": "Sessione al casinò",
+      "challenges": "Sfide giornaliere e settimanali",
+      "level_system": "Sistema di livelli",
+      "milestones": "Traguardi",
+      "extreme": "Sfide estreme",
+      "counting_mastery": "Padronanza del conteggio",
+      "bankrollTracker": "Registro della bankroll"
+    },
+    "all": "Tutti"
   }
 }

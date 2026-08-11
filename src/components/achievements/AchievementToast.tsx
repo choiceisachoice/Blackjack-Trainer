@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { achievementName, achievementDescription } from '../../services/achievements/achievement-list'
 import { useAchievementStore } from '../../store/achievement-store'
 import { soundEngine } from '../../services/sound-engine'
 import type { AchievementTier } from '../../services/achievements/achievement-types'
@@ -22,6 +24,7 @@ const TIER_CONFIG: Record<AchievementTier, { badge: string; borderColor: string;
  * Plays streak sound on each achievement.
  */
 export function AchievementToast() {
+  const { t } = useTranslation()
   const newlyUnlocked = useAchievementStore(s => s.newlyUnlocked)
   const dismissNewAchievement = useAchievementStore(s => s.dismissNewAchievement)
   const [visible, setVisible] = useState(false)
@@ -91,10 +94,10 @@ export function AchievementToast() {
       {/* Text */}
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold text-[#FFD700] uppercase tracking-wider">
-          Achievement Unlocked!
+          {t('awards.unlockedBang')}
         </p>
-        <p className="text-base font-bold text-content truncate">{current.name}</p>
-        <p className="text-xs text-content/60 truncate">{current.description}</p>
+        <p className="text-base font-bold text-content truncate">{achievementName(current, t)}</p>
+        <p className="text-xs text-content/60 truncate">{achievementDescription(current, t)}</p>
       </div>
 
       {/* Tier badge */}

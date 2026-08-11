@@ -11,10 +11,10 @@ vi.mock('../../services/sound-engine', () => ({
   },
 }))
 
+// Real ids: the toast reads its text from the messages now, so a made-up id
+// would render a raw key path instead of a name.
 const mockAchievement: Achievement = {
   id: 'first_hand',
-  name: 'First Hand',
-  description: 'Complete your first training session',
   icon: '\uD83C\uDFB0',
   category: 'getting_started',
   requirement: { type: 'sessions', value: 1 },
@@ -23,8 +23,6 @@ const mockAchievement: Achievement = {
 
 const mockAchievement2: Achievement = {
   id: 'sharp_eye',
-  name: 'Sharp Eye',
-  description: 'Reach 80% accuracy in a session',
   icon: '\u2705',
   category: 'mastery',
   requirement: { type: 'accuracy', value: 80 },
