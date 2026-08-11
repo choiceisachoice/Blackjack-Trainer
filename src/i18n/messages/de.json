@@ -4,7 +4,8 @@
     "cancel": "Abbrechen",
     "continue": "Weiter",
     "loading": "Wird geladen…",
-    "language": "Sprache"
+    "language": "Sprache",
+    "backToHome": "Zurück zur Startseite"
   },
   "nav": {
     "home": "Start",
@@ -237,7 +238,17 @@
     "showPassword": "Passwort anzeigen",
     "hidePassword": "Passwort verbergen",
     "passwordsDiffer": "Die beiden Passwörter stimmen nicht überein.",
-    "passwordChanged": "Passwort geändert. Melde dich mit dem neuen an."
+    "passwordChanged": "Passwort geändert. Melde dich mit dem neuen an.",
+    "newPassword": "Neues Passwort",
+    "repeatPassword": "Noch einmal",
+    "signedOutEverywhere": "Du wirst überall abgemeldet und musst dich neu anmelden.",
+    "minChars": "Verwende mindestens {{min}} Zeichen.",
+    "linkExpiredTitle": "Dieser Link ist abgelaufen",
+    "linkExpiredBody": "Reset-Links funktionieren nur einmal und nicht lange. Fordere einen neuen an — er ist in einer Minute da.",
+    "checkingLink": "Wir prüfen deinen Link…",
+    "oneMoment": "Einen Moment.",
+    "resetUnavailableTitle": "Passwort-Reset ist hier nicht verfügbar",
+    "resetUnavailableBody": "In diesem Build ist kein Backend konfiguriert."
   },
   "paywall": {
     "g1": "Trainingsübungen",
@@ -263,6 +274,8 @@
     "title": "Kontakt",
     "emailUs": "Schreib uns",
     "privacy": "Datenschutzerklärung",
-    "terms": "Nutzungsbedingungen"
+    "terms": "Nutzungsbedingungen",
+    "intro": "Fragen, Rückmeldungen, ein Problem mit deinem Konto oder eine Datenschutzanfrage — wir lesen jede Nachricht.",
+    "dataRequests": "Für Datenschutzanfragen (Auskunft, Berichtigung oder Löschung deiner Daten) nutze dieselbe Adresse — siehe die <pp>Datenschutzerklärung</pp>."
   }
 }

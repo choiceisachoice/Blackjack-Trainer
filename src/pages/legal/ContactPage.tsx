@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Spade, ArrowLeft, Mail, AlertTriangle } from 'lucide-react'
 import { LEGAL_META as M, hasUnsetPlaceholders } from './legal-meta'
@@ -18,7 +18,7 @@ export function ContactPage() {
     <div className="app-canvas min-h-screen text-content">
       <div className="max-w-2xl mx-auto px-6 py-12 md:py-16">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-content/60 hover:text-content">
-          <ArrowLeft size={16} /> Back to home
+          <ArrowLeft size={16} /> {t('common.backToHome')}
         </Link>
 
         <header className="mt-8 flex flex-col items-center text-center">
@@ -27,7 +27,7 @@ export function ContactPage() {
           </span>
           <h1 className="text-3xl md:text-4xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">{t('contact.title')}</h1>
           <p className="mt-2 text-sm text-content/50 max-w-[46ch]">
-            Questions, feedback, a problem with your account or a privacy request — we read every message.
+            {t('contact.intro')}
           </p>
         </header>
 
@@ -45,9 +45,16 @@ export function ContactPage() {
               <Mail size={20} /> {email}
             </a>
           )}
-          <p className="mt-4 text-sm text-content/50 max-w-[44ch] mx-auto">
-            For data-protection requests (access, correction or deletion of your data), use the same address —
-            see the <Link to="/privacy" className="text-content/70 hover:text-content underline underline-offset-2">{t('contact.privacy')}</Link>.
+          <p className="mt-4 text-sm text-content/50 max-w-[44ch] mx-auto" data-testid="contact-privacy-note">
+            {/* The link sits mid-sentence, and where in the sentence differs by
+                language — so the position comes from the translation, not from
+                a fragment glued either side of it. */}
+            <Trans
+              i18nKey="contact.dataRequests"
+              components={{
+                pp: <Link to="/privacy" className="text-content/70 hover:text-content underline underline-offset-2" />,
+              }}
+            />
           </p>
         </div>
 

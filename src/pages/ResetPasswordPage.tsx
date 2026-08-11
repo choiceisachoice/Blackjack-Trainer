@@ -46,14 +46,14 @@ export function ResetPasswordPage() {
   useEffect(() => clearError, [clearError])
 
   if (!isSupabaseConfigured) {
-    return <Fallback title="Password reset is unavailable here" body="This build has no backend configured." />
+    return <Fallback title={t('auth.resetUnavailableTitle')} body={t('auth.resetUnavailableBody')} />
   }
 
   // The session resolves asynchronously while the token in the URL is
   // exchanged. Showing "link expired" during that window would be wrong.
   if (status === 'loading') {
     return (
-      <Fallback title="Checking your link…" body="One moment.">
+      <Fallback title={t('auth.checkingLink')} body={t('auth.oneMoment')}>
         <Loader2 size={18} className="animate-spin text-gold" />
       </Fallback>
     )
@@ -62,8 +62,8 @@ export function ResetPasswordPage() {
   if (status !== 'signedIn') {
     return (
       <Fallback
-        title="That link has expired"
-        body="Reset links can only be used once, and they do not last long. Request a new one and it will arrive in a minute."
+        title={t('auth.linkExpiredTitle')}
+        body={t('auth.linkExpiredBody')}
         action={{ to: '/login', label: t('auth.backToSignIn') }}
       />
     )
@@ -75,7 +75,7 @@ export function ResetPasswordPage() {
 
     setLocalError(null)
     if (password.length < MIN_LENGTH) {
-      setLocalError(`Use at least ${MIN_LENGTH} characters.`)
+      setLocalError(t('auth.minChars', { min: MIN_LENGTH }))
       return
     }
     // Checked because a typo here locks someone out of the account they were
@@ -121,14 +121,14 @@ export function ResetPasswordPage() {
               is being removed — and someone who simply forgot needs to know why
               their tablet will ask them to sign in again. */}
           <p className="mt-1 text-sm text-content/55">
-            You will be signed out everywhere and asked to sign in again.
+            {t('auth.signedOutEverywhere')}
           </p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3">
           <Field
             id="new-password"
-            label="New password"
+            label={t('auth.newPassword')}
             value={password}
             onChange={setPassword}
             autoComplete="new-password"
@@ -138,7 +138,7 @@ export function ResetPasswordPage() {
           />
           <Field
             id="confirm-password"
-            label="Repeat it"
+            label={t('auth.repeatPassword')}
             value={confirm}
             onChange={setConfirm}
             autoComplete="new-password"

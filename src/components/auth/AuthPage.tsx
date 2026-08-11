@@ -205,7 +205,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
               className="w-full text-center text-sm text-content/45 hover:text-content
                 cursor-pointer transition-colors"
             >
-              Back to sign in
+              {t('auth.backToSignIn')}
             </button>
           )}
         </form>

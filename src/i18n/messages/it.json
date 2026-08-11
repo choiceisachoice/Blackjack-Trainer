@@ -4,7 +4,8 @@
     "cancel": "Annulla",
     "continue": "Continua",
     "loading": "Caricamento…",
-    "language": "Lingua"
+    "language": "Lingua",
+    "backToHome": "Torna alla home"
   },
   "nav": {
     "home": "Home",
@@ -237,7 +238,17 @@
     "showPassword": "Mostra la password",
     "hidePassword": "Nascondi la password",
     "passwordsDiffer": "Le due password non coincidono.",
-    "passwordChanged": "Password cambiata. Accedi con quella nuova."
+    "passwordChanged": "Password cambiata. Accedi con quella nuova.",
+    "newPassword": "Nuova password",
+    "repeatPassword": "Ripetila",
+    "signedOutEverywhere": "Verrai disconnesso ovunque e dovrai accedere di nuovo.",
+    "minChars": "Usa almeno {{min}} caratteri.",
+    "linkExpiredTitle": "Questo link è scaduto",
+    "linkExpiredBody": "I link di reimpostazione valgono una sola volta e durano poco. Richiedine uno nuovo: arriva in un minuto.",
+    "checkingLink": "Stiamo controllando il tuo link…",
+    "oneMoment": "Un momento.",
+    "resetUnavailableTitle": "Il ripristino della password non è disponibile qui",
+    "resetUnavailableBody": "Questa build non ha un backend configurato."
   },
   "paywall": {
     "g1": "Esercizi",
@@ -263,6 +274,8 @@
     "title": "Contatti",
     "emailUs": "Scrivici",
     "privacy": "Informativa sulla privacy",
-    "terms": "Condizioni d’uso"
+    "terms": "Condizioni d’uso",
+    "intro": "Domande, feedback, un problema con il tuo account o una richiesta sulla privacy — leggiamo ogni messaggio.",
+    "dataRequests": "Per le richieste sulla protezione dei dati (accesso, rettifica o cancellazione), usa lo stesso indirizzo — vedi l'<pp>Informativa sulla privacy</pp>."
   }
 }

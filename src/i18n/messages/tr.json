@@ -4,7 +4,8 @@
     "cancel": "Vazgeç",
     "continue": "Devam",
     "loading": "Yükleniyor…",
-    "language": "Dil"
+    "language": "Dil",
+    "backToHome": "Ana sayfaya dön"
   },
   "nav": {
     "home": "Ana sayfa",
@@ -237,7 +238,17 @@
     "showPassword": "Parolayı göster",
     "hidePassword": "Parolayı gizle",
     "passwordsDiffer": "İki parola birbiriyle eşleşmiyor.",
-    "passwordChanged": "Parola değiştirildi. Yenisiyle giriş yapın."
+    "passwordChanged": "Parola değiştirildi. Yenisiyle giriş yapın.",
+    "newPassword": "Yeni şifre",
+    "repeatPassword": "Tekrar girin",
+    "signedOutEverywhere": "Tüm cihazlarda oturumunuz kapatılacak ve yeniden giriş yapmanız gerekecek.",
+    "minChars": "En az {{min}} karakter kullanın.",
+    "linkExpiredTitle": "Bu bağlantının süresi doldu",
+    "linkExpiredBody": "Sıfırlama bağlantıları yalnızca bir kez kullanılabilir ve kısa sürede geçersiz olur. Yeni bir tane isteyin, bir dakika içinde gelir.",
+    "checkingLink": "Bağlantınız kontrol ediliyor…",
+    "oneMoment": "Bir saniye.",
+    "resetUnavailableTitle": "Şifre sıfırlama burada kullanılamıyor",
+    "resetUnavailableBody": "Bu sürümde yapılandırılmış bir arka uç yok."
   },
   "paywall": {
     "g1": "Alıştırmalar",
@@ -263,6 +274,8 @@
     "title": "İletişim",
     "emailUs": "Bize yazın",
     "privacy": "Gizlilik Politikası",
-    "terms": "Kullanım Koşulları"
+    "terms": "Kullanım Koşulları",
+    "intro": "Sorular, geri bildirim, hesabınızla ilgili bir sorun ya da bir gizlilik talebi — her mesajı okuyoruz.",
+    "dataRequests": "Veri koruma talepleri (verilerinize erişim, düzeltme veya silme) için aynı adresi kullanın — <pp>Gizlilik Politikası</pp>'na bakın."
   }
 }

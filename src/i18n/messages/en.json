@@ -4,7 +4,8 @@
     "cancel": "Cancel",
     "continue": "Continue",
     "loading": "Loading…",
-    "language": "Language"
+    "language": "Language",
+    "backToHome": "Back to home"
   },
   "nav": {
     "home": "Home",
@@ -237,7 +238,17 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "passwordsDiffer": "The two passwords do not match.",
-    "passwordChanged": "Password changed. Sign in with your new one."
+    "passwordChanged": "Password changed. Sign in with your new one.",
+    "newPassword": "New password",
+    "repeatPassword": "Repeat it",
+    "signedOutEverywhere": "You will be signed out everywhere and asked to sign in again.",
+    "minChars": "Use at least {{min}} characters.",
+    "linkExpiredTitle": "That link has expired",
+    "linkExpiredBody": "Reset links can only be used once, and they do not last long. Request a new one and it will arrive in a minute.",
+    "checkingLink": "Checking your link…",
+    "oneMoment": "One moment.",
+    "resetUnavailableTitle": "Password reset is unavailable here",
+    "resetUnavailableBody": "This build has no backend configured."
   },
   "paywall": {
     "g1": "Training drills",
@@ -263,6 +274,8 @@
     "title": "Contact",
     "emailUs": "Email us",
     "privacy": "Privacy Policy",
-    "terms": "Terms of Use"
+    "terms": "Terms of Use",
+    "intro": "Questions, feedback, a problem with your account or a privacy request — we read every message.",
+    "dataRequests": "For data-protection requests (access, correction or deletion of your data), use the same address — see the <pp>Privacy Policy</pp>."
   }
 }

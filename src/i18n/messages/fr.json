@@ -4,7 +4,8 @@
     "cancel": "Annuler",
     "continue": "Continuer",
     "loading": "Chargement…",
-    "language": "Langue"
+    "language": "Langue",
+    "backToHome": "Retour à l'accueil"
   },
   "nav": {
     "home": "Accueil",
@@ -237,7 +238,17 @@
     "showPassword": "Afficher le mot de passe",
     "hidePassword": "Masquer le mot de passe",
     "passwordsDiffer": "Les deux mots de passe ne correspondent pas.",
-    "passwordChanged": "Mot de passe modifié. Connectez-vous avec le nouveau."
+    "passwordChanged": "Mot de passe modifié. Connectez-vous avec le nouveau.",
+    "newPassword": "Nouveau mot de passe",
+    "repeatPassword": "Répétez-le",
+    "signedOutEverywhere": "Vous serez déconnecté partout et devrez vous reconnecter.",
+    "minChars": "Utilisez au moins {{min}} caractères.",
+    "linkExpiredTitle": "Ce lien a expiré",
+    "linkExpiredBody": "Les liens de réinitialisation ne servent qu'une fois et expirent vite. Demandez-en un nouveau, il arrivera en une minute.",
+    "checkingLink": "Vérification de votre lien…",
+    "oneMoment": "Un instant.",
+    "resetUnavailableTitle": "La réinitialisation du mot de passe n'est pas disponible ici",
+    "resetUnavailableBody": "Cette version n'a pas de backend configuré."
   },
   "paywall": {
     "g1": "Exercices",
@@ -263,6 +274,8 @@
     "title": "Contact",
     "emailUs": "Écrivez-nous",
     "privacy": "Politique de confidentialité",
-    "terms": "Conditions d’utilisation"
+    "terms": "Conditions d’utilisation",
+    "intro": "Questions, retours, un problème avec votre compte ou une demande relative à vos données — nous lisons chaque message.",
+    "dataRequests": "Pour les demandes relatives à la protection des données (accès, rectification ou suppression), utilisez la même adresse — voir la <pp>Politique de confidentialité</pp>."
   }
 }

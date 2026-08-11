@@ -4,7 +4,8 @@
     "cancel": "Cancelar",
     "continue": "Continuar",
     "loading": "A carregar…",
-    "language": "Idioma"
+    "language": "Idioma",
+    "backToHome": "Voltar ao início"
   },
   "nav": {
     "home": "Início",
@@ -237,7 +238,17 @@
     "showPassword": "Mostrar a palavra-passe",
     "hidePassword": "Ocultar a palavra-passe",
     "passwordsDiffer": "As duas palavras-passe não coincidem.",
-    "passwordChanged": "Palavra-passe alterada. Inicie sessão com a nova."
+    "passwordChanged": "Palavra-passe alterada. Inicie sessão com a nova.",
+    "newPassword": "Nova palavra-passe",
+    "repeatPassword": "Repita",
+    "signedOutEverywhere": "A sua sessão será terminada em todo o lado e terá de iniciar sessão novamente.",
+    "minChars": "Use pelo menos {{min}} caracteres.",
+    "linkExpiredTitle": "Esse link expirou",
+    "linkExpiredBody": "Os links de reposição só funcionam uma vez e expiram depressa. Peça um novo e chegará dentro de um minuto.",
+    "checkingLink": "A verificar o seu link…",
+    "oneMoment": "Um momento.",
+    "resetUnavailableTitle": "A reposição de palavra-passe não está disponível aqui",
+    "resetUnavailableBody": "Esta build não tem backend configurado."
   },
   "paywall": {
     "g1": "Exercícios",
@@ -263,6 +274,8 @@
     "title": "Contacto",
     "emailUs": "Escreva-nos",
     "privacy": "Política de privacidade",
-    "terms": "Termos de utilização"
+    "terms": "Termos de utilização",
+    "intro": "Dúvidas, comentários, um problema com a sua conta ou um pedido de privacidade — lemos todas as mensagens.",
+    "dataRequests": "Para pedidos de proteção de dados (acesso, retificação ou eliminação), use o mesmo endereço — consulte a <pp>Política de Privacidade</pp>."
   }
 }
