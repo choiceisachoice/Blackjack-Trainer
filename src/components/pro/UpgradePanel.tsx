@@ -53,11 +53,11 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
         // Stripe genuinely disagree — the message below is the only thing
         // standing between the user and a button that appears to do nothing.
         await loadEntitlement()
-        setNotice('You already have Pro on this account. If it still looks locked, reload the page.')
+        setNotice(t('paywall.alreadyPro'))
         setBusy(null)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not start checkout.')
+      setError(e instanceof Error ? e.message : t('account.errors.checkout'))
       setBusy(null)
     }
   }
@@ -69,9 +69,9 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
         <span className="grid place-items-center w-14 h-14 rounded-2xl bg-gold/10 text-gold">
           <Crown size={26} />
         </span>
-        <h2 className="text-2xl font-semibold text-gold-gradient">Go Pro</h2>
+        <h2 className="text-2xl font-semibold text-gold-gradient">{t('paywall.goProHeading')}</h2>
         <p className="text-sm text-content/60 max-w-sm">
-          {headline ?? 'Unlock the advanced modes and the full picture of your card-counting edge.'}
+          {headline ?? t('paywall.goProSub')}
         </p>
       </div>
 
@@ -89,7 +89,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
                 : 'text-content/60 hover:text-content'
             }`}
           >
-            {p.label}
+            {t(`pricing.${p.id}`)}
             {p.id === 'yearly' && (
               <span className={plan === p.id ? 'text-casino-bg/70' : 'text-gold'}>
                 {' '}−{saving.percent}%
@@ -104,17 +104,17 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
         {/* Free — what you already have */}
         <div className="rounded-2xl border border-white/8 bg-white/[.015] p-5 flex flex-col">
           <div className="flex items-baseline justify-between">
-            <span className="text-xs font-bold tracking-[0.16em] uppercase text-content/50">Free</span>
-            <span className="text-xs text-content/40">Your plan</span>
+            <span className="text-xs font-bold tracking-[0.16em] uppercase text-content/50">{t('pricing.free')}</span>
+            <span className="text-xs text-content/40">{t('pricing.yourPlan')}</span>
           </div>
           <div className="mt-3 text-2xl font-extrabold text-content/70">{formatCHF(0)}</div>
 
           <div className="mt-4 flex flex-col gap-4">
             {FEATURE_GROUPS.map(group => (
-              <div key={group.title}>
-                <GroupTitle>{group.title}</GroupTitle>
+              <div key={group.titleKey}>
+                <GroupTitle>{t(`paywall.${group.titleKey}`)}</GroupTitle>
                 <div className="flex flex-col gap-2 text-sm">
-                  {group.rows.map(row => <FreeRow key={row.label} row={row} />)}
+                  {group.rows.map(row => <FreeRow key={row.labelKey} row={row} />)}
                 </div>
               </div>
             ))}
@@ -128,12 +128,12 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
           {isYearly && (
             <span className="absolute -top-2.5 right-5 text-[0.6875rem] font-extrabold tracking-wider
               text-casino-bg bg-gradient-to-br from-gold-bright to-gold px-2.5 py-0.5 rounded-full">
-              BEST VALUE
+              {t('pricing.bestValue')}
             </span>
           )}
 
           <div className="flex items-baseline justify-between">
-            <span className="text-xs font-bold tracking-[0.16em] uppercase text-gold">Pro</span>
+            <span className="text-xs font-bold tracking-[0.16em] uppercase text-gold">{t('pricing.pro')}</span>
           </div>
 
           <div className="mt-3 flex items-baseline gap-2 flex-wrap">
@@ -147,8 +147,8 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
           </div>
           <div className="mt-1 text-xs text-gold min-h-4">
             {isYearly
-              ? `Save ${formatCHF(saving.saved)} against ${formatCHF(monthly.amount)}/month`
-              : 'Flexible — switch to yearly anytime'}
+              ? t('paywall.saveAgainst', { saved: formatCHF(saving.saved), monthly: formatCHF(monthly.amount) })
+              : t('pricing.flexibleSwitch')}
           </div>
           <div className="mt-1 text-xs text-content/45" data-testid="paywall-vat-note">{t('pricing.vatNote', { rate: CH_VAT_PERCENT })}</div>
 
@@ -165,18 +165,18 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
               bg-gradient-to-br from-gold-bright to-gold text-casino-bg"
           >
             {busy !== null && <Loader2 size={16} className="animate-spin" />}
-            Go Pro — {formatCHF(selected.amount)}{selected.cadence}
+            {t('pricing.goPro')} — {formatCHF(selected.amount)}{t(`pricing.${selected.id === 'monthly' ? 'perMonth' : 'perYear'}`)}
           </button>
 
           <div className="mt-5 flex flex-col gap-4">
             {FEATURE_GROUPS.map(group => (
-              <div key={group.title}>
-                <GroupTitle gold>{group.title}</GroupTitle>
+              <div key={group.titleKey}>
+                <GroupTitle gold>{t(`paywall.${group.titleKey}`)}</GroupTitle>
                 <div className="flex flex-col gap-2 text-sm">
                   {group.rows.map(row => (
-                    <div key={row.label} className="flex gap-2.5 items-start text-content/85">
+                    <div key={row.labelKey} className="flex gap-2.5 items-start text-content/85">
                       <Check size={15} className="text-gold shrink-0 mt-0.5" />
-                      {row.label}
+                      {t(`paywall.${row.labelKey}`)}
                     </div>
                   ))}
                 </div>
@@ -190,7 +190,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
       {notice && <p className="text-sm text-gold" role="status" data-testid="upgrade-notice">{notice}</p>}
 
       <p className="text-xs text-content/40 text-center">
-        Secure checkout by Stripe. Cancel anytime from your account.
+        {t('pricing.secureCheckout')}
       </p>
     </div>
   )
@@ -216,11 +216,12 @@ function GroupTitle({ children, gold = false }: { children: string; gold?: boole
  * to upgrade.
  */
 function FreeRow({ row }: { row: ComparisonRow }) {
+  const { t } = useTranslation()
   if (row.free === 'none') {
     return (
       <div className="flex gap-2.5 items-start text-content/25">
         <X size={15} className="shrink-0 mt-0.5" />
-        <span className="line-through decoration-content/20">{row.label}</span>
+        <span className="line-through decoration-content/20">{t(`paywall.${row.labelKey}`)}</span>
       </div>
     )
   }
@@ -228,9 +229,9 @@ function FreeRow({ row }: { row: ComparisonRow }) {
     <div className="flex gap-2.5 items-start text-content/70">
       <Check size={15} className="text-content/40 shrink-0 mt-0.5" />
       <span>
-        {row.label}
-        {row.free === 'partial' && row.freeNote && (
-          <span className="text-content/35"> — {row.freeNote} only</span>
+        {t(`paywall.${row.labelKey}`)}
+        {row.free === 'partial' && row.freeNoteKey && (
+          <span className="text-content/35"> — {t(`paywall.${row.freeNoteKey}`)}</span>
         )}
       </span>
     </div>

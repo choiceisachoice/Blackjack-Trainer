@@ -92,17 +92,24 @@ export function yearlySaving(plans: PlanOption[] = PLAN_OPTIONS): YearlySaving {
 /** How much of a capability the free tier gets. */
 export type FreeLevel = 'full' | 'partial' | 'none'
 
-/** One capability, compared across the two tiers. */
+/**
+ * One capability, compared across the two tiers.
+ *
+ * Carries translation keys, not English. The paywall, the landing page and the
+ * pricing card all read this list, so an English string here would be an
+ * English string in three places that only English readers ever see corrected.
+ */
 export interface ComparisonRow {
-  /** The capability, named the way a user thinks of it. */
-  label: string
+  /** Key under `paywall` naming the capability the way a user thinks of it. */
+  labelKey: string
   free: FreeLevel
-  /** Qualifier shown on the free side when `free` is `'partial'`. */
-  freeNote?: string
+  /** Key for the qualifier shown on the free side when `free` is `'partial'`. */
+  freeNoteKey?: string
 }
 
 export interface FeatureGroup {
-  title: string
+  /** Key under `paywall` for the group heading. */
+  titleKey: string
   rows: ComparisonRow[]
 }
 
@@ -119,32 +126,32 @@ export interface FeatureGroup {
  */
 export const FEATURE_GROUPS: FeatureGroup[] = [
   {
-    title: 'Training drills',
+    titleKey: 'g1',
     rows: [
-      { label: 'Speed Drill & Flashcards', free: 'full' },
-      { label: 'Bet Spread training', free: 'none' },
-      { label: 'Deck Estimation', free: 'none' },
+      { labelKey: 'r1', free: 'full' },
+      { labelKey: 'r2', free: 'none' },
+      { labelKey: 'r3', free: 'none' },
     ],
   },
   {
-    title: 'At the table',
+    titleKey: 'g2',
     rows: [
-      { label: 'Full Casino Session — bots, splits, payouts', free: 'none' },
-      { label: 'Strategy Chart', free: 'partial', freeNote: 'basics' },
-      { label: 'Illustrious 18 & Fab 4 deviations', free: 'none' },
+      { labelKey: 'r4', free: 'none' },
+      { labelKey: 'r5', free: 'partial', freeNoteKey: 'basics' },
+      { labelKey: 'r6', free: 'none' },
     ],
   },
   {
-    title: 'Your edge',
+    titleKey: 'g3',
     rows: [
-      { label: 'Analytics — trend, heatmap, skill radar, weakest hands', free: 'partial', freeNote: 'basics' },
-      { label: 'Bankroll Tracker & risk-of-ruin simulator', free: 'none' },
+      { labelKey: 'r7', free: 'partial', freeNoteKey: 'basics' },
+      { labelKey: 'r8', free: 'none' },
     ],
   },
   {
-    title: 'Progress',
+    titleKey: 'g4',
     rows: [
-      { label: 'Awards, levels & the Learn guide', free: 'full' },
+      { labelKey: 'r9', free: 'full' },
     ],
   },
 ]
@@ -158,13 +165,11 @@ const ALL_ROWS: ComparisonRow[] = FEATURE_GROUPS.flatMap(g => g.rows)
  */
 export const PRO_BENEFITS: string[] = ALL_ROWS
   .filter(r => r.free !== 'full')
-  .map(r => r.label)
+  .map(r => r.labelKey)
 
 /**
  * What the free tier already includes. Shown beside the Pro column so the
  * paywall compares instead of only advertising — seeing what you *do* have
  * makes the gap concrete, and keeps the free tier an honest offer.
  */
-export const FREE_BENEFITS: string[] = ALL_ROWS
-  .filter(r => r.free !== 'none')
-  .map(r => (r.freeNote ? `${r.label} (${r.freeNote})` : r.label))
+export const FREE_BENEFITS: ComparisonRow[] = ALL_ROWS.filter(r => r.free !== 'none')

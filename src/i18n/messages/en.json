@@ -212,5 +212,57 @@
       "l3": "Your basic analytics",
       "l4": "Awards, levels & the Learn guide"
     }
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "register": "Register",
+    "createAccount": "Create Account",
+    "authMode": "Auth mode",
+    "subSignIn": "Sign in to sync your progress.",
+    "subSignUp": "Create an account to get started.",
+    "subReset": "We’ll email you a link to set a new one.",
+    "username": "Username (optional)",
+    "usernamePlaceholder": "cardcounter",
+    "email": "Email",
+    "password": "Password",
+    "sendResetLink": "Send reset link",
+    "forgot": "Forgotten your password?",
+    "backToSignIn": "Back to sign in",
+    "resetSent": "If that address has an account, a reset link is on its way.",
+    "accountCreated": "Account created. Check your email for the confirmation link, then sign in.",
+    "checkInbox": "check your inbox",
+    "newPasswordTitle": "Choose a new password",
+    "saving": "Saving…",
+    "saveAndContinue": "Save and continue",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "passwordsDiffer": "The two passwords do not match.",
+    "passwordChanged": "Password changed. Sign in with your new one."
+  },
+  "paywall": {
+    "g1": "Training drills",
+    "g2": "At the table",
+    "g3": "Your edge",
+    "g4": "Progress",
+    "r1": "Speed Drill & Flashcards",
+    "r2": "Bet Spread training",
+    "r3": "Deck Estimation",
+    "r4": "Full Casino Session — bots, splits, payouts",
+    "r5": "Strategy Chart",
+    "r6": "Illustrious 18 & Fab 4 deviations",
+    "r7": "Analytics — trend, heatmap, skill radar, weakest hands",
+    "r8": "Bankroll Tracker & risk-of-ruin simulator",
+    "r9": "Awards, levels & the Learn guide",
+    "basics": "basics",
+    "goProHeading": "Go Pro",
+    "goProSub": "Unlock the advanced modes and the full picture of your card-counting edge.",
+    "alreadyPro": "You already have Pro on this account. If it still looks locked, reload the page.",
+    "saveAgainst": "Save {{saved}} against {{monthly}}/month"
+  },
+  "contact": {
+    "title": "Contact",
+    "emailUs": "Email us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use"
   }
 }

@@ -212,5 +212,57 @@
       "l3": "Le tue analisi di base",
       "l4": "Premi, livelli & la guida"
     }
+  },
+  "auth": {
+    "signIn": "Accedi",
+    "register": "Registrati",
+    "createAccount": "Crea un account",
+    "authMode": "Modalità di accesso",
+    "subSignIn": "Accedi per sincronizzare i tuoi progressi.",
+    "subSignUp": "Crea un account per iniziare.",
+    "subReset": "Ti invieremo un link per impostarne una nuova.",
+    "username": "Nome utente (facoltativo)",
+    "usernamePlaceholder": "contatore",
+    "email": "E-mail",
+    "password": "Password",
+    "sendResetLink": "Invia il link",
+    "forgot": "Password dimenticata?",
+    "backToSignIn": "Torna all’accesso",
+    "resetSent": "Se esiste un account con quell’indirizzo, il link è in arrivo.",
+    "accountCreated": "Account creato. Controlla l’e-mail per il link di conferma, poi accedi.",
+    "checkInbox": "controlla la posta",
+    "newPasswordTitle": "Scegli una nuova password",
+    "saving": "Salvataggio…",
+    "saveAndContinue": "Salva e continua",
+    "showPassword": "Mostra la password",
+    "hidePassword": "Nascondi la password",
+    "passwordsDiffer": "Le due password non coincidono.",
+    "passwordChanged": "Password cambiata. Accedi con quella nuova."
+  },
+  "paywall": {
+    "g1": "Esercizi",
+    "g2": "Al tavolo",
+    "g3": "Il tuo vantaggio",
+    "g4": "Progressi",
+    "r1": "Velocità & carte mnemoniche",
+    "r2": "Allenamento allo spread delle puntate",
+    "r3": "Stima dei mazzi",
+    "r4": "Sessione di casinò completa — bot, split, pagamenti",
+    "r5": "Tabella di strategia",
+    "r6": "Deviazioni Illustrious 18 & Fab 4",
+    "r7": "Analisi — andamento, mappa di calore, radar, mani più deboli",
+    "r8": "Tracker bankroll & simulatore del rischio di rovina",
+    "r9": "Premi, livelli & la guida",
+    "basics": "basi",
+    "goProHeading": "Passa a Pro",
+    "goProSub": "Sblocca le modalità avanzate e il quadro completo del tuo vantaggio nel conteggio.",
+    "alreadyPro": "Questo account ha già Pro. Se sembra ancora bloccato, ricarica la pagina.",
+    "saveAgainst": "Risparmi {{saved}} rispetto a {{monthly}}/mese"
+  },
+  "contact": {
+    "title": "Contatti",
+    "emailUs": "Scrivici",
+    "privacy": "Informativa sulla privacy",
+    "terms": "Condizioni d’uso"
   }
 }

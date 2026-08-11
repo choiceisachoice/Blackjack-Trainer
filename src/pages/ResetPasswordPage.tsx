@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react'
@@ -27,6 +28,7 @@ const MIN_LENGTH = 6
  * no longer works, here is how to get another.
  */
 export function ResetPasswordPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const status = useAuthStore(s => s.status)
   const updatePassword = useAuthStore(s => s.updatePassword)
@@ -62,7 +64,7 @@ export function ResetPasswordPage() {
       <Fallback
         title="That link has expired"
         body="Reset links can only be used once, and they do not last long. Request a new one and it will arrive in a minute."
-        action={{ to: '/login', label: 'Back to sign in' }}
+        action={{ to: '/login', label: t('auth.backToSignIn') }}
       />
     )
   }
@@ -80,7 +82,7 @@ export function ResetPasswordPage() {
     // in the middle of recovering — the one moment where that is least
     // forgivable.
     if (password !== confirm) {
-      setLocalError('The two passwords do not match.')
+      setLocalError(t('auth.passwordsDiffer'))
       return
     }
 
@@ -95,7 +97,7 @@ export function ResetPasswordPage() {
       if (!err) {
         navigate('/login', {
           replace: true,
-          state: { notice: 'Password changed. Sign in with your new one.' },
+          state: { notice: t('auth.passwordChanged') },
         })
       }
     } finally {
@@ -113,7 +115,7 @@ export function ResetPasswordPage() {
           <span className="grid place-items-center w-12 h-12 rounded-xl text-gold bg-gold/10 border border-gold/20 mb-3">
             <Spade size={22} className="fill-current" />
           </span>
-          <h1 className="text-lg font-bold tracking-tight">Choose a new password</h1>
+          <h1 className="text-lg font-bold tracking-tight">{t('auth.newPasswordTitle')}</h1>
           {/* Said before it happens, not after. Someone resetting because
               another person got into their account needs to know the intruder
               is being removed — and someone who simply forgot needs to know why
@@ -160,7 +162,7 @@ export function ResetPasswordPage() {
               disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {busy && <Loader2 size={16} className="animate-spin" />}
-            {busy ? 'Saving…' : 'Save and continue'}
+            {busy ? t('auth.saving') : t('auth.saveAndContinue')}
           </button>
         </form>
       </div>
@@ -190,6 +192,7 @@ function Field({ id, label, value, onChange, autoComplete, testId, shown, onTogg
   shown: boolean
   onToggle: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <div>
       <label htmlFor={id} className="block text-[0.7rem] font-semibold tracking-wider uppercase text-content/45 mb-1.5">
@@ -212,9 +215,9 @@ function Field({ id, label, value, onChange, autoComplete, testId, shown, onTogg
           onClick={onToggle}
           // Labelled for what it will do, not for what it is: a screen reader
           // announcing "eye" tells nobody anything.
-          aria-label={shown ? 'Hide password' : 'Show password'}
+          aria-label={shown ? t('auth.hidePassword') : t('auth.showPassword')}
           aria-pressed={shown}
-          title={shown ? 'Hide password' : 'Show password'}
+          title={shown ? t('auth.hidePassword') : t('auth.showPassword')}
           data-testid={`${testId}-reveal`}
           className="absolute right-1.5 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-lg
             text-content/40 hover:text-content hover:bg-contrast/8 cursor-pointer transition-colors"

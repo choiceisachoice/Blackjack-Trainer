@@ -80,24 +80,34 @@ describe('PLAN_OPTIONS', () => {
 })
 
 describe('FEATURE_GROUPS', () => {
-  it('groups every capability under a titled section', () => {
+  /** English text for a key, so the tests read what a user reads. */
+  const label = (k: string) => (en.paywall as Record<string, string>)[k]
+
+  it('names every group and row with a key that actually resolves', () => {
+    // A typo in a key does not throw — it renders the raw key path on the
+    // paywall, which is the screen where confidence matters most.
     expect(FEATURE_GROUPS.length).toBeGreaterThan(1)
     for (const g of FEATURE_GROUPS) {
-      expect(g.title.trim().length).toBeGreaterThan(0)
+      expect(label(g.titleKey), `missing paywall.${g.titleKey}`).toBeTruthy()
       expect(g.rows.length).toBeGreaterThan(0)
-      for (const r of g.rows) expect(r.label.trim().length).toBeGreaterThan(0)
+      for (const r of g.rows) {
+        expect(label(r.labelKey), `missing paywall.${r.labelKey}`).toBeTruthy()
+      }
     }
   })
 
   it('never lists the same capability twice', () => {
-    const labels = FEATURE_GROUPS.flatMap(g => g.rows).map(r => r.label)
-    expect(new Set(labels).size).toBe(labels.length)
+    const keys = FEATURE_GROUPS.flatMap(g => g.rows).map(r => r.labelKey)
+    expect(new Set(keys).size).toBe(keys.length)
   })
 
   it('gives every partial row the qualifier it needs', () => {
     // A "partial" tick without a note would read as full access.
     for (const r of FEATURE_GROUPS.flatMap(g => g.rows)) {
-      if (r.free === 'partial') expect(r.freeNote?.trim()).toBeTruthy()
+      if (r.free === 'partial') {
+        expect(r.freeNoteKey).toBeTruthy()
+        expect(label(r.freeNoteKey!)).toBeTruthy()
+      }
     }
   })
 
@@ -109,38 +119,32 @@ describe('FEATURE_GROUPS', () => {
 })
 
 describe('derived benefit lists', () => {
+  const label = (k: string) => (en.paywall as Record<string, string>)[k]
+
   it('derives Pro benefits from the groups, so the two cannot disagree', () => {
     const notFullyFree = FEATURE_GROUPS.flatMap(g => g.rows).filter(r => r.free !== 'full')
     expect(PRO_BENEFITS).toHaveLength(notFullyFree.length)
-    for (const r of notFullyFree) expect(PRO_BENEFITS).toContain(r.label)
+    for (const r of notFullyFree) expect(PRO_BENEFITS).toContain(r.labelKey)
   })
 
   it('counts a partial capability towards both tiers', () => {
     // Free has the basics, Pro completes it — it belongs in both lists.
     const partial = FEATURE_GROUPS.flatMap(g => g.rows).find(r => r.free === 'partial')
     expect(partial, 'expected at least one partial row').toBeTruthy()
-    expect(PRO_BENEFITS).toContain(partial!.label)
-    expect(FREE_BENEFITS.some(b => b.startsWith(partial!.label))).toBe(true)
+    expect(PRO_BENEFITS).toContain(partial!.labelKey)
+    expect(FREE_BENEFITS.map(r => r.labelKey)).toContain(partial!.labelKey)
   })
 
   it('keeps fully-paid capabilities out of the free list', () => {
     const paidOnly = FEATURE_GROUPS.flatMap(g => g.rows).filter(r => r.free === 'none')
-    for (const r of paidOnly) {
-      expect(FREE_BENEFITS.some(b => b.startsWith(r.label))).toBe(false)
-    }
-  })
-})
-
-describe('benefit lists', () => {
-  it('describes both tiers without empty entries', () => {
-    for (const list of [PRO_BENEFITS, FREE_BENEFITS]) {
-      expect(list.length).toBeGreaterThan(0)
-      for (const entry of list) expect(entry.trim().length).toBeGreaterThan(0)
-    }
+    const freeKeys = FREE_BENEFITS.map(r => r.labelKey)
+    for (const r of paidOnly) expect(freeKeys).not.toContain(r.labelKey)
   })
 
-  it('keeps the paid modes out of the free tier list', () => {
-    const free = FREE_BENEFITS.join(' ').toLowerCase()
+  it('keeps the paid modes out of the free tier, by name and not only by key', () => {
+    // Checked against the English text, because the point is what a visitor
+    // reads. A key-only check would pass even if `r4` said "Casino Session".
+    const free = FREE_BENEFITS.map(r => label(r.labelKey)).join(' ').toLowerCase()
     expect(free).not.toContain('casino session')
     expect(free).not.toContain('bankroll')
     expect(free).not.toContain('deviations')

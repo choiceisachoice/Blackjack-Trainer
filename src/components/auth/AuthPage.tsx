@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { Spade, Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth-store'
@@ -17,6 +18,7 @@ type Mode = 'signin' | 'signup' | 'reset'
  * signed in. Dark-luxury styling to match the app shell.
  */
 export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
+  const { t } = useTranslation()
   const signIn = useAuthStore(s => s.signIn)
   const signUp = useAuthStore(s => s.signUp)
   const requestPasswordReset = useAuthStore(s => s.requestPasswordReset)
@@ -55,16 +57,16 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
           to report an unknown address; this is the other half of it, and the
           two have to agree or the wording gives away what the code refused to.
         */
-        if (!err) setNotice('If that address has an account, a reset link is on its way.')
+        if (!err) setNotice(t('auth.resetSent'))
       } else if (mode === 'signup') {
         const { error, needsConfirmation } = await signUp(email.trim(), password, username.trim() || undefined)
         // Only mention email when an email is actually coming. With email
         // confirmation off — which is how the project is configured — the
         // account is live immediately and the auth listener takes the learner
-        // into the app, so a "check your inbox" notice would send them looking
+        // into the app, so a t('auth.checkInbox') notice would send them looking
         // for a message that will never arrive.
         if (!error && needsConfirmation) {
-          setNotice('Account created. Check your email for the confirmation link, then sign in.')
+          setNotice(t('auth.accountCreated'))
         }
       } else {
         await signIn(email.trim(), password)
@@ -91,14 +93,14 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
           </span>
           <h1 className="text-2xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">Blackjack Trainer</h1>
           <p className="text-sm text-content/50 mt-1">
-            {mode === 'reset' ? 'We’ll email you a link to set a new one.'
-              : mode === 'signin' ? 'Sign in to sync your progress.'
-              : 'Create an account to get started.'}
+            {mode === 'reset' ? t('auth.subReset')
+              : mode === 'signin' ? t('auth.subSignIn')
+              : t('auth.subSignUp')}
           </p>
         </div>
 
         {/* mode toggle */}
-        <div className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10 mb-5" role="group" aria-label="Auth mode">
+        <div className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10 mb-5" role="group" aria-label={t('auth.authMode')}>
           {(['signin', 'signup'] as const).map(m => (
             <button
               key={m}
@@ -108,21 +110,21 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
               className={`flex-1 px-3 py-1.5 rounded-md text-sm font-semibold cursor-pointer transition-colors
                 ${(mode === 'reset' ? 'signin' : mode) === m ? 'bg-gold text-black' : 'text-content/60 hover:text-content'}`}
             >
-              {m === 'signin' ? 'Sign In' : 'Register'}
+              {m === 'signin' ? t('auth.signIn') : t('auth.register')}
             </button>
           ))}
         </div>
 
         <form onSubmit={onSubmit} className="space-y-3">
           {mode === 'signup' && (
-            <Field label="Username (optional)">
+            <Field label={t('auth.username')}>
               <input
                 type="text"
                 autoComplete="username"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 className={inputClass}
-                placeholder="cardcounter"
+                placeholder={t('auth.usernamePlaceholder')}
               />
             </Field>
           )}
@@ -144,7 +146,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
               type yet, and a required field they cannot fill would block the
               form. */}
           {mode !== 'reset' && (
-            <Field label="Password">
+            <Field label={t('auth.password')}>
               <input
                 type="password"
                 required
@@ -179,7 +181,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
               shadow-[0_10px_30px_-12px_var(--color-gold)] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {busy && <Loader2 size={16} className="animate-spin" />}
-            {mode === 'reset' ? 'Send reset link' : mode === 'signin' ? 'Sign In' : 'Create Account'}
+            {mode === 'reset' ? t('auth.sendResetLink') : mode === 'signin' ? t('auth.signIn') : t('auth.createAccount')}
           </button>
 
           {/* Recovery lives under the form, not in the mode toggle: it is a way
@@ -192,7 +194,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
               className="w-full text-center text-sm text-content/45 hover:text-content
                 cursor-pointer transition-colors"
             >
-              Forgotten your password?
+              {t('auth.forgot')}
             </button>
           )}
           {mode === 'reset' && (

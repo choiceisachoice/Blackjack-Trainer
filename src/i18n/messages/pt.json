@@ -212,5 +212,57 @@
       "l3": "As suas análises básicas",
       "l4": "Conquistas, níveis & o guia"
     }
+  },
+  "auth": {
+    "signIn": "Iniciar sessão",
+    "register": "Registar",
+    "createAccount": "Criar conta",
+    "authMode": "Modo de acesso",
+    "subSignIn": "Inicie sessão para sincronizar o seu progresso.",
+    "subSignUp": "Crie uma conta para começar.",
+    "subReset": "Enviamos-lhe um link para definir uma nova.",
+    "username": "Nome de utilizador (opcional)",
+    "usernamePlaceholder": "contador",
+    "email": "E-mail",
+    "password": "Palavra-passe",
+    "sendResetLink": "Enviar link",
+    "forgot": "Esqueceu-se da palavra-passe?",
+    "backToSignIn": "Voltar ao início de sessão",
+    "resetSent": "Se existir uma conta com esse endereço, o link está a caminho.",
+    "accountCreated": "Conta criada. Veja no e-mail o link de confirmação e depois inicie sessão.",
+    "checkInbox": "veja a caixa de entrada",
+    "newPasswordTitle": "Escolha uma nova palavra-passe",
+    "saving": "A guardar…",
+    "saveAndContinue": "Guardar e continuar",
+    "showPassword": "Mostrar a palavra-passe",
+    "hidePassword": "Ocultar a palavra-passe",
+    "passwordsDiffer": "As duas palavras-passe não coincidem.",
+    "passwordChanged": "Palavra-passe alterada. Inicie sessão com a nova."
+  },
+  "paywall": {
+    "g1": "Exercícios",
+    "g2": "À mesa",
+    "g3": "A sua vantagem",
+    "g4": "Progresso",
+    "r1": "Velocidade & cartões",
+    "r2": "Treino de spread de apostas",
+    "r3": "Estimativa de baralhos",
+    "r4": "Sessão de casino completa — bots, splits, pagamentos",
+    "r5": "Tabela de estratégia",
+    "r6": "Desvios Illustrious 18 & Fab 4",
+    "r7": "Análises — tendência, mapa de calor, radar, mãos mais fracas",
+    "r8": "Registo de bankroll & simulador de risco de ruína",
+    "r9": "Conquistas, níveis & o guia",
+    "basics": "bases",
+    "goProHeading": "Obter Pro",
+    "goProSub": "Desbloqueie os modos avançados e o retrato completo da sua vantagem na contagem.",
+    "alreadyPro": "Esta conta já tem Pro. Se continuar a parecer bloqueada, recarregue a página.",
+    "saveAgainst": "Poupe {{saved}} face a {{monthly}}/mês"
+  },
+  "contact": {
+    "title": "Contacto",
+    "emailUs": "Escreva-nos",
+    "privacy": "Política de privacidade",
+    "terms": "Termos de utilização"
   }
 }

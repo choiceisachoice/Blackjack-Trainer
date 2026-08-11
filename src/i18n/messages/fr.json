@@ -212,5 +212,57 @@
       "l3": "Vos analyses de base",
       "l4": "Trophées, niveaux & le guide"
     }
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "register": "S’inscrire",
+    "createAccount": "Créer un compte",
+    "authMode": "Mode de connexion",
+    "subSignIn": "Connectez-vous pour synchroniser votre progression.",
+    "subSignUp": "Créez un compte pour commencer.",
+    "subReset": "Nous vous enverrons un lien pour en définir un nouveau.",
+    "username": "Nom d’utilisateur (facultatif)",
+    "usernamePlaceholder": "compteur",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "sendResetLink": "Envoyer le lien",
+    "forgot": "Mot de passe oublié ?",
+    "backToSignIn": "Retour à la connexion",
+    "resetSent": "Si un compte existe pour cette adresse, un lien est en route.",
+    "accountCreated": "Compte créé. Consultez vos e-mails pour le lien de confirmation, puis connectez-vous.",
+    "checkInbox": "consultez votre boîte",
+    "newPasswordTitle": "Choisissez un nouveau mot de passe",
+    "saving": "Enregistrement…",
+    "saveAndContinue": "Enregistrer et continuer",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
+    "passwordsDiffer": "Les deux mots de passe ne correspondent pas.",
+    "passwordChanged": "Mot de passe modifié. Connectez-vous avec le nouveau."
+  },
+  "paywall": {
+    "g1": "Exercices",
+    "g2": "À la table",
+    "g3": "Votre avantage",
+    "g4": "Progression",
+    "r1": "Vitesse & cartes mémoire",
+    "r2": "Entraînement à l’écart de mises",
+    "r3": "Estimation des paquets",
+    "r4": "Session de casino complète — bots, splits, paiements",
+    "r5": "Tableau de stratégie",
+    "r6": "Déviations Illustrious 18 & Fab 4",
+    "r7": "Analyse — tendance, carte de chaleur, radar, mains les plus faibles",
+    "r8": "Suivi de bankroll & simulateur de risque de ruine",
+    "r9": "Trophées, niveaux & le guide",
+    "basics": "bases",
+    "goProHeading": "Passer à Pro",
+    "goProSub": "Débloquez les modes avancés et l’image complète de votre avantage au comptage.",
+    "alreadyPro": "Ce compte dispose déjà de Pro. Si tout paraît encore verrouillé, rechargez la page.",
+    "saveAgainst": "Économisez {{saved}} par rapport à {{monthly}}/mois"
+  },
+  "contact": {
+    "title": "Contact",
+    "emailUs": "Écrivez-nous",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d’utilisation"
   }
 }

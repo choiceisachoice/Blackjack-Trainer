@@ -212,5 +212,57 @@
       "l3": "Deine Basis-Auswertung",
       "l4": "Erfolge, Level & der Lern-Guide"
     }
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "register": "Registrieren",
+    "createAccount": "Konto erstellen",
+    "authMode": "Anmeldeart",
+    "subSignIn": "Melde dich an, um deinen Fortschritt zu synchronisieren.",
+    "subSignUp": "Erstelle ein Konto, um loszulegen.",
+    "subReset": "Wir schicken dir einen Link, um ein neues zu setzen.",
+    "username": "Benutzername (optional)",
+    "usernamePlaceholder": "kartenzaehler",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "sendResetLink": "Link senden",
+    "forgot": "Passwort vergessen?",
+    "backToSignIn": "Zurück zur Anmeldung",
+    "resetSent": "Falls es zu dieser Adresse ein Konto gibt, ist ein Link unterwegs.",
+    "accountCreated": "Konto erstellt. Prüf deine E-Mails auf den Bestätigungslink und melde dich dann an.",
+    "checkInbox": "Posteingang prüfen",
+    "newPasswordTitle": "Neues Passwort wählen",
+    "saving": "Wird gespeichert…",
+    "saveAndContinue": "Speichern und weiter",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
+    "passwordsDiffer": "Die beiden Passwörter stimmen nicht überein.",
+    "passwordChanged": "Passwort geändert. Melde dich mit dem neuen an."
+  },
+  "paywall": {
+    "g1": "Trainingsübungen",
+    "g2": "Am Tisch",
+    "g3": "Dein Vorteil",
+    "g4": "Fortschritt",
+    "r1": "Speed Drill & Karteikarten",
+    "r2": "Einsatzspreizung-Training",
+    "r3": "Deck-Schätzung",
+    "r4": "Vollständige Casino-Session — Bots, Splits, Auszahlungen",
+    "r5": "Strategietabelle",
+    "r6": "Illustrious 18 & Fab 4 Abweichungen",
+    "r7": "Auswertung — Verlauf, Heatmap, Skill-Radar, schwächste Hände",
+    "r8": "Bankroll-Tracker & Ruinrisiko-Simulator",
+    "r9": "Erfolge, Level & der Lern-Guide",
+    "basics": "Grundlagen",
+    "goProHeading": "Pro holen",
+    "goProSub": "Schalte die fortgeschrittenen Modi frei und sieh dein Kartenzähl-Potenzial vollständig.",
+    "alreadyPro": "Dieses Konto hat bereits Pro. Falls es weiterhin gesperrt aussieht, lade die Seite neu.",
+    "saveAgainst": "Spare {{saved}} gegenüber {{monthly}}/Monat"
+  },
+  "contact": {
+    "title": "Kontakt",
+    "emailUs": "Schreib uns",
+    "privacy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen"
   }
 }

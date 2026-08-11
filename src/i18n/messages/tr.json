@@ -212,5 +212,57 @@
       "l3": "Temel analizleriniz",
       "l4": "Başarımlar, seviyeler & rehber"
     }
+  },
+  "auth": {
+    "signIn": "Giriş yap",
+    "register": "Kayıt ol",
+    "createAccount": "Hesap oluştur",
+    "authMode": "Giriş modu",
+    "subSignIn": "İlerlemenizi eşitlemek için giriş yapın.",
+    "subSignUp": "Başlamak için bir hesap oluşturun.",
+    "subReset": "Yenisini belirlemeniz için size bir bağlantı göndereceğiz.",
+    "username": "Kullanıcı adı (isteğe bağlı)",
+    "usernamePlaceholder": "sayici",
+    "email": "E-posta",
+    "password": "Parola",
+    "sendResetLink": "Bağlantı gönder",
+    "forgot": "Parolanızı mı unuttunuz?",
+    "backToSignIn": "Girişe dön",
+    "resetSent": "Bu adrese ait bir hesap varsa, bağlantı yolda.",
+    "accountCreated": "Hesap oluşturuldu. Onay bağlantısı için e-postanıza bakın, sonra giriş yapın.",
+    "checkInbox": "gelen kutunuza bakın",
+    "newPasswordTitle": "Yeni bir parola seçin",
+    "saving": "Kaydediliyor…",
+    "saveAndContinue": "Kaydet ve devam et",
+    "showPassword": "Parolayı göster",
+    "hidePassword": "Parolayı gizle",
+    "passwordsDiffer": "İki parola birbiriyle eşleşmiyor.",
+    "passwordChanged": "Parola değiştirildi. Yenisiyle giriş yapın."
+  },
+  "paywall": {
+    "g1": "Alıştırmalar",
+    "g2": "Masada",
+    "g3": "Avantajınız",
+    "g4": "İlerleme",
+    "r1": "Hız & bilgi kartları",
+    "r2": "Bahis aralığı alıştırması",
+    "r3": "Deste tahmini",
+    "r4": "Tam kumarhane oturumu — botlar, bölmeler, ödemeler",
+    "r5": "Strateji tablosu",
+    "r6": "Illustrious 18 & Fab 4 sapmaları",
+    "r7": "Analiz — eğri, ısı haritası, beceri radarı, en zayıf eller",
+    "r8": "Kasa takibi & iflas riski simülatörü",
+    "r9": "Başarımlar, seviyeler & rehber",
+    "basics": "temel",
+    "goProHeading": "Pro'ya geç",
+    "goProSub": "Gelişmiş modları ve kart sayma avantajınızın tam resmini açın.",
+    "alreadyPro": "Bu hesapta zaten Pro var. Hâlâ kilitli görünüyorsa sayfayı yenileyin.",
+    "saveAgainst": "Aylık {{monthly}} yerine {{saved}} tasarruf"
+  },
+  "contact": {
+    "title": "İletişim",
+    "emailUs": "Bize yazın",
+    "privacy": "Gizlilik Politikası",
+    "terms": "Kullanım Koşulları"
   }
 }

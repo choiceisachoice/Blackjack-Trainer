@@ -248,7 +248,7 @@ export function LandingPage() {
             </div>
             <div className="mt-5 flex flex-col gap-2.5 text-sm text-content/60">
               <div className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" /><span className="text-content">{t('pricing.everythingInFree')}</span></div>
-              {PRO_BENEFITS.map(b => (<div key={b} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{b}</div>))}
+              {PRO_BENEFITS.map(b => (<div key={b} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{t(`paywall.${b}`)}</div>))}
             </div>
             <button
               onClick={goPro}

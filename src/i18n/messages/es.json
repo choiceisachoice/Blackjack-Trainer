@@ -212,5 +212,57 @@
       "l3": "Tus analíticas básicas",
       "l4": "Logros, niveles y la guía"
     }
+  },
+  "auth": {
+    "signIn": "Iniciar sesión",
+    "register": "Registrarse",
+    "createAccount": "Crear cuenta",
+    "authMode": "Modo de acceso",
+    "subSignIn": "Inicia sesión para sincronizar tu progreso.",
+    "subSignUp": "Crea una cuenta para empezar.",
+    "subReset": "Te enviaremos un enlace para establecer una nueva.",
+    "username": "Nombre de usuario (opcional)",
+    "usernamePlaceholder": "contador",
+    "email": "Correo",
+    "password": "Contraseña",
+    "sendResetLink": "Enviar enlace",
+    "forgot": "¿Olvidaste tu contraseña?",
+    "backToSignIn": "Volver al inicio de sesión",
+    "resetSent": "Si esa dirección tiene cuenta, el enlace va en camino.",
+    "accountCreated": "Cuenta creada. Busca en tu correo el enlace de confirmación y luego inicia sesión.",
+    "checkInbox": "revisa tu bandeja",
+    "newPasswordTitle": "Elige una contraseña nueva",
+    "saving": "Guardando…",
+    "saveAndContinue": "Guardar y continuar",
+    "showPassword": "Mostrar la contraseña",
+    "hidePassword": "Ocultar la contraseña",
+    "passwordsDiffer": "Las dos contraseñas no coinciden.",
+    "passwordChanged": "Contraseña cambiada. Inicia sesión con la nueva."
+  },
+  "paywall": {
+    "g1": "Ejercicios",
+    "g2": "En la mesa",
+    "g3": "Tu ventaja",
+    "g4": "Progreso",
+    "r1": "Velocidad y tarjetas",
+    "r2": "Entrenamiento de spread de apuestas",
+    "r3": "Estimación de barajas",
+    "r4": "Sesión de casino completa: bots, splits, pagos",
+    "r5": "Tabla de estrategia",
+    "r6": "Desviaciones Illustrious 18 y Fab 4",
+    "r7": "Analíticas: tendencia, mapa de calor, radar, manos más débiles",
+    "r8": "Seguimiento de bankroll y simulador de riesgo de ruina",
+    "r9": "Logros, niveles y la guía",
+    "basics": "básico",
+    "goProHeading": "Hazte Pro",
+    "goProSub": "Desbloquea los modos avanzados y la imagen completa de tu ventaja al contar.",
+    "alreadyPro": "Esta cuenta ya tiene Pro. Si sigue pareciendo bloqueada, recarga la página.",
+    "saveAgainst": "Ahorra {{saved}} frente a {{monthly}}/mes"
+  },
+  "contact": {
+    "title": "Contacto",
+    "emailUs": "Escríbenos",
+    "privacy": "Política de privacidad",
+    "terms": "Términos de uso"
   }
 }
