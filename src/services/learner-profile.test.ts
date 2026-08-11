@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import i18next from 'i18next'
 import {
   GOAL_OPTIONS,
   COMMITMENT_OPTIONS,
@@ -85,7 +86,12 @@ describe('sessionsPerWeek', () => {
     // became a target of 15 because the number came from minutes ÷ 8.
     for (const o of COMMITMENT_OPTIONS) {
       expect(sessionsPerWeek(o.value), o.value).toBe(o.sessionsPerWeek)
-      expect(o.hint, o.value).toContain(String(o.sessionsPerWeek))
+      // The hint is now interpolated from the same field, so the two cannot
+      // disagree by construction. Checked anyway: this is the drift's home.
+      expect(
+        i18next.t('profile.pace.hint', { n: o.sessionsPerWeek }),
+        o.value,
+      ).toContain(String(o.sessionsPerWeek))
     }
   })
 

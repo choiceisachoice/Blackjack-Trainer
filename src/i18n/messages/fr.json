@@ -661,5 +661,159 @@
     "showAround": "Faites-moi visiter d’abord",
     "dismiss": "Masquer",
     "dismissAria": "Masquer cette suggestion"
+  },
+  "curriculum": {
+    "rules": {
+      "title": "Le jeu lui-même",
+      "goal": "Savoir comment se joue une main de blackjack et ce que signifie chaque terme.",
+      "why": "Tout ce qui suit suppose que tirer, rester, main souple, carte visible et bust vous sont naturels.",
+      "read": "Lire : le jeu"
+    },
+    "basic-strategy": {
+      "title": "Stratégie de base",
+      "goal": "Jouer le coup mathématiquement correct sur chaque main, sans réfléchir.",
+      "why": "Le comptage rapporte environ un pour cent. Mal jouer la stratégie de base coûte plus que le comptage ne pourra jamais récupérer — d’où la priorité.",
+      "read": "Lire : la stratégie"
+    },
+    "hi-lo": {
+      "title": "Le comptage Hi-Lo",
+      "goal": "Tenir un running count exact sur un sabot entier, au rythme de la table.",
+      "why": "C’est la compétence sur laquelle repose tout l’avantage. Tout le reste n’est qu’un calcul par-dessus ce nombre.",
+      "read": "Lire : Hi-Lo"
+    },
+    "true-count": {
+      "title": "True count",
+      "goal": "Convertir le running count en true count en jugeant les jeux restants.",
+      "why": "Un running count de +6 est faible avec six jeux restants et fort avec un seul. Vos mises et vos déviations se règlent sur le true count.",
+      "read": "Lire : le true count"
+    },
+    "deviations": {
+      "title": "Déviations",
+      "goal": "Savoir quand le count l’emporte sur la stratégie de base — les Illustrious 18 et les Fab 4.",
+      "why": "C’est ici que le count change les décisions, plus seulement les mises. L’essentiel de l’avantage de jeu tient à une poignée de coups.",
+      "read": "Lire : les déviations"
+    },
+    "bet-spread": {
+      "title": "Bet spread",
+      "goal": "Régler votre mise sur le true count, pour que l’avantage devienne de l’argent.",
+      "why": "Presque tout le profit d’un compteur vient de miser plus quand les chances sont pour lui. Un comptage parfait à mise fixe ne rapporte rien."
+    },
+    "table": {
+      "title": "Le tout, à la table",
+      "goal": "Tenir le compte, jouer juste et dimensionner les mises — tout à la fois, sous pression.",
+      "why": "Chaque compétence est facile isolément. La difficulté est de les tenir toutes en même temps pendant que la table parle."
+    },
+    "drill": {
+      "flashcards": "{{n}} sessions de cartes mémo à {{pct}} % ou mieux",
+      "speedDrill": "{{n}} Speed Drills à {{pct}} % ou mieux",
+      "deckEstimation": "{{n}} sessions d’estimation des jeux à {{pct}} % ou mieux",
+      "deviations": "{{n}} sessions de cartes mémo sur les déviations à {{pct}} % ou mieux",
+      "betSpread": "{{n}} sessions de bet spread à {{pct}} % ou mieux",
+      "casino": "{{n}} sessions de casino jouées"
+    }
+  },
+  "plan": {
+    "everyStageComplete": "Toutes les étapes terminées",
+    "startStage": "Commencer : {{stage}}",
+    "stageComplete": "Étape terminée : {{stage}}",
+    "title": "Votre plan d’entraînement",
+    "yourGoal": "Votre objectif",
+    "thisWeek": "Cette semaine",
+    "ofNSessions": "/ {{n}} sessions",
+    "findStart": "Trouvez votre point de départ",
+    "findStartSub": "Une minute de questions, et tout ce que vous savez déjà est sauté.",
+    "warmUp": "Échauffement : {{stage}}",
+    "upNext": "La suite",
+    "worthXp": "Terminer cette étape vaut <b>{{xp}} XP</b>",
+    "reachedGoal": "Vous avez atteint votre objectif",
+    "walkedPath": "Vous avez parcouru tout le chemin",
+    "reachedGoalBody": "Tout ce que vous vouliez apprendre est acquis. La suite serait {{stage}} — à vous de voir.",
+    "walkedPathBody": "Toutes les étapes sont faites. À partir d’ici, c’est de l’entretien : gardez le compte affûté et votre précision honnête à la table.",
+    "aimFor": "Viser : {{stage}}",
+    "openInstead": "Accessible dès maintenant",
+    "todaysChallenge": "Le défi du jour",
+    "fullPath": "Le parcours complet",
+    "skippedByPlacement": "sauté par le placement",
+    "beyondGoal": "au-delà de votre objectif",
+    "changeStart": "Changer mon point de départ",
+    "chooseStart": "Choisir mon point de départ",
+    "adjust": "Ajuster votre plan",
+    "adjustBody": "Ces changements conservent tout ce que vous avez déjà terminé. Seul le placement doit être refait.",
+    "closeSettings": "Fermer les réglages du plan",
+    "whereItEnds": "Où cela s’arrête",
+    "weeklyPace": "Votre rythme hebdomadaire",
+    "stagesNeedPro_one": " · {{count}} étape nécessite Pro",
+    "stagesNeedPro_other": " · {{count}} étapes nécessitent Pro",
+    "markAsRead": "Marquer comme lu",
+    "practiseAgain": "S’entraîner encore",
+    "startDrilling": "Commencer l’exercice",
+    "unlockPro": "Débloquer avec Pro",
+    "stageIsPro": "{{stage}} fait partie de Pro.",
+    "seeBreakdown": "Voir le détail complet dans les analyses",
+    "lastN": "{{n}} derniers",
+    "standing": {
+      "done": "Validée. Tout le reste ici n’est que pratique.",
+      "partial": "{{cleared}} sessions sur {{target}} ont passé la barre. Encore {{left}}.",
+      "close_one": "{{count}} tentative jusqu’ici, meilleur {{best}} % — {{gap}} sous la barre de {{bar}} %. Vous y êtes presque.",
+      "close_other": "{{count}} tentatives jusqu’ici, meilleur {{best}} % — {{gap}} sous la barre de {{bar}} %. Vous y êtes presque.",
+      "far_one": "{{count}} tentative jusqu’ici, meilleur {{best}} %. La barre est à {{bar}} %, {{target}} fois.",
+      "far_other": "{{count}} tentatives jusqu’ici, meilleur {{best}} %. La barre est à {{bar}} %, {{target}} fois."
+    },
+    "effort": {
+      "attempts_one": "{{count}} tentative · meilleur",
+      "attempts_other": "{{count}} tentatives · meilleur",
+      "offBar": " — {{gap}} sous la barre",
+      "barIs": ", la barre est à {{bar}} %"
+    }
+  },
+  "recommend": {
+    "startTraining": "Commencer l’entraînement",
+    "openLearn": "Ouvrir la page Apprendre",
+    "readEndToEnd": "Lisez-la de bout en bout — elle est écrite pour quelqu’un qui part de zéro.",
+    "startHere": "Commencez ici : {{stage}}",
+    "startByReading": "Commencez par lire, pas par vous entraîner",
+    "beginnerReason": "Vous avez dit n’avoir jamais joué : il n’y a donc rien à travailler pour l’instant. La page Apprendre commence par le jeu lui-même, et les exercices s’ouvrent au fil du parcours.",
+    "aheadOne": "La première étape est déjà derrière vous.",
+    "aheadMany": "Les {{n}} premières étapes sont déjà derrière vous."
+  },
+  "rhythm": {
+    "returning": "Bon retour — cela fait {{days}} jours. On reprend là où vous vous étiez arrêté.",
+    "rustyWithRefresh": "Cela fait {{days}} jours. Le comptage est une compétence de vitesse : ce sera plus lent qu’à votre départ — un échauffement suffit en général.",
+    "rustyPlain": "Cela fait {{days}} jours. Rien n’est perdu ; reprenez où vous voulez."
+  },
+  "profile": {
+    "goal": {
+      "understand": {
+        "label": "Je veux comprendre comment fonctionne le comptage",
+        "hint": "Apprendre le jeu et le comptage correctement. Sans obligation d’aller plus loin."
+      },
+      "stop-losing": {
+        "label": "Je veux arrêter de perdre de l’argent à la table",
+        "hint": "Jouer chaque main correctement et savoir quand le sabot vous favorise."
+      },
+      "win": {
+        "label": "Je veux gagner de l’argent en comptant les cartes",
+        "hint": "Tout ce qui précède, plus le dimensionnement des mises qui transforme l’avantage en argent."
+      },
+      "serious": {
+        "label": "Je veux m’y mettre sérieusement, sur la durée",
+        "hint": "Le parcours complet, jusqu’à tout tenir en conditions réelles."
+      }
+    },
+    "pace": {
+      "light": {
+        "label": "Quelques minutes par-ci par-là"
+      },
+      "casual": {
+        "label": "Deux ou trois fois par semaine"
+      },
+      "regular": {
+        "label": "Presque tous les jours"
+      },
+      "heavy": {
+        "label": "Tous les jours, sérieusement"
+      },
+      "hint": "Environ {{n}} sessions par semaine."
+    }
   }
 }

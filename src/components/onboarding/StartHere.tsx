@@ -37,7 +37,7 @@ export function StartHere({ onTour }: { onTour: () => void }) {
   // say to someone who has already dealt with this.
   if (!placement || done) return null
 
-  const move = firstMoveFor(placement)
+  const move = firstMoveFor(placement, t)
   const Icon = move.kind === 'read' ? BookOpen : Zap
 
   const put = (then?: () => void) => {
@@ -75,13 +75,13 @@ export function StartHere({ onTour }: { onTour: () => void }) {
             className="mt-1.5 text-lg md:text-xl font-bold tracking-tight leading-snug"
             data-testid="start-here-headline"
           >
-            {recommendationHeadline(placement)}
+            {recommendationHeadline(placement, t)}
           </h2>
           <p
             className="mt-2 text-[0.95rem] text-content/65 leading-relaxed max-w-[62ch]"
             data-testid="start-here-reason"
           >
-            {recommendationReason(placement)}
+            {recommendationReason(placement, t)}
           </p>
           <p className="mt-2 text-sm text-content/45 leading-relaxed max-w-[62ch]">{move.detail}</p>
 

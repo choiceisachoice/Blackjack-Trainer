@@ -661,5 +661,159 @@
     "showAround": "Show me around first",
     "dismiss": "Dismiss",
     "dismissAria": "Dismiss this suggestion"
+  },
+  "curriculum": {
+    "rules": {
+      "title": "The game itself",
+      "goal": "Know how a hand of blackjack is played, and what every term means.",
+      "why": "Everything after this assumes hit, stand, soft, upcard and bust are second nature.",
+      "read": "Read: the game"
+    },
+    "basic-strategy": {
+      "title": "Basic strategy",
+      "goal": "Play the mathematically correct move for every hand, without thinking.",
+      "why": "Counting adds about one percent. Playing basic strategy wrong costs you more than counting can ever win back — so this comes first.",
+      "read": "Read: strategy"
+    },
+    "hi-lo": {
+      "title": "The Hi-Lo count",
+      "goal": "Keep an accurate running count through a whole shoe at table speed.",
+      "why": "This is the skill the whole edge rests on. Everything later is a calculation on top of this number.",
+      "read": "Read: Hi-Lo"
+    },
+    "true-count": {
+      "title": "True count",
+      "goal": "Convert the running count into the true count by judging the decks left.",
+      "why": "A running count of +6 is weak with six decks left and strong with one. The true count is what your bets and deviations actually key off.",
+      "read": "Read: true count"
+    },
+    "deviations": {
+      "title": "Deviations",
+      "goal": "Know when the count overrides basic strategy — the Illustrious 18 and Fab 4.",
+      "why": "This is where the count starts changing decisions, not just bet sizes. Most of the playing edge sits in a handful of plays.",
+      "read": "Read: deviations"
+    },
+    "bet-spread": {
+      "title": "Bet spread",
+      "goal": "Size your bet to the true count, so the edge turns into money.",
+      "why": "Almost all of a counter’s profit comes from betting more when the odds are yours. A perfect count with a flat bet earns nothing."
+    },
+    "table": {
+      "title": "The whole thing, at the table",
+      "goal": "Hold the count, play correctly and size bets — all at once, under pressure.",
+      "why": "Each skill is easy alone. The job is doing all of them at once while the table talks."
+    },
+    "drill": {
+      "flashcards": "{{n}} Flashcards sessions at {{pct}}% or better",
+      "speedDrill": "{{n}} Speed Drills at {{pct}}% or better",
+      "deckEstimation": "{{n}} Deck Estimation sessions at {{pct}}% or better",
+      "deviations": "{{n}} deviation Flashcards sessions at {{pct}}% or better",
+      "betSpread": "{{n}} Bet Spread sessions at {{pct}}% or better",
+      "casino": "{{n}} Casino Sessions played"
+    }
+  },
+  "plan": {
+    "everyStageComplete": "Every stage complete",
+    "startStage": "Start: {{stage}}",
+    "stageComplete": "Stage complete: {{stage}}",
+    "title": "Your training plan",
+    "yourGoal": "Your goal",
+    "thisWeek": "This week",
+    "ofNSessions": "/ {{n}} sessions",
+    "findStart": "Find your starting point",
+    "findStartSub": "A minute of questions, and everything you already know gets skipped.",
+    "warmUp": "Warm up: {{stage}}",
+    "upNext": "Up next",
+    "worthXp": "Finishing this stage is worth <b>{{xp}} XP</b>",
+    "reachedGoal": "You’ve reached your goal",
+    "walkedPath": "You’ve walked the whole path",
+    "reachedGoalBody": "Everything you set out to learn is done. {{stage}} is the next thing there is to learn — take it or leave it.",
+    "walkedPathBody": "Every stage is done. From here it’s maintenance: keep the count sharp and your accuracy honest at the table.",
+    "aimFor": "Aim for: {{stage}}",
+    "openInstead": "Open to you now",
+    "todaysChallenge": "Today’s challenge",
+    "fullPath": "The full path",
+    "skippedByPlacement": "skipped by placement",
+    "beyondGoal": "beyond your goal",
+    "changeStart": "Change where I start",
+    "chooseStart": "Choose where I start",
+    "adjust": "Adjust your plan",
+    "adjustBody": "Changing these keeps everything you have already completed. Only your placement needs the test again.",
+    "closeSettings": "Close plan settings",
+    "whereItEnds": "Where it ends",
+    "weeklyPace": "Your weekly pace",
+    "stagesNeedPro_one": " · {{count}} stage needs Pro",
+    "stagesNeedPro_other": " · {{count}} stages need Pro",
+    "markAsRead": "Mark as read",
+    "practiseAgain": "Practise again",
+    "startDrilling": "Start drilling",
+    "unlockPro": "Unlock with Pro",
+    "stageIsPro": "{{stage}} is part of Pro.",
+    "seeBreakdown": "See the full breakdown in Analytics",
+    "lastN": "Last {{n}}",
+    "standing": {
+      "done": "Cleared. Anything more here is practice.",
+      "partial": "{{cleared}} of {{target}} sessions cleared the bar. {{left}} to go.",
+      "close_one": "{{count}} attempt so far, best {{best}}% — {{gap}} short of the {{bar}}% bar. You are nearly there.",
+      "close_other": "{{count}} attempts so far, best {{best}}% — {{gap}} short of the {{bar}}% bar. You are nearly there.",
+      "far_one": "{{count}} attempt so far, best {{best}}%. The bar is {{bar}}%, {{target}} times over.",
+      "far_other": "{{count}} attempts so far, best {{best}}%. The bar is {{bar}}%, {{target}} times over."
+    },
+    "effort": {
+      "attempts_one": "{{count}} attempt so far · best",
+      "attempts_other": "{{count}} attempts so far · best",
+      "offBar": " — {{gap}} off the bar",
+      "barIs": ", bar is {{bar}}%"
+    }
+  },
+  "recommend": {
+    "startTraining": "Start training",
+    "openLearn": "Open the Learn page",
+    "readEndToEnd": "Read it through end to end — it is written for someone starting from nothing.",
+    "startHere": "Start here: {{stage}}",
+    "startByReading": "Start by reading, not drilling",
+    "beginnerReason": "You said you have never played, so there is nothing to drill yet — the Learn page covers the game itself first, and the drills open up as you go.",
+    "aheadOne": "The first stage is already behind you.",
+    "aheadMany": "The first {{n}} stages are already behind you."
+  },
+  "rhythm": {
+    "returning": "Welcome back — it has been {{days}} days. Picking up where you left off.",
+    "rustyWithRefresh": "It has been {{days}} days. Counting is a speed skill, so it will feel slower than you left it — one warm-up run is usually enough to get it back.",
+    "rustyPlain": "It has been {{days}} days. Nothing is lost; start wherever suits you."
+  },
+  "profile": {
+    "goal": {
+      "understand": {
+        "label": "I want to understand how card counting works",
+        "hint": "Learn the game and the count properly. No pressure to take it further."
+      },
+      "stop-losing": {
+        "label": "I want to stop giving money away at the table",
+        "hint": "Play every hand correctly and know when the deck is in your favour."
+      },
+      "win": {
+        "label": "I want to win money counting cards",
+        "hint": "Everything above, plus the bet sizing that turns an edge into money."
+      },
+      "serious": {
+        "label": "I want to do this seriously, long term",
+        "hint": "The full path, ending with everything at once under real conditions."
+      }
+    },
+    "pace": {
+      "light": {
+        "label": "A few minutes here and there"
+      },
+      "casual": {
+        "label": "A couple of times a week"
+      },
+      "regular": {
+        "label": "Most days"
+      },
+      "heavy": {
+        "label": "Every day, properly"
+      },
+      "hint": "About {{n}} sessions a week."
+    }
   }
 }

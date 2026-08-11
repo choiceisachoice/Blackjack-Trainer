@@ -23,8 +23,8 @@ export type Goal = 'curious' | 'stop-losing' | 'profit' | 'serious'
 
 export interface GoalOption {
   value: Goal
-  label: string
-  hint: string
+  labelKey: string
+  hintKey: string
   /** The last stage this goal actually requires. */
   stage: StageId
 }
@@ -40,26 +40,26 @@ export interface GoalOption {
 export const GOAL_OPTIONS: GoalOption[] = [
   {
     value: 'curious',
-    label: 'I want to understand how card counting works',
-    hint: 'Learn the game and the count properly. No pressure to take it further.',
+    labelKey: 'profile.goal.understand.label',
+    hintKey: 'profile.goal.understand.hint',
     stage: 'true-count',
   },
   {
     value: 'stop-losing',
-    label: 'I want to stop giving money away at the table',
-    hint: 'Play every hand correctly and know when the deck is in your favour.',
+    labelKey: 'profile.goal.stop-losing.label',
+    hintKey: 'profile.goal.stop-losing.hint',
     stage: 'deviations',
   },
   {
     value: 'profit',
-    label: 'I want to win money counting cards',
-    hint: 'Everything above, plus the bet sizing that turns an edge into money.',
+    labelKey: 'profile.goal.win.label',
+    hintKey: 'profile.goal.win.hint',
     stage: 'bet-spread',
   },
   {
     value: 'serious',
-    label: 'I want to do this seriously, long term',
-    hint: 'The full path, ending with everything at once under real conditions.',
+    labelKey: 'profile.goal.serious.label',
+    hintKey: 'profile.goal.serious.hint',
     stage: 'table',
   },
 ]
@@ -94,9 +94,8 @@ export type Commitment = 'light' | 'casual' | 'regular' | 'heavy'
 
 export interface CommitmentOption {
   value: Commitment
-  label: string
-  hint: string
-  /** The weekly target this answer becomes. */
+  labelKey: string
+  /** The weekly target this answer becomes, and the number its hint quotes. */
   sessionsPerWeek: number
 }
 
@@ -115,10 +114,13 @@ export const MINUTES_PER_SESSION = 8
  * Sessions are what the app counts, so sessions are what it asks for.
  */
 export const COMMITMENT_OPTIONS: CommitmentOption[] = [
-  { value: 'light', label: 'A few minutes here and there', hint: 'About 2 sessions a week.', sessionsPerWeek: 2 },
-  { value: 'casual', label: 'A couple of times a week', hint: 'About 5 sessions a week.', sessionsPerWeek: 5 },
-  { value: 'regular', label: 'Most days', hint: 'About 12 sessions a week.', sessionsPerWeek: 12 },
-  { value: 'heavy', label: 'Every day, properly', hint: 'About 25 sessions a week.', sessionsPerWeek: 25 },
+  // The hint is derived from `sessionsPerWeek` rather than written beside it:
+  // the two used to be separate edits, and a pace that says one number while
+  // the plan counts another is worse than no hint.
+  { value: 'light', labelKey: 'profile.pace.light.label', sessionsPerWeek: 2 },
+  { value: 'casual', labelKey: 'profile.pace.casual.label', sessionsPerWeek: 5 },
+  { value: 'regular', labelKey: 'profile.pace.regular.label', sessionsPerWeek: 12 },
+  { value: 'heavy', labelKey: 'profile.pace.heavy.label', sessionsPerWeek: 25 },
 ]
 
 /**

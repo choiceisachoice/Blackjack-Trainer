@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useAppStore } from '../../store/app-store'
@@ -167,6 +168,7 @@ function PlanStrip({
   isPro: boolean
   onOpen: () => void
 }) {
+  const { t } = useTranslation()
   const placement = getPlacement()
   if (!placement) return null
 
@@ -191,7 +193,7 @@ function PlanStrip({
           Training plan · {done} of {total} stages
         </span>
         <span className="block mt-0.5 font-semibold truncate">
-          {active ? active.stage.title : 'Every stage complete'}
+          {active ? t(active.stage.titleKey) : t('plan.everyStageComplete')}
         </span>
         <span className="block mt-2 h-1.5 rounded-full bg-contrast/10 overflow-hidden">
           <span

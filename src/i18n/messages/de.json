@@ -661,5 +661,159 @@
     "showAround": "Zeig mir erst alles",
     "dismiss": "Ausblenden",
     "dismissAria": "Diesen Vorschlag ausblenden"
+  },
+  "curriculum": {
+    "rules": {
+      "title": "Das Spiel selbst",
+      "goal": "Wissen, wie eine Hand Blackjack gespielt wird und was jeder Begriff bedeutet.",
+      "why": "Alles Weitere setzt voraus, dass Ziehen, Stehen, Soft-Hand, offene Karte und Bust in Fleisch und Blut sind.",
+      "read": "Lesen: das Spiel"
+    },
+    "basic-strategy": {
+      "title": "Basisstrategie",
+      "goal": "Bei jeder Hand den mathematisch richtigen Zug spielen, ohne nachzudenken.",
+      "why": "Zählen bringt etwa ein Prozent. Eine falsch gespielte Basisstrategie kostet mehr, als Zählen je zurückholen kann — deshalb kommt sie zuerst.",
+      "read": "Lesen: Strategie"
+    },
+    "hi-lo": {
+      "title": "Der Hi-Lo-Count",
+      "goal": "Einen genauen Running Count über einen ganzen Schlitten halten — in Tischgeschwindigkeit.",
+      "why": "Auf dieser Fähigkeit ruht der ganze Vorteil. Alles Spätere ist eine Rechnung auf dieser Zahl.",
+      "read": "Lesen: Hi-Lo"
+    },
+    "true-count": {
+      "title": "True Count",
+      "goal": "Den Running Count in den True Count umrechnen, indem du die Restdecks abschätzt.",
+      "why": "Ein Running Count von +6 ist bei sechs Restdecks schwach und bei einem stark. Einsätze und Abweichungen richten sich am True Count aus.",
+      "read": "Lesen: True Count"
+    },
+    "deviations": {
+      "title": "Abweichungen",
+      "goal": "Wissen, wann der Count die Basisstrategie aussticht — die Illustrious 18 und die Fab 4.",
+      "why": "Hier ändert der Count nicht mehr nur die Einsätze, sondern die Entscheidungen. Der grösste Teil des Spielvorteils steckt in einer Handvoll Züge.",
+      "read": "Lesen: Abweichungen"
+    },
+    "bet-spread": {
+      "title": "Bet Spread",
+      "goal": "Den Einsatz am True Count ausrichten, damit aus dem Vorteil Geld wird.",
+      "why": "Fast der gesamte Gewinn eines Zählers kommt daher, mehr zu setzen, wenn die Chancen für ihn stehen. Ein perfekter Count mit festem Einsatz bringt nichts."
+    },
+    "table": {
+      "title": "Alles zusammen, am Tisch",
+      "goal": "Den Count halten, richtig spielen und Einsätze bemessen — alles gleichzeitig, unter Druck.",
+      "why": "Jede Fähigkeit für sich ist leicht. Die Kunst ist, alle gleichzeitig zu können, während am Tisch geredet wird."
+    },
+    "drill": {
+      "flashcards": "{{n}} Lernkarten-Durchgänge mit mindestens {{pct}} %",
+      "speedDrill": "{{n}} Speed Drills mit mindestens {{pct}} %",
+      "deckEstimation": "{{n}} Deck-Schätzungen mit mindestens {{pct}} %",
+      "deviations": "{{n}} Lernkarten-Durchgänge zu Abweichungen mit mindestens {{pct}} %",
+      "betSpread": "{{n}} Bet-Spread-Durchgänge mit mindestens {{pct}} %",
+      "casino": "{{n}} gespielte Casino-Sessions"
+    }
+  },
+  "plan": {
+    "everyStageComplete": "Alle Stufen abgeschlossen",
+    "startStage": "Los geht’s: {{stage}}",
+    "stageComplete": "Stufe geschafft: {{stage}}",
+    "title": "Dein Trainingsplan",
+    "yourGoal": "Dein Ziel",
+    "thisWeek": "Diese Woche",
+    "ofNSessions": "/ {{n}} Durchgänge",
+    "findStart": "Finde deinen Startpunkt",
+    "findStartSub": "Eine Minute Fragen, und alles, was du schon kannst, wird übersprungen.",
+    "warmUp": "Aufwärmen: {{stage}}",
+    "upNext": "Als Nächstes",
+    "worthXp": "Diese Stufe abzuschliessen bringt <b>{{xp}} XP</b>",
+    "reachedGoal": "Du hast dein Ziel erreicht",
+    "walkedPath": "Du hast den ganzen Weg geschafft",
+    "reachedGoalBody": "Alles, was du dir vorgenommen hattest, sitzt. Als Nächstes gäbe es {{stage}} — nimm es oder lass es.",
+    "walkedPathBody": "Alle Stufen sind erledigt. Ab hier geht es ums Halten: den Count scharf und die Trefferquote am Tisch ehrlich.",
+    "aimFor": "Ziel setzen: {{stage}}",
+    "openInstead": "Jetzt schon offen",
+    "todaysChallenge": "Die heutige Aufgabe",
+    "fullPath": "Der ganze Weg",
+    "skippedByPlacement": "durch Einstufung übersprungen",
+    "beyondGoal": "jenseits deines Ziels",
+    "changeStart": "Startpunkt ändern",
+    "chooseStart": "Startpunkt wählen",
+    "adjust": "Plan anpassen",
+    "adjustBody": "Änderungen hier lassen alles Erledigte bestehen. Nur die Einstufung müsste neu gemacht werden.",
+    "closeSettings": "Plan-Einstellungen schliessen",
+    "whereItEnds": "Wo es endet",
+    "weeklyPace": "Dein Wochenpensum",
+    "stagesNeedPro_one": " · {{count}} Stufe braucht Pro",
+    "stagesNeedPro_other": " · {{count}} Stufen brauchen Pro",
+    "markAsRead": "Als gelesen markieren",
+    "practiseAgain": "Nochmal üben",
+    "startDrilling": "Üben starten",
+    "unlockPro": "Mit Pro freischalten",
+    "stageIsPro": "{{stage}} gehört zu Pro.",
+    "seeBreakdown": "Die volle Aufschlüsselung in der Auswertung",
+    "lastN": "Letzte {{n}}",
+    "standing": {
+      "done": "Geschafft. Alles Weitere hier ist Übung.",
+      "partial": "{{cleared}} von {{target}} Durchgängen über der Marke. Noch {{left}}.",
+      "close_one": "{{count}} Versuch bisher, bester {{best}} % — {{gap}} unter der Marke von {{bar}} %. Fast geschafft.",
+      "close_other": "{{count}} Versuche bisher, bester {{best}} % — {{gap}} unter der Marke von {{bar}} %. Fast geschafft.",
+      "far_one": "{{count}} Versuch bisher, bester {{best}} %. Die Marke liegt bei {{bar}} %, und das {{target}}-mal.",
+      "far_other": "{{count}} Versuche bisher, bester {{best}} %. Die Marke liegt bei {{bar}} %, und das {{target}}-mal."
+    },
+    "effort": {
+      "attempts_one": "{{count}} Versuch bisher · bester",
+      "attempts_other": "{{count}} Versuche bisher · bester",
+      "offBar": " — {{gap}} unter der Marke",
+      "barIs": ", Marke liegt bei {{bar}} %"
+    }
+  },
+  "recommend": {
+    "startTraining": "Training starten",
+    "openLearn": "Zur Lernseite",
+    "readEndToEnd": "Lies sie einmal ganz durch — sie ist für jemanden geschrieben, der bei null anfängt.",
+    "startHere": "Hier anfangen: {{stage}}",
+    "startByReading": "Fang mit Lesen an, nicht mit Üben",
+    "beginnerReason": "Du hast gesagt, du hast noch nie gespielt — also gibt es noch nichts zu üben. Die Lernseite behandelt zuerst das Spiel selbst, die Übungen öffnen sich unterwegs.",
+    "aheadOne": "Die erste Stufe hast du schon hinter dir.",
+    "aheadMany": "Die ersten {{n}} Stufen hast du schon hinter dir."
+  },
+  "rhythm": {
+    "returning": "Willkommen zurück — es sind {{days}} Tage vergangen. Weiter dort, wo du aufgehört hast.",
+    "rustyWithRefresh": "Es sind {{days}} Tage vergangen. Zählen ist eine Tempo-Fähigkeit, es wird sich also langsamer anfühlen als zuletzt — ein Aufwärmdurchgang reicht meist.",
+    "rustyPlain": "Es sind {{days}} Tage vergangen. Nichts ist verloren; fang an, wo es dir passt."
+  },
+  "profile": {
+    "goal": {
+      "understand": {
+        "label": "Ich will verstehen, wie Kartenzählen funktioniert",
+        "hint": "Das Spiel und den Count sauber lernen. Kein Zwang, weiterzugehen."
+      },
+      "stop-losing": {
+        "label": "Ich will am Tisch kein Geld mehr verschenken",
+        "hint": "Jede Hand richtig spielen und wissen, wann das Deck für dich steht."
+      },
+      "win": {
+        "label": "Ich will mit Kartenzählen Geld gewinnen",
+        "hint": "Alles davor, plus die Einsatzhöhe, die aus dem Vorteil Geld macht."
+      },
+      "serious": {
+        "label": "Ich will das ernsthaft und langfristig machen",
+        "hint": "Der ganze Weg, am Ende alles gleichzeitig unter echten Bedingungen."
+      }
+    },
+    "pace": {
+      "light": {
+        "label": "Ab und zu ein paar Minuten"
+      },
+      "casual": {
+        "label": "Ein paar Mal pro Woche"
+      },
+      "regular": {
+        "label": "An den meisten Tagen"
+      },
+      "heavy": {
+        "label": "Jeden Tag, richtig"
+      },
+      "hint": "Etwa {{n}} Durchgänge pro Woche."
+    }
   }
 }

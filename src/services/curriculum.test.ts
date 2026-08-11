@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import i18next from 'i18next'
 import {
   CURRICULUM,
   deriveCurriculum,
@@ -6,7 +7,7 @@ import {
   currentStage,
   nextUnlockedStage,
   stageIndex,
-  stageNeedsPro,
+  drillDescription, stageNeedsPro,
   getPlacement,
   setPlacement,
   getReadStages,
@@ -44,9 +45,25 @@ describe('CURRICULUM shape', () => {
   })
 
   it('gives every stage a goal and a reason to care', () => {
+    // Resolved through the messages: the stage now holds keys, and a key with
+    // no message would otherwise pass this as a perfectly long string.
     for (const s of CURRICULUM) {
-      expect(s.goal.length).toBeGreaterThan(20)
-      expect(s.why.length).toBeGreaterThan(20)
+      expect(i18next.t(s.goalKey).length, s.id).toBeGreaterThan(20)
+      expect(i18next.t(s.whyKey).length, s.id).toBeGreaterThan(20)
+      expect(i18next.t(s.titleKey), s.id).not.toBe(s.titleKey)
+    }
+  })
+
+  it('states each drill requirement with the numbers it actually enforces', () => {
+    // The sentence used to be typed out beside the thresholds, so the two
+    // could drift. It is interpolated now — this is what holds that.
+    for (const s of CURRICULUM) {
+      if (!s.drill) continue
+      const text = drillDescription(s.drill, i18next.t)
+      expect(text, s.id).toContain(String(s.drill.minSessions))
+      if (s.drill.minAccuracy > 0) {
+        expect(text, s.id).toContain(String(Math.round(s.drill.minAccuracy * 100)))
+      }
     }
   })
 
@@ -107,7 +124,7 @@ describe('deriveStageProgress', () => {
   it('locks Pro stages for a free account, without hiding them', () => {
     const p = deriveStageProgress(stage('bet-spread'), [], [], false)
     expect(p.locked).toBe(true)
-    expect(p.stage.title).toBeTruthy()
+    expect(i18next.t(p.stage.titleKey)).toBeTruthy()
   })
 })
 

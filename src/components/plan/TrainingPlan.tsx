@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Check, Lock, BookOpen, Play, Route, RotateCcw, Zap, ChevronRight, Flag, CalendarCheck, CalendarClock, Pencil, X, TrendingUp, ClipboardList } from 'lucide-react'
 import { Sparkline } from '../analytics/AnalyticsCharts'
 import { useAppStore } from '../../store/app-store'
@@ -27,6 +28,7 @@ import {
   type StageProgress,
   type StageTrend,
   type StageEffort,
+  drillDescription,
 } from '../../services/curriculum'
 import { StartingPoint } from './StartingPoint'
 import {
@@ -84,6 +86,7 @@ export function TrainingPlan({
   before?: ReactNode
   after?: ReactNode
 }) {
+  const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
   const sessions = useStatsStore(s => s.sessions)
   const lifetimeStats = useStatsStore(s => s.lifetimeStats)
@@ -178,7 +181,7 @@ export function TrainingPlan({
   // The plan noticing that time has passed. `now` is read once per render
   // rather than inside the derivation, which stays pure and testable.
   const rhythm = deriveRhythm(sessions, progress, new Date())
-  const rhythmText = rhythmMessage(rhythm)
+  const rhythmText = rhythmMessage(rhythm, t)
   const refresh = rhythm.kind === 'rusty' && rhythm.refresh
     ? progress.find(p => p.stage.id === rhythm.refresh) ?? null
     : null
@@ -255,10 +258,10 @@ export function TrainingPlan({
                 border border-transparent hover:border-gold/35 transition-colors"
             >
               <div className="flex items-center gap-1.5 text-[0.6875rem] font-bold tracking-[0.14em] uppercase text-content/40">
-                <Flag size={12} /> Your goal
+                <Flag size={12} /> {t('plan.yourGoal')}
                 <Pencil size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <div className="mt-1 text-sm font-semibold">{CURRICULUM[goalIndex].title}</div>
+              <div className="mt-1 text-sm font-semibold">{t(CURRICULUM[goalIndex].titleKey)}</div>
             </button>
 
             <button
@@ -268,12 +271,12 @@ export function TrainingPlan({
                 border border-transparent hover:border-gold/35 transition-colors"
             >
               <div className="flex items-center gap-1.5 text-[0.6875rem] font-bold tracking-[0.14em] uppercase text-content/40">
-                <CalendarCheck size={12} /> This week
+                <CalendarCheck size={12} /> {t('plan.thisWeek')}
                 <Pencil size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <div className="mt-1 text-sm font-semibold tabular-nums">
                 <span className={pace.met ? 'text-success' : undefined}>{pace.done}</span>
-                <span className="text-content/40"> / {pace.target} sessions</span>
+                <span className="text-content/40"> {t('plan.ofNSessions', { n: pace.target })}</span>
               </div>
             </button>
           </div>
@@ -292,9 +295,9 @@ export function TrainingPlan({
                 <ClipboardList size={17} />
               </span>
               <div className="min-w-0 flex-1">
-                <div className="font-semibold">Find your starting point</div>
+                <div className="font-semibold">{t('plan.findStart')}</div>
                 <div className="mt-0.5 text-sm text-content/50 leading-snug">
-                  A minute of questions, and everything you already know gets skipped.
+                  {t('plan.findStartSub')}
                 </div>
               </div>
               <ChevronRight size={16} className="shrink-0 text-content/30" />
@@ -335,7 +338,7 @@ export function TrainingPlan({
                       border border-gold/40 text-gold hover:bg-gold/10 cursor-pointer transition-colors"
                   >
                     <RotateCcw size={15} />
-                    Warm up on {refresh.stage.title.toLowerCase()}
+                    {t('plan.warmUp', { stage: t(refresh.stage.titleKey) })}
                   </button>
                 )}
               </div>
@@ -350,10 +353,10 @@ export function TrainingPlan({
               bg-[linear-gradient(180deg,rgba(24,20,10,.6),var(--color-surface))]"
             data-testid="plan-up-next"
           >
-            <div className="text-xs font-bold tracking-[0.16em] uppercase text-gold">Up next</div>
-            <h2 className="mt-2 text-xl md:text-2xl font-bold tracking-tight">{active.stage.title}</h2>
-            <p className="mt-2 text-sm text-content/70 leading-relaxed max-w-[54ch]">{active.stage.goal}</p>
-            <p className="mt-2 text-sm text-content/50 leading-relaxed max-w-[54ch]">{active.stage.why}</p>
+            <div className="text-xs font-bold tracking-[0.16em] uppercase text-gold">{t('plan.upNext')}</div>
+            <h2 className="mt-2 text-xl md:text-2xl font-bold tracking-tight">{t(active.stage.titleKey)}</h2>
+            <p className="mt-2 text-sm text-content/70 leading-relaxed max-w-[54ch]">{t(active.stage.goalKey)}</p>
+            <p className="mt-2 text-sm text-content/50 leading-relaxed max-w-[54ch]">{t(active.stage.whyKey)}</p>
 
             <StageStanding effort={stageEffort(active)} target={active.target} />
 
@@ -369,8 +372,11 @@ export function TrainingPlan({
               <span className="inline-flex items-center gap-2 text-sm">
                 <Zap size={15} className="text-gold shrink-0" />
                 <span className="text-content/55">
-                  Finishing this stage is worth{' '}
-                  <b className="text-gold font-semibold tabular-nums">{stageXP(active.stage.id)} XP</b>
+                  <Trans
+                    i18nKey="plan.worthXp"
+                    values={{ xp: stageXP(active.stage.id) }}
+                    components={{ b: <b className="text-gold font-semibold tabular-nums" /> }}
+                  />
                 </span>
               </span>
               <StageForm trend={trend} onOpenAnalytics={() => setMode('analytics')} />
@@ -379,12 +385,12 @@ export function TrainingPlan({
         ) : (
           <div className="mt-8 surface rounded-2xl p-6 text-center" data-testid="plan-complete">
             <h2 className="text-xl font-bold text-gold-gradient">
-              {harder ? 'You’ve reached your goal' : 'You’ve walked the whole path'}
+              {harder ? t('plan.reachedGoal') : t('plan.walkedPath')}
             </h2>
             <p className="mt-2 text-sm text-content/60 max-w-[48ch] mx-auto">
               {harder
-                ? `Everything you set out to learn is done. ${CURRICULUM[stageIndex(goalStage(harder))].title} is the next thing there is to learn — take it or leave it.`
-                : 'Every stage is done. From here it’s maintenance: keep the count sharp and your accuracy honest at the table.'}
+                ? t('plan.reachedGoalBody', { stage: t(CURRICULUM[stageIndex(goalStage(harder))].titleKey) })
+                : t('plan.walkedPathBody')}
             </p>
 
             {/* Reaching the goal used to end in a compliment and nothing else.
@@ -397,7 +403,7 @@ export function TrainingPlan({
                   bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer"
               >
                 <TrendingUp size={16} />
-                Aim for {CURRICULUM[stageIndex(goalStage(harder))].title.toLowerCase()}
+                {t('plan.aimFor', { stage: t(CURRICULUM[stageIndex(goalStage(harder))].titleKey) })}
               </button>
             )}
           </div>
@@ -411,11 +417,11 @@ export function TrainingPlan({
             data-testid="plan-open-instead"
           >
             <div className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
-              Open to you now
+              {t('plan.openInstead')}
             </div>
-            <h3 className="mt-1.5 font-semibold">{openInstead.stage.title}</h3>
+            <h3 className="mt-1.5 font-semibold">{t(openInstead.stage.titleKey)}</h3>
             <p className="mt-1 text-sm text-content/55 leading-snug max-w-[52ch]">
-              {openInstead.stage.goal}
+              {t(openInstead.stage.goalKey)}
             </p>
             <StageActions
               p={openInstead}
@@ -443,7 +449,7 @@ export function TrainingPlan({
               <span className="text-xl shrink-0" aria-hidden>{challenge.icon}</span>
               <div className="min-w-0 flex-1">
                 <div className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
-                  Today’s challenge
+                  {t('plan.todaysChallenge')}
                 </div>
                 <div className="mt-0.5 font-semibold truncate">{challenge.title}</div>
               </div>
@@ -462,7 +468,7 @@ export function TrainingPlan({
 
         {/* The full path */}
         <h3 className="mt-10 mb-3 text-xs font-bold tracking-[0.16em] uppercase text-content/40">
-          The full path
+          {t('plan.fullPath')}
         </h3>
         <ol className="flex flex-col gap-2.5">
           {progress.map((p, i) => {
@@ -493,7 +499,7 @@ export function TrainingPlan({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`font-semibold ${p.done ? 'text-content/55' : 'text-content'}`}>
-                        {p.stage.title}
+                        {t(p.stage.titleKey)}
                       </span>
                       {p.locked && (
                         <span className="inline-flex items-center gap-1 text-[0.7rem] font-bold tracking-wider
@@ -502,13 +508,13 @@ export function TrainingPlan({
                         </span>
                       )}
                       {placed && before && !p.done && (
-                        <span className="text-[0.7rem] text-content/40">skipped by placement</span>
+                        <span className="text-[0.7rem] text-content/40">{t('plan.skippedByPlacement')}</span>
                       )}
                       {beyond && (
-                        <span className="text-[0.7rem] text-content/40">beyond your goal</span>
+                        <span className="text-[0.7rem] text-content/40">{t('plan.beyondGoal')}</span>
                       )}
                     </div>
-                    <p className="mt-1 text-sm text-content/55 leading-snug">{p.stage.goal}</p>
+                    <p className="mt-1 text-sm text-content/55 leading-snug">{t(p.stage.goalKey)}</p>
 
                     {p.stage.drill && (
                       <>
@@ -520,7 +526,7 @@ export function TrainingPlan({
                             />
                           </div>
                           <span className="text-xs text-content/45 tabular-nums">
-                            {p.current}/{p.target} — {p.stage.drill.description}
+                            {p.current}/{p.target} — {drillDescription(p.stage.drill, t)}
                           </span>
                         </div>
                         <EffortLine effort={stageEffort(p)} />
@@ -549,7 +555,7 @@ export function TrainingPlan({
         >
           {/* No longer a "test" — it is one question, and calling it a test
               makes it sound like something worth avoiding. */}
-          <RotateCcw size={15} /> {placed ? 'Change where I start' : 'Choose where I start'}
+          <RotateCcw size={15} /> {placed ? t('plan.changeStart') : t('plan.chooseStart')}
         </button>
 
         {!embedded && <div aria-hidden className="w-full h-16 shrink-0" />}
@@ -578,6 +584,7 @@ function PlanSettings({
   onChange: (patch: Partial<LearnerProfile>) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const row = (selected: boolean) =>
     `w-full text-left rounded-xl px-4 py-3 border cursor-pointer transition-colors ${
       selected
@@ -589,16 +596,15 @@ function PlanSettings({
     <section className="mt-6 surface rounded-2xl p-5 md:p-6" data-testid="plan-settings">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="font-semibold">Adjust your plan</h2>
+          <h2 className="font-semibold">{t('plan.adjust')}</h2>
           <p className="mt-1 text-sm text-content/50 max-w-[52ch]">
-            Changing these keeps everything you have already completed. Only your
-            placement needs the test again.
+            {t('plan.adjustBody')}
           </p>
         </div>
         <button
           onClick={onClose}
           data-testid="plan-settings-close"
-          aria-label="Close plan settings"
+          aria-label={t('plan.closeSettings')}
           className="shrink-0 grid place-items-center w-8 h-8 rounded-lg text-content/40
             hover:text-content hover:bg-contrast/8 cursor-pointer transition-colors"
         >
@@ -607,7 +613,7 @@ function PlanSettings({
       </div>
 
       <h3 className="mt-6 text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
-        Where it ends
+        {t('plan.whereItEnds')}
       </h3>
       <div className="mt-2.5 flex flex-col gap-2">
         {GOAL_OPTIONS.map(o => {
@@ -620,13 +626,13 @@ function PlanSettings({
               className={row(profile.goal === o.value)}
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="font-medium text-[0.95rem]">{o.label}</span>
+                <span className="font-medium text-[0.95rem]">{t(o.labelKey)}</span>
                 {profile.goal === o.value && <Check size={16} className="text-gold shrink-0" />}
               </div>
               <div className="mt-0.5 text-sm text-content/45 leading-snug">
-                {o.hint}
+                {t(o.hintKey)}
                 {locked.length > 0 && (
-                  <span className="text-gold"> · {locked.length} stage{locked.length > 1 ? 's' : ''} need Pro</span>
+                  <span className="text-gold">{t('plan.stagesNeedPro', { count: locked.length })}</span>
                 )}
               </div>
             </button>
@@ -635,7 +641,7 @@ function PlanSettings({
       </div>
 
       <h3 className="mt-6 text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
-        Your weekly pace
+        {t('plan.weeklyPace')}
       </h3>
       <div className="mt-2.5 flex flex-col gap-2">
         {COMMITMENT_OPTIONS.map(o => (
@@ -646,10 +652,10 @@ function PlanSettings({
             className={row(profile.commitment === o.value)}
           >
             <div className="flex items-center justify-between gap-3">
-              <span className="font-medium text-[0.95rem]">{o.label}</span>
+              <span className="font-medium text-[0.95rem]">{t(o.labelKey)}</span>
               {profile.commitment === o.value && <Check size={16} className="text-gold shrink-0" />}
             </div>
-            <div className="mt-0.5 text-sm text-content/45">{o.hint}</div>
+            <div className="mt-0.5 text-sm text-content/45">{t('profile.pace.hint', { n: o.sessionsPerWeek })}</div>
           </button>
         ))}
       </div>
@@ -665,16 +671,23 @@ function PlanSettings({
  * same card as someone arriving fresh.
  */
 function StageStanding({ effort, target }: { effort: StageEffort; target: number }) {
+  const { t } = useTranslation()
   if (effort.kind === 'untouched' || effort.kind === 'locked') return null
 
   const [tone, text] =
     effort.kind === 'done'
-      ? ['text-success', 'Cleared. Anything more here is practice.']
+      ? ['text-success', t('plan.standing.done')]
       : effort.kind === 'partial'
-        ? ['text-gold', `${effort.cleared} of ${effort.target} sessions cleared the bar. ${effort.target - effort.cleared} to go.`]
+        ? ['text-gold', t('plan.standing.partial', {
+            cleared: effort.cleared, target: effort.target, left: effort.target - effort.cleared,
+          })]
         : effort.gap <= 3
-          ? ['text-gold', `${effort.attempts} attempt${effort.attempts > 1 ? 's' : ''} so far, best ${effort.best}% — ${effort.gap} point${effort.gap > 1 ? 's' : ''} short of the ${effort.bar}% bar. You are nearly there.`]
-          : ['text-content/60', `${effort.attempts} attempt${effort.attempts > 1 ? 's' : ''} so far, best ${effort.best}%. The bar is ${effort.bar}%, ${target} times over.`]
+          ? ['text-gold', t('plan.standing.close', {
+              count: effort.attempts, best: effort.best, gap: effort.gap, bar: effort.bar,
+            })]
+          : ['text-content/60', t('plan.standing.far', {
+              count: effort.attempts, best: effort.best, bar: effort.bar, target,
+            })]
 
   return (
     <p className={`mt-3.5 text-sm font-medium ${tone} max-w-[54ch]`} data-testid="plan-standing">
@@ -694,6 +707,7 @@ function StageStanding({ effort, target }: { effort: StageEffort; target: number
  * empty encouragement is worse than silence.
  */
 function EffortLine({ effort }: { effort: StageEffort }) {
+  const { t } = useTranslation()
   if (effort.kind !== 'below') return null
 
   // Within a couple of points is genuinely close; further off gets the same
@@ -705,11 +719,11 @@ function EffortLine({ effort }: { effort: StageEffort }) {
       className={`mt-1.5 text-xs ${close ? 'text-gold' : 'text-content/45'}`}
       data-testid="stage-effort"
     >
-      {effort.attempts} attempt{effort.attempts > 1 ? 's' : ''} so far · best{' '}
+      {t('plan.effort.attempts', { count: effort.attempts })}{' '}
       <b className="tabular-nums font-semibold">{effort.best}%</b>
       {close
-        ? ` — ${effort.gap} point${effort.gap > 1 ? 's' : ''} off the bar`
-        : `, bar is ${effort.bar}%`}
+        ? t('plan.effort.offBar', { gap: effort.gap })
+        : t('plan.effort.barIs', { bar: effort.bar })}
     </p>
   )
 }
@@ -723,6 +737,7 @@ function EffortLine({ effort }: { effort: StageEffort }) {
  * different stories about the same work.
  */
 function StageForm({ trend, onOpenAnalytics }: { trend: StageTrend | null; onOpenAnalytics: () => void }) {
+  const { t } = useTranslation()
   if (!trend || trend.points.length === 0) return null
   const last = trend.points[trend.points.length - 1]
 
@@ -730,12 +745,12 @@ function StageForm({ trend, onOpenAnalytics }: { trend: StageTrend | null; onOpe
     <button
       onClick={onOpenAnalytics}
       data-testid="plan-stage-form"
-      title="See the full breakdown in Analytics"
+      title={t('plan.seeBreakdown')}
       className="group inline-flex items-center gap-3 rounded-lg px-2 py-1 -mx-2
         hover:bg-contrast/5 cursor-pointer transition-colors"
     >
       <span className="text-right leading-tight">
-        <span className="block text-[0.6875rem] text-content/40">Last {trend.points.length}</span>
+        <span className="block text-[0.6875rem] text-content/40">{t('plan.lastN', { n: trend.points.length })}</span>
         <span className={`block text-sm font-semibold tabular-nums ${
           last >= trend.floor ? 'text-success' : 'text-content/70'
         }`}>
@@ -767,6 +782,7 @@ function StageActions({
   showUpgrade: (headline?: string) => void
   primary?: boolean
 }) {
+  const { t } = useTranslation()
   const { stage } = p
   const base = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors'
   const gold = `${base} bg-gradient-to-br from-gold-bright to-gold text-casino-bg`
@@ -776,7 +792,7 @@ function StageActions({
     <div className={`flex flex-wrap gap-2.5 ${primary ? 'mt-5' : 'mt-3.5 pl-[2.6rem]'}`}>
       {stage.read && (
         <button onClick={() => setMode(stage.read!.mode)} className={primary ? ghost : ghost}>
-          <BookOpen size={15} /> {stage.read.label}
+          <BookOpen size={15} /> {t(stage.read.labelKey)}
         </button>
       )}
 
@@ -786,7 +802,7 @@ function StageActions({
           data-testid={`plan-mark-read-${stage.id}`}
           className={gold}
         >
-          <Check size={15} /> Mark as read
+          <Check size={15} /> {t('plan.markAsRead')}
         </button>
       )}
 
@@ -796,17 +812,17 @@ function StageActions({
           data-testid={`plan-drill-${stage.id}`}
           className={primary ? gold : ghost}
         >
-          <Play size={15} /> {p.done ? 'Practise again' : 'Start drilling'}
+          <Play size={15} /> {p.done ? t('plan.practiseAgain') : t('plan.startDrilling')}
         </button>
       )}
 
       {p.locked && (
         <button
-          onClick={() => showUpgrade(`${stage.title} is part of Pro.`)}
+          onClick={() => showUpgrade(t('plan.stageIsPro', { stage: t(stage.titleKey) }))}
           data-testid={`plan-unlock-${stage.id}`}
           className={ghost}
         >
-          <Lock size={15} /> Unlock with Pro
+          <Lock size={15} /> {t('plan.unlockPro')}
         </button>
       )}
     </div>

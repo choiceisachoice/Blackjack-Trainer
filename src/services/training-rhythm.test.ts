@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import i18next from 'i18next'
 import {
   lastSessionAt,
   daysSinceLastSession,
@@ -127,26 +128,26 @@ describe('deriveRhythm', () => {
 
 describe('rhythmMessage', () => {
   it('stays silent when there is nothing to say', () => {
-    expect(rhythmMessage({ kind: 'new' })).toBeNull()
-    expect(rhythmMessage({ kind: 'current', days: 1 })).toBeNull()
+    expect(rhythmMessage({ kind: 'new' }, i18next.t)).toBeNull()
+    expect(rhythmMessage({ kind: 'current', days: 1 }, i18next.t)).toBeNull()
   })
 
   it('names the gap without scolding', () => {
-    const text = rhythmMessage({ kind: 'returning', days: 5 })!
+    const text = rhythmMessage({ kind: 'returning', days: 5 }, i18next.t)!
     expect(text).toContain('5 days')
     // "You haven't trained in..." is a reprimand; this must not read that way.
     expect(text).not.toMatch(/haven.t|should have|failed|missed/i)
   })
 
   it('explains what a long gap actually costs, and that it comes back', () => {
-    const text = rhythmMessage({ kind: 'rusty', days: 30, refresh: 'hi-lo' })!
+    const text = rhythmMessage({ kind: 'rusty', days: 30, refresh: 'hi-lo' }, i18next.t)!
     expect(text).toContain('30 days')
     expect(text).toMatch(/slower/i)
     expect(text).toMatch(/get it back/i)
   })
 
   it('promises no warm-up it cannot offer', () => {
-    const text = rhythmMessage({ kind: 'rusty', days: 30, refresh: null })!
+    const text = rhythmMessage({ kind: 'rusty', days: 30, refresh: null }, i18next.t)!
     expect(text).toMatch(/nothing is lost/i)
     expect(text).not.toMatch(/warm-up/i)
   })

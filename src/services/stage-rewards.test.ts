@@ -112,7 +112,7 @@ describe('pendingStageAwards', () => {
     expect(rest).toEqual([])
     expect(award).toEqual({
       stage: 'basic-strategy',
-      title: CURRICULUM[stageIndex('basic-strategy')].title,
+      titleKey: CURRICULUM[stageIndex('basic-strategy')].titleKey,
       xp: stageXP('basic-strategy'),
     })
   })
@@ -134,7 +134,7 @@ describe('pendingStageAwards', () => {
     for (const a of pendingStageAwards(progress)) markStageClaimed(a.stage)
     expect(pendingStageAwards(progress)).toEqual([])
     expect(pendingStageAwards(progressFor(['basic-strategy', 'hi-lo'])))
-      .toEqual([{ stage: 'hi-lo', title: CURRICULUM[stageIndex('hi-lo')].title, xp: stageXP('hi-lo') }])
+      .toEqual([{ stage: 'hi-lo', titleKey: CURRICULUM[stageIndex('hi-lo')].titleKey, xp: stageXP('hi-lo') }])
   })
 
   it('reports in curriculum order so the payout narrative reads forwards', () => {

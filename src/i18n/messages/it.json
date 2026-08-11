@@ -661,5 +661,159 @@
     "showAround": "Prima fammi fare un giro",
     "dismiss": "Nascondi",
     "dismissAria": "Nascondi questo suggerimento"
+  },
+  "curriculum": {
+    "rules": {
+      "title": "Il gioco in sé",
+      "goal": "Sapere come si gioca una mano di blackjack e cosa significa ogni termine.",
+      "why": "Tutto il resto dà per scontato che carta, stare, mano morbida, carta scoperta e sballo ti siano familiari.",
+      "read": "Leggi: il gioco"
+    },
+    "basic-strategy": {
+      "title": "Strategia di base",
+      "goal": "Giocare la mossa matematicamente corretta in ogni mano, senza pensarci.",
+      "why": "Il conteggio aggiunge circa l’uno percento. Giocare male la strategia di base costa più di quanto il conteggio possa recuperare — perciò viene prima.",
+      "read": "Leggi: la strategia"
+    },
+    "hi-lo": {
+      "title": "Il conteggio Hi-Lo",
+      "goal": "Tenere un running count preciso per un intero shoe, alla velocità del tavolo.",
+      "why": "È l’abilità su cui poggia tutto il vantaggio. Tutto il resto è un calcolo sopra questo numero.",
+      "read": "Leggi: Hi-Lo"
+    },
+    "true-count": {
+      "title": "True count",
+      "goal": "Convertire il running count in true count valutando i mazzi rimasti.",
+      "why": "Un running count di +6 è debole con sei mazzi rimasti e forte con uno. Puntate e deviazioni si basano sul true count.",
+      "read": "Leggi: il true count"
+    },
+    "deviations": {
+      "title": "Deviazioni",
+      "goal": "Sapere quando il conteggio prevale sulla strategia di base — gli Illustrious 18 e i Fab 4.",
+      "why": "Qui il conteggio inizia a cambiare le decisioni, non solo le puntate. Gran parte del vantaggio di gioco sta in una manciata di mosse.",
+      "read": "Leggi: le deviazioni"
+    },
+    "bet-spread": {
+      "title": "Bet spread",
+      "goal": "Adeguare la puntata al true count, così il vantaggio diventa denaro.",
+      "why": "Quasi tutto il profitto di un contatore viene dal puntare di più quando le probabilità sono a favore. Un conteggio perfetto con puntata fissa non rende nulla."
+    },
+    "table": {
+      "title": "Tutto insieme, al tavolo",
+      "goal": "Tenere il conteggio, giocare bene e misurare le puntate — tutto insieme, sotto pressione.",
+      "why": "Ogni abilità presa da sola è facile. Il difficile è tenerle tutte insieme mentre al tavolo si parla."
+    },
+    "drill": {
+      "flashcards": "{{n}} sessioni di flashcard almeno al {{pct}}%",
+      "speedDrill": "{{n}} Speed Drill almeno al {{pct}}%",
+      "deckEstimation": "{{n}} sessioni di stima dei mazzi almeno al {{pct}}%",
+      "deviations": "{{n}} sessioni di flashcard sulle deviazioni almeno al {{pct}}%",
+      "betSpread": "{{n}} sessioni di bet spread almeno al {{pct}}%",
+      "casino": "{{n}} sessioni al casinò giocate"
+    }
+  },
+  "plan": {
+    "everyStageComplete": "Tutte le tappe completate",
+    "startStage": "Inizia: {{stage}}",
+    "stageComplete": "Tappa completata: {{stage}}",
+    "title": "Il tuo piano di allenamento",
+    "yourGoal": "Il tuo obiettivo",
+    "thisWeek": "Questa settimana",
+    "ofNSessions": "/ {{n}} sessioni",
+    "findStart": "Trova il tuo punto di partenza",
+    "findStartSub": "Un minuto di domande, e tutto ciò che già sai viene saltato.",
+    "warmUp": "Riscaldamento: {{stage}}",
+    "upNext": "Prossima tappa",
+    "worthXp": "Completare questa tappa vale <b>{{xp}} XP</b>",
+    "reachedGoal": "Hai raggiunto il tuo obiettivo",
+    "walkedPath": "Hai percorso tutto il cammino",
+    "reachedGoalBody": "Tutto ciò che volevi imparare è fatto. Il prossimo passo sarebbe {{stage}} — prendilo o lascialo.",
+    "walkedPathBody": "Tutte le tappe sono fatte. Da qui è manutenzione: tieni il conteggio affilato e la precisione onesta al tavolo.",
+    "aimFor": "Punta a: {{stage}}",
+    "openInstead": "Già accessibile",
+    "todaysChallenge": "La sfida di oggi",
+    "fullPath": "Il percorso completo",
+    "skippedByPlacement": "saltata dal posizionamento",
+    "beyondGoal": "oltre il tuo obiettivo",
+    "changeStart": "Cambia da dove inizio",
+    "chooseStart": "Scegli da dove inizio",
+    "adjust": "Modifica il piano",
+    "adjustBody": "Queste modifiche non toccano ciò che hai già completato. Solo il posizionamento va rifatto.",
+    "closeSettings": "Chiudi le impostazioni del piano",
+    "whereItEnds": "Dove finisce",
+    "weeklyPace": "Il tuo ritmo settimanale",
+    "stagesNeedPro_one": " · {{count}} tappa richiede Pro",
+    "stagesNeedPro_other": " · {{count}} tappe richiedono Pro",
+    "markAsRead": "Segna come letto",
+    "practiseAgain": "Esercitati ancora",
+    "startDrilling": "Inizia a esercitarti",
+    "unlockPro": "Sblocca con Pro",
+    "stageIsPro": "{{stage}} fa parte di Pro.",
+    "seeBreakdown": "Vedi il dettaglio completo nelle analisi",
+    "lastN": "Ultime {{n}}",
+    "standing": {
+      "done": "Superata. Tutto il resto qui è pratica.",
+      "partial": "{{cleared}} sessioni su {{target}} hanno superato la soglia. Ne mancano {{left}}.",
+      "close_one": "{{count}} tentativo finora, migliore {{best}}% — {{gap}} sotto la soglia del {{bar}}%. Ci sei quasi.",
+      "close_other": "{{count}} tentativi finora, migliore {{best}}% — {{gap}} sotto la soglia del {{bar}}%. Ci sei quasi.",
+      "far_one": "{{count}} tentativo finora, migliore {{best}}%. La soglia è {{bar}}%, per {{target}} volte.",
+      "far_other": "{{count}} tentativi finora, migliore {{best}}%. La soglia è {{bar}}%, per {{target}} volte."
+    },
+    "effort": {
+      "attempts_one": "{{count}} tentativo · migliore",
+      "attempts_other": "{{count}} tentativi · migliore",
+      "offBar": " — {{gap}} sotto la soglia",
+      "barIs": ", la soglia è {{bar}}%"
+    }
+  },
+  "recommend": {
+    "startTraining": "Inizia ad allenarti",
+    "openLearn": "Apri la pagina Impara",
+    "readEndToEnd": "Leggila da cima a fondo — è scritta per chi parte da zero.",
+    "startHere": "Inizia qui: {{stage}}",
+    "startByReading": "Inizia leggendo, non esercitandoti",
+    "beginnerReason": "Hai detto di non aver mai giocato, quindi non c’è ancora nulla da esercitare — la pagina Impara parte dal gioco stesso e gli esercizi si aprono strada facendo.",
+    "aheadOne": "La prima tappa è già alle tue spalle.",
+    "aheadMany": "Le prime {{n}} tappe sono già alle tue spalle."
+  },
+  "rhythm": {
+    "returning": "Bentornato — sono passati {{days}} giorni. Si riprende da dove eri rimasto.",
+    "rustyWithRefresh": "Sono passati {{days}} giorni. Il conteggio è un’abilità di velocità, quindi sembrerà più lento di come l’avevi lasciato — di solito basta un giro di riscaldamento.",
+    "rustyPlain": "Sono passati {{days}} giorni. Non è andato perso nulla; riparti da dove preferisci."
+  },
+  "profile": {
+    "goal": {
+      "understand": {
+        "label": "Voglio capire come funziona il conteggio",
+        "hint": "Imparare bene il gioco e il conteggio. Nessun obbligo di andare oltre."
+      },
+      "stop-losing": {
+        "label": "Voglio smettere di regalare soldi al tavolo",
+        "hint": "Giocare bene ogni mano e sapere quando il mazzo è a tuo favore."
+      },
+      "win": {
+        "label": "Voglio vincere soldi contando le carte",
+        "hint": "Tutto quanto sopra, più la misura della puntata che trasforma il vantaggio in denaro."
+      },
+      "serious": {
+        "label": "Voglio farlo sul serio, a lungo termine",
+        "hint": "Il percorso completo, fino a tenere tutto insieme in condizioni reali."
+      }
+    },
+    "pace": {
+      "light": {
+        "label": "Qualche minuto ogni tanto"
+      },
+      "casual": {
+        "label": "Un paio di volte a settimana"
+      },
+      "regular": {
+        "label": "Quasi tutti i giorni"
+      },
+      "heavy": {
+        "label": "Ogni giorno, sul serio"
+      },
+      "hint": "Circa {{n}} sessioni a settimana."
+    }
   }
 }

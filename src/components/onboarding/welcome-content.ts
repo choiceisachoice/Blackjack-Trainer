@@ -1,6 +1,7 @@
 import { CURRICULUM } from '../../services/curriculum'
 
 import { PRO_MODES } from '../../services/pro-features'
+import type { Translate } from '../../i18n/translate'
 
 /**
  * Copy for the first screen a new account sees.
@@ -34,12 +35,6 @@ export interface WelcomeCopy {
 export function freeStageCount(): number {
   return CURRICULUM.filter(s => !s.drill || !PRO_MODES.has(s.drill.mode)).length
 }
-
-/**
- * Just enough of i18next's `t` to build this copy, declared here so the module
- * stays a plain function the tests can call with any translator.
- */
-export type Translate = (key: string, vars?: Record<string, unknown>) => string
 
 export function buildWelcomeCopy(isPro: boolean, t: Translate): WelcomeCopy {
   const stages = CURRICULUM.length

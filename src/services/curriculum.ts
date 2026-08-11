@@ -1,6 +1,7 @@
 import type { AppMode } from '../store/app-store'
 import type { TrainingSessionResult } from './stats-types'
 import { isProMode } from './pro-features'
+import type { Translate } from '../i18n/translate'
 
 /**
  * The training path, in the order card counting has to be learned.
@@ -28,8 +29,13 @@ export type StageId =
 
 /** What a stage asks you to drill, and how well. */
 export interface DrillRequirement {
-  /** Shown to the user, e.g. "3 sessions at 85% or better". */
-  description: string
+  /**
+   * Key for the sentence shown to the user, e.g. "3 sessions at 85% or
+   * better". It is interpolated from `minSessions` and `minAccuracy` rather
+   * than written out, so the promise and the threshold cannot drift apart —
+   * they used to be two separate edits.
+   */
+  descriptionKey: string
   minSessions: number
   /** Accuracy floor as a fraction (0.85 = 85%). */
   minAccuracy: number
@@ -41,13 +47,18 @@ export interface DrillRequirement {
 
 export interface CurriculumStage {
   id: StageId
-  title: string
+  /**
+   * Translation keys, not text. Every stage title, goal and reason is read on
+   * the plan, the home screen, the analytics header and the recommendation
+   * card — one place to translate them, four places that stay in step.
+   */
+  titleKey: string
   /** What you will be able to do once this stage is done. */
-  goal: string
+  goalKey: string
   /** Why it matters — the motivation, not the mechanics. */
-  why: string
+  whyKey: string
   /** Reading that comes first, if any. */
-  read?: { label: string; mode: AppMode }
+  read?: { labelKey: string; mode: AppMode }
   /** Measurable practice, if any. Stages without one are read-only. */
   drill?: DrillRequirement
 }
@@ -62,19 +73,19 @@ function hasDeviationQuestions(s: TrainingSessionResult): boolean {
 export const CURRICULUM: CurriculumStage[] = [
   {
     id: 'rules',
-    title: 'The game itself',
-    goal: 'Know how a hand of blackjack is played, and what every term means.',
-    why: 'Everything after this assumes hit, stand, soft, upcard and bust are second nature.',
-    read: { label: 'Read: the game', mode: 'learn' },
+    titleKey: 'curriculum.rules.title',
+    goalKey: 'curriculum.rules.goal',
+    whyKey: 'curriculum.rules.why',
+    read: { labelKey: 'curriculum.rules.read', mode: 'learn' },
   },
   {
     id: 'basic-strategy',
-    title: 'Basic strategy',
-    goal: 'Play the mathematically correct move for every hand, without thinking.',
-    why: 'Counting adds about one percent. Playing basic strategy wrong costs you more than counting can ever win back — so this comes first.',
-    read: { label: 'Read: strategy', mode: 'learn' },
+    titleKey: 'curriculum.basic-strategy.title',
+    goalKey: 'curriculum.basic-strategy.goal',
+    whyKey: 'curriculum.basic-strategy.why',
+    read: { labelKey: 'curriculum.basic-strategy.read', mode: 'learn' },
     drill: {
-      description: '3 Flashcards sessions at 85% or better',
+      descriptionKey: 'curriculum.drill.flashcards',
       minSessions: 3,
       minAccuracy: 0.85,
       counts: s => s.mode === 'deviationFlashCards',
@@ -83,12 +94,12 @@ export const CURRICULUM: CurriculumStage[] = [
   },
   {
     id: 'hi-lo',
-    title: 'The Hi-Lo count',
-    goal: 'Keep an accurate running count through a whole shoe at table speed.',
-    why: 'This is the skill the whole edge rests on. Everything later is a calculation on top of this number.',
-    read: { label: 'Read: Hi-Lo', mode: 'learn' },
+    titleKey: 'curriculum.hi-lo.title',
+    goalKey: 'curriculum.hi-lo.goal',
+    whyKey: 'curriculum.hi-lo.why',
+    read: { labelKey: 'curriculum.hi-lo.read', mode: 'learn' },
     drill: {
-      description: '3 Speed Drills at 90% or better',
+      descriptionKey: 'curriculum.drill.speedDrill',
       minSessions: 3,
       minAccuracy: 0.9,
       counts: s => s.mode === 'speedDrill',
@@ -97,12 +108,12 @@ export const CURRICULUM: CurriculumStage[] = [
   },
   {
     id: 'true-count',
-    title: 'True count',
-    goal: 'Convert the running count into the true count by judging the decks left.',
-    why: 'A running count of +6 is weak with six decks left and strong with one. The true count is what your bets and deviations actually key off.',
-    read: { label: 'Read: true count', mode: 'learn' },
+    titleKey: 'curriculum.true-count.title',
+    goalKey: 'curriculum.true-count.goal',
+    whyKey: 'curriculum.true-count.why',
+    read: { labelKey: 'curriculum.true-count.read', mode: 'learn' },
     drill: {
-      description: '3 Deck Estimation sessions at 80% or better',
+      descriptionKey: 'curriculum.drill.deckEstimation',
       minSessions: 3,
       minAccuracy: 0.8,
       counts: s => s.mode === 'deckEstimation',
@@ -111,12 +122,12 @@ export const CURRICULUM: CurriculumStage[] = [
   },
   {
     id: 'deviations',
-    title: 'Deviations',
-    goal: 'Know when the count overrides basic strategy — the Illustrious 18 and Fab 4.',
-    why: 'This is where the count starts changing decisions, not just bet sizes. Most of the playing edge sits in a handful of plays.',
-    read: { label: 'Read: deviations', mode: 'learn' },
+    titleKey: 'curriculum.deviations.title',
+    goalKey: 'curriculum.deviations.goal',
+    whyKey: 'curriculum.deviations.why',
+    read: { labelKey: 'curriculum.deviations.read', mode: 'learn' },
     drill: {
-      description: '3 deviation Flashcards sessions at 80% or better',
+      descriptionKey: 'curriculum.drill.deviations',
       minSessions: 3,
       minAccuracy: 0.8,
       counts: hasDeviationQuestions,
@@ -125,11 +136,11 @@ export const CURRICULUM: CurriculumStage[] = [
   },
   {
     id: 'bet-spread',
-    title: 'Bet spread',
-    goal: 'Size your bet to the true count, so the edge turns into money.',
-    why: 'Almost all of a counter’s profit comes from betting more when the odds are yours. A perfect count with a flat bet earns nothing.',
+    titleKey: 'curriculum.bet-spread.title',
+    goalKey: 'curriculum.bet-spread.goal',
+    whyKey: 'curriculum.bet-spread.why',
     drill: {
-      description: '3 Bet Spread sessions at 85% or better',
+      descriptionKey: 'curriculum.drill.betSpread',
       minSessions: 3,
       minAccuracy: 0.85,
       counts: s => s.mode === 'betSpread',
@@ -138,11 +149,11 @@ export const CURRICULUM: CurriculumStage[] = [
   },
   {
     id: 'table',
-    title: 'The whole thing, at the table',
-    goal: 'Hold the count, play correctly and size bets — all at once, under pressure.',
-    why: 'Each skill is easy alone. The job is doing all of them at once while the table talks.',
+    titleKey: 'curriculum.table.title',
+    goalKey: 'curriculum.table.goal',
+    whyKey: 'curriculum.table.why',
     drill: {
-      description: '3 Casino Sessions played',
+      descriptionKey: 'curriculum.drill.casino',
       minSessions: 3,
       minAccuracy: 0,
       counts: s => s.mode === 'casinoSession',
@@ -150,6 +161,20 @@ export const CURRICULUM: CurriculumStage[] = [
     },
   },
 ]
+
+/**
+ * The drill requirement as a sentence, with its own numbers filled in.
+ *
+ * Takes a translator rather than importing one: this module is pure and is
+ * imported by tests and by the engine-facing services, neither of which should
+ * pull in i18next.
+ */
+export function drillDescription(drill: DrillRequirement, t: Translate): string {
+  return t(drill.descriptionKey, {
+    n: drill.minSessions,
+    pct: Math.round(drill.minAccuracy * 100),
+  })
+}
 
 /** Stage order lookup — the array index is the canonical order. */
 export function stageIndex(id: StageId): number {

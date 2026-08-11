@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useStatsStore } from '../store/stats-store'
 import { useIsPro } from '../store/entitlement-store'
 import { useChallengeStore } from '../store/challenge-store'
@@ -23,6 +24,7 @@ import { getProfile, sessionsPerWeek } from '../services/learner-profile'
  * learner between stages.
  */
 export function useLearnerSync(): void {
+  const { t } = useTranslation()
   const sessions = useStatsStore(s => s.sessions)
   const isPro = useIsPro()
   const syncDaily = useChallengeStore(s => s.syncLearner)
@@ -45,8 +47,11 @@ export function useLearnerSync(): void {
     // after the XP has actually been added, so a failure re-tries rather than
     // silently swallowing the reward.
     for (const award of pendingStageAwards(deriveCurriculum(sessions, getReadStages(), isPro))) {
-      addXP(award.xp, `Stage complete: ${award.title}`)
+      addXP(award.xp, t('plan.stageComplete', { stage: t(award.titleKey) }))
       markStageClaimed(award.stage)
     }
-  }, [sessions, isPro, syncDaily, syncWeekly, addXP])
+    // `t` is a dependency because the XP ledger entry names the stage; the
+    // effect is idempotent (each stage is marked claimed once), so an extra
+    // run after a language change costs nothing.
+  }, [sessions, isPro, syncDaily, syncWeekly, addXP, t])
 }

@@ -1,5 +1,6 @@
 import type { TrainingSessionResult } from './stats-types'
 import type { StageId, StageProgress } from './curriculum'
+import type { Translate } from '../i18n/translate'
 
 /**
  * How long it has been since the learner last trained, and what to say about it.
@@ -90,16 +91,16 @@ export function deriveRhythm(
  * and it is true of any timed recall skill without pretending to a precise
  * forgetting curve we have not measured.
  */
-export function rhythmMessage(rhythm: Rhythm): string | null {
+export function rhythmMessage(rhythm: Rhythm, t: Translate): string | null {
   switch (rhythm.kind) {
     case 'new':
     case 'current':
       return null
     case 'returning':
-      return `Welcome back — it has been ${rhythm.days} days. Picking up where you left off.`
+      return t('rhythm.returning', { days: rhythm.days })
     case 'rusty':
       return rhythm.refresh
-        ? `It has been ${rhythm.days} days. Counting is a speed skill, so it will feel slower than you left it — one warm-up run is usually enough to get it back.`
-        : `It has been ${rhythm.days} days. Nothing is lost; start wherever suits you.`
+        ? t('rhythm.rustyWithRefresh', { days: rhythm.days })
+        : t('rhythm.rustyPlain', { days: rhythm.days })
   }
 }

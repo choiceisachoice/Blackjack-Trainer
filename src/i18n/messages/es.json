@@ -661,5 +661,159 @@
     "showAround": "Enséñame esto primero",
     "dismiss": "Descartar",
     "dismissAria": "Descartar esta sugerencia"
+  },
+  "curriculum": {
+    "rules": {
+      "title": "El juego en sí",
+      "goal": "Saber cómo se juega una mano de blackjack y qué significa cada término.",
+      "why": "Todo lo demás da por hecho que pedir, plantarse, mano blanda, carta vista y pasarse te salen solos.",
+      "read": "Leer: el juego"
+    },
+    "basic-strategy": {
+      "title": "Estrategia básica",
+      "goal": "Jugar la jugada matemáticamente correcta en cada mano, sin pensar.",
+      "why": "Contar aporta alrededor del uno por ciento. Jugar mal la estrategia básica cuesta más de lo que contar puede recuperar; por eso va primero.",
+      "read": "Leer: la estrategia"
+    },
+    "hi-lo": {
+      "title": "El conteo Hi-Lo",
+      "goal": "Mantener un running count exacto durante todo el zapato, al ritmo de la mesa.",
+      "why": "Es la habilidad sobre la que descansa toda la ventaja. Todo lo demás es un cálculo sobre este número.",
+      "read": "Leer: Hi-Lo"
+    },
+    "true-count": {
+      "title": "True count",
+      "goal": "Convertir el running count en true count estimando las barajas restantes.",
+      "why": "Un running count de +6 es débil con seis barajas restantes y fuerte con una. Tus apuestas y desviaciones se guían por el true count.",
+      "read": "Leer: el true count"
+    },
+    "deviations": {
+      "title": "Desviaciones",
+      "goal": "Saber cuándo el conteo se impone a la estrategia básica: los Illustrious 18 y los Fab 4.",
+      "why": "Aquí el conteo empieza a cambiar decisiones, no solo apuestas. Casi toda la ventaja de juego está en un puñado de jugadas.",
+      "read": "Leer: las desviaciones"
+    },
+    "bet-spread": {
+      "title": "Bet spread",
+      "goal": "Ajustar la apuesta al true count, para que la ventaja se convierta en dinero.",
+      "why": "Casi todo el beneficio de un contador viene de apostar más cuando las probabilidades le favorecen. Un conteo perfecto con apuesta fija no gana nada."
+    },
+    "table": {
+      "title": "Todo junto, en la mesa",
+      "goal": "Llevar la cuenta, jugar bien y ajustar las apuestas: todo a la vez, bajo presión.",
+      "why": "Cada habilidad por separado es fácil. Lo difícil es sostenerlas todas a la vez mientras la mesa habla."
+    },
+    "drill": {
+      "flashcards": "{{n}} sesiones de tarjetas con {{pct}} % o más",
+      "speedDrill": "{{n}} Speed Drills con {{pct}} % o más",
+      "deckEstimation": "{{n}} sesiones de estimación de barajas con {{pct}} % o más",
+      "deviations": "{{n}} sesiones de tarjetas de desviaciones con {{pct}} % o más",
+      "betSpread": "{{n}} sesiones de bet spread con {{pct}} % o más",
+      "casino": "{{n}} sesiones de casino jugadas"
+    }
+  },
+  "plan": {
+    "everyStageComplete": "Todas las etapas completadas",
+    "startStage": "Empezar: {{stage}}",
+    "stageComplete": "Etapa completada: {{stage}}",
+    "title": "Tu plan de entrenamiento",
+    "yourGoal": "Tu objetivo",
+    "thisWeek": "Esta semana",
+    "ofNSessions": "/ {{n}} sesiones",
+    "findStart": "Encuentra tu punto de partida",
+    "findStartSub": "Un minuto de preguntas y se salta todo lo que ya sabes.",
+    "warmUp": "Calentamiento: {{stage}}",
+    "upNext": "A continuación",
+    "worthXp": "Terminar esta etapa vale <b>{{xp}} XP</b>",
+    "reachedGoal": "Has alcanzado tu objetivo",
+    "walkedPath": "Has recorrido todo el camino",
+    "reachedGoalBody": "Todo lo que querías aprender está hecho. Lo siguiente sería {{stage}}: tú decides.",
+    "walkedPathBody": "Todas las etapas están hechas. A partir de aquí es mantenimiento: mantén el conteo afilado y tu precisión honesta en la mesa.",
+    "aimFor": "Apunta a: {{stage}}",
+    "openInstead": "Ya disponible para ti",
+    "todaysChallenge": "El reto de hoy",
+    "fullPath": "El camino completo",
+    "skippedByPlacement": "saltada por la clasificación",
+    "beyondGoal": "más allá de tu objetivo",
+    "changeStart": "Cambiar dónde empiezo",
+    "chooseStart": "Elegir dónde empiezo",
+    "adjust": "Ajustar tu plan",
+    "adjustBody": "Cambiar esto conserva todo lo que ya has completado. Solo la clasificación hay que rehacerla.",
+    "closeSettings": "Cerrar los ajustes del plan",
+    "whereItEnds": "Dónde termina",
+    "weeklyPace": "Tu ritmo semanal",
+    "stagesNeedPro_one": " · {{count}} etapa necesita Pro",
+    "stagesNeedPro_other": " · {{count}} etapas necesitan Pro",
+    "markAsRead": "Marcar como leído",
+    "practiseAgain": "Practicar otra vez",
+    "startDrilling": "Empezar a practicar",
+    "unlockPro": "Desbloquear con Pro",
+    "stageIsPro": "{{stage}} forma parte de Pro.",
+    "seeBreakdown": "Ver el desglose completo en Análisis",
+    "lastN": "Últimas {{n}}",
+    "standing": {
+      "done": "Superada. Todo lo demás aquí es práctica.",
+      "partial": "{{cleared}} de {{target}} sesiones superaron el listón. Quedan {{left}}.",
+      "close_one": "{{count}} intento hasta ahora, mejor {{best}} % — {{gap}} por debajo del listón del {{bar}} %. Casi lo tienes.",
+      "close_other": "{{count}} intentos hasta ahora, mejor {{best}} % — {{gap}} por debajo del listón del {{bar}} %. Casi lo tienes.",
+      "far_one": "{{count}} intento hasta ahora, mejor {{best}} %. El listón está en {{bar}} %, {{target}} veces.",
+      "far_other": "{{count}} intentos hasta ahora, mejor {{best}} %. El listón está en {{bar}} %, {{target}} veces."
+    },
+    "effort": {
+      "attempts_one": "{{count}} intento · mejor",
+      "attempts_other": "{{count}} intentos · mejor",
+      "offBar": " — {{gap}} por debajo del listón",
+      "barIs": ", el listón está en {{bar}} %"
+    }
+  },
+  "recommend": {
+    "startTraining": "Empezar a entrenar",
+    "openLearn": "Abrir la página Aprender",
+    "readEndToEnd": "Léela de principio a fin: está escrita para alguien que parte de cero.",
+    "startHere": "Empieza aquí: {{stage}}",
+    "startByReading": "Empieza leyendo, no practicando",
+    "beginnerReason": "Dijiste que nunca has jugado, así que todavía no hay nada que practicar: la página Aprender empieza por el juego en sí y los ejercicios se van abriendo.",
+    "aheadOne": "La primera etapa ya la tienes hecha.",
+    "aheadMany": "Las primeras {{n}} etapas ya las tienes hechas."
+  },
+  "rhythm": {
+    "returning": "Bienvenido de nuevo: han pasado {{days}} días. Seguimos donde lo dejaste.",
+    "rustyWithRefresh": "Han pasado {{days}} días. Contar es una habilidad de velocidad, así que se sentirá más lento que al dejarlo: suele bastar un calentamiento.",
+    "rustyPlain": "Han pasado {{days}} días. No se ha perdido nada; empieza por donde quieras."
+  },
+  "profile": {
+    "goal": {
+      "understand": {
+        "label": "Quiero entender cómo funciona el conteo",
+        "hint": "Aprender bien el juego y el conteo. Sin presión por ir más allá."
+      },
+      "stop-losing": {
+        "label": "Quiero dejar de regalar dinero en la mesa",
+        "hint": "Jugar bien cada mano y saber cuándo la baraja te favorece."
+      },
+      "win": {
+        "label": "Quiero ganar dinero contando cartas",
+        "hint": "Todo lo anterior, más el tamaño de apuesta que convierte la ventaja en dinero."
+      },
+      "serious": {
+        "label": "Quiero hacerlo en serio, a largo plazo",
+        "hint": "El camino completo, hasta sostenerlo todo en condiciones reales."
+      }
+    },
+    "pace": {
+      "light": {
+        "label": "Unos minutos de vez en cuando"
+      },
+      "casual": {
+        "label": "Un par de veces por semana"
+      },
+      "regular": {
+        "label": "Casi todos los días"
+      },
+      "heavy": {
+        "label": "Todos los días, en serio"
+      },
+      "hint": "Unas {{n}} sesiones por semana."
+    }
   }
 }

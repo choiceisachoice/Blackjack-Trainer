@@ -661,5 +661,159 @@
     "showAround": "Önce etrafı gezdir",
     "dismiss": "Kapat",
     "dismissAria": "Bu öneriyi kapat"
+  },
+  "curriculum": {
+    "rules": {
+      "title": "Oyunun kendisi",
+      "goal": "Bir blackjack elinin nasıl oynandığını ve her terimin ne demek olduğunu bilmek.",
+      "why": "Bundan sonrası; kart alma, durma, yumuşak el, açık kart ve batma kavramlarının içselleşmiş olmasını varsayar.",
+      "read": "Oku: oyun"
+    },
+    "basic-strategy": {
+      "title": "Temel strateji",
+      "goal": "Her elde matematiksel olarak doğru hamleyi düşünmeden oynamak.",
+      "why": "Sayım yaklaşık yüzde bir katkı sağlar. Temel stratejiyi yanlış oynamak, sayımın geri kazanabileceğinden fazlasına mal olur — bu yüzden önce bu gelir.",
+      "read": "Oku: strateji"
+    },
+    "hi-lo": {
+      "title": "Hi-Lo sayımı",
+      "goal": "Masa hızında, bir ayakkabı boyunca doğru bir running count tutmak.",
+      "why": "Tüm avantajın dayandığı beceri budur. Sonraki her şey bu sayının üzerine yapılan bir hesaptır.",
+      "read": "Oku: Hi-Lo"
+    },
+    "true-count": {
+      "title": "True count",
+      "goal": "Kalan desteyi tahmin ederek running count’u true count’a çevirmek.",
+      "why": "+6’lık bir running count altı deste kalmışken zayıf, bir deste kalmışken güçlüdür. Bahisleriniz ve sapmalarınız true count’a göre belirlenir.",
+      "read": "Oku: true count"
+    },
+    "deviations": {
+      "title": "Sapmalar",
+      "goal": "Sayımın temel stratejinin önüne geçtiği anları bilmek — Illustrious 18 ve Fab 4.",
+      "why": "Sayımın yalnızca bahisleri değil kararları da değiştirmeye başladığı yer burasıdır. Oyun avantajının çoğu bir avuç hamlede saklıdır.",
+      "read": "Oku: sapmalar"
+    },
+    "bet-spread": {
+      "title": "Bet spread",
+      "goal": "Bahsi true count’a göre ayarlamak, böylece avantaj paraya dönüşür.",
+      "why": "Bir sayıcının kârının neredeyse tamamı, olasılıklar lehine olduğunda daha çok yatırmaktan gelir. Sabit bahisle mükemmel bir sayım hiçbir şey kazandırmaz."
+    },
+    "table": {
+      "title": "Hepsi bir arada, masada",
+      "goal": "Sayımı tutmak, doğru oynamak ve bahsi ayarlamak — hepsi aynı anda, baskı altında.",
+      "why": "Her beceri tek başına kolaydır. Zor olan, masa konuşurken hepsini aynı anda yürütmektir."
+    },
+    "drill": {
+      "flashcards": "En az %{{pct}} ile {{n}} bilgi kartı turu",
+      "speedDrill": "En az %{{pct}} ile {{n}} Speed Drill",
+      "deckEstimation": "En az %{{pct}} ile {{n}} deste tahmini turu",
+      "deviations": "En az %{{pct}} ile {{n}} sapma bilgi kartı turu",
+      "betSpread": "En az %{{pct}} ile {{n}} bet spread turu",
+      "casino": "Oynanmış {{n}} casino oturumu"
+    }
+  },
+  "plan": {
+    "everyStageComplete": "Bütün aşamalar tamamlandı",
+    "startStage": "Başla: {{stage}}",
+    "stageComplete": "Aşama tamamlandı: {{stage}}",
+    "title": "Antrenman planınız",
+    "yourGoal": "Hedefiniz",
+    "thisWeek": "Bu hafta",
+    "ofNSessions": "/ {{n}} oturum",
+    "findStart": "Başlangıç noktanızı bulun",
+    "findStartSub": "Bir dakikalık soru, ve zaten bildiğiniz her şey atlanır.",
+    "warmUp": "Isınma: {{stage}}",
+    "upNext": "Sırada",
+    "worthXp": "Bu aşamayı bitirmek <b>{{xp}} XP</b> değerinde",
+    "reachedGoal": "Hedefinize ulaştınız",
+    "walkedPath": "Bütün yolu yürüdünüz",
+    "reachedGoalBody": "Öğrenmeye niyetlendiğiniz her şey tamam. Sırada {{stage}} var — ister alın, ister bırakın.",
+    "walkedPathBody": "Bütün aşamalar tamam. Buradan sonrası bakım: sayımı keskin, masadaki isabetinizi dürüst tutun.",
+    "aimFor": "Hedef: {{stage}}",
+    "openInstead": "Şu an açık olan",
+    "todaysChallenge": "Bugünün görevi",
+    "fullPath": "Yolun tamamı",
+    "skippedByPlacement": "seviye tespitiyle atlandı",
+    "beyondGoal": "hedefinizin ötesinde",
+    "changeStart": "Başlangıcımı değiştir",
+    "chooseStart": "Başlangıcımı seç",
+    "adjust": "Planınızı ayarlayın",
+    "adjustBody": "Bunları değiştirmek tamamladıklarınızı korur. Yalnızca seviye tespitinin yeniden yapılması gerekir.",
+    "closeSettings": "Plan ayarlarını kapat",
+    "whereItEnds": "Nerede biter",
+    "weeklyPace": "Haftalık temponuz",
+    "stagesNeedPro_one": " · {{count}} aşama Pro gerektirir",
+    "stagesNeedPro_other": " · {{count}} aşama Pro gerektirir",
+    "markAsRead": "Okundu olarak işaretle",
+    "practiseAgain": "Yeniden çalış",
+    "startDrilling": "Çalışmaya başla",
+    "unlockPro": "Pro ile aç",
+    "stageIsPro": "{{stage}} Pro kapsamındadır.",
+    "seeBreakdown": "Tam dökümü Analizler’de görün",
+    "lastN": "Son {{n}}",
+    "standing": {
+      "done": "Geçildi. Buradan sonrası alıştırmadır.",
+      "partial": "{{target}} turdan {{cleared}} tanesi eşiği geçti. {{left}} tane kaldı.",
+      "close_one": "Şu ana kadar {{count}} deneme, en iyisi %{{best}} — %{{bar}} eşiğinin {{gap}} altında. Neredeyse tamam.",
+      "close_other": "Şu ana kadar {{count}} deneme, en iyisi %{{best}} — %{{bar}} eşiğinin {{gap}} altında. Neredeyse tamam.",
+      "far_one": "Şu ana kadar {{count}} deneme, en iyisi %{{best}}. Eşik %{{bar}} ve bu {{target}} kez gerekiyor.",
+      "far_other": "Şu ana kadar {{count}} deneme, en iyisi %{{best}}. Eşik %{{bar}} ve bu {{target}} kez gerekiyor."
+    },
+    "effort": {
+      "attempts_one": "{{count}} deneme · en iyisi",
+      "attempts_other": "{{count}} deneme · en iyisi",
+      "offBar": " — eşiğin {{gap}} altında",
+      "barIs": ", eşik %{{bar}}"
+    }
+  },
+  "recommend": {
+    "startTraining": "Antrenmana başla",
+    "openLearn": "Öğren sayfasını aç",
+    "readEndToEnd": "Baştan sona okuyun — sıfırdan başlayan biri için yazıldı.",
+    "startHere": "Buradan başlayın: {{stage}}",
+    "startByReading": "Alıştırmayla değil, okuyarak başlayın",
+    "beginnerReason": "Hiç oynamadığınızı söylediniz, yani henüz çalışılacak bir şey yok — Öğren sayfası önce oyunun kendisini anlatır, alıştırmalar ilerledikçe açılır.",
+    "aheadOne": "İlk aşamayı çoktan geride bıraktınız.",
+    "aheadMany": "İlk {{n}} aşamayı çoktan geride bıraktınız."
+  },
+  "rhythm": {
+    "returning": "Tekrar hoş geldiniz — {{days}} gün geçti. Kaldığınız yerden devam.",
+    "rustyWithRefresh": "{{days}} gün geçti. Sayım bir hız becerisidir, bıraktığınızdan daha yavaş gelecektir — genelde bir ısınma turu yeter.",
+    "rustyPlain": "{{days}} gün geçti. Hiçbir şey kaybolmadı; nereden isterseniz başlayın."
+  },
+  "profile": {
+    "goal": {
+      "understand": {
+        "label": "Kart saymanın nasıl işlediğini anlamak istiyorum",
+        "hint": "Oyunu ve sayımı düzgün öğrenmek. Daha ileri gitme zorunluluğu yok."
+      },
+      "stop-losing": {
+        "label": "Masada para vermeyi bırakmak istiyorum",
+        "hint": "Her eli doğru oynamak ve destenin ne zaman lehinize olduğunu bilmek."
+      },
+      "win": {
+        "label": "Kart sayarak para kazanmak istiyorum",
+        "hint": "Yukarıdakilerin tümü, artı avantajı paraya çeviren bahis büyüklüğü."
+      },
+      "serious": {
+        "label": "Bunu ciddi ve uzun vadeli yapmak istiyorum",
+        "hint": "Yolun tamamı, sonunda gerçek koşullarda hepsi bir arada."
+      }
+    },
+    "pace": {
+      "light": {
+        "label": "Ara sıra birkaç dakika"
+      },
+      "casual": {
+        "label": "Haftada birkaç kez"
+      },
+      "regular": {
+        "label": "Çoğu gün"
+      },
+      "heavy": {
+        "label": "Her gün, ciddi biçimde"
+      },
+      "hint": "Haftada yaklaşık {{n}} tur."
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import i18next from 'i18next'
 import {
   firstMoveFor,
   recommendationHeadline,
@@ -18,14 +19,14 @@ beforeEach(() => localStorage.clear())
 
 describe('choosing the first move', () => {
   it('sends the complete beginner to read, because they have nothing to drill', () => {
-    const move = firstMoveFor('rules')
+    const move = firstMoveFor('rules', i18next.t)
     expect(move.kind).toBe('read')
     expect(move.mode).toBe('learn')
   })
 
   it('sends every other stage to that stage’s own drill', () => {
     for (const stage of CURRICULUM.slice(1)) {
-      const move = firstMoveFor(stage.id)
+      const move = firstMoveFor(stage.id, i18next.t)
       expect(move.kind).toBe('drill')
       // The suggestion has to open the screen the stage is actually measured
       // on — pointing somewhere else would advertise progress it cannot make.
@@ -35,7 +36,7 @@ describe('choosing the first move', () => {
 
   it('produces a move for every answer the question offers', () => {
     for (const option of ENTRY_OPTIONS) {
-      const move = firstMoveFor(option.stage)
+      const move = firstMoveFor(option.stage, i18next.t)
       expect(move.action.length).toBeGreaterThan(0)
       expect(move.detail.length).toBeGreaterThan(0)
       expect(move.stage).toBe(option.stage)
@@ -44,7 +45,7 @@ describe('choosing the first move', () => {
 
   it('falls back to reading for a stage that is not in the curriculum', () => {
     // A placement stored by an older build must not blank the card.
-    const move = firstMoveFor('from-an-older-build' as never)
+    const move = firstMoveFor('from-an-older-build' as never, i18next.t)
     expect(move.kind).toBe('read')
     expect(move.mode).toBe('learn')
   })
@@ -52,24 +53,24 @@ describe('choosing the first move', () => {
 
 describe('the wording', () => {
   it('tells the beginner to read rather than drill', () => {
-    expect(recommendationHeadline('rules')).toMatch(/read/i)
-    expect(recommendationReason('rules')).toMatch(/never played/i)
+    expect(recommendationHeadline('rules', i18next.t)).toMatch(/read/i)
+    expect(recommendationReason('rules', i18next.t)).toMatch(/never played/i)
   })
 
   it('credits the stages an experienced learner skipped', () => {
-    expect(recommendationReason('hi-lo')).toMatch(/2 stages are already behind you/i)
+    expect(recommendationReason('hi-lo', i18next.t)).toMatch(/2 stages are already behind you/i)
   })
 
   it('says "stage" in the singular when exactly one was skipped', () => {
     // Off-by-one plurals are the tell that copy was written for one case only.
-    expect(recommendationReason('basic-strategy')).toMatch(/The first stage is already behind you/i)
-    expect(recommendationReason('basic-strategy')).not.toMatch(/1 stages/)
+    expect(recommendationReason('basic-strategy', i18next.t)).toMatch(/The first stage is already behind you/i)
+    expect(recommendationReason('basic-strategy', i18next.t)).not.toMatch(/1 stages/)
   })
 
   it('gives every stage a non-empty headline and reason', () => {
     for (const stage of CURRICULUM) {
-      expect(recommendationHeadline(stage.id).length).toBeGreaterThan(0)
-      expect(recommendationReason(stage.id).length).toBeGreaterThan(0)
+      expect(recommendationHeadline(stage.id, i18next.t).length).toBeGreaterThan(0)
+      expect(recommendationReason(stage.id, i18next.t).length).toBeGreaterThan(0)
     }
   })
 })

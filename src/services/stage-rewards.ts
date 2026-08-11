@@ -78,7 +78,8 @@ export function markStageClaimed(id: StageId): void {
 /** One stage that just became payable. */
 export interface StageAward {
   stage: StageId
-  title: string
+  /** Key for the stage name — the XP ledger entry is shown to the user. */
+  titleKey: string
   xp: number
 }
 
@@ -93,7 +94,7 @@ export function pendingStageAwards(progress: readonly StageProgress[]): StageAwa
   const claimed = new Set(getClaimedStages())
   return progress
     .filter(p => p.done && !claimed.has(p.stage.id))
-    .map(p => ({ stage: p.stage.id, title: p.stage.title, xp: stageXP(p.stage.id) }))
+    .map(p => ({ stage: p.stage.id, titleKey: p.stage.titleKey, xp: stageXP(p.stage.id) }))
     // A zero award is not an award. Paying 0 XP would still fire a "you earned
     // something" path and mark the stage claimed for a reward that never came.
     .filter(a => a.xp > 0)

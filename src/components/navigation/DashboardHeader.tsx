@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Club, ArrowRight, Flame, Target, Clock, Trophy } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
 import { useLevelStore } from '../../store/level-store'
@@ -44,6 +45,7 @@ export function ProductTitle() {
  * a user with no history gets an invitation rather than a wall of zeros.
  */
 export function DashboardHeader() {
+  const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
   const level = useLevelStore(s => s.level)
   const progress = useLevelStore(s => s.progress)
@@ -137,7 +139,7 @@ export function DashboardHeader() {
             {resume
               ? `Continue ${resume.label}`
               : stageId
-                ? `Start: ${CURRICULUM[stageIndex(stageId)].title}`
+                ? t('plan.startStage', { stage: t(CURRICULUM[stageIndex(stageId)].titleKey) })
                 : 'Start learning'}
             <ArrowRight size={17} />
           </button>

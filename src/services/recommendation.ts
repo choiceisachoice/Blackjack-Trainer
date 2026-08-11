@@ -1,4 +1,5 @@
-import { CURRICULUM, stageIndex, type StageId } from './curriculum'
+import { CURRICULUM, stageIndex, drillDescription, type StageId } from './curriculum'
+import type { Translate } from '../i18n/translate'
 import { levelForStage, isCompleteBeginner } from './starting-point'
 import type { AppMode } from '../store/app-store'
 
@@ -48,15 +49,15 @@ export interface FirstMove {
  * Every later stage has a drill, so those are sent to it. A stage that somehow
  * has neither falls back to reading, which is never wrong.
  */
-export function firstMoveFor(stage: StageId): FirstMove {
+export function firstMoveFor(stage: StageId, t: Translate): FirstMove {
   const s = CURRICULUM[stageIndex(stage)] ?? CURRICULUM[0]
 
   if (s.drill) {
     return {
       kind: 'drill',
       mode: s.drill.mode,
-      action: 'Start training',
-      detail: s.drill.description,
+      action: t('recommend.startTraining'),
+      detail: drillDescription(s.drill, t),
       stage: s.id,
     }
   }
@@ -64,20 +65,27 @@ export function firstMoveFor(stage: StageId): FirstMove {
   return {
     kind: 'read',
     mode: s.read?.mode ?? 'learn',
-    action: 'Open the Learn page',
-    detail: 'Read it through end to end — it is written for someone starting from nothing.',
+    action: t('recommend.openLearn'),
+    detail: t('recommend.readEndToEnd'),
     stage: s.id,
   }
 }
 
-/** The headline for the recommendation card, worded for the level that was picked. */
-export function recommendationHeadline(stage: StageId): string {
+/**
+ * The headline for the recommendation card, worded for the level that was picked.
+ *
+ * It used to read "Start at basic strategy", lower-casing the stage title so it
+ * would sit inside the sentence. That only works in English: German keeps nouns
+ * capitalised, and Italian fuses the preposition into the article. The colon
+ * form lets every language keep the title in its own shape.
+ */
+export function recommendationHeadline(stage: StageId, t: Translate): string {
   const level = levelForStage(stage)
   const s = CURRICULUM[stageIndex(stage)] ?? CURRICULUM[0]
 
   return isCompleteBeginner(level.value)
-    ? 'Start by reading, not drilling'
-    : `Start at ${s.title.charAt(0).toLowerCase()}${s.title.slice(1)}`
+    ? t('recommend.startByReading')
+    : t('recommend.startHere', { stage: t(s.titleKey) })
 }
 
 /**
@@ -86,20 +94,20 @@ export function recommendationHeadline(stage: StageId): string {
  * A recommendation nobody understands is a command, and a command in a product
  * someone chose to use is worse than no advice at all.
  */
-export function recommendationReason(stage: StageId): string {
+export function recommendationReason(stage: StageId, t: Translate): string {
   const level = levelForStage(stage)
   const s = CURRICULUM[stageIndex(stage)] ?? CURRICULUM[0]
   const skipped = stageIndex(stage)
 
   if (isCompleteBeginner(level.value)) {
-    return 'You said you have never played, so there is nothing to drill yet — the Learn page covers the game itself first, and the drills open up as you go.'
+    return t('recommend.beginnerReason')
   }
 
   const ahead = skipped === 1
-    ? 'The first stage is already behind you.'
-    : `The first ${skipped} stages are already behind you.`
+    ? t('recommend.aheadOne')
+    : t('recommend.aheadMany', { n: skipped })
 
-  return `${ahead} ${s.why}`
+  return `${ahead} ${t(s.whyKey)}`
 }
 
 // ── Persistence ──────────────────────────────────────────────────────
