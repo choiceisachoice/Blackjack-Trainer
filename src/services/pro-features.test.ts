@@ -1,3 +1,4 @@
+import en from '../i18n/messages/en.json'
 import { describe, it, expect } from 'vitest'
 import {
   PLAN_OPTIONS,
@@ -6,7 +7,6 @@ import {
   FEATURE_GROUPS,
   formatCHF,
   yearlySaving,
-  VAT_NOTE,
   CH_VAT_PERCENT,
   isProMode,
   type PlanOption,
@@ -166,22 +166,24 @@ describe('isProMode', () => {
  * page has to be the amount charged, and the note has to say whose VAT it is.
  */
 describe('the VAT note', () => {
-  it('names the rate, so the note and the Stripe tax rate cannot drift apart silently', () => {
-    expect(VAT_NOTE).toContain(String(CH_VAT_PERCENT))
+  const note = en.pricing.vatNote
+
+  it('carries the rate as a placeholder, so one constant feeds the sentence', () => {
+    // The number lives in `CH_VAT_PERCENT` and is interpolated at render time.
+    // Writing "8.1" into the translation would put the rate in eight places,
+    // seven of which nobody checks when it changes.
+    expect(note).toContain('{{rate}}')
+    expect(CH_VAT_PERCENT).toBe(8.1)
   })
 
   it('says the displayed amount is what gets charged', () => {
-    expect(VAT_NOTE.toLowerCase()).toContain('final price')
+    expect(note.toLowerCase()).toContain('final price')
   })
 
   it('scopes the VAT to Switzerland rather than claiming it applies to everyone', () => {
-    // The note is shown to every visitor — detecting the country in the browser
-    // is wrong for anyone travelling or on a VPN. So it has to be a sentence
-    // that stays true no matter who reads it.
-    expect(VAT_NOTE).toMatch(/Switzerland/)
-  })
-
-  it('uses the current Swiss rate', () => {
-    expect(CH_VAT_PERCENT).toBe(8.1)
+    // Shown to every visitor — detecting the country in the browser is wrong
+    // for anyone travelling or on a VPN. So it has to be a sentence that stays
+    // true no matter who reads it.
+    expect(note).toMatch(/Switzerland/)
   })
 })

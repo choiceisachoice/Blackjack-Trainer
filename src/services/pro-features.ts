@@ -58,20 +58,6 @@ export function formatCHF(amount: number): string {
  */
 export const CH_VAT_PERCENT = 8.1
 
-/**
- * The line printed under every displayed price.
- *
- * The operator is a Swiss company, so the amounts shown are final prices: what
- * the page says is what the card is charged, VAT already inside. Swiss price-
- * disclosure rules want that all-in number for consumers, and a customer who
- * sees one figure on the page and a larger one at checkout does not come back.
- *
- * Shown to everyone rather than only to Swiss visitors. Detecting the country
- * in the browser would be wrong for anyone travelling or on a VPN, and the
- * sentence stays true regardless of who reads it — it states which customers
- * the VAT applies to instead of assuming who is reading.
- */
-export const VAT_NOTE = `Final price, incl. ${CH_VAT_PERCENT}% Swiss VAT for customers in Switzerland`
 
 /** What paying yearly saves against twelve monthly payments. */
 export interface YearlySaving {

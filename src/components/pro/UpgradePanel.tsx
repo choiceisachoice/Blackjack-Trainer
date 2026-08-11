@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Check, Crown, Loader2, X } from 'lucide-react'
 import {
   PLAN_OPTIONS,
   FEATURE_GROUPS,
   formatCHF,
   yearlySaving,
-  VAT_NOTE,
+  CH_VAT_PERCENT,
 } from '../../services/pro-features'
 import type { ComparisonRow } from '../../services/pro-features'
 import { startCheckout } from '../../services/supabase/billing'
@@ -27,6 +28,7 @@ interface UpgradePanelProps {
  * is derived from the amounts (see `yearlySaving`) instead of written into copy.
  */
 export function UpgradePanel({ headline }: UpgradePanelProps) {
+  const { t } = useTranslation()
   const [busy, setBusy] = useState<BillingPlan | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -148,7 +150,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
               ? `Save ${formatCHF(saving.saved)} against ${formatCHF(monthly.amount)}/month`
               : 'Flexible — switch to yearly anytime'}
           </div>
-          <div className="mt-1 text-xs text-content/45" data-testid="paywall-vat-note">{VAT_NOTE}</div>
+          <div className="mt-1 text-xs text-content/45" data-testid="paywall-vat-note">{t('pricing.vatNote', { rate: CH_VAT_PERCENT })}</div>
 
           {/* Above the feature list on purpose: the groups make this column tall
               enough to push a bottom-anchored button off-screen, and someone who

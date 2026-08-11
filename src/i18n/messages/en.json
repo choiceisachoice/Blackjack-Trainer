@@ -94,5 +94,69 @@
     "flexibleSwitch": "Flexible — switch to yearly anytime",
     "secureCheckout": "Secure checkout by Stripe. Cancel anytime from your account.",
     "everythingInFree": "Everything in Free, plus:"
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "signIn": "Sign in",
+      "openApp": "Open app →",
+      "startFree": "Start free"
+    },
+    "hero": {
+      "subtitle": "Drills, deviations, a full casino table and the analytics that show exactly where your advantage leaks — everything you need to make the count automatic.",
+      "ctaStart": "Start free →",
+      "ctaOpen": "Open app →",
+      "ctaSeePro": "See what Pro unlocks",
+      "noCard": "No card needed to start",
+      "tags": "Illustrious 18 · Fab 4",
+      "cancel": "Cancel anytime",
+      "eyebrow": "Hi-Lo card counting, trained properly",
+      "headline": "Train the <1>edge</1> that beats the shoe.",
+      "chipStrategy": "Basic strategy",
+      "chipRules": "S17 / H17"
+    },
+    "steps": {
+      "heading": "Learn it. Drill it. Play it.",
+      "s1title": "Learn the system",
+      "s1body": "Hi-Lo tags, the true-count conversion, basic strategy and the deviations that matter — without the jargon wall.",
+      "s2title": "Drill to reflex",
+      "s2body": "Timed counting, flashcards and deck estimation until the numbers come without thinking.",
+      "s3title": "Play the table",
+      "s3body": "Sit at a full casino session, bet the spread, take the deviations — and watch the analytics find your leaks."
+    },
+    "pricingIntro": {
+      "eyebrow": "PRICING",
+      "title": "Start free. Go <1>Pro</1> when you’re ready.",
+      "body": "The free tier is genuinely enough to learn the count. Pro unlocks the real table, the deviations, and the full picture of your edge."
+    },
+    "faq": {
+      "eyebrow": "GOOD TO KNOW",
+      "heading": "Questions, answered.",
+      "q1": "Do I need to pay to start?",
+      "a1": "No. Create an account and the free tier gives you Speed Drill, Flashcards, the strategy-chart basics and your own analytics — enough to genuinely learn the count. Upgrade to Pro when you want the live table and the deviations.",
+      "q2": "Is card counting legal?",
+      "a2": "Counting cards in your head is legal — it’s just thinking. This is a practice tool to sharpen that skill. Casinos are private businesses and set their own rules, so play responsibly.",
+      "q3": "Which counting system does it teach?",
+      "a3": "Hi-Lo — the balanced, level-one system real counters actually use. The engine understands others, but the trainer keeps you focused on the one that works.",
+      "q4": "Can I cancel anytime?",
+      "a4": "Yes. Manage or cancel your subscription yourself from your account at any time — you keep Pro until the end of the period you paid for."
+    },
+    "closing": {
+      "eyebrow": "Ready when you are",
+      "title": "Turn the count into an edge you can feel.",
+      "seePro": "See Pro"
+    },
+    "footer": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "contact": "Contact",
+      "note": "Practice tool — not affiliated with any casino."
+    },
+    "sections": {
+      "featuresEyebrow": "Everything in one trainer",
+      "featuresTitle": "Everything you need to <1>actually get good</1>.",
+      "howEyebrow": "How it works"
+    }
   }
 }

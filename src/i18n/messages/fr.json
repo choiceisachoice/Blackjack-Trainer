@@ -94,5 +94,69 @@
     "flexibleSwitch": "Flexible — passez à l'annuel quand vous voulez",
     "secureCheckout": "Paiement sécurisé par Stripe. Résiliable à tout moment depuis votre compte.",
     "everythingInFree": "Tout le gratuit, plus :"
+  },
+  "landing": {
+    "nav": {
+      "features": "Fonctions",
+      "pricing": "Tarifs",
+      "signIn": "Se connecter",
+      "openApp": "Ouvrir l’app →",
+      "startFree": "Commencer gratuitement"
+    },
+    "hero": {
+      "subtitle": "Des exercices, les déviations, une vraie table de casino et l’analyse qui montre exactement où votre avantage fuit — tout pour rendre le comptage automatique.",
+      "ctaStart": "Commencer gratuitement →",
+      "ctaOpen": "Ouvrir l’app →",
+      "ctaSeePro": "Ce que Pro débloque",
+      "noCard": "Aucune carte requise pour commencer",
+      "tags": "Illustrious 18 · Fab 4",
+      "cancel": "Résiliable à tout moment",
+      "eyebrow": "Le comptage Hi-Lo, travaillé sérieusement",
+      "headline": "Travaillez l’<1>avantage</1> qui bat le sabot.",
+      "chipStrategy": "Stratégie de base",
+      "chipRules": "S17 / H17"
+    },
+    "steps": {
+      "heading": "Apprendre. S’entraîner. Jouer.",
+      "s1title": "Apprendre le système",
+      "s1body": "Les valeurs Hi-Lo, la conversion en true count, la stratégie de base et les déviations qui comptent — sans mur de jargon.",
+      "s2title": "S’entraîner jusqu’au réflexe",
+      "s2body": "Comptage chronométré, cartes mémoire et estimation des paquets, jusqu’à ce que les chiffres viennent sans y penser.",
+      "s3title": "Jouer à la table",
+      "s3body": "Installez-vous à une vraie session de casino, jouez l’écart de mises, prenez les déviations — et laissez l’analyse trouver vos failles."
+    },
+    "pricingIntro": {
+      "eyebrow": "TARIFS",
+      "title": "Commencez gratuitement. Passez à <1>Pro</1> quand vous le sentez.",
+      "body": "La formule gratuite suffit vraiment pour apprendre le comptage. Pro débloque la vraie table, les déviations et l’image complète de votre avantage."
+    },
+    "faq": {
+      "eyebrow": "BON À SAVOIR",
+      "heading": "Vos questions, nos réponses.",
+      "q1": "Dois-je payer pour commencer ?",
+      "a1": "Non. Créez un compte et la formule gratuite vous donne Vitesse, les cartes mémoire, les bases du tableau de stratégie et vos propres analyses — de quoi apprendre réellement le comptage. Passez à Pro quand vous voudrez la table en direct et les déviations.",
+      "q2": "Le comptage de cartes est-il légal ?",
+      "a2": "Compter dans sa tête est légal : c’est de la réflexion. Ceci est un outil d’entraînement pour affûter cette compétence. Les casinos sont des entreprises privées qui fixent leurs propres règles, alors jouez de manière responsable.",
+      "q3": "Quel système enseignez-vous ?",
+      "a3": "Hi-Lo — le système équilibré de niveau un que les vrais compteurs utilisent. Le moteur en connaît d’autres, mais l’entraîneur vous garde sur celui qui fonctionne.",
+      "q4": "Puis-je résilier à tout moment ?",
+      "a4": "Oui. Vous gérez ou résiliez votre abonnement vous-même depuis votre compte à tout moment — vous conservez Pro jusqu’à la fin de la période payée."
+    },
+    "closing": {
+      "eyebrow": "Prêt quand vous l’êtes",
+      "title": "Transformez le comptage en un avantage que vous ressentez.",
+      "seePro": "Voir Pro"
+    },
+    "footer": {
+      "privacy": "Confidentialité",
+      "terms": "Conditions",
+      "contact": "Contact",
+      "note": "Outil d’entraînement — sans lien avec un casino."
+    },
+    "sections": {
+      "featuresEyebrow": "Tout dans un seul entraîneur",
+      "featuresTitle": "Tout pour <1>devenir vraiment bon</1>.",
+      "howEyebrow": "Comment ça marche"
+    }
   }
 }

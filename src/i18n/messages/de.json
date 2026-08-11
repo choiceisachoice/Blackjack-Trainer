@@ -94,5 +94,69 @@
     "flexibleSwitch": "Flexibel — jederzeit auf jährlich wechseln",
     "secureCheckout": "Sichere Zahlung über Stripe. Jederzeit im Konto kündbar.",
     "everythingInFree": "Alles aus Gratis, plus:"
+  },
+  "landing": {
+    "nav": {
+      "features": "Funktionen",
+      "pricing": "Preise",
+      "signIn": "Anmelden",
+      "openApp": "App öffnen →",
+      "startFree": "Gratis starten"
+    },
+    "hero": {
+      "subtitle": "Übungen, Abweichungen, ein vollständiger Casino-Tisch und die Auswertung, die genau zeigt, wo dein Vorteil verloren geht — alles, damit das Zählen automatisch wird.",
+      "ctaStart": "Gratis starten →",
+      "ctaOpen": "App öffnen →",
+      "ctaSeePro": "Was Pro freischaltet",
+      "noCard": "Zum Starten keine Karte nötig",
+      "tags": "Illustrious 18 · Fab 4",
+      "cancel": "Jederzeit kündbar",
+      "eyebrow": "Hi-Lo-Kartenzählen, richtig trainiert",
+      "headline": "Trainiere den <1>Vorteil</1>, der den Schuh schlägt.",
+      "chipStrategy": "Basisstrategie",
+      "chipRules": "S17 / H17"
+    },
+    "steps": {
+      "heading": "Lernen. Üben. Spielen.",
+      "s1title": "Das System lernen",
+      "s1body": "Hi-Lo-Werte, die Umrechnung auf den True Count, Basisstrategie und die Abweichungen, auf die es ankommt — ohne Fachjargon-Mauer.",
+      "s2title": "Bis zum Reflex üben",
+      "s2body": "Zählen auf Zeit, Karteikarten und Deck-Schätzung, bis die Zahlen ohne Nachdenken kommen.",
+      "s3title": "Am Tisch spielen",
+      "s3body": "Setz dich an eine vollständige Casino-Session, spiel die Einsatzspreizung, nutze die Abweichungen — und lass die Auswertung deine Schwachstellen finden."
+    },
+    "pricingIntro": {
+      "eyebrow": "PREISE",
+      "title": "Gratis starten. <1>Pro</1> holen, wenn du so weit bist.",
+      "body": "Der Gratis-Tarif reicht wirklich, um das Zählen zu lernen. Pro schaltet den echten Tisch frei, die Abweichungen und das vollständige Bild deines Vorteils."
+    },
+    "faq": {
+      "eyebrow": "GUT ZU WISSEN",
+      "heading": "Fragen, beantwortet.",
+      "q1": "Muss ich zum Starten bezahlen?",
+      "a1": "Nein. Leg ein Konto an, und der Gratis-Tarif gibt dir Speed Drill, Karteikarten, die Grundlagen der Strategietabelle und deine eigene Auswertung — genug, um das Zählen wirklich zu lernen. Auf Pro wechselst du, wenn du den Live-Tisch und die Abweichungen willst.",
+      "q2": "Ist Kartenzählen legal?",
+      "a2": "Im Kopf zu zählen ist legal — es ist blosses Denken. Dies ist ein Übungswerkzeug, um diese Fähigkeit zu schärfen. Casinos sind Privatunternehmen und machen eigene Regeln, spiel also verantwortungsvoll.",
+      "q3": "Welches Zählsystem wird gelehrt?",
+      "a3": "Hi-Lo — das ausgeglichene System der Stufe eins, das echte Kartenzähler tatsächlich verwenden. Die Engine kennt auch andere, aber der Trainer hält dich bei dem, das funktioniert.",
+      "q4": "Kann ich jederzeit kündigen?",
+      "a4": "Ja. Du verwaltest oder kündigst dein Abo jederzeit selbst im Konto — Pro behältst du bis zum Ende der bezahlten Periode."
+    },
+    "closing": {
+      "eyebrow": "Bereit, wenn du es bist",
+      "title": "Mach aus der Zählung einen Vorteil, den du spürst.",
+      "seePro": "Pro ansehen"
+    },
+    "footer": {
+      "privacy": "Datenschutz",
+      "terms": "AGB",
+      "contact": "Kontakt",
+      "note": "Übungswerkzeug — mit keinem Casino verbunden."
+    },
+    "sections": {
+      "featuresEyebrow": "Alles in einem Trainer",
+      "featuresTitle": "Alles, um <1>wirklich gut zu werden</1>.",
+      "howEyebrow": "So funktioniert es"
+    }
   }
 }

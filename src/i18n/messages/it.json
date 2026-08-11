@@ -94,5 +94,69 @@
     "flexibleSwitch": "Flessibile — passa all'annuale quando vuoi",
     "secureCheckout": "Pagamento sicuro con Stripe. Disdici quando vuoi dal tuo account.",
     "everythingInFree": "Tutto il gratuito, più:"
+  },
+  "landing": {
+    "nav": {
+      "features": "Funzioni",
+      "pricing": "Prezzi",
+      "signIn": "Accedi",
+      "openApp": "Apri l’app →",
+      "startFree": "Inizia gratis"
+    },
+    "hero": {
+      "subtitle": "Esercizi, deviazioni, un vero tavolo da casinò e l’analisi che mostra esattamente dove si perde il tuo vantaggio — tutto per rendere il conteggio automatico.",
+      "ctaStart": "Inizia gratis →",
+      "ctaOpen": "Apri l’app →",
+      "ctaSeePro": "Cosa sblocca Pro",
+      "noCard": "Nessuna carta per iniziare",
+      "tags": "Illustrious 18 · Fab 4",
+      "cancel": "Disdici quando vuoi",
+      "eyebrow": "Il conteggio Hi-Lo, allenato sul serio",
+      "headline": "Allena il <1>vantaggio</1> che batte il sabot.",
+      "chipStrategy": "Strategia di base",
+      "chipRules": "S17 / H17"
+    },
+    "steps": {
+      "heading": "Impara. Allenati. Gioca.",
+      "s1title": "Impara il sistema",
+      "s1body": "I valori Hi-Lo, la conversione in true count, la strategia di base e le deviazioni che contano — senza muri di gergo.",
+      "s2title": "Allenati fino al riflesso",
+      "s2body": "Conteggio a tempo, carte mnemoniche e stima dei mazzi, finché i numeri non arrivano senza pensarci.",
+      "s3title": "Gioca al tavolo",
+      "s3body": "Siediti a una sessione di casinò completa, gioca lo spread delle puntate, usa le deviazioni — e lascia che l’analisi trovi le tue falle."
+    },
+    "pricingIntro": {
+      "eyebrow": "PREZZI",
+      "title": "Inizia gratis. Passa a <1>Pro</1> quando te la senti.",
+      "body": "Il piano gratuito basta davvero per imparare il conteggio. Pro sblocca il tavolo vero, le deviazioni e il quadro completo del tuo vantaggio."
+    },
+    "faq": {
+      "eyebrow": "BUONO A SAPERSI",
+      "heading": "Domande, con risposta.",
+      "q1": "Devo pagare per iniziare?",
+      "a1": "No. Crea un account e il piano gratuito ti dà Velocità, le carte mnemoniche, le basi della tabella di strategia e le tue analisi — abbastanza per imparare davvero il conteggio. Passa a Pro quando vuoi il tavolo dal vivo e le deviazioni.",
+      "q2": "Contare le carte è legale?",
+      "a2": "Contare a mente è legale: è solo pensare. Questo è uno strumento di allenamento per affinare quell’abilità. I casinò sono imprese private e stabiliscono le proprie regole, quindi gioca in modo responsabile.",
+      "q3": "Quale sistema insegna?",
+      "a3": "Hi-Lo — il sistema bilanciato di livello uno che i contatori veri usano davvero. Il motore ne conosce altri, ma l’allenatore ti tiene su quello che funziona.",
+      "q4": "Posso disdire quando voglio?",
+      "a4": "Sì. Gestisci o disdici l’abbonamento da solo dal tuo account in qualsiasi momento — mantieni Pro fino alla fine del periodo pagato."
+    },
+    "closing": {
+      "eyebrow": "Pronto quando lo sei tu",
+      "title": "Trasforma il conteggio in un vantaggio che senti.",
+      "seePro": "Guarda Pro"
+    },
+    "footer": {
+      "privacy": "Privacy",
+      "terms": "Termini",
+      "contact": "Contatti",
+      "note": "Strumento di allenamento — non affiliato ad alcun casinò."
+    },
+    "sections": {
+      "featuresEyebrow": "Tutto in un solo allenatore",
+      "featuresTitle": "Tutto per <1>diventare davvero bravo</1>.",
+      "howEyebrow": "Come funziona"
+    }
   }
 }

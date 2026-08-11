@@ -94,5 +94,69 @@
     "flexibleSwitch": "Esnek — istediğiniz zaman yıllığa geçin",
     "secureCheckout": "Stripe ile güvenli ödeme. Hesabınızdan istediğiniz zaman iptal edebilirsiniz.",
     "everythingInFree": "Ücretsizdeki her şey, ayrıca:"
+  },
+  "landing": {
+    "nav": {
+      "features": "Özellikler",
+      "pricing": "Fiyatlar",
+      "signIn": "Giriş yap",
+      "openApp": "Uygulamayı aç →",
+      "startFree": "Ücretsiz başla"
+    },
+    "hero": {
+      "subtitle": "Alıştırmalar, sapmalar, tam bir kumarhane masası ve avantajınızın tam olarak nereden sızdığını gösteren analiz — sayımın kendiliğinden gelmesi için gereken her şey.",
+      "ctaStart": "Ücretsiz başla →",
+      "ctaOpen": "Uygulamayı aç →",
+      "ctaSeePro": "Pro neleri açıyor",
+      "noCard": "Başlamak için kart gerekmez",
+      "tags": "Illustrious 18 · Fab 4",
+      "cancel": "İstediğiniz zaman iptal",
+      "eyebrow": "Hi-Lo kart sayımı, hakkıyla çalışılmış",
+      "headline": "Ayakkabıyı yenen <1>avantajı</1> çalışın.",
+      "chipStrategy": "Temel strateji",
+      "chipRules": "S17 / H17"
+    },
+    "steps": {
+      "heading": "Öğren. Çalış. Oyna.",
+      "s1title": "Sistemi öğrenin",
+      "s1body": "Hi-Lo değerleri, gerçek sayıma çevirme, temel strateji ve önemli sapmalar — jargon duvarı olmadan.",
+      "s2title": "Refleks olana kadar çalışın",
+      "s2body": "Süreli sayım, bilgi kartları ve deste tahmini; sayılar düşünmeden gelene kadar.",
+      "s3title": "Masada oynayın",
+      "s3body": "Tam bir kumarhane oturumuna oturun, bahis aralığını oynayın, sapmaları kullanın — ve analizin açıklarınızı bulmasına izin verin."
+    },
+    "pricingIntro": {
+      "eyebrow": "FİYATLAR",
+      "title": "Ücretsiz başlayın. Hazır olduğunuzda <1>Pro</1>’ya geçin.",
+      "body": "Ücretsiz plan sayımı öğrenmek için gerçekten yeterli. Pro; gerçek masayı, sapmaları ve avantajınızın tam resmini açar."
+    },
+    "faq": {
+      "eyebrow": "BİLMEKTE FAYDA VAR",
+      "heading": "Sorular, yanıtlarıyla.",
+      "q1": "Başlamak için ödeme yapmam gerekir mi?",
+      "a1": "Hayır. Bir hesap açın; ücretsiz plan size Hız, bilgi kartlarını, strateji tablosunun temellerini ve kendi analizinizi verir — sayımı gerçekten öğrenmeye yeter. Canlı masayı ve sapmaları isteyince Pro’ya geçin.",
+      "q2": "Kart saymak yasal mı?",
+      "a2": "Kafadan saymak yasaldır — bu sadece düşünmektir. Bu, o beceriyi keskinleştirmek için bir alıştırma aracıdır. Kumarhaneler özel işletmelerdir ve kendi kurallarını koyar; sorumlu oynayın.",
+      "q3": "Hangi sayım sistemini öğretiyor?",
+      "a3": "Hi-Lo — gerçek sayıcıların kullandığı dengeli, birinci seviye sistem. Motor diğerlerini de bilir ama eğitmen sizi işe yarayanda tutar.",
+      "q4": "İstediğim zaman iptal edebilir miyim?",
+      "a4": "Evet. Aboneliğinizi hesabınızdan istediğiniz zaman kendiniz yönetir ya da iptal edersiniz — ödediğiniz dönemin sonuna kadar Pro sizde kalır."
+    },
+    "closing": {
+      "eyebrow": "Siz hazır olduğunuzda",
+      "title": "Sayımı, hissedebileceğiniz bir avantaja dönüştürün.",
+      "seePro": "Pro’yu gör"
+    },
+    "footer": {
+      "privacy": "Gizlilik",
+      "terms": "Koşullar",
+      "contact": "İletişim",
+      "note": "Alıştırma aracı — hiçbir kumarhaneyle bağlantılı değildir."
+    },
+    "sections": {
+      "featuresEyebrow": "Hepsi tek bir eğitmende",
+      "featuresTitle": "<1>Gerçekten iyi olmak</1> için gereken her şey.",
+      "howEyebrow": "Nasıl çalışır"
+    }
   }
 }

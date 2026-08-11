@@ -1,10 +1,12 @@
 import { useState, lazy, Suspense, type ReactNode } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Check, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
 import { useHasSubscription } from '../store/entitlement-store'
-import { PLAN_OPTIONS, PRO_BENEFITS, formatCHF, yearlySaving, VAT_NOTE } from '../services/pro-features'
+import { PLAN_OPTIONS, PRO_BENEFITS, formatCHF, yearlySaving, CH_VAT_PERCENT } from '../services/pro-features'
+import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
 import { FeatureShowcase } from '../components/landing/FeatureShowcase'
@@ -13,18 +15,7 @@ import { FeatureShowcase } from '../components/landing/FeatureShowcase'
 // text has painted, so it never blocks the landing's first paint.
 const HeroCanvas = lazy(() => import('../components/landing/HeroCanvas').then(m => ({ default: m.HeroCanvas })))
 
-const STEPS = [
-  { n: '1', title: 'Learn the system', body: 'Hi-Lo tags, the true-count conversion, basic strategy and the deviations that matter — without the jargon wall.' },
-  { n: '2', title: 'Drill to reflex', body: 'Timed counting, flashcards and deck estimation until the numbers come without thinking.' },
-  { n: '3', title: 'Play the table', body: 'Sit at a full casino session, bet the spread, take the deviations — and watch the analytics find your leaks.' },
-]
 
-const FAQS = [
-  { q: 'Do I need to pay to start?', a: 'No. Create an account and the free tier gives you Speed Drill, Flashcards, the strategy-chart basics and your own analytics — enough to genuinely learn the count. Upgrade to Pro when you want the live table and the deviations.' },
-  { q: 'Is card counting legal?', a: 'Counting cards in your head is legal — it’s just thinking. This is a practice tool to sharpen that skill. Casinos are private businesses and set their own rules, so play responsibly.' },
-  { q: 'Which counting system does it teach?', a: 'Hi-Lo — the balanced, level-one system real counters actually use. The engine understands others, but the trainer keeps you focused on the one that works.' },
-  { q: 'Can I cancel anytime?', a: 'Yes. Manage or cancel your subscription yourself from your account at any time — you keep Pro until the end of the period you paid for.' },
-]
 
 /*
  * The hero used to carry an ambient gold wash over the canvas. It read as a
@@ -36,6 +27,23 @@ const FAQS = [
 const SCRIM = 'radial-gradient(46% 50% at 33% 55%, rgba(7,8,9,.9) 26%, rgba(7,8,9,.5) 52%, transparent 76%), linear-gradient(180deg, transparent 58%, var(--color-casino-bg) 97%)'
 
 export function LandingPage() {
+  const { t } = useTranslation()
+  /*
+    Built here, not as module constants: a constant is evaluated once at import
+    and would freeze whichever language happened to be active then. Switching
+    language would leave these three steps and four answers in the old one.
+  */
+  const STEPS = [
+    { n: '1', title: t('landing.steps.s1title'), body: t('landing.steps.s1body') },
+    { n: '2', title: t('landing.steps.s2title'), body: t('landing.steps.s2body') },
+    { n: '3', title: t('landing.steps.s3title'), body: t('landing.steps.s3body') },
+  ]
+  const FAQS = [
+    { q: t('landing.faq.q1'), a: t('landing.faq.a1') },
+    { q: t('landing.faq.q2'), a: t('landing.faq.a2') },
+    { q: t('landing.faq.q3'), a: t('landing.faq.a3') },
+    { q: t('landing.faq.q4'), a: t('landing.faq.a4') },
+  ]
   const signedIn = useAuthStore(s => s.status === 'signedIn')
   const authed = !isSupabaseConfigured || signedIn
   const hasSubscription = useHasSubscription()
@@ -108,14 +116,17 @@ export function LandingPage() {
             <span className="hidden min-[360px]:inline whitespace-nowrap">Blackjack Trainer</span>
           </div>
           <div className="flex items-center gap-4 sm:gap-5 text-sm text-content/70 shrink-0">
-            <a href="#features" className="hidden sm:inline hover:text-content">Features</a>
-            <a href="#pricing" className="hidden sm:inline hover:text-content">Pricing</a>
+            <a href="#features" className="hidden sm:inline hover:text-content">{t('landing.nav.features')}</a>
+            <a href="#pricing" className="hidden sm:inline hover:text-content">{t('landing.nav.pricing')}</a>
+            {/* The one control a visitor may need before they can read the rest.
+                It belongs on the page they land on, not only inside the app. */}
+            <LanguageSwitcher />
             {authed ? (
-              <Link to="/app" className="font-semibold text-gold hover:text-gold-bright">Open app →</Link>
+              <Link to="/app" className="font-semibold text-gold hover:text-gold-bright">{t('landing.hero.ctaOpen')}</Link>
             ) : (
               <>
-                <Link to="/login" className="hover:text-content">Sign in</Link>
-                <button onClick={startFree} className="rounded-lg px-3.5 sm:px-4 py-2.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer whitespace-nowrap">Start free</button>
+                <Link to="/login" className="hover:text-content">{t('landing.nav.signIn')}</Link>
+                <button onClick={startFree} className="rounded-lg px-3.5 sm:px-4 py-2.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer whitespace-nowrap">{t('landing.nav.startFree')}</button>
               </>
             )}
           </div>
@@ -127,22 +138,24 @@ export function LandingPage() {
         <HeroLayer />
         <div className="relative z-[5] w-full intro-enter">
           <div className="max-w-6xl mx-auto px-6">
-            <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">Hi-Lo card counting, trained properly</div>
+            <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.hero.eyebrow')}</div>
             <h1 className="mt-4 text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.02] text-balance max-w-[15ch]">
-              Train the <span className="text-gold-gradient">edge</span> that beats the shoe.
+              {/* Trans, not three concatenated keys: the accented word sits in
+                  different places in different languages, and fragments cannot
+                  be reordered by a translator. */}
+              <Trans i18nKey="landing.hero.headline" components={[<span key="0" />, <span key="1" className="text-gold-gradient" />]} />
             </h1>
             <p className="mt-5 text-lg text-content/60 max-w-[34em]">
-              Drills, deviations, a full casino table and the analytics that show exactly where your advantage leaks
-              — everything you need to make the count automatic.
+              {t('landing.hero.subtitle')}
             </p>
             <div className="mt-8 flex flex-wrap gap-3.5">
               <button onClick={startFree} className="rounded-xl px-6 py-3.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer shadow-[0_8px_30px_-10px_rgba(212,168,71,.6)]">
-                {authed ? 'Open app →' : 'Start free →'}
+                {authed ? t('landing.hero.ctaOpen') : t('landing.hero.ctaStart')}
               </button>
-              <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">See what Pro unlocks</a>
+              <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">{t('landing.hero.ctaSeePro')}</a>
             </div>
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-content/40">
-              <span>No card needed to start</span><Dot /><span>6-deck shoe</span><Dot /><span>Illustrious 18 · Fab 4</span><Dot /><span>Cancel anytime</span>
+              <span>{t('landing.hero.noCard')}</span><Dot /><span>6-deck shoe</span><Dot /><span>{t('landing.hero.tags')}</span><Dot /><span>{t('landing.hero.cancel')}</span>
             </div>
           </div>
         </div>
@@ -153,7 +166,7 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap gap-x-7 gap-y-2 justify-center text-sm text-content/60">
           <span><b className="text-content font-semibold">6 decks</b> · 312 cards</span>
           <span><b className="text-content font-semibold">Hi-Lo</b> counting</span>
-          <span><b className="text-content font-semibold">Basic strategy</b> · S17 / H17</span>
+          <span><b className="text-content font-semibold">{t('landing.hero.chipStrategy')}</b> · S17 / H17</span>
           <span><b className="text-content font-semibold">Illustrious 18</b> + Fab 4</span>
           <span><b className="text-content font-semibold">Real</b> casino table</span>
         </div>
@@ -162,7 +175,7 @@ export function LandingPage() {
       {/* Features */}
       <section id="features" className="max-w-6xl mx-auto px-6 py-20">
         <Reveal>
-          <SectionHead eyebrow="Everything in one trainer" title={<>Everything you need to <span className="text-gold-gradient">actually get good</span>.</>}
+          <SectionHead eyebrow={t('landing.sections.featuresEyebrow')} title={<Trans i18nKey="landing.sections.featuresTitle" components={[<span key="0" />, <span key="1" className="text-gold-gradient" />]} />}
             sub="Not flashcards in a vacuum — a full path from keeping the count to sitting at a live table and reading your own leaks." />
         </Reveal>
         <FeatureShowcase />
@@ -171,7 +184,7 @@ export function LandingPage() {
       {/* How it works */}
       <section className="max-w-6xl mx-auto px-6 pb-8">
         <Reveal>
-          <SectionHead eyebrow="How it works" title={<>Learn it. Drill it. Play it.</>} />
+          <SectionHead eyebrow={t('landing.sections.howEyebrow')} title={t('landing.steps.heading')} />
         </Reveal>
         <div className="mt-11 grid gap-4 md:grid-cols-3">
           {STEPS.map((s, i) => (
@@ -192,26 +205,28 @@ export function LandingPage() {
       {/* Pricing */}
       <section id="pricing" className="max-w-6xl mx-auto px-6 py-20">
         <Reveal>
-          <SectionHead eyebrow="Pricing" title={<>Start free. Go <span className="text-gold-gradient">Pro</span> when you’re ready.</>}
-            sub="The free tier is genuinely enough to learn the count. Pro unlocks the real table, the deviations, and the full picture of your edge." />
+          <SectionHead
+            eyebrow={t('landing.pricingIntro.eyebrow')}
+            title={<Trans i18nKey="landing.pricingIntro.title" components={[<span key="0" />, <span key="1" className="text-gold-gradient" />]} />}
+            sub={t('landing.pricingIntro.body')} />
         </Reveal>
         <Reveal delay={0.06} className="mt-10 grid gap-4 md:grid-cols-[1fr_1.15fr] items-stretch max-w-3xl">
           {/* Free */}
           <div className="surface rounded-2xl p-7 flex flex-col">
-            <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">Free</div>
-            <div className="mt-3.5 flex items-baseline gap-1.5"><span className="text-4xl font-extrabold">CHF 0</span><span className="text-content/60 text-sm">forever</span></div>
-            <div className="text-xs text-gold mt-1.5">No card required</div>
+            <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">{t('pricing.free')}</div>
+            <div className="mt-3.5 flex items-baseline gap-1.5"><span className="text-4xl font-extrabold">CHF 0</span><span className="text-content/60 text-sm">{t('pricing.forever')}</span></div>
+            <div className="text-xs text-gold mt-1.5">{t('pricing.noCard')}</div>
             <div className="mt-5 flex flex-col gap-2.5 text-sm text-content/60">
               {['Speed Drill & Flashcards', 'Strategy Chart (basics)', 'Your basic analytics', 'Awards, levels & the Learn guide'].map(t => (
                 <div key={t} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{t}</div>
               ))}
             </div>
-            <button onClick={startFree} className="mt-6 rounded-xl px-5 py-3 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors cursor-pointer w-full">Start free</button>
+            <button onClick={startFree} className="mt-6 rounded-xl px-5 py-3 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors cursor-pointer w-full">{t('landing.nav.startFree')}</button>
           </div>
           {/* Pro */}
           <div className="rounded-2xl p-7 flex flex-col relative border border-gold/50 bg-[linear-gradient(180deg,rgba(24,20,10,.55),var(--color-surface))] shadow-[0_0_0_1px_rgba(212,168,71,.15),0_40px_80px_-46px_rgba(212,168,71,.4)]">
-            <div className="absolute -top-2.5 right-6 text-xs font-extrabold text-casino-bg bg-gradient-to-br from-gold-bright to-gold px-3 py-1 rounded-full">Most popular</div>
-            <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">Pro</div>
+            <div className="absolute -top-2.5 right-6 text-xs font-extrabold text-casino-bg bg-gradient-to-br from-gold-bright to-gold px-3 py-1 rounded-full">{t('pricing.mostPopular')}</div>
+            <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">{t('pricing.pro')}</div>
             <div className="mt-3.5 flex items-baseline gap-2 flex-wrap">
               {plan === 'yearly' && (
                 <span className="text-lg text-content/35 line-through tabular-nums">{formatCHF(saving.monthlyTotal)}</span>
@@ -226,13 +241,13 @@ export function LandingPage() {
                 ? `Save ${formatCHF(saving.saved)} — ${saving.percent}% off monthly`
                 : 'Flexible — cancel anytime'}
             </div>
-            <div className="text-xs text-content/45 mt-1" data-testid="pricing-vat-note">{VAT_NOTE}</div>
+            <div className="text-xs text-content/45 mt-1" data-testid="pricing-vat-note">{t('pricing.vatNote', { rate: CH_VAT_PERCENT })}</div>
             <div className="inline-flex mt-2 self-start bg-surface-2 border border-white/8 rounded-[11px] p-1 gap-1">
-              <button onClick={() => setPlan('yearly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'yearly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>Yearly</button>
-              <button onClick={() => setPlan('monthly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'monthly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>Monthly</button>
+              <button onClick={() => setPlan('yearly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'yearly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>{t('pricing.yearly')}</button>
+              <button onClick={() => setPlan('monthly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'monthly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>{t('pricing.monthly')}</button>
             </div>
             <div className="mt-5 flex flex-col gap-2.5 text-sm text-content/60">
-              <div className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" /><span className="text-content">Everything in Free, plus:</span></div>
+              <div className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" /><span className="text-content">{t('pricing.everythingInFree')}</span></div>
               {PRO_BENEFITS.map(b => (<div key={b} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{b}</div>))}
             </div>
             <button
@@ -258,7 +273,7 @@ export function LandingPage() {
       {/* FAQ */}
       <section className="max-w-6xl mx-auto px-6 pb-8">
         <Reveal>
-          <SectionHead eyebrow="Good to know" title={<>Questions, answered.</>} />
+          <SectionHead eyebrow="Good to know" title={<>{t('landing.faq.heading')}</>} />
         </Reveal>
         <Reveal delay={0.06} className="mt-9 max-w-3xl">
           {FAQS.map(f => (
@@ -273,11 +288,11 @@ export function LandingPage() {
       {/* Final CTA */}
       <section className="max-w-6xl mx-auto px-6 pb-20">
         <Reveal className="rounded-3xl border border-white/8 py-14 px-6 text-center bg-[radial-gradient(80%_120%_at_50%_0%,rgba(212,168,71,.12),transparent_60%),var(--color-surface)]">
-          <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">Ready when you are</div>
-          <h2 className="mt-3.5 text-3xl md:text-4xl font-extrabold tracking-tight max-w-[16em] mx-auto text-balance">Turn the count into an edge you can feel.</h2>
+          <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.closing.eyebrow')}</div>
+          <h2 className="mt-3.5 text-3xl md:text-4xl font-extrabold tracking-tight max-w-[16em] mx-auto text-balance">{t('landing.closing.title')}</h2>
           <div className="mt-7 flex justify-center gap-3.5 flex-wrap">
-            <button onClick={startFree} className="rounded-xl px-6 py-3.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer">{authed ? 'Open app →' : 'Start free →'}</button>
-            <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">See Pro</a>
+            <button onClick={startFree} className="rounded-xl px-6 py-3.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer">{authed ? t('landing.hero.ctaOpen') : t('landing.hero.ctaStart')}</button>
+            <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">{t('landing.closing.seePro')}</a>
           </div>
         </Reveal>
       </section>
@@ -289,14 +304,14 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-between items-center gap-4 text-sm text-content/60">
           <div className="flex items-center gap-2.5 font-semibold text-content/80"><span className="w-6 h-6 rounded-md grid place-items-center bg-gradient-to-br from-gold-bright to-gold text-casino-bg"><Spade size={13} /></span> Blackjack Trainer</div>
           <div className="flex gap-5 flex-wrap">
-            <a href="#features" className="hover:text-content">Features</a>
-            <a href="#pricing" className="hover:text-content">Pricing</a>
-            <Link to="/login" className="hover:text-content">Sign in</Link>
-            <Link to="/terms" className="hover:text-content">Terms</Link>
-            <Link to="/privacy" className="hover:text-content">Privacy</Link>
-            <Link to="/contact" className="hover:text-content">Contact</Link>
+            <a href="#features" className="hover:text-content">{t('landing.nav.features')}</a>
+            <a href="#pricing" className="hover:text-content">{t('landing.nav.pricing')}</a>
+            <Link to="/login" className="hover:text-content">{t('landing.nav.signIn')}</Link>
+            <Link to="/terms" className="hover:text-content">{t('landing.footer.terms')}</Link>
+            <Link to="/privacy" className="hover:text-content">{t('landing.footer.privacy')}</Link>
+            <Link to="/contact" className="hover:text-content">{t('landing.footer.contact')}</Link>
           </div>
-          <div>Practice tool — not affiliated with any casino.</div>
+          <div>{t('landing.footer.note')}</div>
         </div>
       </footer>
     </div>
