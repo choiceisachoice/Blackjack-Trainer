@@ -1,0 +1,98 @@
+{
+  "common": {
+    "back": "Zurück",
+    "cancel": "Abbrechen",
+    "continue": "Weiter",
+    "loading": "Wird geladen…",
+    "language": "Sprache"
+  },
+  "nav": {
+    "home": "Start",
+    "backToApp": "Zurück zur App",
+    "modes": {
+      "speedDrill": "Speed",
+      "deviationTraining": "Karten",
+      "betSpread": "Einsatz",
+      "deckEstimation": "Decks",
+      "casinoSession": "Casino",
+      "plan": "Plan",
+      "learn": "Lernen",
+      "analytics": "Analyse",
+      "strategyChart": "Strategie",
+      "achievements": "Erfolge",
+      "bankrollSim": "Bankroll",
+      "casinoSessionTracker": "Tracker"
+    },
+    "goPro": "Pro holen",
+    "accountAndBilling": "Konto & Abrechnung",
+    "muteSounds": "Ton aus",
+    "enableSounds": "Ton an",
+    "switchToLight": "Zum hellen Modus wechseln",
+    "switchToDark": "Zum dunklen Modus wechseln",
+    "signOut": "Abmelden",
+    "proFeature": "Pro-Funktion"
+  },
+  "session": {
+    "leave": {
+      "title": "Session verlassen?",
+      "body": "Sie wird pausiert und bleibt genau so erhalten — wenn du zurückkommst, spielst du dieselbe Hand weiter, mit demselben Schuh und derselben Zählung.",
+      "stay": "Weiterspielen",
+      "leave": "Pausieren und verlassen"
+    },
+    "resume": {
+      "title": "Deine Session ist noch da",
+      "body": "Pausiert bei Hand {{hand}}, mit demselben Schuh und derselben Zählung. Mach dort weiter, wo du aufgehört hast — oder starte mit einem frischen Schuh.",
+      "continue": "Session fortsetzen",
+      "restart": "Neue Session starten"
+    },
+    "paused": "Pausiert",
+    "resumeButton": "Fortsetzen",
+    "quit": "Session beenden",
+    "shuffling": "Karten werden gemischt…",
+    "newShoe": "Neuer Schuh"
+  },
+  "account": {
+    "title": "Konto",
+    "loadingPlan": "Dein Tarif wird geladen…",
+    "freePlan": "Gratis-Tarif",
+    "proActive": "Pro — aktiv",
+    "proTrial": "Pro — Testphase",
+    "proPaymentDue": "Pro — Zahlung offen",
+    "proCancelled": "Pro — gekündigt",
+    "renewsOn": "Verlängert sich am",
+    "accessEndsOn": "Zugang endet am",
+    "trialEnds": "Testphase endet",
+    "paymentDueBy": "Zahlung fällig bis",
+    "upgradeHint": "Hol dir Pro und schalte den Casino-Tisch, die Abweichungen und die vollständige Analyse frei.",
+    "proEndsNotice": "Wenn der Zugang endet, schliessen die Pro-Modi — Casino-Tisch, Einsatzspreizung, Deck-Schätzung und die Bankroll-Werkzeuge. Eine Session, die du zum späteren Weitermachen pausiert hast, ist danach nicht mehr erreichbar.",
+    "manageSubscription": "Abo verwalten",
+    "comparePlans": "Tarife vergleichen →",
+    "sectionAccount": "KONTO",
+    "errors": {
+      "portal": "Das Abrechnungsportal konnte nicht geöffnet werden.",
+      "checkout": "Der Bezahlvorgang konnte nicht gestartet werden.",
+      "alreadySubscribed": "Dieses Konto hat bereits Pro — es wurde kein zweites Abo angelegt."
+    }
+  },
+  "pricing": {
+    "vatNote": "Endpreis, inkl. {{rate}}% Schweizer MWST für Kunden in der Schweiz",
+    "monthly": "Monatlich",
+    "yearly": "Jährlich",
+    "perMonth": "/Monat",
+    "perYear": "/Jahr",
+    "free": "Gratis",
+    "pro": "Pro",
+    "yourPlan": "Dein Tarif",
+    "forever": "für immer",
+    "noCard": "Keine Karte nötig",
+    "mostPopular": "Am beliebtesten",
+    "bestValue": "BESTER PREIS",
+    "startFree": "Gratis starten",
+    "goPro": "Pro holen →",
+    "saveAgainstMonthly": "Spare {{amount}} — {{percent}}% günstiger als monatlich",
+    "flexibleCancel": "Flexibel — jederzeit kündbar",
+    "flexibleSwitch": "Flexibel — jederzeit auf jährlich wechseln",
+    "secureCheckout": "Sichere Zahlung über Stripe. Jederzeit im Konto kündbar.",
+    "everythingInFree": "Alles aus Gratis, plus:"
+  }
+}

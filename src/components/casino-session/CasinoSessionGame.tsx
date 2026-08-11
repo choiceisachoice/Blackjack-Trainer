@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getHandValue, isBust, isPair } from '../../engine/rules/hand-utils'
 import { Action } from '../../engine/rules/types'
@@ -42,6 +43,7 @@ interface CasinoSessionGameProps {
 }
 
 export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd, backgrounded = false, onRestart }: CasinoSessionGameProps) {
+  const { t } = useTranslation()
   const {
     state,
     actions,
@@ -223,32 +225,31 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                 books an unfinished session into the statistics as a real one.
               */
               <div className="flex flex-col items-center gap-5 px-6 text-center" data-testid="resume-session-panel">
-                <h2 className="text-3xl font-bold text-gold">Your session is still here</h2>
+                <h2 className="text-3xl font-bold text-gold">{t('session.resume.title')}</h2>
                 <p className="text-white/60 max-w-sm">
-                  Paused on hand {handNum} with the same shoe and count. Pick up where you
-                  left off, or deal a fresh shoe.
+                  {t('session.resume.body', { hand: handNum })}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button onClick={continueSession} data-testid="resume-continue"
                     className="px-8 py-3 bg-gold text-black rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
-                    Continue this session
+                    {t('session.resume.continue')}
                   </button>
                   <button onClick={restartSession} data-testid="resume-restart"
                     className="px-8 py-3 rounded-xl font-bold border border-white/20 text-white/80 hover:border-gold/55 hover:text-white cursor-pointer">
-                    Start a new session
+                    {t('session.resume.restart')}
                   </button>
                 </div>
               </div>
             ) : (
               <>
-                <h2 className="text-3xl font-bold text-gold">Paused</h2>
+                <h2 className="text-3xl font-bold text-gold">{t('session.paused')}</h2>
                 <button onClick={() => actions.setPaused(false)}
                   className="px-8 py-3 bg-gold text-black rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
-                  Resume
+                  {t('session.resumeButton')}
                 </button>
                 <button onClick={actions.quitSession} data-testid="quit-session"
                   className="px-8 py-3 bg-error text-white rounded-xl font-bold hover:bg-error/80 cursor-pointer">
-                  Quit Session
+                  {t('session.quit')}
                 </button>
               </>
             )}
@@ -270,8 +271,8 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
               style={{ background: 'rgba(0,0,0,0.85)', border: '2px solid rgba(212, 168, 67, 0.5)' }}
               data-testid="reshuffle-notification"
             >
-              <div className="text-gold text-xl md:text-2xl font-bold mb-1">Shuffling Cards...</div>
-              <div className="text-white/50 text-sm">New shoe</div>
+              <div className="text-gold text-xl md:text-2xl font-bold mb-1">{t('session.shuffling')}</div>
+              <div className="text-white/50 text-sm">{t('session.newShoe')}</div>
             </div>
           </motion.div>
         )}

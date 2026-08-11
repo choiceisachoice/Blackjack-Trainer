@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AlertTriangle } from 'lucide-react'
 import { useLiveSessionStore } from '../../store/live-session-store'
 import { useAppStore } from '../../store/app-store'
@@ -28,6 +29,7 @@ import { useAppStore } from '../../store/app-store'
  * paused hand with it.
  */
 export function LeaveSessionDialog() {
+  const { t } = useTranslation()
   const pending = useLiveSessionStore(s => s.pending)
   const confirmLeave = useLiveSessionStore(s => s.confirmLeave)
   const cancelLeave = useLiveSessionStore(s => s.cancelLeave)
@@ -72,11 +74,10 @@ export function LeaveSessionDialog() {
           </span>
           <div>
             <h2 id="leave-session-title" className="text-lg font-semibold">
-              Leave your session?
+              {t('session.leave.title')}
             </h2>
             <p id="leave-session-body" className="mt-1 text-sm text-content/60">
-              It will be paused and kept exactly where it is — come back and you continue
-              on the same hand, with the same shoe and count.
+              {t('session.leave.body')}
             </p>
           </div>
         </div>
@@ -89,7 +90,7 @@ export function LeaveSessionDialog() {
             className="px-4 py-2.5 rounded-xl font-semibold cursor-pointer
               bg-gradient-to-br from-gold-bright to-gold text-casino-bg"
           >
-            Keep playing
+            {t('session.leave.stay')}
           </button>
           <button
             onClick={leave}
@@ -97,7 +98,7 @@ export function LeaveSessionDialog() {
             className="px-4 py-2.5 rounded-xl font-semibold cursor-pointer
               border border-white/12 text-content hover:border-gold/55 transition-colors"
           >
-            Pause and leave
+            {t('session.leave.leave')}
           </button>
         </div>
       </div>

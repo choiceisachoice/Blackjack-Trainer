@@ -5,10 +5,12 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../store/app-store'
 import type { AppMode } from '../../store/app-store'
 import { useLiveSessionStore } from '../../store/live-session-store'
+import { LanguageSwitcher } from '../common/LanguageSwitcher'
 import { useAuthStore, isSupabaseConfigured } from '../../store/auth-store'
 import { useIsPro } from '../../store/entitlement-store'
 import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
@@ -18,27 +20,34 @@ import { LevelBadge } from './LevelBadge'
 
 interface NavItem {
   mode: AppMode
-  label: string
   icon: LucideIcon
 }
 
+/**
+ * The label comes from `nav.modes.<mode>`, not from a field here.
+ *
+ * The mode id already names the destination, so carrying an English string
+ * beside it would be a second source of truth that only English readers ever
+ * see corrected.
+ */
+
 /** Primary training features shown in the top navigation. */
 const TRAIN_ITEMS: NavItem[] = [
-  { mode: 'speedDrill', label: 'Speed', icon: Zap },
-  { mode: 'deviationTraining', label: 'Flashcards', icon: GraduationCap },
-  { mode: 'betSpread', label: 'Bet Spread', icon: Coins },
-  { mode: 'deckEstimation', label: 'Decks', icon: Layers },
-  { mode: 'casinoSession', label: 'Casino', icon: Club },
+  { mode: 'speedDrill', icon: Zap },
+  { mode: 'deviationTraining', icon: GraduationCap },
+  { mode: 'betSpread', icon: Coins },
+  { mode: 'deckEstimation', icon: Layers },
+  { mode: 'casinoSession', icon: Club },
 ]
 
 /** Secondary "tools" features. */
 const TOOL_ITEMS: NavItem[] = [
   // The plan answers "what do I do next"; Learn is the reference beside it.
-  { mode: 'plan', label: 'Plan', icon: Route },
-  { mode: 'learn', label: 'Learn', icon: BookOpen },
-  { mode: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { mode: 'strategyChart', label: 'Strategy', icon: Grid3x3 },
-  { mode: 'achievements', label: 'Awards', icon: Trophy },
+  { mode: 'plan', icon: Route },
+  { mode: 'learn', icon: BookOpen },
+  { mode: 'analytics', icon: BarChart3 },
+  { mode: 'strategyChart', icon: Grid3x3 },
+  { mode: 'achievements', icon: Trophy },
 ]
 
 /**
@@ -48,6 +57,7 @@ const TOOL_ITEMS: NavItem[] = [
  */
 export function NavBar() {
   const currentMode = useAppStore(s => s.currentMode)
+  const { t } = useTranslation()
   const rawSetMode = useAppStore(s => s.setMode)
   const requestLeave = useLiveSessionStore(s => s.requestLeave)
   /**
@@ -121,7 +131,8 @@ export function NavBar() {
    * and it is the honest reading of a bar carrying more than it can hold — the
    * real fix is fewer top-level destinations, which is a product decision.
    */
-  const renderItem = ({ mode, label, icon: Icon }: NavItem, compact = false) => {
+  const renderItem = ({ mode, icon: Icon }: NavItem, compact = false) => {
+    const label = t(`nav.modes.${mode}`)
     const active = currentMode === mode
     const proLocked = !isPro && isProMode(mode)
     return (
@@ -142,7 +153,7 @@ export function NavBar() {
         {/* Hidden with `display`, so it leaves the layout *and* keeps no stray
             flex gap behind — but stays in the document for assistive tech. */}
         <span className={`font-medium ${compact ? 'hidden min-[2100px]:inline' : ''}`}>{label}</span>
-        {proLocked && <Lock size={11} className="text-gold/70" aria-label="Pro feature" />}
+        {proLocked && <Lock size={11} className="text-gold/70" aria-label={t('nav.proFeature')} />}
       </button>
     )
   }
@@ -190,25 +201,26 @@ export function NavBar() {
               className="glow-hover flex items-center gap-1.5 pl-2.5 pr-3 h-8 rounded-lg bg-gold/10 border border-gold/30 text-gold text-sm font-semibold whitespace-nowrap cursor-pointer hover:bg-gold/15"
             >
               <Crown size={15} />
-              <span className="hidden min-[1400px]:inline">Go Pro</span>
+              <span className="hidden min-[1400px]:inline">{t('nav.goPro')}</span>
             </button>
           )}
           {signedIn && (
             <button
               onClick={() => navigate('/account')}
               data-testid="account"
-              aria-label="Account & billing"
-              title="Account & billing"
+              aria-label={t('nav.accountAndBilling')}
+              title={t('nav.accountAndBilling')}
               className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
             >
               <Settings size={17} />
             </button>
           )}
+          <LanguageSwitcher />
           <button
             onClick={toggleSound}
             data-testid="sound-toggle"
-            aria-label={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
-            title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+            aria-label={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
+            title={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
             className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
           >
             {soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
@@ -216,8 +228,8 @@ export function NavBar() {
           <button
             onClick={toggleTheme}
             data-testid="theme-toggle"
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={theme === 'dark' ? t('nav.switchToLight') : t('nav.switchToDark')}
+            title={theme === 'dark' ? t('nav.switchToLight') : t('nav.switchToDark')}
             className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
           >
             {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
@@ -227,8 +239,8 @@ export function NavBar() {
               onClick={signOut}
               disabled={signingOut}
               data-testid="sign-out"
-              aria-label="Sign out"
-              title="Sign out"
+              aria-label={t('nav.signOut')}
+              title={t('nav.signOut')}
               className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
             >
               {signingOut ? <Loader2 size={17} className="animate-spin" /> : <LogOut size={17} />}

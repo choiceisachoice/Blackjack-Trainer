@@ -1,0 +1,98 @@
+{
+  "common": {
+    "back": "Voltar",
+    "cancel": "Cancelar",
+    "continue": "Continuar",
+    "loading": "A carregar…",
+    "language": "Idioma"
+  },
+  "nav": {
+    "home": "Início",
+    "backToApp": "Voltar à aplicação",
+    "modes": {
+      "speedDrill": "Velocidade",
+      "deviationTraining": "Cartas",
+      "betSpread": "Apostas",
+      "deckEstimation": "Baralhos",
+      "casinoSession": "Casino",
+      "plan": "Plano",
+      "learn": "Aprender",
+      "analytics": "Análise",
+      "strategyChart": "Estratégia",
+      "achievements": "Conquistas",
+      "bankrollSim": "Bankroll",
+      "casinoSessionTracker": "Registo"
+    },
+    "goPro": "Obter Pro",
+    "accountAndBilling": "Conta e faturação",
+    "muteSounds": "Desligar o som",
+    "enableSounds": "Ligar o som",
+    "switchToLight": "Mudar para o modo claro",
+    "switchToDark": "Mudar para o modo escuro",
+    "signOut": "Terminar sessão",
+    "proFeature": "Funcionalidade Pro"
+  },
+  "session": {
+    "leave": {
+      "title": "Sair da sua sessão?",
+      "body": "Vai ficar em pausa e guardada tal como está — ao voltar continua na mesma mão, com o mesmo sabot e a mesma contagem.",
+      "stay": "Continuar a jogar",
+      "leave": "Pausar e sair"
+    },
+    "resume": {
+      "title": "A sua sessão ainda está aqui",
+      "body": "Em pausa na mão {{hand}}, com o mesmo sabot e a mesma contagem. Retome onde ficou, ou comece com um sabot novo.",
+      "continue": "Continuar esta sessão",
+      "restart": "Começar uma nova sessão"
+    },
+    "paused": "Em pausa",
+    "resumeButton": "Retomar",
+    "quit": "Terminar a sessão",
+    "shuffling": "A baralhar as cartas…",
+    "newShoe": "Sabot novo"
+  },
+  "account": {
+    "title": "Conta",
+    "loadingPlan": "A carregar o seu plano…",
+    "freePlan": "Plano gratuito",
+    "proActive": "Pro — ativo",
+    "proTrial": "Pro — experiência",
+    "proPaymentDue": "Pro — pagamento pendente",
+    "proCancelled": "Pro — cancelado",
+    "renewsOn": "Renova a",
+    "accessEndsOn": "O acesso termina a",
+    "trialEnds": "A experiência termina",
+    "paymentDueBy": "Pagamento devido até",
+    "upgradeHint": "Obtenha Pro para desbloquear a mesa de casino, os desvios e a análise completa.",
+    "proEndsNotice": "Quando o acesso terminar, os modos Pro fecham — mesa de casino, spread de apostas, estimativa de baralhos e as ferramentas de bankroll. Uma sessão que tenha pausado para terminar mais tarde deixa de estar acessível depois dessa data.",
+    "manageSubscription": "Gerir a subscrição",
+    "comparePlans": "Comparar planos →",
+    "sectionAccount": "CONTA",
+    "errors": {
+      "portal": "Não foi possível abrir o portal de faturação.",
+      "checkout": "Não foi possível iniciar o pagamento.",
+      "alreadySubscribed": "Esta conta já tem Pro — não foi criada uma segunda subscrição."
+    }
+  },
+  "pricing": {
+    "vatNote": "Preço final, IVA suíço de {{rate}}% incluído para clientes na Suíça",
+    "monthly": "Mensal",
+    "yearly": "Anual",
+    "perMonth": "/mês",
+    "perYear": "/ano",
+    "free": "Gratuito",
+    "pro": "Pro",
+    "yourPlan": "O seu plano",
+    "forever": "para sempre",
+    "noCard": "Sem cartão",
+    "mostPopular": "O mais escolhido",
+    "bestValue": "MELHOR PREÇO",
+    "startFree": "Começar grátis",
+    "goPro": "Obter Pro →",
+    "saveAgainstMonthly": "Poupe {{amount}} — menos {{percent}}% do que mensal",
+    "flexibleCancel": "Flexível — cancele quando quiser",
+    "flexibleSwitch": "Flexível — mude para anual quando quiser",
+    "secureCheckout": "Pagamento seguro com Stripe. Cancele quando quiser na sua conta.",
+    "everythingInFree": "Tudo o do gratuito, mais:"
+  }
+}

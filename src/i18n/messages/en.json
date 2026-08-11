@@ -1,0 +1,98 @@
+{
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "loading": "Loading…",
+    "language": "Language"
+  },
+  "nav": {
+    "home": "Home",
+    "backToApp": "Back to app",
+    "modes": {
+      "speedDrill": "Speed",
+      "deviationTraining": "Flashcards",
+      "betSpread": "Bet Spread",
+      "deckEstimation": "Decks",
+      "casinoSession": "Casino",
+      "plan": "Plan",
+      "learn": "Learn",
+      "analytics": "Analytics",
+      "strategyChart": "Strategy",
+      "achievements": "Awards",
+      "bankrollSim": "Bankroll",
+      "casinoSessionTracker": "Tracker"
+    },
+    "goPro": "Go Pro",
+    "accountAndBilling": "Account & billing",
+    "muteSounds": "Mute sounds",
+    "enableSounds": "Enable sounds",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "signOut": "Sign out",
+    "proFeature": "Pro feature"
+  },
+  "session": {
+    "leave": {
+      "title": "Leave your session?",
+      "body": "It will be paused and kept exactly where it is — come back and you continue on the same hand, with the same shoe and count.",
+      "stay": "Keep playing",
+      "leave": "Pause and leave"
+    },
+    "resume": {
+      "title": "Your session is still here",
+      "body": "Paused on hand {{hand}} with the same shoe and count. Pick up where you left off, or deal a fresh shoe.",
+      "continue": "Continue this session",
+      "restart": "Start a new session"
+    },
+    "paused": "Paused",
+    "resumeButton": "Resume",
+    "quit": "Quit Session",
+    "shuffling": "Shuffling Cards…",
+    "newShoe": "New shoe"
+  },
+  "account": {
+    "title": "Account",
+    "loadingPlan": "Loading your plan…",
+    "freePlan": "Free plan",
+    "proActive": "Pro — active",
+    "proTrial": "Pro — trial",
+    "proPaymentDue": "Pro — payment due",
+    "proCancelled": "Pro — cancelled",
+    "renewsOn": "Renews on",
+    "accessEndsOn": "Access ends on",
+    "trialEnds": "Trial ends",
+    "paymentDueBy": "Payment due by",
+    "upgradeHint": "Upgrade to unlock the casino table, deviations and full analytics.",
+    "proEndsNotice": "When access ends, the Pro modes close — the casino table, bet spread, deck estimation and the bankroll tools. A session you paused to finish later will not be reachable after that date.",
+    "manageSubscription": "Manage subscription",
+    "comparePlans": "Compare plans →",
+    "sectionAccount": "ACCOUNT",
+    "errors": {
+      "portal": "Could not open the billing portal.",
+      "checkout": "Could not start checkout.",
+      "alreadySubscribed": "You already have Pro on this account — no second subscription was created."
+    }
+  },
+  "pricing": {
+    "vatNote": "Final price, incl. {{rate}}% Swiss VAT for customers in Switzerland",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "free": "Free",
+    "pro": "Pro",
+    "yourPlan": "Your plan",
+    "forever": "forever",
+    "noCard": "No card required",
+    "mostPopular": "Most popular",
+    "bestValue": "BEST VALUE",
+    "startFree": "Start free",
+    "goPro": "Go Pro →",
+    "saveAgainstMonthly": "Save {{amount}} — {{percent}}% off monthly",
+    "flexibleCancel": "Flexible — cancel anytime",
+    "flexibleSwitch": "Flexible — switch to yearly anytime",
+    "secureCheckout": "Secure checkout by Stripe. Cancel anytime from your account.",
+    "everythingInFree": "Everything in Free, plus:"
+  }
+}

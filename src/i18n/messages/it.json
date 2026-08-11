@@ -1,0 +1,98 @@
+{
+  "common": {
+    "back": "Indietro",
+    "cancel": "Annulla",
+    "continue": "Continua",
+    "loading": "Caricamento…",
+    "language": "Lingua"
+  },
+  "nav": {
+    "home": "Home",
+    "backToApp": "Torna all'app",
+    "modes": {
+      "speedDrill": "Velocità",
+      "deviationTraining": "Carte",
+      "betSpread": "Puntate",
+      "deckEstimation": "Mazzi",
+      "casinoSession": "Casinò",
+      "plan": "Piano",
+      "learn": "Impara",
+      "analytics": "Analisi",
+      "strategyChart": "Strategia",
+      "achievements": "Premi",
+      "bankrollSim": "Bankroll",
+      "casinoSessionTracker": "Registro"
+    },
+    "goPro": "Passa a Pro",
+    "accountAndBilling": "Account e fatturazione",
+    "muteSounds": "Disattiva l'audio",
+    "enableSounds": "Attiva l'audio",
+    "switchToLight": "Passa alla modalità chiara",
+    "switchToDark": "Passa alla modalità scura",
+    "signOut": "Esci",
+    "proFeature": "Funzione Pro"
+  },
+  "session": {
+    "leave": {
+      "title": "Uscire dalla sessione?",
+      "body": "Verrà messa in pausa e conservata com'è — al ritorno riprenderai dalla stessa mano, con lo stesso sabot e lo stesso conteggio.",
+      "stay": "Continua a giocare",
+      "leave": "Metti in pausa ed esci"
+    },
+    "resume": {
+      "title": "La tua sessione è ancora qui",
+      "body": "In pausa alla mano {{hand}}, con lo stesso sabot e lo stesso conteggio. Riprendi da dove eri, oppure inizia con un sabot nuovo.",
+      "continue": "Riprendi questa sessione",
+      "restart": "Inizia una nuova sessione"
+    },
+    "paused": "In pausa",
+    "resumeButton": "Riprendi",
+    "quit": "Termina la sessione",
+    "shuffling": "Mescolamento delle carte…",
+    "newShoe": "Nuovo sabot"
+  },
+  "account": {
+    "title": "Account",
+    "loadingPlan": "Caricamento del tuo piano…",
+    "freePlan": "Piano gratuito",
+    "proActive": "Pro — attivo",
+    "proTrial": "Pro — prova",
+    "proPaymentDue": "Pro — pagamento in sospeso",
+    "proCancelled": "Pro — disdetto",
+    "renewsOn": "Si rinnova il",
+    "accessEndsOn": "L'accesso termina il",
+    "trialEnds": "La prova termina",
+    "paymentDueBy": "Pagamento dovuto entro il",
+    "upgradeHint": "Passa a Pro per sbloccare il tavolo da casinò, le deviazioni e l'analisi completa.",
+    "proEndsNotice": "Alla fine dell'accesso le modalità Pro si chiudono — tavolo da casinò, spread delle puntate, stima dei mazzi e gli strumenti di bankroll. Una sessione messa in pausa per finirla più tardi non sarà più raggiungibile dopo quella data.",
+    "manageSubscription": "Gestisci l'abbonamento",
+    "comparePlans": "Confronta i piani →",
+    "sectionAccount": "ACCOUNT",
+    "errors": {
+      "portal": "Non è stato possibile aprire il portale di fatturazione.",
+      "checkout": "Non è stato possibile avviare il pagamento.",
+      "alreadySubscribed": "Questo account ha già Pro — non è stato creato un secondo abbonamento."
+    }
+  },
+  "pricing": {
+    "vatNote": "Prezzo finale, IVA svizzera dell'{{rate}}% inclusa per i clienti in Svizzera",
+    "monthly": "Mensile",
+    "yearly": "Annuale",
+    "perMonth": "/mese",
+    "perYear": "/anno",
+    "free": "Gratuito",
+    "pro": "Pro",
+    "yourPlan": "Il tuo piano",
+    "forever": "per sempre",
+    "noCard": "Nessuna carta richiesta",
+    "mostPopular": "Il più scelto",
+    "bestValue": "MIGLIOR PREZZO",
+    "startFree": "Inizia gratis",
+    "goPro": "Passa a Pro →",
+    "saveAgainstMonthly": "Risparmi {{amount}} — {{percent}}% in meno del mensile",
+    "flexibleCancel": "Flessibile — disdici quando vuoi",
+    "flexibleSwitch": "Flessibile — passa all'annuale quando vuoi",
+    "secureCheckout": "Pagamento sicuro con Stripe. Disdici quando vuoi dal tuo account.",
+    "everythingInFree": "Tutto il gratuito, più:"
+  }
+}

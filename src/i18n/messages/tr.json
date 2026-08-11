@@ -1,0 +1,98 @@
+{
+  "common": {
+    "back": "Geri",
+    "cancel": "Vazgeç",
+    "continue": "Devam",
+    "loading": "Yükleniyor…",
+    "language": "Dil"
+  },
+  "nav": {
+    "home": "Ana sayfa",
+    "backToApp": "Uygulamaya dön",
+    "modes": {
+      "speedDrill": "Hız",
+      "deviationTraining": "Kartlar",
+      "betSpread": "Bahis",
+      "deckEstimation": "Desteler",
+      "casinoSession": "Kumarhane",
+      "plan": "Plan",
+      "learn": "Öğren",
+      "analytics": "Analiz",
+      "strategyChart": "Strateji",
+      "achievements": "Başarımlar",
+      "bankrollSim": "Kasa",
+      "casinoSessionTracker": "Kayıt"
+    },
+    "goPro": "Pro'ya geç",
+    "accountAndBilling": "Hesap ve faturalandırma",
+    "muteSounds": "Sesi kapat",
+    "enableSounds": "Sesi aç",
+    "switchToLight": "Açık moda geç",
+    "switchToDark": "Koyu moda geç",
+    "signOut": "Çıkış yap",
+    "proFeature": "Pro özelliği"
+  },
+  "session": {
+    "leave": {
+      "title": "Oturumdan çıkılsın mı?",
+      "body": "Duraklatılıp olduğu gibi saklanacak — geri döndüğünüzde aynı elden, aynı ayakkabı ve aynı sayımla devam edersiniz.",
+      "stay": "Oynamaya devam et",
+      "leave": "Duraklat ve çık"
+    },
+    "resume": {
+      "title": "Oturumunuz hâlâ burada",
+      "body": "{{hand}}. elde duraklatıldı; ayakkabı ve sayım aynı. Kaldığınız yerden devam edin ya da yeni bir ayakkabı ile başlayın.",
+      "continue": "Bu oturuma devam et",
+      "restart": "Yeni bir oturum başlat"
+    },
+    "paused": "Duraklatıldı",
+    "resumeButton": "Devam et",
+    "quit": "Oturumu bitir",
+    "shuffling": "Kartlar karılıyor…",
+    "newShoe": "Yeni ayakkabı"
+  },
+  "account": {
+    "title": "Hesap",
+    "loadingPlan": "Planınız yükleniyor…",
+    "freePlan": "Ücretsiz plan",
+    "proActive": "Pro — etkin",
+    "proTrial": "Pro — deneme",
+    "proPaymentDue": "Pro — ödeme bekliyor",
+    "proCancelled": "Pro — iptal edildi",
+    "renewsOn": "Yenilenme tarihi",
+    "accessEndsOn": "Erişimin bitiş tarihi",
+    "trialEnds": "Deneme bitişi",
+    "paymentDueBy": "Son ödeme tarihi",
+    "upgradeHint": "Kumarhane masasını, sapmaları ve tam analizi açmak için Pro'ya geçin.",
+    "proEndsNotice": "Erişim sona erdiğinde Pro modları kapanır — kumarhane masası, bahis aralığı, deste tahmini ve kasa araçları. Daha sonra bitirmek için duraklattığınız bir oturuma o tarihten sonra ulaşamazsınız.",
+    "manageSubscription": "Aboneliği yönet",
+    "comparePlans": "Planları karşılaştır →",
+    "sectionAccount": "HESAP",
+    "errors": {
+      "portal": "Faturalandırma portalı açılamadı.",
+      "checkout": "Ödeme başlatılamadı.",
+      "alreadySubscribed": "Bu hesapta zaten Pro var — ikinci bir abonelik oluşturulmadı."
+    }
+  },
+  "pricing": {
+    "vatNote": "Nihai fiyat; İsviçre'deki müşteriler için %{{rate}} İsviçre KDV'si dâhildir",
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "perMonth": "/ay",
+    "perYear": "/yıl",
+    "free": "Ücretsiz",
+    "pro": "Pro",
+    "yourPlan": "Planınız",
+    "forever": "sonsuza dek",
+    "noCard": "Kart gerekmez",
+    "mostPopular": "En çok tercih edilen",
+    "bestValue": "EN İYİ FİYAT",
+    "startFree": "Ücretsiz başla",
+    "goPro": "Pro'ya geç →",
+    "saveAgainstMonthly": "{{amount}} tasarruf edin — aylıktan %{{percent}} daha ucuz",
+    "flexibleCancel": "Esnek — istediğiniz zaman iptal",
+    "flexibleSwitch": "Esnek — istediğiniz zaman yıllığa geçin",
+    "secureCheckout": "Stripe ile güvenli ödeme. Hesabınızdan istediğiniz zaman iptal edebilirsiniz.",
+    "everythingInFree": "Ücretsizdeki her şey, ayrıca:"
+  }
+}
