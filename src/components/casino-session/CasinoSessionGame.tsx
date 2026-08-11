@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getHandValue, isBust, isPair } from '../../engine/rules/hand-utils'
 import { Action } from '../../engine/rules/types'
@@ -30,9 +30,18 @@ interface CasinoSessionGameProps {
    * animations mid-flight for someone who is not looking yet.
    */
   backgrounded?: boolean
+  /**
+   * Throw this session away and go back to the configuration screen.
+   *
+   * Offered only on return from another mode, next to continuing. Someone who
+   * has been away may well want a clean shoe, and the alternative — "Quit
+   * Session" — is not the same thing: that ends the session and books it into
+   * the statistics as a completed one.
+   */
+  onRestart?: () => void
 }
 
-export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd, backgrounded = false }: CasinoSessionGameProps) {
+export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd, backgrounded = false, onRestart }: CasinoSessionGameProps) {
   const {
     state,
     actions,
@@ -67,6 +76,28 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     if (backgrounded) actions.setPaused(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backgrounded])
+
+  /**
+   * Whether the player has just come back from another mode.
+   *
+   * Drives a different pause panel: returning is not the same situation as
+   * pausing on purpose. Someone who paused deliberately wants Resume and Quit.
+   * Someone returning after ten minutes elsewhere first needs to be told the
+   * session is still here — and given the choice they would otherwise take by
+   * quitting and re-entering: start fresh.
+   */
+  const [justReturned, setJustReturned] = useState(false)
+  const wasBackgrounded = useRef(false)
+  useEffect(() => {
+    if (backgrounded) wasBackgrounded.current = true
+    else if (wasBackgrounded.current) {
+      wasBackgrounded.current = false
+      setJustReturned(true)
+    }
+  }, [backgrounded])
+
+  const continueSession = () => { setJustReturned(false); actions.setPaused(false) }
+  const restartSession = () => { setJustReturned(false); onRestart?.() }
 
   // Dealing speed (live, persisted)
   const dealingSpeed = useAppStore(s => s.dealingSpeed)
@@ -182,15 +213,45 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-6"
           >
-            <h2 className="text-3xl font-bold text-gold">Paused</h2>
-            <button onClick={() => actions.setPaused(false)}
-              className="px-8 py-3 bg-gold text-black rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
-              Resume
-            </button>
-            <button onClick={actions.quitSession} data-testid="quit-session"
-              className="px-8 py-3 bg-error text-white rounded-xl font-bold hover:bg-error/80 cursor-pointer">
-              Quit Session
-            </button>
+            {justReturned ? (
+              /*
+                Coming back from another mode. Three things this has to do that
+                the plain pause panel does not: say the session survived (the
+                old behaviour destroyed it, and people will expect that for a
+                while), say where it stands, and offer the fresh start that
+                would otherwise mean quitting — which is worse, because quitting
+                books an unfinished session into the statistics as a real one.
+              */
+              <div className="flex flex-col items-center gap-5 px-6 text-center" data-testid="resume-session-panel">
+                <h2 className="text-3xl font-bold text-gold">Your session is still here</h2>
+                <p className="text-white/60 max-w-sm">
+                  Paused on hand {handNum} with the same shoe and count. Pick up where you
+                  left off, or deal a fresh shoe.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button onClick={continueSession} data-testid="resume-continue"
+                    className="px-8 py-3 bg-gold text-black rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
+                    Continue this session
+                  </button>
+                  <button onClick={restartSession} data-testid="resume-restart"
+                    className="px-8 py-3 rounded-xl font-bold border border-white/20 text-white/80 hover:border-gold/55 hover:text-white cursor-pointer">
+                    Start a new session
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-3xl font-bold text-gold">Paused</h2>
+                <button onClick={() => actions.setPaused(false)}
+                  className="px-8 py-3 bg-gold text-black rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
+                  Resume
+                </button>
+                <button onClick={actions.quitSession} data-testid="quit-session"
+                  className="px-8 py-3 bg-error text-white rounded-xl font-bold hover:bg-error/80 cursor-pointer">
+                  Quit Session
+                </button>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

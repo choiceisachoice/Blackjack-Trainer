@@ -189,6 +189,13 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
       soundEnabled={soundEnabled}
       onSessionEnd={handleSessionEnd}
       backgrounded={backgrounded}
+      /*
+        Back to the configuration screen, discarding the hand in progress.
+        Deliberately not `handleSessionEnd`: that books the session into the
+        statistics and the tracker as a completed one, and half a shoe played
+        before wandering off is not a result worth recording.
+      */
+      onRestart={() => { setPhase('config'); setResult(null); setRecorder(null) }}
     />
   )
 }
