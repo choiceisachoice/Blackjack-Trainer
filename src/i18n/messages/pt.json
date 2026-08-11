@@ -552,7 +552,8 @@
       "followed": "Seguido",
       "missed": "Falhado ({{name}})",
       "handNo": "Mão {{n}}:"
-    }
+    },
+    "name": "Sessão de casino"
   },
   "tracker": {
     "onboardTitle": "Acompanhe as suas sessões de casino",
@@ -814,6 +815,133 @@
         "label": "Todos os dias, a sério"
       },
       "hint": "Cerca de {{n}} sessões por semana."
+    }
+  },
+  "learn": {
+    "title": "Aprender",
+    "sub": "Se é novo nisto, comece pelo topo. Tudo o resto só assume o que veio antes.",
+    "part1": {
+      "title": "Parte 1 — O jogo",
+      "sub": "Nunca jogou blackjack? Leia isto uma vez e o resto da página fará sentido."
+    },
+    "part2": {
+      "title": "Parte 2 — Contar cartas",
+      "sub": "A vantagem em si. Toque num tema para o abrir."
+    },
+    "sections": {
+      "basics": "As bases",
+      "strategy": "Estratégia",
+      "betting": "Apostas e sabot"
+    },
+    "topics": {
+      "what-is-counting": {
+        "title": "O que é contar cartas?",
+        "body": "Mantém uma contagem simples à medida que as cartas saem. Se ainda faltarem muitas cartas altas, as probabilidades pendem a seu favor — aposta mais e ajusta algumas jogadas. É atenção e matemática, não batota, e é perfeitamente legal."
+      },
+      "hi-lo": {
+        "title": "A contagem Hi-Lo",
+        "body": "Cada carta tem um valor: cartas baixas <g>2–6 = +1</g>, médias <g>7–9 = 0</g>, altas <g>10, J, Q, K, A = −1</g>. Some-as à medida que saem — esse total é o seu <c>running count</c>. Uma contagem muito positiva significa que restam muitas cartas altas, o que o favorece."
+      },
+      "true-count": {
+        "title": "Running count e true count",
+        "body": "O running count sozinho não chega: +6 com seis baralhos por jogar é fraco, mas +6 com um baralho é forte. Por isso divide-se: <g>true count = running count ÷ baralhos restantes</g>. O true count é a sua vantagem real e comanda tanto a aposta como os desvios."
+      },
+      "basic-strategy": {
+        "title": "Estratégia básica",
+        "body": "A jogada matematicamente melhor para cada mão — pedir, ficar, dobrar, dividir ou desistir — assumindo que <c>não</c> está a contar. Aprenda-a primeiro: é a base e já reduz a vantagem da casa a quase nada. O modo <c>Cartões</c> treina-a mão a mão."
+      },
+      "deviations": {
+        "title": "Desvios",
+        "body": "Quando a contagem sobe ou desce, um punhado de jogadas afasta-se da estratégia básica. Exemplo clássico: normalmente <c>pede</c> com um 16 duro contra um 10 do dealer — mas a partir de um true count de 0 <c>fica</c>. É destas mudanças ligadas à contagem que vem a vantagem extra."
+      },
+      "i18-fab4": {
+        "title": "Illustrious 18 e Fab 4",
+        "body": "De todos os desvios possíveis, quase todo o valor está num grupo pequeno: os <g>Illustrious 18</g> (os 18 desvios de jogo mais valiosos) e os <g>Fab 4</g> (os 4 desvios de desistência mais valiosos). Não precisa de decorar os nomes — o nível «Desvios» dos cartões ensina-os diretamente como situações."
+      },
+      "bet-spread": {
+        "title": "Bet spread",
+        "body": "Aposta pouco quando a contagem está baixa e muito quando está alta — essa diferença é o seu <c>bet spread</c>. Quase todo o lucro de um contador vem de pôr mais dinheiro na mesa quando as probabilidades o favorecem. Um spread de <g>1–16</g> é um padrão profissional comum."
+      },
+      "deck-estimation": {
+        "title": "Estimativa de baralhos",
+        "body": "Para transformar o running count em true count tem de avaliar quantos baralhos faltam — a olho, pela espessura do tabuleiro de descartes, tal como numa mesa a sério. Parece difícil, mas com prática torna-se rápido. É exatamente isso que o modo <c>Estimativa de baralhos</c> treina."
+      }
+    },
+    "modesTitle": "Os modos de treino",
+    "mode": {
+      "speed": "Mantenha o running count enquanto as cartas passam — velocidade pura.",
+      "flash": "Decida a jogada certa em cada mão, com desvios pela contagem.",
+      "bet": "Escolha a aposta certa para a contagem, em mesas realistas.",
+      "deck": "Avalie os baralhos restantes pelo tabuleiro de descartes.",
+      "casino": "Junte tudo numa sessão realista com vários lugares."
+    }
+  },
+  "basics": {
+    "you": "Você",
+    "dealer": "Dealer",
+    "b1": {
+      "title": "O objetivo não é 21",
+      "fig": "19 ganha a 17. Nenhuma das mãos chega perto de 21.",
+      "p1": "Joga contra o <c>dealer</c>, não contra os outros jogadores. Ganha se terminar com um total maior do que o dele — sem passar de 21.",
+      "p2": "Passar dos 21 chama-se <c>rebentar</c>, e perde de imediato, mesmo que o dealer rebente a seguir. É desta única regra que vem a vantagem do casino."
+    },
+    "b2": {
+      "title": "Quanto valem as cartas",
+      "aceValue": "1 ou 11",
+      "p1": "As cartas numeradas valem o seu número. Valete, Dama e Rei valem todos <c>10</c> — por isso um baralho está cheio de dez.",
+      "p2": "O <c>Ás</c> é especial: vale 11, a não ser que isso o faça rebentar, e então vale 1. Nunca tem de escolher; assume sempre o valor que o ajuda."
+    },
+    "b3": {
+      "title": "Mãos duras e mãos moles",
+      "soft": "Mole",
+      "hard": "Dura",
+      "softNote": "O ás ainda pode descer a 1, por isso mais nenhuma carta pode rebentar esta mão.",
+      "hardNote": "O mesmo total, sem margem — qualquer carta acima de 4 rebenta-o.",
+      "p1": "Uma mão com um ás que ainda conta 11 diz-se <c>mole</c>. Qualquer outra mão é <c>dura</c>.",
+      "p2": "Conta mais do que parece: um 17 mole e um 17 duro são o mesmo número mas pedem jogadas completamente diferentes, porque uma mão mole não pode rebentar com mais uma carta."
+    },
+    "b4": {
+      "title": "Como decorre uma ronda",
+      "fig": "Ao decidir, só vê uma carta do dealer — a carta visível.",
+      "p1": "Aposta. Todos recebem duas cartas viradas para cima. O dealer também tira duas, mas só uma está visível — a <c>carta visível</c>. A escondida é a <c>carta tapada</c>.",
+      "p2": "Age primeiro, depois joga o dealer. Essa ordem é o problema inteiro: se rebentar, o seu dinheiro vai-se antes de o dealer ter de fazer o que quer que seja."
+    },
+    "b5": {
+      "title": "As suas cinco opções",
+      "hit": "Peça mais uma carta.",
+      "stand": "Fique com o que tem.",
+      "double": "Dobre a aposta e receba exatamente uma carta.",
+      "split": "Duas cartas iguais → duas mãos, segunda aposta.",
+      "surrender": "Desista e fique com metade da aposta.",
+      "p1": "Cada mão resume-se a estas cinco. <c>Dobrar</c> e <c>Dividir</c> são as rentáveis — põem mais dinheiro na mesa nas situações que o favorecem, que é exatamente o que um contador procura.",
+      "p2": "Qual é a escolha certa não é uma questão de intuição. É matemática resolvida, e chama-se <c>estratégia básica</c>."
+    },
+    "b6": {
+      "title": "O dealer não tem escolhas",
+      "mustHit": "O dealer tem de pedir",
+      "mustStand": "O dealer tem de ficar",
+      "hitNote": "16 — o dealer volta a pedir, esteja o que estiver na mesa.",
+      "standNote": "17 ou mais — o dealer para, mesmo contra o seu 20.",
+      "p1": "O dealer segue uma regra fixa: pedir até chegar a 17 e depois parar. Sem critério, sem reagir à sua mão.",
+      "p2": "Uma variante conta: se o dealer também pede com um <c>17 mole</c> (ás + seis). É a regra <c>H17</c>, ligeiramente pior para si do que <c>S17</c>. O treinador deixa-o definir as duas."
+    },
+    "b7": {
+      "title": "Quanto lhe pagam",
+      "blackjack": "Blackjack",
+      "win": "Vitória",
+      "push": "Empate",
+      "winText": "Recebe a aposta de volta, mais outro tanto (1:1).",
+      "bjText": "Ás + dez nas duas primeiras cartas paga 3:2.",
+      "pushText": "O mesmo total do dealer — aposta devolvida, nada perdido.",
+      "p1": "Um <c>blackjack</c> é um ás mais uma carta de valor dez nas duas primeiras cartas. Paga mais do que uma vitória normal — <c>3:2</c> — e é a maior razão pela qual as cartas altas o favorecem.",
+      "p2": "Cuidado com as mesas que pagam 6:5. Essa única mudança custa mais do que um bom contador ganha, e é por isso que este treinador usa 3:2 por omissão."
+    },
+    "b8": {
+      "title": "Porque é que isto pode ser batido",
+      "fig": "Um sabot rico nestas cartas paga-lhe 3:2 mais vezes — e rebenta o dealer mais vezes também.",
+      "p1": "As cartas são distribuídas sem reposição. O que já saiu, saiu, por isso a composição do sabot vai mudando ao longo das rondas — e por vezes a seu favor.",
+      "p2": "As cartas altas ajudam-no: mais blackjacks a 3:2, melhores dobras e um dealer obrigado mais vezes a pedir com uma mão incómoda. As cartas baixas ajudam o dealer.",
+      "p3": "Contar não é mais do que seguir para que lado o sabot se desviou — e apostar mais quando o favorece. É esse o capítulo seguinte."
     }
   }
 }

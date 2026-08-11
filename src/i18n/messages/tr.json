@@ -552,7 +552,8 @@
       "followed": "Uyuldu",
       "missed": "Kaçırıldı ({{name}})",
       "handNo": "El {{n}}:"
-    }
+    },
+    "name": "Casino oturumu"
   },
   "tracker": {
     "onboardTitle": "Casino oturumlarınızı takip edin",
@@ -814,6 +815,133 @@
         "label": "Her gün, ciddi biçimde"
       },
       "hint": "Haftada yaklaşık {{n}} tur."
+    }
+  },
+  "learn": {
+    "title": "Öğren",
+    "sub": "Yeniyseniz en baştan başlayın. Sonrası yalnızca öncesini varsayar.",
+    "part1": {
+      "title": "Bölüm 1 — Oyun",
+      "sub": "Hiç blackjack oynamadınız mı? Bunu bir kez okuyun, sayfanın geri kalanı anlam kazansın."
+    },
+    "part2": {
+      "title": "Bölüm 2 — Kart sayma",
+      "sub": "Avantajın kendisi. Açmak için bir konuya dokunun."
+    },
+    "sections": {
+      "basics": "Temeller",
+      "strategy": "Strateji",
+      "betting": "Bahisler ve ayakkabı"
+    },
+    "topics": {
+      "what-is-counting": {
+        "title": "Kart sayma nedir?",
+        "body": "Kartlar çıktıkça basit bir sayım tutarsınız. Yüksek kartların çoğu hâlâ gelecekse olasılıklar sizin lehinize döner — o zaman daha çok yatırır ve birkaç hamlenizi değiştirirsiniz. Bu bir dikkat ve matematik becerisidir, hile değildir ve tamamen yasaldır."
+      },
+      "hi-lo": {
+        "title": "Hi-Lo sayımı",
+        "body": "Her kartın bir değeri vardır: düşük kartlar <g>2–6 = +1</g>, orta kartlar <g>7–9 = 0</g>, yüksek kartlar <g>10, J, Q, K, A = −1</g>. Kartlar geldikçe toplayın — bu toplam sizin <c>running count</c>’unuzdur. Yüksek pozitif bir sayım, çok sayıda yüksek kartın kaldığı anlamına gelir; bu sizin lehinizedir."
+      },
+      "true-count": {
+        "title": "Running count ve true count",
+        "body": "Running count tek başına yetmez — altı deste kalmışken +6 zayıf, bir deste kalmışken +6 güçlüdür. Bu yüzden bölersiniz: <g>true count = running count ÷ kalan deste</g>. Gerçek avantajınız true count’tur; hem bahsinizi hem sapmalarınızı o belirler."
+      },
+      "basic-strategy": {
+        "title": "Temel strateji",
+        "body": "Her el için matematiksel olarak en iyi hamle — kart al, dur, çiftle, böl ya da teslim ol — sayım <c>yapmadığınız</c> varsayımıyla. Önce bunu öğrenin: temel budur ve kasa avantajını neredeyse sıfıra indirir. <c>Bilgi kartları</c> modu bunu el el çalıştırır."
+      },
+      "deviations": {
+        "title": "Sapmalar",
+        "body": "Sayım yükseldiğinde ya da düştüğünde bir avuç hamle temel stratejiden ayrılır. Klasik örnek: krupiyenin 10’una karşı sert 16’da normalde <c>kart alırsınız</c> — ama true count 0 ve üzerindeyse <c>durursunuz</c>. Ek avantaj işte bu sayıma dayalı değişikliklerden gelir."
+      },
+      "i18-fab4": {
+        "title": "Illustrious 18 ve Fab 4",
+        "body": "Olası tüm sapmalar içinde değerin çoğu küçük bir kümede toplanır: <g>Illustrious 18</g> (en değerli 18 oyun sapması) ve <g>Fab 4</g> (en değerli 4 teslim sapması). İsimleri ezberlemeniz gerekmez — bilgi kartlarının “Sapmalar” seviyesi bunları doğrudan durum olarak öğretir."
+      },
+      "bet-spread": {
+        "title": "Bet spread",
+        "body": "Sayım düşükken az, yüksekken çok yatırırsınız — bu fark sizin <c>bet spread</c>’inizdir. Bir sayıcının kârının neredeyse tamamı, olasılıklar lehineyken masaya daha çok para koymaktan gelir. <g>1–16</g> aralığı yaygın bir profesyonel standarttır."
+      },
+      "deck-estimation": {
+        "title": "Deste tahmini",
+        "body": "Running count’u true count’a çevirmek için kaç deste kaldığını kestirmeniz gerekir — gözle, atık tepsisinin kalınlığından, tıpkı gerçek bir masadaki gibi. Zor gibi görünür ama alıştırmayla hızlanır. <c>Deste tahmini</c> modunun çalıştırdığı tam da budur."
+      }
+    },
+    "modesTitle": "Antrenman modları",
+    "mode": {
+      "speed": "Kartlar hızla geçerken running count’u tutun — saf hız için.",
+      "flash": "Her el için doğru hamleye karar verin, sayıma dayalı sapmalar dâhil.",
+      "bet": "Gerçekçi masalarda sayıma uygun bahsi seçin.",
+      "deck": "Atık tepsisinden kalan desteyi kestirin.",
+      "casino": "Hepsini gerçekçi, çok kişilik bir oturumda birleştirin."
+    }
+  },
+  "basics": {
+    "you": "Siz",
+    "dealer": "Krupiye",
+    "b1": {
+      "title": "Amaç 21 değil",
+      "fig": "19, 17’yi yener. İki el de 21’e yakın değil.",
+      "p1": "<c>Krupiyeye</c> karşı oynarsınız, diğer oyunculara değil. Krupiyeden daha yüksek bir toplamla bitirirseniz kazanırsınız — 21’i geçmeden.",
+      "p2": "21’i geçmeye <c>batmak</c> denir ve hemen kaybedersiniz — krupiye sonradan batsa bile. Kumarhanenin avantajı tam da bu tek kuraldan doğar."
+    },
+    "b2": {
+      "title": "Kartların değeri",
+      "aceValue": "1 ya da 11",
+      "p1": "Sayı kartları kendi değerindedir. Vale, Kız ve Papaz’ın hepsi <c>10</c> eder — bir destenin onlarla dolu olmasının sebebi budur.",
+      "p2": "<c>As</c> özeldir: sizi batırmayacaksa 11, batıracaksa 1 sayılır. Seçmek zorunda kalmazsınız; her zaman işinize yarayan değeri alır."
+    },
+    "b3": {
+      "title": "Sert eller ve yumuşak eller",
+      "soft": "Yumuşak",
+      "hard": "Sert",
+      "softNote": "As hâlâ 1’e düşebilir, bu yüzden fazladan bir kart bu eli asla batıramaz.",
+      "hardNote": "Aynı toplam, esneklik yok — 4’ten büyük her kart sizi batırır.",
+      "p1": "İçinde hâlâ 11 sayılan bir as bulunan ele <c>yumuşak</c> denir. Diğer her el <c>sert</c>tir.",
+      "p2": "Bu göründüğünden önemlidir: yumuşak 17 ile sert 17 aynı sayıdır ama bambaşka oyun gerektirir, çünkü yumuşak bir el bir kart daha alınca batamaz."
+    },
+    "b4": {
+      "title": "Bir el nasıl işler",
+      "fig": "Karar verirken krupiyenin yalnızca bir kartını görürsünüz — açık kartı.",
+      "p1": "Bahsinizi koyarsınız. Herkes iki açık kart alır. Krupiye de iki kart alır ama yalnızca biri görünür — <c>açık kart</c>. Kapalı olana <c>kapalı kart</c> denir.",
+      "p2": "Önce siz oynarsınız, sonra krupiye. Bütün sorun bu sıralamada: batarsanız paranız, krupiye daha hiçbir şey yapmadan gider."
+    },
+    "b5": {
+      "title": "Beş seçeneğiniz",
+      "hit": "Bir kart daha alın.",
+      "stand": "Elinizdekiyle kalın.",
+      "double": "Bahsi ikiye katlayın, tam olarak bir kart alın.",
+      "split": "İki aynı kart → iki el, ikinci bahis.",
+      "surrender": "Çekilin ve bahsin yarısını alın.",
+      "p1": "Her el bu beşe iner. Kârlı olanlar <c>çiftlemek</c> ve <c>bölmek</c>tir — lehinize olan durumlarda masaya daha çok para koyarlar, bir sayıcının aradığı tam da budur.",
+      "p2": "Hangi seçimin doğru olduğu bir his meselesi değildir. Çözülmüş matematiktir ve adı <c>temel stratejidir</c>."
+    },
+    "b6": {
+      "title": "Krupiyenin seçeneği yoktur",
+      "mustHit": "Krupiye kart çekmeli",
+      "mustStand": "Krupiye durmalı",
+      "hitNote": "16 — masada ne olursa olsun krupiye yine kart çeker.",
+      "standNote": "17 ve üzeri — sizin 20’nize karşı bile krupiye durur.",
+      "p1": "Krupiye sabit bir kurala uyar: 17’ye ulaşana kadar çeker, sonra durur. Ne takdir ne de elinize tepki.",
+      "p2": "Bir varyasyon önemlidir: krupiye <c>yumuşak 17</c>’de (as + altı) de kart çeker mi? Buna <c>H17</c> kuralı denir ve sizin için <c>S17</c>’den biraz daha kötüdür. Antrenörde ikisini de ayarlayabilirsiniz."
+    },
+    "b7": {
+      "title": "Size ne ödenir",
+      "blackjack": "Blackjack",
+      "win": "Kazanç",
+      "push": "Berabere",
+      "winText": "Bahsinizi geri alırsınız, bir o kadarını daha (1:1).",
+      "bjText": "İlk iki kartta as + on, 3:2 öder.",
+      "pushText": "Krupiyeyle aynı toplam — bahis geri verilir, kayıp yok.",
+      "p1": "<c>Blackjack</c>, ilk iki kartınızda as ile on değerinde bir karttır. Normal kazançtan fazlasını öder — <c>3:2</c> — ve yüksek kartların sizin için iyi olmasının en büyük tek nedenidir.",
+      "p2": "6:5 ödeyen masalara dikkat edin. Bu tek değişiklik, iyi bir sayıcının kazandığından fazlasına mal olur; bu yüzden bu antrenör varsayılan olarak 3:2 kullanır."
+    },
+    "b8": {
+      "title": "Bütün bunlar neden yenilebilir",
+      "fig": "Bu kartlar bakımından zengin bir ayakkabı size daha sık 3:2 öder — ve krupiyeyi de daha sık batırır.",
+      "p1": "Kartlar yerine konmadan dağıtılır. Çıkan çıkmıştır; bu yüzden eller ilerledikçe ayakkabının bileşimi kayar — ve bazen sizin lehinize.",
+      "p2": "Yüksek kartlar sizin işinize yarar: 3:2 ödeyen daha çok blackjack, daha iyi çiftlemeler ve zor bir elde kart çekmek zorunda kalan bir krupiye. Düşük kartlar krupiyenin işine yarar.",
+      "p3": "Sayım, ayakkabının hangi yöne kaydığını izlemekten ve lehinize olduğunda daha çok yatırmaktan ibarettir. Sıradaki bölüm bu."
     }
   }
 }

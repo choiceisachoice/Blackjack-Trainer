@@ -552,7 +552,8 @@
       "followed": "Followed",
       "missed": "Missed ({{name}})",
       "handNo": "Hand {{n}}:"
-    }
+    },
+    "name": "Casino Session"
   },
   "tracker": {
     "onboardTitle": "Start Tracking Your Casino Sessions",
@@ -814,6 +815,133 @@
         "label": "Every day, properly"
       },
       "hint": "About {{n}} sessions a week."
+    }
+  },
+  "learn": {
+    "title": "Learn",
+    "sub": "Start at the top if you’re new. Everything below assumes only what came before it.",
+    "part1": {
+      "title": "Part 1 — The game",
+      "sub": "Never played blackjack? Read this once and the rest of the page will make sense."
+    },
+    "part2": {
+      "title": "Part 2 — Counting cards",
+      "sub": "The edge itself. Tap any topic to open it."
+    },
+    "sections": {
+      "basics": "The Basics",
+      "strategy": "Strategy",
+      "betting": "Betting & the Shoe"
+    },
+    "topics": {
+      "what-is-counting": {
+        "title": "What is card counting?",
+        "body": "You keep a simple running tally as the cards come out. When lots of high cards are still to come, the odds tilt in your favour — so you bet more and adjust a few plays. It is a skill of attention and math, not cheating, and it is perfectly legal."
+      },
+      "hi-lo": {
+        "title": "The Hi-Lo count",
+        "body": "Every card gets a value: low cards <g>2–6 = +1</g>, middle cards <g>7–9 = 0</g>, high cards <g>10, J, Q, K, A = −1</g>. Add them up as cards appear — that total is your <c>Running Count</c>. A high positive count means many high cards remain — good for you."
+      },
+      "true-count": {
+        "title": "Running Count vs True Count",
+        "body": "The Running Count alone isn’t enough — a +6 with six decks left is weak, but +6 with one deck left is strong. So you divide: <g>True Count = Running Count ÷ decks remaining</g>. The True Count is your real edge, and it’s what drives both your bet and your deviations."
+      },
+      "basic-strategy": {
+        "title": "Basic Strategy",
+        "body": "The mathematically best play for every hand — hit, stand, double, split or surrender — assuming you are <c>not</c> counting. Learn this first: it’s the foundation, and it already cuts the house edge to almost nothing. The <c>Flashcards</c> mode drills it hand by hand."
+      },
+      "deviations": {
+        "title": "Deviations",
+        "body": "When the count runs high or low, a handful of plays change from Basic Strategy. Classic example: normally you <c>Hit</c> a hard 16 vs a dealer 10 — but at a True Count of 0 or higher you <c>Stand</c>. These count-based changes are where the extra edge comes from."
+      },
+      "i18-fab4": {
+        "title": "Illustrious 18 & Fab 4",
+        "body": "Of all the possible deviations, most of the value comes from a small set: the <g>Illustrious 18</g> (the 18 most valuable playing deviations) and the <g>Fab 4</g> (the 4 most valuable surrender deviations). You don’t need to memorise the names — the Flashcards “Deviations” level teaches them directly as situations."
+      },
+      "bet-spread": {
+        "title": "Bet Spread",
+        "body": "You bet small when the count is low and big when it’s high — that gap is your <c>bet spread</c>. Almost all of a counter’s profit comes from getting more money on the table when the odds favour you. A <g>1–16</g> spread is a common professional standard."
+      },
+      "deck-estimation": {
+        "title": "Deck Estimation",
+        "body": "To turn the Running Count into a True Count you must judge how many decks are left — by eye, from the thickness of the discard tray, just like at a real table. It sounds hard but becomes fast with practice. That’s exactly what the <c>Deck Estimation</c> mode trains."
+      }
+    },
+    "modesTitle": "The Training Modes",
+    "mode": {
+      "speed": "Keep the Running Count as cards flash by — build raw speed.",
+      "flash": "Decide the correct play for every hand, plus count-based deviations.",
+      "bet": "Pick the right bet for the count at realistic tables.",
+      "deck": "Judge the decks remaining from the discard tray.",
+      "casino": "Put it all together in a realistic multi-seat session."
+    }
+  },
+  "basics": {
+    "you": "You",
+    "dealer": "Dealer",
+    "b1": {
+      "title": "The goal isn’t 21",
+      "fig": "19 beats 17. Neither hand is near 21.",
+      "p1": "You are playing against the <c>dealer</c>, not the other players. You win by finishing with a higher total than the dealer — without going over 21.",
+      "p2": "Going over is called <c>busting</c>, and it means you lose immediately, even if the dealer busts afterwards. That single rule is where the casino’s advantage comes from."
+    },
+    "b2": {
+      "title": "What the cards are worth",
+      "aceValue": "1 or 11",
+      "p1": "Number cards are worth their number. Jack, Queen and King are all worth <c>10</c> — which is why a deck is full of tens.",
+      "p2": "The <c>Ace</c> is special: it counts as 11 unless that would bust you, in which case it counts as 1. You never have to choose; it always takes the value that helps you."
+    },
+    "b3": {
+      "title": "Hard hands and soft hands",
+      "soft": "Soft",
+      "hard": "Hard",
+      "softNote": "The ace can still drop to 1, so another card can never bust this hand.",
+      "hardNote": "Same total, no flexibility — any card above a 4 busts you.",
+      "p1": "A hand holding an ace that still counts as 11 is called <c>soft</c>. Any other hand is <c>hard</c>.",
+      "p2": "This matters more than it sounds: a soft 17 and a hard 17 are the same number but call for completely different play, because a soft hand cannot bust with one more card."
+    },
+    "b4": {
+      "title": "How a round runs",
+      "fig": "You only ever see one dealer card — the upcard — while deciding.",
+      "p1": "You place a bet. Everyone gets two cards face up. The dealer takes two as well, but only one is visible — the <c>upcard</c>. The hidden one is the <c>hole card</c>.",
+      "p2": "You act first, then the dealer plays. That order is the whole problem: if you bust, your money is gone before the dealer has to do anything."
+    },
+    "b5": {
+      "title": "Your five choices",
+      "hit": "Take another card.",
+      "stand": "Keep what you have.",
+      "double": "Double the bet, take exactly one card.",
+      "split": "Two same cards → two hands, second bet.",
+      "surrender": "Fold and keep half your bet.",
+      "p1": "Every hand comes down to these five. <c>Double</c> and <c>Split</c> are the profitable ones — they get more money on the table in the spots that favour you, which is exactly what a counter is looking for.",
+      "p2": "Which choice is correct is not a matter of feel. It is solved maths, and it is called <c>Basic Strategy</c>."
+    },
+    "b6": {
+      "title": "The dealer has no choices",
+      "mustHit": "Dealer must hit",
+      "mustStand": "Dealer must stand",
+      "hitNote": "16 — the dealer draws again, whatever is on the table.",
+      "standNote": "17 or more — the dealer stops, even against your 20.",
+      "p1": "The dealer follows a fixed rule: draw until reaching 17, then stop. No judgement, no reacting to your hand.",
+      "p2": "One variation matters — whether the dealer also draws on a <c>soft 17</c> (ace + six). That is the <c>H17</c> rule, and it is slightly worse for you than <c>S17</c>. The trainer lets you set both."
+    },
+    "b7": {
+      "title": "What you get paid",
+      "blackjack": "Blackjack",
+      "win": "Win",
+      "push": "Push",
+      "winText": "You get your bet back, plus the same again (1:1).",
+      "bjText": "Ace + ten on the first two cards pays 3:2.",
+      "pushText": "Same total as the dealer — bet returned, nothing lost.",
+      "p1": "A <c>blackjack</c> is an ace plus a ten-value card on your first two cards. It pays more than a normal win — <c>3:2</c> — and it is the single biggest reason high cards are good for you.",
+      "p2": "Watch for tables paying 6:5 instead. That one change costs more than a good counter earns, which is why this trainer defaults to 3:2."
+    },
+    "b8": {
+      "title": "Why any of this can be beaten",
+      "fig": "A shoe rich in these pays you 3:2 more often — and busts the dealer more often too.",
+      "p1": "Cards are dealt without replacement. What has already gone is gone, so the shoe’s composition drifts as the round goes on — and sometimes it drifts in your favour.",
+      "p2": "High cards help you: more blackjacks at 3:2, better doubles, and a dealer forced to draw into a stiff hand more often. Low cards help the dealer.",
+      "p3": "Counting is nothing more than keeping track of which way the shoe has drifted — and betting more when it favours you. That is the next chapter."
     }
   }
 }

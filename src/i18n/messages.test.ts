@@ -38,6 +38,17 @@ function placeholders(text: string): string[] {
   return [...text.matchAll(/\{\{(\w+)\}\}/g)].map(m => m[1]).sort()
 }
 
+/**
+ * Markup tags like <c>…</c> — the emphasis the Trans component fills in.
+ *
+ * Returned sorted and counted, because what matters is that a translation uses
+ * the same set of tags as its English original: an unbalanced or invented tag
+ * does not throw, it renders as literal text in the middle of a sentence.
+ */
+function tags(text: string): string[] {
+  return [...text.matchAll(/<\/?(\w+)>/g)].map(m => m[0]).sort()
+}
+
 /** Every leaf string, keyed by path. */
 function flatten(value: unknown, prefix = '', out: Record<string, string> = {}): Record<string, string> {
   if (typeof value === 'string') { out[prefix] = value; return out }
@@ -86,6 +97,16 @@ describe.each(LOCALES.filter(l => l !== 'en'))('the %s translation', locale => {
     const flat = flatten(bundle)
     for (const [path, english] of Object.entries(enFlat)) {
       expect(placeholders(flat[path] ?? ''), `${locale} · ${path}`).toEqual(placeholders(english))
+    }
+  })
+
+  it('carries the same emphasis tags, so none renders as literal text', () => {
+    // The Learn chapters and the paywall sentences put <c> and <g> inside the
+    // prose so each language can emphasise its own words. A tag that is
+    // mistyped or left unclosed is not an error — it is printed on the page.
+    const flat = flatten(bundle)
+    for (const [path, english] of Object.entries(enFlat)) {
+      expect(tags(flat[path] ?? ''), `${locale} · ${path}`).toEqual(tags(english))
     }
   })
 

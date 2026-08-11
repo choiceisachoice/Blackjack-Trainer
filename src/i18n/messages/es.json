@@ -552,7 +552,8 @@
       "followed": "Seguida",
       "missed": "Fallada ({{name}})",
       "handNo": "Mano {{n}}:"
-    }
+    },
+    "name": "Sesión de casino"
   },
   "tracker": {
     "onboardTitle": "Haz seguimiento de tus sesiones de casino",
@@ -814,6 +815,133 @@
         "label": "Todos los días, en serio"
       },
       "hint": "Unas {{n}} sesiones por semana."
+    }
+  },
+  "learn": {
+    "title": "Aprender",
+    "sub": "Si empiezas de cero, ve desde arriba. Todo lo demás solo da por sabido lo anterior.",
+    "part1": {
+      "title": "Parte 1 — El juego",
+      "sub": "¿Nunca has jugado al blackjack? Lee esto una vez y el resto de la página cobrará sentido."
+    },
+    "part2": {
+      "title": "Parte 2 — Contar cartas",
+      "sub": "La ventaja en sí. Toca cualquier tema para abrirlo."
+    },
+    "sections": {
+      "basics": "Los fundamentos",
+      "strategy": "Estrategia",
+      "betting": "Apuestas y zapato"
+    },
+    "topics": {
+      "what-is-counting": {
+        "title": "¿Qué es contar cartas?",
+        "body": "Llevas una cuenta sencilla mientras salen las cartas. Si quedan muchas cartas altas, las probabilidades se inclinan a tu favor: apuestas más y ajustas algunas jugadas. Es cuestión de atención y matemáticas, no de hacer trampa, y es totalmente legal."
+      },
+      "hi-lo": {
+        "title": "El conteo Hi-Lo",
+        "body": "Cada carta tiene un valor: cartas bajas <g>2–6 = +1</g>, medias <g>7–9 = 0</g>, altas <g>10, J, Q, K, A = −1</g>. Súmalas según aparecen: ese total es tu <c>running count</c>. Un conteo muy positivo significa que quedan muchas cartas altas, y eso te favorece."
+      },
+      "true-count": {
+        "title": "Running count y true count",
+        "body": "El running count por sí solo no basta: +6 con seis barajas restantes es débil, y +6 con una es fuerte. Por eso se divide: <g>true count = running count ÷ barajas restantes</g>. El true count es tu ventaja real y gobierna tanto la apuesta como las desviaciones."
+      },
+      "basic-strategy": {
+        "title": "Estrategia básica",
+        "body": "La jugada matemáticamente mejor para cada mano —pedir, plantarse, doblar, dividir o rendirse— suponiendo que <c>no</c> estás contando. Apréndela primero: es la base y ya reduce la ventaja de la casa a casi nada. El modo <c>Tarjetas</c> la entrena mano a mano."
+      },
+      "deviations": {
+        "title": "Desviaciones",
+        "body": "Cuando el conteo sube o baja, un puñado de jugadas se aparta de la estrategia básica. Ejemplo clásico: normalmente <c>pides</c> con un 16 duro contra un 10 del crupier, pero a partir de un true count de 0 te <c>plantas</c>. De estos cambios según el conteo viene la ventaja extra."
+      },
+      "i18-fab4": {
+        "title": "Illustrious 18 y Fab 4",
+        "body": "De todas las desviaciones posibles, casi todo el valor está en un grupo pequeño: las <g>Illustrious 18</g> (las 18 desviaciones de juego más valiosas) y las <g>Fab 4</g> (las 4 desviaciones de rendición más valiosas). No hace falta memorizar los nombres: el nivel «Desviaciones» de las tarjetas las enseña directamente como situaciones."
+      },
+      "bet-spread": {
+        "title": "Bet spread",
+        "body": "Apuestas poco cuando el conteo es bajo y mucho cuando es alto: esa diferencia es tu <c>bet spread</c>. Casi todo el beneficio de un contador viene de poner más dinero en la mesa cuando las probabilidades te favorecen. Un spread de <g>1–16</g> es un estándar profesional habitual."
+      },
+      "deck-estimation": {
+        "title": "Estimación de barajas",
+        "body": "Para convertir el running count en true count tienes que estimar cuántas barajas quedan: a ojo, por el grosor de la bandeja de descartes, igual que en una mesa real. Suena difícil, pero con práctica se vuelve rápido. Eso es justo lo que entrena el modo <c>Estimación de barajas</c>."
+      }
+    },
+    "modesTitle": "Los modos de entrenamiento",
+    "mode": {
+      "speed": "Mantén el running count mientras pasan las cartas: velocidad pura.",
+      "flash": "Decide la jugada correcta en cada mano, con desviaciones según el conteo.",
+      "bet": "Elige la apuesta adecuada al conteo en mesas realistas.",
+      "deck": "Estima las barajas restantes por la bandeja de descartes.",
+      "casino": "Júntalo todo en una sesión realista con varias plazas."
+    }
+  },
+  "basics": {
+    "you": "Tú",
+    "dealer": "Crupier",
+    "b1": {
+      "title": "El objetivo no es 21",
+      "fig": "19 gana a 17. Ninguna mano se acerca a 21.",
+      "p1": "Juegas contra el <c>crupier</c>, no contra los demás jugadores. Ganas si terminas con un total mayor que el suyo, sin pasarte de 21.",
+      "p2": "Pasarse se llama <c>botarse</c>, y pierdes de inmediato, aunque el crupier se pase después. De esa única regla viene la ventaja del casino."
+    },
+    "b2": {
+      "title": "Cuánto valen las cartas",
+      "aceValue": "1 u 11",
+      "p1": "Las cartas numéricas valen su número. Jota, Reina y Rey valen todas <c>10</c>; por eso una baraja está llena de dieces.",
+      "p2": "El <c>As</c> es especial: vale 11 salvo que eso te haga pasarte, y entonces vale 1. Nunca tienes que elegir; siempre toma el valor que te conviene."
+    },
+    "b3": {
+      "title": "Manos duras y manos blandas",
+      "soft": "Blanda",
+      "hard": "Dura",
+      "softNote": "El as todavía puede bajar a 1, así que otra carta nunca puede botar esta mano.",
+      "hardNote": "El mismo total, sin margen: cualquier carta por encima de 4 te bota.",
+      "p1": "Una mano con un as que todavía vale 11 se llama <c>blanda</c>. Cualquier otra es <c>dura</c>.",
+      "p2": "Importa más de lo que parece: un 17 blando y un 17 duro son el mismo número pero piden jugadas del todo distintas, porque una mano blanda no puede botarse con una carta más."
+    },
+    "b4": {
+      "title": "Cómo transcurre una ronda",
+      "fig": "Al decidir solo ves una carta del crupier: la carta vista.",
+      "p1": "Apuestas. Todos reciben dos cartas boca arriba. El crupier toma dos también, pero solo una es visible: la <c>carta vista</c>. La oculta es la <c>carta tapada</c>.",
+      "p2": "Actúas primero y luego juega el crupier. Ese orden es todo el problema: si te botas, tu dinero se va antes de que el crupier tenga que hacer nada."
+    },
+    "b5": {
+      "title": "Tus cinco opciones",
+      "hit": "Toma otra carta.",
+      "stand": "Quédate con lo que tienes.",
+      "double": "Dobla la apuesta y toma exactamente una carta.",
+      "split": "Dos cartas iguales → dos manos, segunda apuesta.",
+      "surrender": "Retírate y conserva la mitad de la apuesta.",
+      "p1": "Cada mano se reduce a estas cinco. <c>Doblar</c> y <c>Dividir</c> son las rentables: ponen más dinero en la mesa en las situaciones que te favorecen, que es justo lo que busca un contador.",
+      "p2": "Cuál es la opción correcta no es cuestión de intuición. Es matemática resuelta, y se llama <c>estrategia básica</c>."
+    },
+    "b6": {
+      "title": "El crupier no tiene opciones",
+      "mustHit": "El crupier debe pedir",
+      "mustStand": "El crupier debe plantarse",
+      "hitNote": "16: el crupier vuelve a pedir, haya lo que haya en la mesa.",
+      "standNote": "17 o más: el crupier se detiene, incluso frente a tu 20.",
+      "p1": "El crupier sigue una regla fija: pedir hasta llegar a 17 y luego parar. Sin criterio propio ni reacción a tu mano.",
+      "p2": "Una variante importa: si el crupier también pide con un <c>17 blando</c> (as + seis). Es la regla <c>H17</c>, algo peor para ti que <c>S17</c>. El entrenador te deja configurar ambas."
+    },
+    "b7": {
+      "title": "Cuánto te pagan",
+      "blackjack": "Blackjack",
+      "win": "Victoria",
+      "push": "Empate",
+      "winText": "Recuperas tu apuesta más otro tanto (1:1).",
+      "bjText": "As + diez en las dos primeras cartas paga 3:2.",
+      "pushText": "El mismo total que el crupier: se devuelve la apuesta, no pierdes nada.",
+      "p1": "Un <c>blackjack</c> es un as más una carta de valor diez en tus dos primeras cartas. Paga más que una victoria normal —<c>3:2</c>— y es la mayor razón por la que las cartas altas te favorecen.",
+      "p2": "Cuidado con las mesas que pagan 6:5. Ese único cambio cuesta más de lo que gana un buen contador; por eso este entrenador viene en 3:2."
+    },
+    "b8": {
+      "title": "Por qué todo esto se puede batir",
+      "fig": "Un zapato rico en estas cartas te paga 3:2 más a menudo, y también bota más al crupier.",
+      "p1": "Las cartas se reparten sin reposición. Lo que ya salió, salió, así que la composición del zapato se desplaza a lo largo de las rondas, y a veces a tu favor.",
+      "p2": "Las cartas altas te ayudan: más blackjacks a 3:2, mejores dobles y un crupier obligado más a menudo a pedir con una mano incómoda. Las bajas ayudan al crupier.",
+      "p3": "Contar no es más que seguir hacia dónde se ha desplazado el zapato, y apostar más cuando te favorece. Ese es el siguiente capítulo."
     }
   }
 }

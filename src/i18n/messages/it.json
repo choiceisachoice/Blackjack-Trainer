@@ -552,7 +552,8 @@
       "followed": "Seguita",
       "missed": "Mancata ({{name}})",
       "handNo": "Mano {{n}}:"
-    }
+    },
+    "name": "Sessione al casinò"
   },
   "tracker": {
     "onboardTitle": "Tieni traccia delle tue sessioni al casinò",
@@ -814,6 +815,133 @@
         "label": "Ogni giorno, sul serio"
       },
       "hint": "Circa {{n}} sessioni a settimana."
+    }
+  },
+  "learn": {
+    "title": "Impara",
+    "sub": "Se sei alle prime armi, parti dall’alto. Tutto il resto presuppone solo ciò che viene prima.",
+    "part1": {
+      "title": "Parte 1 — Il gioco",
+      "sub": "Non hai mai giocato a blackjack? Leggi questo una volta e il resto della pagina avrà senso."
+    },
+    "part2": {
+      "title": "Parte 2 — Contare le carte",
+      "sub": "Il vantaggio vero e proprio. Tocca un argomento per aprirlo."
+    },
+    "sections": {
+      "basics": "Le basi",
+      "strategy": "Strategia",
+      "betting": "Puntate e shoe"
+    },
+    "topics": {
+      "what-is-counting": {
+        "title": "Cos’è il conteggio delle carte?",
+        "body": "Tieni un semplice conteggio mentre escono le carte. Se restano molte carte alte, le probabilità pendono a tuo favore: punti di più e correggi qualche giocata. È una questione di attenzione e di calcolo, non di imbroglio, ed è del tutto legale."
+      },
+      "hi-lo": {
+        "title": "Il conteggio Hi-Lo",
+        "body": "Ogni carta ha un valore: carte basse <g>2–6 = +1</g>, medie <g>7–9 = 0</g>, alte <g>10, J, Q, K, A = −1</g>. Sommale man mano che escono: quel totale è il tuo <c>running count</c>. Un conteggio molto positivo significa che restano molte carte alte — a tuo favore."
+      },
+      "true-count": {
+        "title": "Running count e true count",
+        "body": "Il running count da solo non basta: +6 con sei mazzi rimasti è debole, +6 con un mazzo è forte. Quindi si divide: <g>true count = running count ÷ mazzi rimasti</g>. Il true count è il tuo vantaggio reale e guida sia le puntate sia le deviazioni."
+      },
+      "basic-strategy": {
+        "title": "Strategia di base",
+        "body": "La giocata matematicamente migliore per ogni mano — carta, stare, raddoppiare, dividere o abbandonare — supponendo che tu <c>non</c> stia contando. Imparala per prima: è la base e riduce già il vantaggio del banco quasi a zero. La modalità <c>Flashcard</c> la allena mano per mano."
+      },
+      "deviations": {
+        "title": "Deviazioni",
+        "body": "Quando il conteggio sale o scende, una manciata di giocate si discosta dalla strategia di base. Esempio classico: di norma <c>chiedi carta</c> su un 16 duro contro un 10 del banco — ma da un true count di 0 in su <c>stai</c>. Da queste variazioni legate al conteggio arriva il vantaggio in più."
+      },
+      "i18-fab4": {
+        "title": "Illustrious 18 e Fab 4",
+        "body": "Di tutte le deviazioni possibili, quasi tutto il valore sta in un piccolo gruppo: le <g>Illustrious 18</g> (le 18 deviazioni di gioco più preziose) e le <g>Fab 4</g> (le 4 deviazioni di resa più preziose). Non serve memorizzare i nomi: il livello «Deviazioni» delle flashcard te le insegna direttamente come situazioni."
+      },
+      "bet-spread": {
+        "title": "Bet spread",
+        "body": "Punti poco quando il conteggio è basso e molto quando è alto: quella forbice è il tuo <c>bet spread</c>. Quasi tutto il profitto di un contatore viene dal mettere più denaro sul tavolo quando le probabilità sono a favore. Una forbice <g>1–16</g> è uno standard professionale diffuso."
+      },
+      "deck-estimation": {
+        "title": "Stima dei mazzi",
+        "body": "Per trasformare il running count in true count devi valutare quanti mazzi restano — a occhio, dallo spessore nel vassoio degli scarti, come a un tavolo vero. Sembra difficile ma con la pratica diventa rapido. È esattamente ciò che allena la modalità <c>Stima dei mazzi</c>."
+      }
+    },
+    "modesTitle": "Le modalità di allenamento",
+    "mode": {
+      "speed": "Tieni il running count mentre le carte lampeggiano — per la velocità pura.",
+      "flash": "Decidi la giocata giusta per ogni mano, deviazioni da conteggio incluse.",
+      "bet": "Scegli la puntata giusta per il conteggio, a tavoli realistici.",
+      "deck": "Valuta i mazzi rimasti dal vassoio degli scarti.",
+      "casino": "Metti tutto insieme in una sessione realistica a più posti."
+    }
+  },
+  "basics": {
+    "you": "Tu",
+    "dealer": "Banco",
+    "b1": {
+      "title": "L’obiettivo non è 21",
+      "fig": "19 batte 17. Nessuna delle due mani è vicina a 21.",
+      "p1": "Giochi contro il <c>banco</c>, non contro gli altri giocatori. Vinci se chiudi con un totale più alto del suo — senza superare 21.",
+      "p2": "Superare 21 si chiama <c>sballare</c>, e perdi subito, anche se il banco sballa dopo di te. È da questa sola regola che nasce il vantaggio del casinò."
+    },
+    "b2": {
+      "title": "Quanto valgono le carte",
+      "aceValue": "1 o 11",
+      "p1": "Le carte numerate valgono il loro numero. Fante, Donna e Re valgono tutti <c>10</c>: per questo un mazzo è pieno di dieci.",
+      "p2": "L’<c>Asso</c> è speciale: vale 11, a meno che così sballeresti, e allora vale 1. Non devi mai scegliere: prende sempre il valore che ti conviene."
+    },
+    "b3": {
+      "title": "Mani dure e mani morbide",
+      "soft": "Morbida",
+      "hard": "Dura",
+      "softNote": "L’asso può ancora scendere a 1, quindi nessuna carta in più può far sballare questa mano.",
+      "hardNote": "Stesso totale, nessuna flessibilità: qualsiasi carta sopra il 4 ti fa sballare.",
+      "p1": "Una mano con un asso che vale ancora 11 si dice <c>morbida</c>. Ogni altra mano è <c>dura</c>.",
+      "p2": "Conta più di quanto sembri: un 17 morbido e un 17 duro sono lo stesso numero ma richiedono giocate del tutto diverse, perché una mano morbida non può sballare con una carta in più."
+    },
+    "b4": {
+      "title": "Come si svolge un giro",
+      "fig": "Mentre decidi vedi sempre una sola carta del banco: la carta scoperta.",
+      "p1": "Punti. Tutti ricevono due carte scoperte. Anche il banco ne prende due, ma una sola è visibile: la <c>carta scoperta</c>. Quella coperta è la <c>carta nascosta</c>.",
+      "p2": "Agisci per primo, poi gioca il banco. È proprio quest’ordine il problema: se sballi, i tuoi soldi se ne vanno prima che il banco debba fare qualsiasi cosa."
+    },
+    "b5": {
+      "title": "Le tue cinque scelte",
+      "hit": "Prendi un’altra carta.",
+      "stand": "Tieni quello che hai.",
+      "double": "Raddoppia la puntata, prendi esattamente una carta.",
+      "split": "Due carte uguali → due mani, seconda puntata.",
+      "surrender": "Abbandona e tieni metà della puntata.",
+      "p1": "Ogni mano si riduce a queste cinque. <c>Raddoppiare</c> e <c>Dividere</c> sono le mosse redditizie: mettono più denaro sul tavolo nelle situazioni a tuo favore, ed è proprio ciò che un contatore aspetta.",
+      "p2": "Quale sia la scelta giusta non è una questione di istinto. È matematica già risolta, e si chiama <c>strategia di base</c>."
+    },
+    "b6": {
+      "title": "Il banco non ha scelte",
+      "mustHit": "Il banco deve chiedere carta",
+      "mustStand": "Il banco deve stare",
+      "hitNote": "16 — il banco pesca ancora, qualunque cosa ci sia sul tavolo.",
+      "standNote": "17 o più — il banco si ferma, anche contro il tuo 20.",
+      "p1": "Il banco segue una regola fissa: pescare fino a 17, poi fermarsi. Nessun giudizio, nessuna reazione alla tua mano.",
+      "p2": "Una variante conta: se il banco pesca anche su un <c>17 morbido</c> (asso + sei). È la regola <c>H17</c>, leggermente peggiore per te di <c>S17</c>. Nel trainer puoi impostarle entrambe."
+    },
+    "b7": {
+      "title": "Quanto ti pagano",
+      "blackjack": "Blackjack",
+      "win": "Vittoria",
+      "push": "Pareggio",
+      "winText": "Riprendi la puntata, più altrettanto (1:1).",
+      "bjText": "Asso + dieci nelle prime due carte paga 3:2.",
+      "pushText": "Stesso totale del banco: puntata restituita, niente perso.",
+      "p1": "Un <c>blackjack</c> è un asso più una carta da dieci nelle prime due carte. Paga più di una vittoria normale — <c>3:2</c> — ed è il motivo principale per cui le carte alte ti convengono.",
+      "p2": "Attenzione ai tavoli che pagano 6:5. Quel solo cambiamento costa più di quanto guadagni un buon contatore: per questo il trainer sta di default su 3:2."
+    },
+    "b8": {
+      "title": "Perché tutto questo si può battere",
+      "fig": "Uno shoe ricco di queste carte ti paga più spesso 3:2 — e fa sballare più spesso il banco.",
+      "p1": "Le carte si distribuiscono senza reimbussolamento. Ciò che è uscito è uscito, quindi la composizione dello shoe si sposta col procedere dei giri — e a volte a tuo favore.",
+      "p2": "Le carte alte ti aiutano: più blackjack a 3:2, raddoppi migliori e un banco costretto più spesso a pescare su una mano scomoda. Le carte basse aiutano il banco.",
+      "p3": "Contare non è altro che tenere traccia di come si è spostato lo shoe — e puntare di più quando è a tuo favore. È il capitolo successivo."
     }
   }
 }

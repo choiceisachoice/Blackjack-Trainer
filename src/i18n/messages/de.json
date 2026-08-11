@@ -552,7 +552,8 @@
       "followed": "Befolgt",
       "missed": "Verpasst ({{name}})",
       "handNo": "Hand {{n}}:"
-    }
+    },
+    "name": "Casino-Session"
   },
   "tracker": {
     "onboardTitle": "Verfolge deine Casino-Sessions",
@@ -814,6 +815,133 @@
         "label": "Jeden Tag, richtig"
       },
       "hint": "Etwa {{n}} Durchgänge pro Woche."
+    }
+  },
+  "learn": {
+    "title": "Lernen",
+    "sub": "Fang oben an, wenn du neu bist. Alles Weitere setzt nur voraus, was davor steht.",
+    "part1": {
+      "title": "Teil 1 — Das Spiel",
+      "sub": "Noch nie Blackjack gespielt? Lies das einmal, dann ergibt der Rest der Seite Sinn."
+    },
+    "part2": {
+      "title": "Teil 2 — Karten zählen",
+      "sub": "Der Vorteil selbst. Tippe ein Thema an, um es zu öffnen."
+    },
+    "sections": {
+      "basics": "Die Grundlagen",
+      "strategy": "Strategie",
+      "betting": "Einsätze & der Schlitten"
+    },
+    "topics": {
+      "what-is-counting": {
+        "title": "Was ist Kartenzählen?",
+        "body": "Du führst eine einfache laufende Bilanz, während die Karten fallen. Sind noch viele hohe Karten im Schlitten, kippen die Chancen zu dir — also setzt du mehr und passt ein paar Züge an. Das ist eine Frage von Aufmerksamkeit und Rechnen, kein Betrug, und völlig legal."
+      },
+      "hi-lo": {
+        "title": "Der Hi-Lo-Count",
+        "body": "Jede Karte bekommt einen Wert: niedrige Karten <g>2–6 = +1</g>, mittlere <g>7–9 = 0</g>, hohe <g>10, B, D, K, A = −1</g>. Addiere sie, während die Karten erscheinen — die Summe ist dein <c>Running Count</c>. Ein hoher positiver Count heisst: viele hohe Karten sind noch da — gut für dich."
+      },
+      "true-count": {
+        "title": "Running Count und True Count",
+        "body": "Der Running Count allein reicht nicht — +6 bei sechs Restdecks ist schwach, +6 bei einem Restdeck ist stark. Also teilst du: <g>True Count = Running Count ÷ Restdecks</g>. Der True Count ist dein tatsächlicher Vorteil, und er steuert Einsatz wie Abweichungen."
+      },
+      "basic-strategy": {
+        "title": "Basisstrategie",
+        "body": "Der mathematisch beste Zug für jede Hand — ziehen, stehen, verdoppeln, splitten oder aufgeben — unter der Annahme, dass du <c>nicht</c> zählst. Lerne das zuerst: es ist das Fundament und drückt den Hausvorteil bereits auf fast null. Der Modus <c>Lernkarten</c> übt es Hand für Hand."
+      },
+      "deviations": {
+        "title": "Abweichungen",
+        "body": "Läuft der Count hoch oder tief, ändern sich eine Handvoll Züge gegenüber der Basisstrategie. Klassisches Beispiel: normalerweise <c>ziehst</c> du bei hart 16 gegen eine Dealer-10 — ab einem True Count von 0 aufwärts <c>bleibst du stehen</c>. Aus diesen count-basierten Änderungen kommt der zusätzliche Vorteil."
+      },
+      "i18-fab4": {
+        "title": "Illustrious 18 & Fab 4",
+        "body": "Von allen möglichen Abweichungen steckt der meiste Wert in einer kleinen Auswahl: den <g>Illustrious 18</g> (den 18 wertvollsten Spielabweichungen) und den <g>Fab 4</g> (den 4 wertvollsten Aufgabe-Abweichungen). Die Namen musst du dir nicht merken — die Lernkarten-Stufe „Abweichungen“ bringt sie dir direkt als Situationen bei."
+      },
+      "bet-spread": {
+        "title": "Bet Spread",
+        "body": "Du setzt klein, wenn der Count tief ist, und gross, wenn er hoch ist — dieser Abstand ist dein <c>Bet Spread</c>. Fast der ganze Gewinn eines Zählers kommt daher, mehr Geld auf den Tisch zu bringen, wenn die Chancen für dich stehen. Ein Spread von <g>1–16</g> ist ein verbreiteter professioneller Standard."
+      },
+      "deck-estimation": {
+        "title": "Deck-Schätzung",
+        "body": "Um aus dem Running Count einen True Count zu machen, musst du abschätzen, wie viele Decks übrig sind — mit blossem Auge, an der Dicke im Ablagefach, genau wie am echten Tisch. Das klingt schwer, geht mit Übung aber schnell. Genau das trainiert der Modus <c>Deck-Schätzung</c>."
+      }
+    },
+    "modesTitle": "Die Trainingsmodi",
+    "mode": {
+      "speed": "Halte den Running Count, während die Karten vorbeiblitzen — für reines Tempo.",
+      "flash": "Entscheide bei jeder Hand richtig — samt Abweichungen nach Count.",
+      "bet": "Wähle den passenden Einsatz zum Count an realistischen Tischen.",
+      "deck": "Schätze die Restdecks am Ablagefach ab.",
+      "casino": "Bring alles zusammen — an einem realistischen, voll besetzten Tisch."
+    }
+  },
+  "basics": {
+    "you": "Du",
+    "dealer": "Dealer",
+    "b1": {
+      "title": "Das Ziel ist nicht 21",
+      "fig": "19 schlägt 17. Keine der Hände ist nahe an 21.",
+      "p1": "Du spielst gegen den <c>Dealer</c>, nicht gegen die anderen Spieler. Du gewinnst, wenn du am Ende mehr hast als der Dealer — ohne über 21 zu kommen.",
+      "p2": "Darüber hinauszugehen heisst <c>Bust</c>, und du verlierst sofort — auch wenn der Dealer danach ebenfalls überkauft. Aus dieser einen Regel stammt der Vorteil des Casinos."
+    },
+    "b2": {
+      "title": "Was die Karten wert sind",
+      "aceValue": "1 oder 11",
+      "p1": "Zahlenkarten zählen ihren Zahlwert. Bube, Dame und König zählen alle <c>10</c> — deshalb steckt ein Deck voller Zehner.",
+      "p2": "Das <c>Ass</c> ist besonders: Es zählt 11, ausser das würde dich überkaufen — dann zählt es 1. Du musst nie wählen; es nimmt immer den Wert, der dir hilft."
+    },
+    "b3": {
+      "title": "Harte und weiche Hände",
+      "soft": "Weich",
+      "hard": "Hart",
+      "softNote": "Das Ass kann noch auf 1 fallen, deshalb kann keine weitere Karte diese Hand überkaufen.",
+      "hardNote": "Gleiche Summe, keine Reserve — jede Karte über 4 überkauft dich.",
+      "p1": "Eine Hand mit einem Ass, das noch 11 zählt, heisst <c>weich</c>. Jede andere Hand ist <c>hart</c>.",
+      "p2": "Das zählt mehr, als es klingt: weich 17 und hart 17 sind dieselbe Zahl, verlangen aber völlig anderes Spiel — denn eine weiche Hand kann mit einer weiteren Karte nicht überkaufen."
+    },
+    "b4": {
+      "title": "Wie eine Runde abläuft",
+      "fig": "Beim Entscheiden siehst du immer nur eine Dealerkarte — die offene Karte.",
+      "p1": "Du setzt. Alle bekommen zwei offene Karten. Der Dealer nimmt ebenfalls zwei, aber nur eine ist sichtbar — die <c>offene Karte</c>. Die verdeckte heisst <c>Hole Card</c>.",
+      "p2": "Du bist zuerst dran, dann spielt der Dealer. Genau diese Reihenfolge ist das Problem: Überkaufst du dich, ist dein Geld weg, bevor der Dealer überhaupt etwas tun muss."
+    },
+    "b5": {
+      "title": "Deine fünf Möglichkeiten",
+      "hit": "Nimm eine weitere Karte.",
+      "stand": "Behalte, was du hast.",
+      "double": "Einsatz verdoppeln, genau eine Karte nehmen.",
+      "split": "Zwei gleiche Karten → zwei Hände, zweiter Einsatz.",
+      "surrender": "Aufgeben und den halben Einsatz behalten.",
+      "p1": "Jede Hand läuft auf diese fünf hinaus. <c>Verdoppeln</c> und <c>Splitten</c> sind die einträglichen — sie bringen mehr Geld auf den Tisch, wenn die Lage für dich spricht. Genau darauf wartet ein Zähler.",
+      "p2": "Welche Wahl richtig ist, ist keine Gefühlssache. Es ist gelöste Mathematik, und sie heisst <c>Basisstrategie</c>."
+    },
+    "b6": {
+      "title": "Der Dealer hat keine Wahl",
+      "mustHit": "Dealer muss ziehen",
+      "mustStand": "Dealer muss stehen",
+      "hitNote": "16 — der Dealer zieht erneut, egal was auf dem Tisch liegt.",
+      "standNote": "17 oder mehr — der Dealer hält, selbst gegen deine 20.",
+      "p1": "Der Dealer folgt einer festen Regel: ziehen bis 17, dann aufhören. Kein Ermessen, keine Reaktion auf deine Hand.",
+      "p2": "Eine Variante zählt: ob der Dealer auch bei <c>weich 17</c> (Ass + Sechs) zieht. Das ist die <c>H17</c>-Regel, und sie ist für dich etwas schlechter als <c>S17</c>. Im Trainer kannst du beides einstellen."
+    },
+    "b7": {
+      "title": "Was ausgezahlt wird",
+      "blackjack": "Blackjack",
+      "win": "Gewinn",
+      "push": "Unentschieden",
+      "winText": "Du bekommst deinen Einsatz zurück, plus denselben Betrag (1:1).",
+      "bjText": "Ass + Zehner auf den ersten beiden Karten zahlt 3:2.",
+      "pushText": "Gleiche Summe wie der Dealer — Einsatz zurück, nichts verloren.",
+      "p1": "Ein <c>Blackjack</c> ist ein Ass plus eine Zehnerkarte auf den ersten beiden Karten. Er zahlt mehr als ein normaler Gewinn — <c>3:2</c> — und ist der grösste einzelne Grund, warum hohe Karten gut für dich sind.",
+      "p2": "Achte auf Tische, die stattdessen 6:5 zahlen. Diese eine Änderung kostet mehr, als ein guter Zähler verdient — deshalb steht dieser Trainer standardmässig auf 3:2."
+    },
+    "b8": {
+      "title": "Warum sich das überhaupt schlagen lässt",
+      "fig": "Ein Schlitten voller solcher Karten zahlt dir öfter 3:2 — und überkauft den Dealer öfter.",
+      "p1": "Karten werden ohne Zurücklegen gegeben. Was raus ist, ist raus — also verschiebt sich die Zusammensetzung des Schlittens im Lauf der Runden, und manchmal zu deinen Gunsten.",
+      "p2": "Hohe Karten helfen dir: mehr Blackjacks zu 3:2, bessere Verdopplungen und ein Dealer, der öfter in eine heikle Hand ziehen muss. Niedrige Karten helfen dem Dealer.",
+      "p3": "Zählen ist nichts anderes, als mitzuverfolgen, in welche Richtung sich der Schlitten verschoben hat — und mehr zu setzen, wenn er für dich spricht. Das ist das nächste Kapitel."
     }
   }
 }

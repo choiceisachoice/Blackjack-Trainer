@@ -552,7 +552,8 @@
       "followed": "Suivie",
       "missed": "Manquée ({{name}})",
       "handNo": "Main {{n}} :"
-    }
+    },
+    "name": "Session de casino"
   },
   "tracker": {
     "onboardTitle": "Suivez vos sessions de casino",
@@ -814,6 +815,133 @@
         "label": "Tous les jours, sérieusement"
       },
       "hint": "Environ {{n}} sessions par semaine."
+    }
+  },
+  "learn": {
+    "title": "Apprendre",
+    "sub": "Commencez par le haut si vous débutez. Tout ce qui suit ne suppose que ce qui précède.",
+    "part1": {
+      "title": "Partie 1 — Le jeu",
+      "sub": "Jamais joué au blackjack ? Lisez ceci une fois et le reste de la page s’éclaire."
+    },
+    "part2": {
+      "title": "Partie 2 — Compter les cartes",
+      "sub": "L’avantage lui-même. Touchez un sujet pour l’ouvrir."
+    },
+    "sections": {
+      "basics": "Les bases",
+      "strategy": "Stratégie",
+      "betting": "Mises et sabot"
+    },
+    "topics": {
+      "what-is-counting": {
+        "title": "Qu’est-ce que le comptage de cartes ?",
+        "body": "Vous tenez un simple compte au fil des cartes. S’il reste beaucoup de hautes cartes, les probabilités penchent de votre côté — vous misez donc plus et ajustez quelques coups. C’est une affaire d’attention et de calcul, pas de triche, et c’est parfaitement légal."
+      },
+      "hi-lo": {
+        "title": "Le comptage Hi-Lo",
+        "body": "Chaque carte a une valeur : cartes basses <g>2–6 = +1</g>, moyennes <g>7–9 = 0</g>, hautes <g>10, V, D, R, A = −1</g>. Additionnez au fil des cartes — ce total est votre <c>running count</c>. Un compte fortement positif signifie qu’il reste beaucoup de hautes cartes — à votre avantage."
+      },
+      "true-count": {
+        "title": "Running count et true count",
+        "body": "Le running count seul ne suffit pas : +6 avec six jeux restants est faible, +6 avec un seul jeu est fort. On divise donc : <g>true count = running count ÷ jeux restants</g>. Le true count est votre véritable avantage, et il commande à la fois vos mises et vos déviations."
+      },
+      "basic-strategy": {
+        "title": "Stratégie de base",
+        "body": "Le coup mathématiquement optimal pour chaque main — tirer, rester, doubler, séparer ou abandonner — en supposant que vous ne comptez <c>pas</c>. Apprenez-la d’abord : c’est la fondation, et elle réduit déjà l’avantage de la maison à presque rien. Le mode <c>Cartes mémo</c> l’entraîne main par main."
+      },
+      "deviations": {
+        "title": "Déviations",
+        "body": "Quand le compte monte ou descend, une poignée de coups s’écartent de la stratégie de base. Exemple classique : normalement vous <c>tirez</c> sur un 16 dur contre un 10 du croupier — mais à partir d’un true count de 0 vous <c>restez</c>. C’est de ces changements liés au compte que vient l’avantage supplémentaire."
+      },
+      "i18-fab4": {
+        "title": "Illustrious 18 et Fab 4",
+        "body": "De toutes les déviations possibles, l’essentiel de la valeur tient à un petit ensemble : les <g>Illustrious 18</g> (les 18 déviations de jeu les plus rentables) et les <g>Fab 4</g> (les 4 déviations d’abandon les plus rentables). Inutile de retenir les noms — le niveau « Déviations » des cartes mémo les enseigne directement comme des situations."
+      },
+      "bet-spread": {
+        "title": "Bet spread",
+        "body": "Vous misez petit quand le compte est bas et gros quand il est haut — cet écart est votre <c>bet spread</c>. Presque tout le profit d’un compteur vient de mettre plus d’argent sur la table quand les probabilités vous favorisent. Un écart de <g>1 à 16</g> est un standard professionnel courant."
+      },
+      "deck-estimation": {
+        "title": "Estimation des jeux",
+        "body": "Pour transformer le running count en true count, il faut juger combien de jeux restent — à l’œil, à l’épaisseur du sabot de défausse, comme à une vraie table. Cela paraît difficile mais devient rapide avec la pratique. C’est exactement ce qu’entraîne le mode <c>Estimation des jeux</c>."
+      }
+    },
+    "modesTitle": "Les modes d’entraînement",
+    "mode": {
+      "speed": "Tenez le running count pendant que les cartes défilent — pour la vitesse pure.",
+      "flash": "Décidez du bon coup sur chaque main, déviations selon le compte comprises.",
+      "bet": "Choisissez la mise adaptée au compte, sur des tables réalistes.",
+      "deck": "Jugez les jeux restants d’après le sabot de défausse.",
+      "casino": "Réunissez le tout dans une session réaliste à plusieurs places."
+    }
+  },
+  "basics": {
+    "you": "Vous",
+    "dealer": "Croupier",
+    "b1": {
+      "title": "Le but n’est pas 21",
+      "fig": "19 bat 17. Aucune des deux mains n’approche 21.",
+      "p1": "Vous jouez contre le <c>croupier</c>, pas contre les autres joueurs. Vous gagnez en finissant avec un total supérieur au sien — sans dépasser 21.",
+      "p2": "Dépasser s’appelle <c>brûler</c>, et vous perdez immédiatement, même si le croupier brûle ensuite. C’est de cette seule règle que vient l’avantage du casino."
+    },
+    "b2": {
+      "title": "Ce que valent les cartes",
+      "aceValue": "1 ou 11",
+      "p1": "Les cartes à chiffre valent leur chiffre. Valet, Dame et Roi valent tous <c>10</c> — c’est pourquoi un jeu est plein de dix.",
+      "p2": "L’<c>As</c> est particulier : il vaut 11, sauf si cela vous ferait brûler, auquel cas il vaut 1. Vous n’avez jamais à choisir ; il prend toujours la valeur qui vous arrange."
+    },
+    "b3": {
+      "title": "Mains dures et mains souples",
+      "soft": "Souple",
+      "hard": "Dure",
+      "softNote": "L’as peut encore tomber à 1 : aucune carte supplémentaire ne peut brûler cette main.",
+      "hardNote": "Même total, aucune souplesse — toute carte au-dessus de 4 vous brûle.",
+      "p1": "Une main contenant un as qui compte encore 11 est dite <c>souple</c>. Toute autre main est <c>dure</c>.",
+      "p2": "Cela compte plus qu’il n’y paraît : un 17 souple et un 17 dur affichent le même nombre mais appellent un jeu tout autre, car une main souple ne peut pas brûler avec une carte de plus."
+    },
+    "b4": {
+      "title": "Comment se déroule un tour",
+      "fig": "Au moment de décider, vous ne voyez qu’une carte du croupier — la carte visible.",
+      "p1": "Vous misez. Chacun reçoit deux cartes face visible. Le croupier en prend deux aussi, mais une seule est visible — la <c>carte visible</c>. La cachée est la <c>carte fermée</c>.",
+      "p2": "Vous agissez en premier, puis le croupier joue. Cet ordre est tout le problème : si vous brûlez, votre argent est perdu avant même que le croupier ait à faire quoi que ce soit."
+    },
+    "b5": {
+      "title": "Vos cinq choix",
+      "hit": "Prendre une carte de plus.",
+      "stand": "Garder votre main.",
+      "double": "Doubler la mise, prendre exactement une carte.",
+      "split": "Deux cartes identiques → deux mains, seconde mise.",
+      "surrender": "Abandonner et garder la moitié de la mise.",
+      "p1": "Chaque main se ramène à ces cinq. <c>Doubler</c> et <c>Séparer</c> sont les coups rentables : ils mettent plus d’argent sur la table dans les situations favorables — exactement ce que guette un compteur.",
+      "p2": "Le bon choix n’est pas affaire d’intuition. C’est un problème mathématique résolu, et cela s’appelle la <c>stratégie de base</c>."
+    },
+    "b6": {
+      "title": "Le croupier n’a aucun choix",
+      "mustHit": "Le croupier doit tirer",
+      "mustStand": "Le croupier doit rester",
+      "hitNote": "16 — le croupier tire encore, quoi qu’il y ait sur la table.",
+      "standNote": "17 ou plus — le croupier s’arrête, même face à votre 20.",
+      "p1": "Le croupier suit une règle fixe : tirer jusqu’à 17, puis s’arrêter. Aucun jugement, aucune réaction à votre main.",
+      "p2": "Une variante compte : le croupier tire-t-il aussi sur un <c>17 souple</c> (as + six) ? C’est la règle <c>H17</c>, légèrement moins bonne pour vous que <c>S17</c>. L’entraîneur permet de régler les deux."
+    },
+    "b7": {
+      "title": "Ce que vous touchez",
+      "blackjack": "Blackjack",
+      "win": "Gain",
+      "push": "Égalité",
+      "winText": "Vous récupérez votre mise, plus autant (1:1).",
+      "bjText": "As + dix sur les deux premières cartes paie 3:2.",
+      "pushText": "Même total que le croupier — mise rendue, rien de perdu.",
+      "p1": "Un <c>blackjack</c>, c’est un as plus une carte à dix points sur vos deux premières cartes. Il paie plus qu’un gain ordinaire — <c>3:2</c> — et c’est la première raison pour laquelle les hautes cartes vous avantagent.",
+      "p2": "Méfiez-vous des tables qui paient 6:5. Ce seul changement coûte plus qu’un bon compteur ne gagne, d’où le réglage par défaut à 3:2."
+    },
+    "b8": {
+      "title": "Pourquoi tout cela peut être battu",
+      "fig": "Un sabot riche en ces cartes vous paie plus souvent 3:2 — et brûle plus souvent le croupier.",
+      "p1": "Les cartes sont distribuées sans remise. Ce qui est sorti est sorti : la composition du sabot dérive au fil des tours — et parfois en votre faveur.",
+      "p2": "Les hautes cartes vous aident : plus de blackjacks à 3:2, de meilleurs doubles, et un croupier plus souvent forcé de tirer sur une main délicate. Les basses cartes aident le croupier.",
+      "p3": "Compter n’est rien d’autre que suivre dans quel sens le sabot a dérivé — et miser plus quand il vous favorise. C’est le chapitre suivant."
     }
   }
 }

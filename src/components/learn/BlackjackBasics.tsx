@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import { HandFigure, TeachingCard } from './TeachingVisuals'
 import { c, R, S } from './teaching-cards'
 
@@ -38,214 +39,187 @@ function Block({ n, title, children, figure }: {
   )
 }
 
-/** Emphasised term — the vocabulary the later chapters rely on. */
-function T({ children }: { children: ReactNode }) {
+/**
+ * Emphasised term — the vocabulary the later chapters rely on.
+ *
+ * `children` is optional because `Trans` passes this in as a bare `<T />` and
+ * fills the children from the translation itself.
+ */
+function T({ children }: { children?: ReactNode }) {
   return <span className="text-content font-medium">{children}</span>
 }
 
+/**
+ * One paragraph of the lesson, assembled from a message.
+ *
+ * The emphasised terms sit inside the sentence, and which word carries the
+ * term differs by language — "busting" is a verb in English and a noun in
+ * German. So the `<c>` tag travels with the translation rather than the
+ * sentence being glued together around a fixed `<T>`.
+ */
+function P({ k }: { k: string }) {
+  return <p><Trans i18nKey={k} components={{ c: <T /> }} /></p>
+}
+
 export function BlackjackBasics() {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-3" data-testid="blackjack-basics">
       <Block
         n={1}
-        title="The goal isn’t 21"
+        title={t('basics.b1.title')}
         figure={
           <div className="flex flex-col gap-3">
-            <HandFigure cards={[c(R.King), c(R.Nine)]} label="You" size="sm" />
-            <HandFigure cards={[c(R.Queen, S.Hearts), c(R.Seven, S.Diamonds)]} label="Dealer" size="sm" />
-            <p className="text-xs text-content/50">19 beats 17. Neither hand is near 21.</p>
+            <HandFigure cards={[c(R.King), c(R.Nine)]} label={t('basics.you')} size="sm" />
+            <HandFigure cards={[c(R.Queen, S.Hearts), c(R.Seven, S.Diamonds)]} label={t('basics.dealer')} size="sm" />
+            <p className="text-xs text-content/50">{t('basics.b1.fig')}</p>
           </div>
         }
       >
-        <p>
-          You are playing against the <T>dealer</T>, not the other players. You win by finishing
-          with a higher total than the dealer — without going over 21.
-        </p>
-        <p>
-          Going over is called <T>busting</T>, and it means you lose immediately, even if the
-          dealer busts afterwards. That single rule is where the casino’s advantage comes from.
-        </p>
+        <P k="basics.b1.p1" />
+        <P k="basics.b1.p2" />
       </Block>
 
       <Block
         n={2}
-        title="What the cards are worth"
+        title={t('basics.b2.title')}
         figure={
           <div className="flex flex-wrap gap-2 items-end">
             {[R.Two, R.Seven, R.Ten, R.Jack, R.Ace].map(rank => (
               <div key={rank} className="flex flex-col items-center gap-1.5">
                 <TeachingCard card={c(rank)} size="sm" />
                 <span className="text-[0.75rem] text-content/50 tabular-nums">
-                  {rank === R.Ace ? '1 or 11' : rank === R.Jack || rank === R.Ten ? '10' : rank}
+                  {rank === R.Ace ? t('basics.b2.aceValue') : rank === R.Jack || rank === R.Ten ? '10' : rank}
                 </span>
               </div>
             ))}
           </div>
         }
       >
-        <p>
-          Number cards are worth their number. Jack, Queen and King are all worth <T>10</T> —
-          which is why a deck is full of tens.
-        </p>
-        <p>
-          The <T>Ace</T> is special: it counts as 11 unless that would bust you, in which case it
-          counts as 1. You never have to choose; it always takes the value that helps you.
-        </p>
+        <P k="basics.b2.p1" />
+        <P k="basics.b2.p2" />
       </Block>
 
       <Block
         n={3}
-        title="Hard hands and soft hands"
+        title={t('basics.b3.title')}
         figure={
           <div className="flex flex-col gap-3">
             <HandFigure
               cards={[c(R.Ace, S.Hearts), c(R.Six)]}
-              label="Soft"
+              label={t('basics.b3.soft')}
               size="sm"
-              note="The ace can still drop to 1, so another card can never bust this hand."
+              note={t('basics.b3.softNote')}
             />
             <HandFigure
               cards={[c(R.Ten), c(R.Seven, S.Diamonds)]}
-              label="Hard"
+              label={t('basics.b3.hard')}
               size="sm"
-              note="Same total, no flexibility — any card above a 4 busts you."
+              note={t('basics.b3.hardNote')}
             />
           </div>
         }
       >
-        <p>
-          A hand holding an ace that still counts as 11 is called <T>soft</T>. Any other hand is{' '}
-          <T>hard</T>.
-        </p>
-        <p>
-          This matters more than it sounds: a soft 17 and a hard 17 are the same number but call
-          for completely different play, because a soft hand cannot bust with one more card.
-        </p>
+        <P k="basics.b3.p1" />
+        <P k="basics.b3.p2" />
       </Block>
 
       <Block
         n={4}
-        title="How a round runs"
+        title={t('basics.b4.title')}
         figure={
           <div className="flex flex-col gap-3">
-            <HandFigure cards={[c(R.Nine, S.Hearts), c(R.Seven)]} label="You" size="sm" />
+            <HandFigure cards={[c(R.Nine, S.Hearts), c(R.Seven)]} label={t('basics.you')} size="sm" />
             <HandFigure
               cards={[c(R.Ten, S.Diamonds), c(R.Five)]}
-              label="Dealer"
+              label={t('basics.dealer')}
               size="sm"
               hideSecond
-              note="You only ever see one dealer card — the upcard — while deciding."
+              note={t('basics.b4.fig')}
             />
           </div>
         }
       >
-        <p>
-          You place a bet. Everyone gets two cards face up. The dealer takes two as well, but only
-          one is visible — the <T>upcard</T>. The hidden one is the <T>hole card</T>.
-        </p>
-        <p>
-          You act first, then the dealer plays. That order is the whole problem: if you bust, your
-          money is gone before the dealer has to do anything.
-        </p>
+        <P k="basics.b4.p1" />
+        <P k="basics.b4.p2" />
       </Block>
 
       <Block
         n={5}
-        title="Your five choices"
+        title={t('basics.b5.title')}
         figure={
           <div className="flex flex-col gap-2 text-xs">
             {[
-              ['Hit', 'Take another card.'],
-              ['Stand', 'Keep what you have.'],
-              ['Double', 'Double the bet, take exactly one card.'],
-              ['Split', 'Two same cards → two hands, second bet.'],
-              ['Surrender', 'Fold and keep half your bet.'],
-            ].map(([name, what]) => (
-              <div key={name} className="flex gap-2.5 items-baseline">
-                <span className="text-gold font-semibold w-[72px] shrink-0">{name}</span>
-                <span className="text-content/55">{what}</span>
+              ['actions.hit', 'basics.b5.hit'],
+              ['actions.stand', 'basics.b5.stand'],
+              ['actions.double', 'basics.b5.double'],
+              ['actions.split', 'basics.b5.split'],
+              ['actions.surrender', 'basics.b5.surrender'],
+            ].map(([nameKey, whatKey]) => (
+              <div key={nameKey} className="flex gap-2.5 items-baseline">
+                <span className="text-gold font-semibold w-[72px] shrink-0">{t(nameKey)}</span>
+                <span className="text-content/55">{t(whatKey)}</span>
               </div>
             ))}
           </div>
         }
       >
-        <p>
-          Every hand comes down to these five. <T>Double</T> and <T>Split</T> are the profitable
-          ones — they get more money on the table in the spots that favour you, which is exactly
-          what a counter is looking for.
-        </p>
-        <p>
-          Which choice is correct is not a matter of feel. It is solved maths, and it is called{' '}
-          <T>Basic Strategy</T>.
-        </p>
+        <P k="basics.b5.p1" />
+        <P k="basics.b5.p2" />
       </Block>
 
       <Block
         n={6}
-        title="The dealer has no choices"
+        title={t('basics.b6.title')}
         figure={
           <div className="flex flex-col gap-3">
             <HandFigure
               cards={[c(R.Nine, S.Hearts), c(R.Seven, S.Diamonds)]}
-              label="Dealer must hit"
+              label={t('basics.b6.mustHit')}
               size="sm"
-              note="16 — the dealer draws again, whatever is on the table."
+              note={t('basics.b6.hitNote')}
             />
             <HandFigure
               cards={[c(R.Ten), c(R.Seven)]}
-              label="Dealer must stand"
+              label={t('basics.b6.mustStand')}
               size="sm"
-              note="17 or more — the dealer stops, even against your 20."
+              note={t('basics.b6.standNote')}
             />
           </div>
         }
       >
-        <p>
-          The dealer follows a fixed rule: draw until reaching 17, then stop. No judgement, no
-          reacting to your hand.
-        </p>
-        <p>
-          One variation matters — whether the dealer also draws on a <T>soft 17</T> (ace + six).
-          That is the <T>H17</T> rule, and it is slightly worse for you than <T>S17</T>. The
-          trainer lets you set both.
-        </p>
+        <P k="basics.b6.p1" />
+        <P k="basics.b6.p2" />
       </Block>
 
       <Block
         n={7}
-        title="What you get paid"
+        title={t('basics.b7.title')}
         figure={
           <div className="flex flex-col gap-3">
-            <HandFigure cards={[c(R.Ace, S.Hearts), c(R.King)]} label="Blackjack" size="sm" />
+            <HandFigure cards={[c(R.Ace, S.Hearts), c(R.King)]} label={t('basics.b7.blackjack')} size="sm" />
             <div className="flex flex-col gap-1.5 text-xs">
               {[
-                ['Win', 'You get your bet back, plus the same again (1:1).'],
-                ['Blackjack', 'Ace + ten on the first two cards pays 3:2.'],
-                ['Push', 'Same total as the dealer — bet returned, nothing lost.'],
-              ].map(([k, v]) => (
-                <div key={k}>
-                  <span className="text-gold font-semibold">{k}</span>
-                  <span className="text-content/55"> — {v}</span>
+                ['basics.b7.win', 'basics.b7.winText'],
+                ['basics.b7.blackjack', 'basics.b7.bjText'],
+                ['basics.b7.push', 'basics.b7.pushText'],
+              ].map(([nameKey, textKey]) => (
+                <div key={nameKey}>
+                  <span className="text-gold font-semibold">{t(nameKey)}</span>
+                  <span className="text-content/55"> — {t(textKey)}</span>
                 </div>
               ))}
             </div>
           </div>
         }
       >
-        <p>
-          A <T>blackjack</T> is an ace plus a ten-value card on your first two cards. It pays more
-          than a normal win — <T>3:2</T> — and it is the single biggest reason high cards are good
-          for you.
-        </p>
-        <p>
-          Watch for tables paying 6:5 instead. That one change costs more than a good counter
-          earns, which is why this trainer defaults to 3:2.
-        </p>
+        <P k="basics.b7.p1" />
+        <P k="basics.b7.p2" />
       </Block>
 
       <Block
         n={8}
-        title="Why any of this can be beaten"
+        title={t('basics.b8.title')}
         figure={
           <div className="flex flex-col gap-3">
             <div className="flex gap-1.5">
@@ -254,22 +228,15 @@ export function BlackjackBasics() {
               ))}
             </div>
             <p className="text-xs text-content/50">
-              A shoe rich in these pays you 3:2 more often — and busts the dealer more often too.
+              {t('basics.b8.fig')}
             </p>
           </div>
         }
       >
-        <p>
-          Cards are dealt without replacement. What has already gone is gone, so the shoe’s
-          composition drifts as the round goes on — and sometimes it drifts in your favour.
-        </p>
-        <p>
-          High cards help you: more blackjacks at 3:2, better doubles, and a dealer forced to draw
-          into a stiff hand more often. Low cards help the dealer.
-        </p>
+        <P k="basics.b8.p1" />
+        <P k="basics.b8.p2" />
         <p className="text-content/80">
-          Counting is nothing more than keeping track of which way the shoe has drifted — and
-          betting more when it favours you. That is the next chapter.
+          <Trans i18nKey="basics.b8.p3" components={{ c: <T /> }} />
         </p>
       </Block>
     </div>
