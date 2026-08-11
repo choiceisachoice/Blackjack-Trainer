@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { CasinoSessionResult } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
 import { formatDollar, formatTime } from './helpers'
@@ -11,6 +12,7 @@ interface CasinoSessionSummaryProps {
 }
 
 export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: CasinoSessionSummaryProps) {
+  const { t } = useTranslation()
   const [debugExported, setDebugExported] = useState(false)
   const anomalyCount = recorder?.getAnomalyCount() ?? 0
 
@@ -39,38 +41,38 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
             {result.grade}
           </div>
           <div className="text-sm text-content/50">
-            Overall Score: {result.overallScore.toFixed(1)}%
+            {t('casino.summary.overallScore', { pct: result.overallScore.toFixed(1) })}
           </div>
         </div>
 
         {/* Bankroll Summary */}
         <div className="bg-contrast/5 rounded-xl p-4 border border-contrast/10 space-y-2">
-          <h3 className="text-sm font-semibold text-gold">Bankroll</h3>
+          <h3 className="text-sm font-semibold text-gold">{t('casino.summary.bankroll')}</h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <span className="text-content/60">Starting:</span>
+            <span className="text-content/60">{t('casino.summary.starting')}</span>
             <span className="text-content text-right">{formatDollar(result.startingBankroll)}</span>
-            <span className="text-content/60">Final:</span>
+            <span className="text-content/60">{t('casino.summary.final')}</span>
             <span className="text-content text-right">{formatDollar(result.finalBankroll)}</span>
-            <span className="text-content/60">Net:</span>
+            <span className="text-content/60">{t('casino.summary.net')}</span>
             <span className={`text-right font-semibold ${result.netProfit >= 0 ? 'text-success' : 'text-error'}`}>
               {formatDollar(result.netProfit)}
             </span>
-            <span className="text-content/60">Peak:</span>
+            <span className="text-content/60">{t('casino.summary.peak')}</span>
             <span className="text-content text-right">{formatDollar(result.peakBankroll)}</span>
-            <span className="text-content/60">Worst Drawdown:</span>
+            <span className="text-content/60">{t('casino.summary.drawdown')}</span>
             <span className="text-content text-right">{formatDollar(result.worstDrawdown)}</span>
           </div>
         </div>
 
         {/* Accuracy Breakdown */}
         <div className="bg-contrast/5 rounded-xl p-4 border border-contrast/10 space-y-3">
-          <h3 className="text-sm font-semibold text-gold">Accuracy</h3>
+          <h3 className="text-sm font-semibold text-gold">{t('casino.summary.accuracy')}</h3>
           {[
-            { label: 'Betting', val: result.betAccuracy, detail: `${result.correctBetDecisions}/${result.totalBetDecisions}` },
-            { label: 'Play', val: result.playAccuracy, detail: `${result.correctPlayDecisions}/${result.totalPlayDecisions}` },
-            { label: 'Counting', val: result.countAccuracy, detail: `RC: ${result.correctRCChecks}/${result.totalCountChecks}, TC: ${result.correctTCChecks}/${result.totalCountChecks}` },
-            { label: 'Deviations', val: result.deviationAccuracy, detail: `${result.correctDeviations}/${result.totalDeviationSituations}` },
-            { label: 'Insurance', val: result.insuranceAccuracy, detail: `${result.correctInsuranceDecisions}/${result.totalInsuranceOffers}` },
+            { label: t('casino.summary.betting'), val: result.betAccuracy, detail: `${result.correctBetDecisions}/${result.totalBetDecisions}` },
+            { label: t('casino.summary.play'), val: result.playAccuracy, detail: `${result.correctPlayDecisions}/${result.totalPlayDecisions}` },
+            { label: t('casino.summary.counting'), val: result.countAccuracy, detail: `RC: ${result.correctRCChecks}/${result.totalCountChecks}, TC: ${result.correctTCChecks}/${result.totalCountChecks}` },
+            { label: t('casino.summary.deviations'), val: result.deviationAccuracy, detail: `${result.correctDeviations}/${result.totalDeviationSituations}` },
+            { label: t('casino.summary.insurance'), val: result.insuranceAccuracy, detail: `${result.correctInsuranceDecisions}/${result.totalInsuranceOffers}` },
           ].map(({ label, val, detail }) => (
             <div key={label}>
               <div className="flex justify-between text-sm mb-1">
@@ -86,15 +88,15 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
 
         {/* Session Stats */}
         <div className="bg-contrast/5 rounded-xl p-4 border border-contrast/10 space-y-2">
-          <h3 className="text-sm font-semibold text-gold">Session Stats</h3>
+          <h3 className="text-sm font-semibold text-gold">{t('casino.summary.stats')}</h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <span className="text-content/60">Hands:</span>
+            <span className="text-content/60">{t('casino.summary.handsLabel')}</span>
             <span className="text-content text-right">{result.hands.length}</span>
-            <span className="text-content/60">Duration:</span>
+            <span className="text-content/60">{t('casino.summary.duration')}</span>
             <span className="text-content text-right">{formatTime(result.durationSeconds)}</span>
-            <span className="text-content/60">Avg RC Error:</span>
+            <span className="text-content/60">{t('casino.summary.avgRcError')}</span>
             <span className="text-content text-right">{result.avgRCError.toFixed(1)}</span>
-            <span className="text-content/60">Avg TC Error:</span>
+            <span className="text-content/60">{t('casino.summary.avgTcError')}</span>
             <span className="text-content text-right">{result.avgTCError.toFixed(1)}</span>
           </div>
         </div>
@@ -102,7 +104,7 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
         {/* Missed Deviations */}
         {result.missedDeviations.length > 0 && (
           <div className="bg-contrast/5 rounded-xl p-4 border border-contrast/10 space-y-2">
-            <h3 className="text-sm font-semibold text-error">Missed Deviations</h3>
+            <h3 className="text-sm font-semibold text-error">{t('casino.summary.missedDeviations')}</h3>
             <ul className="text-sm text-content/70 space-y-1">
               {result.missedDeviations.map((d, i) => (
                 <li key={i}>{d}</li>
@@ -115,7 +117,7 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
         {anomalyCount > 0 && (
           <div className="bg-warning/10 border border-warning/30 rounded-xl p-3 text-center" data-testid="anomaly-warning">
             <span className="text-warning text-sm font-semibold">
-              {'\u26A0'} {anomalyCount} anomal{anomalyCount === 1 ? 'y' : 'ies'} detected during session
+              {'\u26A0'} {t('casino.summary.anomalies', { count: anomalyCount })}
             </span>
           </div>
         )}
@@ -124,15 +126,15 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
         <div className="flex gap-3">
           <button onClick={onPlayAgain} data-testid="play-again"
             className="flex-1 py-3 rounded-xl bg-gold text-black font-bold hover:bg-gold/90 transition-colors cursor-pointer">
-            Play Again
+            {t('casino.summary.playAgain')}
           </button>
           <button onClick={downloadDebugLog} data-testid="export-debug-log"
             className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-bold hover:bg-contrast/20 transition-colors cursor-pointer">
-            {debugExported ? '\u2713 Downloaded' : 'Export Debug Log \uD83D\uDCCB'}
+            {debugExported ? `\u2713 ${t('casino.summary.downloaded')}` : `${t('casino.summary.exportDebug')} \uD83D\uDCCB`}
           </button>
           <button onClick={onHome} data-testid="go-home"
             className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-bold hover:bg-contrast/20 transition-colors cursor-pointer">
-            Home
+            {t('casino.summary.home')}
           </button>
         </div>
       </div>

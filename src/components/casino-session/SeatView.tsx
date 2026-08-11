@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { Card } from '../../engine/shoe/types'
 import type { BotPlayer, BotRoundResult } from '../../engine/casino-session/types'
@@ -51,10 +52,11 @@ function BetChip({ amount, active }: { amount: number; active?: boolean }) {
 
 /** Name + bankroll plate at the bottom of a seat block. */
 function NamePlate({ name, bankroll, you }: { name: string; bankroll: number; you?: boolean }) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col items-center leading-tight">
       <span className={`text-[0.75rem] md:text-xs font-semibold ${you ? 'text-gold-bright' : 'text-white/70'}`}>
-        {you ? '★ YOU' : name}
+        {you ? `★ ${t('casino.table.you')}` : name}
       </span>
       <span className="text-[0.6875rem] text-white/40 tabular-nums">{formatDollar(bankroll)}</span>
     </div>
@@ -91,6 +93,7 @@ export function HumanSeat({
   isActivePlayer,
   isDimmed,
 }: HumanSeatProps) {
+  const { t } = useTranslation()
   const reduced = useReducedMotion()
   const isSplit = humanHands.length > 1
   const humanCards = humanHands[activeHandIndex] ?? []
@@ -119,7 +122,7 @@ export function HumanSeat({
             >
               <span className="text-[0.65rem] text-gold font-semibold uppercase tracking-wide">Hand {i + 1}</span>
               <Hand cards={hand} animateFrom={1} totalClass="text-[0.75rem]" />
-              {handDoubled.has(i) && <span className="text-[0.625rem] text-gold">Doubled</span>}
+              {handDoubled.has(i) && <span className="text-[0.625rem] text-gold">{t('casino.table.doubled')}</span>}
             </motion.div>
           ))}
         </div>
@@ -152,9 +155,9 @@ export function HumanSeat({
         </motion.div>
       )}
 
-      {isSurrendered && <span className="text-[0.65rem] text-warning font-semibold">Surrendered</span>}
+      {isSurrendered && <span className="text-[0.65rem] text-warning font-semibold">{t('casino.table.surrendered')}</span>}
 
-      <NamePlate name="YOU" bankroll={bankroll} you />
+      <NamePlate name={t('casino.table.you')} bankroll={bankroll} you />
 
       {/* Active glow */}
       {isActivePlayer && (

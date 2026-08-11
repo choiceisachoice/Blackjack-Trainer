@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { soundEngine } from '../../services/sound-engine'
 import { formatDollar, getChipDenominations } from './helpers'
 
@@ -11,9 +12,10 @@ interface BettingControlsProps {
 }
 
 export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetChange, onConfirm }: BettingControlsProps) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col items-center gap-3" data-testid="betting-controls">
-      <span className="text-sm text-content/60">Place your bet</span>
+      <span className="text-sm text-content/60">{t('casino.table.placeYourBet')}</span>
       <span className="text-xs text-content/40" data-testid="bet-range">
         Min: {formatDollar(minBet)} – Max: {formatDollar(maxBet)}
       </span>
@@ -28,7 +30,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
             data-testid="clear-bet"
             className="text-xs text-content/50 hover:text-error px-2 py-0.5 rounded bg-contrast/10 hover:bg-contrast/20 cursor-pointer transition-colors"
           >
-            Clear
+            {t('casino.table.clear')}
           </button>
         </div>
       )}

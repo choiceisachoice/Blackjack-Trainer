@@ -113,7 +113,7 @@ describe('CasinoSession', () => {
     it('has default session mode set to hands', () => {
       render(<CasinoSession />)
 
-      const group = screen.getByRole('group', { name: 'Session length mode' })
+      const group = screen.getByRole('group', { name: 'Session Length' })
       expect(group.querySelector('[aria-pressed="true"]')?.textContent).toBe('Hands')
     })
 
@@ -140,7 +140,7 @@ describe('CasinoSession', () => {
     it('renders number of bots selector', () => {
       render(<CasinoSession />)
 
-      const botsGroup = screen.getByRole('group', { name: 'Number of bots' })
+      const botsGroup = screen.getByRole('group', { name: 'Bots at the table' })
       expect(botsGroup).toBeTruthy()
       // Default 2 bots is the pressed segment
       const pressed = botsGroup.querySelector('[aria-pressed="true"]')
@@ -150,7 +150,7 @@ describe('CasinoSession', () => {
     it('renders count check frequency selector', () => {
       render(<CasinoSession />)
 
-      expect(screen.getByRole('group', { name: 'Count check frequency' })).toBeTruthy()
+      expect(screen.getByRole('group', { name: 'Count check' })).toBeTruthy()
     })
   })
 

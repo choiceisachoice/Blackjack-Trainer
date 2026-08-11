@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   XAxis,
   YAxis,
@@ -94,6 +95,7 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
 // ── Component ───────────────────────────────────────────────────────
 
 export function CasinoSessionTracker() {
+  const { t } = useTranslation()
   const sessions = useCasinoSessionTrackerStore(s => s.sessions)
   const startingBankroll = useCasinoSessionTrackerStore(s => s.startingBankroll)
   const setStartingBankroll = useCasinoSessionTrackerStore(s => s.setStartingBankroll)
@@ -137,7 +139,7 @@ export function CasinoSessionTracker() {
   const chartData = useMemo((): ChartDataPoint[] => {
     const sorted = [...sessions].sort((a, b) => a.timestamp - b.timestamp)
     const data: ChartDataPoint[] = [
-      { label: 'Start', date: 'Start', bankroll: startingBankroll, profit: 0, grade: '', score: 0, hands: 0 },
+      { label: t('tracker.start'), date: t('tracker.start'), bankroll: startingBankroll, profit: 0, grade: '', score: 0, hands: 0 },
     ]
     sorted.forEach((session, i) => {
       const prevBankroll = data[i].bankroll
@@ -152,7 +154,10 @@ export function CasinoSessionTracker() {
       })
     })
     return data
-  }, [sessions, startingBankroll])
+    // `t` is a dependency because the first point is labelled "Start" — the
+    // chart has to be rebuilt when the language changes, or its origin keeps
+    // the previous language's word.
+  }, [sessions, startingBankroll, t])
 
   // ── Session list (newest first) ──
   const sortedSessions = useMemo(() =>
@@ -179,16 +184,16 @@ export function CasinoSessionTracker() {
           <span className="grid place-items-center w-16 h-16 mx-auto mb-4 rounded-2xl text-gold bg-gold/10 border border-gold/20">
             <ClipboardList size={30} />
           </span>
-          <h2 className="text-2xl font-bold text-content mb-3">Start Tracking Your Casino Sessions</h2>
+          <h2 className="text-2xl font-bold text-content mb-3">{t('tracker.onboardTitle')}</h2>
           <p className="text-content/50 mb-2">
-            Set your starting bankroll to begin.
+            {t('tracker.onboardBody')}
           </p>
           <p className="text-content/40 text-sm mb-8">
-            Results will be tracked automatically after each Casino Session.
+            {t('tracker.onboardNote')}
           </p>
           <div className="flex flex-col items-center gap-4">
             <label className="w-full max-w-xs">
-              <span className="text-sm text-content/60 block mb-2">Starting Bankroll</span>
+              <span className="text-sm text-content/60 block mb-2">{t('tracker.startingBankroll')}</span>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
                 <input
@@ -207,7 +212,7 @@ export function CasinoSessionTracker() {
               disabled={!onboardingBankroll || parseFloat(onboardingBankroll) <= 0}
               className="px-8 py-3 rounded-xl bg-gold text-black font-semibold text-lg hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Start Tracking
+              {t('tracker.startTracking')}
             </button>
           </div>
         </div>
@@ -220,14 +225,14 @@ export function CasinoSessionTracker() {
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="cs-tracker">
       {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Casino Session Tracker</h1>
-        <p className="text-sm text-content/50">Your played casino sessions, results, and grades.</p>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">{t('tracker.title')}</h1>
+        <p className="text-sm text-content/50">{t('tracker.sub')}</p>
       </div>
 
       {/* ── Section A: Overview ── */}
       <section data-testid="overview-section">
         <div className="text-center mb-4">
-          <p className="text-xs text-content/40 mb-1">Current Bankroll</p>
+          <p className="text-xs text-content/40 mb-1">{t('tracker.currentBankroll')}</p>
           <p className={`text-4xl font-bold ${currentBankroll >= startingBankroll ? 'text-green-400' : 'text-red-400'}`}
             data-testid="current-bankroll">
             {fmtDollar(currentBankroll)}
@@ -235,7 +240,7 @@ export function CasinoSessionTracker() {
           <div className="text-sm text-content/50 mt-1 flex items-center justify-center gap-1 flex-wrap" data-testid="overview-summary">
             {isEditingStart ? (
               <span className="inline-flex items-center gap-1.5">
-                <span>Starting: $</span>
+                <span>{t('tracker.startingPrefix')} $</span>
                 <input
                   type="number"
                   value={editStartValue}
@@ -253,31 +258,31 @@ export function CasinoSessionTracker() {
                   data-testid="save-starting-btn"
                   className="text-xs text-green-400 hover:text-green-300 cursor-pointer font-semibold"
                 >
-                  Save
+                  {t('tracker.save')}
                 </button>
                 <button
                   onClick={() => setIsEditingStart(false)}
                   data-testid="cancel-starting-btn"
                   className="text-xs text-content/40 hover:text-content cursor-pointer"
                 >
-                  Cancel
+                  {t('tracker.cancel')}
                 </button>
               </span>
             ) : (
               <span>
-                Starting: {fmtDollar(startingBankroll)}
+                {t('tracker.startingPrefix')} {fmtDollar(startingBankroll)}
                 <button
                   onClick={() => { setEditStartValue(String(startingBankroll)); setIsEditingStart(true) }}
                   data-testid="edit-starting-btn"
                   className="ml-1 text-xs text-content/30 hover:text-gold cursor-pointer"
-                  title="Edit starting bankroll"
+                  title={t('tracker.editStarting')}
                 >
                   {'\u270F\uFE0F'}
                 </button>
               </span>
             )}
             {' \u2502 '}
-            Profit: <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
+            {t('tracker.profit')} <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
             {' \u2502 '}
             ROI: <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
           </div>
@@ -286,14 +291,14 @@ export function CasinoSessionTracker() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="stat-cards">
           {/* Sessions */}
           <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
-            <p className="text-xs text-content/50">Sessions</p>
+            <p className="text-xs text-content/50">{t('tracker.sessions')}</p>
             <p className="text-xl font-bold text-content" data-testid="stat-sessions">{sessionCount}</p>
           </div>
 
           {/* Win Rate */}
           <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
             style={{ boxShadow: sessionCount > 0 ? winRateGlow(winRate) : 'none' }}>
-            <p className="text-xs text-content/50">Win Rate</p>
+            <p className="text-xs text-content/50">{t('tracker.winRate')}</p>
             <p className={`text-xl font-bold ${winRate > 0.55 ? 'text-green-400' : winRate >= 0.45 ? 'text-yellow-400' : 'text-red-400'}`}
               data-testid="stat-winrate">
               {sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014'}
@@ -303,7 +308,7 @@ export function CasinoSessionTracker() {
           {/* Avg Score */}
           <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
             style={{ boxShadow: sessionCount > 0 ? profitGlow(avgScore > 80 ? 1 : avgScore > 60 ? 0 : -1) : 'none' }}>
-            <p className="text-xs text-content/50">Avg Score</p>
+            <p className="text-xs text-content/50">{t('tracker.avgScore')}</p>
             <p className={`text-xl font-bold ${avgScore >= 80 ? 'text-green-400' : avgScore >= 60 ? 'text-yellow-400' : 'text-red-400'}`}
               data-testid="stat-avg-score">
               {sessionCount > 0 ? `${avgScore.toFixed(0)}%` : '\u2014'}
@@ -312,7 +317,7 @@ export function CasinoSessionTracker() {
 
           {/* Total Hands */}
           <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
-            <p className="text-xs text-content/50">Hands</p>
+            <p className="text-xs text-content/50">{t('tracker.hands')}</p>
             <p className="text-xl font-bold text-content" data-testid="stat-hands">
               {totalHands > 0 ? totalHands.toLocaleString() : '\u2014'}
             </p>
@@ -322,7 +327,7 @@ export function CasinoSessionTracker() {
 
       {/* ── Section B: Chart ── */}
       <section data-testid="chart-section">
-        <h2 className="text-lg font-semibold text-content mb-3">Bankroll History</h2>
+        <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.bankrollHistory')}</h2>
         <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
           {sessions.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -366,7 +371,7 @@ export function CasinoSessionTracker() {
             </ResponsiveContainer>
           ) : (
             <div className="h-48 flex items-center justify-center text-content/30 text-sm">
-              Complete a Casino Session to see the chart
+              {t('tracker.chartEmpty')}
             </div>
           )}
         </div>
@@ -393,7 +398,7 @@ export function CasinoSessionTracker() {
           </div>
         ) : (
           <div className="text-center text-content/30 text-sm py-8" data-testid="empty-sessions">
-            No sessions yet. Complete a Casino Session to start tracking!
+            {t('tracker.listEmpty')}
           </div>
         )}
       </section>
@@ -401,7 +406,7 @@ export function CasinoSessionTracker() {
       {/* ── Section E: Highlights ── */}
       {sessionCount > 0 && (
         <section data-testid="additional-stats">
-          <h2 className="text-lg font-semibold text-content mb-3">Highlights</h2>
+          <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.highlights')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Best Session */}
             <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
@@ -439,11 +444,11 @@ export function CasinoSessionTracker() {
               <div className="flex justify-center gap-4 mt-1">
                 <div>
                   <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
-                  <p className="text-[0.6875rem] text-content/40">Win</p>
+                  <p className="text-[0.6875rem] text-content/40">{t('tracker.win')}</p>
                 </div>
                 <div>
                   <p className="text-xl font-bold text-red-400" data-testid="losing-streak">{losingStreak}</p>
-                  <p className="text-[0.6875rem] text-content/40">Loss</p>
+                  <p className="text-[0.6875rem] text-content/40">{t('tracker.loss')}</p>
                 </div>
               </div>
             </div>
@@ -525,13 +530,14 @@ function SessionRow({
 // ── Personal Records Component ────────────────────────────────────
 
 function PersonalRecordsSection() {
+  const { t } = useTranslation()
   const records = useCasinoSessionTrackerStore(s => s.getPersonalRecords)()
   const winRate = useCasinoSessionTrackerStore(s => s.getWinRate)()
   const sessionCount = useCasinoSessionTrackerStore(s => s.getSessionCount)()
 
   const cards: { label: string; testId: string; icon: string; value: string; sub?: string; glow?: string }[] = [
     {
-      label: 'Best Session',
+      label: t('tracker.bestSession'),
       testId: 'record-best-session',
       icon: '\uD83E\uDD47',
       value: records.bestSession ? fmtDollar(records.bestSession.profit, true) : '\u2014',
@@ -540,7 +546,7 @@ function PersonalRecordsSection() {
         ? '0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.08)' : undefined,
     },
     {
-      label: 'Worst Session',
+      label: t('tracker.worstSession'),
       testId: 'record-worst-session',
       icon: '\uD83D\uDE22',
       value: records.worstSession ? fmtDollar(records.worstSession.profit, true) : '\u2014',
@@ -549,39 +555,39 @@ function PersonalRecordsSection() {
         ? '0 0 20px rgba(239, 68, 68, 0.2), 0 0 40px rgba(239, 68, 68, 0.05)' : undefined,
     },
     {
-      label: 'Win Streak',
+      label: t('tracker.winStreak'),
       testId: 'record-win-streak',
       icon: '\uD83D\uDD25',
-      value: records.longestWinStreak > 0 ? `${records.longestWinStreak} sessions` : '\u2014',
+      value: records.longestWinStreak > 0 ? t('tracker.nSessions', { n: records.longestWinStreak }) : '\u2014',
     },
     {
-      label: 'Best Score',
+      label: t('tracker.bestScore'),
       testId: 'record-best-score',
       icon: '\uD83C\uDFAF',
       value: records.bestScore ? `${records.bestScore.overallScore.toFixed(0)}% (${records.bestScore.grade})` : '\u2014',
       sub: records.bestScore ? fmtDate(records.bestScore.date) : undefined,
     },
     {
-      label: 'Peak Bankroll',
+      label: t('tracker.peakBankroll'),
       testId: 'record-peak-bankroll',
       icon: '\uD83D\uDCC8',
       value: records.highestBankroll > 0 ? fmtDollar(records.highestBankroll) : '\u2014',
     },
     {
-      label: 'Most Hands',
+      label: t('tracker.mostHands'),
       testId: 'record-most-hands',
       icon: '\uD83C\uDCA3',
-      value: records.longestSession ? `${records.longestSession.handsPlayed} hands` : '\u2014',
+      value: records.longestSession ? t('tracker.nHands', { n: records.longestSession.handsPlayed }) : '\u2014',
       sub: records.longestSession ? fmtDate(records.longestSession.date) : undefined,
     },
     {
-      label: 'Best Grade',
+      label: t('tracker.bestGrade'),
       testId: 'record-best-grade',
       icon: '\uD83C\uDF93',
       value: records.bestGrade || '\u2014',
     },
     {
-      label: 'Win Rate',
+      label: t('tracker.winRate'),
       testId: 'record-win-rate',
       icon: '\u2705',
       value: sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014',
@@ -590,7 +596,7 @@ function PersonalRecordsSection() {
 
   return (
     <section data-testid="personal-records">
-      <h2 className="text-lg font-semibold text-content mb-3">{'\uD83C\uDFC6'} Personal Records</h2>
+      <h2 className="text-lg font-semibold text-content mb-3">{'\uD83C\uDFC6'} {t('tracker.personalRecords')}</h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map(card => (
           <div
@@ -603,8 +609,8 @@ function PersonalRecordsSection() {
               {card.icon} {card.label}
             </p>
             <p className={`text-lg font-bold ${
-              card.label === 'Best Session' && records.bestSession && records.bestSession.profit > 0 ? 'text-green-400' :
-              card.label === 'Worst Session' && records.worstSession && records.worstSession.profit < 0 ? 'text-red-400' :
+              card.testId === 'record-best-session' && records.bestSession && records.bestSession.profit > 0 ? 'text-green-400' :
+              card.testId === 'record-worst-session' && records.worstSession && records.worstSession.profit < 0 ? 'text-red-400' :
               'text-content'
             }`}>
               {card.value}

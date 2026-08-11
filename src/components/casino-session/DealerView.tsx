@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import type { Card } from '../../engine/shoe/types'
 import { AnimatedTableCard, FlipCard } from './CardComponents'
 import { handValueStr } from './helpers'
@@ -13,9 +14,10 @@ interface DealerViewProps {
  * top rail, not here, so a long dealer hand never collides with them.
  */
 export function DealerView({ dealerCards, dealerHoleRevealed }: DealerViewProps) {
+  const { t } = useTranslation()
   return (
     <div className="relative flex flex-col items-center gap-1">
-      <span className="text-xs md:text-sm text-white/50 uppercase tracking-widest font-semibold">Dealer</span>
+      <span className="text-xs md:text-sm text-white/50 uppercase tracking-widest font-semibold">{t('casino.table.dealer')}</span>
       {dealerCards.length > 0 ? (
         <>
           <div className="flex -space-x-6 md:-space-x-7 mt-1">
@@ -35,7 +37,7 @@ export function DealerView({ dealerCards, dealerHoleRevealed }: DealerViewProps)
         </>
       ) : (
         <div className="h-24 md:h-28 flex items-center">
-          <span className="text-white/15 text-sm italic">Place your bet to deal</span>
+          <span className="text-white/15 text-sm italic">{t('casino.table.placeBetToDeal')}</span>
         </div>
       )}
     </div>

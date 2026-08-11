@@ -28,8 +28,8 @@ export const DEALING_SPEED_MULTIPLIER: Record<DealingSpeed, number> = {
 
 /** Player-facing labels — a complete pair that reads well without a "Fast". */
 export const DEALING_SPEED_LABEL: Record<DealingSpeed, string> = {
-  slow: 'Relaxed',
-  normal: 'Standard',
+  slow: 'casino.hud.speedRelaxed',
+  normal: 'casino.hud.speedStandard',
 }
 
 /** Load persisted dealing speed. Defaults to slow (more time to count). */

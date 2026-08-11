@@ -282,28 +282,28 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
       <div className="flex items-center justify-between px-4 py-2 bg-contrast/5 border-b border-contrast/10 text-xs shrink-0">
         <div className="flex items-center gap-4">
           <span className="text-content/60">
-            Hand: <span className="text-content font-semibold">{handNum}{targetHands ? `/${targetHands}` : ''}</span>
+            {t('casino.hud.hand')} <span className="text-content font-semibold">{handNum}{targetHands ? `/${targetHands}` : ''}</span>
           </span>
           <span className="text-content/60">
-            Bankroll: <span className={`font-semibold ${bankroll >= config.startingBankroll ? 'text-success' : 'text-error'}`}>
+            {t('casino.hud.bankroll')} <span className={`font-semibold ${bankroll >= config.startingBankroll ? 'text-success' : 'text-error'}`}>
               {formatDollar(bankroll)}
             </span>
           </span>
           <span className="text-content/60">
-            Session: <span className={`font-semibold ${bankroll - config.startingBankroll >= 0 ? 'text-success' : 'text-error'}`}>
+            {t('casino.hud.session')} <span className={`font-semibold ${bankroll - config.startingBankroll >= 0 ? 'text-success' : 'text-error'}`}>
               {formatDollar(bankroll - config.startingBankroll)}
             </span>
           </span>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5" data-testid="shoe-progress">
-            <span className="text-content/40 text-[0.6875rem]">Shoe</span>
+            <span className="text-content/40 text-[0.6875rem]">{t('casino.hud.shoe')}</span>
             <div className="w-16 h-1.5 bg-contrast/10 rounded-full overflow-hidden">
               <div className="h-full bg-gold/60 rounded-full transition-all" style={{ width: `${Math.min(100, shoeProgress * 100)}%` }} />
             </div>
           </div>
           <div className="flex items-center gap-1" data-testid="speed-control">
-            <span className="text-content/40 text-[0.6875rem]">Speed</span>
+            <span className="text-content/40 text-[0.6875rem]">{t('casino.hud.speed')}</span>
             <div className="inline-flex p-0.5 rounded-md bg-contrast/10 border border-contrast/10">
               {(['slow', 'normal'] as DealingSpeed[]).map(s => (
                 <button
@@ -313,7 +313,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                   className={`px-2 py-0.5 rounded text-[0.6875rem] transition-colors cursor-pointer
                     ${dealingSpeed === s ? 'bg-gold text-black font-semibold' : 'text-content/50 hover:text-content'}`}
                 >
-                  {DEALING_SPEED_LABEL[s]}
+                  {t(DEALING_SPEED_LABEL[s])}
                 </button>
               ))}
             </div>
@@ -330,7 +330,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                   casinoAmbient.volume = v
                 }}
                 className="w-20 h-1 accent-gold cursor-pointer"
-                title="Ambient volume"
+                title={t('casino.hud.ambientVolume')}
               />
             </div>
           )}
@@ -389,15 +389,15 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         {/* Insurance */}
         {state.gameStep === 'insurance' && (
           <div className="flex flex-col items-center gap-3" data-testid="insurance-controls">
-            <span className="text-sm text-content">Insurance? (Dealer shows Ace)</span>
+            <span className="text-sm text-content">{t('casino.hud.insuranceAsk')}</span>
             <div className="flex gap-3">
               <button onClick={() => actions.handleInsurance(true)} data-testid="insurance-yes"
                 className="px-6 py-2 bg-gold text-black rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
-                Yes (Y)
+                {t('casino.hud.yes')}
               </button>
               <button onClick={() => actions.handleInsurance(false)} data-testid="insurance-no"
                 className="px-6 py-2 bg-contrast/10 text-content rounded-xl font-bold hover:bg-contrast/20 cursor-pointer">
-                No (N)
+                {t('casino.hud.no')}
               </button>
             </div>
           </div>
@@ -417,7 +417,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         {/* Count Check */}
         {state.gameStep === 'count_check' && (
           <div className="flex flex-col items-center gap-3" data-testid="count-check">
-            <span className="text-sm text-content">What's your count?</span>
+            <span className="text-sm text-content">{t('casino.hud.countAsk')}</span>
             {!state.countFeedback ? (
               <>
                 <div className="flex gap-4">
@@ -436,16 +436,16 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                 </div>
                 <button onClick={actions.submitCount} data-testid="submit-count"
                   className="px-6 py-2 bg-gold text-black rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
-                  Submit (Enter)
+                  {t('casino.hud.submitEnter')}
                 </button>
               </>
             ) : (
               <div className="text-center space-y-1">
                 <p className={`text-sm font-semibold ${state.countFeedback.rcCorrect ? 'text-success' : 'text-error'}`}>
-                  RC: {state.countFeedback.rcCorrect ? 'Correct' : `Wrong (actual: ${state.countFeedback.actualRC})`}
+                  RC: {state.countFeedback.rcCorrect ? t('casino.review.correct') : t('casino.review.wrongActual', { value: state.countFeedback.actualRC })}
                 </p>
                 <p className={`text-sm font-semibold ${state.countFeedback.tcCorrect ? 'text-success' : 'text-error'}`}>
-                  TC: {state.countFeedback.tcCorrect ? 'Correct' : `Wrong (actual: ${state.countFeedback.actualTC})`}
+                  TC: {state.countFeedback.tcCorrect ? t('casino.review.correct') : t('casino.review.wrongActual', { value: state.countFeedback.actualTC })}
                 </p>
               </div>
             )}
@@ -457,11 +457,11 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
           <div className="flex flex-col items-center gap-2" data-testid="hand-review">
             <div className="flex flex-wrap gap-4 justify-center text-xs">
               <span className={state.handReview.betCorrect ? 'text-success' : 'text-error'}>
-                Bet: {state.handReview.betCorrect ? 'Correct' : `Wrong (should: ${formatDollar(state.handReview.correctBet)})`}
+                {t('casino.review.betLabel')} {state.handReview.betCorrect ? t('casino.review.correct') : t('casino.review.wrongShould', { value: formatDollar(state.handReview.correctBet) })}
               </span>
               {state.handReview.wasDeviationSituation && (
                 <span className={state.handReview.playerFollowedDeviation ? 'text-success' : 'text-error'}>
-                  Dev: {state.handReview.playerFollowedDeviation ? 'Followed' : `Missed (${state.handReview.deviationName})`}
+                  {t('casino.review.devLabel')} {state.handReview.playerFollowedDeviation ? t('casino.review.followed') : t('casino.review.missed', { name: state.handReview.deviationName })}
                 </span>
               )}
             </div>
@@ -480,7 +480,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                       const lastVal = hDecisions[hDecisions.length - 1]?.handValueAfter ?? 0
                       return (
                         <span key={hi} className={allCorrect ? 'text-success' : 'text-error'}>
-                          Hand {hi + 1}: {actionsStr} ({lastVal}) {allCorrect ? '\u2713' : `\u2717 (should: ${hDecisions.find(d => !d.isCorrect)?.correctAction})`}
+                          {t('casino.review.handNo', { n: hi + 1 })} {actionsStr} ({lastVal}) {allCorrect ? '\u2713' : `\u2717 ${t('casino.review.wrongShould', { value: hDecisions.find(d => !d.isCorrect)?.correctAction })}`}
                         </span>
                       )
                     })}
@@ -490,13 +490,13 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
 
               return (
                 <span className={`text-xs ${state.handReview.firstActionCorrect ? 'text-success' : 'text-error'}`}>
-                  Play: {state.handReview.firstActionCorrect ? 'Correct' : `Wrong (should: ${state.handReview.correctFirstAction})`}
+                  {t('casino.review.playLabel')} {state.handReview.firstActionCorrect ? t('casino.review.correct') : t('casino.review.wrongShould', { value: state.handReview.correctFirstAction })}
                 </span>
               )
             })()}
             <button onClick={actions.nextHand} data-testid="next-hand"
               className="px-6 py-2 bg-gold text-black rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
-              Next Hand (Enter)
+              {t('casino.hud.nextHand')}
             </button>
           </div>
         )}
@@ -506,7 +506,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
           <div className="flex flex-col items-center gap-2">
             <button onClick={actions.nextHand} data-testid="next-hand"
               className="px-6 py-2 bg-gold text-black rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
-              Next Hand (Enter)
+              {t('casino.hud.nextHand')}
             </button>
           </div>
         )}
