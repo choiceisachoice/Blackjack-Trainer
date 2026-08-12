@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { StartingPoint } from './StartingPoint'
 import { ENTRY_OPTIONS } from '../../services/starting-point'
+import i18next from 'i18next'
 
 afterEach(cleanup)
 
@@ -45,7 +46,7 @@ describe('the one question', () => {
   it('shows each option’s explanation, so people can pick honestly', () => {
     render(<StartingPoint onPick={() => {}} />)
     for (const o of ENTRY_OPTIONS) {
-      expect(screen.getByTestId(`entry-${o.value}`)).toHaveTextContent(o.hint)
+      expect(screen.getByTestId(`entry-${o.value}`)).toHaveTextContent(i18next.t(o.hintKey))
     }
   })
 })

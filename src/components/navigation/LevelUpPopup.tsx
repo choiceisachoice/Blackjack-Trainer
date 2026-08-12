@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLevelStore } from '../../store/level-store'
 import { hasSeenLevelIntro, markLevelIntroSeen } from '../../services/level-intro'
 
@@ -23,6 +24,7 @@ const TIER_ICONS: Record<string, string> = {
  * Auto-displayed when a level-up occurs, dismissed via Continue button.
  */
 export function LevelUpPopup() {
+  const { t } = useTranslation()
   const showLevelUp = useLevelStore(s => s.showLevelUp)
   const levelUpData = useLevelStore(s => s.levelUpData)
   const dismissLevelUp = useLevelStore(s => s.dismissLevelUp)
@@ -65,7 +67,7 @@ export function LevelUpPopup() {
       data-testid="level-up-popup"
       role="dialog"
       aria-modal="true"
-      aria-label={`Level up to level ${newLevel.level}, ${newLevel.title}`}
+      aria-label={t('levels.upTo', { n: newLevel.level, name: t(newLevel.titleKey) })}
       className="fixed inset-0 z-[9999] grid place-items-center p-4 overflow-y-auto"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.85)', animation: 'levelFadeIn 0.3s ease' }}
       onClick={dismiss}
@@ -93,7 +95,7 @@ export function LevelUpPopup() {
           className="text-sm mb-2"
           style={{ color: oldLevel.color, opacity: 0.6 }}
         >
-          Lv.{oldLevel.level} {oldLevel.title}
+          {t('levels.short', { n: oldLevel.level })} {t(oldLevel.titleKey)}
         </div>
 
         <div className="text-2xl text-content/30 mb-2" aria-hidden>
@@ -129,7 +131,7 @@ export function LevelUpPopup() {
             textShadow: `0 0 20px ${newLevel.glowColor}`,
           }}
         >
-          {newLevel.title}
+          {t(newLevel.titleKey)}
         </div>
 
         {/*

@@ -1384,5 +1384,107 @@
       "bankrollTracker": "Suivi de bankroll"
     },
     "all": "Tous"
+  },
+  "modes": {
+    "speedDrill": "Speed Drill",
+    "deviationFlashCards": "Cartes mémo",
+    "betSpread": "Bet spread",
+    "deckEstimation": "Estimation des jeux",
+    "casinoSession": "Session de casino",
+    "tableCounting": "Comptage à la table",
+    "deviationTable": "Déviation (table)",
+    "bankrollTracker": "Suivi de bankroll",
+    "learn": "Apprendre",
+    "analytics": "Analyses",
+    "strategyChart": "Tableau de stratégie de base",
+    "achievements": "Succès"
+  },
+  "home": {
+    "trainingModes": "Modes d’entraînement",
+    "toolsProgress": "Outils et progression",
+    "trackerTitle": "Suivi des sessions",
+    "desc": {
+      "speedDrill": "Travaillez votre vitesse de comptage avec des cartes qui défilent",
+      "deviationTraining": "Entraînez chaque main — et quand s’en écarter",
+      "betSpread": "Travaillez la mise optimale selon le true count",
+      "deckEstimation": "Estimez les jeux restants dans le sabot",
+      "casinoSession": "Jouez une session complète à une table réaliste",
+      "bankrollSim": "Suivez vos vrais résultats au casino",
+      "tracker": "Suivez les résultats de vos sessions d’entraînement",
+      "learn": "Comment fonctionne le comptage — pour débutants",
+      "analytics": "Consultez vos statistiques, tendances et progrès",
+      "strategyChart": "Consultez le tableau de stratégie complet",
+      "achievements": "Suivez vos progrès et débloquez des récompenses"
+    }
+  },
+  "startLevel": {
+    "never": {
+      "label": "Je n’ai jamais joué au blackjack",
+      "hint": "Nous partirons du tout début — le jeu lui-même, avant tout comptage."
+    },
+    "rules": {
+      "label": "Je sais comment le jeu fonctionne",
+      "hint": "Tirer, rester, brûler et les règles du croupier vous sont familiers."
+    },
+    "basic": {
+      "label": "Je connais le bon coup sur la plupart des mains",
+      "hint": "Quand tirer, rester, doubler ou séparer — sans réfléchir."
+    },
+    "running": {
+      "label": "Je peux suivre les cartes à mesure qu’elles sortent",
+      "hint": "Tenir un running count sur un sabot entier."
+    },
+    "true": {
+      "label": "J’ajuste ce compte selon les cartes restantes",
+      "hint": "Transformer le running count en true count."
+    },
+    "deviations": {
+      "label": "Je change mon jeu quand le compte est haut",
+      "hint": "Passer outre le tableau de stratégie — les Illustrious 18."
+    },
+    "pro": {
+      "label": "J’ai déjà fait tout cela pour de l’argent à une vraie table",
+      "hint": "Étaler ses mises sous pression vous est familier."
+    }
+  },
+  "levels": {
+    "l1": "Débutant",
+    "l2": "Apprenti",
+    "l3": "Joueur de cartes",
+    "l4": "Nouveau à la table",
+    "l5": "Départ chanceux",
+    "l6": "Passionné de cartes",
+    "l7": "Collectionneur de jetons",
+    "l8": "Joueur de blackjack",
+    "l9": "Chouchou du croupier",
+    "l10": "Pro de la table",
+    "l11": "Stratège des cartes",
+    "l12": "Chercheur de fortune",
+    "l13": "Pro du blackjack",
+    "l14": "Champion du tapis",
+    "l15": "Compteur de cartes",
+    "l16": "Joueur VIP",
+    "l17": "Gros joueur",
+    "l18": "Murmureur d’as",
+    "l19": "Briseur de banque",
+    "l20": "Cerveau",
+    "l21": "Maître du blackjack",
+    "l22": "Roi de la table",
+    "l23": "Seigneur de la chance",
+    "l24": "Légende du casino",
+    "l25": "Grand maître du blackjack",
+    "upTo": "Passage au niveau {{n}}, {{name}}",
+    "short": "Niv. {{n}}",
+    "progressTo": "Progression vers {{name}}",
+    "progressGeneric": "Progression de niveau",
+    "xpTo": "{{current}} / {{required}} XP jusqu’à {{name}}",
+    "tierNext": "Palier {{tier}} · ensuite : {{name}}",
+    "tierMax": "Palier {{tier}} · niveau maximal",
+    "tier": {
+      "beginner": "Débutant",
+      "mid": "Intermédiaire",
+      "advanced": "Avancé",
+      "elite": "Élite"
+    }
   }
 }

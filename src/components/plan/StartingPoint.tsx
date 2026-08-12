@@ -1,4 +1,5 @@
 import { ArrowRight, Spade } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { ENTRY_OPTIONS, type EntryOption } from '../../services/starting-point'
 
 /**
@@ -36,6 +37,7 @@ export function StartingPoint({
    */
   onSkip?: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <div className="app-canvas flex-1 overflow-y-auto" data-testid="starting-point">
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-10 md:py-14">
@@ -66,8 +68,8 @@ export function StartingPoint({
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="font-semibold text-[1.05rem]">{o.label}</div>
-                  <div className="mt-1 text-sm text-content/50 leading-snug">{o.hint}</div>
+                  <div className="font-semibold text-[1.05rem]">{t(o.labelKey)}</div>
+                  <div className="mt-1 text-sm text-content/50 leading-snug">{t(o.hintKey)}</div>
                 </div>
                 <ArrowRight
                   size={18}

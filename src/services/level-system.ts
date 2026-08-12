@@ -9,8 +9,8 @@ export type LevelTier = 'beginner' | 'mid' | 'advanced' | 'elite'
 export interface LevelDefinition {
   /** Level number (1-25). */
   level: number
-  /** Unique display title. */
-  title: string
+  /** Key for this level's name, under `levels` — `levels.l<level>`. */
+  titleKey: string
   /** Total XP needed to reach this level. */
   xpRequired: number
   /** Tier category. */
@@ -24,37 +24,37 @@ export interface LevelDefinition {
 /** All 25 level definitions, ordered by ascending xpRequired. */
 export const LEVELS: LevelDefinition[] = [
   // Beginner (grey tones) — levels 1-5
-  { level: 1,  title: 'Rookie',                   xpRequired: 0,        tier: 'beginner', color: '#6b7280', glowColor: 'rgba(107,114,128,0.3)' },
-  { level: 2,  title: 'Beginner',                  xpRequired: 50,       tier: 'beginner', color: '#9ca3af', glowColor: 'rgba(156,163,175,0.3)' },
-  { level: 3,  title: 'Card Player',               xpRequired: 200,      tier: 'beginner', color: '#a8a29e', glowColor: 'rgba(168,162,158,0.3)' },
-  { level: 4,  title: 'Table Newcomer',             xpRequired: 500,      tier: 'beginner', color: '#b8b8b8', glowColor: 'rgba(184,184,184,0.3)' },
-  { level: 5,  title: 'Lucky Starter',              xpRequired: 1_000,    tier: 'beginner', color: '#d4d4d4', glowColor: 'rgba(212,212,212,0.3)' },
+  { level: 1,  titleKey: 'levels.l1',                   xpRequired: 0,        tier: 'beginner', color: '#6b7280', glowColor: 'rgba(107,114,128,0.3)' },
+  { level: 2,  titleKey: 'levels.l2',                  xpRequired: 50,       tier: 'beginner', color: '#9ca3af', glowColor: 'rgba(156,163,175,0.3)' },
+  { level: 3,  titleKey: 'levels.l3',               xpRequired: 200,      tier: 'beginner', color: '#a8a29e', glowColor: 'rgba(168,162,158,0.3)' },
+  { level: 4,  titleKey: 'levels.l4',             xpRequired: 500,      tier: 'beginner', color: '#b8b8b8', glowColor: 'rgba(184,184,184,0.3)' },
+  { level: 5,  titleKey: 'levels.l5',              xpRequired: 1_000,    tier: 'beginner', color: '#d4d4d4', glowColor: 'rgba(212,212,212,0.3)' },
 
   // Mid (green → blue) — levels 6-10
-  { level: 6,  title: 'Card Enthusiast',            xpRequired: 1_800,    tier: 'mid', color: '#22c55e', glowColor: 'rgba(34,197,94,0.3)' },
-  { level: 7,  title: 'Chip Collector',             xpRequired: 3_000,    tier: 'mid', color: '#16a34a', glowColor: 'rgba(22,163,74,0.3)' },
-  { level: 8,  title: 'Blackjack Player',           xpRequired: 5_000,    tier: 'mid', color: '#0ea5e9', glowColor: 'rgba(14,165,233,0.3)' },
-  { level: 9,  title: "Dealer's Favorite",          xpRequired: 8_000,    tier: 'mid', color: '#3b82f6', glowColor: 'rgba(59,130,246,0.3)' },
-  { level: 10, title: 'Table Pro',                  xpRequired: 12_000,   tier: 'mid', color: '#2563eb', glowColor: 'rgba(37,99,235,0.4)' },
+  { level: 6,  titleKey: 'levels.l6',            xpRequired: 1_800,    tier: 'mid', color: '#22c55e', glowColor: 'rgba(34,197,94,0.3)' },
+  { level: 7,  titleKey: 'levels.l7',             xpRequired: 3_000,    tier: 'mid', color: '#16a34a', glowColor: 'rgba(22,163,74,0.3)' },
+  { level: 8,  titleKey: 'levels.l8',           xpRequired: 5_000,    tier: 'mid', color: '#0ea5e9', glowColor: 'rgba(14,165,233,0.3)' },
+  { level: 9,  titleKey: 'levels.l9',          xpRequired: 8_000,    tier: 'mid', color: '#3b82f6', glowColor: 'rgba(59,130,246,0.3)' },
+  { level: 10, titleKey: 'levels.l10',                  xpRequired: 12_000,   tier: 'mid', color: '#2563eb', glowColor: 'rgba(37,99,235,0.4)' },
 
   // Advanced (purple → gold) — levels 11-17
-  { level: 11, title: 'Card Strategist',            xpRequired: 18_000,   tier: 'advanced', color: '#8b5cf6', glowColor: 'rgba(139,92,246,0.3)' },
-  { level: 12, title: 'Fortune Seeker',             xpRequired: 26_000,   tier: 'advanced', color: '#7c3aed', glowColor: 'rgba(124,58,237,0.3)' },
-  { level: 13, title: 'Blackjack Pro',              xpRequired: 36_000,   tier: 'advanced', color: '#a855f7', glowColor: 'rgba(168,85,247,0.4)' },
-  { level: 14, title: 'All-In Champion',            xpRequired: 50_000,   tier: 'advanced', color: '#c084fc', glowColor: 'rgba(192,132,252,0.4)' },
-  { level: 15, title: 'Card Counter',               xpRequired: 68_000,   tier: 'advanced', color: '#d4a843', glowColor: 'rgba(212,168,67,0.4)' },
-  { level: 16, title: 'VIP Player',                 xpRequired: 90_000,   tier: 'advanced', color: '#eab308', glowColor: 'rgba(234,179,8,0.4)' },
-  { level: 17, title: 'High Roller',                xpRequired: 120_000,  tier: 'advanced', color: '#f59e0b', glowColor: 'rgba(245,158,11,0.5)' },
+  { level: 11, titleKey: 'levels.l11',            xpRequired: 18_000,   tier: 'advanced', color: '#8b5cf6', glowColor: 'rgba(139,92,246,0.3)' },
+  { level: 12, titleKey: 'levels.l12',             xpRequired: 26_000,   tier: 'advanced', color: '#7c3aed', glowColor: 'rgba(124,58,237,0.3)' },
+  { level: 13, titleKey: 'levels.l13',              xpRequired: 36_000,   tier: 'advanced', color: '#a855f7', glowColor: 'rgba(168,85,247,0.4)' },
+  { level: 14, titleKey: 'levels.l14',            xpRequired: 50_000,   tier: 'advanced', color: '#c084fc', glowColor: 'rgba(192,132,252,0.4)' },
+  { level: 15, titleKey: 'levels.l15',               xpRequired: 68_000,   tier: 'advanced', color: '#d4a843', glowColor: 'rgba(212,168,67,0.4)' },
+  { level: 16, titleKey: 'levels.l16',                 xpRequired: 90_000,   tier: 'advanced', color: '#eab308', glowColor: 'rgba(234,179,8,0.4)' },
+  { level: 17, titleKey: 'levels.l17',                xpRequired: 120_000,  tier: 'advanced', color: '#f59e0b', glowColor: 'rgba(245,158,11,0.5)' },
 
   // Elite (gold → diamond) — levels 18-25
-  { level: 18, title: 'Ace Whisperer',              xpRequired: 160_000,  tier: 'elite', color: '#fbbf24', glowColor: 'rgba(251,191,36,0.4)' },
-  { level: 19, title: 'House Breaker',              xpRequired: 210_000,  tier: 'elite', color: '#fcd34d', glowColor: 'rgba(252,211,77,0.5)' },
-  { level: 20, title: 'Mastermind',                 xpRequired: 275_000,  tier: 'elite', color: '#fde68a', glowColor: 'rgba(253,230,138,0.5)' },
-  { level: 21, title: 'Blackjack Master',           xpRequired: 350_000,  tier: 'elite', color: '#ffd700', glowColor: 'rgba(255,215,0,0.5)' },
-  { level: 22, title: 'King of the Table',          xpRequired: 450_000,  tier: 'elite', color: '#ffec80', glowColor: 'rgba(255,236,128,0.5)' },
-  { level: 23, title: 'Lord of Luck',               xpRequired: 575_000,  tier: 'elite', color: '#e0f2fe', glowColor: 'rgba(224,242,254,0.4)' },
-  { level: 24, title: 'Casino Legend',               xpRequired: 750_000,  tier: 'elite', color: '#bae6fd', glowColor: 'rgba(186,230,253,0.5)' },
-  { level: 25, title: 'Grandmaster of Blackjack',    xpRequired: 1_000_000, tier: 'elite', color: '#b9f2ff', glowColor: 'rgba(185,242,255,0.6)' },
+  { level: 18, titleKey: 'levels.l18',              xpRequired: 160_000,  tier: 'elite', color: '#fbbf24', glowColor: 'rgba(251,191,36,0.4)' },
+  { level: 19, titleKey: 'levels.l19',              xpRequired: 210_000,  tier: 'elite', color: '#fcd34d', glowColor: 'rgba(252,211,77,0.5)' },
+  { level: 20, titleKey: 'levels.l20',                 xpRequired: 275_000,  tier: 'elite', color: '#fde68a', glowColor: 'rgba(253,230,138,0.5)' },
+  { level: 21, titleKey: 'levels.l21',           xpRequired: 350_000,  tier: 'elite', color: '#ffd700', glowColor: 'rgba(255,215,0,0.5)' },
+  { level: 22, titleKey: 'levels.l22',          xpRequired: 450_000,  tier: 'elite', color: '#ffec80', glowColor: 'rgba(255,236,128,0.5)' },
+  { level: 23, titleKey: 'levels.l23',               xpRequired: 575_000,  tier: 'elite', color: '#e0f2fe', glowColor: 'rgba(224,242,254,0.4)' },
+  { level: 24, titleKey: 'levels.l24',               xpRequired: 750_000,  tier: 'elite', color: '#bae6fd', glowColor: 'rgba(186,230,253,0.5)' },
+  { level: 25, titleKey: 'levels.l25',    xpRequired: 1_000_000, tier: 'elite', color: '#b9f2ff', glowColor: 'rgba(185,242,255,0.6)' },
 ]
 
 /** XP reward constants for various activities. */

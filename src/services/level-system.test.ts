@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { LevelSystem, LEVELS, XP_REWARDS, calculateSessionXP } from './level-system'
+import i18next from 'i18next'
 import type { TrainingSessionResult } from './stats-types'
 import { CountingSystemId } from '../engine/counting/types'
 
@@ -31,8 +32,23 @@ describe('LEVELS definition', () => {
   })
 
   it('all levels have unique titles', () => {
-    const titles = LEVELS.map(l => l.title)
+    // Resolved through the messages: the titles are keys now, and a key that
+    // resolves to nothing would still be unique while showing the same blank
+    // to every player.
+    const titles = LEVELS.map(l => i18next.t(l.titleKey))
     expect(new Set(titles).size).toBe(25)
+    for (const l of LEVELS) {
+      expect(i18next.t(l.titleKey), `level ${l.level}`).not.toBe(l.titleKey)
+    }
+  })
+
+  it('keys each level’s name to its own number', () => {
+    // A regex rewrite once numbered these sequentially and skipped the one
+    // title written with double quotes, which silently shifted every level
+    // from 9 upwards onto the previous level’s name.
+    for (const l of LEVELS) {
+      expect(l.titleKey, `level ${l.level}`).toBe(`levels.l${l.level}`)
+    }
   })
 
   it('xpRequired is strictly increasing', () => {
@@ -93,31 +109,31 @@ describe('LevelSystem', () => {
     it('starts at level 1 Rookie with 0 XP', () => {
       const level = system.getLevel()
       expect(level.level).toBe(1)
-      expect(level.title).toBe('Rookie')
+      expect(i18next.t(level.titleKey)).toBe('Rookie')
     })
 
     it('reaches level 2 Beginner at 50 XP', () => {
       system.addXP(50)
       expect(system.getLevel().level).toBe(2)
-      expect(system.getLevel().title).toBe('Beginner')
+      expect(i18next.t(system.getLevel().titleKey)).toBe('Beginner')
     })
 
     it('reaches level 5 at 1000 XP', () => {
       system.addXP(1000)
       expect(system.getLevel().level).toBe(5)
-      expect(system.getLevel().title).toBe('Lucky Starter')
+      expect(i18next.t(system.getLevel().titleKey)).toBe('Lucky Starter')
     })
 
     it('reaches level 10 at 12000 XP', () => {
       system.addXP(12000)
       expect(system.getLevel().level).toBe(10)
-      expect(system.getLevel().title).toBe('Table Pro')
+      expect(i18next.t(system.getLevel().titleKey)).toBe('Table Pro')
     })
 
     it('reaches level 25 Grandmaster at 1000000 XP', () => {
       system.addXP(1_000_000)
       expect(system.getLevel().level).toBe(25)
-      expect(system.getLevel().title).toBe('Grandmaster of Blackjack')
+      expect(i18next.t(system.getLevel().titleKey)).toBe('Grandmaster of Blackjack')
     })
 
     it('returns correct level for exact threshold', () => {

@@ -1384,5 +1384,107 @@
       "bankrollTracker": "Bankroll-Tracker"
     },
     "all": "Alle"
+  },
+  "modes": {
+    "speedDrill": "Speed Drill",
+    "deviationFlashCards": "Lernkarten",
+    "betSpread": "Bet Spread",
+    "deckEstimation": "Deck-Schätzung",
+    "casinoSession": "Casino-Session",
+    "tableCounting": "Zählen am Tisch",
+    "deviationTable": "Abweichung (Tisch)",
+    "bankrollTracker": "Bankroll-Tracker",
+    "learn": "Lernen",
+    "analytics": "Auswertung",
+    "strategyChart": "Basisstrategie-Tabelle",
+    "achievements": "Erfolge"
+  },
+  "home": {
+    "trainingModes": "Trainingsmodi",
+    "toolsProgress": "Werkzeuge & Fortschritt",
+    "trackerTitle": "Casino-Session-Tracker",
+    "desc": {
+      "speedDrill": "Trainiere dein Zähltempo mit aufblitzenden Karten",
+      "deviationTraining": "Übe jede Hand — und wann man abweicht",
+      "betSpread": "Übe die optimale Einsatzhöhe nach True Count",
+      "deckEstimation": "Schätze die verbleibenden Decks im Schlitten",
+      "casinoSession": "Spiele eine volle Session an einem realistischen Tisch",
+      "bankrollSim": "Verfolge deine echten Casino-Ergebnisse",
+      "tracker": "Verfolge die Ergebnisse deiner Trainingsdurchgänge",
+      "learn": "Wie Kartenzählen funktioniert — für Einsteiger",
+      "analytics": "Sieh deine Zahlen, Trends und Fortschritte",
+      "strategyChart": "Sieh die vollständige Strategietabelle",
+      "achievements": "Verfolge deinen Fortschritt und schalte Belohnungen frei"
+    }
+  },
+  "startLevel": {
+    "never": {
+      "label": "Ich habe noch nie Blackjack gespielt",
+      "hint": "Wir fangen ganz vorn an — beim Spiel selbst, noch ohne Zählen."
+    },
+    "rules": {
+      "label": "Ich weiss, wie das Spiel funktioniert",
+      "hint": "Ziehen, Stehen, Bust und die Dealerregeln sind dir vertraut."
+    },
+    "basic": {
+      "label": "Ich kenne bei den meisten Händen den richtigen Zug",
+      "hint": "Wann ziehen, stehen, verdoppeln oder splitten — ohne nachzudenken."
+    },
+    "running": {
+      "label": "Ich kann die Karten mitverfolgen, während sie fallen",
+      "hint": "Einen Running Count über einen ganzen Schlitten halten."
+    },
+    "true": {
+      "label": "Ich rechne den Count auf die Restkarten um",
+      "hint": "Aus dem Running Count einen True Count machen."
+    },
+    "deviations": {
+      "label": "Ich ändere mein Spiel, wenn der Count hoch ist",
+      "hint": "Die Strategietabelle überstimmen — die Illustrious 18."
+    },
+    "pro": {
+      "label": "Ich habe das alles schon um Geld am echten Tisch gemacht",
+      "hint": "Einsätze unter Druck zu spreizen ist vertrautes Terrain."
+    }
+  },
+  "levels": {
+    "l1": "Neuling",
+    "l2": "Anfänger",
+    "l3": "Kartenspieler",
+    "l4": "Neu am Tisch",
+    "l5": "Glücklicher Start",
+    "l6": "Kartenfan",
+    "l7": "Chipsammler",
+    "l8": "Blackjack-Spieler",
+    "l9": "Liebling des Dealers",
+    "l10": "Tischprofi",
+    "l11": "Kartenstratege",
+    "l12": "Glücksritter",
+    "l13": "Blackjack-Profi",
+    "l14": "All-in-Champion",
+    "l15": "Kartenzähler",
+    "l16": "VIP-Spieler",
+    "l17": "Grossspieler",
+    "l18": "Ass-Flüsterer",
+    "l19": "Bankbrecher",
+    "l20": "Vordenker",
+    "l21": "Blackjack-Meister",
+    "l22": "König des Tisches",
+    "l23": "Herr des Glücks",
+    "l24": "Casino-Legende",
+    "l25": "Grossmeister des Blackjack",
+    "upTo": "Aufstieg auf Level {{n}}, {{name}}",
+    "short": "Lv. {{n}}",
+    "progressTo": "Fortschritt bis {{name}}",
+    "progressGeneric": "Level-Fortschritt",
+    "xpTo": "{{current}} / {{required}} XP bis {{name}}",
+    "tierNext": "Stufe {{tier}} · als Nächstes: {{name}}",
+    "tierMax": "Stufe {{tier}} · höchstes Level",
+    "tier": {
+      "beginner": "Einsteiger",
+      "mid": "Mittel",
+      "advanced": "Fortgeschritten",
+      "elite": "Elite"
+    }
   }
 }

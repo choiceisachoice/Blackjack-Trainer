@@ -1384,5 +1384,107 @@
       "bankrollTracker": "Bankroll takibi"
     },
     "all": "Tümü"
+  },
+  "modes": {
+    "speedDrill": "Speed Drill",
+    "deviationFlashCards": "Bilgi kartları",
+    "betSpread": "Bet spread",
+    "deckEstimation": "Deste tahmini",
+    "casinoSession": "Casino oturumu",
+    "tableCounting": "Masada sayım",
+    "deviationTable": "Sapma (masa)",
+    "bankrollTracker": "Bankroll takibi",
+    "learn": "Öğren",
+    "analytics": "Analizler",
+    "strategyChart": "Temel strateji tablosu",
+    "achievements": "Ödüller"
+  },
+  "home": {
+    "trainingModes": "Antrenman modları",
+    "toolsProgress": "Araçlar ve ilerleme",
+    "trackerTitle": "Oturum takibi",
+    "desc": {
+      "speedDrill": "Hızla geçen kartlarla sayma hızınızı çalışın",
+      "deviationTraining": "Her eli çalışın — ve ne zaman sapmanız gerektiğini",
+      "betSpread": "True count’a göre en uygun bahsi çalışın",
+      "deckEstimation": "Ayakkabıda kalan desteyi tahmin edin",
+      "casinoSession": "Gerçekçi bir masada tam bir oturum oynayın",
+      "bankrollSim": "Gerçek casino sonuçlarınızı takip edin",
+      "tracker": "Antrenman turlarınızın sonuçlarını takip edin",
+      "learn": "Kart sayma nasıl işler — yeni başlayanlar için",
+      "analytics": "İstatistiklerinizi, eğilimlerinizi ve ilerlemenizi görün",
+      "strategyChart": "Tam strateji tablosunu görün",
+      "achievements": "İlerlemenizi izleyin ve ödüller açın"
+    }
+  },
+  "startLevel": {
+    "never": {
+      "label": "Hiç blackjack oynamadım",
+      "hint": "En baştan başlayacağız — sayımdan önce oyunun kendisiyle."
+    },
+    "rules": {
+      "label": "Oyunun nasıl işlediğini biliyorum",
+      "hint": "Kart alma, durma, batma ve krupiye kuralları size tanıdık."
+    },
+    "basic": {
+      "label": "Çoğu elde doğru hamleyi biliyorum",
+      "hint": "Ne zaman kart alınır, durulur, çiftlenir ya da bölünür — düşünmeden."
+    },
+    "running": {
+      "label": "Kartları çıktıkça takip edebiliyorum",
+      "hint": "Bir ayakkabı boyunca running count tutmak."
+    },
+    "true": {
+      "label": "Bu sayımı kalan kartlara göre ayarlıyorum",
+      "hint": "Running count’u true count’a çevirmek."
+    },
+    "deviations": {
+      "label": "Sayım yüksekken oyunumu değiştiriyorum",
+      "hint": "Strateji tablosunu geçersiz kılmak — Illustrious 18."
+    },
+    "pro": {
+      "label": "Bunların hepsini gerçek masada parayla yaptım",
+      "hint": "Baskı altında bahis yelpazesini açmak tanıdık bir alan."
+    }
+  },
+  "levels": {
+    "l1": "Çaylak",
+    "l2": "Yeni başlayan",
+    "l3": "Kart oyuncusu",
+    "l4": "Masada yeni",
+    "l5": "Şanslı başlangıç",
+    "l6": "Kart meraklısı",
+    "l7": "Fiş koleksiyoncusu",
+    "l8": "Blackjack oyuncusu",
+    "l9": "Krupiyenin gözdesi",
+    "l10": "Masa profesyoneli",
+    "l11": "Kart stratejisti",
+    "l12": "Talih avcısı",
+    "l13": "Blackjack profesyoneli",
+    "l14": "All-in şampiyonu",
+    "l15": "Kart sayıcı",
+    "l16": "VIP oyuncu",
+    "l17": "Yüksek oyuncu",
+    "l18": "As fısıldayan",
+    "l19": "Kasa kıran",
+    "l20": "Usta akıl",
+    "l21": "Blackjack ustası",
+    "l22": "Masanın kralı",
+    "l23": "Şansın efendisi",
+    "l24": "Casino efsanesi",
+    "l25": "Blackjack büyükustası",
+    "upTo": "Seviye {{n}}’e yükseliş, {{name}}",
+    "short": "Sv. {{n}}",
+    "progressTo": "{{name}} seviyesine ilerleme",
+    "progressGeneric": "Seviye ilerlemesi",
+    "xpTo": "{{name}} için {{current}} / {{required}} XP",
+    "tierNext": "{{tier}} kademesi · sonraki: {{name}}",
+    "tierMax": "{{tier}} kademesi · en yüksek seviye",
+    "tier": {
+      "beginner": "Başlangıç",
+      "mid": "Orta",
+      "advanced": "İleri",
+      "elite": "Elit"
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { useLevelStore } from '../../store/level-store'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Compact level badge displayed on the HomeScreen.
@@ -6,6 +7,7 @@ import { useLevelStore } from '../../store/level-store'
  * Shows: level number, title with tier glow, and a mini XP progress bar.
  */
 export function LevelBadge() {
+  const { t } = useTranslation()
   const level = useLevelStore(s => s.level)
   const progress = useLevelStore(s => s.progress)
   const totalXP = useLevelStore(s => s.totalXP)
@@ -35,7 +37,7 @@ export function LevelBadge() {
           textShadow: `0 0 10px ${level.glowColor}`,
         }}
       >
-        {level.title}
+        {t(level.titleKey)}
       </span>
 
       {/* Mini progress bar */}

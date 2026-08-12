@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Zap, GraduationCap, Coins, Layers, Wallet, Club,
   ClipboardList, BarChart3, Grid3x3, Trophy, BookOpen, ArrowRight,
@@ -18,23 +19,26 @@ import { DashboardHeader, ProductTitle } from './DashboardHeader'
 interface FeatureCard {
   mode: AppMode
   icon: LucideIcon
-  title: string
-  description: string
+  titleKey: string
+  descKey: string
 }
 
+// The names come from the shared `modes` namespace, not from here: the home
+// screen, the nav bar, the analytics header and the Learn guide all label the
+// same screens, and they used to hold four separate copies of those words.
 const TRAINING_CARDS: FeatureCard[] = [
-  { mode: 'speedDrill', icon: Zap, title: 'Speed Drill', description: 'Train your counting speed with flashing cards' },
-  { mode: 'deviationTraining', icon: GraduationCap, title: 'Flashcards', description: 'Drill every hand — and when to deviate' },
-  { mode: 'betSpread', icon: Coins, title: 'Bet Spread', description: 'Practice optimal bet sizing by True Count' },
-  { mode: 'deckEstimation', icon: Layers, title: 'Deck Estimation', description: 'Estimate remaining decks from the shoe' },
-  { mode: 'bankrollSim', icon: Wallet, title: 'Bankroll Tracker', description: 'Track your real casino results' },
+  { mode: 'speedDrill', icon: Zap, titleKey: 'modes.speedDrill', descKey: 'home.desc.speedDrill' },
+  { mode: 'deviationTraining', icon: GraduationCap, titleKey: 'modes.deviationFlashCards', descKey: 'home.desc.deviationTraining' },
+  { mode: 'betSpread', icon: Coins, titleKey: 'modes.betSpread', descKey: 'home.desc.betSpread' },
+  { mode: 'deckEstimation', icon: Layers, titleKey: 'modes.deckEstimation', descKey: 'home.desc.deckEstimation' },
+  { mode: 'bankrollSim', icon: Wallet, titleKey: 'modes.bankrollTracker', descKey: 'home.desc.bankrollSim' },
 ]
 
 const TOOL_CARDS: FeatureCard[] = [
-  { mode: 'learn', icon: BookOpen, title: 'Learn', description: 'How card counting works — for beginners' },
-  { mode: 'analytics', icon: BarChart3, title: 'Analytics', description: 'View your training stats, trends, and progress' },
-  { mode: 'strategyChart', icon: Grid3x3, title: 'Basic Strategy Chart', description: 'View the complete strategy table' },
-  { mode: 'achievements', icon: Trophy, title: 'Achievements', description: 'Track your progress and unlock rewards' },
+  { mode: 'learn', icon: BookOpen, titleKey: 'modes.learn', descKey: 'home.desc.learn' },
+  { mode: 'analytics', icon: BarChart3, titleKey: 'modes.analytics', descKey: 'home.desc.analytics' },
+  { mode: 'strategyChart', icon: Grid3x3, titleKey: 'modes.strategyChart', descKey: 'home.desc.strategyChart' },
+  { mode: 'achievements', icon: Trophy, titleKey: 'modes.achievements', descKey: 'home.desc.achievements' },
 ]
 
 /**
@@ -91,6 +95,7 @@ export function HomeScreen() {
 
 /** Everything below the plan: the daily loop, then the browsable modes. */
 function HomeSections() {
+  const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
 
@@ -109,9 +114,9 @@ function HomeSections() {
 
       {/* Training modes */}
       <section className="relative z-10 w-full max-w-5xl mb-10">
-        <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-4 px-1">Training Modes</h2>
+        <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-4 px-1">{t('home.trainingModes')}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {TRAINING_CARDS.map(({ mode, icon: Icon, title, description }) => (
+          {TRAINING_CARDS.map(({ mode, icon: Icon, titleKey, descKey }) => (
             <button
               key={mode}
               onClick={() => setMode(mode)}
@@ -123,8 +128,8 @@ function HomeSections() {
                 group-hover:bg-gold/15 group-hover:border-gold/40">
                 <Icon size={22} />
               </span>
-              <h3 className="text-base font-semibold text-content mb-1">{title}</h3>
-              <p className="text-sm text-content/50 leading-snug">{description}</p>
+              <h3 className="text-base font-semibold text-content mb-1">{t(titleKey)}</h3>
+              <p className="text-sm text-content/50 leading-snug">{t(descKey)}</p>
               <ArrowRight
                 size={16}
                 className="absolute top-5 right-5 text-content/20 -translate-x-1 opacity-0
@@ -171,9 +176,9 @@ function HomeSections() {
 
       {/* Tools */}
       <section className="relative z-10 w-full max-w-5xl mb-12">
-        <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-4 px-1">Tools & Progress</h2>
+        <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-4 px-1">{t('home.toolsProgress')}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {TOOL_CARDS.map(({ mode, icon: Icon, title, description }) => (
+          {TOOL_CARDS.map(({ mode, icon: Icon, titleKey, descKey }) => (
             <button
               key={mode}
               onClick={() => setMode(mode)}
@@ -186,14 +191,14 @@ function HomeSections() {
               </span>
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold text-content">
-                  {title}
+                  {t(titleKey)}
                   {mode === 'achievements' && (
                     <span className="ml-1.5 text-xs font-normal text-content/45">
                       ({totalUnlocked}/{ALL_ACHIEVEMENTS.length})
                     </span>
                   )}
                 </h3>
-                <p className="text-xs text-content/50 mt-0.5 leading-snug">{description}</p>
+                <p className="text-xs text-content/50 mt-0.5 leading-snug">{t(descKey)}</p>
               </div>
             </button>
           ))}

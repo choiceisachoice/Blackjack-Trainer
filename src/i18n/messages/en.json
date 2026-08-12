@@ -1384,5 +1384,107 @@
       "bankrollTracker": "Bankroll Tracker"
     },
     "all": "All"
+  },
+  "modes": {
+    "speedDrill": "Speed Drill",
+    "deviationFlashCards": "Flashcards",
+    "betSpread": "Bet Spread",
+    "deckEstimation": "Deck Estimation",
+    "casinoSession": "Casino Session",
+    "tableCounting": "Table Counting",
+    "deviationTable": "Deviation (Table)",
+    "bankrollTracker": "Bankroll Tracker",
+    "learn": "Learn",
+    "analytics": "Analytics",
+    "strategyChart": "Basic Strategy Chart",
+    "achievements": "Achievements"
+  },
+  "home": {
+    "trainingModes": "Training Modes",
+    "toolsProgress": "Tools & Progress",
+    "trackerTitle": "Casino Session Tracker",
+    "desc": {
+      "speedDrill": "Train your counting speed with flashing cards",
+      "deviationTraining": "Drill every hand — and when to deviate",
+      "betSpread": "Practice optimal bet sizing by True Count",
+      "deckEstimation": "Estimate remaining decks from the shoe",
+      "casinoSession": "Play a full multi-seat session at a realistic table",
+      "bankrollSim": "Track your real casino results",
+      "tracker": "Track your training session results",
+      "learn": "How card counting works — for beginners",
+      "analytics": "View your training stats, trends, and progress",
+      "strategyChart": "View the complete strategy table",
+      "achievements": "Track your progress and unlock rewards"
+    }
+  },
+  "startLevel": {
+    "never": {
+      "label": "I’ve never played blackjack",
+      "hint": "We’ll start at the very beginning — the game itself, before any counting."
+    },
+    "rules": {
+      "label": "I know how the game works",
+      "hint": "Hit, stand, bust and the dealer’s rules are familiar."
+    },
+    "basic": {
+      "label": "I know the right move for most hands",
+      "hint": "When to hit, stand, double or split — without having to think."
+    },
+    "running": {
+      "label": "I can keep track of the cards as they come out",
+      "hint": "Holding a running count through a whole shoe."
+    },
+    "true": {
+      "label": "I adjust that count for how many cards are left",
+      "hint": "Turning the running count into a true count."
+    },
+    "deviations": {
+      "label": "I change how I play when the count is high",
+      "hint": "Overriding the strategy chart — the Illustrious 18."
+    },
+    "pro": {
+      "label": "I’ve done all of this for money at a real table",
+      "hint": "Spreading bets under pressure is familiar territory."
+    }
+  },
+  "levels": {
+    "l1": "Rookie",
+    "l2": "Beginner",
+    "l3": "Card Player",
+    "l4": "Table Newcomer",
+    "l5": "Lucky Starter",
+    "l6": "Card Enthusiast",
+    "l7": "Chip Collector",
+    "l8": "Blackjack Player",
+    "l9": "Dealer's Favorite",
+    "l10": "Table Pro",
+    "l11": "Card Strategist",
+    "l12": "Fortune Seeker",
+    "l13": "Blackjack Pro",
+    "l14": "All-In Champion",
+    "l15": "Card Counter",
+    "l16": "VIP Player",
+    "l17": "High Roller",
+    "l18": "Ace Whisperer",
+    "l19": "House Breaker",
+    "l20": "Mastermind",
+    "l21": "Blackjack Master",
+    "l22": "King of the Table",
+    "l23": "Lord of Luck",
+    "l24": "Casino Legend",
+    "l25": "Grandmaster of Blackjack",
+    "upTo": "Level up to level {{n}}, {{name}}",
+    "short": "Lv.{{n}}",
+    "progressTo": "Progress to {{name}}",
+    "progressGeneric": "Level progress",
+    "xpTo": "{{current}} / {{required}} XP to {{name}}",
+    "tierNext": "{{tier}} tier · next: {{name}}",
+    "tierMax": "{{tier}} tier · max level",
+    "tier": {
+      "beginner": "Beginner",
+      "mid": "Mid",
+      "advanced": "Advanced",
+      "elite": "Elite"
+    }
   }
 }

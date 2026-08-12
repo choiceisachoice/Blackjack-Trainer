@@ -138,7 +138,7 @@ export function AchievementsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unlockedIds, sessions, lifetimeStats, dayStreak])
 
-  const nextTitle = LEVELS.find(l => l.level === level.level + 1)?.title
+  const nextKey = LEVELS.find(l => l.level === level.level + 1)?.titleKey
 
   // Filtered + grouped collection.
   const filtered = ALL_ACHIEVEMENTS.filter(a => {
@@ -175,9 +175,11 @@ export function AchievementsPage() {
             </span>
           </ProgressRing>
           <div className="relative flex-1 min-w-[220px]">
-            <div className="text-xl md:text-2xl font-extrabold tracking-tight" style={{ color: level.color }} data-testid="rank-title">{level.title}</div>
-            <div className="text-sm text-content/50 mt-0.5 capitalize">
-              {level.tier} tier{nextTitle ? ` · next: ${nextTitle}` : ' · max level'}
+            <div className="text-xl md:text-2xl font-extrabold tracking-tight" style={{ color: level.color }} data-testid="rank-title">{t(level.titleKey)}</div>
+            <div className="text-sm text-content/50 mt-0.5">
+              {nextKey
+                ? t('levels.tierNext', { tier: t(`levels.tier.${level.tier}`), name: t(nextKey) })
+                : t('levels.tierMax', { tier: t(`levels.tier.${level.tier}`) })}
             </div>
             <div className="mt-3 h-2.5 rounded-full bg-surface-2 border border-contrast/10 overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${levelProgress.required === 0 ? 100 : levelProgress.percent}%`, background: `linear-gradient(90deg, ${level.color}, var(--color-gold-bright))` }} />
@@ -300,6 +302,7 @@ function SectionTitle({ children, className = '' }: { children: React.ReactNode;
 
 /** The 25-level journey as a horizontally scrollable track, scrolled to current. */
 function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
+  const { t } = useTranslation()
   const scrollRef = useRef<HTMLDivElement>(null)
   const currentRef = useRef<HTMLDivElement>(null)
 
@@ -338,7 +341,7 @@ function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
                 </div>
                 <div className={`text-[10.5px] text-center leading-tight ${current ? 'font-bold' : 'text-content/50'}`}
                   style={current ? { color: l.color } : undefined}>
-                  {l.title}
+                  {t(l.titleKey)}
                 </div>
               </div>
             )

@@ -88,7 +88,7 @@ export function DashboardHeader() {
               {played ? 'Welcome back' : 'Welcome'}
             </div>
             <h1 className="mt-2 flex items-baseline gap-2.5 text-2xl md:text-3xl font-bold tracking-tight">
-              <span style={{ color: level.color }}>{level.title}</span>
+              <span style={{ color: level.color }}>{t(level.titleKey)}</span>
               <span className="text-base font-semibold text-content/35">Lv. {level.level}</span>
             </h1>
 
@@ -99,7 +99,7 @@ export function DashboardHeader() {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={Math.round(progress.percent)}
-                aria-label={nextLevel ? `Progress to ${nextLevel.title}` : 'Level progress'}
+                aria-label={nextLevel ? t('levels.progressTo', { name: t(nextLevel.titleKey) }) : t('levels.progressGeneric')}
               >
                 <div
                   className="h-full rounded-full transition-[width] duration-500"
@@ -111,7 +111,7 @@ export function DashboardHeader() {
               </div>
               <div className="mt-1.5 text-xs text-content/45 tabular-nums">
                 {nextLevel
-                  ? `${progress.current.toLocaleString()} / ${progress.required.toLocaleString()} XP to ${nextLevel.title}`
+                  ? t('levels.xpTo', { current: progress.current.toLocaleString(), required: progress.required.toLocaleString(), name: t(nextLevel.titleKey) })
                   : `${totalXP.toLocaleString()} XP — max level reached`}
               </div>
             </div>

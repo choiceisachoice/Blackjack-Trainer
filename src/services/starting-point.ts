@@ -28,9 +28,9 @@ import { CURRICULUM, stageIndex, type StageId } from './curriculum'
 
 export interface EntryOption {
   /** A capability, never a feeling — "intermediate" means nothing and cannot be checked. */
-  label: string
+  labelKey: string
   /** Sub-line: what this claim actually means, so people pick honestly. */
-  hint: string
+  hintKey: string
   value: string
   /**
    * The first stage this learner still has to work through — their placement.
@@ -50,44 +50,44 @@ export interface EntryOption {
  */
 export const ENTRY_OPTIONS: EntryOption[] = [
   {
-    label: 'I’ve never played blackjack',
-    hint: 'We’ll start at the very beginning — the game itself, before any counting.',
+    labelKey: 'startLevel.never.label',
+    hintKey: 'startLevel.never.hint',
     value: 'new',
     stage: 'rules',
   },
   {
-    label: 'I know how the game works',
-    hint: 'Hit, stand, bust and the dealer’s rules are familiar.',
+    labelKey: 'startLevel.rules.label',
+    hintKey: 'startLevel.rules.hint',
     value: 'rules',
     stage: 'basic-strategy',
   },
   {
-    label: 'I know the right move for most hands',
-    hint: 'When to hit, stand, double or split — without having to think.',
+    labelKey: 'startLevel.basic.label',
+    hintKey: 'startLevel.basic.hint',
     value: 'strategy',
     stage: 'hi-lo',
   },
   {
-    label: 'I can keep track of the cards as they come out',
-    hint: 'Holding a running count through a whole shoe.',
+    labelKey: 'startLevel.running.label',
+    hintKey: 'startLevel.running.hint',
     value: 'counting',
     stage: 'true-count',
   },
   {
-    label: 'I adjust that count for how many cards are left',
-    hint: 'Turning the running count into a true count.',
+    labelKey: 'startLevel.true.label',
+    hintKey: 'startLevel.true.hint',
     value: 'truecount',
     stage: 'deviations',
   },
   {
-    label: 'I change how I play when the count is high',
-    hint: 'Overriding the strategy chart — the Illustrious 18.',
+    labelKey: 'startLevel.deviations.label',
+    hintKey: 'startLevel.deviations.hint',
     value: 'deviations',
     stage: 'bet-spread',
   },
   {
-    label: 'I’ve done all of this for money at a real table',
-    hint: 'Spreading bets under pressure is familiar territory.',
+    labelKey: 'startLevel.pro.label',
+    hintKey: 'startLevel.pro.hint',
     value: 'table',
     stage: 'table',
   },

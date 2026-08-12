@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import i18next from 'i18next'
 import {
   ENTRY_OPTIONS,
   DEFAULT_ENTRY,
@@ -80,8 +81,8 @@ describe('reading a level back', () => {
 describe('the copy', () => {
   it('gives every option a label and a hint', () => {
     for (const o of ENTRY_OPTIONS) {
-      expect(o.label.length).toBeGreaterThan(0)
-      expect(o.hint.length).toBeGreaterThan(0)
+      expect(i18next.t(o.labelKey), o.value).not.toBe(o.labelKey)
+      expect(i18next.t(o.hintKey), o.value).not.toBe(o.hintKey)
     }
   })
 
@@ -90,7 +91,7 @@ describe('the copy', () => {
     // everyone. Every label has to name a capability instead.
     const vague = /\b(beginner|intermediate|advanced|expert|novice|pro)\b/i
     for (const o of ENTRY_OPTIONS) {
-      expect(o.label).not.toMatch(vague)
+      expect(i18next.t(o.labelKey)).not.toMatch(vague)
     }
   })
 })
