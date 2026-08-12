@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import i18next from 'i18next'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 import { TrainingPlan } from './TrainingPlan'
 import { useAppStore } from '../../store/app-store'
@@ -262,7 +263,7 @@ describe('TrainingPlan', () => {
     localStorage.setItem('bjt_placement', 'hi-lo')
     useChallengeStore.setState({
       challenge: {
-        id: 'test', title: 'Count a shoe', description: '', icon: '🎯',
+        id: 'test', titleKey: 'chal.warm_up.title', descKey: 'chal.warm_up.desc', icon: '🎯',
         type: 'play_sessions', difficulty: 'medium', target: 2,
         progressMode: 'cumulative_today', requiredMode: 'speedDrill',
       },
@@ -271,7 +272,7 @@ describe('TrainingPlan', () => {
     render(<TrainingPlan />)
 
     const card = screen.getByTestId('plan-daily-challenge')
-    expect(within(card).getByText('Count a shoe')).toBeInTheDocument()
+    expect(within(card).getByText(i18next.t('chal.warm_up.title'))).toBeInTheDocument()
     expect(within(card).getByText('+100 XP')).toBeInTheDocument()
   })
 
@@ -279,7 +280,7 @@ describe('TrainingPlan', () => {
     localStorage.setItem('bjt_placement', 'hi-lo')
     useChallengeStore.setState({
       challenge: {
-        id: 'test', title: 'Flashcards', description: '', icon: '🎯',
+        id: 'test', titleKey: 'chal.at_the_table.title', descKey: 'chal.at_the_table.desc', icon: '🎯',
         type: 'play_sessions', difficulty: 'easy', target: 1,
         progressMode: 'cumulative_today', requiredMode: 'deviationFlashCards',
       },

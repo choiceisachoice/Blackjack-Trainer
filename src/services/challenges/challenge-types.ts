@@ -28,10 +28,10 @@ export const CHALLENGE_XP: Record<ChallengeDifficulty, number> = {
 export interface ChallengeDefinition {
   /** Unique identifier. */
   id: string
-  /** Short display title. */
-  title: string
-  /** Descriptive text shown below the title. */
-  description: string
+  /** Key for the display title, under `chal`. */
+  titleKey: string
+  /** Key for the line below it. */
+  descKey: string
   /** Emoji icon. */
   icon: string
   /** What metric this challenge tracks. */
@@ -91,10 +91,10 @@ export type WeeklyChallengeType =
 export interface WeeklyChallengeDefinition {
   /** Unique identifier. */
   id: string
-  /** Short display title. */
-  title: string
-  /** Descriptive text shown below the title. */
-  description: string
+  /** Key for the display title, under `chal`. */
+  titleKey: string
+  /** Key for the line below it. */
+  descKey: string
   /** Emoji icon. */
   icon: string
   /** What metric this challenge tracks. */

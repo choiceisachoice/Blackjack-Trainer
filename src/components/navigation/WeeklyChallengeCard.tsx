@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CalendarRange } from 'lucide-react'
 import { useWeeklyChallengeStore } from '../../store/weekly-challenge-store'
 import { weeklyChallengeEngine } from '../../services/challenges/weekly-challenge'
@@ -19,6 +20,7 @@ function formatTimeRemaining(remaining: { days: number; hours: number; minutes: 
  * Uses a purple/violet color theme to distinguish from the gold Daily Challenge card.
  */
 export function WeeklyChallengeCard() {
+  const { t } = useTranslation()
   const challenge = useWeeklyChallengeStore(s => s.challenge)
   const state = useWeeklyChallengeStore(s => s.state)
   const streak = useWeeklyChallengeStore(s => s.streak)
@@ -112,10 +114,10 @@ export function WeeklyChallengeCard() {
 
       {/* Challenge info */}
       <h4 className="text-base font-semibold text-content mb-0.5">
-        {challenge.title}
+        {t(challenge.titleKey)}
       </h4>
       <p className="text-sm text-content/50 mb-3">
-        {challenge.description}
+        {t(challenge.descKey)}
       </p>
 
       {/* Progress bar */}

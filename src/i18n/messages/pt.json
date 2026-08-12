@@ -1486,5 +1486,169 @@
       "advanced": "Avançado",
       "elite": "Elite"
     }
+  },
+  "chal": {
+    "warm_up": {
+      "title": "Aquecimento",
+      "desc": "Conclua 2 sessões de treino hoje"
+    },
+    "deal_me_in": {
+      "title": "Distribua",
+      "desc": "Jogue 30 mãos em qualquer modo"
+    },
+    "quick_practice": {
+      "title": "Prática rápida",
+      "desc": "Conclua uma sessão de Speed Drill"
+    },
+    "speed_round": {
+      "title": "Ronda rápida",
+      "desc": "Conclua uma sessão de bet spread"
+    },
+    "at_the_table": {
+      "title": "Às cartas",
+      "desc": "Conclua uma sessão de cartões"
+    },
+    "eye_test": {
+      "title": "Teste de vista",
+      "desc": "Conclua uma sessão de estimativa de baralhos"
+    },
+    "session_warrior": {
+      "title": "Guerreiro das sessões",
+      "desc": "Conclua 5 sessões de treino hoje"
+    },
+    "grinder": {
+      "title": "Trabalhador",
+      "desc": "Jogue 100 mãos em qualquer modo"
+    },
+    "sharp_eye": {
+      "title": "Olho afiado",
+      "desc": "Alcance 80% de precisão numa sessão"
+    },
+    "winning_streak": {
+      "title": "Sequência vencedora",
+      "desc": "Acerte 5 respostas seguidas numa sessão"
+    },
+    "focused_practice": {
+      "title": "Prática concentrada",
+      "desc": "Pratique 10 minutos no total hoje"
+    },
+    "deviation_day": {
+      "title": "Dia dos desvios",
+      "desc": "Conclua 2 sessões de treino de desvios"
+    },
+    "money_management": {
+      "title": "Gestão do dinheiro",
+      "desc": "Termine uma sessão de casino com lucro"
+    },
+    "deviation_student": {
+      "title": "Aluno dos desvios",
+      "desc": "Acerte hoje 10 decisões de desvio"
+    },
+    "precision": {
+      "title": "Precisão",
+      "desc": "Alcance 90% de precisão numa sessão"
+    },
+    "centurion": {
+      "title": "Centurião",
+      "desc": "Jogue 200 mãos em qualquer modo"
+    },
+    "marathon_training": {
+      "title": "Treino de maratona",
+      "desc": "Pratique 30 minutos no total hoje"
+    },
+    "hot_hand": {
+      "title": "Mão quente",
+      "desc": "Acerte 10 respostas seguidas numa sessão"
+    },
+    "big_winner": {
+      "title": "Grande vencedor",
+      "desc": "Ganhe mais de 500 $ numa sessão de casino"
+    },
+    "dedicated_day": {
+      "title": "Dia dedicado",
+      "desc": "Conclua 10 sessões de treino hoje"
+    },
+    "sniper": {
+      "title": "Franco-atirador",
+      "desc": "Alcance 95% de precisão numa sessão"
+    },
+    "count_master": {
+      "title": "Mestre da contagem",
+      "desc": "Obtenha 90%+ de precisão de contagem numa sessão de casino"
+    },
+    "lightning_speed": {
+      "title": "Velocidade relâmpago",
+      "desc": "Conclua um Speed Drill com menos de 500 ms de média"
+    },
+    "high_roller": {
+      "title": "Grande apostador",
+      "desc": "Ganhe mais de 1000 $ numa sessão de casino"
+    }
+  },
+  "wchal": {
+    "weekly_grinder": {
+      "title": "Trabalhador da semana",
+      "desc": "Jogue 200 mãos esta semana em qualquer modo"
+    },
+    "consistent_player": {
+      "title": "Jogador constante",
+      "desc": "Treine em 5 dias diferentes"
+    },
+    "mode_explorer": {
+      "title": "Explorador de modos",
+      "desc": "Jogue pelo menos 3 modos diferentes"
+    },
+    "weekly_practice": {
+      "title": "Prática semanal",
+      "desc": "Treine 2 horas no total esta semana"
+    },
+    "accuracy_week": {
+      "title": "Semana da precisão",
+      "desc": "Alcance 85%+ em 5 sessões separadas"
+    },
+    "casino_regular": {
+      "title": "Habitual do casino",
+      "desc": "Jogue 5 sessões de casino esta semana"
+    },
+    "deviation_expert": {
+      "title": "Perito em desvios",
+      "desc": "Acerte 50 desvios esta semana"
+    },
+    "marathon_week": {
+      "title": "Semana de maratona",
+      "desc": "Jogue 500 mãos em qualquer modo"
+    },
+    "profit_hunter": {
+      "title": "Caçador de lucros",
+      "desc": "Ganhe 2000 $ de lucro total em sessões de casino"
+    },
+    "daily_warrior": {
+      "title": "Guerreiro diário",
+      "desc": "Conclua os 7 desafios diários esta semana"
+    },
+    "perfectionist_week": {
+      "title": "Semana perfecionista",
+      "desc": "Alcance 90%+ em 10 sessões"
+    },
+    "ultimate_grinder": {
+      "title": "Trabalhador supremo",
+      "desc": "Jogue 1000 mãos esta semana"
+    },
+    "training_addict": {
+      "title": "Viciado no treino",
+      "desc": "Treine 5 horas esta semana"
+    },
+    "all_rounder": {
+      "title": "Faz-tudo",
+      "desc": "Jogue os 6 modos de treino mais a sessão de casino"
+    },
+    "high_roller_week": {
+      "title": "Semana de grande apostador",
+      "desc": "Ganhe 5000 $ de lucro total em sessões de casino"
+    },
+    "streak_master": {
+      "title": "Mestre das sequências",
+      "desc": "Ganhe 10 mãos seguidas numa sessão de casino"
+    }
   }
 }

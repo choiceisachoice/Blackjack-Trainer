@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import i18next from 'i18next'
 import { DailyChallengeEngine } from './daily-challenge'
 import { CHALLENGE_POOL } from './challenge-pool'
 import type { TrainingSessionResult } from '../stats-types'
@@ -86,7 +87,8 @@ describe('DailyChallengeEngine', () => {
       const challenge = engine.getTodayChallenge()
       expect(challenge).toBeDefined()
       expect(challenge.id).toBeTruthy()
-      expect(challenge.title).toBeTruthy()
+      // Resolved: the title is a key now, and a key is always truthy.
+      expect(i18next.t(challenge.titleKey)).not.toBe(challenge.titleKey)
       expect(challenge.target).toBeGreaterThan(0)
       expect(CHALLENGE_POOL).toContainEqual(challenge)
     })

@@ -11,8 +11,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
 
   {
     id: 'weekly_grinder',
-    title: 'Weekly Grinder',
-    description: 'Play 200 hands across any modes this week',
+    titleKey: 'wchal.weekly_grinder.title',
+    descKey: 'wchal.weekly_grinder.desc',
     icon: '\uD83D\uDCC5',
     type: 'play_hands',
     difficulty: 'medium',
@@ -21,8 +21,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'consistent_player',
-    title: 'Consistent Player',
-    description: 'Complete a training session on 5 different days',
+    titleKey: 'wchal.consistent_player.title',
+    descKey: 'wchal.consistent_player.desc',
     icon: '\uD83D\uDCC6',
     type: 'unique_days',
     difficulty: 'medium',
@@ -31,8 +31,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'mode_explorer',
-    title: 'Mode Explorer',
-    description: 'Play at least 3 different training modes',
+    titleKey: 'wchal.mode_explorer.title',
+    descKey: 'wchal.mode_explorer.desc',
     icon: '\uD83D\uDDFA\uFE0F',
     type: 'unique_modes',
     difficulty: 'medium',
@@ -41,8 +41,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'weekly_practice',
-    title: 'Weekly Practice',
-    description: 'Train for a total of 2 hours this week',
+    titleKey: 'wchal.weekly_practice.title',
+    descKey: 'wchal.weekly_practice.desc',
     icon: '\u23F1\uFE0F',
     type: 'play_minutes',
     difficulty: 'medium',
@@ -54,8 +54,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
 
   {
     id: 'accuracy_week',
-    title: 'Accuracy Week',
-    description: 'Achieve 85%+ accuracy in 5 separate sessions',
+    titleKey: 'wchal.accuracy_week.title',
+    descKey: 'wchal.accuracy_week.desc',
     icon: '\uD83C\uDFAF',
     type: 'sessions_with_accuracy',
     difficulty: 'hard',
@@ -65,8 +65,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'casino_regular',
-    title: 'Casino Regular',
-    description: 'Play 5 Casino Sessions this week',
+    titleKey: 'wchal.casino_regular.title',
+    descKey: 'wchal.casino_regular.desc',
     icon: '\uD83C\uDFB0',
     type: 'play_sessions',
     difficulty: 'hard',
@@ -76,8 +76,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'deviation_expert',
-    title: 'Deviation Expert',
-    description: 'Get 50 deviations correct this week',
+    titleKey: 'wchal.deviation_expert.title',
+    descKey: 'wchal.deviation_expert.desc',
     icon: '\uD83E\uDDE0',
     type: 'deviation_correct',
     difficulty: 'hard',
@@ -86,8 +86,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'marathon_week',
-    title: 'Marathon Week',
-    description: 'Play 500 hands across any modes',
+    titleKey: 'wchal.marathon_week.title',
+    descKey: 'wchal.marathon_week.desc',
     icon: '\uD83C\uDFC3',
     type: 'play_hands',
     difficulty: 'hard',
@@ -96,8 +96,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'profit_hunter',
-    title: 'Profit Hunter',
-    description: 'Earn a total of $2,000 profit in Casino Sessions',
+    titleKey: 'wchal.profit_hunter.title',
+    descKey: 'wchal.profit_hunter.desc',
     icon: '\uD83D\uDCB0',
     type: 'earn_profit',
     difficulty: 'hard',
@@ -107,8 +107,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'daily_warrior',
-    title: 'Daily Warrior',
-    description: 'Complete all 7 Daily Challenges this week',
+    titleKey: 'wchal.daily_warrior.title',
+    descKey: 'wchal.daily_warrior.desc',
     icon: '\u2694\uFE0F',
     type: 'daily_challenges_completed',
     difficulty: 'hard',
@@ -120,8 +120,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
 
   {
     id: 'perfectionist_week',
-    title: 'Perfectionist Week',
-    description: 'Achieve 90%+ accuracy in 10 sessions',
+    titleKey: 'wchal.perfectionist_week.title',
+    descKey: 'wchal.perfectionist_week.desc',
     icon: '\uD83D\uDC8E',
     type: 'sessions_with_accuracy',
     difficulty: 'very_hard',
@@ -131,8 +131,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'ultimate_grinder',
-    title: 'Ultimate Grinder',
-    description: 'Play 1,000 hands this week',
+    titleKey: 'wchal.ultimate_grinder.title',
+    descKey: 'wchal.ultimate_grinder.desc',
     icon: '\uD83D\uDC51',
     type: 'play_hands',
     difficulty: 'very_hard',
@@ -141,8 +141,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'training_addict',
-    title: 'Training Addict',
-    description: 'Train for 5 hours this week',
+    titleKey: 'wchal.training_addict.title',
+    descKey: 'wchal.training_addict.desc',
     icon: '\uD83D\uDD25',
     type: 'play_minutes',
     difficulty: 'very_hard',
@@ -151,8 +151,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'all_rounder',
-    title: 'All-Rounder',
-    description: 'Play all 6 training modes + Casino Session',
+    titleKey: 'wchal.all_rounder.title',
+    descKey: 'wchal.all_rounder.desc',
     icon: '\uD83C\uDF1F',
     type: 'unique_modes',
     difficulty: 'very_hard',
@@ -161,8 +161,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'high_roller_week',
-    title: 'High Roller Week',
-    description: 'Earn $5,000 total profit in Casino Sessions',
+    titleKey: 'wchal.high_roller_week.title',
+    descKey: 'wchal.high_roller_week.desc',
     icon: '\uD83E\uDD11',
     type: 'earn_profit',
     difficulty: 'very_hard',
@@ -172,8 +172,8 @@ export const WEEKLY_CHALLENGE_POOL: WeeklyChallengeDefinition[] = [
   },
   {
     id: 'streak_master',
-    title: 'Streak Master',
-    description: 'Win 10 hands in a row in a Casino Session',
+    titleKey: 'wchal.streak_master.title',
+    descKey: 'wchal.streak_master.desc',
     icon: '\uD83C\uDFC6',
     type: 'win_streak',
     difficulty: 'very_hard',

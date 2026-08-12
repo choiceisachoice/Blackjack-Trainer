@@ -1486,5 +1486,169 @@
       "advanced": "İleri",
       "elite": "Elit"
     }
+  },
+  "chal": {
+    "warm_up": {
+      "title": "Isınma",
+      "desc": "Bugün 2 antrenman turu tamamlayın"
+    },
+    "deal_me_in": {
+      "title": "Bana da dağıt",
+      "desc": "Herhangi bir modda 30 el oynayın"
+    },
+    "quick_practice": {
+      "title": "Kısa çalışma",
+      "desc": "Bir Speed Drill turu tamamlayın"
+    },
+    "speed_round": {
+      "title": "Hızlı tur",
+      "desc": "Bir bet spread turu tamamlayın"
+    },
+    "at_the_table": {
+      "title": "Kartlara başla",
+      "desc": "Bir bilgi kartı turu tamamlayın"
+    },
+    "eye_test": {
+      "title": "Göz testi",
+      "desc": "Bir deste tahmini turu tamamlayın"
+    },
+    "session_warrior": {
+      "title": "Oturum savaşçısı",
+      "desc": "Bugün 5 antrenman turu tamamlayın"
+    },
+    "grinder": {
+      "title": "Sıkı çalışan",
+      "desc": "Herhangi bir modda 100 el oynayın"
+    },
+    "sharp_eye": {
+      "title": "Keskin göz",
+      "desc": "Tek bir turda %80 isabet tutturun"
+    },
+    "winning_streak": {
+      "title": "Galibiyet serisi",
+      "desc": "Bir turda üst üste 5 doğru yanıt verin"
+    },
+    "focused_practice": {
+      "title": "Odaklı çalışma",
+      "desc": "Bugün toplam 10 dakika çalışın"
+    },
+    "deviation_day": {
+      "title": "Sapma günü",
+      "desc": "2 sapma antrenmanı turu tamamlayın"
+    },
+    "money_management": {
+      "title": "Para yönetimi",
+      "desc": "Bir casino oturumunu kârla bitirin"
+    },
+    "deviation_student": {
+      "title": "Sapma öğrencisi",
+      "desc": "Bugün 10 sapma kararını doğru verin"
+    },
+    "precision": {
+      "title": "Hassasiyet",
+      "desc": "Tek bir turda %90 isabet tutturun"
+    },
+    "centurion": {
+      "title": "Yüzbaşı",
+      "desc": "Herhangi bir modda 200 el oynayın"
+    },
+    "marathon_training": {
+      "title": "Maraton antrenmanı",
+      "desc": "Bugün toplam 30 dakika çalışın"
+    },
+    "hot_hand": {
+      "title": "Sıcak el",
+      "desc": "Bir turda üst üste 10 doğru yanıt verin"
+    },
+    "big_winner": {
+      "title": "Büyük kazanan",
+      "desc": "Bir casino oturumunda 500 $+ kâr edin"
+    },
+    "dedicated_day": {
+      "title": "Verimli gün",
+      "desc": "Bugün 10 antrenman turu tamamlayın"
+    },
+    "sniper": {
+      "title": "Keskin nişancı",
+      "desc": "Tek bir turda %95 isabet tutturun"
+    },
+    "count_master": {
+      "title": "Sayım ustası",
+      "desc": "Bir casino oturumunda %90+ sayım isabeti tutturun"
+    },
+    "lightning_speed": {
+      "title": "Şimşek hızı",
+      "desc": "Ortalama 500 ms altında bir Speed Drill tamamlayın"
+    },
+    "high_roller": {
+      "title": "Yüksek oyuncu",
+      "desc": "Bir casino oturumunda 1.000 $+ kâr edin"
+    }
+  },
+  "wchal": {
+    "weekly_grinder": {
+      "title": "Haftanın işçisi",
+      "desc": "Bu hafta herhangi bir modda 200 el oynayın"
+    },
+    "consistent_player": {
+      "title": "İstikrarlı oyuncu",
+      "desc": "5 farklı günde antrenman yapın"
+    },
+    "mode_explorer": {
+      "title": "Mod kâşifi",
+      "desc": "En az 3 farklı antrenman modu oynayın"
+    },
+    "weekly_practice": {
+      "title": "Haftalık çalışma",
+      "desc": "Bu hafta toplam 2 saat çalışın"
+    },
+    "accuracy_week": {
+      "title": "İsabet haftası",
+      "desc": "5 ayrı turda %85+ isabet tutturun"
+    },
+    "casino_regular": {
+      "title": "Casino müdavimi",
+      "desc": "Bu hafta 5 casino oturumu oynayın"
+    },
+    "deviation_expert": {
+      "title": "Sapma uzmanı",
+      "desc": "Bu hafta 50 sapmayı doğru yapın"
+    },
+    "marathon_week": {
+      "title": "Maraton haftası",
+      "desc": "Herhangi bir modda 500 el oynayın"
+    },
+    "profit_hunter": {
+      "title": "Kâr avcısı",
+      "desc": "Casino oturumlarında toplam 2.000 $ kâr edin"
+    },
+    "daily_warrior": {
+      "title": "Günlük savaşçı",
+      "desc": "Bu hafta 7 günlük görevin tamamını bitirin"
+    },
+    "perfectionist_week": {
+      "title": "Mükemmeliyetçi hafta",
+      "desc": "10 turda %90+ isabet tutturun"
+    },
+    "ultimate_grinder": {
+      "title": "Nihai işçi",
+      "desc": "Bu hafta 1.000 el oynayın"
+    },
+    "training_addict": {
+      "title": "Antrenman bağımlısı",
+      "desc": "Bu hafta 5 saat çalışın"
+    },
+    "all_rounder": {
+      "title": "Her işi yapan",
+      "desc": "6 antrenman modunun tamamını ve casino oturumunu oynayın"
+    },
+    "high_roller_week": {
+      "title": "Yüksek oyuncu haftası",
+      "desc": "Casino oturumlarında toplam 5.000 $ kâr edin"
+    },
+    "streak_master": {
+      "title": "Seri ustası",
+      "desc": "Bir casino oturumunda üst üste 10 el kazanın"
+    }
   }
 }

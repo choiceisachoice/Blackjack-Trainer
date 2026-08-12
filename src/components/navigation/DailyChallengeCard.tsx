@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CalendarCheck } from 'lucide-react'
 import { useChallengeStore } from '../../store/challenge-store'
 import { CHALLENGE_XP } from '../../services/challenges/challenge-types'
@@ -25,6 +26,7 @@ function secondsUntilMidnight(): number {
  * Shows today's challenge with progress bar, XP reward, streak, and countdown.
  */
 export function DailyChallengeCard() {
+  const { t } = useTranslation()
   const challenge = useChallengeStore(s => s.challenge)
   const state = useChallengeStore(s => s.state)
   const streak = useChallengeStore(s => s.streak)
@@ -125,10 +127,10 @@ export function DailyChallengeCard() {
 
       {/* Challenge info */}
       <h4 className="text-base font-semibold text-content mb-0.5">
-        {challenge.title}
+        {t(challenge.titleKey)}
       </h4>
       <p className="text-sm text-content/50 mb-3">
-        {challenge.description}
+        {t(challenge.descKey)}
       </p>
 
       {/* Progress bar */}

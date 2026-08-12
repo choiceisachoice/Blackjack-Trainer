@@ -451,7 +451,7 @@ export function TrainingPlan({
                 <div className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
                   {t('plan.todaysChallenge')}
                 </div>
-                <div className="mt-0.5 font-semibold truncate">{challenge.title}</div>
+                <div className="mt-0.5 font-semibold truncate">{t(challenge.titleKey)}</div>
               </div>
               <span className="shrink-0 text-sm font-semibold text-gold tabular-nums">
                 +{CHALLENGE_XP[challenge.difficulty]} XP

@@ -1486,5 +1486,169 @@
       "advanced": "Fortgeschritten",
       "elite": "Elite"
     }
+  },
+  "chal": {
+    "warm_up": {
+      "title": "Aufwärmen",
+      "desc": "Schliesse heute 2 Trainingsdurchgänge ab"
+    },
+    "deal_me_in": {
+      "title": "Ich bin dabei",
+      "desc": "Spiele 30 Hände in einem beliebigen Modus"
+    },
+    "quick_practice": {
+      "title": "Kurze Übung",
+      "desc": "Schliesse einen Speed Drill ab"
+    },
+    "speed_round": {
+      "title": "Schnellrunde",
+      "desc": "Schliesse einen Bet-Spread-Durchgang ab"
+    },
+    "at_the_table": {
+      "title": "Ran an die Karten",
+      "desc": "Schliesse einen Lernkarten-Durchgang ab"
+    },
+    "eye_test": {
+      "title": "Sehtest",
+      "desc": "Schliesse eine Deck-Schätzung ab"
+    },
+    "session_warrior": {
+      "title": "Session-Krieger",
+      "desc": "Schliesse heute 5 Trainingsdurchgänge ab"
+    },
+    "grinder": {
+      "title": "Malocher",
+      "desc": "Spiele 100 Hände in einem beliebigen Modus"
+    },
+    "sharp_eye": {
+      "title": "Scharfes Auge",
+      "desc": "Erreiche 80 % Trefferquote in einem Durchgang"
+    },
+    "winning_streak": {
+      "title": "Siegesserie",
+      "desc": "Schaffe 5 richtige Antworten in Folge in einem Durchgang"
+    },
+    "focused_practice": {
+      "title": "Konzentriertes Üben",
+      "desc": "Übe heute insgesamt 10 Minuten"
+    },
+    "deviation_day": {
+      "title": "Abweichungstag",
+      "desc": "Schliesse 2 Abweichungs-Durchgänge ab"
+    },
+    "money_management": {
+      "title": "Geldverwaltung",
+      "desc": "Beende eine Casino-Session mit Gewinn"
+    },
+    "deviation_student": {
+      "title": "Abweichungs-Schüler",
+      "desc": "Triff heute 10 Abweichungs-Entscheidungen richtig"
+    },
+    "precision": {
+      "title": "Präzision",
+      "desc": "Erreiche 90 % Trefferquote in einem Durchgang"
+    },
+    "centurion": {
+      "title": "Zenturio",
+      "desc": "Spiele 200 Hände in einem beliebigen Modus"
+    },
+    "marathon_training": {
+      "title": "Marathontraining",
+      "desc": "Übe heute insgesamt 30 Minuten"
+    },
+    "hot_hand": {
+      "title": "Glückliche Hand",
+      "desc": "Schaffe 10 richtige Antworten in Folge in einem Durchgang"
+    },
+    "big_winner": {
+      "title": "Grosser Gewinner",
+      "desc": "Mach 500 $+ Gewinn in einer Casino-Session"
+    },
+    "dedicated_day": {
+      "title": "Fleissiger Tag",
+      "desc": "Schliesse heute 10 Trainingsdurchgänge ab"
+    },
+    "sniper": {
+      "title": "Scharfschütze",
+      "desc": "Erreiche 95 % Trefferquote in einem Durchgang"
+    },
+    "count_master": {
+      "title": "Zähl-Meister",
+      "desc": "Erreiche 90 %+ Zähl-Genauigkeit in einer Casino-Session"
+    },
+    "lightning_speed": {
+      "title": "Blitztempo",
+      "desc": "Schaffe einen Speed Drill mit unter 500 ms im Schnitt"
+    },
+    "high_roller": {
+      "title": "Grossspieler",
+      "desc": "Mach 1 000 $+ Gewinn in einer Casino-Session"
+    }
+  },
+  "wchal": {
+    "weekly_grinder": {
+      "title": "Wochenmalocher",
+      "desc": "Spiele diese Woche 200 Hände über alle Modi"
+    },
+    "consistent_player": {
+      "title": "Beständiger Spieler",
+      "desc": "Trainiere an 5 verschiedenen Tagen"
+    },
+    "mode_explorer": {
+      "title": "Modus-Entdecker",
+      "desc": "Spiele mindestens 3 verschiedene Trainingsmodi"
+    },
+    "weekly_practice": {
+      "title": "Wochenpensum",
+      "desc": "Trainiere diese Woche insgesamt 2 Stunden"
+    },
+    "accuracy_week": {
+      "title": "Woche der Genauigkeit",
+      "desc": "Erreiche 85 %+ in 5 einzelnen Durchgängen"
+    },
+    "casino_regular": {
+      "title": "Casino-Stammgast",
+      "desc": "Spiele diese Woche 5 Casino-Sessions"
+    },
+    "deviation_expert": {
+      "title": "Abweichungs-Experte",
+      "desc": "Triff diese Woche 50 Abweichungen richtig"
+    },
+    "marathon_week": {
+      "title": "Marathonwoche",
+      "desc": "Spiele 500 Hände über alle Modi"
+    },
+    "profit_hunter": {
+      "title": "Gewinnjäger",
+      "desc": "Mach insgesamt 2 000 $ Gewinn in Casino-Sessions"
+    },
+    "daily_warrior": {
+      "title": "Täglicher Krieger",
+      "desc": "Schliesse diese Woche alle 7 Tagesaufgaben ab"
+    },
+    "perfectionist_week": {
+      "title": "Woche der Perfektion",
+      "desc": "Erreiche 90 %+ in 10 Durchgängen"
+    },
+    "ultimate_grinder": {
+      "title": "Der grosse Malocher",
+      "desc": "Spiele diese Woche 1 000 Hände"
+    },
+    "training_addict": {
+      "title": "Trainingssüchtig",
+      "desc": "Trainiere diese Woche 5 Stunden"
+    },
+    "all_rounder": {
+      "title": "Allrounder",
+      "desc": "Spiele alle 6 Trainingsmodi plus die Casino-Session"
+    },
+    "high_roller_week": {
+      "title": "Woche der Grossspieler",
+      "desc": "Mach insgesamt 5 000 $ Gewinn in Casino-Sessions"
+    },
+    "streak_master": {
+      "title": "Serienmeister",
+      "desc": "Gewinne 10 Hände in Folge in einer Casino-Session"
+    }
   }
 }

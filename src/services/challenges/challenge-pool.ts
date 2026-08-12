@@ -11,8 +11,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
 
   {
     id: 'warm_up',
-    title: 'Warm Up',
-    description: 'Complete 2 training sessions today',
+    titleKey: 'chal.warm_up.title',
+    descKey: 'chal.warm_up.desc',
     icon: '\u2615',
     type: 'play_sessions',
     difficulty: 'easy',
@@ -21,8 +21,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'deal_me_in',
-    title: 'Deal Me In',
-    description: 'Play 30 hands in any mode',
+    titleKey: 'chal.deal_me_in.title',
+    descKey: 'chal.deal_me_in.desc',
     icon: '\uD83C\uDCCF',
     type: 'play_hands',
     difficulty: 'easy',
@@ -31,8 +31,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'quick_practice',
-    title: 'Quick Practice',
-    description: 'Complete a Speed Drill session',
+    titleKey: 'chal.quick_practice.title',
+    descKey: 'chal.quick_practice.desc',
     icon: '\u26A1',
     type: 'practice_mode',
     difficulty: 'easy',
@@ -42,8 +42,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'speed_round',
-    title: 'Speed Round',
-    description: 'Complete a Bet Spread session',
+    titleKey: 'chal.speed_round.title',
+    descKey: 'chal.speed_round.desc',
     icon: '\uD83D\uDCB5',
     type: 'practice_mode',
     difficulty: 'easy',
@@ -53,8 +53,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'at_the_table',
-    title: 'Hit the Cards',
-    description: 'Complete a Flashcards session',
+    titleKey: 'chal.at_the_table.title',
+    descKey: 'chal.at_the_table.desc',
     icon: '\uD83C\uDFB4',
     type: 'practice_mode',
     difficulty: 'easy',
@@ -64,8 +64,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'eye_test',
-    title: 'Eye Test',
-    description: 'Complete a Deck Estimation session',
+    titleKey: 'chal.eye_test.title',
+    descKey: 'chal.eye_test.desc',
     icon: '\uD83D\uDC41',
     type: 'practice_mode',
     difficulty: 'easy',
@@ -78,8 +78,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
 
   {
     id: 'session_warrior',
-    title: 'Session Warrior',
-    description: 'Complete 5 training sessions today',
+    titleKey: 'chal.session_warrior.title',
+    descKey: 'chal.session_warrior.desc',
     icon: '\u2694\uFE0F',
     type: 'play_sessions',
     difficulty: 'medium',
@@ -88,8 +88,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'grinder',
-    title: 'Grinder',
-    description: 'Play 100 hands in any mode',
+    titleKey: 'chal.grinder.title',
+    descKey: 'chal.grinder.desc',
     icon: '\uD83D\uDCAA',
     type: 'play_hands',
     difficulty: 'medium',
@@ -98,8 +98,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'sharp_eye',
-    title: 'Sharp Eye',
-    description: 'Achieve 80% accuracy in a single session',
+    titleKey: 'chal.sharp_eye.title',
+    descKey: 'chal.sharp_eye.desc',
     icon: '\uD83D\uDC41\u200D\uD83D\uDDE8\uFE0F',
     type: 'achieve_accuracy',
     difficulty: 'medium',
@@ -108,8 +108,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'winning_streak',
-    title: 'Winning Streak',
-    description: 'Get a 5-answer streak in a single session',
+    titleKey: 'chal.winning_streak.title',
+    descKey: 'chal.winning_streak.desc',
     icon: '\uD83D\uDD25',
     type: 'win_streak',
     difficulty: 'medium',
@@ -118,8 +118,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'focused_practice',
-    title: 'Focused Practice',
-    description: 'Practice for 10 minutes total today',
+    titleKey: 'chal.focused_practice.title',
+    descKey: 'chal.focused_practice.desc',
     icon: '\u23F1\uFE0F',
     type: 'play_minutes',
     difficulty: 'medium',
@@ -128,8 +128,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'deviation_day',
-    title: 'Deviation Day',
-    description: 'Complete 2 deviation training sessions',
+    titleKey: 'chal.deviation_day.title',
+    descKey: 'chal.deviation_day.desc',
     icon: '\uD83C\uDFAF',
     type: 'practice_mode',
     difficulty: 'medium',
@@ -139,8 +139,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'money_management',
-    title: 'Money Management',
-    description: 'Finish a Casino Session in profit',
+    titleKey: 'chal.money_management.title',
+    descKey: 'chal.money_management.desc',
     icon: '\uD83D\uDCB0',
     type: 'earn_profit',
     difficulty: 'medium',
@@ -150,8 +150,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'deviation_student',
-    title: 'Deviation Student',
-    description: 'Get 10 deviation decisions correct today',
+    titleKey: 'chal.deviation_student.title',
+    descKey: 'chal.deviation_student.desc',
     icon: '\uD83D\uDCDA',
     type: 'deviation_correct',
     difficulty: 'medium',
@@ -163,8 +163,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
 
   {
     id: 'precision',
-    title: 'Precision',
-    description: 'Achieve 90% accuracy in a single session',
+    titleKey: 'chal.precision.title',
+    descKey: 'chal.precision.desc',
     icon: '\uD83C\uDFAF',
     type: 'achieve_accuracy',
     difficulty: 'hard',
@@ -173,8 +173,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'centurion',
-    title: 'Centurion',
-    description: 'Play 200 hands in any mode',
+    titleKey: 'chal.centurion.title',
+    descKey: 'chal.centurion.desc',
     icon: '\uD83D\uDEE1\uFE0F',
     type: 'play_hands',
     difficulty: 'hard',
@@ -183,8 +183,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'marathon_training',
-    title: 'Marathon Training',
-    description: 'Practice for 30 minutes total today',
+    titleKey: 'chal.marathon_training.title',
+    descKey: 'chal.marathon_training.desc',
     icon: '\uD83C\uDFC3',
     type: 'play_minutes',
     difficulty: 'hard',
@@ -193,8 +193,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'hot_hand',
-    title: 'Hot Hand',
-    description: 'Get a 10-answer streak in a single session',
+    titleKey: 'chal.hot_hand.title',
+    descKey: 'chal.hot_hand.desc',
     icon: '\uD83D\uDD25',
     type: 'win_streak',
     difficulty: 'hard',
@@ -203,8 +203,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'big_winner',
-    title: 'Big Winner',
-    description: 'Earn $500+ profit in a Casino Session',
+    titleKey: 'chal.big_winner.title',
+    descKey: 'chal.big_winner.desc',
     icon: '\uD83D\uDCB8',
     type: 'earn_profit',
     difficulty: 'hard',
@@ -214,8 +214,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'dedicated_day',
-    title: 'Dedicated Day',
-    description: 'Complete 10 training sessions today',
+    titleKey: 'chal.dedicated_day.title',
+    descKey: 'chal.dedicated_day.desc',
     icon: '\uD83D\uDCC5',
     type: 'play_sessions',
     difficulty: 'hard',
@@ -227,8 +227,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
 
   {
     id: 'sniper',
-    title: 'Sniper',
-    description: 'Achieve 95% accuracy in a single session',
+    titleKey: 'chal.sniper.title',
+    descKey: 'chal.sniper.desc',
     icon: '\uD83C\uDFAF',
     type: 'achieve_accuracy',
     difficulty: 'very_hard',
@@ -237,8 +237,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'count_master',
-    title: 'Count Master',
-    description: 'Score 90%+ count accuracy in a Casino Session',
+    titleKey: 'chal.count_master.title',
+    descKey: 'chal.count_master.desc',
     icon: '\uD83E\uDDE0',
     type: 'count_check',
     difficulty: 'very_hard',
@@ -248,8 +248,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'lightning_speed',
-    title: 'Lightning Speed',
-    description: 'Complete a Speed Drill under 500ms average',
+    titleKey: 'chal.lightning_speed.title',
+    descKey: 'chal.lightning_speed.desc',
     icon: '\u26A1',
     type: 'speed_time',
     difficulty: 'very_hard',
@@ -259,8 +259,8 @@ export const CHALLENGE_POOL: ChallengeDefinition[] = [
   },
   {
     id: 'high_roller',
-    title: 'High Roller',
-    description: 'Earn $1000+ profit in a Casino Session',
+    titleKey: 'chal.high_roller.title',
+    descKey: 'chal.high_roller.desc',
     icon: '\uD83D\uDC8E',
     type: 'earn_profit',
     difficulty: 'very_hard',

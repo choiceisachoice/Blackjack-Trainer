@@ -1486,5 +1486,169 @@
       "advanced": "Advanced",
       "elite": "Elite"
     }
+  },
+  "chal": {
+    "warm_up": {
+      "title": "Warm Up",
+      "desc": "Complete 2 training sessions today"
+    },
+    "deal_me_in": {
+      "title": "Deal Me In",
+      "desc": "Play 30 hands in any mode"
+    },
+    "quick_practice": {
+      "title": "Quick Practice",
+      "desc": "Complete a Speed Drill session"
+    },
+    "speed_round": {
+      "title": "Speed Round",
+      "desc": "Complete a Bet Spread session"
+    },
+    "at_the_table": {
+      "title": "Hit the Cards",
+      "desc": "Complete a Flashcards session"
+    },
+    "eye_test": {
+      "title": "Eye Test",
+      "desc": "Complete a Deck Estimation session"
+    },
+    "session_warrior": {
+      "title": "Session Warrior",
+      "desc": "Complete 5 training sessions today"
+    },
+    "grinder": {
+      "title": "Grinder",
+      "desc": "Play 100 hands in any mode"
+    },
+    "sharp_eye": {
+      "title": "Sharp Eye",
+      "desc": "Achieve 80% accuracy in a single session"
+    },
+    "winning_streak": {
+      "title": "Winning Streak",
+      "desc": "Get a 5-answer streak in a single session"
+    },
+    "focused_practice": {
+      "title": "Focused Practice",
+      "desc": "Practice for 10 minutes total today"
+    },
+    "deviation_day": {
+      "title": "Deviation Day",
+      "desc": "Complete 2 deviation training sessions"
+    },
+    "money_management": {
+      "title": "Money Management",
+      "desc": "Finish a Casino Session in profit"
+    },
+    "deviation_student": {
+      "title": "Deviation Student",
+      "desc": "Get 10 deviation decisions correct today"
+    },
+    "precision": {
+      "title": "Precision",
+      "desc": "Achieve 90% accuracy in a single session"
+    },
+    "centurion": {
+      "title": "Centurion",
+      "desc": "Play 200 hands in any mode"
+    },
+    "marathon_training": {
+      "title": "Marathon Training",
+      "desc": "Practice for 30 minutes total today"
+    },
+    "hot_hand": {
+      "title": "Hot Hand",
+      "desc": "Get a 10-answer streak in a single session"
+    },
+    "big_winner": {
+      "title": "Big Winner",
+      "desc": "Earn $500+ profit in a Casino Session"
+    },
+    "dedicated_day": {
+      "title": "Dedicated Day",
+      "desc": "Complete 10 training sessions today"
+    },
+    "sniper": {
+      "title": "Sniper",
+      "desc": "Achieve 95% accuracy in a single session"
+    },
+    "count_master": {
+      "title": "Count Master",
+      "desc": "Score 90%+ count accuracy in a Casino Session"
+    },
+    "lightning_speed": {
+      "title": "Lightning Speed",
+      "desc": "Complete a Speed Drill under 500ms average"
+    },
+    "high_roller": {
+      "title": "High Roller",
+      "desc": "Earn $1000+ profit in a Casino Session"
+    }
+  },
+  "wchal": {
+    "weekly_grinder": {
+      "title": "Weekly Grinder",
+      "desc": "Play 200 hands across any modes this week"
+    },
+    "consistent_player": {
+      "title": "Consistent Player",
+      "desc": "Complete a training session on 5 different days"
+    },
+    "mode_explorer": {
+      "title": "Mode Explorer",
+      "desc": "Play at least 3 different training modes"
+    },
+    "weekly_practice": {
+      "title": "Weekly Practice",
+      "desc": "Train for a total of 2 hours this week"
+    },
+    "accuracy_week": {
+      "title": "Accuracy Week",
+      "desc": "Achieve 85%+ accuracy in 5 separate sessions"
+    },
+    "casino_regular": {
+      "title": "Casino Regular",
+      "desc": "Play 5 Casino Sessions this week"
+    },
+    "deviation_expert": {
+      "title": "Deviation Expert",
+      "desc": "Get 50 deviations correct this week"
+    },
+    "marathon_week": {
+      "title": "Marathon Week",
+      "desc": "Play 500 hands across any modes"
+    },
+    "profit_hunter": {
+      "title": "Profit Hunter",
+      "desc": "Earn a total of $2,000 profit in Casino Sessions"
+    },
+    "daily_warrior": {
+      "title": "Daily Warrior",
+      "desc": "Complete all 7 Daily Challenges this week"
+    },
+    "perfectionist_week": {
+      "title": "Perfectionist Week",
+      "desc": "Achieve 90%+ accuracy in 10 sessions"
+    },
+    "ultimate_grinder": {
+      "title": "Ultimate Grinder",
+      "desc": "Play 1,000 hands this week"
+    },
+    "training_addict": {
+      "title": "Training Addict",
+      "desc": "Train for 5 hours this week"
+    },
+    "all_rounder": {
+      "title": "All-Rounder",
+      "desc": "Play all 6 training modes + Casino Session"
+    },
+    "high_roller_week": {
+      "title": "High Roller Week",
+      "desc": "Earn $5,000 total profit in Casino Sessions"
+    },
+    "streak_master": {
+      "title": "Streak Master",
+      "desc": "Win 10 hands in a row in a Casino Session"
+    }
   }
 }
