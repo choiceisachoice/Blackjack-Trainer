@@ -29,15 +29,15 @@ export const RANGE_LABEL: Record<TimeRange, string> = {
 const MS_PER_DAY = 86_400_000
 
 /** Display metadata per training mode (label + accent color for dots/bars). */
-export const MODE_DISPLAY: Record<TrainingMode, { label: string; color: string }> = {
-  speedDrill: { label: 'Speed Drill', color: 'var(--color-gold)' },
-  deviationFlashCards: { label: 'Flashcards', color: 'var(--color-gold-bright)' },
-  betSpread: { label: 'Bet Spread', color: 'var(--color-chip-blue)' },
-  deckEstimation: { label: 'Deck Estimation', color: 'var(--color-warning)' },
-  casinoSession: { label: 'Casino Session', color: 'var(--color-felt)' },
+export const MODE_DISPLAY: Record<TrainingMode, { labelKey: string; color: string }> = {
+  speedDrill: { labelKey: 'modes.speedDrill', color: 'var(--color-gold)' },
+  deviationFlashCards: { labelKey: 'modes.deviationFlashCards', color: 'var(--color-gold-bright)' },
+  betSpread: { labelKey: 'modes.betSpread', color: 'var(--color-chip-blue)' },
+  deckEstimation: { labelKey: 'modes.deckEstimation', color: 'var(--color-warning)' },
+  casinoSession: { labelKey: 'modes.casinoSession', color: 'var(--color-felt)' },
   // Legacy modes — retained so historical sessions still render.
-  tableCounting: { label: 'Table Counting', color: 'var(--color-success)' },
-  deviationAtTable: { label: 'Deviation (Table)', color: 'var(--color-gold)' },
+  tableCounting: { labelKey: 'modes.tableCounting', color: 'var(--color-success)' },
+  deviationAtTable: { labelKey: 'modes.deviationTable', color: 'var(--color-gold)' },
 }
 
 /** Format seconds into a compact human duration (e.g. "2h 5m", "40m", "< 1m"). */
@@ -124,7 +124,7 @@ function sumBy(sessions: TrainingSessionResult[], f: (s: TrainingSessionResult) 
  */
 export interface Kpi {
   key: string
-  label: string
+  labelKey: string
   /** Pre-formatted primary value (may contain a unit suffix marker `~`). */
   display: string
   /** Delta vs. previous window; null when not comparable (e.g. `all`). */
@@ -191,7 +191,7 @@ export function buildKpis(
   return [
     {
       key: 'accuracy',
-      label: 'Overall accuracy',
+      labelKey: 'analytics.kpi.accuracy',
       display: curSessions > 0 ? `${Math.round(curAcc * 100)}~%` : '—',
       delta: accDelta,
       deltaDisplay: accDelta === null ? '' : `${accDelta >= 0 ? '+' : '−'}${Math.abs(accDelta).toFixed(1)}%`,
@@ -199,7 +199,7 @@ export function buildKpis(
     },
     {
       key: 'sessions',
-      label: 'Sessions',
+      labelKey: 'analytics.kpi.sessions',
       display: `${curSessions}`,
       delta: sessionsDelta,
       deltaDisplay: sessionsDelta === null ? '' : fmtSigned(sessionsDelta),
@@ -207,7 +207,7 @@ export function buildKpis(
     },
     {
       key: 'streak',
-      label: 'Current streak',
+      labelKey: 'analytics.kpi.streak',
       display: streak > 0 ? `${streak}~ days` : '—',
       delta: null,
       deltaDisplay: '',
@@ -215,7 +215,7 @@ export function buildKpis(
     },
     {
       key: 'hands',
-      label: 'Hands trained',
+      labelKey: 'analytics.kpi.hands',
       display: curHands.toLocaleString('en-US'),
       delta: handsDelta,
       deltaDisplay: handsDelta === null ? '' : fmtSigned(handsDelta),
@@ -223,7 +223,7 @@ export function buildKpis(
     },
     {
       key: 'time',
-      label: 'Training time',
+      labelKey: 'analytics.kpi.time',
       display: formatTimeDisplay(time),
       delta: timeDelta,
       deltaDisplay: timeDelta === null ? '' : `${timeDelta >= 0 ? '+' : '−'}${formatDuration(Math.abs(timeDelta))}`,
@@ -326,7 +326,7 @@ export function buildHeatmap(
 /** A mode's accuracy bar. */
 export interface ModeAccuracy {
   mode: TrainingMode
-  label: string
+  labelKey: string
   color: string
   accuracy: number
   tag: 'best' | 'focus' | null
@@ -352,7 +352,7 @@ export function buildModeAccuracy(
   const rows: ModeAccuracy[] = [...byMode.entries()]
     .map(([mode, list]) => ({
       mode,
-      label: MODE_DISPLAY[mode]?.label ?? mode,
+      labelKey: MODE_DISPLAY[mode]?.labelKey ?? mode,
       color: MODE_DISPLAY[mode]?.color ?? 'var(--color-gold)',
       accuracy: accuracyOf(list),
       tag: null as ModeAccuracy['tag'],
@@ -465,7 +465,9 @@ export function buildWeakestHands(
 /** A derived, human-readable "insight" hook for the top strip. */
 export interface Insight {
   icon: string
-  text: string
+  textKey: string
+  /** Values interpolated into the message. */
+  values?: Record<string, string | number>
   /** Segments to render bold (matched literally within `text`). */
   highlights: string[]
 }
@@ -485,7 +487,7 @@ export function deriveInsight(
   if (cur.length === 0) {
     return {
       icon: '🎯',
-      text: 'Play a few sessions and your training insights will show up here.',
+      textKey: 'analytics.insightEmpty',
       highlights: [],
     }
   }
@@ -495,7 +497,8 @@ export function deriveInsight(
     const miss = Math.round((1 - weak.accuracy) * 100)
     return {
       icon: '🎯',
-      text: `You misplay ${weak.name} ${miss}% of the time — a short Flashcards set would close the gap fastest.`,
+      textKey: 'analytics.insightMsg.weak',
+      values: { name: weak.name, miss },
       highlights: [weak.name, `${miss}%`],
     }
   }
@@ -506,14 +509,16 @@ export function deriveInsight(
     if (delta >= 3) {
       return {
         icon: '📈',
-        text: `Your accuracy climbed +${delta.toFixed(1)}% versus the previous period — momentum is on your side.`,
+        textKey: 'analytics.insightMsg.up',
+        values: { delta: `+${delta.toFixed(1)}%` },
         highlights: [`+${delta.toFixed(1)}%`],
       }
     }
     if (delta <= -3) {
       return {
         icon: '📉',
-        text: `Accuracy slipped ${delta.toFixed(1)}% this period — a focused session or two will steady it.`,
+        textKey: 'analytics.insightMsg.down',
+        values: { delta: `${delta.toFixed(1)}%` },
         highlights: [`${delta.toFixed(1)}%`],
       }
     }
@@ -522,15 +527,17 @@ export function deriveInsight(
   if (streak >= 3) {
     return {
       icon: '🔥',
-      text: `You're on a ${streak}-day streak — consistency is the counter's real edge. Keep it alive.`,
-      highlights: [`${streak}-day streak`],
+      textKey: 'analytics.insightMsg.streak',
+      values: { streak },
+      highlights: [],
     }
   }
 
   const acc = Math.round(accuracyOf(cur) * 100)
   return {
     icon: '✨',
-    text: `You're holding ${acc}% accuracy across ${cur.length} sessions — steady work. Push a weak mode next.`,
+    textKey: 'analytics.insightMsg.steady',
+    values: { acc: `${acc}%`, n: cur.length },
     highlights: [`${acc}%`],
   }
 }

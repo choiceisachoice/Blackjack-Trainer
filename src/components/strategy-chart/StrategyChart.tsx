@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import type { Translate } from '../../i18n/translate'
 import { Lock } from 'lucide-react'
 import { S17_STRATEGY, H17_STRATEGY } from '../../engine/strategy/basic-strategy-tables'
 import type { StrategyAction, StrategyTable } from '../../engine/strategy/types'
@@ -106,7 +108,7 @@ interface ChartSection {
 }
 
 /** Build all 4 chart sections from a strategy table. */
-function buildSections(table: StrategyTable): ChartSection[] {
+function buildSections(table: StrategyTable, t: Translate): ChartSection[] {
   const { hardTotals, softTotals, pairs } = table
 
   function buildRow(key: string, label: string, table: Record<string, Record<string, StrategyAction>>): SectionRow {
@@ -137,10 +139,10 @@ function buildSections(table: StrategyTable): ChartSection[] {
   })
 
   return [
-    { title: 'I. Hard Totals (12-17+)', rows: hardHighRows },
-    { title: 'II. Hard Totals (5-11)', rows: hardLowRows },
-    { title: 'III. Soft Hands', rows: softRows },
-    { title: 'IV. Pairs', rows: pairRows },
+    { title: t('chart.s1'), rows: hardHighRows },
+    { title: t('chart.s2'), rows: hardLowRows },
+    { title: t('chart.s3'), rows: softRows },
+    { title: t('chart.s4'), rows: pairRows },
   ]
 }
 
@@ -150,6 +152,7 @@ function buildSections(table: StrategyTable): ChartSection[] {
  * Automatically switches between S17 and H17 based on selected casino rules.
  */
 export function StrategyChart() {
+  const { t } = useTranslation()
   const [selected, setSelected] = useState<CellInfo | null>(null)
   const dealerHitsSoft17 = useAppStore(s => s.selectedRules.dealerHitsSoft17)
   // In-page rule override (defaults to the globally selected rules).
@@ -161,7 +164,7 @@ export function StrategyChart() {
   const [showDeviationsPref, setShowDeviationsPref] = useState(true)
   const showDeviations = isPro && showDeviationsPref
   const table = h17 ? H17_STRATEGY : S17_STRATEGY
-  const sections = buildSections(table)
+  const sections = buildSections(table, t)
   const ruleLabel = h17 ? 'H17' : 'S17'
 
   const selectedDev = selected ? DEVIATION_CELLS[`${selected.hand}|${selected.dealer}`] : undefined
@@ -170,13 +173,13 @@ export function StrategyChart() {
     <div className="flex-1 p-4 md:p-6 max-w-4xl mx-auto w-full">
       {/* Header */}
       <div className="text-center mb-5">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Basic Strategy Chart</h2>
-        <p className="mt-1 text-sm text-content/50">The complete Hi-Lo basic strategy — tap any cell for details.</p>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">{t('chart.title')}</h2>
+        <p className="mt-1 text-sm text-content/50">{t('chart.sub')}</p>
       </div>
 
       {/* Controls: rule toggle + deviations overlay */}
       <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-        <div className="inline-flex p-0.5 rounded-lg bg-contrast/5 border border-contrast/10" role="group" aria-label="Dealer rule">
+        <div className="inline-flex p-0.5 rounded-lg bg-contrast/5 border border-contrast/10" role="group" aria-label={t('chart.dealerRule')}>
           {([['S17', false], ['H17', true]] as const).map(([label, isH17]) => (
             <button
               key={label}
@@ -192,7 +195,7 @@ export function StrategyChart() {
         <button
           onClick={() => {
             if (isPro) setShowDeviationsPref(v => !v)
-            else showUpgrade('Deviations are a Pro feature — see exactly when to break basic strategy by the count.')
+            else showUpgrade(t('chart.proHeadline'))
           }}
           aria-pressed={showDeviations}
           data-testid="toggle-deviations"
@@ -220,7 +223,7 @@ export function StrategyChart() {
         {showDeviations && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-content" style={{ border: '2px solid #f0cd82' }}>
             <span className="grid place-items-center rounded-full text-black font-extrabold" style={{ width: '14px', height: '14px', fontSize: '8px', backgroundColor: '#f0cd82' }}>#</span>
-            Count Deviation
+            {t('chart.countDeviation')}
           </span>
         )}
       </div>
@@ -338,10 +341,10 @@ export function StrategyChart() {
                 >
                   {selectedDev.index}
                 </span>
-                Count deviation
+                {t('chart.countDeviation')}
               </p>
               <p className="text-content/70 text-xs mt-1">
-                At True Count <b className="text-content">{formatTC(selectedDev.threshold)}</b> or higher →{' '}
+                {t('chart.atTrueCount')} <b className="text-content">{formatTC(selectedDev.threshold)}</b> or higher →{' '}
                 <b className="text-content">{selectedDev.above}</b>
                 <span className="text-content/40"> (below: {selectedDev.below})</span>
               </p>

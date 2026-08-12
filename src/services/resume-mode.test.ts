@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import i18next from 'i18next'
 import { resumeTargetFor } from './resume-mode'
 import type { TrainingMode } from './stats-types'
 
@@ -18,7 +19,7 @@ describe('resumeTargetFor', () => {
     for (const mode of LIVE_MODES) {
       const target = resumeTargetFor(mode)
       expect(target, `expected a target for ${mode}`).not.toBeNull()
-      expect(target?.label.length).toBeGreaterThan(0)
+      expect(i18next.t(target!.labelKey)).not.toBe(target!.labelKey)
     }
   })
 
@@ -26,7 +27,7 @@ describe('resumeTargetFor', () => {
     // TrainingMode 'deviationFlashCards' is the AppMode 'deviationTraining' screen.
     expect(resumeTargetFor('deviationFlashCards')).toEqual({
       mode: 'deviationTraining',
-      label: 'Flashcards',
+      labelKey: 'modes.deviationFlashCards',
     })
   })
 

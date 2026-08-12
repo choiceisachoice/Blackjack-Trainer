@@ -9,8 +9,10 @@ export const HABIT_SESSIONS = 5
 
 export interface OnboardingStep {
   id: string
-  label: string
-  hint: string
+  labelKey: string
+  /** Values interpolated into the label, when it has any. */
+  labelValues?: Record<string, string | number>
+  hintKey: string
   /** Where the step's button takes you. */
   mode: AppMode
   done: boolean
@@ -35,22 +37,23 @@ export function deriveOnboardingSteps(
   return [
     {
       id: 'speed-drill',
-      label: 'Run your first Speed Drill',
-      hint: 'Keep the running count while cards flash by.',
+      labelKey: 'onboardingSteps.speed.label',
+      hintKey: 'onboardingSteps.speed.hint',
       mode: 'speedDrill',
       done: sessions.some(s => s.mode === 'speedDrill'),
     },
     {
       id: 'flashcards',
-      label: 'Drill a few hands in Flashcards',
-      hint: 'Learn the correct play for every hand.',
+      labelKey: 'onboardingSteps.flash.label',
+      hintKey: 'onboardingSteps.flash.hint',
       mode: 'deviationTraining',
       done: sessions.some(s => s.mode === 'deviationFlashCards'),
     },
     {
       id: 'habit',
-      label: `Complete ${HABIT_SESSIONS} training sessions`,
-      hint: 'Counting is a reflex — it comes from repetition.',
+      labelKey: 'onboardingSteps.habit.label',
+      labelValues: { n: HABIT_SESSIONS },
+      hintKey: 'onboardingSteps.repeat.hint',
       mode: 'speedDrill',
       done: count >= HABIT_SESSIONS,
       progress: { current: Math.min(count, HABIT_SESSIONS), target: HABIT_SESSIONS },

@@ -5,7 +5,14 @@
     "continue": "Continua",
     "loading": "Caricamento…",
     "language": "Lingua",
-    "backToHome": "Torna alla home"
+    "backToHome": "Torna alla home",
+    "close": "Chiudi",
+    "welcome": "Benvenuto",
+    "welcomeBack": "Bentornato",
+    "startLearning": "Inizia a imparare",
+    "loadingTraining": "Caricamento del tuo allenamento",
+    "signingIn": "Accesso in corso",
+    "continueMode": "Continua {{mode}}"
   },
   "nav": {
     "home": "Home",
@@ -73,7 +80,9 @@
       "portal": "Non è stato possibile aprire il portale di fatturazione.",
       "checkout": "Non è stato possibile avviare il pagamento.",
       "alreadySubscribed": "Questo account ha già Pro — non è stato creato un secondo abbonamento."
-    }
+    },
+    "backToApp": "Torna all’app",
+    "upgradeHintShort": "Passa a Pro per sbloccare il tavolo, le deviazioni e le analisi complete."
   },
   "pricing": {
     "vatNote": "Prezzo finale, IVA svizzera dell'{{rate}}% inclusa per i clienti in Svizzera",
@@ -212,7 +221,8 @@
       "l2": "Tabella di strategia (basi)",
       "l3": "Le tue analisi di base",
       "l4": "Premi, livelli & la guida"
-    }
+    },
+    "goodToKnow": "Buono a sapersi"
   },
   "auth": {
     "signIn": "Accedi",
@@ -1383,7 +1393,12 @@
       "counting_mastery": "Padronanza del conteggio",
       "bankrollTracker": "Registro della bankroll"
     },
-    "all": "Tutti"
+    "all": "Tutti",
+    "maxLevel": "Livello massimo raggiunto",
+    "diamond": "Diamante",
+    "yourClimb": "La tua scalata — livello {{n}} di {{total}}",
+    "noneUnlocked": "Nessun riconoscimento sbloccato",
+    "allUnlocked": "Tutti i riconoscimenti sbloccati!"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1583,7 +1598,11 @@
     "high_roller": {
       "title": "Giocatore d’alto bordo",
       "desc": "Guadagna oltre 1.000 $ in una sessione al casinò"
-    }
+    },
+    "daily": "Sfida giornaliera",
+    "weekly": "Sfida settimanale",
+    "comeBack": "Torna domani",
+    "nextMonday": "Nuova sfida lunedì prossimo"
   },
   "wchal": {
     "weekly_grinder": {
@@ -1650,5 +1669,153 @@
       "title": "Maestro delle serie",
       "desc": "Vinci 10 mani di fila in una sessione al casinò"
     }
+  },
+  "analytics": {
+    "yourTraining": "Il tuo allenamento",
+    "noSessions": "Nessuna sessione registrata",
+    "noSessionsBody": "Gioca qualche sessione e qui compariranno le tue analisi.",
+    "insight": "Lo spunto del periodo",
+    "insightEmpty": "Gioca qualche sessione e qui compariranno i tuoi spunti.",
+    "trendEmpty": "Allenati in più giorni per vedere la tendenza",
+    "edgeCaption": "Profitto netto cumulato dalle tue sessioni al casinò.",
+    "edgeEmpty": "Gioca una sessione al casinò per vedere la bankroll simulata.",
+    "noneInRange": "Nessuna sessione in questo periodo",
+    "weakEmpty": "Completa l’allenamento sulle deviazioni con le flashcard per far emergere i punti deboli.",
+    "deleteHistory": "Elimina la cronologia di allenamento",
+    "timeRange": "Periodo",
+    "proHeadline": "Guarda il quadro completo del tuo conteggio",
+    "proSub": "La versione gratuita mostra i numeri principali. Pro rivela come stai davvero migliorando — e cosa allenare dopo.",
+    "accuracyTrend": "Andamento della precisione",
+    "consistency": "Costanza nella pratica",
+    "skillProfile": "Profilo delle abilità",
+    "simulatedEdge": "Vantaggio simulato",
+    "accuracyByMode": "Precisione per modalità",
+    "weakestHands": "Le tue mani peggiori",
+    "recentSessions": "Sessioni recenti",
+    "kpi": {
+      "accuracy": "Precisione complessiva",
+      "sessions": "Sessioni",
+      "streak": "Serie attuale",
+      "hands": "Mani allenate",
+      "time": "Tempo di allenamento"
+    },
+    "subhead": "Come si affila il tuo vantaggio Hi-Lo — precisione, costanza e cosa allenare dopo.",
+    "note": {
+      "needDays": "servono almeno 2 giorni attivi",
+      "last12": "ultime 12 settimane",
+      "sharpRusty": "dove sei affilato e dove arrugginito",
+      "casinoNet": "Netto sessioni al casinò · risultati reali",
+      "thisPeriod": "questo periodo",
+      "misplayed": "decisioni sbagliate più spesso",
+      "lastN": "ultime {{n}}"
+    },
+    "teaser": {
+      "i1": "Andamento della precisione nel tempo",
+      "i2": "Mappa della costanza nella pratica",
+      "i3": "Radar delle abilità — affilato o arrugginito",
+      "i4": "Le tue mani peggiori, in ordine",
+      "i5": "Vantaggio simulato da sessioni reali al casinò",
+      "upgrade": "Sblocca il quadro completo del tuo vantaggio nel conteggio."
+    },
+    "insightMsg": {
+      "weak": "Sbagli {{name}} nel {{miss}}% dei casi — una breve serie di flashcard chiuderebbe il divario più in fretta.",
+      "up": "La tua precisione è salita di {{delta}} rispetto al periodo precedente — lo slancio è dalla tua parte.",
+      "down": "La precisione è scesa di {{delta}} in questo periodo — una o due sessioni mirate la stabilizzeranno.",
+      "streak": "Sei su una {{streak}} — la costanza è il vero vantaggio di un contatore. Tienila viva.",
+      "steady": "Tieni il {{acc}} di precisione su {{n}} sessioni — lavoro solido. Adesso attacca una modalità debole."
+    },
+    "streakDays": "serie di {{n}} giorni",
+    "loading": "Caricamento dei dati…",
+    "streakDaysShort": "serie di {{n}} giorni",
+    "noStreak": "Nessuna serie attiva",
+    "col": {
+      "when": "Quando",
+      "mode": "Modalità",
+      "accuracy": "Precisione",
+      "hands": "Mani"
+    },
+    "deleteFailed": "Non è stato possibile eliminare la cronologia."
+  },
+  "sim": {
+    "onboardTitle": "Tieni traccia della tua bankroll",
+    "onboardBody": "Registra le tue sessioni reali al casinò per vedere l’andamento nel tempo.",
+    "title": "Registro della bankroll",
+    "sub": "Tieni traccia delle sessioni reali al casinò e dei risultati.",
+    "chartEmpty": "Aggiungi la prima sessione per vedere il grafico",
+    "hoursPlayed": "Ore giocate",
+    "notesPlaceholder": "Buona penetrazione, 6 mazzi, S17…",
+    "longestSession": "Sessione più lunga",
+    "bestPerHour": "Miglior $/h",
+    "bestCasino": "Casinò migliore",
+    "bankrollAt": "Bankroll: {{v}}",
+    "hours": "Ore",
+    "sessionsHeading": "Sessioni",
+    "date": "Data",
+    "casino": "Casinò",
+    "result": "Risultato",
+    "notes": "Note (facoltative)",
+    "preset": {
+      "basic": {
+        "label": "Solo strategia di base",
+        "desc": "Strategia di base perfetta, niente conteggio, puntata fissa"
+      },
+      "casual": {
+        "label": "Contatore occasionale",
+        "desc": "Sta imparando Hi-Lo, forbice piccola"
+      },
+      "serious": {
+        "label": "Giocatore serio",
+        "desc": "Conteggio solido, deviazioni I18"
+      },
+      "pro": {
+        "label": "Professionista",
+        "desc": "Gioco quasi perfetto, forbice aggressiva"
+      },
+      "hostile": {
+        "label": "Tavolo ostile",
+        "desc": "H17, BJ 6:5, 8 mazzi, penetrazione bassa"
+      }
+    },
+    "loss": "Perdita"
+  },
+  "chart": {
+    "title": "Tabella della strategia di base",
+    "sub": "La strategia di base Hi-Lo completa — tocca una cella per i dettagli.",
+    "dealerRule": "Regola del banco",
+    "proHeadline": "Le deviazioni sono una funzione Pro — vedi esattamente quando il conteggio scavalca la strategia di base.",
+    "s1": "I. Totali duri (12-17+)",
+    "s2": "II. Totali duri (5-11)",
+    "s3": "III. Mani morbide",
+    "s4": "IV. Coppie",
+    "countDeviation": "Deviazione da conteggio",
+    "atTrueCount": "Da true count"
+  },
+  "onboardingSteps": {
+    "speed": {
+      "label": "Fai il tuo primo Speed Drill",
+      "hint": "Tieni il running count mentre le carte lampeggiano."
+    },
+    "flash": {
+      "label": "Allena qualche mano con le flashcard",
+      "hint": "Impara la giocata giusta per ogni mano."
+    },
+    "repeat": {
+      "hint": "Contare è un riflesso — nasce dalla ripetizione."
+    },
+    "habit": {
+      "label": "Completa {{n}} sessioni di allenamento"
+    }
+  },
+  "errorScreen": {
+    "staleTitle": "Questa pagina va ricaricata",
+    "genericTitle": "Qualcosa è andato storto",
+    "staleBody": "Una parte dell’app non si è caricata. Di solito significa che è uscita una nuova versione mentre questa scheda era aperta. Ricaricando la prende — i tuoi progressi sono al sicuro.",
+    "genericBody": "Questa schermata ha incontrato un errore imprevisto. I tuoi progressi sono al sicuro — non è andato perso nulla. Puoi riprovare o tornare alla home.",
+    "reload": "Ricarica la pagina",
+    "tryAgain": "Riprova"
+  },
+  "legal": {
+    "draft": "Bozza — non ancora pubblicata.",
+    "updated": "Aggiornato il {{date}}"
   }
 }

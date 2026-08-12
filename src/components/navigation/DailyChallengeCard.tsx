@@ -103,7 +103,7 @@ export function DailyChallengeCard() {
           </span>
           <div>
             <h3 className="text-sm font-semibold text-content">
-              Daily Challenge
+              {t('chal.daily')}
             </h3>
             <p className="text-xs text-content/40">
               {formatCountdown(countdown)} remaining
@@ -161,7 +161,7 @@ export function DailyChallengeCard() {
         )}
         {state.completed && (
           <span className="text-content/30">
-            Come back tomorrow
+            {t('chal.comeBack')}
           </span>
         )}
       </div>

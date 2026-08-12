@@ -153,8 +153,8 @@ function HomeSections() {
             <Club size={24} className="fill-current" />
           </span>
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-gold">Casino Session</h3>
-            <p className="text-sm text-content/55">Play a full multi-seat session at a realistic table</p>
+            <h3 className="text-lg font-semibold text-gold">{t('modes.casinoSession')}</h3>
+            <p className="text-sm text-content/55">{t('home.desc.casinoSession')}</p>
           </div>
           <ArrowRight size={18} className="ml-auto text-gold/60 group-hover:translate-x-1 transition-transform" />
         </button>
@@ -168,8 +168,8 @@ function HomeSections() {
             <ClipboardList size={22} />
           </span>
           <div className="min-w-0">
-            <h3 className="text-base font-semibold text-content">Casino Session Tracker</h3>
-            <p className="text-sm text-content/50">Track your training session results</p>
+            <h3 className="text-base font-semibold text-content">{t('home.trackerTitle')}</h3>
+            <p className="text-sm text-content/50">{t('home.desc.tracker')}</p>
           </div>
         </button>
       </section>

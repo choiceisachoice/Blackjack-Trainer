@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Grid } from 'ldrs/react'
 import 'ldrs/react/Grid.css'
 
@@ -28,14 +29,21 @@ export const LOADER_DELAY_MS = 220
  *    busier, which is the opposite of luxurious.
  */
 export function AppLoader({
-  label = 'Loading your training',
+  label,
   delayMs = LOADER_DELAY_MS,
 }: {
-  /** What is being waited for. Written for a person, not a developer. */
+  /**
+   * What is being waited for. Written for a person, not a developer.
+   *
+   * Optional, but never absent on screen: without one the loader falls back to
+   * a generic wait rather than showing nothing, so a caller cannot accidentally
+   * render a nameless spinner.
+   */
   label?: string
   /** Override only for tests; the default is the honest one. */
   delayMs?: number
 }) {
+  const { t } = useTranslation()
   const [visible, setVisible] = useState(delayMs === 0)
 
   useEffect(() => {
@@ -68,7 +76,7 @@ export function AppLoader({
         <span className="text-[0.95rem] font-extrabold tracking-[0.3em] uppercase text-gold-gradient">
           Blackjack Trainer
         </span>
-        <span className="text-base text-content/45">{label}</span>
+        <span className="text-base text-content/45">{label ?? t('common.loadingTraining')}</span>
       </div>
     </div>
   )

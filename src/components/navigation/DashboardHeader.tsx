@@ -85,11 +85,11 @@ export function DashboardHeader() {
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-5">
           <div className="min-w-0">
             <div className="text-xs font-semibold tracking-[0.2em] uppercase text-content/40">
-              {played ? 'Welcome back' : 'Welcome'}
+              {played ? t('common.welcomeBack') : t('common.welcome')}
             </div>
             <h1 className="mt-2 flex items-baseline gap-2.5 text-2xl md:text-3xl font-bold tracking-tight">
               <span style={{ color: level.color }}>{t(level.titleKey)}</span>
-              <span className="text-base font-semibold text-content/35">Lv. {level.level}</span>
+              <span className="text-base font-semibold text-content/35">{t('levels.short', { n: level.level })}</span>
             </h1>
 
             <div className="mt-4 w-full max-w-sm">
@@ -137,10 +137,10 @@ export function DashboardHeader() {
           >
             <Club size={18} className="fill-current" />
             {resume
-              ? `Continue ${resume.label}`
+              ? t('common.continueMode', { mode: t(resume.labelKey) })
               : stageId
                 ? t('plan.startStage', { stage: t(CURRICULUM[stageIndex(stageId)].titleKey) })
-                : 'Start learning'}
+                : t('common.startLearning')}
             <ArrowRight size={17} />
           </button>
         </div>

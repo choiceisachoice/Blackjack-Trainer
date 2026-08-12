@@ -19,8 +19,8 @@ import {
  */
 export const PRESET_BASIC_STRATEGY: BankrollPreset = {
   id: 'basicStrategy',
-  label: 'Basic Strategy Only',
-  description: 'Perfect BS, no counting, flat bet',
+  labelKey: 'sim.preset.basic.label',
+  descKey: 'sim.preset.basic.desc',
   icon: '\uD83C\uDCCF',
   rules: {
     numDecks: 6,
@@ -45,8 +45,8 @@ export const PRESET_BASIC_STRATEGY: BankrollPreset = {
  */
 export const PRESET_CASUAL: BankrollPreset = {
   id: 'casual',
-  label: 'Casual Counter',
-  description: 'Learning Hi-Lo, small spread',
+  labelKey: 'sim.preset.casual.label',
+  descKey: 'sim.preset.casual.desc',
   icon: '\uD83C\uDF31',
   rules: {
     numDecks: 6,
@@ -71,8 +71,8 @@ export const PRESET_CASUAL: BankrollPreset = {
  */
 export const PRESET_SERIOUS: BankrollPreset = {
   id: 'serious',
-  label: 'Serious Player',
-  description: 'Solid counting, I18 deviations',
+  labelKey: 'sim.preset.serious.label',
+  descKey: 'sim.preset.serious.desc',
   icon: '\uD83C\uDFAF',
   rules: {
     numDecks: 6,
@@ -97,8 +97,8 @@ export const PRESET_SERIOUS: BankrollPreset = {
  */
 export const PRESET_PROFESSIONAL: BankrollPreset = {
   id: 'professional',
-  label: 'Professional',
-  description: 'Near-perfect play, aggressive spread',
+  labelKey: 'sim.preset.pro.label',
+  descKey: 'sim.preset.pro.desc',
   icon: '\uD83D\uDC8E',
   rules: {
     numDecks: 6,
@@ -122,8 +122,8 @@ export const PRESET_PROFESSIONAL: BankrollPreset = {
  */
 export const PRESET_HOSTILE: BankrollPreset = {
   id: 'hostile',
-  label: 'Hostile Table',
-  description: 'H17, 6:5 BJ, 8 decks, shallow pen',
+  labelKey: 'sim.preset.hostile.label',
+  descKey: 'sim.preset.hostile.desc',
   icon: '\u2620\uFE0F',
   rules: {
     numDecks: 8,

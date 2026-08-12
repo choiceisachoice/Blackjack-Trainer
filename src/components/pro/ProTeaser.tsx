@@ -1,4 +1,5 @@
 import { Check, Crown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
 
 interface ProTeaserProps {
@@ -18,6 +19,7 @@ interface ProTeaserProps {
  * so they can see the value they're missing rather than a blank space.
  */
 export function ProTeaser({ title, subtitle, items, upgradeHeadline }: ProTeaserProps) {
+  const { t } = useTranslation()
   const show = useUpgradePrompt(s => s.show)
   return (
     <div className="surface p-6 md:p-8 flex flex-col items-center text-center gap-4 border border-gold/20">
@@ -42,7 +44,7 @@ export function ProTeaser({ title, subtitle, items, upgradeHeadline }: ProTeaser
         className="glow-hover inline-flex items-center gap-2 mt-1 px-5 py-2.5 rounded-xl bg-gold text-black text-sm font-semibold cursor-pointer hover:bg-gold/90"
       >
         <Crown size={15} />
-        Unlock with Pro
+        {t('plan.unlockPro')}
       </button>
     </div>
   )

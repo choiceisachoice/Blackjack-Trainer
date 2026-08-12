@@ -129,7 +129,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
             </Field>
           )}
 
-          <Field label="Email">
+          <Field label={t('auth.email')}>
             <input
               type="email"
               required

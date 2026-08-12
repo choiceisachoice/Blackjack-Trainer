@@ -1,4 +1,5 @@
 import type { TrendPoint, HeatCell, ModeAccuracy, RadarAxis, EdgePoint } from './analytics-derive'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Hand-authored SVG chart primitives for the Analytics dashboard.
@@ -56,6 +57,7 @@ export function Sparkline({ data }: { data: number[] }) {
 
 /** Accuracy trend area chart with gridlines, a 90% goal line, and an emphasized endpoint. */
 export function TrendChart({ points }: { points: TrendPoint[] }) {
+  const { t } = useTranslation()
   const W = 680
   const H = 230
   const padL = 34
@@ -73,7 +75,7 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
   const last = points[points.length - 1]
 
   return (
-    <svg className="block w-full" height={230} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Accuracy trend">
+    <svg className="block w-full" height={230} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={t('analytics.accuracyTrend')}>
       <defs>
         <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={GOLD} stopOpacity={0.32} />
@@ -146,12 +148,13 @@ const barColor = (a: number): string =>
 
 /** Horizontal accuracy-by-mode bars. */
 export function ModeBars({ rows }: { rows: ModeAccuracy[] }) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-3.5">
       {rows.map(r => (
         <div key={r.mode} className="grid items-center gap-3" style={{ gridTemplateColumns: '130px 1fr 44px' }}>
           <div className="text-[0.85rem] font-medium text-content flex items-center gap-1.5">
-            <span className="truncate">{r.label}</span>
+            <span className="truncate">{t(r.labelKey)}</span>
             {r.tag && (
               <span
                 className="text-[0.65rem] font-bold uppercase tracking-wide px-1.5 py-px rounded"
@@ -198,6 +201,7 @@ export function WeakestHands({ hands }: { hands: { name: string; accuracy: numbe
 
 /** Radial skill profile (pentagon) over 5 training areas. */
 export function SkillRadar({ axes }: { axes: RadarAxis[] }) {
+  const { t } = useTranslation()
   const cx = 140
   const cy = 104
   const R = 82
@@ -209,7 +213,7 @@ export function SkillRadar({ axes }: { axes: RadarAxis[] }) {
   const dataPoly = axes.map((a, i) => pt(i, (R * a.value) / 100).map(v => v.toFixed(1)).join(',')).join(' ')
 
   return (
-    <svg className="flex-1 max-w-[300px]" viewBox="0 0 280 220" role="img" aria-label="Skill profile" data-testid="skill-radar">
+    <svg className="flex-1 max-w-[300px]" viewBox="0 0 280 220" role="img" aria-label={t('analytics.skillProfile')} data-testid="skill-radar">
       <defs>
         <radialGradient id="radarFill">
           <stop offset="0" stopColor={GOLD} stopOpacity={0.45} />
@@ -241,6 +245,7 @@ export function SkillRadar({ axes }: { axes: RadarAxis[] }) {
 
 /** Cumulative net-result (simulated bankroll) area chart. */
 export function EdgeChart({ points }: { points: EdgePoint[] }) {
+  const { t } = useTranslation()
   const W = 400
   const H = 132
   const padT = 12
@@ -260,7 +265,7 @@ export function EdgeChart({ points }: { points: EdgePoint[] }) {
   const area = `${line} L${x(points.length - 1)},${H - padB} L${x(0)},${H - padB} Z`
 
   return (
-    <svg className="block w-full" height={132} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Simulated edge" data-testid="edge-chart">
+    <svg className="block w-full" height={132} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={t('analytics.simulatedEdge')} data-testid="edge-chart">
       <defs>
         <linearGradient id="edgeFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={color} stopOpacity={0.3} />

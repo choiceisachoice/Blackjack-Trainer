@@ -240,7 +240,7 @@ export function TrainingPlan({
                 <Route size={22} />
               </span>
               <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">
-                Your training plan
+                {t('plan.title')}
               </h1>
             </>
           )}

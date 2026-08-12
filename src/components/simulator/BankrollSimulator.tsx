@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   XAxis,
   YAxis,
@@ -54,6 +55,7 @@ interface ChartDataPoint {
 // ── Custom Tooltip ──────────────────────────────────────────────────
 
 function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: ChartDataPoint }> }) {
+  const { t } = useTranslation()
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
@@ -65,7 +67,7 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
           {fmtDollar(d.result, true)}
         </p>
       )}
-      <p className="text-content font-bold mt-1">Bankroll: {fmtDollar(d.bankroll)}</p>
+      <p className="text-content font-bold mt-1">{t('sim.bankrollAt', { v: fmtDollar(d.bankroll) })}</p>
     </div>
   )
 }
@@ -73,6 +75,7 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
 // ── Component ───────────────────────────────────────────────────────
 
 export function BankrollSimulator() {
+  const { t } = useTranslation()
   const sessions = useBankrollTrackerStore(s => s.sessions)
   const startingBankroll = useBankrollTrackerStore(s => s.startingBankroll)
   const addSession = useBankrollTrackerStore(s => s.addSession)
@@ -152,7 +155,7 @@ export function BankrollSimulator() {
   const chartData = useMemo((): ChartDataPoint[] => {
     const sorted = [...sessions].sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt)
     const data: ChartDataPoint[] = [
-      { label: 'Start', date: 'Start', bankroll: startingBankroll, casino: '', result: 0 },
+      { label: t('tracker.start'), date: t('tracker.start'), bankroll: startingBankroll, casino: '', result: 0 },
     ]
     sorted.forEach((session, i) => {
       const prevBankroll = data[i].bankroll
@@ -165,7 +168,9 @@ export function BankrollSimulator() {
       })
     })
     return data
-  }, [sessions, startingBankroll])
+    // `t` is a dependency because the chart's origin point is labelled
+    // "Start" — without it the axis keeps the previous language.
+  }, [sessions, startingBankroll, t])
 
   // ── Session list (newest first) ──
   const sortedSessions = useMemo(() =>
@@ -243,13 +248,13 @@ export function BankrollSimulator() {
           <span className="grid place-items-center w-16 h-16 mx-auto mb-4 rounded-2xl text-gold bg-gold/10 border border-gold/20">
             <Wallet size={30} />
           </span>
-          <h2 className="text-2xl font-bold text-content mb-3">Start Tracking Your Bankroll</h2>
+          <h2 className="text-2xl font-bold text-content mb-3">{t('sim.onboardTitle')}</h2>
           <p className="text-content/50 mb-8">
-            Track your real casino sessions to see your performance over time.
+            {t('sim.onboardBody')}
           </p>
           <div className="flex flex-col items-center gap-4">
             <label className="w-full max-w-xs">
-              <span className="text-sm text-content/60 block mb-2">Starting Bankroll</span>
+              <span className="text-sm text-content/60 block mb-2">{t('tracker.startingBankroll')}</span>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
                 <input
@@ -268,7 +273,7 @@ export function BankrollSimulator() {
               disabled={!onboardingBankroll || parseFloat(onboardingBankroll) <= 0}
               className="px-8 py-3 rounded-xl bg-gold text-black font-semibold text-lg hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Start Tracking
+              {t('tracker.startTracking')}
             </button>
           </div>
         </div>
@@ -281,14 +286,14 @@ export function BankrollSimulator() {
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="bankroll-tracker">
       {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">Bankroll Tracker</h1>
-        <p className="text-sm text-content/50">Track your real casino sessions and results.</p>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">{t('sim.title')}</h1>
+        <p className="text-sm text-content/50">{t('sim.sub')}</p>
       </div>
 
       {/* ── Section A: Overview ── */}
       <section data-testid="overview-section">
         <div className="text-center mb-4">
-          <p className="text-xs text-content/40 mb-1">Current Bankroll</p>
+          <p className="text-xs text-content/40 mb-1">{t('tracker.currentBankroll')}</p>
           <p className={`text-4xl font-bold ${currentBankroll >= startingBankroll ? 'text-green-400' : 'text-red-400'}`}
             data-testid="current-bankroll">
             {fmtDollar(currentBankroll)}
@@ -296,7 +301,7 @@ export function BankrollSimulator() {
           <div className="text-sm text-content/50 mt-1 flex items-center justify-center gap-1 flex-wrap" data-testid="overview-summary">
             {isEditingStart ? (
               <span className="inline-flex items-center gap-1.5">
-                <span>Starting: $</span>
+                <span>{t('tracker.startingPrefix')} $</span>
                 <input
                   type="number"
                   value={editStartValue}
@@ -331,7 +336,7 @@ export function BankrollSimulator() {
                   onClick={() => { setEditStartValue(String(startingBankroll)); setIsEditingStart(true) }}
                   data-testid="edit-starting-btn"
                   className="ml-1 text-xs text-content/30 hover:text-gold cursor-pointer"
-                  title="Edit starting bankroll"
+                  title={t('tracker.editStarting')}
                 >
                   {'\u270F\uFE0F'}
                 </button>
@@ -347,14 +352,14 @@ export function BankrollSimulator() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="stat-cards">
           {/* Sessions */}
           <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
-            <p className="text-xs text-content/50">Sessions</p>
+            <p className="text-xs text-content/50">{t('tracker.sessions')}</p>
             <p className="text-xl font-bold text-content" data-testid="stat-sessions">{sessionCount}</p>
           </div>
 
           {/* Win Rate */}
           <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
             style={{ boxShadow: sessionCount > 0 ? winRateGlow(winRate) : 'none' }}>
-            <p className="text-xs text-content/50">Win Rate</p>
+            <p className="text-xs text-content/50">{t('tracker.winRate')}</p>
             <p className={`text-xl font-bold ${winRate > 0.55 ? 'text-green-400' : winRate >= 0.45 ? 'text-yellow-400' : 'text-red-400'}`}
               data-testid="stat-winrate">
               {sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014'}
@@ -373,7 +378,7 @@ export function BankrollSimulator() {
 
           {/* Total Hours */}
           <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
-            <p className="text-xs text-content/50">Hours</p>
+            <p className="text-xs text-content/50">{t('sim.hours')}</p>
             <p className="text-xl font-bold text-content" data-testid="stat-hours">
               {totalHours > 0 ? `${totalHours.toFixed(1)}h` : '\u2014'}
             </p>
@@ -383,7 +388,7 @@ export function BankrollSimulator() {
 
       {/* ── Section B: Chart ── */}
       <section data-testid="chart-section">
-        <h2 className="text-lg font-semibold text-content mb-3">Bankroll History</h2>
+        <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.bankrollHistory')}</h2>
         <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
           {sessions.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -427,7 +432,7 @@ export function BankrollSimulator() {
             </ResponsiveContainer>
           ) : (
             <div className="h-48 flex items-center justify-center text-content/30 text-sm">
-              Add your first session to see the chart
+              {t('sim.chartEmpty')}
             </div>
           )}
         </div>
@@ -439,7 +444,7 @@ export function BankrollSimulator() {
       {/* ── Section C: Session List + Form ── */}
       <section data-testid="session-section">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-content">Sessions</h2>
+          <h2 className="text-lg font-semibold text-content">{t('sim.sessionsHeading')}</h2>
           {!showForm && (
             <button
               onClick={openAddForm}
@@ -460,7 +465,7 @@ export function BankrollSimulator() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Date */}
               <label className="block">
-                <span className="text-xs text-content/60">Date</span>
+                <span className="text-xs text-content/60">{t('sim.date')}</span>
                 <input
                   type="date"
                   value={formDate}
@@ -472,7 +477,7 @@ export function BankrollSimulator() {
 
               {/* Casino */}
               <label className="block relative" ref={casinoInputRef}>
-                <span className="text-xs text-content/60">Casino</span>
+                <span className="text-xs text-content/60">{t('sim.casino')}</span>
                 <input
                   type="text"
                   value={formCasino}
@@ -500,7 +505,7 @@ export function BankrollSimulator() {
 
               {/* Result */}
               <div>
-                <span className="text-xs text-content/60 block">Result</span>
+                <span className="text-xs text-content/60 block">{t('sim.result')}</span>
                 <div className="flex gap-2 mt-1">
                   <button
                     onClick={() => setFormIsWin(true)}
@@ -522,7 +527,7 @@ export function BankrollSimulator() {
                         : 'bg-contrast/5 border border-contrast/20 text-content/50'
                     }`}
                   >
-                    Loss -
+                    {t('sim.loss')} -
                   </button>
                   <div className="relative flex-1">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
@@ -545,7 +550,7 @@ export function BankrollSimulator() {
 
               {/* Hours */}
               <label className="block">
-                <span className="text-xs text-content/60">Hours Played</span>
+                <span className="text-xs text-content/60">{t('sim.hoursPlayed')}</span>
                 <input
                   type="number"
                   value={formHours}
@@ -559,11 +564,11 @@ export function BankrollSimulator() {
 
               {/* Notes */}
               <div className="sm:col-span-2">
-                <span className="text-xs text-content/60 block">Notes (optional)</span>
+                <span className="text-xs text-content/60 block">{t('sim.notes')}</span>
                 <textarea
                   value={formNotes}
                   onChange={e => setFormNotes(e.target.value)}
-                  placeholder="Good penetration, 6 deck, S17..."
+                  placeholder={t('sim.notesPlaceholder')}
                   rows={2}
                   data-testid="form-notes"
                   className="w-full mt-1 px-3 py-2 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm focus:outline-none focus:border-gold/60 resize-none"
@@ -656,7 +661,7 @@ export function BankrollSimulator() {
       {/* ── Section D: Additional Stats ── */}
       {sessionCount > 0 && (
         <section data-testid="additional-stats">
-          <h2 className="text-lg font-semibold text-content mb-3">Highlights</h2>
+          <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.highlights')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Best Session */}
             <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
@@ -694,11 +699,11 @@ export function BankrollSimulator() {
               <div className="flex justify-center gap-4 mt-1">
                 <div>
                   <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
-                  <p className="text-[0.6875rem] text-content/40">Win</p>
+                  <p className="text-[0.6875rem] text-content/40">{t('tracker.win')}</p>
                 </div>
                 <div>
                   <p className="text-xl font-bold text-red-400" data-testid="losing-streak">{losingStreak}</p>
-                  <p className="text-[0.6875rem] text-content/40">Loss</p>
+                  <p className="text-[0.6875rem] text-content/40">{t('tracker.loss')}</p>
                 </div>
               </div>
             </div>
@@ -715,13 +720,14 @@ export function BankrollSimulator() {
 // ── Personal Records Component ────────────────────────────────────
 
 function PersonalRecordsSection() {
+  const { t } = useTranslation()
   const records = useBankrollTrackerStore(s => s.getPersonalRecords)()
   const winRate = useBankrollTrackerStore(s => s.getWinRate)()
   const sessionCount = useBankrollTrackerStore(s => s.getSessionCount)()
 
   const cards: { label: string; icon: string; value: string; sub?: string; glow?: string }[] = [
     {
-      label: 'Best Session',
+      label: t('tracker.bestSession'),
       icon: '\uD83E\uDD47',
       value: records.bestSession ? fmtDollar(records.bestSession.result, true) : '\u2014',
       sub: records.bestSession ? `${records.bestSession.casino} \u00B7 ${fmtDate(records.bestSession.date)}` : undefined,
@@ -729,7 +735,7 @@ function PersonalRecordsSection() {
         ? '0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.08)' : undefined,
     },
     {
-      label: 'Worst Session',
+      label: t('tracker.worstSession'),
       icon: '\uD83D\uDE22',
       value: records.worstSession ? fmtDollar(records.worstSession.result, true) : '\u2014',
       sub: records.worstSession ? `${records.worstSession.casino} \u00B7 ${fmtDate(records.worstSession.date)}` : undefined,
@@ -737,23 +743,23 @@ function PersonalRecordsSection() {
         ? '0 0 20px rgba(239, 68, 68, 0.2), 0 0 40px rgba(239, 68, 68, 0.05)' : undefined,
     },
     {
-      label: 'Win Streak',
+      label: t('tracker.winStreak'),
       icon: '\uD83D\uDD25',
       value: records.longestWinStreak > 0 ? `${records.longestWinStreak} sessions` : '\u2014',
     },
     {
-      label: 'Longest Session',
+      label: t('sim.longestSession'),
       icon: '\u23F1\uFE0F',
       value: records.longestSession ? `${records.longestSession.hoursPlayed.toFixed(1)}h` : '\u2014',
       sub: records.longestSession ? `${records.longestSession.casino} \u00B7 ${fmtDate(records.longestSession.date)}` : undefined,
     },
     {
-      label: 'Peak Bankroll',
+      label: t('tracker.peakBankroll'),
       icon: '\uD83D\uDCC8',
       value: records.highestBankroll > 0 ? fmtDollar(records.highestBankroll) : '\u2014',
     },
     {
-      label: 'Best $/hr',
+      label: t('sim.bestPerHour'),
       icon: '\uD83D\uDCB0',
       value: records.bestHourlyRate
         ? `$${(records.bestHourlyRate.result / records.bestHourlyRate.hoursPlayed).toFixed(0)}/hr`
@@ -761,12 +767,12 @@ function PersonalRecordsSection() {
       sub: records.bestHourlyRate ? fmtDate(records.bestHourlyRate.date) : undefined,
     },
     {
-      label: 'Best Casino',
+      label: t('sim.bestCasino'),
       icon: '\uD83C\uDFE6',
       value: records.mostProfitableCasino ?? '\u2014',
     },
     {
-      label: 'Win Rate',
+      label: t('tracker.winRate'),
       icon: '\u2705',
       value: sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014',
     },

@@ -96,7 +96,7 @@ export function LandingPage() {
         navigate('/account')
       }
     } catch (e) {
-      setCheckoutError(e instanceof Error ? e.message : 'Could not start checkout.')
+      setCheckoutError(e instanceof Error ? e.message : t('account.errors.checkout'))
       setBusy(false)
     }
   }
@@ -273,7 +273,7 @@ export function LandingPage() {
       {/* FAQ */}
       <section className="max-w-6xl mx-auto px-6 pb-8">
         <Reveal>
-          <SectionHead eyebrow="Good to know" title={<>{t('landing.faq.heading')}</>} />
+          <SectionHead eyebrow={t('landing.goodToKnow')} title={<>{t('landing.faq.heading')}</>} />
         </Reveal>
         <Reveal delay={0.06} className="mt-9 max-w-3xl">
           {FAQS.map(f => (

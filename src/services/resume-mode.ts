@@ -6,7 +6,7 @@ export interface ResumeTarget {
   /** Where the "continue" action navigates. */
   mode: AppMode
   /** Human label for the button, e.g. "Speed Drill". */
-  label: string
+  labelKey: string
 }
 
 /**
@@ -22,11 +22,11 @@ export interface ResumeTarget {
  */
 export function resumeTargetFor(mode: TrainingMode): ResumeTarget | null {
   switch (mode) {
-    case 'speedDrill': return { mode: 'speedDrill', label: 'Speed Drill' }
-    case 'deviationFlashCards': return { mode: 'deviationTraining', label: 'Flashcards' }
-    case 'betSpread': return { mode: 'betSpread', label: 'Bet Spread' }
-    case 'deckEstimation': return { mode: 'deckEstimation', label: 'Deck Estimation' }
-    case 'casinoSession': return { mode: 'casinoSession', label: 'Casino Session' }
+    case 'speedDrill': return { mode: 'speedDrill', labelKey: 'modes.speedDrill' }
+    case 'deviationFlashCards': return { mode: 'deviationTraining', labelKey: 'modes.deviationFlashCards' }
+    case 'betSpread': return { mode: 'betSpread', labelKey: 'modes.betSpread' }
+    case 'deckEstimation': return { mode: 'deckEstimation', labelKey: 'modes.deckEstimation' }
+    case 'casinoSession': return { mode: 'casinoSession', labelKey: 'modes.casinoSession' }
     // Retired modes kept for historical session records — no screen to return to.
     case 'tableCounting':
     case 'deviationAtTable':

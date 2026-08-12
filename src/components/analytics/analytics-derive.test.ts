@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import i18next from 'i18next'
 import { CountingSystemId } from '../../engine/counting/types'
 import type { TrainingSessionResult, SessionDetails, TrainingMode } from '../../services/stats-types'
 import {
@@ -234,13 +235,14 @@ describe('deriveInsight', () => {
   it('prioritizes a clearly weak hand', () => {
     const sessions = [makeSession({ mode: 'deviationFlashCards', details: dev({ '16 vs 10': [2, 8] }) })]
     const insight = deriveInsight(sessions, 'all', 1, NOW)
-    expect(insight.text).toContain('16 vs 10')
+    // Resolved: the insight carries a key and its values now.
+    expect(i18next.t(insight.textKey, insight.values)).toContain('16 vs 10')
     expect(insight.highlights).toContain('16 vs 10')
   })
 
   it('falls back to an empty-state prompt with no sessions', () => {
     const insight = deriveInsight([], '7d', 0, NOW)
-    expect(insight.text).toMatch(/insights will show up/i)
+    expect(i18next.t(insight.textKey, insight.values)).toMatch(/insights will show up/i)
   })
 
   it('reports an improving trend', () => {
@@ -249,7 +251,7 @@ describe('deriveInsight', () => {
       makeSession({ daysAgo: 9, totalQuestions: 10, correctAnswers: 6 }),
     ]
     const insight = deriveInsight(sessions, '7d', 1, NOW)
-    expect(insight.text).toMatch(/climbed/i)
+    expect(i18next.t(insight.textKey, insight.values)).toMatch(/climbed/i)
   })
 })
 

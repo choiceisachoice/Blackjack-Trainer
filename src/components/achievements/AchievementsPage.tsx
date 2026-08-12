@@ -190,9 +190,9 @@ export function AchievementsPage() {
             </div>
           </div>
           <div className="relative flex gap-6 md:gap-7">
-            <HeroStat value={totalUnlocked} label="Unlocked" color="var(--color-gold-bright)" />
-            <HeroStat value={total - totalUnlocked} label="Locked" />
-            <HeroStat value={diamondUnlocked} label="Diamond" color={TIER_HEX.diamond} />
+            <HeroStat value={totalUnlocked} label={t('awards.unlocked')} color="var(--color-gold-bright)" />
+            <HeroStat value={total - totalUnlocked} label={t('awards.locked')} />
+            <HeroStat value={diamondUnlocked} label={t('awards.diamond')} color={TIER_HEX.diamond} />
           </div>
         </section>
 
@@ -220,7 +220,7 @@ export function AchievementsPage() {
 
         {/* 3 — Level roadmap */}
         <section>
-          <SectionTitle>Your climb — level {level.level} of {LEVELS.length}</SectionTitle>
+          <SectionTitle>{t('awards.yourClimb', { n: level.level, total: LEVELS.length })}</SectionTitle>
           <LevelRoadmap currentLevel={level.level} />
         </section>
 
@@ -276,7 +276,7 @@ export function AchievementsPage() {
 
           {filtered.length === 0 && (
             <div className="text-center py-12 text-content/40">
-              {filter === 'unlocked' ? 'No achievements unlocked yet' : 'All achievements unlocked!'}
+              {filter === 'unlocked' ? t('awards.noneUnlocked') : t('awards.allUnlocked')}
             </div>
           )}
         </section>

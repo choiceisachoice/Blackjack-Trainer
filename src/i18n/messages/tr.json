@@ -5,7 +5,14 @@
     "continue": "Devam",
     "loading": "Yükleniyor…",
     "language": "Dil",
-    "backToHome": "Ana sayfaya dön"
+    "backToHome": "Ana sayfaya dön",
+    "close": "Kapat",
+    "welcome": "Hoş geldiniz",
+    "welcomeBack": "Tekrar hoş geldiniz",
+    "startLearning": "Öğrenmeye başla",
+    "loadingTraining": "Antrenmanınız yükleniyor",
+    "signingIn": "Giriş yapılıyor",
+    "continueMode": "{{mode}} devam"
   },
   "nav": {
     "home": "Ana sayfa",
@@ -73,7 +80,9 @@
       "portal": "Faturalandırma portalı açılamadı.",
       "checkout": "Ödeme başlatılamadı.",
       "alreadySubscribed": "Bu hesapta zaten Pro var — ikinci bir abonelik oluşturulmadı."
-    }
+    },
+    "backToApp": "Uygulamaya dön",
+    "upgradeHintShort": "Casino masasını, sapmaları ve tüm analizleri açmak için Pro’ya geçin."
   },
   "pricing": {
     "vatNote": "Nihai fiyat; İsviçre'deki müşteriler için %{{rate}} İsviçre KDV'si dâhildir",
@@ -212,7 +221,8 @@
       "l2": "Strateji tablosu (temel)",
       "l3": "Temel analizleriniz",
       "l4": "Başarımlar, seviyeler & rehber"
-    }
+    },
+    "goodToKnow": "Bilmekte fayda var"
   },
   "auth": {
     "signIn": "Giriş yap",
@@ -1383,7 +1393,12 @@
       "counting_mastery": "Sayım ustalığı",
       "bankrollTracker": "Bankroll takibi"
     },
-    "all": "Tümü"
+    "all": "Tümü",
+    "maxLevel": "En yüksek seviyeye ulaşıldı",
+    "diamond": "Elmas",
+    "yourClimb": "Tırmanışınız — {{total}} seviyeden {{n}}.",
+    "noneUnlocked": "Henüz açılmış ödül yok",
+    "allUnlocked": "Bütün ödüller açıldı!"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1583,7 +1598,11 @@
     "high_roller": {
       "title": "Yüksek oyuncu",
       "desc": "Bir casino oturumunda 1.000 $+ kâr edin"
-    }
+    },
+    "daily": "Günlük görev",
+    "weekly": "Haftalık görev",
+    "comeBack": "Yarın tekrar gelin",
+    "nextMonday": "Yeni görev pazartesi"
   },
   "wchal": {
     "weekly_grinder": {
@@ -1650,5 +1669,153 @@
       "title": "Seri ustası",
       "desc": "Bir casino oturumunda üst üste 10 el kazanın"
     }
+  },
+  "analytics": {
+    "yourTraining": "Antrenmanınız",
+    "noSessions": "Henüz kayıtlı tur yok",
+    "noSessionsBody": "Birkaç tur oynayın, analizleriniz burada görünsün.",
+    "insight": "Bu dönemin çıkarımı",
+    "insightEmpty": "Birkaç tur oynayın, çıkarımlarınız burada görünsün.",
+    "trendEmpty": "Eğilimi görmek için daha çok gün çalışın",
+    "edgeCaption": "Casino oturumlarınızdan biriken net kâr.",
+    "edgeEmpty": "Simüle bankroll’unuzu görmek için bir casino oturumu oynayın.",
+    "noneInRange": "Bu aralıkta tur yok",
+    "weakEmpty": "Zayıf noktalarınızı ortaya çıkarmak için bilgi kartlarıyla sapma antrenmanı yapın.",
+    "deleteHistory": "Antrenman geçmişini sil",
+    "timeRange": "Zaman aralığı",
+    "proHeadline": "Kart sayımınızın tam resmini görün",
+    "proSub": "Ücretsiz sürüm ana rakamları gösterir. Pro, gerçekte nasıl geliştiğinizi ve sırada neyi çalışmanız gerektiğini gösterir.",
+    "accuracyTrend": "İsabet eğilimi",
+    "consistency": "Çalışma düzeni",
+    "skillProfile": "Beceri profili",
+    "simulatedEdge": "Simüle avantaj",
+    "accuracyByMode": "Moda göre isabet",
+    "weakestHands": "En zayıf elleriniz",
+    "recentSessions": "Son turlar",
+    "kpi": {
+      "accuracy": "Genel isabet",
+      "sessions": "Tur",
+      "streak": "Güncel seri",
+      "hands": "Çalışılan el",
+      "time": "Antrenman süresi"
+    },
+    "subhead": "Hi-Lo avantajınız nasıl keskinleşiyor — isabet, düzen ve sırada ne çalışmalı.",
+    "note": {
+      "needDays": "en az 2 etkin gün gerekir",
+      "last12": "son 12 hafta",
+      "sharpRusty": "nerede keskin, nerede paslısınız",
+      "casinoNet": "Casino oturumu net · gerçek sonuçlar",
+      "thisPeriod": "bu dönem",
+      "misplayed": "en çok yanlış oynanan kararlar",
+      "lastN": "son {{n}}"
+    },
+    "teaser": {
+      "i1": "Zaman içinde isabet eğilimi",
+      "i2": "Çalışma düzeni ısı haritası",
+      "i3": "Beceri radarı — keskin mi paslı mı",
+      "i4": "En zayıf elleriniz, sıralı",
+      "i5": "Gerçek casino oturumlarından simüle avantaj",
+      "upgrade": "Kart sayma avantajınızın tam resmini açın."
+    },
+    "insightMsg": {
+      "weak": "{{name}} elini vakaların %{{miss}} kadarında yanlış oynuyorsunuz — kısa bir bilgi kartı seti açığı en hızlı kapatır.",
+      "up": "İsabetiniz önceki döneme göre {{delta}} arttı — momentum sizden yana.",
+      "down": "Bu dönemde isabet {{delta}} düştü — bir iki odaklı tur bunu toparlar.",
+      "streak": "{{streak}} üzerindesiniz — bir sayıcının asıl avantajı düzenliliktir. Bunu sürdürün.",
+      "steady": "{{n}} turda {{acc}} isabet tutuyorsunuz — sağlam iş. Sırada zayıf bir modu zorlayın."
+    },
+    "streakDays": "{{n}} günlük seri",
+    "loading": "İstatistikler yükleniyor…",
+    "streakDaysShort": "{{n}} günlük seri",
+    "noStreak": "Etkin seri yok",
+    "col": {
+      "when": "Ne zaman",
+      "mode": "Mod",
+      "accuracy": "İsabet",
+      "hands": "El"
+    },
+    "deleteFailed": "Geçmişiniz silinemedi."
+  },
+  "sim": {
+    "onboardTitle": "Bankroll’unuzu takip edin",
+    "onboardBody": "Zaman içindeki performansınızı görmek için gerçek casino oturumlarınızı kaydedin.",
+    "title": "Bankroll takibi",
+    "sub": "Gerçek casino oturumlarınızı ve sonuçlarınızı takip edin.",
+    "chartEmpty": "Grafiği görmek için ilk oturumunuzu ekleyin",
+    "hoursPlayed": "Oynanan saat",
+    "notesPlaceholder": "İyi penetrasyon, 6 deste, S17…",
+    "longestSession": "En uzun oturum",
+    "bestPerHour": "En iyi $/sa",
+    "bestCasino": "En iyi casino",
+    "bankrollAt": "Bankroll: {{v}}",
+    "hours": "Saat",
+    "sessionsHeading": "Oturumlar",
+    "date": "Tarih",
+    "casino": "Casino",
+    "result": "Sonuç",
+    "notes": "Notlar (isteğe bağlı)",
+    "preset": {
+      "basic": {
+        "label": "Yalnızca temel strateji",
+        "desc": "Kusursuz temel strateji, sayım yok, sabit bahis"
+      },
+      "casual": {
+        "label": "Ara sıra sayan",
+        "desc": "Hi-Lo öğreniyor, dar aralık"
+      },
+      "serious": {
+        "label": "Ciddi oyuncu",
+        "desc": "Sağlam sayım, I18 sapmaları"
+      },
+      "pro": {
+        "label": "Profesyonel",
+        "desc": "Neredeyse kusursuz oyun, agresif aralık"
+      },
+      "hostile": {
+        "label": "Zorlu masa",
+        "desc": "H17, 6:5 BJ, 8 deste, sığ penetrasyon"
+      }
+    },
+    "loss": "Kayıp"
+  },
+  "chart": {
+    "title": "Temel strateji tablosu",
+    "sub": "Eksiksiz Hi-Lo temel stratejisi — ayrıntı için bir hücreye dokunun.",
+    "dealerRule": "Krupiye kuralı",
+    "proHeadline": "Sapmalar bir Pro özelliğidir — sayımın temel stratejiyi ne zaman geçersiz kıldığını tam olarak görün.",
+    "s1": "I. Sert toplamlar (12-17+)",
+    "s2": "II. Sert toplamlar (5-11)",
+    "s3": "III. Yumuşak eller",
+    "s4": "IV. Çiftler",
+    "countDeviation": "Sayım sapması",
+    "atTrueCount": "True count"
+  },
+  "onboardingSteps": {
+    "speed": {
+      "label": "İlk Speed Drill’inizi yapın",
+      "hint": "Kartlar geçerken running count’u tutun."
+    },
+    "flash": {
+      "label": "Bilgi kartlarıyla birkaç el çalışın",
+      "hint": "Her el için doğru hamleyi öğrenin."
+    },
+    "repeat": {
+      "hint": "Sayım bir reflekstir — tekrarla gelir."
+    },
+    "habit": {
+      "label": "{{n}} antrenman turu tamamlayın"
+    }
+  },
+  "errorScreen": {
+    "staleTitle": "Bu sayfanın yenilenmesi gerekiyor",
+    "genericTitle": "Bir şeyler ters gitti",
+    "staleBody": "Uygulamanın bir bölümü yüklenemedi. Bu genelde bu sekme açıkken yeni bir sürüm yayınlandığı anlamına gelir. Yeniden yükleme onu alır — ilerlemeniz güvende.",
+    "genericBody": "Bu ekranda beklenmeyen bir hata oluştu. İlerlemeniz güvende — hiçbir şey kaybolmadı. Yeniden deneyebilir ya da ana sayfaya dönebilirsiniz.",
+    "reload": "Sayfayı yeniden yükle",
+    "tryAgain": "Yeniden dene"
+  },
+  "legal": {
+    "draft": "Taslak — henüz yayımlanmadı.",
+    "updated": "{{date}} tarihinde güncellendi"
   }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Crown, LogOut, ExternalLink, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
@@ -18,14 +19,14 @@ function planLabel(
   status: string,
   isPro: boolean,
   cancelAtPeriodEnd: boolean,
-): { title: string; tone: 'gold' | 'muted' | 'warn' } {
-  if (!isPro) return { title: 'Free plan', tone: 'muted' }
+): { titleKey: string; tone: 'gold' | 'muted' | 'warn' } {
+  if (!isPro) return { titleKey: 'account.freePlan', tone: 'muted' }
   // A failed payment outranks a scheduled ending: one needs action now, the
   // other is already settled.
-  if (status === 'past_due') return { title: 'Pro — payment due', tone: 'warn' }
-  if (cancelAtPeriodEnd) return { title: 'Pro — cancelled', tone: 'muted' }
-  if (status === 'trialing') return { title: 'Pro — trial', tone: 'gold' }
-  return { title: 'Pro — active', tone: 'gold' }
+  if (status === 'past_due') return { titleKey: 'account.proPaymentDue', tone: 'warn' }
+  if (cancelAtPeriodEnd) return { titleKey: 'account.proCancelled', tone: 'muted' }
+  if (status === 'trialing') return { titleKey: 'account.proTrial', tone: 'gold' }
+  return { titleKey: 'account.proActive', tone: 'gold' }
 }
 
 function formatDate(ms: number | null): string | null {
@@ -39,6 +40,7 @@ function formatDate(ms: number | null): string | null {
  * free users. Also surfaces the signed-in email and sign-out.
  */
 export function AccountPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const email = useAuthStore(s => s.user?.email ?? null)
   const isPro = useIsPro()
@@ -68,11 +70,11 @@ export function AccountPage() {
   const plan = planLabel(status, isPro, cancelAtPeriodEnd)
   const periodEnd = formatDate(currentPeriodEnd)
   const renewLabel =
-    status === 'past_due' ? 'Payment due by'
+    status === 'past_due' ? t('account.paymentDueBy')
     // "Access ends on", not "Renews on". Same date, opposite promise.
-    : cancelAtPeriodEnd ? 'Access ends on'
-    : status === 'trialing' ? 'Trial ends'
-    : 'Renews on'
+    : cancelAtPeriodEnd ? t('account.accessEndsOn')
+    : status === 'trialing' ? t('account.trialEnds')
+    : t('account.renewsOn')
 
   // Both leave `busy` set on the success path on purpose: the browser is on its
   // way to Stripe, and re-enabling would offer a second session mid-redirect.
@@ -82,7 +84,7 @@ export function AccountPage() {
     try {
       await openBillingPortal()
     } catch (e) {
-      setBillingError(e instanceof Error ? e.message : 'Could not open the billing portal.')
+      setBillingError(e instanceof Error ? e.message : t('account.errors.portal'))
       setBusy(null)
     }
   }
@@ -97,11 +99,11 @@ export function AccountPage() {
         // i.e. this profile row and Stripe disagree. Re-read the entitlement so
         // the page starts telling the truth.
         await loadEntitlement()
-        setBillingError('You already have Pro on this account — no second subscription was created.')
+        setBillingError(t('account.errors.alreadySubscribed'))
         setBusy(null)
       }
     } catch (e) {
-      setBillingError(e instanceof Error ? e.message : 'Could not start checkout.')
+      setBillingError(e instanceof Error ? e.message : t('account.errors.checkout'))
       setBusy(null)
     }
   }
@@ -125,14 +127,14 @@ export function AccountPage() {
     <div className="app-canvas min-h-screen text-content">
       <div className="max-w-2xl mx-auto px-6 py-14">
         <Link to="/app" className="inline-flex items-center gap-2 text-sm text-content/60 hover:text-content">
-          <ArrowLeft size={16} /> Back to app
+          <ArrowLeft size={16} /> {t('account.backToApp')}
         </Link>
-        <h1 className="mt-6 text-3xl font-extrabold tracking-tight">Account</h1>
+        <h1 className="mt-6 text-3xl font-extrabold tracking-tight">{t('account.title')}</h1>
 
         {/* Plan card */}
         <div className="surface rounded-2xl p-6 mt-6">
           {!loaded && isSupabaseConfigured ? (
-            <div className="flex items-center gap-2 text-content/50 py-4"><Loader2 size={18} className="animate-spin" /> Loading your plan…</div>
+            <div className="flex items-center gap-2 text-content/50 py-4"><Loader2 size={18} className="animate-spin" /> {t('account.loadingPlan')}</div>
           ) : (
             <>
               <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -141,9 +143,9 @@ export function AccountPage() {
                     <Crown size={20} />
                   </span>
                   <div>
-                    <div className="font-bold text-lg">{plan.title}</div>
+                    <div className="font-bold text-lg">{t(plan.titleKey)}</div>
                     {isPro && periodEnd && <div className="text-sm text-content/50">{renewLabel} {periodEnd}</div>}
-                    {!isPro && <div className="text-sm text-content/50">Upgrade to unlock the casino table, deviations and full analytics.</div>}
+                    {!isPro && <div className="text-sm text-content/50">{t('account.upgradeHintShort')}</div>}
                     {cancelAtPeriodEnd && (
                       /**
                        * The part of cancelling nobody thinks about.
@@ -181,7 +183,7 @@ export function AccountPage() {
                 <p className="mt-4 text-sm text-error" role="alert">{billingError}</p>
               )}
               {!isPro && (
-                <Link to="/#pricing" className="inline-block mt-4 text-sm text-gold hover:text-gold-bright">Compare plans →</Link>
+                <Link to="/#pricing" className="inline-block mt-4 text-sm text-gold hover:text-gold-bright">{t('account.comparePlans')}</Link>
               )}
             </>
           )}
@@ -189,7 +191,7 @@ export function AccountPage() {
 
         {/* Account info */}
         <div className="surface rounded-2xl p-6 mt-4">
-          <div className="text-sm uppercase tracking-wide text-content/50 font-semibold">Account</div>
+          <div className="text-sm uppercase tracking-wide text-content/50 font-semibold">{t('account.sectionAccount')}</div>
           {email && <div className="mt-2 text-content">{email}</div>}
           <button
             onClick={handleSignOut}

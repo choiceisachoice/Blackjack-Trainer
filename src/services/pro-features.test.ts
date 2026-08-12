@@ -50,8 +50,8 @@ describe('yearlySaving', () => {
 
   it('tracks a price change instead of going stale', () => {
     const plans: PlanOption[] = [
-      { id: 'monthly', label: 'Monthly', amount: 10, cadence: '/month' },
-      { id: 'yearly', label: 'Yearly', amount: 60, cadence: '/year' },
+      { id: 'monthly', amount: 10, cadence: '/month' },
+      { id: 'yearly', amount: 60, cadence: '/year' },
     ]
     const s = yearlySaving(plans)
     expect(s.monthlyTotal).toBe(120)
@@ -61,7 +61,7 @@ describe('yearlySaving', () => {
 
   it('throws rather than rendering NaN at a customer when a plan is missing', () => {
     const onlyMonthly: PlanOption[] = [
-      { id: 'monthly', label: 'Monthly', amount: 7.9, cadence: '/month' },
+      { id: 'monthly', amount: 7.9, cadence: '/month' },
     ]
     expect(() => yearlySaving(onlyMonthly)).toThrow(/monthly and a yearly/)
   })

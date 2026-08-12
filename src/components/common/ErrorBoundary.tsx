@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { RotateCcw, RefreshCw } from 'lucide-react'
+import { ErrorFallback } from './ErrorFallback'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -76,41 +76,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const staleChunk = isChunkLoadError(error)
 
     return (
-      <div
-        className={`flex items-center justify-center p-6 ${
-          this.props.fullScreen ? 'min-h-screen bg-casino-bg' : 'flex-1'
-        }`}
-      >
-        <div className="surface max-w-md w-full p-8 text-center flex flex-col items-center gap-4">
-          <h2 className="text-xl font-semibold text-gold-gradient">
-            {staleChunk ? 'This page needs a refresh' : 'Something went wrong'}
-          </h2>
-          <p className="text-sm text-content/60">
-            {staleChunk
-              ? 'Part of the app could not be loaded. That usually means a new version was released while this tab was open. Reloading picks it up — your progress is safe.'
-              : 'This screen hit an unexpected error. Your progress is safe — nothing was lost. You can try again or head back home.'}
-          </p>
-          {staleChunk ? (
-            <button
-              onClick={this.handleReload}
-              className="surface glow-hover inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-content cursor-pointer"
-              data-testid="error-boundary-reload"
-            >
-              <RefreshCw size={16} />
-              Reload the page
-            </button>
-          ) : (
-            <button
-              onClick={this.handleReset}
-              className="surface glow-hover inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-content cursor-pointer"
-              data-testid="error-boundary-reset"
-            >
-              <RotateCcw size={16} />
-              Try again
-            </button>
-          )}
-        </div>
-      </div>
+      <ErrorFallback
+        staleChunk={staleChunk}
+        fullScreen={this.props.fullScreen}
+        onReload={this.handleReload}
+        onReset={this.handleReset}
+      />
     )
   }
 }

@@ -4,10 +4,10 @@
 export interface BankrollPreset {
   /** Unique identifier */
   id: string
-  /** Display label */
-  label: string
-  /** Short description */
-  description: string
+  /** Key for the display label, under `sim.preset`. */
+  labelKey: string
+  /** Key for the short description. */
+  descKey: string
   /** Emoji icon for the preset card */
   icon: string
   /** Casino rule parameters */

@@ -5,7 +5,14 @@
     "continue": "Continue",
     "loading": "Loading…",
     "language": "Language",
-    "backToHome": "Back to home"
+    "backToHome": "Back to home",
+    "close": "Close",
+    "welcome": "Welcome",
+    "welcomeBack": "Welcome back",
+    "startLearning": "Start learning",
+    "loadingTraining": "Loading your training",
+    "signingIn": "Signing you in",
+    "continueMode": "Continue {{mode}}"
   },
   "nav": {
     "home": "Home",
@@ -73,7 +80,9 @@
       "portal": "Could not open the billing portal.",
       "checkout": "Could not start checkout.",
       "alreadySubscribed": "You already have Pro on this account — no second subscription was created."
-    }
+    },
+    "backToApp": "Back to app",
+    "upgradeHintShort": "Upgrade to unlock the casino table, deviations and full analytics."
   },
   "pricing": {
     "vatNote": "Final price, incl. {{rate}}% Swiss VAT for customers in Switzerland",
@@ -212,7 +221,8 @@
       "l2": "Strategy Chart (basics)",
       "l3": "Your basic analytics",
       "l4": "Awards, levels & the Learn guide"
-    }
+    },
+    "goodToKnow": "Good to know"
   },
   "auth": {
     "signIn": "Sign In",
@@ -1383,7 +1393,12 @@
       "counting_mastery": "Counting Mastery",
       "bankrollTracker": "Bankroll Tracker"
     },
-    "all": "All"
+    "all": "All",
+    "maxLevel": "Max level reached",
+    "diamond": "Diamond",
+    "yourClimb": "Your climb — level {{n}} of {{total}}",
+    "noneUnlocked": "No achievements unlocked yet",
+    "allUnlocked": "All achievements unlocked!"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1583,7 +1598,11 @@
     "high_roller": {
       "title": "High Roller",
       "desc": "Earn $1000+ profit in a Casino Session"
-    }
+    },
+    "daily": "Daily Challenge",
+    "weekly": "Weekly Challenge",
+    "comeBack": "Come back tomorrow",
+    "nextMonday": "New challenge next Monday"
   },
   "wchal": {
     "weekly_grinder": {
@@ -1650,5 +1669,153 @@
       "title": "Streak Master",
       "desc": "Win 10 hands in a row in a Casino Session"
     }
+  },
+  "analytics": {
+    "yourTraining": "Your training",
+    "noSessions": "No sessions recorded yet",
+    "noSessionsBody": "Play a few training rounds and your analytics will appear here.",
+    "insight": "This period’s insight",
+    "insightEmpty": "Play a few sessions and your training insights will show up here.",
+    "trendEmpty": "Train on more days to see your trend",
+    "edgeCaption": "Cumulative net profit from your Casino Sessions.",
+    "edgeEmpty": "Play a Casino Session to see your simulated bankroll.",
+    "noneInRange": "No sessions in this range",
+    "weakEmpty": "Complete Flashcards deviation training to surface your weak spots.",
+    "deleteHistory": "Delete training history",
+    "timeRange": "Time range",
+    "proHeadline": "See your complete card-counting picture",
+    "proSub": "Free shows your headline numbers. Pro reveals how you’re actually improving — and exactly what to drill next.",
+    "accuracyTrend": "Accuracy trend",
+    "consistency": "Practice consistency",
+    "skillProfile": "Skill profile",
+    "simulatedEdge": "Simulated edge",
+    "accuracyByMode": "Accuracy by mode",
+    "weakestHands": "Your weakest hands",
+    "recentSessions": "Recent sessions",
+    "kpi": {
+      "accuracy": "Overall accuracy",
+      "sessions": "Sessions",
+      "streak": "Current streak",
+      "hands": "Hands trained",
+      "time": "Training time"
+    },
+    "subhead": "How your Hi-Lo edge is sharpening — accuracy, consistency, and what to drill next.",
+    "note": {
+      "needDays": "need 2+ active days",
+      "last12": "last 12 weeks",
+      "sharpRusty": "where you’re sharp vs. rusty",
+      "casinoNet": "Casino Session net · real results",
+      "thisPeriod": "this period",
+      "misplayed": "most-misplayed decisions",
+      "lastN": "last {{n}}"
+    },
+    "teaser": {
+      "i1": "Accuracy trend over time",
+      "i2": "Practice consistency heatmap",
+      "i3": "Skill radar — sharp vs. rusty dimensions",
+      "i4": "Your weakest hands, ranked",
+      "i5": "Simulated edge from real Casino Sessions",
+      "upgrade": "Unlock the full analytics picture of your card-counting edge."
+    },
+    "insightMsg": {
+      "weak": "You misplay {{name}} {{miss}}% of the time — a short Flashcards set would close the gap fastest.",
+      "up": "Your accuracy climbed {{delta}} versus the previous period — momentum is on your side.",
+      "down": "Accuracy slipped {{delta}} this period — a focused session or two will steady it.",
+      "streak": "You’re on a {{streak}} — consistency is the counter’s real edge. Keep it alive.",
+      "steady": "You’re holding {{acc}} accuracy across {{n}} sessions — steady work. Push a weak mode next."
+    },
+    "streakDays": "{{n}}-day streak",
+    "loading": "Loading stats…",
+    "streakDaysShort": "{{n}}-day streak",
+    "noStreak": "No active streak",
+    "col": {
+      "when": "When",
+      "mode": "Mode",
+      "accuracy": "Accuracy",
+      "hands": "Hands"
+    },
+    "deleteFailed": "Could not delete your history."
+  },
+  "sim": {
+    "onboardTitle": "Start Tracking Your Bankroll",
+    "onboardBody": "Track your real casino sessions to see your performance over time.",
+    "title": "Bankroll Tracker",
+    "sub": "Track your real casino sessions and results.",
+    "chartEmpty": "Add your first session to see the chart",
+    "hoursPlayed": "Hours Played",
+    "notesPlaceholder": "Good penetration, 6 deck, S17...",
+    "longestSession": "Longest Session",
+    "bestPerHour": "Best $/hr",
+    "bestCasino": "Best Casino",
+    "bankrollAt": "Bankroll: {{v}}",
+    "hours": "Hours",
+    "sessionsHeading": "Sessions",
+    "date": "Date",
+    "casino": "Casino",
+    "result": "Result",
+    "notes": "Notes (optional)",
+    "preset": {
+      "basic": {
+        "label": "Basic Strategy Only",
+        "desc": "Perfect BS, no counting, flat bet"
+      },
+      "casual": {
+        "label": "Casual Counter",
+        "desc": "Learning Hi-Lo, small spread"
+      },
+      "serious": {
+        "label": "Serious Player",
+        "desc": "Solid counting, I18 deviations"
+      },
+      "pro": {
+        "label": "Professional",
+        "desc": "Near-perfect play, aggressive spread"
+      },
+      "hostile": {
+        "label": "Hostile Table",
+        "desc": "H17, 6:5 BJ, 8 decks, shallow pen"
+      }
+    },
+    "loss": "Loss"
+  },
+  "chart": {
+    "title": "Basic Strategy Chart",
+    "sub": "The complete Hi-Lo basic strategy — tap any cell for details.",
+    "dealerRule": "Dealer rule",
+    "proHeadline": "Deviations are a Pro feature — see exactly when to break basic strategy by the count.",
+    "s1": "I. Hard Totals (12-17+)",
+    "s2": "II. Hard Totals (5-11)",
+    "s3": "III. Soft Hands",
+    "s4": "IV. Pairs",
+    "countDeviation": "Count Deviation",
+    "atTrueCount": "At True Count"
+  },
+  "onboardingSteps": {
+    "speed": {
+      "label": "Run your first Speed Drill",
+      "hint": "Keep the running count while cards flash by."
+    },
+    "flash": {
+      "label": "Drill a few hands in Flashcards",
+      "hint": "Learn the correct play for every hand."
+    },
+    "repeat": {
+      "hint": "Counting is a reflex — it comes from repetition."
+    },
+    "habit": {
+      "label": "Complete {{n}} training sessions"
+    }
+  },
+  "errorScreen": {
+    "staleTitle": "This page needs a refresh",
+    "genericTitle": "Something went wrong",
+    "staleBody": "Part of the app could not be loaded. That usually means a new version was released while this tab was open. Reloading picks it up — your progress is safe.",
+    "genericBody": "This screen hit an unexpected error. Your progress is safe — nothing was lost. You can try again or head back home.",
+    "reload": "Reload the page",
+    "tryAgain": "Try again"
+  },
+  "legal": {
+    "draft": "Draft — not yet published.",
+    "updated": "Updated {{date}}"
   }
 }

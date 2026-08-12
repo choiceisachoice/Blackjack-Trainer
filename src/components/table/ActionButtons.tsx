@@ -1,21 +1,22 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { useGameStore } from '../../store/game-store'
 import { Action } from '../../types'
 
 interface ActionDef {
   action: Action
-  label: string
+  labelKey: string
   shortcut: string
   color: string
 }
 
 const ACTIONS: ActionDef[] = [
-  { action: Action.Hit, label: 'Hit', shortcut: 'H', color: 'bg-success hover:bg-success/80' },
-  { action: Action.Stand, label: 'Stand', shortcut: 'S', color: 'bg-error hover:bg-error/80' },
-  { action: Action.Double, label: 'Double', shortcut: 'D', color: 'bg-warning hover:bg-warning/80' },
-  { action: Action.Split, label: 'Split', shortcut: 'P', color: 'bg-chip-blue hover:bg-chip-blue/80' },
-  { action: Action.Surrender, label: 'Surrender', shortcut: 'R', color: 'bg-contrast/20 hover:bg-contrast/30' },
-  { action: Action.Insurance, label: 'Insurance', shortcut: 'I', color: 'bg-gold/80 hover:bg-gold/60' },
+  { action: Action.Hit, labelKey: 'actions.hit', shortcut: 'H', color: 'bg-success hover:bg-success/80' },
+  { action: Action.Stand, labelKey: 'actions.stand', shortcut: 'S', color: 'bg-error hover:bg-error/80' },
+  { action: Action.Double, labelKey: 'actions.double', shortcut: 'D', color: 'bg-warning hover:bg-warning/80' },
+  { action: Action.Split, labelKey: 'actions.split', shortcut: 'P', color: 'bg-chip-blue hover:bg-chip-blue/80' },
+  { action: Action.Surrender, labelKey: 'actions.surrender', shortcut: 'R', color: 'bg-contrast/20 hover:bg-contrast/30' },
+  { action: Action.Insurance, labelKey: 'actions.insurance', shortcut: 'I', color: 'bg-gold/80 hover:bg-gold/60' },
 ]
 
 const actionHandlers: Record<string, (store: ReturnType<typeof useGameStore.getState>) => void> = {
@@ -33,6 +34,7 @@ const actionHandlers: Record<string, (store: ReturnType<typeof useGameStore.getS
  * Keyboard shortcuts displayed on each button.
  */
 export function ActionButtons() {
+  const { t } = useTranslation()
   const availableActions = useGameStore(s => s.availableActions)
   const gameState = useGameStore(s => s.gameState)
   const newRound = useGameStore(s => s.newRound)
@@ -56,7 +58,7 @@ export function ActionButtons() {
 
   return (
     <div className="flex gap-2 md:gap-3 flex-wrap justify-center">
-      {ACTIONS.map(({ action, label, shortcut, color }) => {
+      {ACTIONS.map(({ action, labelKey, shortcut, color }) => {
         const isAvailable = availableActions.includes(action) && !isAnimating
         return (
           <motion.button
@@ -73,7 +75,7 @@ export function ActionButtons() {
               shadow-md transition-opacity
               ${isAvailable ? color : 'bg-contrast/5 text-content/20 cursor-not-allowed'}`}
           >
-            {label}
+            {t(labelKey)}
             <span className="ml-1.5 text-xs opacity-60">[{shortcut}]</span>
           </motion.button>
         )

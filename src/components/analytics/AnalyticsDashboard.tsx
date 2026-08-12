@@ -88,6 +88,7 @@ function renderKpiValue(display: string) {
 
 /** A single KPI tile with delta pill and sparkline. */
 function KpiTile({ kpi, hero, footNote }: { kpi: Kpi; hero?: boolean; footNote?: string }) {
+  const { t } = useTranslation()
   const dir = kpi.delta == null ? 'flat' : kpi.delta > 0 ? 'up' : kpi.delta < 0 ? 'down' : 'flat'
   const pillColor =
     dir === 'up' ? 'var(--color-success)' : dir === 'down' ? 'var(--color-error)' : 'var(--color-content)'
@@ -107,7 +108,7 @@ function KpiTile({ kpi, hero, footNote }: { kpi: Kpi; hero?: boolean; footNote?:
           : undefined
       }
     >
-      <div className="text-[0.75rem] font-semibold tracking-[0.12em] uppercase text-content/50">{kpi.label}</div>
+      <div className="text-[0.75rem] font-semibold tracking-[0.12em] uppercase text-content/50">{t(kpi.labelKey)}</div>
       <div className="text-[clamp(1.6rem,3vw,2.05rem)] font-extrabold tracking-tight leading-none mt-2 text-content">
         {renderKpiValue(kpi.display)}
       </div>
@@ -208,6 +209,7 @@ function PlanStrip({
 }
 
 export function AnalyticsDashboard() {
+  const { t } = useTranslation()
   const sessions = useStatsStore(s => s.sessions)
   const lifetimeStats = useStatsStore(s => s.lifetimeStats)
   const isLoading = useStatsStore(s => s.isLoading)
@@ -244,7 +246,7 @@ export function AnalyticsDashboard() {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-content/50">Loading stats…</p>
+        <p className="text-content/50">{t('analytics.loading')}</p>
       </div>
     )
   }
@@ -263,14 +265,14 @@ export function AnalyticsDashboard() {
           <div>
             <div className="text-[0.75rem] font-semibold tracking-[0.22em] uppercase text-content/50 flex items-center gap-2 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gold" style={{ boxShadow: '0 0 10px var(--color-gold)' }} />
-              Your training
+              {t('analytics.yourTraining')}
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">Analytics</h1>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">{t('modes.analytics')}</h1>
             <p className="text-sm text-content/50 mt-2">
-              How your Hi-Lo edge is sharpening — accuracy, consistency, and what to drill next.
+              {t('analytics.subhead')}
             </p>
           </div>
-          <div className="inline-flex p-1 gap-0.5 rounded-[10px] bg-surface-2 border border-contrast/10" role="group" aria-label="Time range">
+          <div className="inline-flex p-1 gap-0.5 rounded-[10px] bg-surface-2 border border-contrast/10" role="group" aria-label={t('analytics.timeRange')}>
             {RANGE_ORDER.map(r => (
               <button
                 key={r}
@@ -289,8 +291,8 @@ export function AnalyticsDashboard() {
 
         {!hasData ? (
           <div className="surface p-10 text-center">
-            <p className="text-content/60 text-lg font-medium">No sessions recorded yet</p>
-            <p className="text-content/40 text-sm mt-1">Play a few training rounds and your analytics will appear here.</p>
+            <p className="text-content/60 text-lg font-medium">{t('analytics.noSessions')}</p>
+            <p className="text-content/40 text-sm mt-1">{t('analytics.noSessionsBody')}</p>
           </div>
         ) : (
           <>
@@ -318,8 +320,8 @@ export function AnalyticsDashboard() {
                 {derived.insight.icon}
               </div>
               <div className="text-[13.5px] leading-snug text-content/90">
-                <span className="block text-[0.6875rem] font-bold tracking-[0.14em] uppercase text-content/50">This period's insight</span>
-                {renderInsight(derived.insight.text, derived.insight.highlights)}
+                <span className="block text-[0.6875rem] font-bold tracking-[0.14em] uppercase text-content/50">{t('analytics.insight')}</span>
+                {renderInsight(t(derived.insight.textKey, derived.insight.values), derived.insight.highlights)}
               </div>
             </div>
 
@@ -338,36 +340,30 @@ export function AnalyticsDashboard() {
             {/* Advanced analytics — Pro. Free users see a teaser instead. */}
             {!isPro ? (
               <ProTeaser
-                title="See your complete card-counting picture"
-                subtitle="Free shows your headline numbers. Pro reveals how you're actually improving — and exactly what to drill next."
-                items={[
-                  'Accuracy trend over time',
-                  'Practice consistency heatmap',
-                  'Skill radar — sharp vs. rusty dimensions',
-                  'Your weakest hands, ranked',
-                  'Simulated edge from real Casino Sessions',
-                ]}
-                upgradeHeadline="Unlock the full analytics picture of your card-counting edge."
+                title={t('analytics.proHeadline')}
+                subtitle={t('analytics.proSub')}
+                items={[1, 2, 3, 4, 5].map(n => t(`analytics.teaser.i${n}`))}
+                upgradeHeadline={t('analytics.teaser.upgrade')}
               />
             ) : (
             <>
             {/* Trend + heatmap */}
             <section className="grid lg:grid-cols-[1.9fr_1fr] gap-4">
-              <Panel title="Accuracy trend" note={derived.trend.length >= 2 ? undefined : 'need 2+ active days'}>
+              <Panel title={t('analytics.accuracyTrend')} note={derived.trend.length >= 2 ? undefined : t('analytics.note.needDays')}>
                 {derived.trend.length >= 2 ? (
                   <TrendChart points={derived.trend} />
                 ) : (
                   <div className="h-[230px] grid place-items-center text-content/40 text-sm">
-                    Train on more days to see your trend
+                    {t('analytics.trendEmpty')}
                   </div>
                 )}
               </Panel>
 
-              <Panel title="Practice consistency" note="last 12 weeks">
+              <Panel title={t('analytics.consistency')} note={t('analytics.note.last12')}>
                 <Heatmap columns={derived.heatmap.cells} />
                 <div className="flex items-center justify-between mt-3.5 text-xs text-content/50">
                   <span className="inline-flex items-center gap-1.5 font-bold text-gold-bright">
-                    {streak > 0 ? `🔥 ${streak}-day streak` : 'No active streak'}
+                    {streak > 0 ? `🔥 ${t('analytics.streakDaysShort', { n: streak })}` : t('analytics.noStreak')}
                   </span>
                   <HeatLegend />
                 </div>
@@ -376,7 +372,7 @@ export function AnalyticsDashboard() {
 
             {/* Skill radar + simulated edge */}
             <section className="grid lg:grid-cols-2 gap-4">
-              <Panel title="Skill profile" note="where you're sharp vs. rusty">
+              <Panel title={t('analytics.skillProfile')} note={t('analytics.note.sharpRusty')}>
                 <div className="flex items-center gap-2 flex-wrap">
                   <SkillRadar axes={derived.radar} />
                   <div className="flex-1 min-w-[150px] flex flex-col gap-2 text-[12.5px]">
@@ -390,7 +386,7 @@ export function AnalyticsDashboard() {
                 </div>
               </Panel>
 
-              <Panel title="Simulated edge" note="Casino Session net · real results">
+              <Panel title={t('analytics.simulatedEdge')} note={t('analytics.note.casinoNet')}>
                 {derived.edge.sessions > 0 ? (
                   <>
                     <div className="flex items-baseline gap-2.5">
@@ -404,12 +400,12 @@ export function AnalyticsDashboard() {
                         {derived.edge.sessions} sessions · {derived.edge.handsPlayed.toLocaleString('en-US')} hands
                       </span>
                     </div>
-                    <p className="text-xs text-content/40 mb-1.5 mt-0.5">Cumulative net profit from your Casino Sessions.</p>
+                    <p className="text-xs text-content/40 mb-1.5 mt-0.5">{t('analytics.edgeCaption')}</p>
                     <EdgeChart points={derived.edge.points} />
                   </>
                 ) : (
                   <div className="h-[132px] grid place-items-center text-center text-content/40 text-sm px-4">
-                    Play a Casino Session to see your simulated bankroll.
+                    {t('analytics.edgeEmpty')}
                   </div>
                 )}
               </Panel>
@@ -417,15 +413,15 @@ export function AnalyticsDashboard() {
 
             {/* Mode accuracy + weakest hands */}
             <section className="grid lg:grid-cols-[1.15fr_1fr] gap-4">
-              <Panel title="Accuracy by mode" note="this period">
+              <Panel title={t('analytics.accuracyByMode')} note={t('analytics.note.thisPeriod')}>
                 {derived.modes.length > 0 ? (
                   <ModeBars rows={derived.modes} />
                 ) : (
-                  <div className="h-24 grid place-items-center text-content/40 text-sm">No sessions in this range</div>
+                  <div className="h-24 grid place-items-center text-content/40 text-sm">{t('analytics.noneInRange')}</div>
                 )}
               </Panel>
 
-              <Panel title="Your weakest hands" note="most-misplayed decisions">
+              <Panel title={t('analytics.weakestHands')} note={t('analytics.note.misplayed')}>
                 {derived.weakest.length > 0 ? (
                   <>
                     <WeakestHands hands={derived.weakest} />
@@ -443,7 +439,7 @@ export function AnalyticsDashboard() {
                   </>
                 ) : (
                   <div className="h-24 grid place-items-center text-center text-content/40 text-sm px-4">
-                    Complete Flashcards deviation training to surface your weak spots.
+                    {t('analytics.weakEmpty')}
                   </div>
                 )}
               </Panel>
@@ -452,15 +448,15 @@ export function AnalyticsDashboard() {
             )}
 
             {/* Recent sessions */}
-            <Panel title="Recent sessions" note={`last ${Math.min(sessions.length, 8)}`}>
+            <Panel title={t('analytics.recentSessions')} note={t('analytics.note.lastN', { n: Math.min(sessions.length, 8) })}>
               <div className="overflow-x-auto overflow-y-hidden">
                 <table className="w-full text-[0.85rem] border-collapse tabular-nums">
                   <thead>
                     <tr className="text-[0.6875rem] tracking-[0.1em] uppercase text-content/40">
-                      <th className="text-left font-semibold px-2.5 pb-2.5">When</th>
-                      <th className="text-left font-semibold px-2.5 pb-2.5">Mode</th>
-                      <th className="text-right font-semibold px-2.5 pb-2.5">Accuracy</th>
-                      <th className="text-right font-semibold px-2.5 pb-2.5">Hands</th>
+                      <th className="text-left font-semibold px-2.5 pb-2.5">{t('analytics.col.when')}</th>
+                      <th className="text-left font-semibold px-2.5 pb-2.5">{t('analytics.col.mode')}</th>
+                      <th className="text-right font-semibold px-2.5 pb-2.5">{t('analytics.col.accuracy')}</th>
+                      <th className="text-right font-semibold px-2.5 pb-2.5">{t('analytics.col.hands')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -474,7 +470,7 @@ export function AnalyticsDashboard() {
                           <td className="px-2.5 py-2.5">
                             <span className="inline-flex items-center gap-2">
                               <i className="w-1.5 h-1.5 rounded-full" style={{ background: disp?.color ?? 'var(--color-gold)' }} />
-                              {disp?.label ?? s.mode}
+                              {disp ? t(disp.labelKey) : s.mode}
                             </span>
                           </td>
                           <td className="px-2.5 py-2.5 text-right">
@@ -525,13 +521,13 @@ export function AnalyticsDashboard() {
               } catch (e) {
                 // Previously fire-and-forget: a failed clear left the old data on
                 // screen with nothing said, after the user had confirmed.
-                setResetError(e instanceof Error ? e.message : 'Could not delete your history.')
+                setResetError(e instanceof Error ? e.message : t('analytics.deleteFailed'))
               }
             }}
             className="text-sm text-error/60 hover:text-error transition-colors cursor-pointer"
             data-testid="reset-all-stats"
           >
-            Delete training history
+            {t('analytics.deleteHistory')}
           </button>
           {resetError && (
             <p className="text-sm text-error" role="alert">{resetError}</p>

@@ -90,7 +90,7 @@ export function WeeklyChallengeCard() {
           </span>
           <div>
             <h3 className="text-sm font-semibold text-gold">
-              Weekly Challenge
+              {t('chal.weekly')}
             </h3>
             <p className="text-xs text-content/40">
               {formatTimeRemaining(timeRemaining)} remaining
@@ -144,7 +144,7 @@ export function WeeklyChallengeCard() {
         )}
         {state.completed && (
           <span className="text-content/30">
-            New challenge next Monday
+            {t('chal.nextMonday')}
           </span>
         )}
       </div>
