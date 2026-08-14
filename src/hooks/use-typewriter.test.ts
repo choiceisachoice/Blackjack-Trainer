@@ -79,6 +79,47 @@ describe('useTypewriter', () => {
     expect(() => vi.advanceTimersByTime(5000)).not.toThrow()
   })
 
+  it('keeps typing when the caller passes a fresh array every render', () => {
+    /*
+      The manifesto reads its phrases from the message files:
+
+        t('landing.manifesto.phrases', { returnObjects: true })
+
+      which allocates a new array on every render. Keyed on identity, the
+      effect tore itself down and restarted on each of its own state updates —
+      the caret rendered, the text never got past one character. Nothing
+      failed: no error, no warning, just an empty headline on the landing page.
+    */
+    stubReducedMotion(false)
+    vi.useFakeTimers()
+    const { result, rerender } = renderHook(
+      // A fresh array each render, same contents — exactly what i18next hands back.
+      () => useTypewriter(['First phrase.', 'Second phrase.'], 10),
+    )
+
+    act(() => { vi.advanceTimersByTime(400) })
+    rerender()
+    act(() => { vi.advanceTimersByTime(400) })
+
+    expect(result.current.display.length).toBeGreaterThan(3)
+    expect('First phrase.'.startsWith(result.current.display)).toBe(true)
+  })
+
+  it('restarts when the phrases themselves change, so a language switch is picked up', () => {
+    stubReducedMotion(false)
+    vi.useFakeTimers()
+    let phrases = ['English line.']
+    const { result, rerender } = renderHook(() => useTypewriter(phrases, 10))
+
+    act(() => { vi.advanceTimersByTime(600) })
+    expect('English line.'.startsWith(result.current.display)).toBe(true)
+
+    phrases = ['Deutsche Zeile.']
+    rerender()
+    act(() => { vi.advanceTimersByTime(600) })
+    expect('Deutsche Zeile.'.startsWith(result.current.display)).toBe(true)
+  })
+
   it('handles an empty phrase list without crashing', () => {
     stubReducedMotion(true)
     const { result } = renderHook(() => useTypewriter([]))
