@@ -215,31 +215,57 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **Stripe runs on sandbox keys.** Live keys belong at deployment on the real domain,
-   never on localhost, and never in the repo. **Darius executes**, as a coordinated cutover.
+1. **The payment-path audit findings are not written down anywhere.** They live only in a
+   chat transcript. The "before go-live" this entry used to carry is spent — the site is
+   live and has taken a real card payment — so this is now a live system with unrecorded
+   findings against it. They are not reconstructed from memory here on purpose: invented
+   security findings are worse than none. **Darius owns** deciding whether the transcript
+   still exists; if it does, they go into `docs/` before anything else, and if it does
+   not, this entry should say so plainly instead of implying a to-do that nobody can act
+   on.
 
-2. **The payment-path audit findings are not written down anywhere.** They live only in a
-   chat transcript, which means they are one lost session away from never being fixed.
-   They need to reach Christian (supervisor/CISO) before go-live. Whoever has them: put
-   them in `docs/` first, then send them.
+2. **The entitlement audit came back empty, and that does not add up.** Run against the
+   live database on 17 Aug 2026, this returned **zero rows**:
+
+   ```sql
+   select id, subscription_status, stripe_customer_id, current_period_end
+   from public.profiles where subscription_status <> 'free';
+   ```
+
+   A clean result would be good news if nothing had ever been bought. Something was:
+   a live monthly Pro subscription, purchased and then refunded. That should still be
+   visible. The webhook writes `subscription_status = sub.status` **verbatim from
+   Stripe** (`stripe-webhook/index.ts`), and Stripe has no `free` status — a cancelled
+   subscription reads `canceled`, one cancelled at period end stays `active`. `free` is
+   only the column default, i.e. **a row the webhook never touched**. So the purchase
+   should have left a `canceled` row, and the query should have found it.
+
+   Three things could explain it, and they are not equally comfortable:
+
+   1. The query ran against a different Supabase project than the live site uses.
+   2. The profile row is gone — the test account was deleted, cascading to `profiles`.
+   3. The webhook never wrote the entitlement at all, and Pro was granted by some
+      other path. That is the one the whole migration exists to prevent.
+
+   **Resolve it with the event ledger, not the profile row.** `stripe_events` is
+   append-only and survives an account deletion, so it answers "did the live webhook
+   ever run" independently of anything the audit query looks at:
+
+   ```sql
+   select type, count(*) as n, min(received_at) as first, max(received_at) as last
+   from public.stripe_events group by type order by last desc;
+   ```
+
+   Rows dated around the test purchase mean the webhook fired and (2) is the answer —
+   benign, and the audit can be re-run after the first real subscription. **No rows
+   means (3), and the live payment path granted Pro without the webhook.** Darius owns
+   running this; the result decides whether this is a bookkeeping note or an incident.
 
 ### Closed
 
-- **Nobody got through the entitlement hole** (17 Aug 2026). Closing it did not evict
-  anyone who had already used it, so the audit below was run against the live database.
-  It returned **zero rows**: no profile holds a status other than `free`, therefore no
-  entitlement exists that the webhook did not write, and there is nothing to revoke.
-
-  ```sql
-  select id, subscription_status, stripe_customer_id, current_period_end
-  from public.profiles where subscription_status <> 'free';
-  ```
-
-  Point-in-time, and worth knowing why it was clean: there are no paying subscribers yet,
-  so an empty result is also what "no sales" looks like. The check that matters —
-  **a row with no `stripe_customer_id` never came from the webhook** — only starts
-  saying anything once there are rows. Re-run it after the first real subscriptions.
-
+- **Stripe is live** (Aug 2026). Live keys are set at deployment on the real domain,
+  never on localhost and never in the repo. Proven by use, not by configuration: a real
+  monthly Pro subscription was bought on the live site and refunded again.
 - **The entitlement migration is deployed** (1 Aug 2026). `pg_policies` on
   `public.profiles` returns exactly `profiles: read own` (SELECT) and `profiles: update own`
   (UPDATE) — no ALL, no INSERT, no DELETE — and `protect_entitlement_columns` reads
