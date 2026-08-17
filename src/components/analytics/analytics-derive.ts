@@ -18,12 +18,19 @@ export const RANGE_DAYS: Record<TimeRange, number> = {
 /** Ordered ranges for the header toggle. */
 export const RANGE_ORDER: TimeRange[] = ['7d', '30d', '90d', 'all']
 
-/** Human label for a range chip. */
-export const RANGE_LABEL: Record<TimeRange, string> = {
+/**
+ * Label for a range chip.
+ *
+ * Keys rather than text, like `MODE_DISPLAY` below: a constant map in a `.ts`
+ * module is invisible to the JSX lint rule, so English put here ships to every
+ * language. The three day counts are the same in all seven; only "All" is a
+ * word.
+ */
+export const RANGE_LABEL_KEY: Record<TimeRange, string> = {
   '7d': '7d',
   '30d': '30d',
   '90d': '90d',
-  all: 'All',
+  all: 'analytics.rangeAll',
 }
 
 const MS_PER_DAY = 86_400_000

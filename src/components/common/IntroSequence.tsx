@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Rank, Suit } from '../../engine/shoe/types'
 import { TeachingCard } from '../learn/TeachingVisuals'
 import {
@@ -9,7 +10,7 @@ import {
   COMPLETE_HOLD_MS,
   COMPLETE_MS,
   EXIT_MS,
-  EYEBROW,
+  EYEBROW_KEY,
   EYEBROW_AT,
   FILL_FROM,
   FILL_MS,
@@ -18,8 +19,8 @@ import {
   READOUT_AT,
   REDUCED_VISIBLE_MS,
   RISE_MS,
-  STATUS,
-  STATUS_DONE,
+  STATUS_KEY,
+  STATUS_DONE_KEY,
   TRACK_AT,
   WORDMARK_AT,
   WORDMARK_LIGHT,
@@ -135,6 +136,7 @@ export function IntroSequence({
    */
   brief?: boolean
 }) {
+  const { t } = useTranslation()
   const reduced = usePrefersReducedMotion()
   const [leaving, setLeaving] = useState(false)
 
@@ -399,7 +401,7 @@ export function IntroSequence({
                   ...exitUp(320),
                 }}
               >
-                {EYEBROW}
+                {t(EYEBROW_KEY)}
               </span>
             </Mask>
 
@@ -509,7 +511,7 @@ export function IntroSequence({
               }}
               data-testid="intro-phase"
             >
-              {STATUS}
+              {t(STATUS_KEY)}
             </span>
           </Mask>
 
@@ -621,7 +623,7 @@ export function IntroSequence({
             }}
             data-testid="intro-complete"
           >
-            {STATUS_DONE}
+            {t(STATUS_DONE_KEY)}
           </span>
         </Mask>
       </div>

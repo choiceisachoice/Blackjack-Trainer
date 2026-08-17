@@ -1,4 +1,13 @@
 import { describe, it, expect } from 'vitest'
+// Suffixed on purpose: the Italian bundle imported as `it` shadows vitest's
+// `it`, and every test in the file then fails with "is not a function".
+import enMessages from '../../i18n/messages/en.json'
+import deMessages from '../../i18n/messages/de.json'
+import frMessages from '../../i18n/messages/fr.json'
+import itMessages from '../../i18n/messages/it.json'
+import esMessages from '../../i18n/messages/es.json'
+import ptMessages from '../../i18n/messages/pt.json'
+import trMessages from '../../i18n/messages/tr.json'
 import {
   BRIEF,
   BRIEF_MIN_VISIBLE_MS,
@@ -6,7 +15,7 @@ import {
   COMPLETE_HOLD_MS,
   COMPLETE_MS,
   EXIT_MS,
-  EYEBROW,
+  EYEBROW_KEY,
   EYEBROW_AT,
   FILL_FROM,
   FILL_MS,
@@ -16,8 +25,8 @@ import {
   READOUT_AT,
   REDUCED_VISIBLE_MS,
   RISE_MS,
-  STATUS,
-  STATUS_DONE,
+  STATUS_KEY,
+  STATUS_DONE_KEY,
   TRACK_AT,
   WORDMARK_AT,
   WORDMARK_LIGHT,
@@ -267,18 +276,43 @@ describe('the abbreviated timeline', () => {
   })
 })
 
+/**
+ * The copy the loading screen shows, in every language it ships in.
+ *
+ * These three used to be English string constants in this module. They are
+ * translation keys now, and the length limits below are the reason the change
+ * needs a test rather than a look: the eyebrow sits above a fixed wordmark at
+ * 0.4em tracking and the status sits on one line, so a limit that holds in
+ * English and not in German is a layout that breaks for German readers only —
+ * on the first screen of every visit, which is the worst place to find out.
+ */
 describe('the words', () => {
-  it('read as one sentence across two levels, and say nothing twice', () => {
+  const LOOKUP: Record<string, Record<string, string>> = {
+    en: enMessages.loader, de: deMessages.loader, fr: frMessages.loader,
+    it: itMessages.loader, es: esMessages.loader, pt: ptMessages.loader,
+    tr: trMessages.loader,
+  }
+  const key = (k: string) => k.replace('loader.', '')
+
+  it('reads as one sentence across two levels, and says nothing twice', () => {
     expect(`${WORDMARK_STRONG}${WORDMARK_LIGHT}`).toBe('black-jack-training.com')
-    expect(`${EYEBROW} ${WORDMARK_STRONG}${WORDMARK_LIGHT}`)
+    expect(`${LOOKUP.en[key(EYEBROW_KEY)]} ${WORDMARK_STRONG}${WORDMARK_LIGHT}`)
       .toBe('Welcome to black-jack-training.com')
-    expect(EYEBROW.length).toBeLessThan(14)
     // The status says what is happening in the product's own language — a table
     // being prepared, not assets being fetched.
-    expect(STATUS).toMatch(/table/i)
-    expect(STATUS.length).toBeLessThan(30)
+    expect(LOOKUP.en[key(STATUS_KEY)]).toMatch(/table/i)
     // The completed state says so in one word, next to a tick. Anything longer
     // is a sentence nobody reads in the moment before the screen leaves.
-    expect(STATUS_DONE).toBe('Complete')
+    expect(LOOKUP.en[key(STATUS_DONE_KEY)]).toBe('Complete')
+  })
+
+  it.each(Object.keys(LOOKUP))('fits the layout in %s', loc => {
+    const m = LOOKUP[loc]
+    // Set from the widest: at 0.4em tracking on a 375px screen the Spanish
+    // eyebrow at 24 characters ran to 306px of a 375px viewport. It fitted, but
+    // an eyebrow that nearly spans the phone stops reading as an eyebrow.
+    expect(m[key(EYEBROW_KEY)].length).toBeLessThan(20)
+    expect(m[key(STATUS_KEY)].length).toBeLessThan(30)
+    expect(m[key(STATUS_DONE_KEY)].split(' ')).toHaveLength(1)
   })
 })

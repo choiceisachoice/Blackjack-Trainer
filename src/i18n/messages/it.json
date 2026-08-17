@@ -586,7 +586,22 @@
       "missed": "Mancata ({{name}})",
       "handNo": "Mano {{n}}:"
     },
-    "name": "Sessione al casinò"
+    "name": "Sessione al casinò",
+    "bot": {
+      "wait": "Attende",
+      "thinking": "Pensa…",
+      "hit": "Carta",
+      "stand": "Sta",
+      "double": "Raddoppia",
+      "split": "Divide",
+      "surrender": "Si arrende",
+      "bust": "SBALLATO!",
+      "blackjack": "Blackjack!",
+      "twentyone": "21!",
+      "win": "Vince",
+      "loss": "Perde",
+      "push": "Pareggio"
+    }
   },
   "tracker": {
     "onboardTitle": "Tieni traccia delle tue sessioni al casinò",
@@ -1446,7 +1461,9 @@
     "learn": "Impara",
     "analytics": "Analisi",
     "strategyChart": "Tabella della strategia di base",
-    "achievements": "Riconoscimenti"
+    "achievements": "Riconoscimenti",
+    "deviationTraining": "Allenamento deviazioni",
+    "casinoSessionTracker": "Registro sessioni casinò"
   },
   "home": {
     "trainingModes": "Modalità di allenamento",
@@ -1535,9 +1552,9 @@
     "tierNext": "Fascia {{tier}} · poi: {{name}}",
     "tierMax": "Fascia {{tier}} · livello massimo",
     "tier": {
-      "beginner": "Base",
-      "mid": "Intermedia",
-      "advanced": "Avanzata",
+      "beginner": "Principiante",
+      "mid": "Intermedio",
+      "advanced": "Avanzato",
       "elite": "Élite"
     },
     "jumped": "{{n}} livelli in un colpo",
@@ -1791,7 +1808,8 @@
     "heatLess": "meno",
     "heatMore": "più",
     "drillTheseHands": "Allena queste mani",
-    "viewAll": "Vedi tutti"
+    "viewAll": "Vedi tutti",
+    "rangeAll": "Tutto"
   },
   "sim": {
     "onboardTitle": "Tieni traccia della tua bankroll",
@@ -1859,7 +1877,14 @@
     "yourHand": "La tua mano:",
     "vsDealer": "contro il banco:",
     "deviationRule": "Da True Count <b>{{tc}}</b> in su → <b>{{action}}</b>",
-    "belowThat": "(sotto: {{action}})"
+    "belowThat": "(sotto: {{action}})",
+    "action": {
+      "H": "Carta",
+      "S": "Stare",
+      "D": "Raddoppiare",
+      "SP": "Dividere",
+      "SU": "Arrendersi"
+    }
   },
   "onboardingSteps": {
     "speed": {
@@ -1888,5 +1913,10 @@
   "legal": {
     "draft": "Bozza — non ancora pubblicata.",
     "updated": "Aggiornato il {{date}}"
+  },
+  "loader": {
+    "eyebrow": "Benvenuto su",
+    "status": "Preparazione del tavolo",
+    "statusDone": "Pronto"
   }
 }

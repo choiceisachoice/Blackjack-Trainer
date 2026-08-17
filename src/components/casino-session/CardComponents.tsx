@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import type { Card } from '../../engine/shoe/types'
 import { SUIT_MAP } from './helpers'
 
@@ -171,10 +172,11 @@ export function FlipCard({ card, revealed, size = 'dealer' }: { card: Card; reve
 
 // ─── Bot Status Badge ────────────────────────────────
 
-import { BOT_STATUS_STYLE, BOT_STATUS_LABEL } from './helpers'
+import { BOT_STATUS_STYLE, BOT_STATUS_LABEL_KEY } from './helpers'
 import type { BotStatus } from './helpers'
 
 export function BotStatusBadge({ status }: { status: BotStatus }) {
+  const { t } = useTranslation()
   const style = BOT_STATUS_STYLE[status]
   const reduced = useReducedMotion()
   // "Thinking..." pulses forever. A loop is the one kind of motion someone with
@@ -195,7 +197,7 @@ export function BotStatusBadge({ status }: { status: BotStatus }) {
       className={`text-[0.6875rem] md:text-xs font-semibold px-1.5 py-0.5 rounded ${style.bg} ${style.text}`}
       data-testid="bot-status"
     >
-      {BOT_STATUS_LABEL[status]}
+      {t(BOT_STATUS_LABEL_KEY[status])}
     </motion.span>
   )
 }

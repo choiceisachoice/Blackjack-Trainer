@@ -586,7 +586,22 @@
       "missed": "Falhado ({{name}})",
       "handNo": "Mão {{n}}:"
     },
-    "name": "Sessão de casino"
+    "name": "Sessão de casino",
+    "bot": {
+      "wait": "Espera",
+      "thinking": "A pensar…",
+      "hit": "Carta",
+      "stand": "Fica",
+      "double": "Dobra",
+      "split": "Divide",
+      "surrender": "Desiste",
+      "bust": "REBENTOU!",
+      "blackjack": "Blackjack!",
+      "twentyone": "21!",
+      "win": "Ganha",
+      "loss": "Perde",
+      "push": "Empate"
+    }
   },
   "tracker": {
     "onboardTitle": "Acompanhe as suas sessões de casino",
@@ -1446,7 +1461,9 @@
     "learn": "Aprender",
     "analytics": "Análises",
     "strategyChart": "Tabela de estratégia básica",
-    "achievements": "Prémios"
+    "achievements": "Prémios",
+    "deviationTraining": "Treino de desvios",
+    "casinoSessionTracker": "Registo de sessões"
   },
   "home": {
     "trainingModes": "Modos de treino",
@@ -1535,8 +1552,8 @@
     "tierNext": "Escalão {{tier}} · a seguir: {{name}}",
     "tierMax": "Escalão {{tier}} · nível máximo",
     "tier": {
-      "beginner": "Inicial",
-      "mid": "Média",
+      "beginner": "Iniciante",
+      "mid": "Intermédio",
       "advanced": "Avançado",
       "elite": "Elite"
     },
@@ -1791,7 +1808,8 @@
     "heatLess": "menos",
     "heatMore": "mais",
     "drillTheseHands": "Treinar estas mãos",
-    "viewAll": "Ver todos"
+    "viewAll": "Ver todos",
+    "rangeAll": "Tudo"
   },
   "sim": {
     "onboardTitle": "Acompanhe a sua bankroll",
@@ -1859,7 +1877,14 @@
     "yourHand": "A sua mão:",
     "vsDealer": "contra o dealer:",
     "deviationRule": "A partir de um True Count de <b>{{tc}}</b> → <b>{{action}}</b>",
-    "belowThat": "(abaixo: {{action}})"
+    "belowThat": "(abaixo: {{action}})",
+    "action": {
+      "H": "Pedir",
+      "S": "Ficar",
+      "D": "Dobrar",
+      "SP": "Dividir",
+      "SU": "Desistir"
+    }
   },
   "onboardingSteps": {
     "speed": {
@@ -1888,5 +1913,10 @@
   "legal": {
     "draft": "Rascunho — ainda não publicado.",
     "updated": "Atualizado a {{date}}"
+  },
+  "loader": {
+    "eyebrow": "Bem-vindo a",
+    "status": "A preparar a mesa",
+    "statusDone": "Pronto"
   }
 }

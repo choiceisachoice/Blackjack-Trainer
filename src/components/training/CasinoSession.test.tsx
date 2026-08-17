@@ -1,7 +1,8 @@
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { CasinoSession } from '../casino-session/CasinoSession'
-import { BOT_STATUS_LABEL } from '../casino-session/helpers'
+import { BOT_STATUS_LABEL_KEY } from '../casino-session/helpers'
+import enMessages from '../../i18n/messages/en.json'
 import { useAppStore } from '../../store/app-store'
 
 // Mock framer-motion
@@ -619,7 +620,9 @@ describe('CasinoSession', () => {
       // test failed whenever the shuffle happened to produce a bot that hit
       // exactly twenty-one or surrendered — roughly one run in eight, which
       // read as flakiness and was really an incomplete list.
-      const validFinalStatuses = Object.values(BOT_STATUS_LABEL)
+      const bot = enMessages.casino.bot as Record<string, string>
+      const validFinalStatuses = Object.values(BOT_STATUS_LABEL_KEY)
+        .map(k => bot[k.replace('casino.bot.', '')])
       for (const status of finalStatuses) {
         expect(validFinalStatuses).toContain(status)
       }

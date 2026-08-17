@@ -256,9 +256,9 @@ export function percentAt(progress: number): number {
  * levels. The status line says what is happening in the product's own language —
  * a table being prepared, not assets being fetched.
  */
-export const EYEBROW = 'Welcome to'
+export const EYEBROW_KEY = 'loader.eyebrow'
 export const WORDMARK_STRONG = 'black-jack-training'
 export const WORDMARK_LIGHT = '.com'
-export const STATUS = 'Preparing the table'
+export const STATUS_KEY = 'loader.status'
 /** What the status says once there is nothing left to prepare. */
-export const STATUS_DONE = 'Complete'
+export const STATUS_DONE_KEY = 'loader.statusDone'

@@ -586,7 +586,22 @@
       "missed": "Kaçırıldı ({{name}})",
       "handNo": "El {{n}}:"
     },
-    "name": "Casino oturumu"
+    "name": "Casino oturumu",
+    "bot": {
+      "wait": "Bekliyor",
+      "thinking": "Düşünüyor…",
+      "hit": "Kart",
+      "stand": "Durdu",
+      "double": "İkiye katladı",
+      "split": "Böldü",
+      "surrender": "Pes etti",
+      "bust": "BATTI!",
+      "blackjack": "Blackjack!",
+      "twentyone": "21!",
+      "win": "Kazandı",
+      "loss": "Kaybetti",
+      "push": "Berabere"
+    }
   },
   "tracker": {
     "onboardTitle": "Casino oturumlarınızı takip edin",
@@ -1446,7 +1461,9 @@
     "learn": "Öğren",
     "analytics": "Analizler",
     "strategyChart": "Temel strateji tablosu",
-    "achievements": "Ödüller"
+    "achievements": "Ödüller",
+    "deviationTraining": "Sapma antrenmanı",
+    "casinoSessionTracker": "Casino turu takibi"
   },
   "home": {
     "trainingModes": "Antrenman modları",
@@ -1791,7 +1808,8 @@
     "heatLess": "az",
     "heatMore": "çok",
     "drillTheseHands": "Bu elleri çalış",
-    "viewAll": "Tümünü gör"
+    "viewAll": "Tümünü gör",
+    "rangeAll": "Tümü"
   },
   "sim": {
     "onboardTitle": "Bankroll’unuzu takip edin",
@@ -1859,7 +1877,14 @@
     "yourHand": "Eliniz:",
     "vsDealer": "krupiyeye karşı:",
     "deviationRule": "True Count <b>{{tc}}</b> ve üzerinde → <b>{{action}}</b>",
-    "belowThat": "(altında: {{action}})"
+    "belowThat": "(altında: {{action}})",
+    "action": {
+      "H": "Kart",
+      "S": "Dur",
+      "D": "İkiye katla",
+      "SP": "Böl",
+      "SU": "Pes et"
+    }
   },
   "onboardingSteps": {
     "speed": {
@@ -1888,5 +1913,10 @@
   "legal": {
     "draft": "Taslak — henüz yayımlanmadı.",
     "updated": "{{date}} tarihinde güncellendi"
+  },
+  "loader": {
+    "eyebrow": "Hoş geldiniz",
+    "status": "Masa hazırlanıyor",
+    "statusDone": "Hazır"
   }
 }

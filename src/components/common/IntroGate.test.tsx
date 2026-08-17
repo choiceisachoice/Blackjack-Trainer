@@ -1,3 +1,4 @@
+import enMessages from '../../i18n/messages/en.json'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, cleanup, act } from '@testing-library/react'
 import { IntroGate, GRACE_MS } from './IntroGate'
@@ -7,7 +8,6 @@ import {
   BRIEF_MIN_VISIBLE_MS,
   COMPLETE_HOLD_MS,
   COMPLETE_MS,
-  EYEBROW,
   MAX_HOLD_MS,
   EXIT_MS,
   MIN_VISIBLE_MS,
@@ -245,7 +245,7 @@ describe('IntroGate', () => {
     // so a ceremony charged on every load scales its cost with how correctly
     // the product is being used.
     const first = render(<IntroGate appReady><div /></IntroGate>)
-    expect(screen.getByText(EYEBROW)).toBeInTheDocument()
+    expect(screen.getByText(enMessages.loader.eyebrow)).toBeInTheDocument()
     expect(screen.getByTestId('intro-complete-layer')).toBeInTheDocument()
     first.unmount()
 
@@ -253,7 +253,7 @@ describe('IntroGate', () => {
     // module memo goes (the page was rebuilt); the session flag stays.
     resetIntroSession({ keepSession: true })
     render(<IntroGate appReady><div /></IntroGate>)
-    expect(screen.queryByText(EYEBROW)).toBeNull()
+    expect(screen.queryByText(enMessages.loader.eyebrow)).toBeNull()
   })
 
   it('shows a quick reload nothing at all', async () => {
@@ -291,7 +291,7 @@ describe('IntroGate', () => {
     expect(screen.getByTestId('intro-sequence')).toBeInTheDocument()
     expect(screen.getByTestId('intro-status')).toBeInTheDocument()
     // But never the welcome. That belongs to arriving, not to reloading.
-    expect(screen.queryByText(EYEBROW)).toBeNull()
+    expect(screen.queryByText(enMessages.loader.eyebrow)).toBeNull()
     expect(screen.queryByTestId('intro-complete-layer')).toBeNull()
   })
 
@@ -335,7 +335,7 @@ describe('IntroGate', () => {
     // cost, withholding it from someone arriving for the first time is not.
     render(<IntroGate appReady><div /></IntroGate>)
     expect(screen.getByTestId('intro-sequence')).toBeInTheDocument()
-    expect(screen.getByText(EYEBROW)).toBeInTheDocument()
+    expect(screen.getByText(enMessages.loader.eyebrow)).toBeInTheDocument()
   })
 
   it('still waits for the app on the abbreviated timeline', async () => {

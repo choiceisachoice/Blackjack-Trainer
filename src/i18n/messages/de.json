@@ -586,7 +586,22 @@
       "missed": "Verpasst ({{name}})",
       "handNo": "Hand {{n}}:"
     },
-    "name": "Casino-Session"
+    "name": "Casino-Session",
+    "bot": {
+      "wait": "Wartet",
+      "thinking": "Überlegt …",
+      "hit": "Karte",
+      "stand": "Bleibt",
+      "double": "Verdoppelt",
+      "split": "Teilt",
+      "surrender": "Gibt auf",
+      "bust": "ÜBERKAUFT!",
+      "blackjack": "Blackjack!",
+      "twentyone": "21!",
+      "win": "Gewinn",
+      "loss": "Verlust",
+      "push": "Unentschieden"
+    }
   },
   "tracker": {
     "onboardTitle": "Verfolge deine Casino-Sessions",
@@ -1446,7 +1461,9 @@
     "learn": "Lernen",
     "analytics": "Auswertung",
     "strategyChart": "Basisstrategie-Tabelle",
-    "achievements": "Erfolge"
+    "achievements": "Erfolge",
+    "deviationTraining": "Abweichungs-Training",
+    "casinoSessionTracker": "Casino-Session-Tracker"
   },
   "home": {
     "trainingModes": "Trainingsmodi",
@@ -1535,9 +1552,9 @@
     "tierNext": "Stufe {{tier}} · als Nächstes: {{name}}",
     "tierMax": "Stufe {{tier}} · höchstes Level",
     "tier": {
-      "beginner": "Einsteiger",
-      "mid": "Mittel",
-      "advanced": "Fortgeschritten",
+      "beginner": "Anfänger",
+      "mid": "Fortgeschritten",
+      "advanced": "Profi",
       "elite": "Elite"
     },
     "jumped": "{{n}} Level auf einmal",
@@ -1791,7 +1808,8 @@
     "heatLess": "weniger",
     "heatMore": "mehr",
     "drillTheseHands": "Diese Hände üben",
-    "viewAll": "Alle ansehen"
+    "viewAll": "Alle ansehen",
+    "rangeAll": "Alle"
   },
   "sim": {
     "onboardTitle": "Verfolge deine Bankroll",
@@ -1859,7 +1877,14 @@
     "yourHand": "Deine Hand:",
     "vsDealer": "gegen Dealer:",
     "deviationRule": "Ab True Count <b>{{tc}}</b> → <b>{{action}}</b>",
-    "belowThat": "(darunter: {{action}})"
+    "belowThat": "(darunter: {{action}})",
+    "action": {
+      "H": "Karte",
+      "S": "Bleiben",
+      "D": "Verdoppeln",
+      "SP": "Teilen",
+      "SU": "Aufgeben"
+    }
   },
   "onboardingSteps": {
     "speed": {
@@ -1888,5 +1913,10 @@
   "legal": {
     "draft": "Entwurf — noch nicht veröffentlicht.",
     "updated": "Aktualisiert am {{date}}"
+  },
+  "loader": {
+    "eyebrow": "Willkommen bei",
+    "status": "Der Tisch wird vorbereitet",
+    "statusDone": "Fertig"
   }
 }

@@ -586,7 +586,22 @@
       "missed": "Missed ({{name}})",
       "handNo": "Hand {{n}}:"
     },
-    "name": "Casino Session"
+    "name": "Casino Session",
+    "bot": {
+      "wait": "Wait",
+      "thinking": "Thinking...",
+      "hit": "Hit",
+      "stand": "Stand",
+      "double": "Double Down",
+      "split": "Split",
+      "surrender": "Surrender",
+      "bust": "BUST!",
+      "blackjack": "Blackjack!",
+      "twentyone": "21!",
+      "win": "Win",
+      "loss": "Loss",
+      "push": "Push"
+    }
   },
   "tracker": {
     "onboardTitle": "Start Tracking Your Casino Sessions",
@@ -1446,7 +1461,9 @@
     "learn": "Learn",
     "analytics": "Analytics",
     "strategyChart": "Basic Strategy Chart",
-    "achievements": "Achievements"
+    "achievements": "Achievements",
+    "deviationTraining": "Deviation Training",
+    "casinoSessionTracker": "Casino Session Tracker"
   },
   "home": {
     "trainingModes": "Training Modes",
@@ -1536,7 +1553,7 @@
     "tierMax": "{{tier}} tier · max level",
     "tier": {
       "beginner": "Beginner",
-      "mid": "Mid",
+      "mid": "Intermediate",
       "advanced": "Advanced",
       "elite": "Elite"
     },
@@ -1791,7 +1808,8 @@
     "heatLess": "less",
     "heatMore": "more",
     "drillTheseHands": "Drill these hands",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "rangeAll": "All"
   },
   "sim": {
     "onboardTitle": "Start Tracking Your Bankroll",
@@ -1859,7 +1877,14 @@
     "yourHand": "Your Hand:",
     "vsDealer": "vs Dealer:",
     "deviationRule": "At True Count <b>{{tc}}</b> or higher → <b>{{action}}</b>",
-    "belowThat": "(below: {{action}})"
+    "belowThat": "(below: {{action}})",
+    "action": {
+      "H": "Hit",
+      "S": "Stand",
+      "D": "Double",
+      "SP": "Split",
+      "SU": "Surrender"
+    }
   },
   "onboardingSteps": {
     "speed": {
@@ -1888,5 +1913,10 @@
   "legal": {
     "draft": "Draft — not yet published.",
     "updated": "Updated {{date}}"
+  },
+  "loader": {
+    "eyebrow": "Welcome to",
+    "status": "Preparing the table",
+    "statusDone": "Complete"
   }
 }

@@ -3,18 +3,25 @@ import { useAppStore } from '../../store/app-store'
 import { useLiveSessionStore } from '../../store/live-session-store'
 import { getSystemById } from '../../engine/counting/counting-systems'
 
-const MODE_LABELS: Record<string, string> = {
-  speedDrill: 'Speed Drill',
-  tableCounting: 'Table Counting',
-  deviationTraining: 'Deviation Training',
-  betSpread: 'Bet Spread',
-  deckEstimation: 'Deck Estimation',
-  analytics: 'Analytics',
-  bankrollSim: 'Bankroll Tracker',
-  achievements: 'Achievements',
-  casinoSession: 'Casino Session',
-  strategyChart: 'Strategy Chart',
-  casinoSessionTracker: 'Casino Session Tracker',
+/**
+ * The mode name in the bar, as translation keys.
+ *
+ * This is the title of every training screen. It sat here as English in a
+ * `.ts`-style constant map, which the JSX lint rule cannot reach — so it was
+ * the one line of a fully German screen that stayed in English.
+ */
+const MODE_LABEL_KEY: Record<string, string> = {
+  speedDrill: 'modes.speedDrill',
+  tableCounting: 'modes.tableCounting',
+  deviationTraining: 'modes.deviationTraining',
+  betSpread: 'modes.betSpread',
+  deckEstimation: 'modes.deckEstimation',
+  analytics: 'modes.analytics',
+  bankrollSim: 'modes.bankrollTracker',
+  achievements: 'modes.achievements',
+  casinoSession: 'modes.casinoSession',
+  strategyChart: 'modes.strategyChart',
+  casinoSessionTracker: 'modes.casinoSessionTracker',
 }
 
 /**
@@ -49,7 +56,7 @@ export function TopBar() {
         ← {t('nav.home')}
       </button>
       <span className="text-sm font-semibold text-content">
-        {MODE_LABELS[currentMode] ?? currentMode}
+        {MODE_LABEL_KEY[currentMode] ? t(MODE_LABEL_KEY[currentMode]) : currentMode}
       </span>
       <div className="flex items-center gap-3">
         <span className="text-xs text-content/50">

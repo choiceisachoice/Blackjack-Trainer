@@ -204,18 +204,24 @@ export const BOT_STATUS_STYLE: Record<BotStatus, { bg: string; text: string; ani
   push: { bg: 'bg-gray-400/80', text: 'text-black' },
 }
 
-export const BOT_STATUS_LABEL: Record<BotStatus, string> = {
-  wait: 'Wait',
-  thinking: 'Thinking...',
-  hit: 'Hit',
-  stand: 'Stand',
-  double: 'Double Down',
-  split: 'Split',
-  surrender: 'Surrender',
-  bust: 'BUST!',
-  blackjack: 'Blackjack!',
-  twentyone: '21!',
-  win: 'Win',
-  loss: 'Loss',
-  push: 'Push',
+/**
+ * What a bot's status bubble says, as translation keys.
+ *
+ * Keys and not text: this file is plain TypeScript, where the JSX lint rule
+ * cannot see it, and these bubbles are on screen for most of a Casino Session.
+ */
+export const BOT_STATUS_LABEL_KEY: Record<BotStatus, string> = {
+  wait: 'casino.bot.wait',
+  thinking: 'casino.bot.thinking',
+  hit: 'casino.bot.hit',
+  stand: 'casino.bot.stand',
+  double: 'casino.bot.double',
+  split: 'casino.bot.split',
+  surrender: 'casino.bot.surrender',
+  bust: 'casino.bot.bust',
+  blackjack: 'casino.bot.blackjack',
+  twentyone: 'casino.bot.twentyone',
+  win: 'casino.bot.win',
+  loss: 'casino.bot.loss',
+  push: 'casino.bot.push',
 }

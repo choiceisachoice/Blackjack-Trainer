@@ -3,11 +3,11 @@ import { Trans, useTranslation } from 'react-i18next'
 import { useLevelStore } from '../../store/level-store'
 import { hasSeenLevelIntro, markLevelIntroSeen } from '../../services/level-intro'
 
-const TIER_LABELS: Record<string, string> = {
-  beginner: 'Beginner',
-  mid: 'Intermediate',
-  advanced: 'Advanced',
-  elite: 'Elite',
+const TIER_LABEL_KEY: Record<string, string> = {
+  beginner: 'levels.tier.beginner',
+  mid: 'levels.tier.mid',
+  advanced: 'levels.tier.advanced',
+  elite: 'levels.tier.elite',
 }
 
 const TIER_ICONS: Record<string, string> = {
@@ -181,7 +181,7 @@ export function LevelUpPopup() {
             color: newLevel.color,
           }}
         >
-          {TIER_ICONS[newLevel.tier] || ''} {TIER_LABELS[newLevel.tier] || newLevel.tier}
+          {TIER_ICONS[newLevel.tier] || ''} {TIER_LABEL_KEY[newLevel.tier] ? t(TIER_LABEL_KEY[newLevel.tier]) : newLevel.tier}
         </div>
 
         {/* Continue button */}

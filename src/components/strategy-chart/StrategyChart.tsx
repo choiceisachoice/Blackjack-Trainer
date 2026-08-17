@@ -55,13 +55,13 @@ const ACTION_COLORS: Record<ChartAction, string> = {
   SU: '#a855f7',
 }
 
-/** Human-readable labels for the legend. */
-const ACTION_LABELS: Record<ChartAction, string> = {
-  H: 'Hit',
-  S: 'Stand',
-  D: 'Double',
-  SP: 'Split',
-  SU: 'Surrender',
+/** Legend labels, as translation keys. */
+const ACTION_LABEL_KEY: Record<ChartAction, string> = {
+  H: 'chart.action.H',
+  S: 'chart.action.S',
+  D: 'chart.action.D',
+  SP: 'chart.action.SP',
+  SU: 'chart.action.SU',
 }
 
 /** Dealer upcard columns in display order. */
@@ -211,13 +211,13 @@ export function StrategyChart() {
 
       {/* Legend */}
       <div className="flex flex-wrap gap-2 mb-4 justify-center">
-        {(Object.keys(ACTION_LABELS) as ChartAction[]).map(action => (
+        {(Object.keys(ACTION_LABEL_KEY) as ChartAction[]).map(action => (
           <span
             key={action}
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white"
             style={{ backgroundColor: ACTION_COLORS[action] }}
           >
-            {action} = {ACTION_LABELS[action]}
+            {action} = {t(ACTION_LABEL_KEY[action])}
           </span>
         ))}
         {showDeviations && (
@@ -327,7 +327,7 @@ export function StrategyChart() {
             className="text-sm font-bold mb-1"
             style={{ color: ACTION_COLORS[selected.action] }}
           >
-            {selected.action} &mdash; {ACTION_LABELS[selected.action]}
+            {selected.action} &mdash; {t(ACTION_LABEL_KEY[selected.action])}
           </p>
           <p className="text-content/50 text-xs">
             {getActionExplanation(selected.action)}

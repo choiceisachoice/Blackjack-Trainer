@@ -586,7 +586,22 @@
       "missed": "Manquée ({{name}})",
       "handNo": "Main {{n}} :"
     },
-    "name": "Session de casino"
+    "name": "Session de casino",
+    "bot": {
+      "wait": "Attend",
+      "thinking": "Réfléchit…",
+      "hit": "Tire",
+      "stand": "Reste",
+      "double": "Double",
+      "split": "Sépare",
+      "surrender": "Abandonne",
+      "bust": "BRÛLÉ !",
+      "blackjack": "Blackjack !",
+      "twentyone": "21 !",
+      "win": "Gagné",
+      "loss": "Perdu",
+      "push": "Égalité"
+    }
   },
   "tracker": {
     "onboardTitle": "Suivez vos sessions de casino",
@@ -1446,7 +1461,9 @@
     "learn": "Apprendre",
     "analytics": "Analyses",
     "strategyChart": "Tableau de stratégie de base",
-    "achievements": "Succès"
+    "achievements": "Succès",
+    "deviationTraining": "Entraînement aux déviations",
+    "casinoSessionTracker": "Suivi des sessions"
   },
   "home": {
     "trainingModes": "Modes d’entraînement",
@@ -1791,7 +1808,8 @@
     "heatLess": "moins",
     "heatMore": "plus",
     "drillTheseHands": "Travailler ces mains",
-    "viewAll": "Tout voir"
+    "viewAll": "Tout voir",
+    "rangeAll": "Tout"
   },
   "sim": {
     "onboardTitle": "Suivez votre bankroll",
@@ -1859,7 +1877,14 @@
     "yourHand": "Votre main :",
     "vsDealer": "contre croupier :",
     "deviationRule": "À partir d’un True Count de <b>{{tc}}</b> → <b>{{action}}</b>",
-    "belowThat": "(en dessous : {{action}})"
+    "belowThat": "(en dessous : {{action}})",
+    "action": {
+      "H": "Tirer",
+      "S": "Rester",
+      "D": "Doubler",
+      "SP": "Séparer",
+      "SU": "Abandonner"
+    }
   },
   "onboardingSteps": {
     "speed": {
@@ -1888,5 +1913,10 @@
   "legal": {
     "draft": "Brouillon — non encore publié.",
     "updated": "Mis à jour le {{date}}"
+  },
+  "loader": {
+    "eyebrow": "Bienvenue sur",
+    "status": "Préparation de la table",
+    "statusDone": "Terminé"
   }
 }

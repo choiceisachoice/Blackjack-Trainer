@@ -18,7 +18,7 @@ import { achievementEngine } from '../../services/achievements/achievement-engin
 import { getAchievementById, achievementName } from '../../services/achievements/achievement-list'
 import {
   RANGE_ORDER,
-  RANGE_LABEL,
+  RANGE_LABEL_KEY,
   MODE_DISPLAY,
   formatWhen,
   buildKpis,
@@ -283,7 +283,7 @@ export function AnalyticsDashboard() {
                 style={range === r ? { background: 'color-mix(in srgb, var(--color-gold) 16%, transparent)' } : undefined}
                 aria-pressed={range === r}
               >
-                {RANGE_LABEL[r]}
+                {t(RANGE_LABEL_KEY[r])}
               </button>
             ))}
           </div>
