@@ -46,11 +46,10 @@ export function StartingPoint({
             <Spade size={20} className="fill-current" />
           </span>
           <h1 className="text-[1.75rem] md:text-4xl font-extrabold text-gold-gradient leading-[1.1] pb-1 tracking-tight">
-            Where are you starting from?
+            {t('startLevel.heading')}
           </h1>
           <p className="mt-3 text-[0.95rem] text-content/55 leading-relaxed max-w-[52ch]">
-            One question, and it is the only one. Pick the highest line that is true — it
-            decides where your plan begins, and nothing is closed off either way.
+            {t('startLevel.sub')}
           </p>
         </header>
 
@@ -87,7 +86,7 @@ export function StartingPoint({
             className="mt-8 mx-auto block text-sm text-content/40 hover:text-content/70
               cursor-pointer transition-colors"
           >
-            Skip — let me look around first
+            {t('startLevel.skip')}
           </button>
         )}
       </div>

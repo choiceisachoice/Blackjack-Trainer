@@ -156,8 +156,7 @@ export function DashboardHeader() {
           </div>
         ) : (
           <p className="mt-6 pt-5 border-t border-contrast/8 text-sm text-content/50 max-w-lg">
-            Nothing tracked yet. Play a session or run a drill — from there this shows your
-            streak, accuracy and where your edge is leaking.
+            {t('home.nothingTracked')}
           </p>
         )}
       </div>

@@ -1430,7 +1430,8 @@
       "analytics": "İstatistiklerinizi, eğilimlerinizi ve ilerlemenizi görün",
       "strategyChart": "Tam strateji tablosunu görün",
       "achievements": "İlerlemenizi izleyin ve ödüller açın"
-    }
+    },
+    "nothingTracked": "Henüz kayıt yok. Bir tur ya da alıştırma yapın — sonrasında seriniz, isabetiniz ve avantajınızın nerede sızdığı burada görünür."
   },
   "startLevel": {
     "never": {
@@ -1460,7 +1461,10 @@
     "pro": {
       "label": "Bunların hepsini gerçek masada parayla yaptım",
       "hint": "Baskı altında bahis yelpazesini açmak tanıdık bir alan."
-    }
+    },
+    "heading": "Nereden başlıyorsunuz?",
+    "sub": "Tek bir soru, ve tek soru bu. Doğru olan en üst satırı seçin — planınızın nerede başlayacağını belirler ve size hiçbir kapıyı kapatmaz.",
+    "skip": "Atla — önce etrafa bakayım"
   },
   "levels": {
     "l1": "Çaylak",

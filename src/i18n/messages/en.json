@@ -1430,7 +1430,8 @@
       "analytics": "View your training stats, trends, and progress",
       "strategyChart": "View the complete strategy table",
       "achievements": "Track your progress and unlock rewards"
-    }
+    },
+    "nothingTracked": "Nothing tracked yet. Play a session or run a drill — from there this shows your streak, accuracy and where your edge is leaking."
   },
   "startLevel": {
     "never": {
@@ -1460,7 +1461,10 @@
     "pro": {
       "label": "I’ve done all of this for money at a real table",
       "hint": "Spreading bets under pressure is familiar territory."
-    }
+    },
+    "heading": "Where are you starting from?",
+    "sub": "One question, and it is the only one. Pick the highest line that is true — it decides where your plan begins, and nothing is closed off either way.",
+    "skip": "Skip — let me look around first"
   },
   "levels": {
     "l1": "Rookie",

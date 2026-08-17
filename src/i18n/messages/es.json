@@ -1430,7 +1430,8 @@
       "analytics": "Consulta tus datos, tendencias y progreso",
       "strategyChart": "Consulta la tabla de estrategia completa",
       "achievements": "Sigue tu progreso y desbloquea recompensas"
-    }
+    },
+    "nothingTracked": "Todavía no hay nada registrado. Juega una sesión o un ejercicio: a partir de ahí verás aquí tu racha, tu precisión y por dónde se te escapa la ventaja."
   },
   "startLevel": {
     "never": {
@@ -1460,7 +1461,10 @@
     "pro": {
       "label": "Ya he hecho todo esto por dinero en una mesa real",
       "hint": "Escalar apuestas bajo presión es terreno conocido."
-    }
+    },
+    "heading": "¿Desde dónde empiezas?",
+    "sub": "Una pregunta, y es la única. Elige la línea más alta que sea cierta: decide dónde empieza tu plan y no te cierra nada.",
+    "skip": "Omitir: primero quiero echar un vistazo"
   },
   "levels": {
     "l1": "Novato",

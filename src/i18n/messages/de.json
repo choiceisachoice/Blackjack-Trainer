@@ -1430,7 +1430,8 @@
       "analytics": "Sieh deine Zahlen, Trends und Fortschritte",
       "strategyChart": "Sieh die vollständige Strategietabelle",
       "achievements": "Verfolge deinen Fortschritt und schalte Belohnungen frei"
-    }
+    },
+    "nothingTracked": "Noch nichts erfasst. Spiel eine Session oder eine Übung — danach stehen hier deine Serie, deine Trefferquote und die Stelle, an der dein Vorteil verloren geht."
   },
   "startLevel": {
     "never": {
@@ -1460,7 +1461,10 @@
     "pro": {
       "label": "Ich habe das alles schon um Geld am echten Tisch gemacht",
       "hint": "Einsätze unter Druck zu spreizen ist vertrautes Terrain."
-    }
+    },
+    "heading": "Wo stehst du gerade?",
+    "sub": "Eine Frage, und es bleibt die einzige. Wähle die höchste Zeile, die zutrifft — sie entscheidet, wo dein Plan beginnt, und verschliesst dir nichts.",
+    "skip": "Überspringen — ich schaue mich erst um"
   },
   "levels": {
     "l1": "Neuling",

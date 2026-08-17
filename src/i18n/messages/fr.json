@@ -1430,7 +1430,8 @@
       "analytics": "Consultez vos statistiques, tendances et progrès",
       "strategyChart": "Consultez le tableau de stratégie complet",
       "achievements": "Suivez vos progrès et débloquez des récompenses"
-    }
+    },
+    "nothingTracked": "Rien d’enregistré pour l’instant. Faites une session ou un exercice — ensuite, vous verrez ici votre série, votre précision et l’endroit où votre avantage fuit."
   },
   "startLevel": {
     "never": {
@@ -1460,7 +1461,10 @@
     "pro": {
       "label": "J’ai déjà fait tout cela pour de l’argent à une vraie table",
       "hint": "Étaler ses mises sous pression vous est familier."
-    }
+    },
+    "heading": "D’où partez-vous ?",
+    "sub": "Une question, et c’est la seule. Choisissez la ligne la plus haute qui soit vraie — elle décide du début de votre parcours, et ne ferme rien.",
+    "skip": "Passer — je préfère explorer d’abord"
   },
   "levels": {
     "l1": "Débutant",

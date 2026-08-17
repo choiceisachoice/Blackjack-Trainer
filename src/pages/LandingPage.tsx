@@ -258,7 +258,7 @@ export function LandingPage() {
                 disabled:opacity-60 disabled:cursor-default"
             >
               {busy && <Loader2 size={16} className="animate-spin" />}
-              Go Pro →
+              {t('pricing.goPro')}
             </button>
             {/* `role="alert"` so the failure is announced, not merely drawn: the
                 visitor who most needs this message may not be looking at the

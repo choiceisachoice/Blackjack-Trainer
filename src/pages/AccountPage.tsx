@@ -159,20 +159,18 @@ export function AccountPage() {
                        * discovered on the day it happens.
                        */
                       <div className="mt-2 text-sm text-warning" data-testid="pro-ends-notice">
-                        When access ends, the Pro modes close — the casino table, bet spread,
-                        deck estimation and the bankroll tools. A session you paused to finish
-                        later will not be reachable after that date.
+                        {t('account.proEndsNotice')}
                       </div>
                     )}
                   </div>
                 </div>
                 {isPro ? (
                   <button onClick={manage} disabled={busy !== null} className="rounded-xl px-5 py-3 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                    {busy === 'portal' ? <Loader2 size={16} className="animate-spin" /> : <ExternalLink size={16} />} Manage subscription
+                    {busy === 'portal' ? <Loader2 size={16} className="animate-spin" /> : <ExternalLink size={16} />} {t('account.manageSubscription')}
                   </button>
                 ) : (
                   <button onClick={upgrade} disabled={busy !== null} className="rounded-xl px-5 py-3 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                    {busy === 'checkout' ? <Loader2 size={16} className="animate-spin" /> : null} Go Pro →
+                    {busy === 'checkout' ? <Loader2 size={16} className="animate-spin" /> : null} {t('pricing.goPro')}
                   </button>
                 )}
               </div>
@@ -199,7 +197,7 @@ export function AccountPage() {
             data-testid="account-sign-out"
             className="mt-4 inline-flex items-center gap-2 text-sm text-content/60 hover:text-error transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
           >
-            {signingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />} Sign out
+            {signingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />} {t('nav.signOut')}
           </button>
         </div>
       </div>

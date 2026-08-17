@@ -1430,7 +1430,8 @@
       "analytics": "Guarda i tuoi dati, le tendenze e i progressi",
       "strategyChart": "Guarda la tabella di strategia completa",
       "achievements": "Segui i progressi e sblocca ricompense"
-    }
+    },
+    "nothingTracked": "Ancora niente registrato. Gioca una sessione o un esercizio: da lì qui compariranno la tua serie, la precisione e il punto in cui perdi vantaggio."
   },
   "startLevel": {
     "never": {
@@ -1460,7 +1461,10 @@
     "pro": {
       "label": "Ho già fatto tutto questo per soldi a un tavolo vero",
       "hint": "Allargare le puntate sotto pressione è terreno noto."
-    }
+    },
+    "heading": "Da dove parti?",
+    "sub": "Una domanda, ed è l’unica. Scegli la riga più alta che è vera: decide da dove parte il tuo piano e non ti preclude nulla.",
+    "skip": "Salta — prima do un’occhiata"
   },
   "levels": {
     "l1": "Novellino",
