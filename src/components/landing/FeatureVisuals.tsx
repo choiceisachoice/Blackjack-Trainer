@@ -8,6 +8,7 @@
  * All are decorative: every tile states its meaning in text, so each visual is
  * `aria-hidden` and carries no information of its own.
  */
+import { useTranslation } from 'react-i18next'
 
 /** Chart action colours — must match StrategyChart's ACTION_COLORS. */
 const ACTION = {
@@ -38,6 +39,7 @@ function MiniCard({ rank, suit, red = false, className = '' }: {
  * Tags follow Hi-Lo exactly — 2–6 = +1, 7–9 = 0, 10/J/Q/K/A = −1.
  */
 export function SpeedDrillVisual() {
+  const { t } = useTranslation()
   const cards = [
     { rank: '5', suit: '♥', red: true, tag: '+1' },
     { rank: 'K', suit: '♠', red: false, tag: '−1' },
@@ -52,7 +54,7 @@ export function SpeedDrillVisual() {
         </div>
       ))}
       <div className="ml-1 flex flex-col items-start gap-1 pb-5">
-        <span className="text-[0.6875rem] uppercase tracking-[0.14em] text-content/35">Running</span>
+        <span className="text-[0.6875rem] uppercase tracking-[0.14em] text-content/35">{t('landing.visual.running')}</span>
         <span className="text-lg font-extrabold tabular-nums text-gold leading-none">+1</span>
       </div>
     </div>
@@ -380,6 +382,7 @@ function ChipStack({ x, y }: { x: number; y: number }) {
  * "16 vs 10: stand at TC ≥ 0", taken from the deviations engine.
  */
 export function DeviationChartVisual() {
+  const { t } = useTranslation()
   const dealers = ['7', '8', '9', '10', 'A']
   const players = ['12', '13', '14', '15', '16', '17']
 
@@ -412,7 +415,7 @@ export function DeviationChartVisual() {
       ))}
       <div className="mt-2.5 inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold
         text-gold bg-gold/10 border border-gold/30 rounded-full px-2 py-0.5">
-        TC ≥ 0 → Stand
+        {t('landing.visual.tcStand')}
       </div>
     </div>
   )

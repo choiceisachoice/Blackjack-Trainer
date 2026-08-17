@@ -191,7 +191,7 @@ function PlanStrip({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
-          Training plan · {done} of {total} stages
+          {t('analytics.planStrip', { done, total })}
         </span>
         <span className="block mt-0.5 font-semibold truncate">
           {active ? t(active.stage.titleKey) : t('plan.everyStageComplete')}
@@ -209,7 +209,7 @@ function PlanStrip({
 }
 
 export function AnalyticsDashboard() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const sessions = useStatsStore(s => s.sessions)
   const lifetimeStats = useStatsStore(s => s.lifetimeStats)
   const isLoading = useStatsStore(s => s.isLoading)
@@ -397,7 +397,7 @@ export function AnalyticsDashboard() {
                         {derived.edge.net >= 0 ? '+' : '−'}${Math.abs(Math.round(derived.edge.net)).toLocaleString('en-US')}
                       </span>
                       <span className="text-xs font-bold text-content/50">
-                        {derived.edge.sessions} sessions · {derived.edge.handsPlayed.toLocaleString('en-US')} hands
+                        {t('analytics.edgeStats', { sessions: derived.edge.sessions, hands: derived.edge.handsPlayed.toLocaleString(i18n.language) })}
                       </span>
                     </div>
                     <p className="text-xs text-content/40 mb-1.5 mt-0.5">{t('analytics.edgeCaption')}</p>
@@ -434,7 +434,7 @@ export function AnalyticsDashboard() {
                         border: '1px solid color-mix(in srgb, var(--color-gold) 50%, transparent)',
                       }}
                     >
-                      Drill these hands →
+                      {t('analytics.drillTheseHands')} →
                     </button>
                   </>
                 ) : (
@@ -566,7 +566,7 @@ function RecentAchievements() {
           className="text-xs text-gold hover:text-gold/80 transition-colors cursor-pointer"
           data-testid="view-all-achievements"
         >
-          View All →
+          {t('analytics.viewAll')} →
         </button>
       </div>
       {recent.length > 0 ? (
@@ -586,7 +586,7 @@ function RecentAchievements() {
         </div>
       ) : (
         <div className="text-center text-content/40 py-4" data-testid="no-achievements">
-          No achievements unlocked yet. Keep training!
+          {t('analytics.noAchievements')}
         </div>
       )}
     </Panel>

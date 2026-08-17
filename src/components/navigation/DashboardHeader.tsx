@@ -23,13 +23,14 @@ import { formatDuration } from '../analytics/analytics-derive'
  * entirely below the fold. Title on top (78px), numbers underneath the answer.
  */
 export function ProductTitle() {
+  const { t } = useTranslation()
   return (
     <div className="relative z-10 w-full max-w-5xl text-center pt-10 md:pt-14 mb-8">
       <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gold-gradient leading-[1.15] pb-0.5">
         Blackjack Card Counting Trainer
       </h1>
       <p className="mt-2 text-sm text-content/45">
-        Hi-Lo, drilled until the count comes without thinking.
+        {t('home.tagline')}
       </p>
     </div>
   )

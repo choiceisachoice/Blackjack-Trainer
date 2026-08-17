@@ -337,7 +337,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
           <span className="text-content/60">{formatTime(state.elapsedSeconds)}</span>
           <button onClick={() => actions.setPaused(true)} data-testid="pause-button"
             className="text-content/50 hover:text-content cursor-pointer">
-            Pause
+            {t('casino.hud.pause')}
           </button>
         </div>
       </div>

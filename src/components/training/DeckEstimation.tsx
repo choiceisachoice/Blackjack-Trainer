@@ -65,6 +65,7 @@ function DiscardScene({ remainingCards, totalCards, size }: {
   totalCards: number
   size: 'large' | 'small'
 }) {
+  const { t } = useTranslation()
   const dealt = Math.max(0, totalCards - remainingCards)
   const numDecks = Math.round(totalCards / 52)
   const isLarge = size === 'large'
@@ -81,7 +82,7 @@ function DiscardScene({ remainingCards, totalCards, size }: {
       }}
     >
       <div className={`text-center mb-3 ${isLarge ? 'text-xs' : 'text-[0.6875rem]'} tracking-widest uppercase text-white/45 font-semibold`}>
-        {numDecks}-Deck Shoe · Discard Tray
+        {t('training.deckShoeTray', { n: numDecks })}
       </div>
       <div className="flex justify-center">
         <DiscardTray

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import type { Translate } from '../../i18n/translate'
 import { Lock } from 'lucide-react'
 import { S17_STRATEGY, H17_STRATEGY } from '../../engine/strategy/basic-strategy-tables'
@@ -205,7 +205,7 @@ export function StrategyChart() {
           {isPro
             ? <span className={`w-2 h-2 rounded-full ${showDeviations ? 'bg-gold' : 'bg-content/30'}`} />
             : <Lock size={12} className="text-gold/70" />}
-          Deviations (Illustrious 18)
+          {t('chart.deviationsToggle')}
         </button>
       </div>
 
@@ -229,7 +229,7 @@ export function StrategyChart() {
       </div>
 
       <p className="text-center text-content/40 text-xs mb-4">
-        {ruleLabel} &middot; 6 Deck &middot; DAS &middot; Late Surrender &middot; Tap any cell for details
+        {t('chart.rulesLine', { rules: ruleLabel })}
       </p>
 
       {/* Scrollable chart area */}
@@ -245,7 +245,7 @@ export function StrategyChart() {
                 style={{ gridTemplateColumns: '72px repeat(10, 1fr)' }}
               >
                 <div className="text-xs font-semibold text-content/50 flex items-center justify-center p-1">
-                  Hand
+                  {t('chart.handHeader')}
                 </div>
                 {DEALER_KEYS.map(dk => (
                   <div
@@ -320,8 +320,8 @@ export function StrategyChart() {
       {selected && (
         <div className="mt-4 p-4 rounded-xl bg-contrast/10 border border-contrast/20 text-center">
           <p className="text-content text-sm font-semibold mb-1">
-            Your Hand: <span className="text-gold">{selected.hand}</span>
-            {' '}vs Dealer: <span className="text-gold">{selected.dealer}</span>
+            {t('chart.yourHand')} <span className="text-gold">{selected.hand}</span>
+            {' '}{t('chart.vsDealer')} <span className="text-gold">{selected.dealer}</span>
           </p>
           <p
             className="text-sm font-bold mb-1"
@@ -344,9 +344,12 @@ export function StrategyChart() {
                 {t('chart.countDeviation')}
               </p>
               <p className="text-content/70 text-xs mt-1">
-                {t('chart.atTrueCount')} <b className="text-content">{formatTC(selectedDev.threshold)}</b> or higher →{' '}
-                <b className="text-content">{selectedDev.above}</b>
-                <span className="text-content/40"> (below: {selectedDev.below})</span>
+                <Trans
+                  i18nKey="chart.deviationRule"
+                  values={{ tc: formatTC(selectedDev.threshold), action: selectedDev.above }}
+                  components={{ b: <b className="text-content" /> }}
+                />
+                <span className="text-content/40"> {t('chart.belowThat', { action: selectedDev.below })}</span>
               </p>
             </div>
           )}
@@ -354,7 +357,7 @@ export function StrategyChart() {
             onClick={() => setSelected(null)}
             className="mt-2 text-xs text-content/40 hover:text-content/70 cursor-pointer transition-colors"
           >
-            Dismiss
+            {t('common.dismiss')}
           </button>
         </div>
       )}

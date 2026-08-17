@@ -26,7 +26,7 @@ export function LevelBadge() {
         className="text-sm font-bold"
         style={{ color: level.color }}
       >
-        Lv.{level.level}
+        {t('levels.abbr', { n: level.level })}
       </span>
 
       {/* Title */}

@@ -3,6 +3,7 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import i18next from 'eslint-plugin-i18next'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
@@ -31,6 +32,73 @@ export default defineConfig([
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
           ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
+
+  /*
+    Hard-coded copy in a screen.
+
+    The seven-language sweep was verified with a script that looked for text
+    directly after a `>`. Nine strings did not sit there — a label after an
+    expression, `{busy ? <Spinner/> : null} Go Pro`, or a sentence on its own
+    line — and every one of them shipped in English on a German page. Widening
+    the pattern was not the answer: it turned up 794 hits, nearly all of them
+    type declarations. A rule that actually parses JSX is.
+
+    Scoped to components, because that is where copy reaches a reader. Test
+    files and the message files themselves are exempt by definition.
+  */
+  {
+    files: ['src/**/*.tsx'],
+    ignores: ['**/*.test.tsx', 'src/pages/DevPreview.tsx', 'src/pages/LoaderGallery.tsx'],
+    plugins: { i18next },
+    rules: {
+      'i18next/no-literal-string': [
+        'error',
+        {
+          // Only what a person reads. Attributes are handled by an allow-list
+          // below rather than by scanning every prop, which would flag class
+          // names, test ids and every other string the DOM needs.
+          mode: 'jsx-text-only',
+          'should-validate-template': true,
+          /*
+            Text that is the same in all seven languages, so translating it
+            would be a way of getting it wrong.
+
+            The first two entries are the plugin's own defaults (pure ASCII
+            punctuation/digits, and anything wholly non-ASCII) — naming this
+            option replaces them, so they have to be repeated. Everything after
+            is a proper noun or a term of art: the product's name, the printed
+            felt, the standard Hi-Lo abbreviations, and the published names of
+            the deviation sets. A German player looks for "Illustrious 18" as
+            well; a translated version would send them searching for a book
+            that does not exist.
+
+            Entries are full-match regexes.
+          */
+          words: {
+            exclude: [
+              '[0-9!-/:-@[-`{-~]+',
+              '[^\\u0000-\\u007F]+',
+              'Blackjack Trainer',
+              'Blackjack Card Counting Trainer',
+              'BLACKJACK',
+              'TRAINER',
+              'XP',
+              'PRO',
+              'INSURANCE PAYS 2 TO 1',
+              'RC:',
+              'TC:',
+              'TC \\+3',
+              'Hi-Lo',
+              'Illustrious 18',
+              '\\+ Fab 4',
+              '· S17 / H17',
+              'CHF 0',
+            ],
+          },
         },
       ],
     },

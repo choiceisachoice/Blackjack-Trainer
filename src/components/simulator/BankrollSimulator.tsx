@@ -319,19 +319,19 @@ export function BankrollSimulator() {
                   data-testid="save-starting-btn"
                   className="text-xs text-green-400 hover:text-green-300 cursor-pointer font-semibold"
                 >
-                  Save
+                  {t('tracker.save')}
                 </button>
                 <button
                   onClick={() => setIsEditingStart(false)}
                   data-testid="cancel-starting-btn"
                   className="text-xs text-content/40 hover:text-content cursor-pointer"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
               </span>
             ) : (
               <span>
-                Starting: {fmtDollar(startingBankroll)}
+                {t('tracker.startingPrefix')} {fmtDollar(startingBankroll)}
                 <button
                   onClick={() => { setEditStartValue(String(startingBankroll)); setIsEditingStart(true) }}
                   data-testid="edit-starting-btn"
@@ -343,9 +343,9 @@ export function BankrollSimulator() {
               </span>
             )}
             {' \u2502 '}
-            Profit: <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
+            {t('tracker.profit')} <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
             {' \u2502 '}
-            ROI: <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
+            {t('sim.roi')} <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
           </div>
         </div>
 
@@ -369,7 +369,7 @@ export function BankrollSimulator() {
           {/* $/hr */}
           <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
             style={{ boxShadow: sessionCount > 0 ? profitGlow(avgPerHour) : 'none' }}>
-            <p className="text-xs text-content/50">$/hr</p>
+            <p className="text-xs text-content/50">{t('sim.perHour')}</p>
             <p className={`text-xl font-bold ${avgPerHour >= 0 ? 'text-green-400' : 'text-red-400'}`}
               data-testid="stat-per-hour">
               {sessionCount > 0 ? `$${avgPerHour.toFixed(2)}` : '\u2014'}
@@ -451,7 +451,7 @@ export function BankrollSimulator() {
               data-testid="add-session-btn"
               className="px-4 py-2 rounded-xl bg-gold text-black font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer"
             >
-              + Add Session
+              {t('sim.addSession')}
             </button>
           )}
         </div>
@@ -516,7 +516,7 @@ export function BankrollSimulator() {
                         : 'bg-contrast/5 border border-contrast/20 text-content/50'
                     }`}
                   >
-                    Win +
+                    {t('sim.winPlus')}
                   </button>
                   <button
                     onClick={() => setFormIsWin(false)}
@@ -582,7 +582,7 @@ export function BankrollSimulator() {
                 data-testid="form-cancel"
                 className="px-4 py-2 rounded-lg text-sm text-content/60 hover:text-content transition-colors cursor-pointer"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSave}
@@ -608,7 +608,7 @@ export function BankrollSimulator() {
                     <span className={`text-sm font-bold shrink-0 ${session.result >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {fmtDollar(session.result, true)}
                     </span>
-                    <span className="text-xs text-content/40 shrink-0">{session.hoursPlayed}h</span>
+                    <span className="text-xs text-content/40 shrink-0">{t('sim.hoursShort', { n: session.hoursPlayed })}</span>
                   </div>
                   <div className="flex items-center gap-2 ml-2 shrink-0">
                     <button
@@ -616,7 +616,7 @@ export function BankrollSimulator() {
                       data-testid={`edit-${session.id}`}
                       className="text-xs text-content/40 hover:text-gold transition-colors cursor-pointer"
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                     {confirmDeleteId === session.id ? (
                       <div className="flex items-center gap-1">
@@ -625,13 +625,13 @@ export function BankrollSimulator() {
                           data-testid={`confirm-delete-${session.id}`}
                           className="text-xs text-red-400 hover:text-red-300 cursor-pointer font-semibold"
                         >
-                          Confirm
+                          {t('common.confirm')}
                         </button>
                         <button
                           onClick={() => setConfirmDeleteId(null)}
                           className="text-xs text-content/40 hover:text-content cursor-pointer"
                         >
-                          Cancel
+                          {t('common.cancel')}
                         </button>
                       </div>
                     ) : (
@@ -653,7 +653,7 @@ export function BankrollSimulator() {
           </div>
         ) : (
           <div className="text-center text-content/30 text-sm py-8" data-testid="empty-sessions">
-            No sessions yet. Add your first casino visit!
+            {t('sim.emptySessions')}
           </div>
         )}
       </section>
@@ -666,7 +666,7 @@ export function BankrollSimulator() {
             {/* Best Session */}
             <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
               style={{ boxShadow: bestSession ? profitGlow(bestSession.result) : 'none' }}>
-              <p className="text-xs text-content/50 mb-1">{'\uD83C\uDFC6'} Best Session</p>
+              <p className="text-xs text-content/50 mb-1">{'\uD83C\uDFC6'} {t('tracker.bestSession')}</p>
               {bestSession && (
                 <>
                   <p className="text-xl font-bold text-green-400" data-testid="best-session-result">
@@ -681,7 +681,7 @@ export function BankrollSimulator() {
             {/* Worst Session */}
             <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
               style={{ boxShadow: worstSession ? profitGlow(worstSession.result) : 'none' }}>
-              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDE22'} Worst Session</p>
+              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDE22'} {t('tracker.worstSession')}</p>
               {worstSession && (
                 <>
                   <p className="text-xl font-bold text-red-400" data-testid="worst-session-result">
@@ -695,7 +695,7 @@ export function BankrollSimulator() {
 
             {/* Streaks */}
             <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center">
-              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDD25'} Streaks</p>
+              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDD25'} {t('tracker.streaks')}</p>
               <div className="flex justify-center gap-4 mt-1">
                 <div>
                   <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
@@ -725,8 +725,9 @@ function PersonalRecordsSection() {
   const winRate = useBankrollTrackerStore(s => s.getWinRate)()
   const sessionCount = useBankrollTrackerStore(s => s.getSessionCount)()
 
-  const cards: { label: string; icon: string; value: string; sub?: string; glow?: string }[] = [
+  const cards: { testId: string; label: string; icon: string; value: string; sub?: string; glow?: string }[] = [
     {
+      testId: 'best-session',
       label: t('tracker.bestSession'),
       icon: '\uD83E\uDD47',
       value: records.bestSession ? fmtDollar(records.bestSession.result, true) : '\u2014',
@@ -735,6 +736,7 @@ function PersonalRecordsSection() {
         ? '0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.08)' : undefined,
     },
     {
+      testId: 'worst-session',
       label: t('tracker.worstSession'),
       icon: '\uD83D\uDE22',
       value: records.worstSession ? fmtDollar(records.worstSession.result, true) : '\u2014',
@@ -743,22 +745,26 @@ function PersonalRecordsSection() {
         ? '0 0 20px rgba(239, 68, 68, 0.2), 0 0 40px rgba(239, 68, 68, 0.05)' : undefined,
     },
     {
+      testId: 'win-streak',
       label: t('tracker.winStreak'),
       icon: '\uD83D\uDD25',
-      value: records.longestWinStreak > 0 ? `${records.longestWinStreak} sessions` : '\u2014',
+      value: records.longestWinStreak > 0 ? t('sim.nSessions', { n: records.longestWinStreak }) : '\u2014',
     },
     {
+      testId: 'longest-session',
       label: t('sim.longestSession'),
       icon: '\u23F1\uFE0F',
       value: records.longestSession ? `${records.longestSession.hoursPlayed.toFixed(1)}h` : '\u2014',
       sub: records.longestSession ? `${records.longestSession.casino} \u00B7 ${fmtDate(records.longestSession.date)}` : undefined,
     },
     {
+      testId: 'peak-bankroll',
       label: t('tracker.peakBankroll'),
       icon: '\uD83D\uDCC8',
       value: records.highestBankroll > 0 ? fmtDollar(records.highestBankroll) : '\u2014',
     },
     {
+      testId: 'best-$-hr',
       label: t('sim.bestPerHour'),
       icon: '\uD83D\uDCB0',
       value: records.bestHourlyRate
@@ -767,11 +773,13 @@ function PersonalRecordsSection() {
       sub: records.bestHourlyRate ? fmtDate(records.bestHourlyRate.date) : undefined,
     },
     {
+      testId: 'best-casino',
       label: t('sim.bestCasino'),
       icon: '\uD83C\uDFE6',
       value: records.mostProfitableCasino ?? '\u2014',
     },
     {
+      testId: 'win-rate',
       label: t('tracker.winRate'),
       icon: '\u2705',
       value: sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014',
@@ -780,12 +788,12 @@ function PersonalRecordsSection() {
 
   return (
     <section data-testid="personal-records">
-      <h2 className="text-lg font-semibold text-content mb-3">{'\uD83C\uDFC6'} Personal Records</h2>
+      <h2 className="text-lg font-semibold text-content mb-3">{'\uD83C\uDFC6'} {t('tracker.personalRecords')}</h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map(card => (
           <div
-            key={card.label}
-            data-testid={`record-${card.label.toLowerCase().replace(/[\s/]/g, '-')}`}
+            key={card.testId}
+            data-testid={`record-${card.testId}`}
             className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
             style={{ boxShadow: card.glow ?? 'none' }}
           >
@@ -793,8 +801,8 @@ function PersonalRecordsSection() {
               {card.icon} {card.label}
             </p>
             <p className={`text-lg font-bold ${
-              card.label === 'Best Session' && records.bestSession && records.bestSession.result > 0 ? 'text-green-400' :
-              card.label === 'Worst Session' && records.worstSession && records.worstSession.result < 0 ? 'text-red-400' :
+              card.testId === 'best-session' && records.bestSession && records.bestSession.result > 0 ? 'text-green-400' :
+              card.testId === 'worst-session' && records.worstSession && records.worstSession.result < 0 ? 'text-red-400' :
               'text-content'
             }`}>
               {card.value}

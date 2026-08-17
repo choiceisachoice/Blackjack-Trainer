@@ -35,6 +35,9 @@ export function ContactPage() {
           <div className="text-xs font-bold tracking-[0.16em] uppercase text-content/45">{t('contact.emailUs')}</div>
           {draft ? (
             <div className="mt-3 inline-flex items-center gap-2 text-warning text-sm">
+              {/* Untranslated on purpose — see LegalPage: a deploy-time
+                  warning, shown only while `legal-meta.ts` is unfilled. */}
+              {/* eslint-disable-next-line i18next/no-literal-string */}
               <AlertTriangle size={16} /> Set your contact address in <code>legal-meta.ts</code>
             </div>
           ) : (

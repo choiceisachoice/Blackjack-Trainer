@@ -17,7 +17,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
     <div className="flex flex-col items-center gap-3" data-testid="betting-controls">
       <span className="text-sm text-content/60">{t('casino.table.placeYourBet')}</span>
       <span className="text-xs text-content/40" data-testid="bet-range">
-        Min: {formatDollar(minBet)} – Max: {formatDollar(maxBet)}
+        {t('casino.hud.betRange', { min: formatDollar(minBet), max: formatDollar(maxBet) })}
       </span>
       {/* Current bet display */}
       {currentBet > 0 && (

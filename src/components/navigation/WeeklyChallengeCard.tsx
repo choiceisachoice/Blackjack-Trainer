@@ -93,7 +93,7 @@ export function WeeklyChallengeCard() {
               {t('chal.weekly')}
             </h3>
             <p className="text-xs text-content/40">
-              {formatTimeRemaining(timeRemaining)} remaining
+              {t('chal.remaining', { time: formatTimeRemaining(timeRemaining) })}
             </p>
           </div>
         </div>
@@ -103,7 +103,7 @@ export function WeeklyChallengeCard() {
               data-testid="weekly-streak-badge"
               className="text-xs font-medium px-2 py-0.5 rounded-full bg-gold/15 text-gold"
             >
-              {streak} week streak
+              {t('chal.weekStreak', { n: streak })}
             </span>
           )}
           <span className="text-xs font-bold text-gold">
@@ -135,7 +135,7 @@ export function WeeklyChallengeCard() {
       <div className="flex items-center justify-between text-xs">
         {state.completed ? (
           <span className="text-green-400 font-semibold flex items-center gap-1">
-            COMPLETE
+            {t('chal.complete')}
           </span>
         ) : (
           <span className="text-content/40">
@@ -152,7 +152,7 @@ export function WeeklyChallengeCard() {
       {/* Just-completed celebration overlay */}
       {justCompleted && (
         <div className="mt-2 text-center text-gold font-bold text-sm animate-pulse">
-          +{challenge.xpReward} XP earned!
+          {t('chal.xpEarned', { xp: challenge.xpReward })}
         </div>
       )}
     </div>

@@ -161,7 +161,7 @@ export function AchievementsPage() {
             {t('awards.yourTrophies')}
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">{t('awards.title')}</h1>
-          <p className="text-sm text-content/50" data-testid="unlock-count">{totalUnlocked}/{total} unlocked</p>
+          <p className="text-sm text-content/50" data-testid="unlock-count">{t('awards.unlockCount', { n: totalUnlocked, total })}</p>
         </div>
 
         {/* 1 — Rank hero */}

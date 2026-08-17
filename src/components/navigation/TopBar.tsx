@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useAppStore } from '../../store/app-store'
 import { useLiveSessionStore } from '../../store/live-session-store'
 import { getSystemById } from '../../engine/counting/counting-systems'
@@ -22,6 +23,7 @@ const MODE_LABELS: Record<string, string> = {
  * sound toggle, and theme toggle.
  */
 export function TopBar() {
+  const { t } = useTranslation()
   const currentMode = useAppStore(s => s.currentMode)
   const rawSetMode = useAppStore(s => s.setMode)
   const requestLeave = useLiveSessionStore(s => s.requestLeave)
@@ -44,7 +46,7 @@ export function TopBar() {
         onClick={() => setMode('home')}
         className="text-sm text-content/70 hover:text-gold transition-colors cursor-pointer"
       >
-        &larr; Home
+        ← {t('nav.home')}
       </button>
       <span className="text-sm font-semibold text-content">
         {MODE_LABELS[currentMode] ?? currentMode}

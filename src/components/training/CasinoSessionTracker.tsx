@@ -71,6 +71,7 @@ interface ChartDataPoint {
 // ── Custom Tooltip ──────────────────────────────────────────────────
 
 function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: ChartDataPoint }> }) {
+  const { t } = useTranslation()
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
@@ -82,12 +83,12 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{
         </p>
       )}
       {d.grade && (
-        <p className="text-content/60 text-xs">Grade: {d.grade} ({d.score.toFixed(0)}%)</p>
+        <p className="text-content/60 text-xs">{t('tracker.gradeScore', { grade: d.grade, pct: d.score.toFixed(0) })}</p>
       )}
       {d.hands > 0 && (
-        <p className="text-content/60 text-xs">{d.hands} hands</p>
+        <p className="text-content/60 text-xs">{t('tracker.nHands', { n: d.hands })}</p>
       )}
-      <p className="text-content font-bold mt-1">Bankroll: {fmtDollar(d.bankroll)}</p>
+      <p className="text-content font-bold mt-1">{t('sim.bankrollAt', { v: fmtDollar(d.bankroll) })}</p>
     </div>
   )
 }
@@ -284,7 +285,7 @@ export function CasinoSessionTracker() {
             {' \u2502 '}
             {t('tracker.profit')} <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
             {' \u2502 '}
-            ROI: <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
+            {t('tracker.roi')} <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
           </div>
         </div>
 
@@ -382,7 +383,7 @@ export function CasinoSessionTracker() {
 
       {/* ── Section D: Session List ── */}
       <section data-testid="session-section">
-        <h2 className="text-lg font-semibold text-content mb-3">Sessions</h2>
+        <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.sessions')}</h2>
 
         {sortedSessions.length > 0 ? (
           <div className="space-y-2" data-testid="session-list">
@@ -411,13 +412,13 @@ export function CasinoSessionTracker() {
             {/* Best Session */}
             <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
               style={{ boxShadow: bestSession ? profitGlow(bestSession.profit) : 'none' }}>
-              <p className="text-xs text-content/50 mb-1">{'\uD83C\uDFC6'} Best Session</p>
+              <p className="text-xs text-content/50 mb-1">{'\uD83C\uDFC6'} {t('tracker.bestSession')}</p>
               {bestSession && (
                 <>
                   <p className="text-xl font-bold text-green-400" data-testid="best-session-result">
                     {fmtDollar(bestSession.profit, true)}
                   </p>
-                  <p className="text-xs text-content/50">{bestSession.grade} ({bestSession.overallScore.toFixed(0)}%)</p>
+                  <p className="text-xs text-content/50">{t('tracker.gradeShort', { grade: bestSession.grade, pct: bestSession.overallScore.toFixed(0) })}</p>
                   <p className="text-xs text-content/40">{fmtDate(bestSession.date)}</p>
                 </>
               )}
@@ -426,13 +427,13 @@ export function CasinoSessionTracker() {
             {/* Worst Session */}
             <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
               style={{ boxShadow: worstSession ? profitGlow(worstSession.profit) : 'none' }}>
-              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDE22'} Worst Session</p>
+              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDE22'} {t('tracker.worstSession')}</p>
               {worstSession && (
                 <>
                   <p className="text-xl font-bold text-red-400" data-testid="worst-session-result">
                     {fmtDollar(worstSession.profit, true)}
                   </p>
-                  <p className="text-xs text-content/50">{worstSession.grade} ({worstSession.overallScore.toFixed(0)}%)</p>
+                  <p className="text-xs text-content/50">{t('tracker.gradeShort', { grade: worstSession.grade, pct: worstSession.overallScore.toFixed(0) })}</p>
                   <p className="text-xs text-content/40">{fmtDate(worstSession.date)}</p>
                 </>
               )}
@@ -440,7 +441,7 @@ export function CasinoSessionTracker() {
 
             {/* Streaks */}
             <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center">
-              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDD25'} Streaks</p>
+              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDD25'} {t('tracker.streaks')}</p>
               <div className="flex justify-center gap-4 mt-1">
                 <div>
                   <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
@@ -475,16 +476,17 @@ function SessionRow({
   onDelete: (id: string) => void
   onConfirmDelete: (id: string | null) => void
 }) {
+  const { t } = useTranslation()
   return (
     <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3" data-testid={`session-${session.id}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <span className="text-xs text-content/50 shrink-0">{fmtDate(session.date)}</span>
-          <span className="text-xs text-content/40 shrink-0">{session.config.numDecks}D, ${session.config.minBet} min</span>
+          <span className="text-xs text-content/40 shrink-0">{t('tracker.deckMin', { decks: session.config.numDecks, min: `$${session.config.minBet}` })}</span>
           <span className={`text-sm font-bold shrink-0 ${session.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {fmtDollar(session.profit, true)}
           </span>
-          <span className="text-xs text-content/40 shrink-0">{session.handsPlayed} hands</span>
+          <span className="text-xs text-content/40 shrink-0">{t('tracker.nHands', { n: session.handsPlayed })}</span>
           <span className={`text-sm font-bold shrink-0 ${gradeColor(session.grade)}`}>
             {session.grade}
           </span>
@@ -497,13 +499,13 @@ function SessionRow({
                 data-testid={`confirm-delete-${session.id}`}
                 className="text-xs text-red-400 hover:text-red-300 cursor-pointer font-semibold"
               >
-                Confirm
+                {t('common.confirm')}
               </button>
               <button
                 onClick={() => onConfirmDelete(null)}
                 className="text-xs text-content/40 hover:text-content cursor-pointer"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           ) : (
@@ -518,9 +520,9 @@ function SessionRow({
         </div>
       </div>
       <div className="flex gap-3 mt-1 text-xs text-content/40">
-        <span>Play: {session.playAccuracy.toFixed(0)}%</span>
-        <span>Bet: {session.betAccuracy.toFixed(0)}%</span>
-        <span>Count: {session.countAccuracy.toFixed(0)}%</span>
+        <span>{t('tracker.playPct', { pct: session.playAccuracy.toFixed(0) })}</span>
+        <span>{t('tracker.betPct', { pct: session.betAccuracy.toFixed(0) })}</span>
+        <span>{t('tracker.countPct', { pct: session.countAccuracy.toFixed(0) })}</span>
         <span className="ml-auto">{fmtDuration(session.duration)}</span>
       </div>
     </div>

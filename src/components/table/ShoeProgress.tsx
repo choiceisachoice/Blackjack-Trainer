@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { useGameStore } from '../../store/game-store'
 
@@ -28,6 +29,7 @@ export function ShoeHousing({ cardCount, totalCards, penetration }: {
   totalCards: number
   penetration: number
 }) {
+  const { t } = useTranslation()
   const blockWidth = Math.max(0, Math.round(cardCount * PIXELS_PER_CARD))
 
   // Cut card position: fixed distance from the RIGHT edge of the card block.
@@ -128,7 +130,7 @@ export function ShoeHousing({ cardCount, totalCards, penetration }: {
       </div>
 
       <span className="text-[0.75rem] text-content/40 uppercase tracking-widest font-medium">
-        Shoe
+        {t('training.shoe')}
       </span>
     </div>
   )
@@ -160,6 +162,7 @@ export function DiscardTray({
   /** Container width in px. */
   width?: number
 }) {
+  const { t } = useTranslation()
   const stackHeight = Math.max(0, Math.round(cardCount * pxPerCard))
   const hasCards = cardCount > 0
 
@@ -243,7 +246,7 @@ export function DiscardTray({
       </div>
 
       <span className="text-[0.75rem] text-content/40 uppercase tracking-widest font-medium">
-        Discard
+        {t('training.discard')}
       </span>
     </div>
   )

@@ -106,7 +106,7 @@ export function DailyChallengeCard() {
               {t('chal.daily')}
             </h3>
             <p className="text-xs text-content/40">
-              {formatCountdown(countdown)} remaining
+              {t('chal.remaining', { time: formatCountdown(countdown) })}
             </p>
           </div>
         </div>
@@ -116,7 +116,7 @@ export function DailyChallengeCard() {
               data-testid="streak-badge"
               className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400"
             >
-              {streak} day streak
+              {t('chal.dayStreak', { n: streak })}
             </span>
           )}
           <span className="text-xs font-bold text-gold">
@@ -148,11 +148,11 @@ export function DailyChallengeCard() {
       <div className="flex items-center justify-between text-xs">
         {state.completed ? (
           <span className="text-green-400 font-semibold flex items-center gap-1">
-            COMPLETE
+            {t('chal.complete')}
           </span>
         ) : challenge.type === 'speed_time' ? (
           <span className="text-content/40">
-            {state.progress > 0 ? `${state.progress}ms` : '—'} / {challenge.target}ms target
+            {t('chal.msTarget', { done: state.progress > 0 ? `${state.progress}ms` : '—', target: challenge.target })}
           </span>
         ) : (
           <span className="text-content/40">
@@ -169,7 +169,7 @@ export function DailyChallengeCard() {
       {/* Just-completed celebration overlay */}
       {justCompleted && (
         <div className="mt-2 text-center text-gold font-bold text-sm animate-pulse">
-          +{xp} XP earned!
+          {t('chal.xpEarned', { xp })}
         </div>
       )}
     </div>

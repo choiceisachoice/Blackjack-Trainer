@@ -12,7 +12,10 @@
     "startLearning": "Loslegen",
     "loadingTraining": "Dein Training wird geladen",
     "signingIn": "Du wirst angemeldet",
-    "continueMode": "Weiter mit {{mode}}"
+    "continueMode": "Weiter mit {{mode}}",
+    "confirm": "Bestätigen",
+    "edit": "Bearbeiten",
+    "dismiss": "Schliessen"
   },
   "nav": {
     "home": "Start",
@@ -124,7 +127,8 @@
       "eyebrow": "Hi-Lo-Kartenzählen, richtig trainiert",
       "headline": "Trainiere den <1>Vorteil</1>, der den Schuh schlägt.",
       "chipStrategy": "Basisstrategie",
-      "chipRules": "S17 / H17"
+      "chipRules": "S17 / H17",
+      "shoe": "6-Deck-Schlitten"
     },
     "steps": {
       "heading": "Lernen. Üben. Spielen.",
@@ -222,7 +226,18 @@
       "l3": "Deine Basis-Auswertung",
       "l4": "Erfolge, Level & der Lern-Guide"
     },
-    "goodToKnow": "Gut zu wissen"
+    "goodToKnow": "Gut zu wissen",
+    "tag": {
+      "decks": "312 Karten",
+      "decksBold": "6 Decks",
+      "counting": "zählen",
+      "realTable": "Casinotisch",
+      "realBold": "Echter"
+    },
+    "visual": {
+      "running": "Laufend",
+      "tcStand": "TC ≥ 0 → Stehen bleiben"
+    }
   },
   "auth": {
     "signIn": "Anmelden",
@@ -457,7 +472,12 @@
       "keepItUp": "Weiter so.",
       "noRuns": "Noch kein Durchgang — starte deinen ersten und verfolge hier deinen Fortschritt.",
       "proTip": "Profi-Tipp"
-    }
+    },
+    "newRoundSpace": "Neue Runde [Leertaste]",
+    "shoe": "Schlitten",
+    "discard": "Ablage",
+    "deckShoeTray": "{{n}}-Deck-Schlitten · Ablagefach",
+    "betSpreadUnit": "{{mult}}× ({{amount}})"
   },
   "casino": {
     "setup": {
@@ -500,7 +520,9 @@
       "placeYourBet": "Setze deinen Einsatz",
       "clear": "Zurücksetzen",
       "doubled": "Verdoppelt",
-      "surrendered": "Aufgegeben"
+      "surrendered": "Aufgegeben",
+      "handNo": "Hand {{n}}",
+      "handShort": "H{{n}}"
     },
     "act": {
       "hit": "Ziehen (H)",
@@ -524,7 +546,8 @@
       "nextHand": "Nächste Hand (Enter)",
       "no": "Nein (N)",
       "speedRelaxed": "Gemächlich",
-      "speedStandard": "Standard"
+      "speedStandard": "Standard",
+      "betRange": "Min.: {{min}} – Max.: {{max}}"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -599,7 +622,15 @@
     "bestGrade": "Beste Note",
     "personalRecords": "Persönliche Bestwerte",
     "nSessions": "{{n}} Sessions",
-    "nHands": "{{n}} Hände"
+    "nHands": "{{n}} Hände",
+    "roi": "ROI:",
+    "gradeScore": "Note: {{grade}} ({{pct}} %)",
+    "gradeShort": "{{grade}} ({{pct}} %)",
+    "deckMin": "{{decks}} Decks, Min. {{min}}",
+    "playPct": "Spiel: {{pct}} %",
+    "betPct": "Einsatz: {{pct}} %",
+    "countPct": "Count: {{pct}} %",
+    "streaks": "Serien"
   },
   "welcome": {
     "stepOne": {
@@ -775,7 +806,9 @@
       "attempts_other": "{{count}} Versuche bisher · bester",
       "offBar": " — {{gap}} unter der Marke",
       "barIs": ", Marke liegt bei {{bar}} %"
-    }
+    },
+    "stagesComplete_one": "{{done}} von {{count}} Stufe geschafft",
+    "stagesComplete_other": "{{done}} von {{count}} Stufen geschafft"
   },
   "recommend": {
     "startTraining": "Training starten",
@@ -1398,7 +1431,8 @@
     "diamond": "Diamant",
     "yourClimb": "Dein Aufstieg — Level {{n}} von {{total}}",
     "noneUnlocked": "Noch keine Erfolge freigeschaltet",
-    "allUnlocked": "Alle Erfolge freigeschaltet!"
+    "allUnlocked": "Alle Erfolge freigeschaltet!",
+    "unlockCount": "{{n}}/{{total}} freigeschaltet"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1431,7 +1465,8 @@
       "strategyChart": "Sieh die vollständige Strategietabelle",
       "achievements": "Verfolge deinen Fortschritt und schalte Belohnungen frei"
     },
-    "nothingTracked": "Noch nichts erfasst. Spiel eine Session oder eine Übung — danach stehen hier deine Serie, deine Trefferquote und die Stelle, an der dein Vorteil verloren geht."
+    "nothingTracked": "Noch nichts erfasst. Spiel eine Session oder eine Übung — danach stehen hier deine Serie, deine Trefferquote und die Stelle, an der dein Vorteil verloren geht.",
+    "tagline": "Hi-Lo, geübt bis der Count von allein kommt."
   },
   "startLevel": {
     "never": {
@@ -1504,7 +1539,12 @@
       "mid": "Mittel",
       "advanced": "Fortgeschritten",
       "elite": "Elite"
-    }
+    },
+    "jumped": "{{n}} Level auf einmal",
+    "total": "Gesamt",
+    "whatIsThis": "<b>Was ist das?</b> Dein Level zeigt, wie viel du trainiert hast. Punkte gibt es für abgeschlossene Übungen und Tagesaufgaben — je genauer du bist, desto mehr. Level schalten nichts frei; sie sind schlicht das Protokoll deiner Arbeit.",
+    "abbr": "Lv.{{n}}",
+    "levelUp": "Level auf"
   },
   "chal": {
     "warm_up": {
@@ -1606,7 +1646,13 @@
     "daily": "Tagesaufgabe",
     "weekly": "Wochenaufgabe",
     "comeBack": "Komm morgen wieder",
-    "nextMonday": "Neue Aufgabe am Montag"
+    "nextMonday": "Neue Aufgabe am Montag",
+    "remaining": "noch {{time}}",
+    "dayStreak": "{{n}} Tage in Folge",
+    "weekStreak": "{{n}} Wochen in Folge",
+    "xpEarned": "+{{xp}} XP verdient!",
+    "msTarget": "{{done}} / Ziel {{target}} ms",
+    "complete": "Erledigt"
   },
   "wchal": {
     "weekly_grinder": {
@@ -1738,7 +1784,14 @@
       "accuracy": "Trefferquote",
       "hands": "Hände"
     },
-    "deleteFailed": "Der Verlauf liess sich nicht löschen."
+    "deleteFailed": "Der Verlauf liess sich nicht löschen.",
+    "planStrip": "Trainingsplan · {{done}} von {{total}} Stufen",
+    "edgeStats": "{{sessions}} Durchgänge · {{hands}} Hände",
+    "noAchievements": "Noch keine Erfolge freigeschaltet. Bleib dran!",
+    "heatLess": "weniger",
+    "heatMore": "mehr",
+    "drillTheseHands": "Diese Hände üben",
+    "viewAll": "Alle ansehen"
   },
   "sim": {
     "onboardTitle": "Verfolge deine Bankroll",
@@ -1780,7 +1833,14 @@
         "desc": "H17, Blackjack 6:5, 8 Decks, flache Penetration"
       }
     },
-    "loss": "Verlust"
+    "loss": "Verlust",
+    "roi": "ROI:",
+    "perHour": "$/Std.",
+    "addSession": "+ Durchgang",
+    "winPlus": "Gewinn +",
+    "hoursShort": "{{n}} Std.",
+    "emptySessions": "Noch keine Durchgänge. Trag deinen ersten Casinobesuch ein!",
+    "nSessions": "{{n}} Durchgänge"
   },
   "chart": {
     "title": "Basisstrategie-Tabelle",
@@ -1792,7 +1852,14 @@
     "s3": "III. Weiche Hände",
     "s4": "IV. Paare",
     "countDeviation": "Count-Abweichung",
-    "atTrueCount": "Ab True Count"
+    "atTrueCount": "Ab True Count",
+    "deviationsToggle": "Abweichungen (Illustrious 18)",
+    "rulesLine": "{{rules}} · 6 Decks · DAS · Late Surrender · Für Details auf eine Zelle tippen",
+    "handHeader": "Hand",
+    "yourHand": "Deine Hand:",
+    "vsDealer": "gegen Dealer:",
+    "deviationRule": "Ab True Count <b>{{tc}}</b> → <b>{{action}}</b>",
+    "belowThat": "(darunter: {{action}})"
   },
   "onboardingSteps": {
     "speed": {

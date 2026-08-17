@@ -35,11 +35,16 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
         {draft && (
           <div className="mt-8 flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm">
             <AlertTriangle size={18} className="text-warning shrink-0 mt-0.5" />
+            {/* Untranslated on purpose: this banner only renders while
+                `legal-meta.ts` still holds placeholders, i.e. never in
+                production. It addresses whoever is deploying, not a reader. */}
+            {/* eslint-disable i18next/no-literal-string */}
             <p className="text-content/80">
               <span className="font-semibold text-warning">{t('legal.draft')}</span>{' '}
               Some details in <code className="text-content/70">legal-meta.ts</code> still need to be filled in
               (operator name, contact address, region) before this page is final.
             </p>
+            {/* eslint-enable i18next/no-literal-string */}
           </div>
         )}
 

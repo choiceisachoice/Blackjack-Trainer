@@ -155,7 +155,7 @@ export function LandingPage() {
               <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">{t('landing.hero.ctaSeePro')}</a>
             </div>
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-content/40">
-              <span>{t('landing.hero.noCard')}</span><Dot /><span>6-deck shoe</span><Dot /><span>{t('landing.hero.tags')}</span><Dot /><span>{t('landing.hero.cancel')}</span>
+              <span>{t('landing.hero.noCard')}</span><Dot /><span>{t('landing.hero.shoe')}</span><Dot /><span>{t('landing.hero.tags')}</span><Dot /><span>{t('landing.hero.cancel')}</span>
             </div>
           </div>
         </div>
@@ -164,11 +164,11 @@ export function LandingPage() {
       {/* Credibility strip */}
       <div className="border-y border-white/8 py-4 bg-[rgba(7,8,9,.55)]">
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap gap-x-7 gap-y-2 justify-center text-sm text-content/60">
-          <span><b className="text-content font-semibold">6 decks</b> · 312 cards</span>
-          <span><b className="text-content font-semibold">Hi-Lo</b> counting</span>
+          <span><b className="text-content font-semibold">{t('landing.tag.decksBold')}</b> · {t('landing.tag.decks')}</span>
+          <span><b className="text-content font-semibold">Hi-Lo</b> {t('landing.tag.counting')}</span>
           <span><b className="text-content font-semibold">{t('landing.hero.chipStrategy')}</b> · S17 / H17</span>
           <span><b className="text-content font-semibold">Illustrious 18</b> + Fab 4</span>
-          <span><b className="text-content font-semibold">Real</b> casino table</span>
+          <span><b className="text-content font-semibold">{t('landing.tag.realBold')}</b> {t('landing.tag.realTable')}</span>
         </div>
       </div>
 

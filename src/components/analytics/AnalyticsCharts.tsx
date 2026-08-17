@@ -132,13 +132,14 @@ export function Heatmap({ columns }: { columns: HeatCell[][] }) {
 
 /** Legend swatches for the heatmap intensity scale. */
 export function HeatLegend() {
+  const { t } = useTranslation()
   return (
     <span className="inline-flex items-center gap-1">
-      less
+      {t('analytics.heatLess')}
       {[0, 1, 2, 3, 4].map(l => (
         <i key={l} className="inline-block w-3 h-3 rounded-[3px]" style={{ background: HEAT_SHADE[l] }} />
       ))}
-      more
+      {t('analytics.heatMore')}
     </span>
   )
 }

@@ -120,7 +120,7 @@ export function HumanSeat({
               className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg transition-opacity duration-500 ease-out
                 ${i === activeHandIndex && gameStep === 'human_playing' ? 'ring-2 ring-gold bg-black/20' : gameStep === 'human_playing' ? 'opacity-40' : ''}`}
             >
-              <span className="text-[0.65rem] text-gold font-semibold uppercase tracking-wide">Hand {i + 1}</span>
+              <span className="text-[0.65rem] text-gold font-semibold uppercase tracking-wide">{t('casino.table.handNo', { n: i + 1 })}</span>
               <Hand cards={hand} animateFrom={1} totalClass="text-[0.75rem]" />
               {handDoubled.has(i) && <span className="text-[0.625rem] text-gold">{t('casino.table.doubled')}</span>}
             </motion.div>
@@ -200,6 +200,7 @@ export function BotSeat({
   activeSplitHand,
   splitVisibleCards,
 }: BotSeatProps) {
+  const { t } = useTranslation()
   const reducedBot = useReducedMotion()
   const hasSplit = bot.hands.length > 1
   const showSplitHands = hasSplit && splitVisibleCards !== undefined
@@ -233,7 +234,7 @@ export function BotSeat({
                   hasActiveHand ? (isHandActive ? 'ring-2 ring-gold bg-black/20' : 'opacity-40') : ''
                 }`}
                 style={{ transition: 'opacity 0.4s ease' }}>
-                <span className={`text-[0.625rem] font-semibold uppercase ${hasActiveHand && isHandActive ? 'text-gold' : 'text-white/40'}`}>H{hi + 1}</span>
+                <span className={`text-[0.625rem] font-semibold uppercase ${hasActiveHand && isHandActive ? 'text-gold' : 'text-white/40'}`}>{t('casino.table.handShort', { n: hi + 1 })}</span>
                 <Hand cards={shownCards} animateFrom={1} totalClass="text-[0.6875rem]" />
                 {resultLabel && gameStep === 'settlement' && (
                   <span className={`text-[0.625rem] font-bold ${

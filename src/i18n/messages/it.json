@@ -12,7 +12,10 @@
     "startLearning": "Inizia a imparare",
     "loadingTraining": "Caricamento del tuo allenamento",
     "signingIn": "Accesso in corso",
-    "continueMode": "Continua {{mode}}"
+    "continueMode": "Continua {{mode}}",
+    "confirm": "Conferma",
+    "edit": "Modifica",
+    "dismiss": "Chiudi"
   },
   "nav": {
     "home": "Home",
@@ -124,7 +127,8 @@
       "eyebrow": "Il conteggio Hi-Lo, allenato sul serio",
       "headline": "Allena il <1>vantaggio</1> che batte il sabot.",
       "chipStrategy": "Strategia di base",
-      "chipRules": "S17 / H17"
+      "chipRules": "S17 / H17",
+      "shoe": "shoe da 6 mazzi"
     },
     "steps": {
       "heading": "Impara. Allenati. Gioca.",
@@ -222,7 +226,18 @@
       "l3": "Le tue analisi di base",
       "l4": "Premi, livelli & la guida"
     },
-    "goodToKnow": "Buono a sapersi"
+    "goodToKnow": "Buono a sapersi",
+    "tag": {
+      "decks": "312 carte",
+      "decksBold": "6 mazzi",
+      "counting": "conteggio",
+      "realTable": "tavolo da casinò",
+      "realBold": "Vero"
+    },
+    "visual": {
+      "running": "Corrente",
+      "tcStand": "TC ≥ 0 → Stare"
+    }
   },
   "auth": {
     "signIn": "Accedi",
@@ -457,7 +472,12 @@
       "keepItUp": "Continua così.",
       "noRuns": "Ancora nessuna sessione — inizia la prima e segui qui i tuoi progressi.",
       "proTip": "Consiglio"
-    }
+    },
+    "newRoundSpace": "Nuovo turno [Spazio]",
+    "shoe": "Shoe",
+    "discard": "Scarti",
+    "deckShoeTray": "Shoe da {{n}} mazzi · Vassoio scarti",
+    "betSpreadUnit": "{{mult}}× ({{amount}})"
   },
   "casino": {
     "setup": {
@@ -500,7 +520,9 @@
       "placeYourBet": "Piazza la puntata",
       "clear": "Azzera",
       "doubled": "Raddoppiata",
-      "surrendered": "Abbandonata"
+      "surrendered": "Abbandonata",
+      "handNo": "Mano {{n}}",
+      "handShort": "M{{n}}"
     },
     "act": {
       "hit": "Carta (H)",
@@ -524,7 +546,8 @@
       "nextHand": "Mano successiva (Invio)",
       "no": "No (N)",
       "speedRelaxed": "Rilassato",
-      "speedStandard": "Standard"
+      "speedStandard": "Standard",
+      "betRange": "Min: {{min}} – Max: {{max}}"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -599,7 +622,15 @@
     "bestGrade": "Voto migliore",
     "personalRecords": "Record personali",
     "nSessions": "{{n}} sessioni",
-    "nHands": "{{n}} mani"
+    "nHands": "{{n}} mani",
+    "roi": "ROI:",
+    "gradeScore": "Voto: {{grade}} ({{pct}}%)",
+    "gradeShort": "{{grade}} ({{pct}}%)",
+    "deckMin": "{{decks}} mazzi, min {{min}}",
+    "playPct": "Gioco: {{pct}}%",
+    "betPct": "Puntata: {{pct}}%",
+    "countPct": "Conteggio: {{pct}}%",
+    "streaks": "Serie"
   },
   "welcome": {
     "stepOne": {
@@ -775,7 +806,9 @@
       "attempts_other": "{{count}} tentativi · migliore",
       "offBar": " — {{gap}} sotto la soglia",
       "barIs": ", la soglia è {{bar}}%"
-    }
+    },
+    "stagesComplete_one": "{{done}} tappa su {{count}} completata",
+    "stagesComplete_other": "{{done}} tappe su {{count}} completate"
   },
   "recommend": {
     "startTraining": "Inizia ad allenarti",
@@ -1398,7 +1431,8 @@
     "diamond": "Diamante",
     "yourClimb": "La tua scalata — livello {{n}} di {{total}}",
     "noneUnlocked": "Nessun riconoscimento sbloccato",
-    "allUnlocked": "Tutti i riconoscimenti sbloccati!"
+    "allUnlocked": "Tutti i riconoscimenti sbloccati!",
+    "unlockCount": "{{n}}/{{total}} sbloccati"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1431,7 +1465,8 @@
       "strategyChart": "Guarda la tabella di strategia completa",
       "achievements": "Segui i progressi e sblocca ricompense"
     },
-    "nothingTracked": "Ancora niente registrato. Gioca una sessione o un esercizio: da lì qui compariranno la tua serie, la precisione e il punto in cui perdi vantaggio."
+    "nothingTracked": "Ancora niente registrato. Gioca una sessione o un esercizio: da lì qui compariranno la tua serie, la precisione e il punto in cui perdi vantaggio.",
+    "tagline": "Hi-Lo, allenato finché il conteggio viene da sé."
   },
   "startLevel": {
     "never": {
@@ -1504,7 +1539,12 @@
       "mid": "Intermedia",
       "advanced": "Avanzata",
       "elite": "Élite"
-    }
+    },
+    "jumped": "{{n}} livelli in un colpo",
+    "total": "Totale",
+    "whatIsThis": "<b>Che cos’è?</b> Il livello misura quanto hai allenato. Guadagni punti per gli esercizi completati e le sfide giornaliere — più sei preciso, più ne prendi. I livelli non sbloccano nulla: sono solo il registro del lavoro.",
+    "abbr": "Liv.{{n}}",
+    "levelUp": "Livello su"
   },
   "chal": {
     "warm_up": {
@@ -1606,7 +1646,13 @@
     "daily": "Sfida giornaliera",
     "weekly": "Sfida settimanale",
     "comeBack": "Torna domani",
-    "nextMonday": "Nuova sfida lunedì prossimo"
+    "nextMonday": "Nuova sfida lunedì prossimo",
+    "remaining": "ancora {{time}}",
+    "dayStreak": "serie di {{n}} giorni",
+    "weekStreak": "serie di {{n}} settimane",
+    "xpEarned": "+{{xp}} XP guadagnati!",
+    "msTarget": "{{done}} / obiettivo {{target}} ms",
+    "complete": "Completata"
   },
   "wchal": {
     "weekly_grinder": {
@@ -1738,7 +1784,14 @@
       "accuracy": "Precisione",
       "hands": "Mani"
     },
-    "deleteFailed": "Non è stato possibile eliminare la cronologia."
+    "deleteFailed": "Non è stato possibile eliminare la cronologia.",
+    "planStrip": "Piano di allenamento · {{done}} di {{total}} tappe",
+    "edgeStats": "{{sessions}} sessioni · {{hands}} mani",
+    "noAchievements": "Ancora nessun riconoscimento. Continua così!",
+    "heatLess": "meno",
+    "heatMore": "più",
+    "drillTheseHands": "Allena queste mani",
+    "viewAll": "Vedi tutti"
   },
   "sim": {
     "onboardTitle": "Tieni traccia della tua bankroll",
@@ -1780,7 +1833,14 @@
         "desc": "H17, BJ 6:5, 8 mazzi, penetrazione bassa"
       }
     },
-    "loss": "Perdita"
+    "loss": "Perdita",
+    "roi": "ROI:",
+    "perHour": "$/h",
+    "addSession": "+ Sessione",
+    "winPlus": "Vincita +",
+    "hoursShort": "{{n}} h",
+    "emptySessions": "Ancora nessuna sessione. Aggiungi la tua prima visita al casinò!",
+    "nSessions": "{{n}} sessioni"
   },
   "chart": {
     "title": "Tabella della strategia di base",
@@ -1792,7 +1852,14 @@
     "s3": "III. Mani morbide",
     "s4": "IV. Coppie",
     "countDeviation": "Deviazione da conteggio",
-    "atTrueCount": "Da true count"
+    "atTrueCount": "Da true count",
+    "deviationsToggle": "Deviazioni (Illustrious 18)",
+    "rulesLine": "{{rules}} · 6 mazzi · DAS · Late Surrender · Tocca una cella per i dettagli",
+    "handHeader": "Mano",
+    "yourHand": "La tua mano:",
+    "vsDealer": "contro il banco:",
+    "deviationRule": "Da True Count <b>{{tc}}</b> in su → <b>{{action}}</b>",
+    "belowThat": "(sotto: {{action}})"
   },
   "onboardingSteps": {
     "speed": {

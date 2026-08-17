@@ -50,7 +50,7 @@ export function ActionButtons() {
           onClick={newRound}
           className="px-8 py-3 rounded-lg bg-gold text-black font-bold text-base shadow-lg"
         >
-          New Round [Space]
+          {t('training.newRoundSpace')}
         </motion.button>
       </div>
     )

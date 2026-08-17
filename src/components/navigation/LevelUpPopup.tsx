@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { useLevelStore } from '../../store/level-store'
 import { hasSeenLevelIntro, markLevelIntroSeen } from '../../services/level-intro'
 
@@ -87,7 +87,7 @@ export function LevelUpPopup() {
         <div
           className="text-base tracking-[6px] uppercase mb-4 text-gold"
         >
-          LEVEL UP
+          {t('levels.levelUp')}
         </div>
 
         {/* Old level */}
@@ -106,7 +106,7 @@ export function LevelUpPopup() {
             just differ by more than one with no explanation. */}
         {newLevel.level - oldLevel.level > 1 && (
           <div className="text-xs text-content/45 mb-2" data-testid="level-up-jump">
-            Jumped {newLevel.level - oldLevel.level} levels
+            {t('levels.jumped', { n: newLevel.level - oldLevel.level })}
           </div>
         )}
 
@@ -119,7 +119,7 @@ export function LevelUpPopup() {
             textShadow: `0 0 30px ${newLevel.glowColor}, 0 0 60px ${newLevel.glowColor}`,
           }}
         >
-          Lv.{newLevel.level}
+          {t('levels.abbr', { n: newLevel.level })}
         </div>
 
         {/* New title */}
@@ -158,7 +158,7 @@ export function LevelUpPopup() {
               </div>
             ))}
             <div className="flex items-center justify-between gap-4 px-4 py-2 text-sm">
-              <span className="text-content/45 uppercase tracking-wider text-[0.7rem] font-bold">Total</span>
+              <span className="text-content/45 uppercase tracking-wider text-[0.7rem] font-bold">{t('levels.total')}</span>
               <span className="tabular-nums font-bold text-content">+{totalXP} XP</span>
             </div>
           </div>
@@ -169,10 +169,7 @@ export function LevelUpPopup() {
             className="text-sm text-content/55 leading-relaxed mb-7 mx-auto max-w-[38ch] text-left"
             data-testid="level-up-explainer"
           >
-            <b className="text-content/80">What is this?</b> Your level tracks how much
-            you have trained. You earn points for finished drills and daily challenges — the
-            more accurate you are, the more you get. Levels don’t unlock anything; they are
-            simply a record of the work.
+            <Trans i18nKey="levels.whatIsThis" components={{ b: <b className="text-content/80" /> }} />
           </p>
         )}
 
@@ -199,7 +196,7 @@ export function LevelUpPopup() {
               color: newLevel.color,
             }}
           >
-            Continue
+            {t('common.continue')}
           </button>
         </div>
       </div>

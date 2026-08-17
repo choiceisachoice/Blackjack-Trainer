@@ -469,7 +469,7 @@ export function BetSpread() {
                   isHighlighted ? 'bg-gold/20 text-gold font-medium' : 'text-content/50'
                 }`}>
                   <span>{row.label}</span>
-                  <span>{row.multiplier}× (${row.multiplier * question.tableMin})</span>
+                  <span>{t('training.betSpreadUnit', { mult: row.multiplier, amount: `$${row.multiplier * question.tableMin}` })}</span>
                 </div>
               )
             })}

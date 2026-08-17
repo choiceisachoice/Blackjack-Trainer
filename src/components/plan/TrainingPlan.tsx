@@ -245,7 +245,7 @@ export function TrainingPlan({
             </>
           )}
           <p className={`text-sm text-content/55 ${embedded ? '' : 'mt-2'}`}>
-            {doneCount} of {totalCount} stage{totalCount === 1 ? '' : 's'} complete
+            {t('plan.stagesComplete', { done: doneCount, count: totalCount })}
           </p>
 
           {/* The destination, stated every time rather than once on the result
