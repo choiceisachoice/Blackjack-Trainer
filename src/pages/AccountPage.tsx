@@ -4,8 +4,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Crown, LogOut, ExternalLink, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { useEntitlementStore, useIsPro } from '../store/entitlement-store'
-import { openBillingPortal, startCheckout } from '../services/supabase/billing'
+import { openBillingPortal } from '../services/supabase/billing'
 import { signOutAndClearLocal } from '../services/supabase/cloud-sync'
+import { useUpgradePrompt } from '../store/upgrade-prompt-store'
+import { UpgradeModalHost } from '../components/pro/UpgradeModalHost'
 
 /**
  * Human-readable label + tone for a subscription status.
@@ -49,7 +51,7 @@ export function AccountPage() {
   const currentPeriodEnd = useEntitlementStore(s => s.currentPeriodEnd)
   const cancelAtPeriodEnd = useEntitlementStore(s => s.cancelAtPeriodEnd)
   const loadEntitlement = useEntitlementStore(s => s.loadEntitlement)
-  const [busy, setBusy] = useState<null | 'portal' | 'checkout'>(null)
+  const [busy, setBusy] = useState<null | 'portal'>(null)
   /**
    * Why a failure here needs saying out loud.
    *
@@ -61,6 +63,7 @@ export function AccountPage() {
    * rather than support.
    */
   const [billingError, setBillingError] = useState<string | null>(null)
+  const showUpgrade = useUpgradePrompt(s => s.show)
   const [signingOut, setSigningOut] = useState(false)
 
   useEffect(() => {
@@ -85,25 +88,6 @@ export function AccountPage() {
       await openBillingPortal()
     } catch (e) {
       setBillingError(e instanceof Error ? e.message : t('account.errors.portal'))
-      setBusy(null)
-    }
-  }
-  async function upgrade() {
-    setBillingError(null)
-    setBusy('checkout')
-    try {
-      const outcome = await startCheckout('yearly')
-      if (outcome === 'already-subscribed') {
-        // Stripe refused to sell a second subscription. Reaching this means the
-        // page showed the upgrade button while the account was in fact paying,
-        // i.e. this profile row and Stripe disagree. Re-read the entitlement so
-        // the page starts telling the truth.
-        await loadEntitlement()
-        setBillingError(t('account.errors.alreadySubscribed'))
-        setBusy(null)
-      }
-    } catch (e) {
-      setBillingError(e instanceof Error ? e.message : t('account.errors.checkout'))
       setBusy(null)
     }
   }
@@ -169,8 +153,24 @@ export function AccountPage() {
                     {busy === 'portal' ? <Loader2 size={16} className="animate-spin" /> : <ExternalLink size={16} />} {t('account.manageSubscription')}
                   </button>
                 ) : (
-                  <button onClick={upgrade} disabled={busy !== null} className="rounded-xl px-5 py-3 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                    {busy === 'checkout' ? <Loader2 size={16} className="animate-spin" /> : null} {t('pricing.goPro')}
+                  /*
+                    Opens the paywall rather than starting a checkout.
+
+                    This button used to call `startCheckout('yearly')` directly:
+                    one click, straight to a 69 CHF annual subscription, with no
+                    price, no term and no choice shown anywhere on this page —
+                    while the landing page advertises a monthly plan this route
+                    could not reach. Stripe does show the amount before payment,
+                    so nothing was ever charged unseen, but "Go Pro" meant
+                    something different here than everywhere else in the product.
+
+                    The paywall already answers all of it — both plans, both
+                    prices, the VAT note and the same `already-subscribed`
+                    recovery this page used to duplicate — so there is no reason
+                    for a second way to buy.
+                  */
+                  <button onClick={() => showUpgrade(t('account.upgradeHintShort'))} data-testid="account-go-pro" className="rounded-xl px-5 py-3 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer inline-flex items-center gap-2">
+                    {t('pricing.goPro')}
                   </button>
                 )}
               </div>
@@ -201,6 +201,12 @@ export function AccountPage() {
           </button>
         </div>
       </div>
+
+      {/* Mounted here because `/account` is its own route, outside the app
+          shell that hosts this everywhere else. Without it the paywall has
+          nowhere to render — which is how this page ended up with a checkout
+          call of its own in the first place. */}
+      <UpgradeModalHost />
     </div>
   )
 }
