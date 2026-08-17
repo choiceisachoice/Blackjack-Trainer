@@ -70,12 +70,32 @@ export function initialLocale(): Locale {
   return resolveLocale(typeof navigator === 'undefined' ? null : navigator.language)
 }
 
+/**
+ * Reflect the current language in the document itself.
+ *
+ * `lang` is what a screen reader picks its pronunciation from, and the title is
+ * what the tab, the bookmark and the history entry say — the one piece of copy
+ * that stays on screen after someone has navigated away.
+ *
+ * The `<title>` in `index.html` stays English on purpose and is not a fallback
+ * worth apologising for: this is a static SPA, so a crawler is served that file
+ * whatever language the visitor would have chosen. Rewriting `og:description`
+ * here would change nothing a crawler ever sees. The tab, on the other hand, is
+ * read by a person.
+ */
+function reflectLocale(locale: Locale): void {
+  if (typeof document === 'undefined') return
+  document.documentElement.lang = locale
+  const title = i18next.t('meta.title')
+  if (title) document.title = title
+}
+
 /** Switch language, remember it, and fetch the messages if this is the first time. */
 export async function setLocale(locale: Locale): Promise<void> {
   await loadLocale(locale)
   await i18next.changeLanguage(locale)
   try { localStorage.setItem(LOCALE_STORAGE_KEY, locale) } catch { /* not worth failing over */ }
-  if (typeof document !== 'undefined') document.documentElement.lang = locale
+  reflectLocale(locale)
 }
 
 const startingLocale = initialLocale()
@@ -101,6 +121,6 @@ void i18next
 // to arrive. Deliberately not awaited: English renders immediately and the
 // translation swaps in a beat later, which beats holding the first paint.
 if (startingLocale !== DEFAULT_LOCALE) void setLocale(startingLocale)
-if (typeof document !== 'undefined') document.documentElement.lang = startingLocale
+reflectLocale(startingLocale)
 
 export default i18next

@@ -1918,5 +1918,8 @@
     "eyebrow": "Hoş geldiniz",
     "status": "Masa hazırlanıyor",
     "statusDone": "Hazır"
+  },
+  "meta": {
+    "title": "Blackjack kart sayma — Hi-Lo’yu doğru öğrenin"
   }
 }

@@ -1918,5 +1918,8 @@
     "eyebrow": "Bienvenue sur",
     "status": "Préparation de la table",
     "statusDone": "Terminé"
+  },
+  "meta": {
+    "title": "Blackjack : compter les cartes — apprendre le Hi-Lo"
   }
 }

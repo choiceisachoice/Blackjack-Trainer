@@ -1918,5 +1918,8 @@
     "eyebrow": "Welcome to",
     "status": "Preparing the table",
     "statusDone": "Complete"
+  },
+  "meta": {
+    "title": "Blackjack Card Counting Trainer — Learn Hi-Lo Properly"
   }
 }

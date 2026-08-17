@@ -158,3 +158,24 @@ describe('isLocale', () => {
     expect(isLocale(undefined)).toBe(false)
   })
 })
+
+describe('the document title', () => {
+  it.each(Object.entries(BUNDLES))(
+    'names the product and the system it teaches, in %s',
+    (locale, bundle) => {
+      const title = (bundle as { meta: { title: string } }).meta.title
+
+      // The tab, the bookmark and the history entry. Someone with eight tabs
+      // open sees the first thirty characters and nothing else, so the subject
+      // has to be in front — not a tagline with the subject appended.
+      expect(title.slice(0, 30)).toMatch(/blackjack/i)
+      // Hi-Lo is the thing being taught and is spelled the same everywhere; a
+      // title that omits it describes a different, vaguer product.
+      expect(title).toMatch(/hi-lo/i)
+      // Search results truncate around 60 characters. Past that the end of the
+      // title is written for nobody.
+      expect(title.length).toBeLessThanOrEqual(60)
+      expect(locale).toBeTruthy()
+    },
+  )
+})

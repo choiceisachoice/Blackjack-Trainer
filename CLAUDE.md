@@ -223,16 +223,22 @@ issue and was dealt with".
    They need to reach Christian (supervisor/CISO) before go-live. Whoever has them: put
    them in `docs/` first, then send them.
 
-3. **Closing the entitlement hole did not evict anyone already through it.** The migration
-   below is deployed, but any account that used the exploit keeps its status. Audit before
-   go-live — a row with no `stripe_customer_id` never came from the webhook:
-
-   ```sql
-   select id, subscription_status, stripe_customer_id, current_period_end
-   from public.profiles where subscription_status <> 'free';
-   ```
-
 ### Closed
+
+- **Nobody got through the entitlement hole** (17 Aug 2026). Closing it did not evict
+  anyone who had already used it, so the audit below was run against the live database.
+  It returned **zero rows**: no profile holds a status other than `free`, therefore no
+  entitlement exists that the webhook did not write, and there is nothing to revoke.
+
+  ```sql
+  select id, subscription_status, stripe_customer_id, current_period_end
+  from public.profiles where subscription_status <> 'free';
+  ```
+
+  Point-in-time, and worth knowing why it was clean: there are no paying subscribers yet,
+  so an empty result is also what "no sales" looks like. The check that matters —
+  **a row with no `stripe_customer_id` never came from the webhook** — only starts
+  saying anything once there are rows. Re-run it after the first real subscriptions.
 
 - **The entitlement migration is deployed** (1 Aug 2026). `pg_policies` on
   `public.profiles` returns exactly `profiles: read own` (SELECT) and `profiles: update own`
