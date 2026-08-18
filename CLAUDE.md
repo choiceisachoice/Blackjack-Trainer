@@ -215,45 +215,59 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **The payment-path audit findings are not written down anywhere.** They live only in a
-   chat transcript. The "before go-live" this entry used to carry is spent — the site is
-   live and has taken a real card payment — so this is now a live system with unrecorded
-   findings against it. They are not reconstructed from memory here on purpose: invented
-   security findings are worse than none. **Darius owns** deciding whether the transcript
-   still exists; if it does, they go into `docs/` before anything else, and if it does
-   not, this entry should say so plainly instead of implying a to-do that nobody can act
-   on.
+1. **Two blocking findings on the payment path are open.** Full write-up in
+   [`docs/PAYMENT-PATH-AUDIT-2026-08-18.md`](./PAYMENT-PATH-AUDIT-2026-08-18.md).
+   Both are reachable through the same door, and this account has already been
+   halfway through it:
 
-2. **Sandbox Stripe events wrote real entitlements into the production database.**
-   The `stripe_events` ledger in the production project holds events from
-   **13 July 2026** — a month before Stripe went live. They passed signature
-   verification because `STRIPE_WEBHOOK_SECRET` held the test-mode secret at the time,
-   and the handler wrote the entitlement columns exactly as it does for a real payment.
-   A test card unlocked Pro on a production account.
+   - **A lost `stripe_customer_id` skips the double-charge guard.** The refusal
+     to sell a second subscription sits in the branch that only runs when the
+     profile already knows the customer. Delete an account while subscribed,
+     sign up again, and the trigger nulls the column — so a second subscription
+     is sold to the same person on a second Stripe customer.
+   - **The `past_due` downgrade never checks it hit a row.** `supabase-js` does
+     not throw on a write that matches nothing, so the one event whose job is to
+     withdraw access from someone who stopped paying can do nothing and answer
+     Stripe 200. The same file guards against exactly this twenty lines above.
 
-   Not exploitable today: the secret is the live one, so a test-mode event fails
-   verification before anything is written, and the function holds only one secret. But
-   that separation is a side effect of which secret happens to be set, not a rule the
-   code states. Stripe stamps every event with `livemode`; `stripe-webhook/index.ts`
-   does not look at it.
+   **Darius owns** the fix; the recommended shape (adopt the existing Stripe
+   customer rather than refuse) is in the audit, because refusing without
+   adopting leaves someone billed with no way to cancel.
 
-   Also in the ledger: `customer.subscription.created` counts **4**, and
-   `customer.subscription.deleted` counts **2**. Two subscriptions were never explicitly
-   ended. Worth reconciling against Stripe before that history matters.
+2. **The VAT the Terms promise may not be on any invoice.** The paywall and the
+   Terms both state the price includes 8.1% Swiss VAT and that it is stated
+   separately on the invoice. The price is correctly set to `tax_behavior:
+   inclusive` (verified 18 Aug 2026), but `create-checkout-session` only sends
+   `automatic_tax` when `STRIPE_AUTOMATIC_TAX` is set — and a secret's value
+   cannot be read back from the Supabase dashboard. **One check, no secret
+   revealed:** is `STRIPE_AUTOMATIC_TAX` in the secrets *list*? If not, either
+   set it (Stripe Tax must be live first, or every session is rejected and
+   nobody can buy) or stop promising a VAT breakdown that is not produced.
 
-3. **The advertised price and the price actually charged are set in two places that
-   nothing keeps together.** `PLAN_OPTIONS` in `src/services/pro-features.ts` says
-   CHF 8.90 / month; the amount charged comes from whichever price id sits in
-   `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_YEARLY` in the Supabase secrets. The 10 Aug
-   test purchase was billed **7.90 CHF** on `price_1U2vOjR3rB09i6YB6G9IfaiB`, and two
-   newer prices were created about 75 minutes later, after the Swiss VAT rate was set
-   up. If the secrets still point at the old ids, the paywall shows one number and the
-   till takes another. The file's own comment — "Keep these in sync with the Stripe
-   Prices you create" — is a convention with no enforcement. **Darius owns** checking
-   the two secrets; the durable fix is to stop displaying a hard-coded amount at all.
+3. **The Edge Functions have no tests.** All four are untested, including every
+   guard on the money path — the entitlement write, the idempotency ledger, the
+   double-charge refusal, the livemode check. `supabase/functions/` has no test
+   setup at all, so this is structural rather than an oversight in one file.
 
 ### Closed
 
+- **The prices shown are the prices charged** (18 Aug 2026). `PLAN_OPTIONS` held
+  CHF 8.90 / 69 as literals kept in step with Stripe by a comment; on 10 Aug the
+  prices were re-cut for Swiss VAT and the page advertised 8.90 while the
+  configured price billed 7.90. Amounts now come from Stripe at runtime via
+  `get-plan-prices`. Verified live on `black-jack-training.com` in both plans and
+  both languages, and against the deployed function directly
+  (`{"monthly":890,"yearly":6900}`). The two superseded prices and the stray
+  "Pro-Zugang" product are archived.
+- **Sandbox events can no longer write production entitlements** (18 Aug 2026).
+  The ledger's earliest rows are dated 13 July, a month before the live cutover:
+  test-mode events that verified against the then-current secret and granted
+  real Pro from a test card. The webhook now compares `event.livemode` against
+  the mode implied by `STRIPE_SECRET_KEY` and answers 202 to anything from the
+  other world. That the key is a live one is established by it successfully
+  retrieving live prices, so the guard points the right way.
+  The ledger's 4-created-vs-2-deleted gap was the July test subscriptions;
+  Stripe's live subscription list is empty.
 - **The entitlement audit is resolved, and the payment path works end to end**
   (17 Aug 2026). The audit query below returned zero rows, which looked wrong: a real
   monthly Pro subscription had been bought on the live site and refunded, and the
@@ -292,6 +306,11 @@ issue and was dealt with".
   variable file (400–800) in `public/fonts`, preloaded, OFL beside it. Verified in a
   browser: zero requests to Google. That closes the GDPR/DSG exposure and removes a
   render-blocking third-party request from in front of the loading screen.
+
+The payment path was re-audited on 18 Aug 2026 —
+[docs/PAYMENT-PATH-AUDIT-2026-08-18.md](./PAYMENT-PATH-AUDIT-2026-08-18.md) lists what was
+checked and found sound as well as what was not, so a later reader can tell "never examined"
+from "examined and fine".
 
 A full audit of the app along four axes — visual, comprehensibility, feedback, animation —
 lives in `docs/AUDIT-2026-07-31.md`, with each item's verdict and what was deliberately
