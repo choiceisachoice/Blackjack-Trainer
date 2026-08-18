@@ -8,6 +8,11 @@
 //
 // Secrets: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET. Platform: SUPABASE_URL,
 // SUPABASE_SERVICE_ROLE_KEY.
+//
+// Test-mode events are rejected: the deployment's world is inferred from
+// STRIPE_SECRET_KEY, and anything from the other one is answered 202 and
+// dropped. See the guard in the handler for why that is not redundant with the
+// signature check.
 
 import Stripe from 'https://esm.sh/stripe@18?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno'
@@ -17,6 +22,19 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   httpClient: Stripe.createFetchHttpClient(),
 })
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
+
+/**
+ * Which Stripe world this deployment belongs to, read off the key it already
+ * uses rather than configured separately — one fewer value to set, and one that
+ * cannot drift out of step with the key doing the actual work.
+ *
+ * `rk_` as well as `sk_`: a restricted key is a perfectly normal thing to run a
+ * webhook on, and matching only `sk_live_` would read one as test mode and drop
+ * every live event on the floor. Silently — the guard below answers 2xx, so
+ * Stripe would report every delivery as a success while no entitlement was ever
+ * written. A safety check that can turn off the payment path is worse than none.
+ */
+const EXPECT_LIVEMODE = /^(sk|rk)_live_/.test(Deno.env.get('STRIPE_SECRET_KEY') ?? '')
 
 const admin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -94,6 +112,30 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error('signature verification failed', e)
     return new Response('Invalid signature', { status: 400 })
+  }
+
+  // A verified signature proves the event is Stripe's. It does not prove it is
+  // *this* world's, and the two are different questions.
+  //
+  // This database still carries entitlement rows written on 13 July 2026, a
+  // month before the live cutover: sandbox events that verified against the
+  // test secret held at the time and then granted production Pro exactly as a
+  // real payment would. A test card was a valid way in.
+  //
+  // Today the modes cannot mix, because the function holds one secret and it is
+  // the live one — but that is an accident of which value happens to be set,
+  // and it goes away the moment anyone points a test endpoint here or swaps the
+  // secret to debug something. Stripe stamps the mode on every event; reading
+  // it turns the accident into a rule.
+  //
+  // Answered 202, not an error: the delivery is genuinely received and
+  // deliberately ignored. A 4xx or 5xx would put Stripe into its retry schedule
+  // for an event we will never accept.
+  if (event.livemode !== EXPECT_LIVEMODE) {
+    console.warn(
+      `ignoring ${event.type} (${event.id}): livemode=${event.livemode}, this deployment expects ${EXPECT_LIVEMODE}`,
+    )
+    return new Response('Wrong Stripe mode for this deployment', { status: 202 })
   }
 
   // Idempotency: first insert wins; a retry hits the unique key and is a no-op.
