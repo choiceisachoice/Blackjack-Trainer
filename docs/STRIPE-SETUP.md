@@ -24,18 +24,22 @@ the client — it must NOT change the value (the trigger reverts it).
 2. Add two **recurring Prices**: monthly and yearly. Copy their `price_…` ids.
 3. Enable the **Customer Portal** (Settings → Billing → Customer portal) and
    allow cancellation.
-4. Adjust the display prices in `src/services/pro-features.ts` (`PLAN_OPTIONS`)
-   to match the amounts you set — those strings are display-only.
+4. Nothing to change in the app. The prices shown on the paywall and the
+   landing card are fetched from these Prices at runtime by `get-plan-prices`,
+   so the amounts exist once, in Stripe. (They used to be literals in
+   `src/services/pro-features.ts` kept in step by hand, which is how the page
+   came to advertise CHF 8.90 while the configured price charged 7.90.)
 
 ## 3. Deploy the Edge Functions
 
 ```bash
-# All three use --no-verify-jwt. The webhook authenticates by Stripe signature;
+# All four use --no-verify-jwt. The webhook authenticates by Stripe signature;
 # the other two verify the user INSIDE the function (getUser on the passed token).
 # Leaving the platform JWT gate on would reject the browser's CORS preflight
 # (the OPTIONS request carries no JWT) → "Failed to send a request to the Edge Function".
 supabase functions deploy create-checkout-session --no-verify-jwt
 supabase functions deploy create-portal-session --no-verify-jwt
+supabase functions deploy get-plan-prices --no-verify-jwt
 supabase functions deploy stripe-webhook --no-verify-jwt
 ```
 
@@ -78,7 +82,12 @@ Copy the endpoint's **signing secret** (`whsec_…`) into `STRIPE_WEBHOOK_SECRET
    the Pro modes on next load / re-fetch.
 4. **Replay the same event twice** from the Stripe dashboard — the second must be
    a no-op (the `stripe_events` ledger dedupes it).
-5. Open **Manage subscription** → cancel → confirm status flips and access ends
+5. **Check the paywall shows the price you set**, and that it shows *nothing*
+   rather than a stale figure when `get-plan-prices` is undeployed or failing.
+6. **Send a live-mode event at a test-mode deployment** (or the reverse) — the
+   webhook must answer 202 and write nothing. Production once accepted sandbox
+   events and granted real Pro from a test card.
+7. Open **Manage subscription** → cancel → confirm status flips and access ends
    at the period end.
 
 ## 7. Go live

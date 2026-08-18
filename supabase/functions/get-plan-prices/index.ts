@@ -10,10 +10,14 @@
 // server-side — the client never names a price, here or at checkout — and this
 // function resolves them to the amounts Stripe will actually bill.
 //
-// Deploys with the default JWT verification: the anon key that supabase-js
-// sends with every `functions.invoke` satisfies it, so a signed-out visitor on
-// the landing page can call this. Prices are public information; the ids and
-// the secret key are not, and neither leaves this function.
+// Deploy with `--no-verify-jwt`, like the other browser-facing functions. Not
+// because this one is unauthenticated — it deliberately is, prices are public
+// — but because the platform's JWT gate also rejects the CORS *preflight*, and
+// an OPTIONS request carries no Authorization header. With the gate on, the
+// preflight 401s and the browser never sends the real call: "Failed to send a
+// request to the Edge Function", with nothing wrong inside the function.
+//
+// The price ids and the secret key stay here regardless. Only the amounts leave.
 //
 // Secrets: STRIPE_SECRET_KEY, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_YEARLY.
 
