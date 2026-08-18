@@ -1,81 +1,113 @@
 import en from '../i18n/messages/en.json'
 import { describe, it, expect } from 'vitest'
 import {
-  PLAN_OPTIONS,
+  PLAN_IDS,
   PRO_BENEFITS,
   FREE_BENEFITS,
   FEATURE_GROUPS,
-  formatCHF,
+  formatMoney,
   yearlySaving,
   CH_VAT_PERCENT,
   isProMode,
-  type PlanOption,
 } from './pro-features'
 
-describe('formatCHF', () => {
-  it('drops the decimals on whole francs', () => {
-    expect(formatCHF(59)).toBe('CHF 59')
+describe('formatMoney', () => {
+  /**
+   * Collapse the space `Intl` puts between the currency and the number.
+   *
+   * It is a non-breaking one \u2014 U+00A0 today, U+202F in some ICU versions \u2014 and
+   * that is the correct character: it stops "CHF" and "69" landing on
+   * different lines. Asserting on the exact code point would make these tests
+   * fail on a Node upgrade that changed nothing anyone can see.
+   */
+  const flat = (s: string) => s.replace(/[\u00A0\u202F]/g, ' ')
+
+  it('drops the decimals on a whole amount', () => {
+    // "CHF 69.00" reads like a form field. "CHF 69" reads like a price.
+    expect(flat(formatMoney(6900, 'chf', 'en'))).toBe('CHF 69')
   })
 
-  it('keeps two decimals when there are centimes', () => {
-    expect(formatCHF(7.9)).toBe('CHF 7.90')
-    expect(formatCHF(35.8)).toBe('CHF 35.80')
+  it('keeps them when there are centimes', () => {
+    expect(flat(formatMoney(890, 'chf', 'en'))).toBe('CHF 8.90')
+    expect(flat(formatMoney(3580, 'chf', 'en'))).toBe('CHF 35.80')
   })
 
-  it('formats zero as a whole amount', () => {
-    expect(formatCHF(0)).toBe('CHF 0')
+  it('formats zero as a whole amount, for the free tier', () => {
+    expect(flat(formatMoney(0, 'chf', 'en'))).toBe('CHF 0')
+  })
+
+  it('does not inflate a zero-decimal currency a hundredfold', () => {
+    // Stripe's unit_amount is the currency's SMALLEST unit, and for JPY that
+    // is the yen itself. Dividing by a hard-coded 100 would price a 1,000 yen
+    // plan at 10 yen \u2014 the kind of error that only shows up in the one market
+    // nobody tested in.
+    expect(flat(formatMoney(1000, 'jpy', 'en'))).toBe('\u00A51,000')
+  })
+
+  it('keeps the price unbreakable across a line end', () => {
+    // The reason the assertions above have to normalise at all. A price that
+    // wraps between the currency and the figure is the one typographic detail
+    // people actually notice on a pricing card.
+    expect(formatMoney(890, 'chf', 'en')).toMatch(/[\u00A0\u202F]/)
+  })
+
+  it('orders the amount the way the reader\u2019s language does', () => {
+    // Same amount, same currency, different languages: English leads with the
+    // code, German follows the number with it. A page that hard-codes one
+    // order is translated rather than localised.
+    const en = flat(formatMoney(890, 'chf', 'en'))
+    const de = flat(formatMoney(890, 'chf', 'de'))
+    expect(en).toMatch(/^CHF/)
+    expect(de).toMatch(/CHF$/)
   })
 })
 
 describe('yearlySaving', () => {
-  it('derives the real discount from the configured amounts', () => {
+  it('derives the real discount from the two amounts', () => {
     // The copy used to claim "2 months free" while the actual discount was
-    // ~4.5 months. Deriving it means the claim cannot drift from the price again.
-    const s = yearlySaving()
-    expect(s.monthlyTotal).toBeCloseTo(106.8, 2) // 8.90 x 12
-    expect(s.saved).toBeCloseTo(37.8, 2)         // 106.80 - 69
+    // ~4.5 months. Deriving it means the claim cannot drift from the price.
+    const s = yearlySaving(890, 6900)
+    expect(s.monthlyTotal).toBe(10680)
+    expect(s.saved).toBe(3780)
     expect(s.percent).toBe(35)
   })
 
-  it('matches the amounts Stripe actually charges', () => {
-    // These two numbers exist twice: here, and as live Stripe Prices. Nothing
-    // reconciles them automatically, and the failure is silent — the page would
-    // advertise one figure while the card is charged another. Changing a price
-    // in Stripe means changing it here, and this test is the reminder.
-    const monthly = PLAN_OPTIONS.find(p => p.id === 'monthly')!
-    const yearly = PLAN_OPTIONS.find(p => p.id === 'yearly')!
-    expect(monthly.amount).toBe(8.9)
-    expect(yearly.amount).toBe(69)
-  })
-
-  it('tracks a price change instead of going stale', () => {
-    const plans: PlanOption[] = [
-      { id: 'monthly', amount: 10, cadence: '/month' },
-      { id: 'yearly', amount: 60, cadence: '/year' },
-    ]
-    const s = yearlySaving(plans)
-    expect(s.monthlyTotal).toBe(120)
-    expect(s.saved).toBe(60)
+  it('follows a price change instead of going stale', () => {
+    // The point of the whole rewrite: the amounts arrive from Stripe, so this
+    // has to be right for whatever pair it is handed. It used to be checked
+    // against two literals that a Stripe price change silently invalidated.
+    const s = yearlySaving(1000, 6000)
+    expect(s.monthlyTotal).toBe(12000)
+    expect(s.saved).toBe(6000)
     expect(s.percent).toBe(50)
   })
 
-  it('throws rather than rendering NaN at a customer when a plan is missing', () => {
-    const onlyMonthly: PlanOption[] = [
-      { id: 'monthly', amount: 7.9, cadence: '/month' },
-    ]
-    expect(() => yearlySaving(onlyMonthly)).toThrow(/monthly and a yearly/)
+  it('reports a yearly plan priced above twelve months as a negative saving', () => {
+    // Not an error \u2014 a real, if unlikely, configuration. What matters is that
+    // it comes out negative so the UI can decline to call it a saving, rather
+    // than an absolute value that would advertise a markup as a discount.
+    expect(yearlySaving(500, 9900).saved).toBeLessThan(0)
+  })
+
+  it('throws rather than rendering NaN at a customer', () => {
+    // A zero monthly price makes the percentage NaN. Better a thrown error in
+    // a test than "Save NaN%" on the paywall.
+    expect(() => yearlySaving(0, 6900)).toThrow(/zero monthly price/)
   })
 })
 
-describe('PLAN_OPTIONS', () => {
+describe('PLAN_IDS', () => {
   it('offers exactly one monthly and one yearly plan', () => {
-    expect(PLAN_OPTIONS.filter(p => p.id === 'monthly')).toHaveLength(1)
-    expect(PLAN_OPTIONS.filter(p => p.id === 'yearly')).toHaveLength(1)
+    expect([...PLAN_IDS].sort()).toEqual(['monthly', 'yearly'])
   })
 
-  it('prices yearly below twelve months of monthly — otherwise the pitch is a lie', () => {
-    const { saved } = yearlySaving()
-    expect(saved).toBeGreaterThan(0)
+  it('carries no amounts', () => {
+    // The regression this guards. Amounts lived here as literals next to a
+    // comment asking the next person to keep them in step with Stripe; on
+    // 10 Aug 2026 they went out of step and the page advertised CHF 8.90 while
+    // the configured price charged 7.90. A price in this module is a price
+    // nothing reconciles \u2014 they come from Stripe now, via `plan-price-store`.
+    for (const id of PLAN_IDS) expect(typeof id).toBe('string')
   })
 })
 

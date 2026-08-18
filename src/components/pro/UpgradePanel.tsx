@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Crown, Loader2, X } from 'lucide-react'
 import {
-  PLAN_OPTIONS,
+  PLAN_IDS,
   FEATURE_GROUPS,
-  formatCHF,
+  formatMoney,
   yearlySaving,
   CH_VAT_PERCENT,
 } from '../../services/pro-features'
@@ -12,6 +12,7 @@ import type { ComparisonRow } from '../../services/pro-features'
 import { startCheckout } from '../../services/supabase/billing'
 import type { BillingPlan } from '../../services/supabase/billing'
 import { useEntitlementStore } from '../../store/entitlement-store'
+import { usePlanPriceStore, selectPlan } from '../../store/plan-price-store'
 
 interface UpgradePanelProps {
   /** Optional context line, e.g. the locked feature the user tried to open. */
@@ -28,17 +29,26 @@ interface UpgradePanelProps {
  * is derived from the amounts (see `yearlySaving`) instead of written into copy.
  */
 export function UpgradePanel({ headline }: UpgradePanelProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [busy, setBusy] = useState<BillingPlan | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [plan, setPlan] = useState<BillingPlan>('yearly')
   const loadEntitlement = useEntitlementStore(s => s.loadEntitlement)
 
-  const saving = yearlySaving()
-  const selected = PLAN_OPTIONS.find(p => p.id === plan)!
-  const monthly = PLAN_OPTIONS.find(p => p.id === 'monthly')!
+  const priceStatus = usePlanPriceStore(s => s.status)
+  const loadPrices = usePlanPriceStore(s => s.load)
+  const selected = usePlanPriceStore(s => selectPlan(s, plan))
+  const monthly = usePlanPriceStore(s => selectPlan(s, 'monthly'))
+  const yearly = usePlanPriceStore(s => selectPlan(s, 'yearly'))
+  useEffect(() => { void loadPrices() }, [loadPrices])
+
   const isYearly = plan === 'yearly'
+  // Only derivable once both amounts are in. Everything downstream treats a
+  // missing saving the way it treats a missing price: it says nothing, rather
+  // than something it cannot stand behind.
+  const saving = monthly && yearly ? yearlySaving(monthly.amount, yearly.amount) : null
+  const money = (minor: number, currency: string) => formatMoney(minor, currency, i18n.language)
 
   const choose = async () => {
     setError(null)
@@ -77,21 +87,21 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
 
       {/* Billing period */}
       <div className="inline-flex bg-surface-2 border border-white/8 rounded-xl p-1 gap-1">
-        {PLAN_OPTIONS.map(p => (
+        {PLAN_IDS.map(id => (
           <button
-            key={p.id}
-            onClick={() => setPlan(p.id)}
-            aria-pressed={plan === p.id}
-            data-testid={`billing-${p.id}`}
+            key={id}
+            onClick={() => setPlan(id)}
+            aria-pressed={plan === id}
+            data-testid={`billing-${id}`}
             className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer transition-colors ${
-              plan === p.id
+              plan === id
                 ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg'
                 : 'text-content/60 hover:text-content'
             }`}
           >
-            {t(`pricing.${p.id}`)}
-            {p.id === 'yearly' && (
-              <span className={plan === p.id ? 'text-casino-bg/70' : 'text-gold'}>
+            {t(`pricing.${id}`)}
+            {id === 'yearly' && saving && (
+              <span className={plan === id ? 'text-casino-bg/70' : 'text-gold'}>
                 {' '}−{saving.percent}%
               </span>
             )}
@@ -107,7 +117,9 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
             <span className="text-xs font-bold tracking-[0.16em] uppercase text-content/50">{t('pricing.free')}</span>
             <span className="text-xs text-content/40">{t('pricing.yourPlan')}</span>
           </div>
-          <div className="mt-3 text-2xl font-extrabold text-content/70">{formatCHF(0)}</div>
+          <div className="mt-3 text-2xl font-extrabold text-content/70">
+            {money(0, selected?.currency ?? 'chf')}
+          </div>
 
           <div className="mt-4 flex flex-col gap-4">
             {FEATURE_GROUPS.map(group => (
@@ -136,18 +148,48 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
             <span className="text-xs font-bold tracking-[0.16em] uppercase text-gold">{t('pricing.pro')}</span>
           </div>
 
-          <div className="mt-3 flex items-baseline gap-2 flex-wrap">
-            {isYearly && (
-              <span className="text-base text-content/35 line-through tabular-nums">
-                {formatCHF(saving.monthlyTotal)}
-              </span>
+          {/* The price, or nothing.
+
+              No placeholder amount and no last-known figure: a price the page
+              cannot confirm is the exact failure this replaced. While the fetch
+              is out the row holds its height, so the card does not jump when
+              the number lands. */}
+          <div className="mt-3 flex items-baseline gap-2 flex-wrap min-h-10" data-testid="paywall-price">
+            {selected ? (
+              <>
+                {isYearly && saving && (
+                  <span className="text-base text-content/35 line-through tabular-nums">
+                    {money(saving.monthlyTotal, selected.currency)}
+                  </span>
+                )}
+                <span className="text-3xl font-extrabold tabular-nums">
+                  {money(selected.amount, selected.currency)}
+                </span>
+                <span className="text-sm text-content/50">
+                  {t(`pricing.${selected.interval === 'year' ? 'perYear' : 'perMonth'}`)}
+                </span>
+              </>
+            ) : (
+              /* Pulses only while something is still coming. A skeleton that
+                  goes on animating after the fetch has failed promises an
+                  arrival that will never happen; the reserved height alone is
+                  the honest version of "no price". (Locally, with no Supabase
+                  configured, this is the state you should expect to see.) */
+              <span
+                aria-hidden
+                data-testid="paywall-price-pending"
+                className={`h-8 w-32 self-center rounded-lg ${
+                  priceStatus === 'error' ? 'bg-transparent' : 'bg-contrast/10 animate-pulse'
+                }`}
+              />
             )}
-            <span className="text-3xl font-extrabold tabular-nums">{formatCHF(selected.amount)}</span>
-            <span className="text-sm text-content/50">{selected.cadence}</span>
           </div>
           <div className="mt-1 text-xs text-gold min-h-4">
             {isYearly
-              ? t('paywall.saveAgainst', { saved: formatCHF(saving.saved), monthly: formatCHF(monthly.amount) })
+              ? saving && monthly && t('paywall.saveAgainst', {
+                saved: money(saving.saved, monthly.currency),
+                monthly: money(monthly.amount, monthly.currency),
+              })
               : t('pricing.flexibleSwitch')}
           </div>
           <div className="mt-1 text-xs text-content/45" data-testid="paywall-vat-note">{t('pricing.vatNote', { rate: CH_VAT_PERCENT })}</div>
@@ -165,7 +207,12 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
               bg-gradient-to-br from-gold-bright to-gold text-casino-bg"
           >
             {busy !== null && <Loader2 size={16} className="animate-spin" />}
-            {t('pricing.goPro')} — {formatCHF(selected.amount)}{t(`pricing.${selected.id === 'monthly' ? 'perMonth' : 'perYear'}`)}
+            {/* Names the amount when it knows it. Unpriced the button still
+                works — Stripe states the figure before anything is charged —
+                but it must not name one this page has not confirmed. */}
+            {selected
+              ? `${t('pricing.goPro')} — ${money(selected.amount, selected.currency)}${t(`pricing.${selected.interval === 'year' ? 'perYear' : 'perMonth'}`)}`
+              : t('pricing.goPro')}
           </button>
 
           <div className="mt-5 flex flex-col gap-4">

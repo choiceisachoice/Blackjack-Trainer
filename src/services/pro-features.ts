@@ -21,31 +21,40 @@ export function isProMode(mode: AppMode): boolean {
 }
 
 /**
- * A subscription plan shown on the paywall.
+ * The plans the paywall offers, in the order it shows them.
  *
- * `amount` is the number, not a formatted string, so the price label and the
- * yearly saving are **derived** rather than written by hand. The previous copy
- * claimed "2 months free" while the real discount was ~4.5 months — prose next
- * to numbers drifts, arithmetic doesn't.
- *
- * Display-only: the real amounts live in Stripe and are chosen server-side by
- * price id. Keep these in sync with the Stripe Prices you create.
+ * Ids only. The amounts are **not** here: they used to be, as literals beside a
+ * comment asking the next person to keep them in step with Stripe, and on
+ * 10 August 2026 they went out of step — the prices were re-cut for Swiss VAT
+ * and the page went on advertising CHF 8.90 while the configured price charged
+ * 7.90. A comment is not a mechanism. Amounts now come from Stripe at runtime
+ * via `plan-price-store`, so there is one number and it is the one that bills.
  */
-export interface PlanOption {
-  id: 'monthly' | 'yearly'
-  /** Amount charged per billing period, in CHF. */
-  amount: number
-  cadence: string
-}
+export const PLAN_IDS = ['monthly', 'yearly'] as const
 
-export const PLAN_OPTIONS: PlanOption[] = [
-  { id: 'monthly', amount: 8.9, cadence: '/month' },
-  { id: 'yearly', amount: 69, cadence: '/year' },
-]
+export type PlanId = (typeof PLAN_IDS)[number]
 
-/** Format a CHF amount, dropping the decimals on whole francs (59 → "CHF 59"). */
-export function formatCHF(amount: number): string {
-  return `CHF ${amount.toFixed(2).replace(/\.00$/, '')}`
+/**
+ * Format an amount the way Stripe stores it — in the currency's smallest unit.
+ *
+ * How small that unit is depends on the currency: CHF and EUR have two decimal
+ * places, JPY has none. Asking `Intl` rather than dividing by a hard-coded 100
+ * is the difference between ¥1,000 and ¥100,000 on a page selling to Japan.
+ *
+ * Whole amounts lose their decimals (`CHF 69`, not `CHF 69.00`) because a price
+ * with `.00` on it reads as a form field rather than a price.
+ */
+export function formatMoney(minorUnits: number, currency: string, locale: string): string {
+  const code = currency.toUpperCase()
+  const decimals =
+    new Intl.NumberFormat(locale, { style: 'currency', currency: code })
+      .resolvedOptions().maximumFractionDigits ?? 2
+  const major = minorUnits / 10 ** decimals
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: code,
+    minimumFractionDigits: Number.isInteger(major) ? 0 : decimals,
+  }).format(major)
 }
 
 /**
@@ -58,29 +67,31 @@ export function formatCHF(amount: number): string {
 export const CH_VAT_PERCENT = 8.1
 
 
-/** What paying yearly saves against twelve monthly payments. */
+/** What paying yearly saves against twelve monthly payments, in minor units. */
 export interface YearlySaving {
   /** What a year of monthly billing would cost. */
   monthlyTotal: number
-  /** Francs kept by paying yearly. */
+  /** Kept by paying yearly. */
   saved: number
   /** Discount as a whole percent. */
   percent: number
 }
 
 /**
- * Derive the yearly discount from the two plan amounts.
+ * Derive the yearly discount from the two amounts, in minor units.
  *
- * @throws if either plan is missing — a paywall that can't price itself should
- *   fail loudly in tests, not quietly render "NaN" at a customer.
+ * Takes the numbers rather than reading them from a module constant: they now
+ * arrive from Stripe at runtime, and a function that could only price the pair
+ * it was compiled with is the problem this replaced.
+ *
+ * @throws on a monthly total of zero — the percentage would be `NaN`, and a
+ *   paywall is better off rendering nothing than "Save NaN%".
  */
-export function yearlySaving(plans: PlanOption[] = PLAN_OPTIONS): YearlySaving {
-  const monthly = plans.find(p => p.id === 'monthly')
-  const yearly = plans.find(p => p.id === 'yearly')
-  if (!monthly || !yearly) throw new Error('PLAN_OPTIONS must contain a monthly and a yearly plan')
+export function yearlySaving(monthlyMinor: number, yearlyMinor: number): YearlySaving {
+  const monthlyTotal = monthlyMinor * 12
+  if (monthlyTotal <= 0) throw new Error('cannot derive a saving from a zero monthly price')
 
-  const monthlyTotal = monthly.amount * 12
-  const saved = monthlyTotal - yearly.amount
+  const saved = monthlyTotal - yearlyMinor
   return {
     monthlyTotal,
     saved,

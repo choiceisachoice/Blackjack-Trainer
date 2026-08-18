@@ -1,11 +1,12 @@
-import { useState, lazy, Suspense, type ReactNode } from 'react'
+import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Check, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
 import { useHasSubscription } from '../store/entitlement-store'
-import { PLAN_OPTIONS, PRO_BENEFITS, formatCHF, yearlySaving, CH_VAT_PERCENT } from '../services/pro-features'
+import { PRO_BENEFITS, formatMoney, yearlySaving, CH_VAT_PERCENT } from '../services/pro-features'
+import { usePlanPriceStore, selectPlan } from '../store/plan-price-store'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
@@ -27,7 +28,7 @@ const HeroCanvas = lazy(() => import('../components/landing/HeroCanvas').then(m 
 const SCRIM = 'radial-gradient(46% 50% at 33% 55%, rgba(7,8,9,.9) 26%, rgba(7,8,9,.5) 52%, transparent 76%), linear-gradient(180deg, transparent 58%, var(--color-casino-bg) 97%)'
 
 export function LandingPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   /*
     Built here, not as module constants: a constant is evaluated once at import
     and would freeze whichever language happened to be active then. Switching
@@ -63,8 +64,15 @@ export function LandingPage() {
   const [busy, setBusy] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
-  const current = PLAN_OPTIONS.find(p => p.id === plan)!
-  const saving = yearlySaving()
+  const priceStatus = usePlanPriceStore(s => s.status)
+  const loadPrices = usePlanPriceStore(s => s.load)
+  const current = usePlanPriceStore(s => selectPlan(s, plan))
+  const monthly = usePlanPriceStore(s => selectPlan(s, 'monthly'))
+  const yearly = usePlanPriceStore(s => selectPlan(s, 'yearly'))
+  useEffect(() => { void loadPrices() }, [loadPrices])
+
+  const saving = monthly && yearly ? yearlySaving(monthly.amount, yearly.amount) : null
+  const money = (minor: number, currency: string) => formatMoney(minor, currency, i18n.language)
 
   function startFree() { navigate(authed ? '/app' : '/login') }
   async function goPro() {
@@ -227,19 +235,52 @@ export function LandingPage() {
           <div className="rounded-2xl p-7 flex flex-col relative border border-gold/50 bg-[linear-gradient(180deg,rgba(24,20,10,.55),var(--color-surface))] shadow-[0_0_0_1px_rgba(212,168,71,.15),0_40px_80px_-46px_rgba(212,168,71,.4)]">
             <div className="absolute -top-2.5 right-6 text-xs font-extrabold text-casino-bg bg-gradient-to-br from-gold-bright to-gold px-3 py-1 rounded-full">{t('pricing.mostPopular')}</div>
             <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">{t('pricing.pro')}</div>
-            <div className="mt-3.5 flex items-baseline gap-2 flex-wrap">
-              {plan === 'yearly' && (
-                <span className="text-lg text-content/35 line-through tabular-nums">{formatCHF(saving.monthlyTotal)}</span>
+            {/* Fetched from Stripe, never asserted. The marketing page is the
+                place a wrong price does the most damage, so it shows a skeleton
+                until it has the real one and no figure at all if the fetch
+                fails — Stripe still states the amount at checkout. */}
+            <div className="mt-3.5 flex items-baseline gap-2 flex-wrap min-h-10" data-testid="pricing-amount">
+              {current ? (
+                <>
+                  {plan === 'yearly' && saving && (
+                    <span className="text-lg text-content/35 line-through tabular-nums">
+                      {money(saving.monthlyTotal, current.currency)}
+                    </span>
+                  )}
+                  <span className="text-4xl font-extrabold tabular-nums">
+                    {money(current.amount, current.currency)}
+                  </span>
+                  <span className="text-content/60 text-sm">
+                    {t(`pricing.${current.interval === 'year' ? 'perYear' : 'perMonth'}`)}
+                  </span>
+                </>
+              ) : (
+                /* Pulses only while something is still coming. A skeleton that
+                    goes on animating after the fetch has failed promises an
+                    arrival that will never happen; the reserved height alone is
+                    the honest version of "no price". (Locally, with no Supabase
+                    configured, this is the state you should expect to see.) */
+                <span
+                  aria-hidden
+                  data-testid="pricing-amount-pending"
+                  className={`h-9 w-36 self-center rounded-lg ${
+                    priceStatus === 'error' ? 'bg-transparent' : 'bg-contrast/10 animate-pulse'
+                  }`}
+                />
               )}
-              <span className="text-4xl font-extrabold tabular-nums">{formatCHF(current.amount)}</span>
-              <span className="text-content/60 text-sm">{current.cadence}</span>
             </div>
             {/* Derived, not written: the old copy said "2 months free" while the
-                real discount is ~4.5 months. */}
+                real discount is ~4.5 months. Both sentences were also still in
+                English on all seven locales — they sat inside a JSX expression,
+                where the no-literal-string rule cannot see them, while the
+                translated keys they needed already existed. */}
             <div className="text-xs text-gold mt-1.5 min-h-4">
               {plan === 'yearly'
-                ? `Save ${formatCHF(saving.saved)} — ${saving.percent}% off monthly`
-                : 'Flexible — cancel anytime'}
+                ? saving && monthly && t('pricing.saveAgainstMonthly', {
+                  amount: money(saving.saved, monthly.currency),
+                  percent: saving.percent,
+                })
+                : t('pricing.flexibleCancel')}
             </div>
             <div className="text-xs text-content/45 mt-1" data-testid="pricing-vat-note">{t('pricing.vatNote', { rate: CH_VAT_PERCENT })}</div>
             <div className="inline-flex mt-2 self-start bg-surface-2 border border-white/8 rounded-[11px] p-1 gap-1">

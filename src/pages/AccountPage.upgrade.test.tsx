@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
@@ -47,6 +47,7 @@ vi.mock('../services/supabase/client', () => ({
 import { AccountPage } from './AccountPage'
 import { useEntitlementStore } from '../store/entitlement-store'
 import { useUpgradePrompt } from '../store/upgrade-prompt-store'
+import { usePlanPriceStore } from '../store/plan-price-store'
 
 const T = { timeout: 5000 }
 const renderPage = () => render(<MemoryRouter><AccountPage /></MemoryRouter>)
@@ -61,6 +62,15 @@ beforeEach(() => {
     currentPeriodEnd: null,
     cancelAtPeriodEnd: false,
     loaded: true,
+  })
+  // Stand in for what the server said the plans cost. `status: 'ready'` also
+  // stops the panel's own `load()` firing a request from a test.
+  usePlanPriceStore.setState({
+    status: 'ready',
+    plans: [
+      { id: 'monthly', amount: 890, currency: 'chf', interval: 'month' },
+      { id: 'yearly', amount: 6900, currency: 'chf', interval: 'year' },
+    ],
   })
 })
 
@@ -87,9 +97,27 @@ describe('upgrading from the account page', () => {
     const modal = await screen.findByTestId('upgrade-modal', {}, T)
     expect(modal).toHaveTextContent(/Monthly/i)
     expect(modal).toHaveTextContent(/Yearly/i)
-    // The figures someone is agreeing to, on screen before the click that charges.
+    // The figures someone is agreeing to, on screen before the click that
+    // charges — and now demonstrably the ones the server named, rather than
+    // two literals in the bundle that a Stripe price change would not touch.
     expect(modal.textContent).toMatch(/8[.,]90/)
     expect(modal.textContent).toMatch(/69/)
+  })
+
+  it('names no amount at all when the prices could not be fetched', async () => {
+    // The failure this whole change exists to prevent, in its last hiding
+    // place: a paywall that keeps rendering a number after losing the ability
+    // to confirm it. Better to send someone to Stripe, which states the figure
+    // before charging, than to show a price the page is only guessing at.
+    usePlanPriceStore.setState({ status: 'error', plans: [] })
+    renderPage()
+    fireEvent.click(goPro())
+
+    const modal = await screen.findByTestId('upgrade-modal', {}, T)
+    expect(modal.textContent).not.toMatch(/8[.,]90/)
+    expect(within(modal).getByTestId('paywall-price-pending')).toBeInTheDocument()
+    // The way out is still open — it just does not quote a price.
+    expect(within(modal).getByTestId('upgrade-yearly')).toBeInTheDocument()
   })
 
   it('never offers to buy a second subscription to a paying account', () => {
