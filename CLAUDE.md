@@ -224,44 +224,61 @@ issue and was dealt with".
    not, this entry should say so plainly instead of implying a to-do that nobody can act
    on.
 
-2. **The entitlement audit came back empty, and that does not add up.** Run against the
-   live database on 17 Aug 2026, this returned **zero rows**:
+2. **Sandbox Stripe events wrote real entitlements into the production database.**
+   The `stripe_events` ledger in the production project holds events from
+   **13 July 2026** — a month before Stripe went live. They passed signature
+   verification because `STRIPE_WEBHOOK_SECRET` held the test-mode secret at the time,
+   and the handler wrote the entitlement columns exactly as it does for a real payment.
+   A test card unlocked Pro on a production account.
 
-   ```sql
-   select id, subscription_status, stripe_customer_id, current_period_end
-   from public.profiles where subscription_status <> 'free';
-   ```
+   Not exploitable today: the secret is the live one, so a test-mode event fails
+   verification before anything is written, and the function holds only one secret. But
+   that separation is a side effect of which secret happens to be set, not a rule the
+   code states. Stripe stamps every event with `livemode`; `stripe-webhook/index.ts`
+   does not look at it.
 
-   A clean result would be good news if nothing had ever been bought. Something was:
-   a live monthly Pro subscription, purchased and then refunded. That should still be
-   visible. The webhook writes `subscription_status = sub.status` **verbatim from
-   Stripe** (`stripe-webhook/index.ts`), and Stripe has no `free` status — a cancelled
-   subscription reads `canceled`, one cancelled at period end stays `active`. `free` is
-   only the column default, i.e. **a row the webhook never touched**. So the purchase
-   should have left a `canceled` row, and the query should have found it.
+   Also in the ledger: `customer.subscription.created` counts **4**, and
+   `customer.subscription.deleted` counts **2**. Two subscriptions were never explicitly
+   ended. Worth reconciling against Stripe before that history matters.
 
-   Three things could explain it, and they are not equally comfortable:
-
-   1. The query ran against a different Supabase project than the live site uses.
-   2. The profile row is gone — the test account was deleted, cascading to `profiles`.
-   3. The webhook never wrote the entitlement at all, and Pro was granted by some
-      other path. That is the one the whole migration exists to prevent.
-
-   **Resolve it with the event ledger, not the profile row.** `stripe_events` is
-   append-only and survives an account deletion, so it answers "did the live webhook
-   ever run" independently of anything the audit query looks at:
-
-   ```sql
-   select type, count(*) as n, min(received_at) as first, max(received_at) as last
-   from public.stripe_events group by type order by last desc;
-   ```
-
-   Rows dated around the test purchase mean the webhook fired and (2) is the answer —
-   benign, and the audit can be re-run after the first real subscription. **No rows
-   means (3), and the live payment path granted Pro without the webhook.** Darius owns
-   running this; the result decides whether this is a bookkeeping note or an incident.
+3. **The advertised price and the price actually charged are set in two places that
+   nothing keeps together.** `PLAN_OPTIONS` in `src/services/pro-features.ts` says
+   CHF 8.90 / month; the amount charged comes from whichever price id sits in
+   `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_YEARLY` in the Supabase secrets. The 10 Aug
+   test purchase was billed **7.90 CHF** on `price_1U2vOjR3rB09i6YB6G9IfaiB`, and two
+   newer prices were created about 75 minutes later, after the Swiss VAT rate was set
+   up. If the secrets still point at the old ids, the paywall shows one number and the
+   till takes another. The file's own comment — "Keep these in sync with the Stripe
+   Prices you create" — is a convention with no enforcement. **Darius owns** checking
+   the two secrets; the durable fix is to stop displaying a hard-coded amount at all.
 
 ### Closed
+
+- **The entitlement audit is resolved, and the payment path works end to end**
+  (17 Aug 2026). The audit query below returned zero rows, which looked wrong: a real
+  monthly Pro subscription had been bought on the live site and refunded, and the
+  webhook writes Stripe's status verbatim — `canceled`, never `free`.
+
+  ```sql
+  select id, subscription_status, stripe_customer_id, current_period_end
+  from public.profiles where subscription_status <> 'free';
+  ```
+
+  The `stripe_events` ledger settled it, because it survives what the profile row does
+  not. Both halves of the transaction reached this database and both returned `200`:
+  `checkout.session.completed` at `18:55:32.724138+00`, `customer.subscription.deleted`
+  at `20:37:13.701964+00` — matching Stripe's own delivery log to the second once CEST
+  is converted. So `canceled` *was* written.
+
+  It reads `free` now because the row was re-created. `protect_entitlement_columns` is
+  the only writer of `free` anywhere in the system, and only on `INSERT` by a caller
+  that is not `service_role` — a deleted account signing up again. Confirmed:
+  `select … from public.profiles where stripe_customer_id is not null` returns zero
+  rows, so no profile carries a customer id at all. Nothing was granted outside the
+  webhook, and there is nothing to revoke.
+
+  The trigger erasing the trail is the correct trade: it is the same rule that stops a
+  client granting itself Pro. The ledger is where payment history is meant to be read.
 
 - **Stripe is live** (Aug 2026). Live keys are set at deployment on the real domain,
   never on localhost and never in the repo. Proven by use, not by configuration: a real
