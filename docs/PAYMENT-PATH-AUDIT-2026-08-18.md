@@ -21,6 +21,64 @@ has to notice. **nit** = worth tidying.
 
 ---
 
+## B0 · blocking · The Stripe customer id is written and never checked
+
+`create-checkout-session/index.ts`
+
+```ts
+customerId = customer.id
+await admin.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id)
+```
+
+No `{ error }`, no `.select()`, no row count. `supabase-js` does not throw on a
+write that fails or matches nothing, so a lost write here is completely silent
+and the checkout carries on to take the money.
+
+The third instance of this exact class in this codebase, and the one that
+matters most, because it is the **root the other two grow from**. When it goes
+wrong the customer still gets what they paid for — the webhook resolves them
+through `subscription_data.metadata.supabase_user_id`, not through the customer
+id, so the entitlement lands. What is lost is the link back:
+
+| Consequence | Finding |
+|---|---|
+| The customer portal refuses them: "No subscription to manage" — **they cannot cancel a subscription that keeps billing** | B5 |
+| A second "Go Pro" creates a second Stripe customer and sells a second subscription | B1 |
+| `invoice.payment_failed` matches no row, so they are never downgraded | B2 |
+
+**This is why B1's severity was understated below.** That section describes the
+trigger as account deletion followed by a fresh signup — but **the app has no
+account-deletion feature**, so that path needs an administrator acting directly
+in Supabase. This one needs nobody: one failed write on the ordinary purchase
+path, and the account is permanently in the broken state.
+
+The probability per purchase is low — a `service_role` update on an existing row
+by primary key. It is not zero (transient database error, or a signup whose
+profile row has not committed yet), it is permanent once it happens, and it is
+silent.
+
+**Fix: check it, and refuse to sell if it did not land.**
+
+```ts
+const { data: saved, error: saveErr } = await admin
+  .from('profiles')
+  .update({ stripe_customer_id: customerId })
+  .eq('id', user.id)
+  .select('id')
+if (saveErr || !saved?.length) throw new Error(`could not record customer ${customerId}`)
+```
+
+Failing before the Checkout Session is created is the whole point. The customer
+sees an error and retries; nobody is charged for a subscription they would not
+be able to cancel. Refusing a sale is cheap, an uncancellable subscription is
+not.
+
+Note this leaves an orphaned Stripe customer behind on failure. That is fine —
+the retry finds it by email or creates another, and an unused customer object
+costs nothing. Compare with the alternative, which costs a chargeback.
+
+---
+
 ## B1 · blocking · A lost customer id skips the double-charge guard
 
 `create-checkout-session/index.ts`
@@ -47,19 +105,23 @@ out of sync is precisely the case this needs to survive." Drifting to `null` is
 the one variant it does not survive, because that drift also routes around the
 check.
 
-**This is reachable, and this account has already been down half of it.**
-Deleting an account removes the profile row; signing up again inserts a fresh
-one, and `protect_entitlement_columns` forces `stripe_customer_id := null` on
-insert (correctly — it is what stops a client granting itself Pro). Meanwhile
-Stripe still holds the old customer. If the subscription on it was never
-cancelled, the next purchase is an undetected second one, and the person finds
-out on their card statement.
+**How the id goes missing.** Two ways, and the first one is B0 — a failed write
+on the ordinary purchase path, needing no unusual action from anyone.
 
-Nothing forces a cancellation before account deletion, so "deleted the account
-while subscribed" is a normal thing for a user to do, not a corner case.
+The second is an account deleted and re-created: the fresh profile row gets
+`stripe_customer_id := null` from `protect_entitlement_columns` (correctly — it
+is what stops a client granting itself Pro) while Stripe still holds the old
+customer. **The app has no account-deletion feature**, so this one requires an
+administrator acting directly in Supabase. It is how this account reached that
+state, but it is not a path a customer can walk.
 
-**Recommended fix — adopt, do not refuse.** Before creating a customer, look for
-one by email and reuse it:
+So the ranking is: fix B0 and most of B1's reachability goes with it. What
+remains after that is the administrative case, which is worth closing but does
+not carry the same urgency — and closing it means the customer-adoption change
+below, which has trade-offs of its own.
+
+**Recommended fix, once B0 is done — adopt, do not refuse.** Before creating a
+customer, look for one by email and reuse it:
 
 ```ts
 const found = await stripe.customers.list({ email: user.email, limit: 100 })
@@ -100,9 +162,9 @@ failure: *"a correct write that matched zero rows because the customer id was
 never stored returned normally and the caller answered Stripe with 200."* The
 lesson was applied in one place and not the other.
 
-It matters most in the same situation as B1: after a profile row is recreated,
-`stripe_customer_id` is null, so **no** row matches this customer — and the one
-event whose entire job is to withdraw access silently does nothing.
+It matters most in the same situation as B0: once `stripe_customer_id` is null,
+**no** row matches this customer — and the one event whose entire job is to
+withdraw access silently does nothing.
 
 **Fix:** `.select('id')`, then throw when the result is empty, the way
 `syncSubscriptionById` does. Throwing releases the ledger claim and Stripe
@@ -188,10 +250,10 @@ deleted their account while subscribed has a live subscription in Stripe, a
 profile row with `stripe_customer_id: null`, and therefore no route to the
 portal: still billed, no Pro, and told they have "no subscription to manage".
 
-The B1 fix resolves this too — adopting the existing customer restores the
-portal. Listed separately because it is the part a customer experiences, and
-because if B1 is fixed by refusing rather than adopting, this gets worse rather
-than better.
+B0's fix prevents this arising in the first place; B1's adoption fix repairs an
+account already in it. Listed separately because it is the part a customer
+experiences — and because it is the most damaging single consequence in this
+document: someone paying who cannot stop paying.
 
 ---
 

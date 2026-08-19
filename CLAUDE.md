@@ -215,24 +215,30 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **Two blocking findings on the payment path are open.** Full write-up in
+1. **Three blocking findings on the payment path are open, and one is the root
+   of the other two.** Full write-up in
    [`docs/PAYMENT-PATH-AUDIT-2026-08-18.md`](./PAYMENT-PATH-AUDIT-2026-08-18.md).
-   Both are reachable through the same door, and this account has already been
-   halfway through it:
+   All three are the same defect — a `supabase-js` write whose result is never
+   checked, which neither throws nor reports when it matches nothing:
 
-   - **A lost `stripe_customer_id` skips the double-charge guard.** The refusal
-     to sell a second subscription sits in the branch that only runs when the
-     profile already knows the customer. Delete an account while subscribed,
-     sign up again, and the trigger nulls the column — so a second subscription
-     is sold to the same person on a second Stripe customer.
-   - **The `past_due` downgrade never checks it hit a row.** `supabase-js` does
-     not throw on a write that matches nothing, so the one event whose job is to
-     withdraw access from someone who stopped paying can do nothing and answer
-     Stripe 200. The same file guards against exactly this twenty lines above.
+   - **B0: the Stripe customer id is written and never checked**
+     (`create-checkout-session`). Checkout then proceeds and takes the money.
+     The entitlement still lands (the webhook resolves the user through
+     subscription metadata), but the link back is gone — so the customer
+     **cannot reach the portal to cancel**, a second "Go Pro" sells them a
+     second subscription, and a failed payment never downgrades them. One
+     unchecked write, three consequences.
+   - **B1: a null `stripe_customer_id` skips the double-charge guard.** The
+     refusal to sell a second subscription sits in the branch that only runs
+     when the profile already knows the customer. Fixing B0 removes most of
+     this; what remains needs an administrator deleting an account by hand,
+     since the app has no account-deletion feature.
+   - **B2: the `past_due` downgrade never checks it hit a row.** Someone who
+     stopped paying keeps Pro, and Stripe is told 200. `syncSubscriptionById`
+     twenty lines above guards against precisely this and says why.
 
-   **Darius owns** the fix; the recommended shape (adopt the existing Stripe
-   customer rather than refuse) is in the audit, because refusing without
-   adopting leaves someone billed with no way to cancel.
+   **Darius owns** the fix. B0 is the cheap one with the most leverage — check
+   the write and refuse the sale if it did not land, before anyone is charged.
 
 2. **The VAT the Terms promise may not be on any invoice.** The paywall and the
    Terms both state the price includes 8.1% Swiss VAT and that it is stated
