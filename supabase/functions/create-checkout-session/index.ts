@@ -16,6 +16,7 @@
 import Stripe from 'https://esm.sh/stripe@18?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno'
 import { APP_URL, corsHeaders } from '../_shared/cors.ts'
+import { requireWrite } from '../_shared/db.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2025-01-27.acacia',
@@ -104,7 +105,33 @@ Deno.serve(async (req) => {
         metadata: { supabase_user_id: user.id },
       })
       customerId = customer.id
-      await admin.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id)
+
+      // Checked, and fatal if it did not land.
+      //
+      // This write was previously fire-and-forget, and `supabase-js` neither
+      // throws nor reports a write that matched nothing — so a lost one was
+      // completely silent and checkout carried on to take the money. The
+      // customer still got what they paid for, because the webhook resolves
+      // them through the subscription metadata rather than this column. What
+      // they lost was the way back: the customer portal needs this id, so they
+      // ended up **paying with no way to cancel**. It also disarmed two other
+      // guards — a second "Go Pro" would create a second Stripe customer and
+      // sell a second subscription, and `invoice.payment_failed` would match no
+      // row and never downgrade them.
+      //
+      // So: fail here, before a Checkout Session exists and before anyone is
+      // charged. The customer sees an error and retries. Refusing a sale is
+      // cheap; an uncancellable subscription is not.
+      //
+      // The Stripe customer created a moment ago is left orphaned. That is the
+      // right trade — an unused customer object costs nothing, and the retry
+      // either finds it or makes another.
+      const saved = await admin
+        .from('profiles')
+        .update({ stripe_customer_id: customerId })
+        .eq('id', user.id)
+        .select('id')
+      requireWrite(saved, `recording stripe customer ${customerId} for user ${user.id}`)
     } else {
       // Refuse a second subscription for someone who already pays.
       //

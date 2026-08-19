@@ -23,6 +23,7 @@
 
 import Stripe from 'https://esm.sh/stripe@18?target=deno'
 import { corsHeaders } from '../_shared/cors.ts'
+import { toPlanPrice, type PlanPrice } from '../_shared/plan-price.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2025-01-27.acacia',
@@ -33,16 +34,6 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
 const PLAN_PRICES: Record<string, string | undefined> = {
   monthly: Deno.env.get('STRIPE_PRICE_MONTHLY'),
   yearly: Deno.env.get('STRIPE_PRICE_YEARLY'),
-}
-
-interface PlanPrice {
-  id: string
-  /** Stripe's `unit_amount`: the currency's smallest unit (890 = CHF 8.90). */
-  amount: number
-  /** ISO 4217, lower case, as Stripe returns it. */
-  currency: string
-  /** `month` or `year`, read from the price rather than assumed from its name. */
-  interval: string
 }
 
 Deno.serve(async (req) => {
@@ -64,25 +55,10 @@ Deno.serve(async (req) => {
       // not exist" — the plan exists, the configuration does not.
       if (!priceId) throw new Error(`no price configured for the ${id} plan`)
 
-      const price = await stripe.prices.retrieve(priceId)
-
-      // Every one of these is a real way to bill someone the wrong amount, and
-      // all of them are silent at the till. An archived price still resolves;
-      // a one-off price has no interval and would be charged once for what the
-      // page sells as a subscription; `unit_amount` is null for tiered and
-      // metered pricing, which cannot be displayed as a single figure at all.
-      if (!price.active) throw new Error(`price ${priceId} (${id}) is archived`)
-      if (price.unit_amount == null) {
-        throw new Error(`price ${priceId} (${id}) has no flat unit_amount`)
-      }
-      if (!price.recurring) throw new Error(`price ${priceId} (${id}) is not recurring`)
-
-      plans.push({
-        id,
-        amount: price.unit_amount,
-        currency: price.currency,
-        interval: price.recurring.interval,
-      })
+      // `toPlanPrice` refuses an archived, one-off, or non-flat price. Each of
+      // those is a real way to bill the wrong amount silently, and each is
+      // covered by a test in `_shared/plan-price.test.ts`.
+      plans.push(toPlanPrice(id, await stripe.prices.retrieve(priceId)))
     }
 
     return json({ plans })

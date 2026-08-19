@@ -16,6 +16,8 @@
 
 import Stripe from 'https://esm.sh/stripe@18?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno'
+import { requireWrite } from '../_shared/db.ts'
+import { acceptsEvent } from '../_shared/stripe-mode.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2025-01-27.acacia',
@@ -23,18 +25,7 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
 })
 const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!
 
-/**
- * Which Stripe world this deployment belongs to, read off the key it already
- * uses rather than configured separately — one fewer value to set, and one that
- * cannot drift out of step with the key doing the actual work.
- *
- * `rk_` as well as `sk_`: a restricted key is a perfectly normal thing to run a
- * webhook on, and matching only `sk_live_` would read one as test mode and drop
- * every live event on the floor. Silently — the guard below answers 2xx, so
- * Stripe would report every delivery as a success while no entitlement was ever
- * written. A safety check that can turn off the payment path is worse than none.
- */
-const EXPECT_LIVEMODE = /^(sk|rk)_live_/.test(Deno.env.get('STRIPE_SECRET_KEY') ?? '')
+const STRIPE_KEY = Deno.env.get('STRIPE_SECRET_KEY')
 
 const admin = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -89,16 +80,11 @@ async function syncSubscriptionById(subId: string): Promise<void> {
   // Stripe with 200. The customer had paid, the entitlement was never granted,
   // and nothing anywhere recorded that it went wrong.
   const query = admin.from('profiles').update(patch).select('id')
-  const { data, error } = userId
+  const outcome = userId
     ? await query.eq('id', userId)
     : await query.eq('stripe_customer_id', sub.customer as string)
 
-  if (error) throw new Error(`entitlement update failed: ${error.message}`)
-  if (!data || data.length === 0) {
-    throw new Error(
-      `entitlement update matched no profile (user=${userId ?? 'n/a'}, customer=${sub.customer})`,
-    )
-  }
+  requireWrite(outcome, `entitlement update (user=${userId ?? 'n/a'}, customer=${sub.customer})`)
 }
 
 Deno.serve(async (req) => {
@@ -131,9 +117,9 @@ Deno.serve(async (req) => {
   // Answered 202, not an error: the delivery is genuinely received and
   // deliberately ignored. A 4xx or 5xx would put Stripe into its retry schedule
   // for an event we will never accept.
-  if (event.livemode !== EXPECT_LIVEMODE) {
+  if (!acceptsEvent(event.livemode, STRIPE_KEY)) {
     console.warn(
-      `ignoring ${event.type} (${event.id}): livemode=${event.livemode}, this deployment expects ${EXPECT_LIVEMODE}`,
+      `ignoring ${event.type} (${event.id}): livemode=${event.livemode} is not this deployment's mode`,
     )
     return new Response('Wrong Stripe mode for this deployment', { status: 202 })
   }
@@ -173,14 +159,31 @@ Deno.serve(async (req) => {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
         if (invoice.subscription) {
-          const { error } = await admin
+          // `.select()` and `requireWrite`, not a bare error check.
+          //
+          // This is the one event whose entire job is to take access away from
+          // someone who has stopped paying, and it matches on the customer id
+          // — which is null on any profile whose id write was lost. Checking
+          // only `error` treated "changed nothing" as success: the handler
+          // answered Stripe 200 and the account kept Pro indefinitely.
+          //
+          // Throwing hands it to the catch below, which releases the ledger
+          // claim so Stripe's retry can do the work.
+          //
+          // Deliberate trade, not an oversight: for a customer with no profile
+          // at all — a deleted account — no retry can ever succeed, so Stripe
+          // will keep redelivering until it gives up and the endpoint shows
+          // failed deliveries. That is the intended alarm; the alternative is
+          // answering 200 to a downgrade that did not happen, which is the bug
+          // being fixed. Worth revisiting only if the volume ever grows enough
+          // to risk Stripe disabling the endpoint, which would take the whole
+          // payment path down and would be far worse than one stale row.
+          const outcome = await admin
             .from('profiles')
             .update({ subscription_status: 'past_due' })
             .eq('stripe_customer_id', invoice.customer as string)
-          // A failed downgrade leaves someone on Pro who has stopped paying.
-          // Throwing hands it to the catch above, which releases the ledger
-          // claim so Stripe retries.
-          if (error) throw new Error(`past_due downgrade failed: ${error.message}`)
+            .select('id')
+          requireWrite(outcome, `past_due downgrade (customer=${invoice.customer})`)
         }
         break
       }

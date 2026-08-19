@@ -5,6 +5,12 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test-setup.ts"],
+  "//include": "The Edge Functions' pure modules are here too. Only the test files are named: tsc follows their imports, which reaches `_shared/db.ts` and friends but never `cors.ts` or an `index.ts` — those use `Deno.*` and esm.sh URLs, and belong to a runtime this compiler knows nothing about.",
+  "include": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/test-setup.ts",
+    "supabase/functions/**/*.test.ts"
+  ],
   "exclude": []
 }
