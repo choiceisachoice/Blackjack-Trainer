@@ -178,7 +178,7 @@ comes from.
 
 ---
 
-## B3 · should-fix · The VAT the Terms promise may not be on any invoice
+## B3 · blocking · Automatic tax is on, Stripe Tax is not ready, and nobody has tried to buy
 
 `create-checkout-session/index.ts` · `src/pages/legal/terms-content.ts` ·
 `src/services/pro-features.ts`
@@ -219,6 +219,44 @@ Function secrets page lists secret *names* even though values are hashed. Is
 
 Do not enable it blind. The failure mode of turning it on before the dashboard
 is ready is a total outage of the purchase path.
+
+### Both halves checked, 18 Aug 2026
+
+`STRIPE_AUTOMATIC_TAX` **is** in the secrets list, so every Checkout Session is
+created with `automatic_tax: { enabled: true }`.
+
+Stripe's side is not ready for that:
+
+- **Tax → Locations: one registration, Switzerland & Liechtenstein, status
+  "action required — problem with the tax setup".**
+- **Zero locations are collecting and remitting.**
+
+The API log adds the part that decides how bad this is. `POST
+/v1/tax/calculations` failed with 400 repeatedly on 16 Aug between 17:43 and
+18:13, then started returning 200 from 18:41 onward and again on 17 Aug — so
+calculation works at least some of the time now.
+
+And there is **no `POST /v1/checkout/sessions` in the log at all.** Not one,
+ever. Since automatic tax was switched on, nobody has attempted a purchase.
+
+So the state is not "broken" and not "fine" — it is **unknown**, on a live
+paywall, in the exact shape that has already cost this operator once: an Origin
+Voice payment call that was never exercised in the configuration that actually
+runs, and failed on the first real customer.
+
+**The test costs nothing.** Sign in on the live site, click Go Pro, choose a
+plan. Reaching Stripe's hosted checkout page with an amount on it proves the
+session was created; close the tab and nothing is charged. An error instead
+means the purchase path is down right now.
+
+Independent of that, the registration needs fixing: with zero collecting
+locations, no VAT is applied even when a session succeeds — and the Terms
+promise a VAT line on the invoice.
+
+**Also in the secrets and read by nothing:** `STRIPE_TAX_RATE_CH`. Left over
+from the fixed-rate approach this function's comment argues against. Harmless,
+but a reader of the secrets list would reasonably conclude a fixed rate is in
+play. Worth deleting so the configuration says what it does.
 
 ---
 

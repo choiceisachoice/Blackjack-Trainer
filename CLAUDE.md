@@ -215,15 +215,20 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **The VAT the Terms promise may not be on any invoice.** The paywall and the
-   Terms both state the price includes 8.1% Swiss VAT and that it is stated
-   separately on the invoice. The price is correctly set to `tax_behavior:
-   inclusive` (verified 18 Aug 2026), but `create-checkout-session` only sends
-   `automatic_tax` when `STRIPE_AUTOMATIC_TAX` is set — and a secret's value
-   cannot be read back from the Supabase dashboard. **One check, no secret
-   revealed:** is `STRIPE_AUTOMATIC_TAX` in the secrets *list*? If not, either
-   set it (Stripe Tax must be live first, or every session is rejected and
-   nobody can buy) or stop promising a VAT breakdown that is not produced.
+1. **Nobody has ever created a Checkout Session in the current configuration.**
+   `STRIPE_AUTOMATIC_TAX` is set, so every session is created with
+   `automatic_tax` enabled — while Stripe Tax shows one registration
+   (Switzerland & Liechtenstein) in **"action required — problem with the tax
+   setup"** and **zero** locations collecting. The API log contains no
+   `POST /v1/checkout/sessions` at all.
+
+   Not known to be broken; not known to work. On a live paywall that is the
+   worse of the two, and it is the same shape that already cost this operator
+   once on Origin Voice — a payment call never exercised in the configuration
+   that actually runs. **The check costs nothing:** sign in, click Go Pro,
+   choose a plan, and see whether Stripe's checkout page appears. Nothing is
+   charged by looking. Details and the VAT consequence in
+   [`docs/PAYMENT-PATH-AUDIT-2026-08-18.md`](./PAYMENT-PATH-AUDIT-2026-08-18.md).
 
 2. **Two things in the Edge Functions are still untested.** Most of the payment
    path is covered now — the write check, the Stripe-mode check, the price
