@@ -5,6 +5,7 @@ import {
   PLAN_IDS,
   FEATURE_GROUPS,
   formatMoney,
+  formatDecimal,
   yearlySaving,
   CH_VAT_PERCENT,
 } from '../../services/pro-features'
@@ -192,7 +193,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
               })
               : t('pricing.flexibleSwitch')}
           </div>
-          <div className="mt-1 text-xs text-content/45" data-testid="paywall-vat-note">{t('pricing.vatNote', { rate: CH_VAT_PERCENT })}</div>
+          <div className="mt-1 text-xs text-content/45" data-testid="paywall-vat-note">{t('pricing.vatNote', { rate: formatDecimal(CH_VAT_PERCENT, i18n.language) })}</div>
 
           {/* Above the feature list on purpose: the groups make this column tall
               enough to push a bottom-anchored button off-screen, and someone who
@@ -209,9 +210,17 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
             {busy !== null && <Loader2 size={16} className="animate-spin" />}
             {/* Names the amount when it knows it. Unpriced the button still
                 works — Stripe states the figure before anything is charged —
-                but it must not name one this page has not confirmed. */}
+                but it must not name one this page has not confirmed.
+
+                Two keys rather than one plus a separator: `goPro` ends in an
+                arrow, so appending "— 69 CHF" produced "Pro holen → — 69 CHF",
+                an arrow pointing at a dash. Where the separator goes is a
+                typographic decision in each language, so it belongs in the
+                translation rather than in this file. */}
             {selected
-              ? `${t('pricing.goPro')} — ${money(selected.amount, selected.currency)}${t(`pricing.${selected.interval === 'year' ? 'perYear' : 'perMonth'}`)}`
+              ? t('pricing.goProPrice', {
+                price: `${money(selected.amount, selected.currency)}${t(`pricing.${selected.interval === 'year' ? 'perYear' : 'perMonth'}`)}`,
+              })
               : t('pricing.goPro')}
           </button>
 

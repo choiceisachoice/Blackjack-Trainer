@@ -5,7 +5,7 @@ import { Spade, Check, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { startCheckout, setPendingCheckout, type BillingPlan } from '../services/supabase/billing'
 import { useHasSubscription } from '../store/entitlement-store'
-import { PRO_BENEFITS, formatMoney, yearlySaving, CH_VAT_PERCENT } from '../services/pro-features'
+import { PRO_BENEFITS, formatMoney, formatDecimal, yearlySaving, CH_VAT_PERCENT } from '../services/pro-features'
 import { usePlanPriceStore, selectPlan } from '../store/plan-price-store'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
 import { Reveal } from '../components/landing/Reveal'
@@ -282,7 +282,7 @@ export function LandingPage() {
                 })
                 : t('pricing.flexibleCancel')}
             </div>
-            <div className="text-xs text-content/45 mt-1" data-testid="pricing-vat-note">{t('pricing.vatNote', { rate: CH_VAT_PERCENT })}</div>
+            <div className="text-xs text-content/45 mt-1" data-testid="pricing-vat-note">{t('pricing.vatNote', { rate: formatDecimal(CH_VAT_PERCENT, i18n.language) })}</div>
             <div className="inline-flex mt-2 self-start bg-surface-2 border border-white/8 rounded-[11px] p-1 gap-1">
               <button onClick={() => setPlan('yearly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'yearly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>{t('pricing.yearly')}</button>
               <button onClick={() => setPlan('monthly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'monthly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>{t('pricing.monthly')}</button>

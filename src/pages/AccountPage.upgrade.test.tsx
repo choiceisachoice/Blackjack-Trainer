@@ -104,6 +104,19 @@ describe('upgrading from the account page', () => {
     expect(modal.textContent).toMatch(/69/)
   })
 
+  it('puts the price on the button without colliding with its arrow', async () => {
+    // `pricing.goPro` ends in an arrow, so appending "— CHF 69" here once
+    // produced "Go Pro → — CHF 69": an arrow pointing at a dash. The button
+    // uses its own key now, so each language decides its own separator.
+    renderPage()
+    fireEvent.click(goPro())
+
+    const modal = await screen.findByTestId('upgrade-modal', {}, T)
+    const buy = within(modal).getByTestId('upgrade-yearly')
+    expect(buy.textContent).toMatch(/69/)
+    expect(buy.textContent).not.toMatch(/→\s*—/)
+  })
+
   it('names no amount at all when the prices could not be fetched', async () => {
     // The failure this whole change exists to prevent, in its last hiding
     // place: a paywall that keeps rendering a number after losing the ability

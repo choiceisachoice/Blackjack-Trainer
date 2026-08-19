@@ -106,7 +106,8 @@
     "flexibleCancel": "Esnek — istediğiniz zaman iptal",
     "flexibleSwitch": "Esnek — istediğiniz zaman yıllığa geçin",
     "secureCheckout": "Stripe ile güvenli ödeme. Hesabınızdan istediğiniz zaman iptal edebilirsiniz.",
-    "everythingInFree": "Ücretsizdeki her şey, ayrıca:"
+    "everythingInFree": "Ücretsizdeki her şey, ayrıca:",
+    "goProPrice": "Pro'ya geç — {{price}}"
   },
   "landing": {
     "nav": {

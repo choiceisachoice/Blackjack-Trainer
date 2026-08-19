@@ -6,6 +6,7 @@ import {
   FREE_BENEFITS,
   FEATURE_GROUPS,
   formatMoney,
+  formatDecimal,
   yearlySaving,
   CH_VAT_PERCENT,
   isProMode,
@@ -59,6 +60,22 @@ describe('formatMoney', () => {
     const de = flat(formatMoney(890, 'chf', 'de'))
     expect(en).toMatch(/^CHF/)
     expect(de).toMatch(/CHF$/)
+  })
+})
+
+describe("formatDecimal", () => {
+  it("uses the reader’s decimal separator", () => {
+    // The VAT rate arrives as the number 8.1 and used to be interpolated raw,
+    // so a German sentence read "8.1%". A stray full stop in a sentence about
+    // tax is a small thing that makes a page look translated rather than
+    // written, in the worst possible place to look careless.
+    expect(formatDecimal(8.1, "en")).toBe("8.1")
+    expect(formatDecimal(8.1, "de")).toBe("8,1")
+    expect(formatDecimal(8.1, "fr")).toBe("8,1")
+  })
+
+  it("leaves a whole number whole", () => {
+    expect(formatDecimal(8, "de")).toBe("8")
   })
 })
 

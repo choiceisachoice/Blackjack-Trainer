@@ -106,7 +106,8 @@
     "flexibleCancel": "Flexible — cancel anytime",
     "flexibleSwitch": "Flexible — switch to yearly anytime",
     "secureCheckout": "Secure checkout by Stripe. Cancel anytime from your account.",
-    "everythingInFree": "Everything in Free, plus:"
+    "everythingInFree": "Everything in Free, plus:",
+    "goProPrice": "Go Pro — {{price}}"
   },
   "landing": {
     "nav": {

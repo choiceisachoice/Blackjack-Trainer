@@ -106,7 +106,8 @@
     "flexibleCancel": "Flexível — cancele quando quiser",
     "flexibleSwitch": "Flexível — mude para anual quando quiser",
     "secureCheckout": "Pagamento seguro com Stripe. Cancele quando quiser na sua conta.",
-    "everythingInFree": "Tudo o do gratuito, mais:"
+    "everythingInFree": "Tudo o do gratuito, mais:",
+    "goProPrice": "Obter Pro — {{price}}"
   },
   "landing": {
     "nav": {

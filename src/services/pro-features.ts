@@ -58,6 +58,18 @@ export function formatMoney(minorUnits: number, currency: string, locale: string
 }
 
 /**
+ * A plain decimal in the reader's language.
+ *
+ * The VAT rate reaches the page as the number 8.1 and was interpolated raw, so
+ * a German sentence read "8.1%" where it should read "8,1%". Small, and exactly
+ * the kind of small that makes a page look translated rather than written — in
+ * a sentence about tax, which is the worst place to look careless.
+ */
+export function formatDecimal(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale).format(value)
+}
+
+/**
  * Swiss VAT rate, as a percentage.
  *
  * A single constant because it appears in the price note, the Terms and — when

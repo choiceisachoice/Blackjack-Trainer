@@ -106,7 +106,8 @@
     "flexibleCancel": "Flexible — résiliable à tout moment",
     "flexibleSwitch": "Flexible — passez à l'annuel quand vous voulez",
     "secureCheckout": "Paiement sécurisé par Stripe. Résiliable à tout moment depuis votre compte.",
-    "everythingInFree": "Tout le gratuit, plus :"
+    "everythingInFree": "Tout le gratuit, plus :",
+    "goProPrice": "Passer à Pro — {{price}}"
   },
   "landing": {
     "nav": {
