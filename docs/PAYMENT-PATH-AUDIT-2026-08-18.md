@@ -178,7 +178,7 @@ comes from.
 
 ---
 
-## B3 · blocking · Automatic tax is on, Stripe Tax is not ready, and nobody has tried to buy
+## B3 · VERIFIED WORKING 18 Aug 2026 · Automatic tax, and what the invoice actually says
 
 `create-checkout-session/index.ts` · `src/pages/legal/terms-content.ts` ·
 `src/services/pro-features.ts`
@@ -252,6 +252,35 @@ means the purchase path is down right now.
 Independent of that, the registration needs fixing: with zero collecting
 locations, no VAT is applied even when a session succeeds — and the Terms
 promise a VAT line on the invoice.
+
+### Exercised on the live site, 18 Aug 2026
+
+Signed in, clicked Go Pro, chose the yearly plan, and read Stripe's hosted
+checkout page. It loaded: `checkout.stripe.com/g/pay/cs_live_...`. Nothing was
+paid; the session simply expires.
+
+    Blackjack Trainer Pro, billed yearly     69.00 CHF
+    Subtotal                                 69.00 CHF
+    VAT                                       5.17 CHF
+    Total due today                          69.00 CHF
+
+`69 − 69/1.081 = 5.17`, so that is exactly 8.1% **inclusive**. All three claims
+the product makes hold at the till:
+
+- the total equals the advertised price — "final price" is true;
+- the VAT is 8.1% Swiss;
+- it is **stated separately**, which is what the Terms promise.
+
+So creating a session is not broken, and automatic tax is doing its job. The
+dashboard's "action required" on the Switzerland & Liechtenstein registration
+concerns **collecting and remitting** — Stripe filing returns on the operator's
+behalf — not calculation, which demonstrably works. Worth resolving, not
+blocking, and not a reason to touch `STRIPE_AUTOMATIC_TAX`.
+
+What this leaves genuinely unknown is the *other* country: a German customer
+entering a German address should get no Swiss VAT line. Testing that means
+typing a real address into a live checkout, so it is left to the first non-Swiss
+customer or a deliberate test-mode run.
 
 **Also in the secrets and read by nothing:** `STRIPE_TAX_RATE_CH`. Left over
 from the fixed-rate approach this function's comment argues against. Harmless,

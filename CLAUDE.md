@@ -215,20 +215,14 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **Nobody has ever created a Checkout Session in the current configuration.**
-   `STRIPE_AUTOMATIC_TAX` is set, so every session is created with
-   `automatic_tax` enabled — while Stripe Tax shows one registration
-   (Switzerland & Liechtenstein) in **"action required — problem with the tax
-   setup"** and **zero** locations collecting. The API log contains no
-   `POST /v1/checkout/sessions` at all.
-
-   Not known to be broken; not known to work. On a live paywall that is the
-   worse of the two, and it is the same shape that already cost this operator
-   once on Origin Voice — a payment call never exercised in the configuration
-   that actually runs. **The check costs nothing:** sign in, click Go Pro,
-   choose a plan, and see whether Stripe's checkout page appears. Nothing is
-   charged by looking. Details and the VAT consequence in
-   [`docs/PAYMENT-PATH-AUDIT-2026-08-18.md`](./PAYMENT-PATH-AUDIT-2026-08-18.md).
+1. **Stripe Tax says "action required" on the Swiss registration.** That is the
+   collect-and-remit side — Stripe filing returns on the operator's behalf — and
+   not calculation, which was verified working on a live checkout (see Closed).
+   Worth resolving; not blocking, and not a reason to change
+   `STRIPE_AUTOMATIC_TAX`. Related tidy-up: `STRIPE_TAX_RATE_CH` is set as a
+   secret and read by no code, left over from the fixed-rate approach the
+   function's own comment argues against — it should go, so the configuration
+   says what it does.
 
 2. **Two things in the Edge Functions are still untested.** Most of the payment
    path is covered now — the write check, the Stripe-mode check, the price
@@ -242,6 +236,18 @@ issue and was dealt with".
    not read as complete.
 
 ### Closed
+
+- **The purchase path was exercised end to end** (18 Aug 2026). Until then no
+  `POST /v1/checkout/sessions` existed in the API log at all: the paywall was
+  live and its purchase path had never been run in the configuration that
+  actually ships — the same shape as the Origin Voice incident, where the only
+  green test covered a different path than the one production used.
+
+  Signed in, clicked Go Pro, chose yearly. Stripe's hosted checkout loaded on a
+  `cs_live_` session showing 69.00 CHF, of which **VAT 5.17 CHF stated
+  separately**, total due 69.00 CHF — exactly 8.1% inclusive. Session creation,
+  automatic tax, and every claim the paywall and the Terms make about the price
+  hold at the till. Nothing was paid.
 
 - **The webhook's routing and its ledger have tests** (18 Aug 2026). The part
   with a history: the ledger row used to be written up front and left there,
