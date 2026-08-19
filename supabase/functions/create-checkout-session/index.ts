@@ -17,6 +17,7 @@ import Stripe from 'https://esm.sh/stripe@18?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno'
 import { APP_URL, corsHeaders } from '../_shared/cors.ts'
 import { requireWrite } from '../_shared/db.ts'
+import { firstBillable, newestCustomer } from '../_shared/customer.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2025-01-27.acacia',
@@ -27,15 +28,6 @@ const PLAN_PRICES: Record<string, string | undefined> = {
   monthly: Deno.env.get('STRIPE_PRICE_MONTHLY'),
   yearly: Deno.env.get('STRIPE_PRICE_YEARLY'),
 }
-
-/**
- * Subscription states that mean "this person is already being billed".
- *
- * The same three the client grants Pro for (`entitlement-store.ts`), and for
- * the same reason: `past_due` is a grace window on a subscription that still
- * exists, not an invitation to sell a second one.
- */
-const BILLABLE_STATUSES = new Set(['active', 'trialing', 'past_due'])
 
 /**
  * Whether Stripe works out the tax itself, from the customer's billing address.
@@ -82,8 +74,15 @@ Deno.serve(async (req) => {
     if (userErr || !user) return json({ error: 'Not authenticated' }, 401)
 
     // Choose the price from the allowlist — never trust a client-sent price.
-    const { plan } = await req.json().catch(() => ({ plan: 'monthly' }))
-    const priceId = PLAN_PRICES[plan]
+    //
+    // An unreadable body used to fall back to the monthly plan. Nobody was
+    // charged unseen — Stripe states the amount before payment — but a purchase
+    // path should not have a default: a garbled request is a bug somewhere, and
+    // answering it with a sale hides the bug behind a plausible outcome. It now
+    // takes the same 400 an unknown plan does.
+    const body = await req.json().catch(() => null)
+    const plan = (body as { plan?: string } | null)?.plan
+    const priceId = plan ? PLAN_PRICES[plan] : undefined
     if (!priceId) return json({ error: 'Unknown plan' }, 400)
 
     // Reuse the user's Stripe customer if we have one; otherwise create it and
@@ -99,6 +98,74 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     let customerId = profile?.stripe_customer_id as string | undefined
+
+    // No stored customer does NOT mean no customer.
+    //
+    // It used to be treated that way, and that was the hole: the
+    // already-subscribed check lived in the `else` below, so a missing id
+    // skipped it entirely, a second Stripe customer was created, and the same
+    // person was sold a second subscription against the same card.
+    //
+    // The id goes missing for two reasons. One was a write that was never
+    // checked (fixed above, and now fatal). The other survives: an account
+    // deleted and signed up again gets a fresh profile row whose entitlement
+    // columns the trigger correctly nulls, while Stripe still holds the old
+    // customer — and its live subscription.
+    //
+    // So ask Stripe. Every customer under this email is checked for a live
+    // subscription before anything is sold, and one of them is adopted rather
+    // than adding another to the pile. Email is a weak identity in Stripe — it
+    // can be changed, two people can share one — but it is the only link that
+    // survives a Supabase user being replaced, and the cost of matching too
+    // eagerly (reusing a customer) is far below the cost of not matching
+    // (billing someone twice).
+    //
+    // Only when nothing is stored: for an ordinary returning subscriber this
+    // adds no API calls at all.
+    if (!customerId && user.email) {
+      const byEmail = await stripe.customers.list({ email: user.email, limit: 100 })
+
+      for (const candidate of byEmail.data) {
+        const subs = await stripe.subscriptions.list({
+          customer: candidate.id,
+          status: 'all',
+          limit: 100,
+        })
+        const live = firstBillable(subs.data)
+        if (live) {
+          // Adopt before refusing. Refusing alone would leave them billed, with
+          // no entitlement and no route to the customer portal — which needs
+          // exactly this id. Adopting restores the portal, so "you already have
+          // a subscription" comes with a way to act on it.
+          const claimed = await admin
+            .from('profiles')
+            .update({ stripe_customer_id: candidate.id })
+            .eq('id', user.id)
+            .select('id')
+          requireWrite(claimed, `adopting stripe customer ${candidate.id} for user ${user.id}`)
+
+          console.warn(
+            `adopted existing customer ${candidate.id} for user ${user.id} and refused a second subscription`,
+          )
+          return json({ alreadySubscribed: true, subscriptionId: live.id })
+        }
+      }
+
+      // None of them is being billed. Adopt the newest anyway rather than
+      // creating yet another — it carries this person's payment history, and
+      // one customer per human is the state worth converging on.
+      const adopt = newestCustomer(byEmail.data)
+      if (adopt) {
+        const claimed = await admin
+          .from('profiles')
+          .update({ stripe_customer_id: adopt.id })
+          .eq('id', user.id)
+          .select('id')
+        requireWrite(claimed, `adopting stripe customer ${adopt.id} for user ${user.id}`)
+        customerId = adopt.id
+      }
+    }
+
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
@@ -135,6 +202,11 @@ Deno.serve(async (req) => {
     } else {
       // Refuse a second subscription for someone who already pays.
       //
+      // Runs for an adopted customer too, which repeats a check the adoption
+      // loop just made. Deliberate: one extra API call on a rare path, and the
+      // subscription list is exactly the kind of state that can change between
+      // two calls. On a money path the cheap redundant read wins.
+      //
       // Nothing stopped this before. A subscriber who came back to the public
       // landing page and clicked the price bought again: two subscriptions on
       // one customer, two charges, and — because the webhook writes both into
@@ -158,7 +230,7 @@ Deno.serve(async (req) => {
         status: 'all',
         limit: 100,
       })
-      const live = existing.data.find(s => BILLABLE_STATUSES.has(s.status))
+      const live = firstBillable(existing.data)
       if (live) {
         // 200 rather than 409: this is an outcome the UI has to act on, and
         // supabase-js turns a non-2xx into an opaque error whose body has to be

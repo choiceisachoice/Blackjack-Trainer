@@ -21,7 +21,7 @@ has to notice. **nit** = worth tidying.
 
 ---
 
-## B0 · blocking · The Stripe customer id is written and never checked
+## B0 · FIXED 18 Aug 2026 · The Stripe customer id was written and never checked
 
 `create-checkout-session/index.ts`
 
@@ -79,7 +79,7 @@ costs nothing. Compare with the alternative, which costs a chargeback.
 
 ---
 
-## B1 · blocking · A lost customer id skips the double-charge guard
+## B1 · FIXED 18 Aug 2026 · A lost customer id skipped the double-charge guard
 
 `create-checkout-session/index.ts`
 
@@ -140,7 +140,7 @@ far cheaper than the failure mode of not matching (double billing).
 
 ---
 
-## B2 · blocking · The `past_due` downgrade never checks that it hit a row
+## B2 · FIXED 18 Aug 2026 · The `past_due` downgrade never checked that it hit a row
 
 `stripe-webhook/index.ts`, the `invoice.payment_failed` case:
 
@@ -222,7 +222,7 @@ is ready is a total outage of the purchase path.
 
 ---
 
-## B4 · nit · A malformed request body sells the monthly plan
+## B4 · FIXED 18 Aug 2026 · A malformed request body sold the monthly plan
 
 `create-checkout-session/index.ts`
 
@@ -237,7 +237,7 @@ already returns 400 for an unknown plan; an unreadable body deserves the same.
 
 ---
 
-## B5 · should-fix · A recreated account cannot cancel a subscription still billing it
+## B5 · FIXED 18 Aug 2026 · A recreated account could not cancel a subscription still billing it
 
 `create-portal-session/index.ts`
 

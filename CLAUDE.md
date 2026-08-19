@@ -215,20 +215,7 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **One payment-path finding is left, and it is the narrow one.** B0 and B2 are
-   fixed (18 Aug 2026, see Closed below). What remains is **B1's residue**: an
-   account deleted by an administrator directly in Supabase, whose fresh profile
-   row gets a null `stripe_customer_id` while Stripe still holds the old
-   customer and a live subscription. The double-charge guard would not see it.
-
-   Not customer-reachable — the app has no account-deletion feature — so this
-   needs someone acting in the Supabase dashboard. The fix is to adopt the
-   existing Stripe customer by email rather than create a second one; it has
-   trade-offs of its own (email is a weak identity in Stripe) and is written up
-   in the audit. **Darius owns** whether it is worth doing before there is a
-   subscriber base.
-
-2. **The VAT the Terms promise may not be on any invoice.** The paywall and the
+1. **The VAT the Terms promise may not be on any invoice.** The paywall and the
    Terms both state the price includes 8.1% Swiss VAT and that it is stated
    separately on the invoice. The price is correctly set to `tax_behavior:
    inclusive` (verified 18 Aug 2026), but `create-checkout-session` only sends
@@ -238,7 +225,7 @@ issue and was dealt with".
    set it (Stripe Tax must be live first, or every session is rejected and
    nobody can buy) or stop promising a VAT breakdown that is not produced.
 
-3. **The Edge Function handlers are still untested end to end.** The *rules* are
+2. **The Edge Function handlers are still untested end to end.** The *rules* are
    covered now — `_shared/db.ts`, `stripe-mode.ts` and `plan-price.ts` have
    tests in the normal run. What has none is everything around them in each
    `index.ts`: signature verification, the `stripe_events` ledger and its
@@ -252,6 +239,18 @@ issue and was dealt with".
    small change. **Darius owns** whether it earns its keep now.
 
 ### Closed
+
+- **A missing customer id no longer sells a second subscription** (18 Aug 2026).
+  The refusal to sell to someone already paying consulted only the id stored on
+  the profile, so a missing one skipped the check entirely — a fresh Stripe
+  customer was created and the same person could be billed twice on one card.
+  Checkout now asks Stripe: every customer under the user's email is checked for
+  a live subscription, and one of them is **adopted** rather than another being
+  added to the pile. Adopting matters as much as refusing — the customer portal
+  needs that id, so refusing alone would leave someone billed with no way to
+  cancel. Email is a weak identity in Stripe, but it is the only link that
+  survives a Supabase user being replaced, and reusing a customer costs far less
+  than billing twice.
 
 - **The unchecked writes on the payment path are checked** (18 Aug 2026). Three
   instances of one defect: `supabase-js` neither throws nor reports a write that
