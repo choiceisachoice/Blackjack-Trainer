@@ -285,9 +285,14 @@ Recorded so a future reader knows the difference between "not examined" and
 
 ## Not covered
 
-- `supabase/functions/` has **no test setup at all**. All four functions are
-  untested, including every guard above. This is the largest single gap in the
-  payment path and it is structural, not an oversight in any one file.
+- **Was** the largest gap: `supabase/functions/` had no test setup at all.
+  Closed on 18 Aug 2026 for everything that carries a rule — the write check,
+  the Stripe-mode check, the price validation, the billable/customer rules, and
+  the webhook's routing with its claim-then-release. Those live in pure modules
+  under `_shared/` and run in the project's ordinary test command; Deno is not
+  installed here, and a second test runtime is one nobody remembers to invoke.
+  Still uncovered: signature verification (the Stripe SDK itself) and the CORS
+  allowlist (reads `Deno.env` at module load).
 - No load or race testing of concurrent webhook deliveries beyond the ledger's
   unique-key behaviour.
 - Stripe dashboard configuration (Tax registrations, portal settings, webhook

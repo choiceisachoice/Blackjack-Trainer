@@ -18,6 +18,7 @@ import Stripe from 'https://esm.sh/stripe@18?target=deno'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno'
 import { requireWrite } from '../_shared/db.ts'
 import { acceptsEvent } from '../_shared/stripe-mode.ts'
+import { dispatchEvent, type WebhookDeps, type WebhookEvent } from '../_shared/webhook-dispatch.ts'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
   apiVersion: '2025-01-27.acacia',
@@ -87,6 +88,61 @@ async function syncSubscriptionById(subId: string): Promise<void> {
   requireWrite(outcome, `entitlement update (user=${userId ?? 'n/a'}, customer=${sub.customer})`)
 }
 
+/** Downgrade a customer whose invoice failed. */
+async function markPastDue(customerId: string): Promise<void> {
+  // `.select()` and `requireWrite`, not a bare error check.
+  //
+  // This is the one event whose entire job is to take access away from someone
+  // who has stopped paying, and it matches on the customer id — which is null
+  // on any profile whose id write was lost. Checking only `error` treated
+  // "changed nothing" as success: the handler answered Stripe 200 and the
+  // account kept Pro indefinitely.
+  //
+  // Throwing hands it to the dispatcher, which releases the ledger claim so
+  // Stripe's retry can do the work.
+  //
+  // Deliberate trade, not an oversight: for a customer with no profile at all
+  // — a deleted account — no retry can ever succeed, so Stripe will keep
+  // redelivering until it gives up and the endpoint shows failed deliveries.
+  // That is the intended alarm; the alternative is answering 200 to a downgrade
+  // that did not happen. Worth revisiting only if the volume ever grows enough
+  // to risk Stripe disabling the endpoint, which would take the whole payment
+  // path down and would be far worse than one stale row.
+  const outcome = await admin
+    .from('profiles')
+    .update({ subscription_status: 'past_due' })
+    .eq('stripe_customer_id', customerId)
+    .select('id')
+  requireWrite(outcome, `past_due downgrade (customer=${customerId})`)
+}
+
+/**
+ * Everything `dispatchEvent` needs, bound to the real Stripe and database.
+ *
+ * The routing and the ledger's claim-then-release live in
+ * `_shared/webhook-dispatch.ts` and are covered by tests; what stays here is
+ * only the wiring to the outside world.
+ */
+const deps: WebhookDeps = {
+  async claim(event) {
+    const { error } = await admin.from('stripe_events').insert({ id: event.id, type: event.type })
+    if (!error) return 'claimed'
+    // 23505 = unique_violation → already processed. Anything else is real.
+    if (error.code === '23505') return 'duplicate'
+    console.error('ledger insert failed', error)
+    return 'error'
+  },
+  async release(eventId) {
+    const { error } = await admin.from('stripe_events').delete().eq('id', eventId)
+    if (error) console.error('ledger release failed', error)
+    return !error
+  },
+  syncSubscription: syncSubscriptionById,
+  markPastDue,
+  warn: (m) => console.warn(m),
+  error: (m, cause) => console.error(m, cause),
+}
+
 Deno.serve(async (req) => {
   const signature = req.headers.get('stripe-signature')
   if (!signature) return new Response('Missing signature', { status: 400 })
@@ -124,92 +180,9 @@ Deno.serve(async (req) => {
     return new Response('Wrong Stripe mode for this deployment', { status: 202 })
   }
 
-  // Idempotency: first insert wins; a retry hits the unique key and is a no-op.
-  //
-  // The ledger row is claimed here but only *committed* after the handler
-  // succeeds — see the delete in the catch below. Writing it up front and
-  // leaving it there turned Stripe's at-least-once delivery into at-most-once:
-  // a handler that threw returned 500, Stripe retried, the retry hit the unique
-  // key, answered "Already processed" 200, and the event was lost for good.
-  const { error: insertErr } = await admin
-    .from('stripe_events')
-    .insert({ id: event.id, type: event.type })
-  if (insertErr) {
-    // 23505 = unique_violation → already processed. Anything else is a real error.
-    if (insertErr.code === '23505') return new Response('Already processed', { status: 200 })
-    console.error('ledger insert failed', insertErr)
-    return new Response('Ledger error', { status: 500 })
-  }
-
-  try {
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
-        if (session.subscription) {
-          await syncSubscriptionById(session.subscription as string)
-        }
-        break
-      }
-      case 'customer.subscription.created':
-      case 'customer.subscription.updated':
-      case 'customer.subscription.deleted': {
-        await syncSubscriptionById((event.data.object as Stripe.Subscription).id)
-        break
-      }
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice
-        if (invoice.subscription) {
-          // `.select()` and `requireWrite`, not a bare error check.
-          //
-          // This is the one event whose entire job is to take access away from
-          // someone who has stopped paying, and it matches on the customer id
-          // — which is null on any profile whose id write was lost. Checking
-          // only `error` treated "changed nothing" as success: the handler
-          // answered Stripe 200 and the account kept Pro indefinitely.
-          //
-          // Throwing hands it to the catch below, which releases the ledger
-          // claim so Stripe's retry can do the work.
-          //
-          // Deliberate trade, not an oversight: for a customer with no profile
-          // at all — a deleted account — no retry can ever succeed, so Stripe
-          // will keep redelivering until it gives up and the endpoint shows
-          // failed deliveries. That is the intended alarm; the alternative is
-          // answering 200 to a downgrade that did not happen, which is the bug
-          // being fixed. Worth revisiting only if the volume ever grows enough
-          // to risk Stripe disabling the endpoint, which would take the whole
-          // payment path down and would be far worse than one stale row.
-          const outcome = await admin
-            .from('profiles')
-            .update({ subscription_status: 'past_due' })
-            .eq('stripe_customer_id', invoice.customer as string)
-            .select('id')
-          requireWrite(outcome, `past_due downgrade (customer=${invoice.customer})`)
-        }
-        break
-      }
-      default:
-        // Unhandled event types are acknowledged so Stripe stops retrying.
-        break
-    }
-  } catch (e) {
-    // Release the idempotency claim so Stripe's retry can actually do the work.
-    // If this cleanup itself fails the event is stuck, so it is logged loudly —
-    // that is the one case a human has to look at.
-    const { error: releaseErr } = await admin
-      .from('stripe_events')
-      .delete()
-      .eq('id', event.id)
-    if (releaseErr) {
-      console.error(
-        `STUCK EVENT ${event.id} (${event.type}): handler failed AND the ledger claim ` +
-        `could not be released. Stripe's retry will be swallowed as a duplicate. ` +
-        `Delete this row by hand and replay the event.`,
-        releaseErr,
-      )
-    }
-    console.error(`handler for ${event.type} failed`, e)
-    return new Response('Handler error', { status: 500 })
-  }
-
-  return new Response('ok', { status: 200 })
+  // Cast because Stripe types `data.object` as a union of every resource it has.
+  // The dispatcher reads two string fields off it and is deliberately not
+  // coupled to the SDK's types — that is what lets it be tested without Stripe.
+  const answer = await dispatchEvent(event as unknown as WebhookEvent, deps)
+  return new Response(answer.body, { status: answer.status })
 })

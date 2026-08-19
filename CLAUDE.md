@@ -225,20 +225,27 @@ issue and was dealt with".
    set it (Stripe Tax must be live first, or every session is rejected and
    nobody can buy) or stop promising a VAT breakdown that is not produced.
 
-2. **The Edge Function handlers are still untested end to end.** The *rules* are
-   covered now — `_shared/db.ts`, `stripe-mode.ts` and `plan-price.ts` have
-   tests in the normal run. What has none is everything around them in each
-   `index.ts`: signature verification, the `stripe_events` ledger and its
-   claim-then-release, the CORS allowlist, the already-subscribed refusal, and
-   the wiring that decides whether a guard is called at all. A guard applied in
-   the wrong place still passes its own unit test.
+2. **Two things in the Edge Functions are still untested.** Most of the payment
+   path is covered now — the write check, the Stripe-mode check, the price
+   validation, the customer/billable rules and the webhook's routing and
+   claim-then-release all have tests in the ordinary `npm run test:run`. What
+   does not: **signature verification** (it is the Stripe SDK, and faking a
+   valid signature to test around it is its own risk) and the **CORS
+   allowlist**, which reads `Deno.env` at module load.
 
-   Closing that needs either Deno (not installed here) or a factory refactor so
-   each handler takes its Stripe and Supabase clients as arguments and can be
-   driven from Vitest with fakes. The second is the better shape and is not a
-   small change. **Darius owns** whether it earns its keep now.
+   Both are small and neither has ever failed. Naming them so the coverage is
+   not read as complete.
 
 ### Closed
+
+- **The webhook's routing and its ledger have tests** (18 Aug 2026). The part
+  with a history: the ledger row used to be written up front and left there,
+  which turned Stripe's at-least-once delivery into at-most-once — a handler
+  that threw returned 500, Stripe retried, the retry hit the unique key,
+  answered "Already processed", and the event was gone. That fix was correct and
+  had no test, which is how such a thing comes back. Routing and claim/release
+  now live in `_shared/webhook-dispatch.ts` with everything injected, so a test
+  needs no Stripe, no database and no Deno. `index.ts` is the wiring only.
 
 - **A missing customer id no longer sells a second subscription** (18 Aug 2026).
   The refusal to sell to someone already paying consulted only the id stored on
