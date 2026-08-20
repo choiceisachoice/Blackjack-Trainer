@@ -233,29 +233,26 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **Nothing watches the payment path.** Every guard added on 18 Aug 2026
-   announces a problem by writing to a log nobody reads: the livemode check
-   answers 202 and warns, `requireWrite` throws, and the STUCK EVENT case prints
-   the one message that needs a human. All correct, all invisible.
+1. **One alert is missing, and it is the quiet one.** Checked in the dashboard
+   on 19 Aug 2026 rather than assumed — and the assumption was wrong. Stripe →
+   Communication preferences → **API** → **"Webhook errors" → e-mail was already
+   on**, enabled by Stripe's own default. Everything that fails on the webhook
+   path ends as a non-2xx, Stripe records a failed delivery, and the account
+   owner is mailed. That half was never open.
 
-   **Most of it is one checkbox.** Everything that is genuinely wrong on the
-   webhook path ends as a non-2xx, which Stripe records as a failed delivery —
-   so a single setting covers the lot:
+   What is off is one row further down, under **Zustandswarnungen**:
+   **"Fehler bei der Generierung eines Webhook-Ereignisses"** — Stripe failing
+   to *create* an event at all. That is the failure nothing else catches: no
+   event means no delivery, no delivery means no failed delivery, and the
+   webhook-errors alert stays silent while a customer has paid and no
+   entitlement was written. It is the one case where the alerting that exists
+   is blind by construction. **Darius owns** the click; it is a notification
+   preference and changes no behaviour.
 
-   > Stripe → Settings → **Communication preferences** → tab **API** →
-   > **"Webhook errors"** → e-mail
-
-   Located and read on 18 Aug 2026; its on/off state could not be determined
-   from outside (Stripe renders those checkboxes as a custom component), and
-   flipping a notification setting on the operator's account is **Darius's** to
-   do in the second it takes to look. Note the livemode guard deliberately
-   answers **202**, so a rejected test-mode event is not an error and correctly
-   raises nothing.
-
-   **What that checkbox does not cover:** `create-checkout-session` failing. It
-   is not a webhook, so nobody hears about it — a customer clicks Go Pro, sees
-   an error, and leaves. Covering that needs something on the Supabase side, or
-   a client-side error report. That half is still open.
+   Still genuinely uncovered either way: `create-checkout-session` failing. It
+   is not a webhook, so none of these rows say anything about it — a customer
+   clicks Go Pro, sees an error, and leaves. That needs something on the
+   Supabase side or a client-side error report.
 
 2. **Cache headers are prepared but not applied.** Measured on 19 Aug 2026, not
    assumed: Caddy already sends an `ETag` on everything, so a returning visitor
