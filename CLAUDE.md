@@ -233,26 +233,12 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **One alert is missing, and it is the quiet one.** Checked in the dashboard
-   on 19 Aug 2026 rather than assumed — and the assumption was wrong. Stripe →
-   Communication preferences → **API** → **"Webhook errors" → e-mail was already
-   on**, enabled by Stripe's own default. Everything that fails on the webhook
-   path ends as a non-2xx, Stripe records a failed delivery, and the account
-   owner is mailed. That half was never open.
-
-   What is off is one row further down, under **Zustandswarnungen**:
-   **"Fehler bei der Generierung eines Webhook-Ereignisses"** — Stripe failing
-   to *create* an event at all. That is the failure nothing else catches: no
-   event means no delivery, no delivery means no failed delivery, and the
-   webhook-errors alert stays silent while a customer has paid and no
-   entitlement was written. It is the one case where the alerting that exists
-   is blind by construction. **Darius owns** the click; it is a notification
-   preference and changes no behaviour.
-
-   Still genuinely uncovered either way: `create-checkout-session` failing. It
-   is not a webhook, so none of these rows say anything about it — a customer
-   clicks Go Pro, sees an error, and leaves. That needs something on the
-   Supabase side or a client-side error report.
+1. **Nothing tells anyone when `create-checkout-session` fails.** It is not a
+   webhook, so none of Stripe's alerting says anything about it — a customer
+   clicks Go Pro, sees an error, and leaves, silently. Covering it needs
+   something on the Supabase side (a log drain) or a client-side error report.
+   The webhook half is covered; this half is not, and it is the half a paying
+   customer meets first.
 
 2. **Cache headers are prepared but not applied.** Measured on 19 Aug 2026, not
    assumed: Caddy already sends an `ETag` on everything, so a returning visitor
@@ -280,6 +266,24 @@ issue and was dealt with".
    which is its own risk and proves less than it looks. Left deliberately.
 
 ### Closed
+
+- **The payment path is watched** (19 Aug 2026). Read in the dashboard rather
+  than assumed, which mattered: **"Webhook errors" → e-mail was already on**, by
+  Stripe's own default. Clicking it would have switched the alerting *off* and
+  reported it as done. Everything that fails on the webhook path ends as a
+  non-2xx, Stripe records a failed delivery, and the account owner is mailed.
+  Also on by default: API integration errors, and changes to API keys.
+
+  One row was genuinely off and is now on: **"Fehler bei der Generierung eines
+  Webhook-Ereignisses"** — Stripe failing to *create* an event at all. That is
+  the failure the rest is blind to by construction: no event means no delivery,
+  no delivery means no failed delivery, and the webhook alert stays quiet while
+  somebody has paid and no entitlement was written. Verified after a reload, not
+  from the click.
+
+  Worth knowing for the next reader: the livemode guard answers **202** on
+  purpose, so a rejected test-mode event is not an error and correctly raises
+  nothing. The alerting and the code agree on what counts as a problem.
 
 - **The CORS allowlist has tests** (19 Aug 2026). It is a security boundary, not
   plumbing — echoing back whatever `Origin` arrives is
