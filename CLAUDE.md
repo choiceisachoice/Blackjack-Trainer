@@ -224,7 +224,43 @@ issue and was dealt with".
    function's own comment argues against — it should go, so the configuration
    says what it does.
 
-2. **Two things in the Edge Functions are still untested.** Most of the payment
+2. **Nothing watches the payment path.** Every guard added on 18 Aug 2026
+   announces a problem by writing to a log nobody reads: the livemode check
+   answers 202 and warns, `requireWrite` throws and Stripe records a failed
+   delivery, and the STUCK EVENT case prints the one message that needs a human.
+   All correct, all invisible. A webhook that starts failing would be noticed by
+   a customer complaining, or not at all.
+
+   This is the largest remaining risk on the money path and it is structural:
+   there is no alerting anywhere in the project. Minimum useful version: someone
+   is told when a Stripe webhook delivery fails, and when an Edge Function logs
+   an error. **Darius owns** whether that is a Stripe notification setting, a
+   Supabase log drain, or something else.
+
+3. **Three high-severity advisories in production dependencies, fixes
+   available.** `npm audit --omit=dev` reports `react-router` /
+   `react-router-dom` (RSC-mode CSRF bypass, GHSA-qwww-vcr4-c8h2) and `ws`
+   (uninitialised memory disclosure, GHSA-58qx-3vcg-4xpx). Neither obviously
+   applies here — this is a Vite SPA with no RSC, and browsers use native
+   WebSocket rather than the `ws` package — but "probably does not apply" is a
+   claim nobody has written down or verified, and updating is cheaper than being
+   right about a threat model. Earlier in the session these were characterised
+   as build/test tooling only; that was wrong.
+
+4. **Housekeeping that has been deferred more than once.** No `Cache-Control`
+   headers are set anywhere. `Dockerfile`, `nginx.conf` and `.dockerignore` are
+   still in the repo although deployment runs on Nixpacks + Caddy, so they are
+   three files describing a deployment that does not exist. Neither is urgent;
+   both keep being postponed and then forgotten, which is why they are written
+   here rather than remembered.
+
+5. **The business side is unproven.** Zero subscribers. The purchase path was
+   exercised once, by hand, on 18 Aug 2026 — that is one data point, not a
+   track record. Also untested: what a non-Swiss address does to the VAT line,
+   which needs a deliberate test-mode run rather than a real address typed into
+   a live checkout.
+
+6. **Two things in the Edge Functions are still untested.** Most of the payment
    path is covered now — the write check, the Stripe-mode check, the price
    validation, the customer/billable rules and the webhook's routing and
    claim-then-release all have tests in the ordinary `npm run test:run`. What
