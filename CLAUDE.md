@@ -233,16 +233,7 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **Stripe Tax says "action required" on the Swiss registration.** That is the
-   collect-and-remit side — Stripe filing returns on the operator's behalf — and
-   not calculation, which was verified working on a live checkout (see Closed).
-   Worth resolving; not blocking, and not a reason to change
-   `STRIPE_AUTOMATIC_TAX`. Related tidy-up: `STRIPE_TAX_RATE_CH` is set as a
-   secret and read by no code, left over from the fixed-rate approach the
-   function's own comment argues against — it should go, so the configuration
-   says what it does.
-
-2. **Nothing watches the payment path.** Every guard added on 18 Aug 2026
+1. **Nothing watches the payment path.** Every guard added on 18 Aug 2026
    announces a problem by writing to a log nobody reads: the livemode check
    answers 202 and warns, `requireWrite` throws, and the STUCK EVENT case prints
    the one message that needs a human. All correct, all invisible.
@@ -266,20 +257,19 @@ issue and was dealt with".
    an error, and leaves. Covering that needs something on the Supabase side, or
    a client-side error report. That half is still open.
 
-3. **Housekeeping that has been deferred more than once.** No `Cache-Control`
-   headers are set anywhere. `Dockerfile`, `nginx.conf` and `.dockerignore` are
-   still in the repo although deployment runs on Nixpacks + Caddy, so they are
-   three files describing a deployment that does not exist. Neither is urgent;
-   both keep being postponed and then forgotten, which is why they are written
-   here rather than remembered.
+2. **No `Cache-Control` headers are set anywhere.** Deliberately parked: the
+   attempt to add them once turned into an hour-long detour (Nixpacks →
+   Dockerfile → build args Dokploy does not pass → back to Nixpacks) while the
+   site was up the whole time. Worth doing calmly, never at the end of a
+   deploy day.
 
-4. **The business side is unproven.** Zero subscribers. The purchase path was
+3. **The business side is unproven.** Zero subscribers. The purchase path was
    exercised once, by hand, on 18 Aug 2026 — that is one data point, not a
    track record. Also untested: what a non-Swiss address does to the VAT line,
    which needs a deliberate test-mode run rather than a real address typed into
    a live checkout.
 
-5. **Two things in the Edge Functions are still untested.** Most of the payment
+4. **Two things in the Edge Functions are still untested.** Most of the payment
    path is covered now — the write check, the Stripe-mode check, the price
    validation, the customer/billable rules and the webhook's routing and
    claim-then-release all have tests in the ordinary `npm run test:run`. What
@@ -291,6 +281,31 @@ issue and was dealt with".
    not read as complete.
 
 ### Closed
+
+- **The Dockerfile deployment is gone from the repo** (19 Aug 2026). `Dockerfile`,
+  `nginx.conf` and `.dockerignore` described a way of shipping this app that has
+  not been used since S54, when the switch away from Nixpacks was attempted for
+  security headers and abandoned — Dokploy does not pass build arguments to
+  Dockerfile builds, and the Dockerfile depended on exactly that
+  (`ARG VITE_SUPABASE_URL`). Three files describing a deployment that does not
+  exist, and the only thing referencing them was this list. Build verified clean
+  after deletion.
+
+- **Stripe will not file the VAT returns, and that is a decision** (19 Aug 2026).
+  The Swiss registration sits at "action required" and stays there. That status
+  concerns **collect-and-remit** — Stripe preparing and submitting returns as a
+  paid add-on — not calculation, which was verified working on a live checkout
+  (VAT 5.17 CHF stated separately on a 69.00 total). The GmbH files its own
+  returns, so the service would duplicate an existing process.
+
+  Recorded so nobody re-opens it as a defect. If the standing warning ever
+  becomes annoying, the button next to it — "I file my own returns" — clears the
+  status without committing to anything; it tells Stripe who files, it does not
+  file.
+
+- **`STRIPE_TAX_RATE_CH` is deleted** (19 Aug 2026). Left over from the
+  fixed-rate approach `create-checkout-session` argues against; read by no code.
+  Verified absent from `supabase secrets list`.
 
 - **No open advisories in any dependency** (18 Aug 2026). `npm audit --omit=dev`
   had three high-severity findings: `react-router` / `react-router-dom`
