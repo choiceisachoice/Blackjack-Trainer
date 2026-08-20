@@ -7,6 +7,8 @@ import { startCheckout, setPendingCheckout, type BillingPlan } from '../services
 import { useHasSubscription } from '../store/entitlement-store'
 import { PRO_BENEFITS, formatMoney, formatDecimal, yearlySaving, CH_VAT_PERCENT } from '../services/pro-features'
 import { usePlanPriceStore, selectPlan } from '../store/plan-price-store'
+import { logFailure } from '../services/failure-log'
+import { LEGAL_META } from './legal/legal-meta'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
@@ -104,7 +106,8 @@ export function LandingPage() {
         navigate('/account')
       }
     } catch (e) {
-      setCheckoutError(e instanceof Error ? e.message : t('account.errors.checkout'))
+      logFailure('checkout-landing', e)
+      setCheckoutError(t('errors.checkout', { email: LEGAL_META.contactEmail }))
       setBusy(false)
     }
   }

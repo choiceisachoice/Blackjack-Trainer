@@ -8,6 +8,8 @@ import { openBillingPortal } from '../services/supabase/billing'
 import { signOutAndClearLocal } from '../services/supabase/cloud-sync'
 import { useUpgradePrompt } from '../store/upgrade-prompt-store'
 import { UpgradeModalHost } from '../components/pro/UpgradeModalHost'
+import { logFailure } from '../services/failure-log'
+import { LEGAL_META } from './legal/legal-meta'
 
 /**
  * Human-readable label + tone for a subscription status.
@@ -87,7 +89,8 @@ export function AccountPage() {
     try {
       await openBillingPortal()
     } catch (e) {
-      setBillingError(e instanceof Error ? e.message : t('account.errors.portal'))
+      logFailure('billing-portal', e)
+      setBillingError(t('errors.portal', { email: LEGAL_META.contactEmail }))
       setBusy(null)
     }
   }

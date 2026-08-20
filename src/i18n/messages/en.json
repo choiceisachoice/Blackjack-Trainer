@@ -79,11 +79,6 @@
     "manageSubscription": "Manage subscription",
     "comparePlans": "Compare plans →",
     "sectionAccount": "ACCOUNT",
-    "errors": {
-      "portal": "Could not open the billing portal.",
-      "checkout": "Could not start checkout.",
-      "alreadySubscribed": "You already have Pro on this account — no second subscription was created."
-    },
     "backToApp": "Back to app",
     "upgradeHintShort": "Upgrade to unlock the casino table, deviations and full analytics."
   },
@@ -1803,7 +1798,6 @@
       "accuracy": "Accuracy",
       "hands": "Hands"
     },
-    "deleteFailed": "Could not delete your history.",
     "planStrip": "Training plan · {{done}} of {{total}} stages",
     "edgeStats": "{{sessions}} sessions · {{hands}} hands",
     "noAchievements": "No achievements unlocked yet. Keep training!",
@@ -1923,5 +1917,10 @@
   },
   "meta": {
     "title": "Blackjack Card Counting Trainer — Learn Hi-Lo Properly"
+  },
+  "errors": {
+    "checkout": "We could not open the payment page. Please try again — if it keeps happening, write to {{email}} and we will sort it out.",
+    "portal": "We could not open your billing settings. Please try again — if it keeps happening, write to {{email}}.",
+    "reset": "Your data could not be deleted. Nothing was changed — please try again."
   }
 }

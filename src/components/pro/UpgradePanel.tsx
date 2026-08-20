@@ -14,6 +14,8 @@ import { startCheckout } from '../../services/supabase/billing'
 import type { BillingPlan } from '../../services/supabase/billing'
 import { useEntitlementStore } from '../../store/entitlement-store'
 import { usePlanPriceStore, selectPlan } from '../../store/plan-price-store'
+import { logFailure } from '../../services/failure-log'
+import { LEGAL_META } from '../../pages/legal/legal-meta'
 
 interface UpgradePanelProps {
   /** Optional context line, e.g. the locked feature the user tried to open. */
@@ -68,7 +70,13 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
         setBusy(null)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('account.errors.checkout'))
+      // The thrown message never reaches the screen. From supabase-js it reads
+      // "Edge Function returned a non-2xx status code" — English, technical, and
+      // no help to somebody who was about to pay. It goes to the console; the
+      // customer gets a sentence in their language with a way to reach us,
+      // because on this path *they* are the only alerting there is.
+      logFailure('checkout', e)
+      setError(t('errors.checkout', { email: LEGAL_META.contactEmail }))
       setBusy(null)
     }
   }

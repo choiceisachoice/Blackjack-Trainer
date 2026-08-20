@@ -142,7 +142,12 @@ describe('AnalyticsDashboard', () => {
 
     fireEvent.click(screen.getByTestId('reset-all-stats'))
 
-    expect(await screen.findByRole('alert', {}, { timeout: 5000 })).toHaveTextContent('offline')
+    // Not `toHaveTextContent('offline')`: the thrown text is for the console.
+    // After confirming a destructive action, what the reader needs is whether
+    // anything was deleted — the message says nothing was.
+    const alert = await screen.findByRole('alert', {}, { timeout: 5000 })
+    expect(alert.textContent).not.toContain('offline')
+    expect(alert.textContent).toContain('Nothing was changed')
     confirmSpy.mockRestore()
   })
 

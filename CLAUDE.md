@@ -233,12 +233,18 @@ these survive to production. Items that have been closed are recorded as closed 
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
 
-1. **Nothing tells anyone when `create-checkout-session` fails.** It is not a
-   webhook, so none of Stripe's alerting says anything about it — a customer
-   clicks Go Pro, sees an error, and leaves, silently. Covering it needs
-   something on the Supabase side (a log drain) or a client-side error report.
-   The webhook half is covered; this half is not, and it is the half a paying
-   customer meets first.
+1. **A failed checkout still produces no automatic signal.** It is not a
+   webhook, so nothing in Stripe notices — and there is nothing server-side to
+   notice it *with*, because the failures that matter here (a blocked preflight,
+   a dead network, Supabase unreachable) never reach a server at all. Closing
+   this properly needs a Supabase log drain or a client-side error reporter, and
+   neither exists.
+
+   What changed on 19 Aug 2026 is the half that was actively working against
+   us: the paywall no longer answers with the thrown message. See *The error a
+   customer reads is written for them* below. The reporting channel is the
+   customer, and it is now open rather than blocked — but it is a person
+   choosing to write in, not a signal, and it should not be mistaken for one.
 
 2. **Cache headers are prepared but not applied.** Measured on 19 Aug 2026, not
    assumed: Caddy already sends an `ETag` on everything, so a returning visitor
@@ -266,6 +272,32 @@ issue and was dealt with".
    which is its own risk and proves less than it looks. Left deliberately.
 
 ### Closed
+
+- **The error a customer reads is written for them** (19 Aug 2026). Four screens
+  did `setError(e instanceof Error ? e.message : t(…))`, which puts whatever was
+  thrown in front of a person. From `supabase-js` that is "Edge Function
+  returned a non-2xx status code" — English, on a German paywall, at the moment
+  someone had decided to pay. The translated fallback sitting right beside it
+  only ran when the thrown thing was *not* an `Error`, which is almost never, so
+  in practice it never ran at all.
+
+  This was a **fifth class** of untranslated English, distinct from the three
+  found during the i18n work and from the constants and JSX expressions: text
+  that reaches the screen through `Error.message`, where no lint rule can see
+  it. Worth remembering when the next one is hunted.
+
+  The two halves are now split — `services/failure-log.ts` takes the cause to
+  the console, and the component owns a translated sentence that never depends
+  on what was thrown. `logFailure` returns `void` deliberately, so it cannot be
+  put back into state. Checkout and portal failures name the contact address,
+  because on those paths the customer writing in is the only report there will
+  be; the data-reset failure does not, and instead says the thing the reader
+  actually needs after confirming a destructive action — that nothing was
+  deleted.
+
+  Three existing tests asserted the old behaviour and had to be turned around,
+  which is the useful part of the record: the defect was covered, and the
+  coverage was pointed the wrong way.
 
 - **The payment path is watched** (19 Aug 2026). Read in the dashboard rather
   than assumed, which mattered: **"Webhook errors" → e-mail was already on**, by

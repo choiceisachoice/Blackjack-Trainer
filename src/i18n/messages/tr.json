@@ -79,11 +79,6 @@
     "manageSubscription": "Aboneliği yönet",
     "comparePlans": "Planları karşılaştır →",
     "sectionAccount": "HESAP",
-    "errors": {
-      "portal": "Faturalandırma portalı açılamadı.",
-      "checkout": "Ödeme başlatılamadı.",
-      "alreadySubscribed": "Bu hesapta zaten Pro var — ikinci bir abonelik oluşturulmadı."
-    },
     "backToApp": "Uygulamaya dön",
     "upgradeHintShort": "Casino masasını, sapmaları ve tüm analizleri açmak için Pro’ya geçin."
   },
@@ -1803,7 +1798,6 @@
       "accuracy": "İsabet",
       "hands": "El"
     },
-    "deleteFailed": "Geçmişiniz silinemedi.",
     "planStrip": "Antrenman planı · {{total}} aşamadan {{done}}",
     "edgeStats": "{{sessions}} tur · {{hands}} el",
     "noAchievements": "Henüz açılmış ödül yok. Devam edin!",
@@ -1923,5 +1917,10 @@
   },
   "meta": {
     "title": "Blackjack kart sayma — Hi-Lo’yu doğru öğrenin"
+  },
+  "errors": {
+    "checkout": "Ödeme sayfasını açamadık. Lütfen tekrar deneyin — devam ederse {{email}} adresine yazın, hallederiz.",
+    "portal": "Fatura ayarlarınızı açamadık. Lütfen tekrar deneyin — devam ederse {{email}} adresine yazın.",
+    "reset": "Verileriniz silinemedi. Hiçbir şey değişmedi — lütfen tekrar deneyin."
   }
 }

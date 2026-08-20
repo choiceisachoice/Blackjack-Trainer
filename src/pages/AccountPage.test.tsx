@@ -27,6 +27,7 @@ vi.mock('../services/supabase/billing', () => ({
 
 import { AccountPage } from './AccountPage'
 import { useEntitlementStore } from '../store/entitlement-store'
+import { LEGAL_META } from './legal/legal-meta'
 
 /** Supabase is unconfigured under test, so everything is unlocked and the
  *  Pro "Manage subscription" path is the one on screen. */
@@ -65,8 +66,23 @@ describe('when the billing portal will not open', () => {
 
     fireEvent.click(manageButton())
 
+    expect(await screen.findByRole('alert', {}, T)).toBeInTheDocument()
+  })
+
+  it('does not put the thrown message on screen', async () => {
+    // This test used to assert the opposite. Whatever `openBillingPortal`
+    // throws comes from supabase-js and reads "Edge Function returned a
+    // non-2xx status code" — English, on whatever language the reader chose,
+    // and no use to somebody trying to cancel a subscription. The detail goes
+    // to the console; the sentence on screen is a translation this page owns.
+    openBillingPortal.mockRejectedValue(new Error('Edge Function returned a non-2xx status code'))
+    renderPage()
+
+    fireEvent.click(manageButton())
+
     const alert = await screen.findByRole('alert', {}, T)
-    expect(alert).toHaveTextContent('Billing is temporarily unavailable.')
+    expect(alert.textContent).not.toContain('non-2xx')
+    expect(alert.textContent).toContain(LEGAL_META.contactEmail)
   })
 
   it('re-enables the button so the attempt can be repeated', async () => {

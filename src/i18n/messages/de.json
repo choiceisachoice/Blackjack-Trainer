@@ -79,11 +79,6 @@
     "manageSubscription": "Abo verwalten",
     "comparePlans": "Tarife vergleichen →",
     "sectionAccount": "KONTO",
-    "errors": {
-      "portal": "Das Abrechnungsportal konnte nicht geöffnet werden.",
-      "checkout": "Der Bezahlvorgang konnte nicht gestartet werden.",
-      "alreadySubscribed": "Dieses Konto hat bereits Pro — es wurde kein zweites Abo angelegt."
-    },
     "backToApp": "Zurück zur App",
     "upgradeHintShort": "Mit Pro öffnen sich Casino-Tisch, Abweichungen und die volle Auswertung."
   },
@@ -1803,7 +1798,6 @@
       "accuracy": "Trefferquote",
       "hands": "Hände"
     },
-    "deleteFailed": "Der Verlauf liess sich nicht löschen.",
     "planStrip": "Trainingsplan · {{done}} von {{total}} Stufen",
     "edgeStats": "{{sessions}} Durchgänge · {{hands}} Hände",
     "noAchievements": "Noch keine Erfolge freigeschaltet. Bleib dran!",
@@ -1923,5 +1917,10 @@
   },
   "meta": {
     "title": "Blackjack Kartenzählen lernen — Hi-Lo richtig trainieren"
+  },
+  "errors": {
+    "checkout": "Wir konnten die Bezahlseite nicht öffnen. Versuch es bitte nochmal — wenn es weiter passiert, schreib an {{email}}, dann klären wir das.",
+    "portal": "Wir konnten deine Rechnungseinstellungen nicht öffnen. Versuch es bitte nochmal — wenn es weiter passiert, schreib an {{email}}.",
+    "reset": "Deine Daten konnten nicht gelöscht werden. Es wurde nichts verändert — versuch es bitte nochmal."
   }
 }

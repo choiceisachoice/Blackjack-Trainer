@@ -6,6 +6,7 @@ import { useAppStore } from '../../store/app-store'
 import { useIsPro } from '../../store/entitlement-store'
 import { Route, ChevronRight } from 'lucide-react'
 import { ProTeaser } from '../pro/ProTeaser'
+import { logFailure } from '../../services/failure-log'
 import {
   deriveCurriculum,
   currentStage,
@@ -521,7 +522,8 @@ export function AnalyticsDashboard() {
               } catch (e) {
                 // Previously fire-and-forget: a failed clear left the old data on
                 // screen with nothing said, after the user had confirmed.
-                setResetError(e instanceof Error ? e.message : t('analytics.deleteFailed'))
+                logFailure('data-reset', e)
+                setResetError(t('errors.reset'))
               }
             }}
             className="text-sm text-error/60 hover:text-error transition-colors cursor-pointer"

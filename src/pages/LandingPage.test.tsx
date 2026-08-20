@@ -57,6 +57,7 @@ vi.mock('framer-motion', () => {
 
 import { LandingPage } from './LandingPage'
 import { useEntitlementStore } from '../store/entitlement-store'
+import { LEGAL_META } from './legal/legal-meta'
 
 /** Supabase is unconfigured under test, so the page treats the visitor as signed in. */
 function renderPage() {
@@ -108,8 +109,23 @@ describe('the landing page checkout', () => {
     renderPage()
     fireEvent.click(goPro())
 
+    expect(await screen.findByRole('alert', {}, T)).toBeInTheDocument()
+  })
+
+  it('tells them in their own language, not in supabase-js\'s', async () => {
+    // The message shown used to be whatever was thrown. On this page that is
+    // the first thing a visitor reads after deciding to pay, and it is also
+    // the only alerting the checkout path has — `create-checkout-session` is
+    // not a webhook, so nothing in Stripe notices. Whether we ever hear about
+    // a failure depends on this sentence giving somebody a reason to write in.
+    startCheckout.mockRejectedValue(new Error('Edge Function returned a non-2xx status code'))
+
+    renderPage()
+    fireEvent.click(goPro())
+
     const alert = await screen.findByRole('alert', {}, T)
-    expect(alert).toHaveTextContent('Billing is temporarily unavailable.')
+    expect(alert.textContent).not.toContain('non-2xx')
+    expect(alert.textContent).toContain(LEGAL_META.contactEmail)
   })
 
   it('re-enables the button after a failure so the visitor can retry', async () => {

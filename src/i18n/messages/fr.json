@@ -79,11 +79,6 @@
     "manageSubscription": "Gérer l'abonnement",
     "comparePlans": "Comparer les formules →",
     "sectionAccount": "COMPTE",
-    "errors": {
-      "portal": "Impossible d'ouvrir le portail de facturation.",
-      "checkout": "Impossible de démarrer le paiement.",
-      "alreadySubscribed": "Ce compte dispose déjà de Pro — aucun second abonnement n'a été créé."
-    },
     "backToApp": "Retour à l’app",
     "upgradeHintShort": "Passez à Pro pour débloquer la table de casino, les déviations et toutes les analyses."
   },
@@ -1803,7 +1798,6 @@
       "accuracy": "Précision",
       "hands": "Mains"
     },
-    "deleteFailed": "Impossible de supprimer votre historique.",
     "planStrip": "Plan d’entraînement · {{done}} étapes sur {{total}}",
     "edgeStats": "{{sessions}} sessions · {{hands}} mains",
     "noAchievements": "Aucun succès débloqué pour l’instant. Continuez !",
@@ -1923,5 +1917,10 @@
   },
   "meta": {
     "title": "Blackjack : compter les cartes — apprendre le Hi-Lo"
+  },
+  "errors": {
+    "checkout": "Nous n’avons pas pu ouvrir la page de paiement. Réessayez — si cela persiste, écrivez à {{email}} et nous réglerons cela.",
+    "portal": "Nous n’avons pas pu ouvrir vos paramètres de facturation. Réessayez — si cela persiste, écrivez à {{email}}.",
+    "reset": "Vos données n’ont pas pu être supprimées. Rien n’a été modifié — réessayez."
   }
 }
