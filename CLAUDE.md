@@ -226,16 +226,27 @@ issue and was dealt with".
 
 2. **Nothing watches the payment path.** Every guard added on 18 Aug 2026
    announces a problem by writing to a log nobody reads: the livemode check
-   answers 202 and warns, `requireWrite` throws and Stripe records a failed
-   delivery, and the STUCK EVENT case prints the one message that needs a human.
-   All correct, all invisible. A webhook that starts failing would be noticed by
-   a customer complaining, or not at all.
+   answers 202 and warns, `requireWrite` throws, and the STUCK EVENT case prints
+   the one message that needs a human. All correct, all invisible.
 
-   This is the largest remaining risk on the money path and it is structural:
-   there is no alerting anywhere in the project. Minimum useful version: someone
-   is told when a Stripe webhook delivery fails, and when an Edge Function logs
-   an error. **Darius owns** whether that is a Stripe notification setting, a
-   Supabase log drain, or something else.
+   **Most of it is one checkbox.** Everything that is genuinely wrong on the
+   webhook path ends as a non-2xx, which Stripe records as a failed delivery —
+   so a single setting covers the lot:
+
+   > Stripe → Settings → **Communication preferences** → tab **API** →
+   > **"Webhook errors"** → e-mail
+
+   Located and read on 18 Aug 2026; its on/off state could not be determined
+   from outside (Stripe renders those checkboxes as a custom component), and
+   flipping a notification setting on the operator's account is **Darius's** to
+   do in the second it takes to look. Note the livemode guard deliberately
+   answers **202**, so a rejected test-mode event is not an error and correctly
+   raises nothing.
+
+   **What that checkbox does not cover:** `create-checkout-session` failing. It
+   is not a webhook, so nobody hears about it — a customer clicks Go Pro, sees
+   an error, and leaves. Covering that needs something on the Supabase side, or
+   a client-side error report. That half is still open.
 
 3. **Housekeeping that has been deferred more than once.** No `Cache-Control`
    headers are set anywhere. `Dockerfile`, `nginx.conf` and `.dockerignore` are
