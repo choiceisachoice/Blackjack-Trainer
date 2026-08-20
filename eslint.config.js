@@ -52,7 +52,14 @@ export default defineConfig([
   */
   {
     files: ['src/**/*.tsx'],
-    ignores: ['**/*.test.tsx', 'src/pages/DevPreview.tsx', 'src/pages/LoaderGallery.tsx'],
+    // The dev harnesses are English-only on purpose: they are read by whoever
+    // is building the thing, never by a user, and they never reach production.
+    ignores: [
+      '**/*.test.tsx',
+      'src/pages/DevPreview.tsx',
+      'src/pages/LoaderGallery.tsx',
+      'src/pages/LevelGallery.tsx',
+    ],
     plugins: { i18next },
     rules: {
       'i18next/no-literal-string': [
