@@ -257,11 +257,17 @@ issue and was dealt with".
    an error, and leaves. Covering that needs something on the Supabase side, or
    a client-side error report. That half is still open.
 
-2. **No `Cache-Control` headers are set anywhere.** Deliberately parked: the
-   attempt to add them once turned into an hour-long detour (Nixpacks →
-   Dockerfile → build args Dokploy does not pass → back to Nixpacks) while the
-   site was up the whole time. Worth doing calmly, never at the end of a
-   deploy day.
+2. **Cache headers are prepared but not applied.** Measured on 19 Aug 2026, not
+   assumed: Caddy already sends an `ETag` on everything, so a returning visitor
+   re-downloads nothing — they just *ask*, about thirty times, one conditional
+   request per asset before the page paints. It costs round trips, not bytes,
+   which makes this an optimisation rather than a hole.
+
+   [`docs/traefik-cache-headers.yml`](./traefik-cache-headers.yml) is ready to
+   paste, scoped to `/assets` only — the one place Vite content-hashes, and
+   therefore the only place `immutable` is safe. **One blank remains** and it is
+   the one that decides whether it works: the service name Dokploy generated,
+   which cannot be read from here. Rollback is deleting the file.
 
 3. **The business side is unproven.** Zero subscribers. The purchase path was
    exercised once, by hand, on 18 Aug 2026 — that is one data point, not a
@@ -269,18 +275,28 @@ issue and was dealt with".
    which needs a deliberate test-mode run rather than a real address typed into
    a live checkout.
 
-4. **Two things in the Edge Functions are still untested.** Most of the payment
-   path is covered now — the write check, the Stripe-mode check, the price
-   validation, the customer/billable rules and the webhook's routing and
-   claim-then-release all have tests in the ordinary `npm run test:run`. What
-   does not: **signature verification** (it is the Stripe SDK, and faking a
-   valid signature to test around it is its own risk) and the **CORS
-   allowlist**, which reads `Deno.env` at module load.
-
-   Both are small and neither has ever failed. Naming them so the coverage is
-   not read as complete.
+4. **Signature verification is still untested.** Everything else on the payment
+   path now has a test — the write check, the Stripe-mode check, the price
+   validation, the customer rules, the webhook's routing and ledger, and as of
+   19 Aug the CORS allowlist. What remains is `constructEventAsync`, which is
+   the Stripe SDK: testing around it means manufacturing a valid signature,
+   which is its own risk and proves less than it looks. Left deliberately.
 
 ### Closed
+
+- **The CORS allowlist has tests** (19 Aug 2026). It is a security boundary, not
+  plumbing — echoing back whatever `Origin` arrives is
+  `Access-Control-Allow-Origin: *` with extra steps, which would let any site on
+  the internet start a checkout in a signed-in user's name. It was the last
+  guard on the money path with no test, because `cors.ts` reads `Deno.env` at
+  module load and is unreachable from the test run.
+
+  The deciding moved to `_shared/origins.ts`, pure and covered: the apex/`www`
+  pairing in both directions, trailing-slash handling on `APP_URL` and on the
+  extra origins (a single stray slash produces an entry that looks right in the
+  dashboard and matches nothing), lookalike hosts, and the scheme counting as
+  part of the identity. All seventeen passed first run — the behaviour was
+  already right, it just could not be shown.
 
 - **The Dockerfile deployment is gone from the repo** (19 Aug 2026). `Dockerfile`,
   `nginx.conf` and `.dockerignore` described a way of shipping this app that has

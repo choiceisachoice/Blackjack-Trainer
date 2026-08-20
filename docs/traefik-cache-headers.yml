@@ -1,0 +1,111 @@
+# Cache headers for black-jack-training.com
+#
+# ─── WHAT THIS IS WORTH, MEASURED ────────────────────────────────────
+#
+# Checked against the live site on 19 Aug 2026:
+#
+#   curl -sI https://black-jack-training.com/assets/index-C0PURwp2.js
+#     HTTP/1.1 200 OK
+#     Etag: "dktyv59xk9iwdks9"
+#     (no Cache-Control)
+#
+# So Caddy already sends an ETag on everything. A returning visitor does not
+# re-download anything — the browser asks, and gets `304 Not Modified`. What is
+# missing is not correctness, it is the *asking*: roughly thirty conditional
+# requests on every repeat visit, one per asset, each a full round trip before
+# the page can paint.
+#
+# This is therefore an optimisation and not a hole. Worth doing calmly. NOT
+# worth doing at the end of a deploy day — the last attempt at header work here
+# turned into an hour of Nixpacks → Dockerfile → build-args-Dokploy-does-not-
+# pass → back to Nixpacks, while the site was up the whole time.
+#
+# ─── WHY ONLY /assets ────────────────────────────────────────────────
+#
+# Vite content-hashes everything under `/assets` (`index-C0PURwp2.js`), so the
+# filename changes whenever the bytes do. That is exactly the condition under
+# which `immutable` is safe: there is no such thing as a stale response,
+# because a changed file is a different URL.
+#
+# Nothing else gets touched, deliberately:
+#
+#   index.html   must never be cached — it is what points at the hashed assets,
+#                and a cached copy would pin a visitor to an old build.
+#   /fonts/*     NOT hashed (`inter-latin.woff2`). A long max-age here would
+#                mean replacing a font requires renaming the file. Doable, but
+#                it is a trap to leave for someone else, so: left alone.
+#   /sounds/*    same reasoning.
+#   robots.txt, sitemap.xml, og-card.jpg, favicon.svg
+#                small, rarely fetched, and the ETag round trip is already fine.
+#
+# The result is a strict improvement with one moving part.
+#
+# ─── INSTALL ─────────────────────────────────────────────────────────
+#
+#  1. Find the service name Dokploy generated for this app. Traefik dashboard →
+#     HTTP → Services, or Dokploy → the application → Advanced. It looks like
+#     `blackjack-trainer-<hash>`. Put it in <SERVICE-NAME> below.
+#
+#     This is the one value that cannot be written here in advance, and it is
+#     also the one that decides whether this works — a router pointing at a
+#     service that does not exist takes `/assets` down.
+#
+#  2. Dokploy → Settings → Web Server → Traefik file editor.
+#  3. Create `cache-headers.yml` in `/etc/dokploy/traefik/dynamic`. The file
+#     provider watches the directory and reloads on save — no restart.
+#  4. Paste everything below the marker line.
+#
+#  5. Verify from outside, immediately:
+#
+#       curl -sI https://black-jack-training.com/ | grep -i -E '^HTTP|cache-control'
+#         → HTTP/1.1 200 OK, and NO Cache-Control. index.html must stay uncached.
+#
+#       curl -s https://black-jack-training.com/ | grep -o '/assets/[A-Za-z0-9_-]*\.js' | head -1
+#       curl -sI https://black-jack-training.com<that path> | grep -i -E '^HTTP|cache-control'
+#         → HTTP/1.1 200 OK
+#         → Cache-Control: public, max-age=31536000, immutable
+#
+#     A 404 on the second one means the service name is wrong.
+#
+#  6. Rollback is deleting this file. Traefik reloads and the site returns to
+#     exactly today's behaviour, which already works.
+#
+# ─── ONE THING TO KNOW BEFORE YOU DO IT ──────────────────────────────
+#
+# `immutable` means a browser will not re-check for a year. That is safe here
+# *only* because of the content hashing. If the build is ever changed to emit
+# unhashed filenames under /assets, this file becomes a way to serve a stale
+# app to returning visitors for twelve months, and there is no way to reach
+# them. Check `dist/assets/` still looks like `name-HASH.js` before assuming
+# this is still safe.
+#
+# ─────────────────────────── PASTE FROM HERE ─────────────────────────
+
+http:
+  middlewares:
+    cache-immutable:
+      headers:
+        customResponseHeaders:
+          # public: a shared cache may store it too — these files are identical
+          # for every visitor and contain nothing personal.
+          # max-age=31536000: one year, the maximum anyone honours.
+          # immutable: do not even revalidate. This is the part that removes the
+          # round trip, and the part that requires content-hashed filenames.
+          Cache-Control: "public, max-age=31536000, immutable"
+
+  routers:
+    blackjack-assets:
+      rule: "Host(`black-jack-training.com`, `www.black-jack-training.com`) && PathPrefix(`/assets`)"
+      # Higher than the application router Dokploy generates, so this one wins
+      # for /assets and everything else falls through to it untouched.
+      priority: 100
+      entryPoints:
+        - websecure
+      middlewares:
+        # The `@file` suffix names the provider. Without it Traefik looks in the
+        # wrong one and routes silently without the middleware — the site keeps
+        # working and the header keeps missing, which is the worst failure shape.
+        - cache-immutable@file
+      service: <SERVICE-NAME>
+      tls:
+        certResolver: letsencrypt
