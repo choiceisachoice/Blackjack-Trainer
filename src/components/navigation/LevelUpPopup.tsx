@@ -29,18 +29,21 @@ export function LevelUpPopup() {
   const levelUpData = useLevelStore(s => s.levelUpData)
   const dismissLevelUp = useLevelStore(s => s.dismissLevelUp)
 
-  // Whether to show the one-time explainer.
+  // Whether to show the explainer.
   //
-  // Answered when the popup *opens*, and then held for as long as it is open.
-  // Both halves matter and the first one was wrong:
+  // It shows on every level-up **until the reader says they have got it**, and
+  // that is the whole point of the button below. The earlier version hid it
+  // after one showing, decided by the app — which assumes the text was read.
+  // Somebody whose eye went straight to "Lv.3 Card Player" never saw it again.
   //
-  // - Held, because `dismiss` marks it seen. Re-reading on every render would
-  //   let the text vanish underneath somebody mid-sentence.
+  // Answered when the popup *opens*, then held for as long as it is open:
+  //
+  // - Held, because pressing the button marks it hidden. Re-reading on every
+  //   render would make the text vanish underneath somebody mid-sentence.
   // - Re-read per opening, because this component is mounted once in
   //   `TrainerApp` and stays there for the whole session, rendering null in
   //   between. A `useState` initialiser answers at app start and never again,
-  //   so a second level-up in one sitting showed the explainer a second time —
-  //   which is precisely what it exists not to do.
+  //   so the text came back on a second level-up even after being switched off.
   //
   // Adjusted during render rather than in an effect: an effect would paint one
   // frame with the wrong answer first. This is React's documented pattern for
@@ -58,7 +61,7 @@ export function LevelUpPopup() {
   useEffect(() => {
     if (!showLevelUp) return
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' || e.key === 'Enter') { markLevelIntroSeen(); dismissLevelUp() }
+      if (e.key === 'Escape' || e.key === 'Enter') dismissLevelUp()
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
@@ -69,7 +72,18 @@ export function LevelUpPopup() {
   const { oldLevel, newLevel, breakdown } = levelUpData
   const totalXP = breakdown.reduce((sum, b) => sum + b.amount, 0)
 
-  const dismiss = () => { markLevelIntroSeen(); dismissLevelUp() }
+  // Closing is NOT the same as "I have understood this". It used to be, which
+  // made the explainer a one-shot nobody could keep. Only the button below
+  // records that.
+  const dismiss = () => dismissLevelUp()
+
+  const hideIntroForGood = () => {
+    markLevelIntroSeen()
+    // Hidden immediately rather than only from the next level-up: the popup
+    // stays open afterwards, and a control that appears to do nothing reads as
+    // broken.
+    setShowIntro(false)
+  }
 
   // Overlay pattern copied from UpgradeModalHost, which gets this right in the
   // same app: `grid place-items-center p-4 overflow-y-auto` + `my-auto` so a
@@ -186,6 +200,20 @@ export function LevelUpPopup() {
           >
             <Trans i18nKey="levels.whatIsThis" components={{ b: <b className="text-content/80" /> }} />
           </p>
+        )}
+
+        {/* Deliberately quiet, and deliberately NOT next to "Continue": one is
+            "I am done reading this forever", the other is "close this popup".
+            Two buttons that look alike would get pressed interchangeably. */}
+        {showIntro && (
+          <button
+            onClick={hideIntroForGood}
+            data-testid="level-up-intro-hide"
+            className="block mx-auto -mt-4 mb-7 text-xs text-content/40 hover:text-content/70
+              underline underline-offset-4 cursor-pointer transition-colors"
+          >
+            {t('levels.hideExplainer')}
+          </button>
         )}
 
         {/* Tier badge */}

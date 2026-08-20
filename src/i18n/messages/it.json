@@ -1562,7 +1562,8 @@
     "total": "Totale",
     "whatIsThis": "<b>Che cos’è?</b> Il livello misura quanto hai allenato. Guadagni punti per gli esercizi completati e le sfide giornaliere — più sei preciso, più ne prendi. I livelli non sbloccano nulla: sono solo il registro del lavoro.",
     "abbr": "Liv.{{n}}",
-    "levelUp": "Livello su"
+    "levelUp": "Livello su",
+    "hideExplainer": "Ho capito — non mostrare più"
   },
   "chal": {
     "warm_up": {

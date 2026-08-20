@@ -1562,7 +1562,8 @@
     "total": "Toplam",
     "whatIsThis": "<b>Bu nedir?</b> Seviyeniz ne kadar çalıştığınızı gösterir. Tamamlanan alıştırmalar ve günlük görevler puan kazandırır — ne kadar isabetliyseniz o kadar çok. Seviyeler hiçbir şeyin kilidini açmaz; yalnızca yapılan işin kaydıdır.",
     "abbr": "Sv.{{n}}",
-    "levelUp": "Seviye atladın"
+    "levelUp": "Seviye atladın",
+    "hideExplainer": "Anladım — bir daha gösterme"
   },
   "chal": {
     "warm_up": {

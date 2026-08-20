@@ -42,43 +42,71 @@ describe('LevelUpPopup', () => {
     expect(screen.getByTestId('level-up-explainer').textContent).toMatch(/don.t unlock anything/i)
   })
 
-  it('does not repeat the explanation once it has been seen', () => {
+  it('keeps explaining until the reader says they have got it', () => {
+    // The explainer used to disappear after one showing, decided by the app.
+    // That assumes reading, and somebody whose eye went straight to "Lv.3 Card
+    // Player" never saw it again. It now stays until they say so.
     show(1, 2)
     const { unmount } = render(<LevelUpPopup />)
+    expect(screen.getByTestId('level-up-explainer')).toBeInTheDocument()
     fireEvent.click(screen.getByTestId('level-up-dismiss'))
     unmount()
 
     show(2, 3)
     render(<LevelUpPopup />)
+    expect(screen.getByTestId('level-up-explainer')).toBeInTheDocument()
+  })
+
+  it('stops for good once they press "do not show again"', () => {
+    show(1, 2)
+    const { unmount } = render(<LevelUpPopup />)
+    fireEvent.click(screen.getByTestId('level-up-intro-hide'))
+    unmount()
+
+    show(2, 3)
+    render(<LevelUpPopup />)
+    expect(screen.getByTestId('level-up-popup')).toBeInTheDocument()
     expect(screen.queryByTestId('level-up-explainer')).toBeNull()
   })
 
-  it('does not repeat the explanation on a second level-up in the same session', () => {
-    // The version above unmounts between the two, and that is why it passed
-    // while the bug was live: `LevelUpPopup` is mounted once in `TrainerApp`
-    // and stays there for the whole session, rendering null in between. The
-    // "have they seen it" answer was read in a `useState` initialiser, so it
-    // was decided at app start and frozen — level up twice in one sitting and
-    // the explainer came back, which is exactly what a returning player reports.
+  it('hides the text immediately, so the button visibly did something', () => {
+    // Pressing it and seeing nothing change reads as a broken control — and the
+    // popup stays open afterwards, so there is a moment to fill.
+    show(1, 2)
+    render(<LevelUpPopup />)
+    fireEvent.click(screen.getByTestId('level-up-intro-hide'))
+
+    expect(screen.queryByTestId('level-up-explainer')).toBeNull()
+    expect(screen.getByTestId('level-up-popup')).toBeInTheDocument()
+  })
+
+  it('does not close the popup — the reader decides when to leave', () => {
+    show(1, 2)
+    render(<LevelUpPopup />)
+    fireEvent.click(screen.getByTestId('level-up-intro-hide'))
+    expect(screen.getByTestId('level-up-dismiss')).toBeInTheDocument()
+  })
+
+  it('does not repeat the explanation on a second level-up in the same session, once hidden', () => {
+    // `LevelUpPopup` is mounted once in `TrainerApp` and stays for the whole
+    // session, rendering null in between. Reading "have they hidden it" in a
+    // `useState` initialiser answered at app start and froze — so the text came
+    // back on the second level-up even after being switched off.
     //
     // No unmount here, on purpose. This is the shape the app actually has.
     show(1, 2)
     render(<LevelUpPopup />)
-    expect(screen.getByTestId('level-up-explainer')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('level-up-intro-hide'))
     fireEvent.click(screen.getByTestId('level-up-dismiss'))
 
-    // Through `act`: the store is changed after the render, so React has to be
-    // told to flush before anything can be asserted about the DOM.
     act(() => show(2, 3))
     expect(screen.getByTestId('level-up-popup')).toBeInTheDocument()
     expect(screen.queryByTestId('level-up-explainer')).toBeNull()
   })
 
   it('keeps the explanation on screen while the popup it belongs to is open', () => {
-    // The reason the original used a once-only initialiser at all. Whatever
-    // replaces it must still not let the text vanish underneath someone who is
-    // mid-sentence, so re-reading has to happen when the popup opens — not on
-    // every render.
+    // Re-reading on every render would let the text vanish underneath somebody
+    // mid-sentence. It is answered when the popup opens, then held.
     show(1, 2)
     const { rerender } = render(<LevelUpPopup />)
     expect(screen.getByTestId('level-up-explainer')).toBeInTheDocument()

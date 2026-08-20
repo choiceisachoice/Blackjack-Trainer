@@ -1562,7 +1562,8 @@
     "total": "Gesamt",
     "whatIsThis": "<b>Was ist das?</b> Dein Level zeigt, wie viel du trainiert hast. Punkte gibt es für abgeschlossene Übungen und Tagesaufgaben — je genauer du bist, desto mehr. Level schalten nichts frei; sie sind schlicht das Protokoll deiner Arbeit.",
     "abbr": "Lv.{{n}}",
-    "levelUp": "Level auf"
+    "levelUp": "Level auf",
+    "hideExplainer": "Verstanden — nicht mehr anzeigen"
   },
   "chal": {
     "warm_up": {

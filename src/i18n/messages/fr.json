@@ -1562,7 +1562,8 @@
     "total": "Total",
     "whatIsThis": "<b>Qu’est-ce que c’est ?</b> Votre niveau reflète le travail accompli. Vous gagnez des points pour les exercices terminés et les défis quotidiens — plus vous êtes précis, plus vous en gagnez. Les niveaux ne débloquent rien ; ils sont simplement la trace du travail.",
     "abbr": "Niv.{{n}}",
-    "levelUp": "Niveau supérieur"
+    "levelUp": "Niveau supérieur",
+    "hideExplainer": "Compris — ne plus afficher"
   },
   "chal": {
     "warm_up": {

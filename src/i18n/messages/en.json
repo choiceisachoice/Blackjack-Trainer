@@ -1562,7 +1562,8 @@
     "total": "Total",
     "whatIsThis": "<b>What is this?</b> Your level tracks how much you have trained. You earn points for finished drills and daily challenges — the more accurate you are, the more you get. Levels don’t unlock anything; they are simply a record of the work.",
     "abbr": "Lv.{{n}}",
-    "levelUp": "Level up"
+    "levelUp": "Level up",
+    "hideExplainer": "Got it — don’t show this again"
   },
   "chal": {
     "warm_up": {

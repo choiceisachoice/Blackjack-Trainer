@@ -1562,7 +1562,8 @@
     "total": "Total",
     "whatIsThis": "<b>O que é isto?</b> O seu nível mostra quanto treinou. Ganha pontos por exercícios concluídos e desafios diários — quanto mais preciso for, mais recebe. Os níveis não desbloqueiam nada; são apenas o registo do trabalho.",
     "abbr": "Nív.{{n}}",
-    "levelUp": "Subiu de nível"
+    "levelUp": "Subiu de nível",
+    "hideExplainer": "Percebi — não mostrar mais"
   },
   "chal": {
     "warm_up": {
