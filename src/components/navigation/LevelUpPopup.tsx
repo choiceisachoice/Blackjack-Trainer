@@ -29,15 +29,30 @@ export function LevelUpPopup() {
   const levelUpData = useLevelStore(s => s.levelUpData)
   const dismissLevelUp = useLevelStore(s => s.dismissLevelUp)
 
-  // Whether to show the one-time explainer. Read once via a lazy initialiser so
-  // it stays stable for the life of this popup even after we mark it seen, and
-  // declared BEFORE any conditional return so hook order is fixed (a hook after
-  // an early `return null` caused "rendered fewer hooks than expected").
+  // Whether to show the one-time explainer.
   //
-  // Not a ref: writing a ref during render is a React rule violation that
-  // breaks under concurrent rendering. `useState`'s initialiser is the
-  // sanctioned way to compute a value exactly once.
-  const [showIntro] = useState(() => !hasSeenLevelIntro())
+  // Answered when the popup *opens*, and then held for as long as it is open.
+  // Both halves matter and the first one was wrong:
+  //
+  // - Held, because `dismiss` marks it seen. Re-reading on every render would
+  //   let the text vanish underneath somebody mid-sentence.
+  // - Re-read per opening, because this component is mounted once in
+  //   `TrainerApp` and stays there for the whole session, rendering null in
+  //   between. A `useState` initialiser answers at app start and never again,
+  //   so a second level-up in one sitting showed the explainer a second time —
+  //   which is precisely what it exists not to do.
+  //
+  // Adjusted during render rather than in an effect: an effect would paint one
+  // frame with the wrong answer first. This is React's documented pattern for
+  // "reset state when something changes", and both pieces of state are declared
+  // BEFORE any conditional return so hook order stays fixed (a hook after the
+  // early `return null` once caused "rendered fewer hooks than expected").
+  const [showIntro, setShowIntro] = useState(false)
+  const [wasOpen, setWasOpen] = useState(false)
+  if (showLevelUp !== wasOpen) {
+    setWasOpen(showLevelUp)
+    if (showLevelUp) setShowIntro(!hasSeenLevelIntro())
+  }
 
   // Dismiss on Escape / Enter for keyboard accessibility
   useEffect(() => {

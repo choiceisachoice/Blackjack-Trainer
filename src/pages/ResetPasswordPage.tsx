@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Spade, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import { Spade, Loader2, ArrowLeft } from 'lucide-react'
+import { PasswordInput } from '../components/auth/PasswordInput'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 
 /** Supabase rejects anything shorter; checked here so the message arrives sooner. */
@@ -171,16 +172,17 @@ export function ResetPasswordPage() {
 }
 
 /**
- * A password field with a reveal toggle.
+ * A labelled password field.
  *
- * The toggle matters more here than on a sign-in form. A typo when signing in
- * costs one retry; a typo when *setting* a password becomes the password, and
- * locks you out of the account you were in the middle of recovering. The repeat
- * field catches that too, but only by making you type it wrong twice — being
- * able to look is the version that actually helps.
+ * The box itself is `PasswordInput`, shared with the sign-in screen. It used to
+ * be written out here and only here, which is why the sign-in form had no way
+ * to check what had been typed.
  *
- * Both fields share one toggle on purpose: revealing only half of a pair you
- * are asked to match is no help at all.
+ * Both fields on this page share one `shown` flag on purpose: revealing half of
+ * a pair you are asked to match is no help at all. And the toggle earns its
+ * place here more than anywhere — a typo when signing in costs one retry, a
+ * typo when *setting* a password becomes the password, and locks you out of the
+ * account you were in the middle of recovering.
  */
 function Field({ id, label, value, onChange, autoComplete, testId, shown, onToggle }: {
   id: string
@@ -192,39 +194,20 @@ function Field({ id, label, value, onChange, autoComplete, testId, shown, onTogg
   shown: boolean
   onToggle: () => void
 }) {
-  const { t } = useTranslation()
   return (
     <div>
       <label htmlFor={id} className="block text-[0.7rem] font-semibold tracking-wider uppercase text-content/45 mb-1.5">
         {label}
       </label>
-      <div className="relative">
-        <input
-          id={id}
-          type={shown ? 'text' : 'password'}
-          required
-          autoComplete={autoComplete}
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          data-testid={testId}
-          className="w-full rounded-xl border border-contrast/12 bg-contrast/[.03] pl-3.5 pr-11 py-2.5
-            text-content outline-none focus:border-gold/50"
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          // Labelled for what it will do, not for what it is: a screen reader
-          // announcing "eye" tells nobody anything.
-          aria-label={shown ? t('auth.hidePassword') : t('auth.showPassword')}
-          aria-pressed={shown}
-          title={shown ? t('auth.hidePassword') : t('auth.showPassword')}
-          data-testid={`${testId}-reveal`}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-lg
-            text-content/40 hover:text-content hover:bg-contrast/8 cursor-pointer transition-colors"
-        >
-          {shown ? <EyeOff size={16} /> : <Eye size={16} />}
-        </button>
-      </div>
+      <PasswordInput
+        id={id}
+        value={value}
+        onChange={onChange}
+        autoComplete={autoComplete}
+        testId={testId}
+        shown={shown}
+        onToggle={onToggle}
+      />
     </div>
   )
 }

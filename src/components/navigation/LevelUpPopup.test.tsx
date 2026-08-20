@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, act } from '@testing-library/react'
 import { LevelUpPopup } from './LevelUpPopup'
 import { useLevelStore } from '../../store/level-store'
 import { LEVELS } from '../../services/level-system'
@@ -51,6 +51,41 @@ describe('LevelUpPopup', () => {
     show(2, 3)
     render(<LevelUpPopup />)
     expect(screen.queryByTestId('level-up-explainer')).toBeNull()
+  })
+
+  it('does not repeat the explanation on a second level-up in the same session', () => {
+    // The version above unmounts between the two, and that is why it passed
+    // while the bug was live: `LevelUpPopup` is mounted once in `TrainerApp`
+    // and stays there for the whole session, rendering null in between. The
+    // "have they seen it" answer was read in a `useState` initialiser, so it
+    // was decided at app start and frozen — level up twice in one sitting and
+    // the explainer came back, which is exactly what a returning player reports.
+    //
+    // No unmount here, on purpose. This is the shape the app actually has.
+    show(1, 2)
+    render(<LevelUpPopup />)
+    expect(screen.getByTestId('level-up-explainer')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('level-up-dismiss'))
+
+    // Through `act`: the store is changed after the render, so React has to be
+    // told to flush before anything can be asserted about the DOM.
+    act(() => show(2, 3))
+    expect(screen.getByTestId('level-up-popup')).toBeInTheDocument()
+    expect(screen.queryByTestId('level-up-explainer')).toBeNull()
+  })
+
+  it('keeps the explanation on screen while the popup it belongs to is open', () => {
+    // The reason the original used a once-only initialiser at all. Whatever
+    // replaces it must still not let the text vanish underneath someone who is
+    // mid-sentence, so re-reading has to happen when the popup opens — not on
+    // every render.
+    show(1, 2)
+    const { rerender } = render(<LevelUpPopup />)
+    expect(screen.getByTestId('level-up-explainer')).toBeInTheDocument()
+
+    rerender(<LevelUpPopup />)
+    rerender(<LevelUpPopup />)
+    expect(screen.getByTestId('level-up-explainer')).toBeInTheDocument()
   })
 
   it('shows where the XP came from', () => {

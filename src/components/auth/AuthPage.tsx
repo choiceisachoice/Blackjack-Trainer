@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
+import { PasswordInput } from './PasswordInput'
 import { Spade, Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth-store'
 
@@ -30,6 +31,10 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [busy, setBusy] = useState(false)
+  // One toggle for the screen, not per field: there is only ever one password
+  // box here, and the state resets with the component rather than persisting —
+  // nobody wants their password left visible from a previous visit.
+  const [passwordShown, setPasswordShown] = useState(false)
   // Seeded from the caller so an arrival can explain itself — e.g. landing
   // here straight after a password change, which would otherwise look like
   // an unexplained logout.
@@ -147,16 +152,15 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
               form. */}
           {mode !== 'reset' && (
             <Field label={t('auth.password')}>
-              <input
-                type="password"
-                required
+              <PasswordInput
                 minLength={6}
                 autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                 value={password}
-                onChange={e => setPassword(e.target.value)}
-                className={inputClass}
+                onChange={setPassword}
                 placeholder="••••••••"
-                data-testid="auth-password"
+                testId="auth-password"
+                shown={passwordShown}
+                onToggle={() => setPasswordShown(v => !v)}
               />
             </Field>
           )}
