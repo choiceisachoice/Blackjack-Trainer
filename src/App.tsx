@@ -36,6 +36,9 @@ const LoaderGallery = import.meta.env.DEV
 const LevelGallery = import.meta.env.DEV
   ? lazy(() => import('./pages/LevelGallery').then(m => ({ default: m.LevelGallery })))
   : null
+const MotionFilm = import.meta.env.DEV
+  ? lazy(() => import('./pages/MotionFilm').then(m => ({ default: m.MotionFilm })))
+  : null
 
 function RouteLoader() {
   return <AppLoader />
@@ -175,6 +178,7 @@ function App() {
         {DevPreview && <Route path="/dev" element={<DevPreview />} />}
         {LoaderGallery && <Route path="/dev/loaders" element={<LoaderGallery />} />}
         {LevelGallery && <Route path="/dev/levels" element={<LevelGallery />} />}
+        {MotionFilm && <Route path="/dev/motion" element={<MotionFilm />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

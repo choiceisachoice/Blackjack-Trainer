@@ -87,7 +87,7 @@ npx supabase migration new <name>  # Create new migration
 
 ## Dev-only screens
 
-Three routes that exist only under `import.meta.env.DEV` and never reach a production
+Four routes that exist only under `import.meta.env.DEV` and never reach a production
 bundle. They exist because the most important moments in this product are the hardest to
 look at — the loading screen is over in a second, and the level-up popup sits behind the
 login. What you cannot look at, you cannot judge.
@@ -97,6 +97,7 @@ login. What you cannot look at, you cannot judge.
 | `/dev` | Loading-screen / intro-sequence harness |
 | `/dev/loaders` | Spinner gallery, for picking one |
 | `/dev/levels` | **All 25 levels side by side.** Click a card to open the *real* `LevelUpPopup` through the *real* store — the only way to see level 17 without earning 120,000 XP. Also carries a “reset explainer” control, since the don’t-show-again button writes to localStorage. |
+| `/dev/motion` | **“Bloom” — a 12.8s title sequence on canvas.** One card becomes 52, which open into a rotating rosette, close into a dealer's fan, and give back the card they started from. Two earlier versions of this screen failed the same way and the lesson is worth keeping: the first animated the product's *vocabulary* (running count, true count, bet ramp) and meant nothing to anyone who did not already know those words; the second drew card **backs** — dark rectangles on a dark ground, monotone no matter how well lit. The colour in a deck is on the front. Faces up on green felt, suits stepping ♠♥♣♦ so red and black alternate around the ring. The model (`services/motion/deck-film.ts`) is a pure function of `(card, t)`, so the piece is seekable — which is what makes the scrubber a review tool rather than a toy. |
 
 They are excluded from `i18next/no-literal-string` on purpose: read by whoever is building
 the thing, never by a user. Guard new ones with the same ternary as the others — guarding

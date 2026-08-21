@@ -59,6 +59,7 @@ export default defineConfig([
       'src/pages/DevPreview.tsx',
       'src/pages/LoaderGallery.tsx',
       'src/pages/LevelGallery.tsx',
+      'src/pages/MotionFilm.tsx',
     ],
     plugins: { i18next },
     rules: {
