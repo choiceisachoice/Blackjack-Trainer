@@ -1,4 +1,3 @@
-import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { CasinoSessionResult } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
@@ -11,26 +10,22 @@ interface CasinoSessionSummaryProps {
   recorder: SessionRecorder | null
 }
 
+/**
+ * What a player sees after a Casino Session.
+ *
+ * There used to be a third button here — "export debug log" — which downloaded
+ * a `casino-debug-*.json` of every recorded event. It served a diagnostic
+ * purpose during development and outlived it: by the time a paying customer
+ * finished their first session it offered them a file they had no use for and
+ * no way to act on, sitting between "play again" and "home" with equal weight.
+ *
+ * The `SessionRecorder` itself stays. It is the engine's own self-check and it
+ * still feeds the anomaly count below; what is gone is the invitation to
+ * download its output.
+ */
 export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: CasinoSessionSummaryProps) {
   const { t } = useTranslation()
-  const [debugExported, setDebugExported] = useState(false)
   const anomalyCount = recorder?.getAnomalyCount() ?? 0
-
-  const downloadDebugLog = useCallback(() => {
-    if (!recorder) return
-    const log = recorder.exportLog()
-    const blob = new Blob([log], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `casino-debug-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    setDebugExported(true)
-    setTimeout(() => setDebugExported(false), 3000)
-  }, [recorder])
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6">
@@ -127,10 +122,6 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
           <button onClick={onPlayAgain} data-testid="play-again"
             className="flex-1 py-3 rounded-xl bg-gold text-black font-bold hover:bg-gold/90 transition-colors cursor-pointer">
             {t('casino.summary.playAgain')}
-          </button>
-          <button onClick={downloadDebugLog} data-testid="export-debug-log"
-            className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-bold hover:bg-contrast/20 transition-colors cursor-pointer">
-            {debugExported ? `\u2713 ${t('casino.summary.downloaded')}` : `${t('casino.summary.exportDebug')} \uD83D\uDCCB`}
           </button>
           <button onClick={onHome} data-testid="go-home"
             className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-bold hover:bg-contrast/20 transition-colors cursor-pointer">

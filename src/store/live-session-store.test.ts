@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useLiveSessionStore } from './live-session-store'
+import { useAppStore, type AppMode } from './app-store'
 
 /**
  * The guard that stands between a misclick and half an hour of play.
@@ -10,9 +11,12 @@ import { useLiveSessionStore } from './live-session-store'
  */
 
 const store = () => useLiveSessionStore.getState()
+/** Where the user is standing. The guard's answer depends on it. */
+const standingIn = (mode: AppMode) => useAppStore.setState({ currentMode: mode })
 
 beforeEach(() => {
   useLiveSessionStore.setState({ activeMode: null, pending: null })
+  standingIn('home')
 })
 
 describe('with no session running', () => {
@@ -28,8 +32,11 @@ describe('with no session running', () => {
   })
 })
 
-describe('with a session running', () => {
-  beforeEach(() => store().beginSession('casinoSession'))
+describe('standing in a running session', () => {
+  beforeEach(() => {
+    store().beginSession('casinoSession')
+    standingIn('casinoSession')
+  })
 
   it('refuses the navigation and raises the question instead', () => {
     expect(store().requestLeave('home')).toBe(false)
@@ -67,9 +74,52 @@ describe('with a session running', () => {
   })
 })
 
+/**
+ * The bug this suite exists for.
+ *
+ * The Casino Session stays mounted in the background so a paused hand survives
+ * a mode change — which means `activeMode` stays set long after the user has
+ * left, been asked, and answered. Consulting only `activeMode` turned every
+ * later navigation into the same question about a session nobody was in.
+ */
+describe('with a session paused in the background', () => {
+  beforeEach(() => {
+    store().beginSession('casinoSession')
+    standingIn('home')
+  })
+
+  it('does not ask again once the user is somewhere else', () => {
+    expect(store().requestLeave('speedDrill')).toBe(true)
+    expect(store().pending).toBeNull()
+  })
+
+  it('does not ask on the way home from an unrelated mode', () => {
+    standingIn('speedDrill')
+    expect(store().requestLeave('home')).toBe(true)
+    expect(store().pending).toBeNull()
+  })
+
+  it('still lets the user walk straight back into the session', () => {
+    expect(store().requestLeave('casinoSession')).toBe(true)
+    expect(store().pending).toBeNull()
+  })
+
+  it('keeps the session alive — not asking is not the same as ending', () => {
+    store().requestLeave('analytics')
+    expect(store().activeMode).toBe('casinoSession')
+  })
+
+  it('asks again the moment the user is back on the session screen', () => {
+    standingIn('casinoSession')
+    expect(store().requestLeave('home')).toBe(false)
+    expect(store().pending).toEqual({ target: 'home', from: 'casinoSession' })
+  })
+})
+
 describe('when the session ends', () => {
   it('stops guarding, so the summary screen is not a trap', () => {
     store().beginSession('casinoSession')
+    standingIn('casinoSession')
     store().endSession()
     expect(store().requestLeave('home')).toBe(true)
   })
@@ -78,6 +128,7 @@ describe('when the session ends', () => {
     // The last hand can finish while the dialog is open. Leaving it up would
     // ask whether to discard a session that has already been recorded.
     store().beginSession('casinoSession')
+    standingIn('casinoSession')
     store().requestLeave('home')
     store().endSession()
     expect(store().pending).toBeNull()

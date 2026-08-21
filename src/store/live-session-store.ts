@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AppMode } from './app-store'
+import { useAppStore, type AppMode } from './app-store'
 
 /**
  * Knows whether a training session is running, and stands between the user and
@@ -14,10 +14,20 @@ import type { AppMode } from './app-store'
  * hour of play gone to a misclick, and nothing on screen said it would happen.
  *
  * ── Why the guard lives in a store rather than on the buttons ──
- * Four places change the mode today: the wordmark, the nav items, the training
- * plan and the summary screen. Guarding each one means the fifth is unguarded
- * the day someone adds it, and that fifth one is the bug. Everything asks
- * `requestMode` instead, and the check is impossible to route around.
+ * Many components call `setMode`. Putting the decision in one place means a new
+ * caller cannot forget a rule it never knew about.
+ *
+ * Worth knowing, because an earlier version of this comment claimed otherwise:
+ * **not** every caller routes through `requestLeave`. The NavBar and the TopBar
+ * do; `HomeScreen`, `TrainingPlan`, `AnalyticsDashboard`, `DashboardHeader` and
+ * `StartHere` call `setMode` directly. That is now harmless rather than lucky —
+ * the guard only speaks while the user is standing on the session's own screen
+ * (see `requestLeave`), and those components are only ever rendered somewhere
+ * else. The Casino Session's own "home" button is on the summary, by which
+ * point `endSession` has already run.
+ *
+ * So the complete set of navigations that can raise the dialog is: the NavBar,
+ * clicked while the Casino Session is on screen and playing.
  */
 
 /** What the user is being asked, or null when nothing is pending. */
@@ -85,6 +95,32 @@ export const useLiveSessionStore = create<LiveSessionStore>((set, get) => ({
     // clicking the active nav item would ask whether to discard the session the
     // click cannot possibly discard.
     if (!activeMode || target === activeMode) return true
+
+    /*
+      Ask only while the user is standing ON the session's screen.
+
+      This is the fix for a dialog that had become noise. The Casino Session
+      stays mounted in the background so a player can come back to the same
+      hand, which means `activeMode` remains set for as long as that paused
+      session exists — often the rest of the visit. The guard used to consult
+      only `activeMode`, so *every* navigation anywhere in the app raised the
+      question: Speed Drill → Home asked about the Casino Session; Analytics →
+      Home asked about it; the Home button in a mode the session has nothing to
+      do with asked about it. The user had already left, been asked, and
+      answered.
+
+      A confirmation that fires when nothing is at stake is worse than no
+      confirmation, because it teaches the reflex to dismiss it — and the one
+      moment it genuinely matters is the moment it gets clicked away unread.
+
+      Leaving from anywhere else destroys nothing: `TrainerApp` keeps the
+      session mounted while `activeMode` is set, so there is no path from
+      another screen that can lose it. The single place a beat of confirmation
+      earns its keep is walking away from a hand in progress, with the hand in
+      front of you.
+    */
+    if (useAppStore.getState().currentMode !== activeMode) return true
+
     set({ pending: { target, from: activeMode } })
     return false
   },

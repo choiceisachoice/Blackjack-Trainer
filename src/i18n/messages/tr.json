@@ -567,9 +567,7 @@
       "playAgain": "Tekrar oyna",
       "home": "Ana sayfa",
       "overallScore": "Genel puan: %{{pct}}",
-      "anomalies": "Oturum sırasında saptanan anormallik: {{count}}",
-      "exportDebug": "Hata günlüğünü dışa aktar",
-      "downloaded": "İndirildi"
+      "anomalies": "Oturum sırasında saptanan anormallik: {{count}}"
     },
     "review": {
       "correct": "Doğru",

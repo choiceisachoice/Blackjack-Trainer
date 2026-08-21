@@ -567,9 +567,7 @@
       "playAgain": "Noch eine Session",
       "home": "Startseite",
       "overallScore": "Gesamtwertung: {{pct}} %",
-      "anomalies": "Auffälligkeiten während der Session: {{count}}",
-      "exportDebug": "Debug-Log exportieren",
-      "downloaded": "Heruntergeladen"
+      "anomalies": "Auffälligkeiten während der Session: {{count}}"
     },
     "review": {
       "correct": "Richtig",

@@ -567,9 +567,7 @@
       "playAgain": "Gioca ancora",
       "home": "Home",
       "overallScore": "Punteggio complessivo: {{pct}}%",
-      "anomalies": "Anomalie rilevate durante la sessione: {{count}}",
-      "exportDebug": "Esporta il log",
-      "downloaded": "Scaricato"
+      "anomalies": "Anomalie rilevate durante la sessione: {{count}}"
     },
     "review": {
       "correct": "Corretto",

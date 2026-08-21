@@ -567,9 +567,7 @@
       "playAgain": "Play Again",
       "home": "Home",
       "overallScore": "Overall Score: {{pct}}%",
-      "anomalies": "Anomalies detected during the session: {{count}}",
-      "exportDebug": "Export Debug Log",
-      "downloaded": "Downloaded"
+      "anomalies": "Anomalies detected during the session: {{count}}"
     },
     "review": {
       "correct": "Correct",
