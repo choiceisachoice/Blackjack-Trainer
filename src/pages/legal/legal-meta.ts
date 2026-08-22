@@ -29,8 +29,16 @@ export const LEGAL_META = {
    */
   operatorLocation: 'Neuhausweg 5, 8810 Horgen, Switzerland',
 
-  /** One address that receives support, legal and privacy/data-rights requests. */
-  contactEmail: 'ralf.koehler@impact-consult.ch',
+  /**
+   * One address that receives support, legal and privacy/data-rights requests.
+   *
+   * A role address on the company domain, deliberately — not a person's mailbox.
+   * It appears on the imprint, in the Terms and Privacy prose and in checkout
+   * error messages, so it is the most-published string in the product: it should
+   * survive people joining or leaving, and it should not put a private name in
+   * front of every visitor.
+   */
+  contactEmail: 'info@impact-consult.ch',
 
   /**
    * The region where Supabase (database + auth) processes the data. Find it in
