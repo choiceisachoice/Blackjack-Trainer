@@ -6,31 +6,28 @@ import { filmState, BEATS, DURATION, STAGE_W as W, STAGE_H as H } from '../servi
 import { paintFilm, GOLD, GOLD_LIT } from '../services/motion/paint-film'
 
 /**
- * "Order" — a title sequence for a card-counting trainer.
+ * "Bloom" — the player and review harness for the title sequence.
  *
- * ## The brief this answers
+ * The piece itself lives in `services/motion/`: `deck-film.ts` decides where
+ * every card is at a given millisecond, `paint-film.ts` draws one frame. This
+ * file is the clock, the canvas, and the controls for looking at it.
  *
- * The previous attempt animated the product's *vocabulary* — running count,
- * true count, bet ramp — and was unreadable to anyone who did not already know
- * what those words meant. A piece that needs a glossary is not a piece.
+ * ## What the controls are for
  *
- * So this one has no numbers and no jargon. Six decks go past too fast to read.
- * Then the tumbling stops, the spread collapses, the stream becomes a line, the
- * line becomes a deck, and the deck opens onto a single card. Chaos becoming
- * readable — which is what the product actually does, said without saying it.
+ * The scrubber is not a convenience. Because the film is a pure function of
+ * `(card, t)`, seeking to 6,342 ms draws exactly the frame that belongs there —
+ * so timing can be *inspected* rather than watched and guessed at. The grid
+ * button samples eight moments side by side, which is how spacing is actually
+ * read: bunched frames mean the ease resolves early, evenly spaced ones mean it
+ * is effectively linear.
  *
- * ## Why canvas
+ * ## Two failures worth not repeating
  *
- * Ninety cards on screen at once with light, depth and motion trails is not
- * something the DOM does well. Canvas also allows the trails to be *honest*:
- * each ghost is the card's real position a few milliseconds earlier,
- * recomputed from the model, rather than a smear left by not clearing the
- * frame. That keeps the piece seekable — the standard cheap trail is stateful
- * and would make the frame depend on how it was reached.
- *
- * Palette is felt green under gold rather than gold on flat black: a casino
- * reads by its table, and the green is what stops the frame looking like a
- * generic dark UI.
+ * The first version of this screen animated the product's *vocabulary* —
+ * running count, true count, bet ramp — and meant nothing to anyone who did not
+ * already know those words. The second drew card **backs**: dark rectangles on
+ * a dark ground, monotone by construction. Both lessons are recorded at the top
+ * of `deck-film.ts`, next to the code that acts on them.
  */
 
 // ── Canvas host ───────────────────────────────────────────────────────────
