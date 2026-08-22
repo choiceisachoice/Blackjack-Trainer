@@ -429,7 +429,8 @@
       "timesUp": "Tempo scaduto!",
       "remaining": "~{{n}} mazzi rimasti",
       "youSaid": " (hai detto {{v}})",
-      "offBy": "Sbagliato di {{v}} mazzi"
+      "offBy": "Sbagliato di {{v}} mazzi",
+      "numRoundsAria": "Numero di round"
     },
     "rail": {
       "speedDrill": {

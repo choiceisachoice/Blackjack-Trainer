@@ -429,7 +429,8 @@
       "timesUp": "Zeit abgelaufen!",
       "remaining": "~{{n}} Decks übrig",
       "youSaid": " (du sagtest {{v}})",
-      "offBy": "Daneben um {{v}} Decks"
+      "offBy": "Daneben um {{v}} Decks",
+      "numRoundsAria": "Anzahl Runden"
     },
     "rail": {
       "speedDrill": {

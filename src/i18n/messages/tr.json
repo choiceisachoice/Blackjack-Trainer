@@ -429,7 +429,8 @@
       "timesUp": "Süre doldu!",
       "remaining": "~{{n}} deste kaldı",
       "youSaid": " ({{v}} dediniz)",
-      "offBy": "{{v}} deste sapma"
+      "offBy": "{{v}} deste sapma",
+      "numRoundsAria": "Tur sayısı"
     },
     "rail": {
       "speedDrill": {

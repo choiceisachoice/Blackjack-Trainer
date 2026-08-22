@@ -161,25 +161,46 @@ describe('DeckEstimation', () => {
     expect(screen.getByTestId('feedback-result')).toHaveTextContent("Time’s up!")
   })
 
-  it('quick fire mode runs 10 rounds total', () => {
+  /**
+   * The round count is a setting now, not a Quick-Fire-only rule.
+   *
+   * This test used to assert a hard-coded ten, which was the whole defect on
+   * the other side: the untimed mode had no count at all and simply never
+   * ended. One setting drives both modes; Quick Fire adds the clock and
+   * nothing else.
+   */
+  it('ends after the chosen number of rounds', () => {
     vi.useFakeTimers()
-    // Enough random values for 10 rounds
-    const randoms = Array.from({ length: 40 }, () => 0.5)
-    setMockRandom(randoms)
+    setMockRandom(Array.from({ length: 60 }, () => 0.5))
 
     render(<DeckEstimation />)
     fireEvent.click(screen.getByTestId('quick-fire-toggle'))
+    fireEvent.click(screen.getByText('10'))          // pick the shortest session
     fireEvent.click(screen.getByTestId('start-training'))
 
-    // Play through 10 rounds by answering quickly
     for (let i = 0; i < 10; i++) {
-      // Answer with any deck value
       fireEvent.click(screen.getByTestId('deck-3'))
-      // Click next (or "See Results" on last round)
       fireEvent.click(screen.getByTestId('next-question'))
     }
 
-    // Should show summary
     expect(screen.getByTestId('summary-title')).toHaveTextContent('Quick Fire Complete!')
+  })
+
+  it('ends the untimed mode too — it used to run forever', () => {
+    // The reported bug: every other mode lets you choose how many questions,
+    // Deck Estimation did not, and a normal session had no end condition.
+    vi.useFakeTimers()
+    setMockRandom(Array.from({ length: 60 }, () => 0.5))
+
+    render(<DeckEstimation />)
+    fireEvent.click(screen.getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+
+    for (let i = 0; i < 10; i++) {
+      fireEvent.click(screen.getByTestId('deck-3'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+
+    expect(screen.getByTestId('summary-title')).toBeInTheDocument()
   })
 })

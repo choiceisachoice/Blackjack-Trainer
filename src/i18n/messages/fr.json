@@ -429,7 +429,8 @@
       "timesUp": "Temps écoulé !",
       "remaining": "~{{n}} jeux restants",
       "youSaid": " (vous avez dit {{v}})",
-      "offBy": "Écart de {{v}} jeux"
+      "offBy": "Écart de {{v}} jeux",
+      "numRoundsAria": "Nombre de manches"
     },
     "rail": {
       "speedDrill": {

@@ -13,10 +13,21 @@ interface SessionStats {
 }
 
 /**
- * Shared hook for saving training session stats on unmount.
+ * Shared hook for saving a training session and paying out its XP.
  *
- * Uses refs to avoid stale closures. On unmount, if totalQuestions >= 3,
- * records the session via useStatsStore.
+ * ## Why `finish` exists
+ *
+ * This used to save on unmount only. That credited the XP correctly and at the
+ * worst possible moment: the player finished a drill, watched the summary
+ * appear, and nothing happened — the payout landed later, during navigation,
+ * in a component being torn down. Achievements and challenges announce
+ * themselves as they land, so those felt alive and training felt broken. The
+ * mechanism was never the problem; the timing was.
+ *
+ * Modes now call `finish()` when they reach their summary. The unmount and
+ * `pagehide` handlers stay as the safety net for someone who walks away
+ * mid-session, and `savedRef` keeps all three paths idempotent — whichever
+ * fires first wins, and a session is neither lost nor counted twice.
  *
  * @param mode - Training mode identifier
  * @param buildDetails - Function that returns the mode-specific details object
@@ -29,6 +40,13 @@ export function useSessionSave(
   statsRef: React.RefObject<SessionStats>
   /** Session start time (ms). */
   startTimeRef: React.RefObject<number>
+  /**
+   * Record the session now, because it just ended.
+   *
+   * Call this when the summary appears. Idempotent with the unmount and
+   * `pagehide` handlers.
+   */
+  finish: () => void
 } {
   const statsRef = useRef<SessionStats>({
     totalQuestions: 0,
@@ -88,5 +106,5 @@ export function useSessionSave(
     }
   }, [save])
 
-  return { statsRef, startTimeRef }
+  return { statsRef, startTimeRef, finish: save }
 }

@@ -429,7 +429,8 @@
       "timesUp": "Time’s up!",
       "remaining": "~{{n}} decks remaining",
       "youSaid": " (you said {{v}})",
-      "offBy": "Off by {{v}} decks"
+      "offBy": "Off by {{v}} decks",
+      "numRoundsAria": "Number of rounds"
     },
     "rail": {
       "speedDrill": {

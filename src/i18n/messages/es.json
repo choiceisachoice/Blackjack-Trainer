@@ -429,7 +429,8 @@
       "timesUp": "¡Se acabó el tiempo!",
       "remaining": "~{{n}} barajas restantes",
       "youSaid": " (dijiste {{v}})",
-      "offBy": "Te has desviado {{v}} barajas"
+      "offBy": "Te has desviado {{v}} barajas",
+      "numRoundsAria": "Número de rondas"
     },
     "rail": {
       "speedDrill": {

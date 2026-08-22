@@ -13,7 +13,17 @@ type AccuracyMode = 'half' | 'whole'
 type Phase = 'settings' | 'question' | 'feedback' | 'summary'
 
 const TOLERANCE = 0.5
-const QUICK_FIRE_ROUNDS = 10
+/**
+ * How many rounds a session runs.
+ *
+ * Same ladder as Bet Spread and Flashcards, and the same control — this was
+ * the one mode where it was missing, so a normal session simply never ended.
+ * Quick Fire used to carry its own fixed count of ten; it now adds only the
+ * per-round clock, which is one rule fewer to remember and one less place for
+ * the two paths to disagree.
+ */
+const ROUND_COUNTS = [10, 20, 30, 50]
+const DEFAULT_ROUNDS = 20
 const QUICK_FIRE_SECONDS = 3
 
 /** Returns button options for deck selection. */
@@ -108,6 +118,7 @@ export function DeckEstimation() {
   const [deckCount, setDeckCount] = useState<DeckCount>(6)
   const [accuracyMode, setAccuracyMode] = useState<AccuracyMode>('half')
   const [quickFire, setQuickFire] = useState(false)
+  const [numRounds, setNumRounds] = useState(DEFAULT_ROUNDS)
   const [phase, setPhase] = useState<Phase>('settings')
 
   // Question state
@@ -124,7 +135,7 @@ export function DeckEstimation() {
   const estimationsRef = useRef<{ actual: number; estimated: number | null; error: number }[]>([])
 
   // ── Session stats persistence ──
-  const { statsRef } = useSessionSave('deckEstimation', (): DeckEstimationDetails => ({
+  const { statsRef, finish } = useSessionSave('deckEstimation', (): DeckEstimationDetails => ({
     type: 'deckEstimation',
     deckCount,
     accuracyMode,
@@ -132,8 +143,10 @@ export function DeckEstimation() {
     estimations: [...estimationsRef.current],
   }))
 
+  /** Current round, 1-based. Counts in both modes now, not just Quick Fire. */
+  const [round, setRound] = useState(0)
+
   // Quick Fire state
-  const [qfRound, setQfRound] = useState(0)
   const [qfTimer, setQfTimer] = useState(QUICK_FIRE_SECONDS)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   // Mirrors qfTimer so the countdown can act on expiry outside the setState
@@ -208,20 +221,21 @@ export function DeckEstimation() {
   }, [processAnswer])
 
   const handleNext = useCallback(() => {
-    if (quickFire && qfRound >= QUICK_FIRE_ROUNDS) {
+    if (round >= numRounds) {
       soundEngine.sessionComplete()
+      // Pay out here, not on unmount: the summary is the moment the player is
+      // looking for the reward.
+      finish()
       setPhase('summary')
       return
     }
     generateQuestion()
-    if (quickFire) {
-      setQfRound(prev => prev + 1)
-    }
-  }, [quickFire, qfRound, generateQuestion])
+    setRound(prev => prev + 1)
+  }, [round, numRounds, generateQuestion, finish])
 
   const startTraining = useCallback(() => {
     setStats(INITIAL_STATS)
-    setQfRound(1)
+    setRound(1)
     generateQuestion()
   }, [generateQuestion])
 
@@ -322,9 +336,20 @@ export function DeckEstimation() {
             </div>
             {quickFire && (
               <p className="text-xs text-warning mt-2">
-                {t('training.deck.quickFireHint', { rounds: QUICK_FIRE_ROUNDS, secs: QUICK_FIRE_SECONDS })}
+                {t('training.deck.quickFireHint', { rounds: numRounds, secs: QUICK_FIRE_SECONDS })}
               </p>
             )}
+          </div>
+
+          <div>
+            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.common.questions')}</span>
+            <Segmented
+              fluid
+              ariaLabel={t('training.deck.numRoundsAria')}
+              value={numRounds}
+              onChange={setNumRounds}
+              options={ROUND_COUNTS.map(n => ({ label: String(n), value: n }))}
+            />
           </div>
 
           <Button size="lg" className="w-full mt-1" onClick={startTraining} data-testid="start-training">
@@ -373,8 +398,10 @@ export function DeckEstimation() {
         <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
           <span>{t('training.common.correctOf', { n: stats.correct, total: stats.total, pct: accuracy })}</span>
           <span>
+            {/* The round counter is the honest one now that every session has an
+                end. The streak still matters, so it keeps the untimed mode. */}
             {quickFire
-              ? t('training.deck.round', { n: qfRound, total: QUICK_FIRE_ROUNDS })
+              ? t('training.deck.round', { n: round, total: numRounds })
               : t('training.deck.streakBest', { n: stats.streak, best: stats.bestStreak })}
           </span>
         </div>
@@ -459,7 +486,7 @@ export function DeckEstimation() {
         </div>
 
         <Button onClick={handleNext} data-testid="next-question" className="w-full">
-          {quickFire && qfRound >= QUICK_FIRE_ROUNDS ? t('training.common.seeResults') : t('training.common.next')}
+          {round >= numRounds ? t('training.common.seeResults') : t('training.common.next')}
         </Button>
       </div>
     </div>
