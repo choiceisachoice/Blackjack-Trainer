@@ -26,11 +26,36 @@ export interface LevelStoreState {
   levelUpData:
     | { oldLevel: LevelDefinition; newLevel: LevelDefinition; breakdown: XPSource[] }
     | null
+
+  /**
+   * The most recent XP payout, for the toast that announces it.
+   *
+   * This exists because finishing a session *felt* like it paid nothing. The XP
+   * was always credited — correctly, and to the right account — but silently,
+   * and only once the mode unmounted. Achievements and challenges announce
+   * themselves the moment they land, so those read as working and training did
+   * not. Same mechanism, opposite impression.
+   *
+   * `id` increments on every payout so an identical amount from an identical
+   * source still re-triggers the toast; without it, two 40-XP drills in a row
+   * would announce once.
+   */
+  lastAward: { amount: number; labelKey: string; labelParams?: Record<string, string>; id: number } | null
 }
 
-/** One line of the "where did this XP come from" breakdown. */
+/**
+ * One line of the "where did this XP come from" breakdown.
+ *
+ * A translation **key**, not a rendered string. The store used to hold
+ * `'Training session'`, `'Challenge'`, `'Achievement'` — English literals in a
+ * `.ts` module, which the JSX lint rule cannot see — and the level-up popup
+ * rendered them raw. Seven languages, one English breakdown. Same class of
+ * defect as the constant maps found during the i18n work; storing the key and
+ * translating at render is what makes it impossible to reintroduce.
+ */
 export interface XPSource {
-  label: string
+  labelKey: string
+  labelParams?: Record<string, string>
   amount: number
 }
 
@@ -39,13 +64,15 @@ export interface LevelStoreActions {
   /** Add XP from a completed training session. */
   addSessionXP(session: TrainingSessionResult): void
   /** Add XP from a completed challenge or a finished plan stage. */
-  addChallengeXP(amount: number, label?: string): void
+  addChallengeXP(amount: number, labelKey?: string, labelParams?: Record<string, string>): void
   /** Add XP from an unlocked achievement. */
   addAchievementXP(tier: string): void
   /** Add XP from several achievements unlocked at once (one popup, one cloud push). */
   addAchievementsXP(tiers: string[]): void
   /** Dismiss the level-up popup. */
   dismissLevelUp(): void
+  /** Dismiss the XP toast. */
+  dismissXpAward(): void
   /** Refresh all state from the engine. */
   refresh(): void
 }
@@ -83,24 +110,30 @@ function tierToXP(tier: string): number {
  * updates state synchronously, so `get()` inside the same burst already sees
  * the accumulated value — the sound fires once, on the first hop only.
  */
+/** Monotonic id so repeated identical payouts still register as new. */
+let awardSeq = 0
+
 function applyXP(
   set: (partial: Partial<LevelStore>) => void,
   get: () => LevelStore,
   amount: number,
-  label: string,
+  labelKey: string,
+  labelParams?: Record<string, string>,
 ): void {
   if (amount <= 0) return
 
   const before = get().levelUpData
   const result = levelSystem.addXP(amount)
+  awardSeq += 1
 
   const base = {
+    lastAward: { amount, labelKey, labelParams, id: awardSeq },
     totalXP: levelSystem.getTotalXP(),
     level: levelSystem.getLevel(),
     progress: levelSystem.getProgressToNext(),
   }
 
-  const source: XPSource = { label, amount }
+  const source: XPSource = { labelKey, labelParams, amount }
 
   if (result.leveledUp && result.oldLevel && result.newLevel) {
     // Sound only on the first hop of a burst — before this hop there was no
@@ -131,27 +164,32 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
   progress: levelSystem.getProgressToNext(),
   showLevelUp: false,
   levelUpData: null,
+  lastAward: null,
 
   addSessionXP(session) {
-    applyXP(set, get, calculateSessionXP(session), 'Training session')
+    applyXP(set, get, calculateSessionXP(session), 'xp.source.session')
   },
 
-  addChallengeXP(amount, label = 'Challenge') {
-    applyXP(set, get, amount, label)
+  addChallengeXP(amount, labelKey = 'xp.source.challenge', labelParams) {
+    applyXP(set, get, amount, labelKey, labelParams)
   },
 
   addAchievementXP(tier) {
-    applyXP(set, get, tierToXP(tier), 'Achievement')
+    applyXP(set, get, tierToXP(tier), 'xp.source.achievement')
   },
 
   addAchievementsXP(tiers) {
     // Sum first, then apply once, so several achievements unlocked together are
     // one line in the breakdown rather than several competing popups.
-    applyXP(set, get, tiers.reduce((sum, t) => sum + tierToXP(t), 0), 'Achievements')
+    applyXP(set, get, tiers.reduce((sum, t) => sum + tierToXP(t), 0), 'xp.source.achievements')
   },
 
   dismissLevelUp() {
     set({ showLevelUp: false, levelUpData: null })
+  },
+
+  dismissXpAward() {
+    set({ lastAward: null })
   },
 
   refresh() {

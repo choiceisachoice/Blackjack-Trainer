@@ -1921,5 +1921,13 @@
     "checkout": "Wir konnten die Bezahlseite nicht öffnen. Versuch es bitte nochmal — wenn es weiter passiert, schreib an {{email}}, dann klären wir das.",
     "portal": "Wir konnten deine Rechnungseinstellungen nicht öffnen. Versuch es bitte nochmal — wenn es weiter passiert, schreib an {{email}}.",
     "reset": "Deine Daten konnten nicht gelöscht werden. Es wurde nichts verändert — versuch es bitte nochmal."
+  },
+  "xp": {
+    "source": {
+      "session": "Trainingssession",
+      "challenge": "Challenge",
+      "achievement": "Erfolg",
+      "achievements": "Erfolge"
+    }
   }
 }

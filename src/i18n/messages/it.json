@@ -1921,5 +1921,13 @@
     "checkout": "Non siamo riusciti ad aprire la pagina di pagamento. Riprova — se continua, scrivi a {{email}} e lo sistemiamo.",
     "portal": "Non siamo riusciti ad aprire le impostazioni di fatturazione. Riprova — se continua, scrivi a {{email}}.",
     "reset": "Non è stato possibile eliminare i tuoi dati. Nulla è stato modificato — riprova."
+  },
+  "xp": {
+    "source": {
+      "session": "Sessione di allenamento",
+      "challenge": "Sfida",
+      "achievement": "Obiettivo",
+      "achievements": "Obiettivi"
+    }
   }
 }

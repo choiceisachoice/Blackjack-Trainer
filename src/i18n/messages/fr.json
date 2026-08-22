@@ -1921,5 +1921,13 @@
     "checkout": "Nous n’avons pas pu ouvrir la page de paiement. Réessayez — si cela persiste, écrivez à {{email}} et nous réglerons cela.",
     "portal": "Nous n’avons pas pu ouvrir vos paramètres de facturation. Réessayez — si cela persiste, écrivez à {{email}}.",
     "reset": "Vos données n’ont pas pu être supprimées. Rien n’a été modifié — réessayez."
+  },
+  "xp": {
+    "source": {
+      "session": "Session d’entraînement",
+      "challenge": "Défi",
+      "achievement": "Succès",
+      "achievements": "Succès"
+    }
   }
 }

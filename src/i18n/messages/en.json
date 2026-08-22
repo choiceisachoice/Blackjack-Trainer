@@ -1921,5 +1921,13 @@
     "checkout": "We could not open the payment page. Please try again — if it keeps happening, write to {{email}} and we will sort it out.",
     "portal": "We could not open your billing settings. Please try again — if it keeps happening, write to {{email}}.",
     "reset": "Your data could not be deleted. Nothing was changed — please try again."
+  },
+  "xp": {
+    "source": {
+      "session": "Training session",
+      "challenge": "Challenge",
+      "achievement": "Achievement",
+      "achievements": "Achievements"
+    }
   }
 }

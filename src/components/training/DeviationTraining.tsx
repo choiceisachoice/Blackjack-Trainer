@@ -56,7 +56,7 @@ export function DeviationTraining() {
   // so Analytics' weakest-hands panel and deviation stats reflect real answers.
   const perDeviationRef = useRef<Record<string, { correct: number; incorrect: number }>>({})
 
-  const { statsRef } = useSessionSave('deviationFlashCards', (): DeviationDetails => ({
+  const { statsRef, finish } = useSessionSave('deviationFlashCards', (): DeviationDetails => ({
     type: 'deviationFlashCards',
     deviationSet: 'all',
     perDeviation: perDeviationRef.current,
@@ -117,6 +117,9 @@ export function DeviationTraining() {
   const handleNext = useCallback(() => {
     if (qIndex + 1 >= session.length) {
       soundEngine.sessionComplete()
+      // Pay out at the summary, not on unmount — this is the moment the player
+      // is looking for the reward.
+      finish()
       setPhase('summary')
       return
     }
@@ -124,7 +127,7 @@ export function DeviationTraining() {
     setSelectedAction(null)
     setIsCorrect(false)
     setPhase('question')
-  }, [qIndex, session.length])
+  }, [qIndex, session.length, finish])
 
   // Keyboard: Enter → next in feedback
   useEffect(() => {

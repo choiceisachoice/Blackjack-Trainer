@@ -41,10 +41,13 @@ export function LevelGallery() {
       levelUpData: {
         oldLevel: fromLevel,
         newLevel: to,
+        // Real keys, not fixture strings: this harness exists to show the popup
+        // as a user sees it, and a breakdown of untranslated placeholders would
+        // hide exactly the defect that made these keys necessary.
         breakdown: [
-          { label: 'Speed drill', amount: 75 },
-          { label: 'Daily challenge', amount: 100 },
-          { label: 'Achievement', amount: 50 },
+          { labelKey: 'xp.source.session', amount: 75 },
+          { labelKey: 'xp.source.challenge', amount: 100 },
+          { labelKey: 'xp.source.achievement', amount: 50 },
         ],
       },
     })

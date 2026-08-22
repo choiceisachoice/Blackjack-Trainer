@@ -62,9 +62,19 @@ describe('LEVELS definition', () => {
     expect(LEVELS[0].xpRequired).toBe(0)
   })
 
-  it('level 25 requires 1,000,000 XP', () => {
+  it('tops out at level 25, and the top is reachable', () => {
     expect(LEVELS[24].level).toBe(25)
-    expect(LEVELS[24].xpRequired).toBe(1_000_000)
+    // Deliberately a ceiling, not an equality: the curve gets rebalanced, and a
+    // test that pins the exact number breaks on every pass without saying
+    // anything about the rule. What matters is that the top stays in reach —
+    // it used to sit at a million XP, which is 8+ years of daily training.
+    expect(LEVELS[24].xpRequired).toBeLessThanOrEqual(250_000)
+  })
+
+  it('never asks for less as the levels go up', () => {
+    for (let i = 1; i < LEVELS.length; i++) {
+      expect(LEVELS[i].xpRequired).toBeGreaterThan(LEVELS[i - 1].xpRequired)
+    }
   })
 
   it('beginner tier is levels 1-5', () => {
@@ -124,14 +134,14 @@ describe('LevelSystem', () => {
       expect(i18next.t(system.getLevel().titleKey)).toBe('Lucky Starter')
     })
 
-    it('reaches level 10 at 12000 XP', () => {
-      system.addXP(12000)
+    it('reaches level 10 at its own threshold', () => {
+      system.addXP(LEVELS[9].xpRequired)
       expect(system.getLevel().level).toBe(10)
       expect(i18next.t(system.getLevel().titleKey)).toBe('Table Pro')
     })
 
-    it('reaches level 25 Grandmaster at 1000000 XP', () => {
-      system.addXP(1_000_000)
+    it('reaches level 25 Grandmaster at its own threshold', () => {
+      system.addXP(LEVELS[24].xpRequired)
       expect(system.getLevel().level).toBe(25)
       expect(i18next.t(system.getLevel().titleKey)).toBe('Grandmaster of Blackjack')
     })
@@ -242,11 +252,16 @@ describe('LevelSystem', () => {
 
   describe('setTotalXP (cloud hydration)', () => {
     it('overwrites XP and persists it', () => {
+      // Derived from the table, not pinned to a number. This test used to say
+      // "68,000 is level 15" — true under the old curve, and after the Aug 2026
+      // rebalance 68,000 is level 19. What it means to assert is that hydration
+      // replaces the total and the level follows from it.
+      const target = LEVELS[14].xpRequired
       system.addXP(100)
-      system.setTotalXP(68_000)
-      expect(system.getTotalXP()).toBe(68_000)
+      system.setTotalXP(target)
+      expect(system.getTotalXP()).toBe(target)
       expect(system.getLevel().level).toBe(15)
-      expect(new LevelSystem().getTotalXP()).toBe(68_000)
+      expect(new LevelSystem().getTotalXP()).toBe(target)
     })
 
     it('floors and clamps to a non-negative integer', () => {
@@ -281,27 +296,27 @@ describe('calculateSessionXP', () => {
 
   it('adds accuracy bonus +5 at 70%', () => {
     const session = makeSession({ accuracy: 0.7 })
-    expect(calculateSessionXP(session)).toBe(10 + 5) // base + 70% bonus
+    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus70)
   })
 
   it('adds accuracy bonus +10 at 85%', () => {
     const session = makeSession({ accuracy: 0.85 })
-    expect(calculateSessionXP(session)).toBe(10 + 10) // base + 85% bonus
+    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus85)
   })
 
   it('adds accuracy bonus +25 at 95%', () => {
     const session = makeSession({ accuracy: 0.95 })
-    expect(calculateSessionXP(session)).toBe(10 + 25) // base + 95% bonus
+    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus95)
   })
 
   it('adds accuracy bonus +50 at 100%', () => {
     const session = makeSession({ accuracy: 1.0 })
-    expect(calculateSessionXP(session)).toBe(10 + 50) // base + perfect bonus
+    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionPerfect100)
   })
 
   it('gives highest applicable accuracy bonus (not stacked)', () => {
     const session = makeSession({ accuracy: 0.98 }) // between 95% and 100%
-    expect(calculateSessionXP(session)).toBe(10 + 25) // 95% bonus, not 100%
+    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus95) // not the perfect tier
   })
 
   it('adds casino session profit bonus', () => {
@@ -316,8 +331,9 @@ describe('calculateSessionXP', () => {
         longestWinStreak: 3, splitAces: false, maxSplitHands: 1,
       },
     })
-    // base 20 + floor(1200/500)*5=10 + hands50=5 = 35
-    expect(calculateSessionXP(session)).toBe(35)
+    expect(calculateSessionXP(session)).toBe(
+      XP_REWARDS.casinoSessionBase + 2 * XP_REWARDS.casinoSessionProfitPer500 + XP_REWARDS.handsBonus50,
+    )
   })
 
   it('no profit bonus for negative profit', () => {
@@ -332,22 +348,23 @@ describe('calculateSessionXP', () => {
         longestWinStreak: 0, splitAces: false, maxSplitHands: 1,
       },
     })
-    expect(calculateSessionXP(session)).toBe(20) // just base
+    expect(calculateSessionXP(session)).toBe(XP_REWARDS.casinoSessionBase) // just base
   })
 
   it('adds hands bonus +5 at 50 hands', () => {
     const session = makeSession({ totalQuestions: 50, accuracy: 0.5 })
-    expect(calculateSessionXP(session)).toBe(10 + 5) // base + 50 hands
+    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.handsBonus50)
   })
 
   it('adds hands bonus +10 at 100 hands (stacks with +5)', () => {
     const session = makeSession({ totalQuestions: 100, accuracy: 0.5 })
-    expect(calculateSessionXP(session)).toBe(10 + 5 + 10) // base + 50h + 100h
+    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.handsBonus50 + XP_REWARDS.handsBonus100)
   })
 
   it('combines accuracy, hands, and base bonuses', () => {
     const session = makeSession({ totalQuestions: 100, accuracy: 0.85 })
-    // base 10 + accuracy 10 + hands50 5 + hands100 10 = 35
-    expect(calculateSessionXP(session)).toBe(35)
+    expect(calculateSessionXP(session)).toBe(
+      XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus85 + XP_REWARDS.handsBonus50 + XP_REWARDS.handsBonus100,
+    )
   })
 })

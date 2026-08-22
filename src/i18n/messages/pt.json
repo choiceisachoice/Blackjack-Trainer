@@ -1921,5 +1921,13 @@
     "checkout": "Não conseguimos abrir a página de pagamento. Tente novamente — se continuar, escreva para {{email}} e resolvemos.",
     "portal": "Não conseguimos abrir as suas definições de faturacão. Tente novamente — se continuar, escreva para {{email}}.",
     "reset": "Não foi possível apagar os seus dados. Nada foi alterado — tente novamente."
+  },
+  "xp": {
+    "source": {
+      "session": "Sessão de treino",
+      "challenge": "Desafio",
+      "achievement": "Conquista",
+      "achievements": "Conquistas"
+    }
   }
 }

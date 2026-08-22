@@ -47,7 +47,7 @@ export function useLearnerSync(): void {
     // after the XP has actually been added, so a failure re-tries rather than
     // silently swallowing the reward.
     for (const award of pendingStageAwards(deriveCurriculum(sessions, getReadStages(), isPro))) {
-      addXP(award.xp, t('plan.stageComplete', { stage: t(award.titleKey) }))
+      addXP(award.xp, 'plan.stageComplete', { stage: t(award.titleKey) })
       markStageClaimed(award.stage)
     }
     // `t` is a dependency because the XP ledger entry names the stage; the

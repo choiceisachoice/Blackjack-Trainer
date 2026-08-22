@@ -1921,5 +1921,13 @@
     "checkout": "No pudimos abrir la página de pago. Inténtalo de nuevo — si sigue ocurriendo, escribe a {{email}} y lo solucionamos.",
     "portal": "No pudimos abrir tus ajustes de facturación. Inténtalo de nuevo — si sigue ocurriendo, escribe a {{email}}.",
     "reset": "No se pudieron borrar tus datos. No se cambió nada — inténtalo de nuevo."
+  },
+  "xp": {
+    "source": {
+      "session": "Sesión de entrenamiento",
+      "challenge": "Desafío",
+      "achievement": "Logro",
+      "achievements": "Logros"
+    }
   }
 }

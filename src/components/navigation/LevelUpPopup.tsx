@@ -182,7 +182,7 @@ export function LevelUpPopup() {
           >
             {breakdown.map((b, i) => (
               <div key={i} className="flex items-center justify-between gap-4 px-4 py-2 text-sm">
-                <span className="text-content/60 text-left">{b.label}</span>
+                <span className="text-content/60 text-left">{t(b.labelKey, b.labelParams)}</span>
                 <span className="tabular-nums font-semibold text-gold">+{b.amount}</span>
               </div>
             ))}

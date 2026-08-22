@@ -88,8 +88,15 @@ describe('useLearnerSync', () => {
 
     renderHook(() => useLearnerSync())
 
-    // The label feeds the level-up popup's "where did this XP come from" list.
-    expect(addXP).toHaveBeenCalledWith(stageXP('hi-lo'), expect.stringContaining('Hi-Lo'))
+    // Feeds the level-up popup's "where did this XP come from" list. A key plus
+    // params, not a rendered string — the store holds no display text, so the
+    // breakdown can be translated at render instead of shipping English to all
+    // seven languages.
+    expect(addXP).toHaveBeenCalledWith(
+      stageXP('hi-lo'),
+      'plan.stageComplete',
+      { stage: expect.stringContaining('Hi-Lo') },
+    )
     expect(getClaimedStages()).toContain('hi-lo')
   })
 

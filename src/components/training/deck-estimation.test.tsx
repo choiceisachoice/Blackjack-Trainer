@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { DeckEstimation } from './DeckEstimation'
+import { useLevelStore } from '../../store/level-store'
+import { levelSystem } from '../../services/level-system'
 
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
@@ -184,6 +186,46 @@ describe('DeckEstimation', () => {
     }
 
     expect(screen.getByTestId('summary-title')).toHaveTextContent('Quick Fire Complete!')
+  })
+
+  /**
+   * The reported bug, end to end.
+   *
+   * XP was credited on unmount — correctly, and invisibly. The player watched
+   * the summary appear and nothing happened; the payout landed later, during
+   * navigation, in a component being torn down. This asserts the payout has
+   * arrived by the time the summary is on screen, which is the only moment it
+   * can mean anything to the person who earned it.
+   */
+  it('pays the XP when the summary appears, not when the mode is left', () => {
+    vi.useFakeTimers()
+    setMockRandom(Array.from({ length: 60 }, () => 0.5))
+    levelSystem.resetAll()
+    useLevelStore.setState({ lastAward: null })
+
+    const { unmount } = render(<DeckEstimation />)
+    fireEvent.click(screen.getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+
+    for (let i = 0; i < 10; i++) {
+      fireEvent.click(screen.getByTestId('deck-3'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+
+    // Summary is up — and so is the XP.
+    expect(screen.getByTestId('summary-title')).toBeInTheDocument()
+    const award = useLevelStore.getState().lastAward
+    expect(award).not.toBeNull()
+    expect(award!.amount).toBeGreaterThan(0)
+    expect(award!.labelKey).toBe('xp.source.session')
+
+    const paid = levelSystem.getTotalXP()
+    expect(paid).toBeGreaterThan(0)
+
+    // Leaving must not pay a second time: `savedRef` makes finish/unmount/
+    // pagehide idempotent, and a double payout would be worse than none.
+    unmount()
+    expect(levelSystem.getTotalXP()).toBe(paid)
   })
 
   it('ends the untimed mode too — it used to run forever', () => {

@@ -8,7 +8,7 @@ import type { XPSource } from '../../store/level-store'
 function show(
   from: number,
   to: number,
-  breakdown: XPSource[] = [{ label: 'Training session', amount: 75 }],
+  breakdown: XPSource[] = [{ labelKey: 'xp.source.session', amount: 75 }],
 ) {
   useLevelStore.setState({
     showLevelUp: true,
@@ -118,15 +118,15 @@ describe('LevelUpPopup', () => {
 
   it('shows where the XP came from', () => {
     show(1, 3, [
-      { label: 'Training session', amount: 75 },
-      { label: 'Daily challenge', amount: 100 },
-      { label: 'Achievement', amount: 25 },
+      { labelKey: 'xp.source.session', amount: 75 },
+      { labelKey: 'xp.source.challenge', amount: 100 },
+      { labelKey: 'xp.source.achievement', amount: 25 },
     ])
     render(<LevelUpPopup />)
 
     const breakdown = screen.getByTestId('level-up-breakdown')
     expect(breakdown.textContent).toContain('Training session')
-    expect(breakdown.textContent).toContain('Daily challenge')
+    expect(breakdown.textContent).toContain('Challenge')
     expect(breakdown.textContent).toContain('+200 XP') // total
   })
 
@@ -169,12 +169,24 @@ describe('LevelUpPopup', () => {
 
   it('scrolls rather than clipping — the overlay allows overflow', () => {
     show(1, 5, [
-      { label: 'Training session', amount: 75 },
-      { label: 'Daily challenge', amount: 100 },
-      { label: 'Weekly challenge', amount: 300 },
-      { label: 'Achievement', amount: 25 },
+      { labelKey: 'xp.source.session', amount: 75 },
+      { labelKey: 'xp.source.challenge', amount: 100 },
+      { labelKey: 'xp.source.challenge', amount: 300 },
+      { labelKey: 'xp.source.achievement', amount: 25 },
     ])
     render(<LevelUpPopup />)
     expect(screen.getByTestId('level-up-popup').className).toMatch(/overflow-y-auto/)
+  })
+
+  it('translates the breakdown instead of printing store literals', () => {
+    // The store used to carry rendered English — 'Training session',
+    // 'Challenge', 'Achievement' — straight into this list. A `.ts` constant is
+    // invisible to the JSX lint rule, so seven languages showed an English
+    // breakdown and nothing failed. It holds keys now.
+    show(1, 3, [{ labelKey: 'xp.source.session', amount: 40 }])
+    render(<LevelUpPopup />)
+    const list = screen.getByTestId('level-up-breakdown')
+    expect(list.textContent).toContain('Training session')  // en, from the test bundle
+    expect(list.textContent).not.toContain('xp.source')      // never the raw key
   })
 })

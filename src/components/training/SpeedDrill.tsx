@@ -147,7 +147,7 @@ export function SpeedDrill() {
 
   // ── Session stats persistence ──
   const rcErrorsRef = useRef<number[]>([])
-  const { statsRef } = useSessionSave('speedDrill', (): SpeedDrillDetails => ({
+  const { statsRef, finish } = useSessionSave('speedDrill', (): SpeedDrillDetails => ({
     type: 'speedDrill',
     cardsPerRound: cardCount,
     speedMs,
@@ -273,10 +273,18 @@ export function SpeedDrill() {
     setPhase('result')
   }, [userAnswer, correctRC, isFractional, totalAttempts, totalCorrect, bestStreak, streak, statsRef])
 
+  /**
+   * Leaving the drill ends the session.
+   *
+   * Speed Drill has no summary screen — `'result'` is the score of ONE shoe and
+   * the player may run another, so the attempts accumulate until they step out.
+   * That step is the session boundary, and it is where the payout belongs.
+   */
   const handleAbort = useCallback(() => {
     stopTimer()
+    finish()
     setPhase('settings')
-  }, [stopTimer])
+  }, [stopTimer, finish])
 
   // Keyboard: Enter submits in input phase, Escape aborts drill
   useEffect(() => {
@@ -553,7 +561,7 @@ export function SpeedDrill() {
             {t('training.common.tryAgain')}
           </button>
           <button
-            onClick={() => setPhase('settings')}
+            onClick={() => { finish(); setPhase('settings') }}
             className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-medium
               hover:bg-contrast/15 transition-colors cursor-pointer"
           >

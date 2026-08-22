@@ -17,6 +17,7 @@ import { LearnPage } from '../components/learn/LearnPage'
 import { TrainingPlan } from '../components/plan/TrainingPlan'
 import { AchievementToast } from '../components/achievements/AchievementToast'
 import { LeaveSessionDialog } from '../components/navigation/LeaveSessionDialog'
+import { XpToast } from '../components/navigation/XpToast'
 import { LevelUpPopup } from '../components/navigation/LevelUpPopup'
 import { ErrorBoundary } from '../components/common/ErrorBoundary'
 import { UpgradePanel } from '../components/pro/UpgradePanel'
@@ -137,6 +138,7 @@ export function TrainerApp() {
           mode you are leaving, and a boundary keyed on `currentMode` would tear
           it down at the exact moment it is needed. */}
       <LeaveSessionDialog />
+      <XpToast />
       <AchievementToast />
       <LevelUpPopup />
       <UpgradeModalHost />

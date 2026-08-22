@@ -121,7 +121,7 @@ export function BetSpread() {
   const betCorrectRef = useRef(0)
   const betTotalRef = useRef(0)
 
-  const { statsRef } = useSessionSave('betSpread', (): BetSpreadDetails => ({
+  const { statsRef, finish } = useSessionSave('betSpread', (): BetSpreadDetails => ({
     type: 'betSpread',
     questionMode,
     tcCorrect: tcCorrectRef.current,
@@ -196,6 +196,9 @@ export function BetSpread() {
   const handleNext = useCallback(() => {
     if (qIndex + 1 >= session.length) {
       soundEngine.sessionComplete()
+      // Pay out at the summary, not on unmount — this is the moment the player
+      // is looking for the reward.
+      finish()
       setPhase('summary')
       return
     }
@@ -205,7 +208,7 @@ export function BetSpread() {
     setIsCorrect(false)
     setTcCorrect(true)
     setPhase('question')
-  }, [qIndex, session.length])
+  }, [qIndex, session.length, finish])
 
   // Keyboard: Enter → next in feedback
   useEffect(() => {

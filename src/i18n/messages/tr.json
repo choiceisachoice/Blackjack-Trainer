@@ -1921,5 +1921,13 @@
     "checkout": "Ödeme sayfasını açamadık. Lütfen tekrar deneyin — devam ederse {{email}} adresine yazın, hallederiz.",
     "portal": "Fatura ayarlarınızı açamadık. Lütfen tekrar deneyin — devam ederse {{email}} adresine yazın.",
     "reset": "Verileriniz silinemedi. Hiçbir şey değişmedi — lütfen tekrar deneyin."
+  },
+  "xp": {
+    "source": {
+      "session": "Antrenman seansı",
+      "challenge": "Meydan okuma",
+      "achievement": "Başarım",
+      "achievements": "Başarımlar"
+    }
   }
 }
