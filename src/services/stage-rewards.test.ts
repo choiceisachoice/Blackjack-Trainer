@@ -3,6 +3,7 @@ import {
   stageXP,
   getClaimedStages,
   markStageClaimed,
+  setClaimedStages,
   pendingStageAwards,
   totalStageXP,
   STAGE_XP_BASE,
@@ -155,5 +156,40 @@ describe('totalStageXP', () => {
 
   it('is worth chasing', () => {
     expect(totalStageXP()).toBeGreaterThan(1000)
+  })
+})
+
+describe('setClaimedStages', () => {
+  /**
+   * The claimed set is the only thing standing between a finished stage and
+   * being paid for it twice, and it lived only in localStorage — under a
+   * `bjt_*` key that the sign-out wipe clears as a security boundary. Progress
+   * itself is derived from session history, which *does* come back from the
+   * cloud, so after a sign-out every finished stage looked unpaid. Level XP
+   * reconciles by `max`, so the inflated local total then won: a sign-out was
+   * worth free XP, as often as you liked.
+   *
+   * It now travels in `profiles.settings`, and this is the write-back the
+   * sign-in merge performs.
+   */
+  it('replaces the set wholesale, so a cloud union can be written back', () => {
+    const first = CURRICULUM[0].id
+    const second = CURRICULUM[1].id
+    markStageClaimed(first)
+    expect(getClaimedStages()).toEqual([first])
+
+    setClaimedStages([first, second])
+    expect(getClaimedStages()).toEqual([first, second])
+  })
+
+  it('drops anything that is not a stage, so a bad cloud value cannot poison it', () => {
+    setClaimedStages(['not-a-stage', CURRICULUM[0].id] as never)
+    expect(getClaimedStages()).toEqual([CURRICULUM[0].id])
+  })
+
+  it('deduplicates', () => {
+    const id = CURRICULUM[0].id
+    setClaimedStages([id, id, id])
+    expect(getClaimedStages()).toEqual([id])
   })
 })

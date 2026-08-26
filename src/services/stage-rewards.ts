@@ -67,7 +67,28 @@ export function getClaimedStages(): StageId[] {
 
 /** Record a stage as paid. Idempotent. */
 export function markStageClaimed(id: StageId): void {
-  const next = Array.from(new Set([...getClaimedStages(), id]))
+  setClaimedStages([...getClaimedStages(), id])
+}
+
+/**
+ * Replace the claimed set, used by the sign-in sync.
+ *
+ * This list is why a stage is not paid twice, and it lived only in
+ * `localStorage` — under a `bjt_*` key, which `clearLocalAppData` wipes on
+ * sign-out as a security boundary. Progress itself is *derived* from session
+ * history, and that history does come back from the cloud, so after a
+ * sign-out/sign-in every finished stage looked unpaid and was paid again.
+ * Level XP reconciles by `max`, so the inflated local total then won and was
+ * pushed up: a sign-out was worth free XP, repeatedly.
+ *
+ * It now rides in `profiles.settings`, a jsonb column the schema already has,
+ * and merges as a union — the set only ever grows, so there is no conflict to
+ * resolve.
+ *
+ * @param ids - The full set of stages considered paid
+ */
+export function setClaimedStages(ids: readonly StageId[]): void {
+  const next = Array.from(new Set(ids.filter(isStageId)))
   try {
     localStorage.setItem(CLAIMED_KEY, JSON.stringify(next))
   } catch {
