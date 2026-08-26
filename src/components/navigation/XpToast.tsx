@@ -53,7 +53,7 @@ export function XpToast() {
       role="status"
       aria-live="polite"
       data-testid="xp-toast"
-      className="rise-in fixed left-1/2 bottom-6 z-50 -translate-x-1/2 pointer-events-none
+      className="rise-in pointer-events-none
         flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-xl
         border border-gold/35 bg-surface/95 backdrop-blur-sm
         shadow-[0_14px_40px_-16px_var(--color-gold)]"

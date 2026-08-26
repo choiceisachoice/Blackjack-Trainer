@@ -138,8 +138,20 @@ export function TrainerApp() {
           mode you are leaving, and a boundary keyed on `currentMode` would tear
           it down at the exact moment it is needed. */}
       <LeaveSessionDialog />
-      <XpToast />
-      <AchievementToast />
+      {/* One layer for both toasts.
+
+          They used to position themselves independently, on identical
+          coordinates and the same z-index — and they fire on the same event: a
+          session ends, pays XP and unlocks an award. Whoever painted last won.
+          Stacking them here keeps each component ignorant of the other and
+          still guarantees they cannot land on top of each other. `flex-col`
+          with the XP toast first means whichever shows alone still sits exactly
+          where it always did, at the bottom edge. */}
+      <div className="fixed left-1/2 bottom-6 z-50 -translate-x-1/2
+        flex flex-col items-center gap-2.5 pointer-events-none">
+        <XpToast />
+        <AchievementToast />
+      </div>
       <LevelUpPopup />
       <UpgradeModalHost />
     </div>

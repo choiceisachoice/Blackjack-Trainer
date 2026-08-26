@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import { AchievementToast } from './AchievementToast'
 import { useAchievementStore } from '../../store/achievement-store'
+import { useLevelStore } from '../../store/level-store'
 import type { Achievement } from '../../services/achievements/achievement-types'
 
 // Mock sound engine
@@ -111,5 +112,38 @@ describe('AchievementToast', () => {
 
     // Second should now show
     expect(screen.getByText('Sharp Eye')).toBeInTheDocument()
+  })
+})
+
+describe('AchievementToast and the level-up popup', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    useAchievementStore.setState({ newlyUnlocked: [] })
+    useLevelStore.setState({ showLevelUp: false })
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    useLevelStore.setState({ showLevelUp: false })
+  })
+
+  /**
+   * The three announcements arrive on the same event: a session ends, pays XP,
+   * unlocks an award, and sometimes takes the player up a level. The popup
+   * covers the screen at z-[9999], so an achievement toast shown underneath ran
+   * its whole four seconds unseen and took its queue entry with it.
+   */
+  it('stays out of the way while the popup is open, and keeps its queue', () => {
+    useLevelStore.setState({ showLevelUp: true })
+    useAchievementStore.setState({ newlyUnlocked: [mockAchievement] })
+
+    const { rerender } = render(<AchievementToast />)
+    expect(screen.queryByTestId('achievement-toast')).toBeNull()
+    expect(useAchievementStore.getState().newlyUnlocked).toHaveLength(1)
+
+    // Closing the popup hands the moment back, with the award still queued.
+    useLevelStore.setState({ showLevelUp: false })
+    rerender(<AchievementToast />)
+    act(() => { vi.advanceTimersByTime(100) })
+    expect(screen.getByTestId('achievement-toast')).toBeInTheDocument()
   })
 })

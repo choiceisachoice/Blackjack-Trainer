@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { achievementName, achievementDescription } from '../../services/achievements/achievement-list'
 import { useAchievementStore } from '../../store/achievement-store'
+import { useLevelStore } from '../../store/level-store'
 import { soundEngine } from '../../services/sound-engine'
 import type { AchievementTier } from '../../services/achievements/achievement-types'
 
@@ -19,19 +20,34 @@ const TIER_CONFIG: Record<AchievementTier, { badge: string; borderColor: string;
 /**
  * Global toast notification for newly unlocked achievements.
  *
- * Positioned at bottom center, slides up with fade-in.
- * Auto-dismisses after 4 seconds. Queues multiple achievements.
- * Plays streak sound on each achievement.
+ * Slides up with a fade, auto-dismisses after four seconds, queues multiples,
+ * and plays the streak sound on each. Positioning belongs to the shared toast
+ * layer in `TrainerApp` — this used to place itself on exactly the same
+ * coordinates as `XpToast`, and the two fire on the same event.
+ *
+ * ## Why it waits for the level-up popup
+ *
+ * That popup covers the screen at `z-[9999]`, and the three announcements
+ * arrive together: a session ends, pays XP, unlocks an award, and sometimes
+ * takes the player up a level. The toast used to run its whole four seconds
+ * behind the overlay and be gone by the time it was closed — an unlocked
+ * achievement announced to nobody, and the queue drained with it.
+ *
+ * `XpToast` already held back for the same reason. Now both do, so the popup
+ * owns that moment and the toasts get theirs afterwards.
  */
 export function AchievementToast() {
   const { t } = useTranslation()
   const newlyUnlocked = useAchievementStore(s => s.newlyUnlocked)
   const dismissNewAchievement = useAchievementStore(s => s.dismissNewAchievement)
+  const levelUpOpen = useLevelStore(s => s.showLevelUp)
   const [visible, setVisible] = useState(false)
   /** The post-exit-animation dismissal timer, tracked so it can be cancelled. */
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const current = newlyUnlocked[0] ?? null
+  // Nothing is current while the popup has the screen, so the timers below
+  // never start and the queue is still intact when it closes.
+  const current = levelUpOpen ? null : (newlyUnlocked[0] ?? null)
 
   // Animate in when a new achievement appears
   useEffect(() => {
@@ -76,7 +92,7 @@ export function AchievementToast() {
         exitTimerRef.current = setTimeout(() => dismissNewAchievement(), 300)
       }}
       className={`
-        fixed bottom-6 left-1/2 -translate-x-1/2 z-50
+        pointer-events-auto
         flex items-center gap-4 px-5 py-4 rounded-xl
         bg-casino-bg/95 backdrop-blur-sm border-2 ${tier.borderColor}
         shadow-lg ${tier.bgGlow}
