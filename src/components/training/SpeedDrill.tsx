@@ -147,7 +147,7 @@ export function SpeedDrill() {
 
   // ── Session stats persistence ──
   const rcErrorsRef = useRef<number[]>([])
-  const { statsRef, finish } = useSessionSave('speedDrill', (): SpeedDrillDetails => ({
+  const { statsRef, finish, begin } = useSessionSave('speedDrill', (): SpeedDrillDetails => ({
     type: 'speedDrill',
     cardsPerRound: cardCount,
     speedMs,
@@ -162,6 +162,7 @@ export function SpeedDrill() {
   }, [])
 
   const startDrill = useCallback(() => {
+    begin()
     const shoe = new Shoe({ numDecks: selectedRules.numDecks, penetration: selectedRules.penetration })
     const engine = new CountingEngine(systemConfig, selectedRules.numDecks)
 
@@ -177,7 +178,7 @@ export function SpeedDrill() {
     setCurrentIndex(0)
     setUserAnswer(0)
     setPhase('drill')
-  }, [cardCount, selectedRules, systemConfig])
+  }, [cardCount, selectedRules, systemConfig, begin])
 
   // Drill timer: advance cards
   // Only play card sounds at slow (2s) and normal (1s) speeds — fast/blitz is too rapid

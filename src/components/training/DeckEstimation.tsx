@@ -135,7 +135,7 @@ export function DeckEstimation() {
   const estimationsRef = useRef<{ actual: number; estimated: number | null; error: number }[]>([])
 
   // ── Session stats persistence ──
-  const { statsRef, finish } = useSessionSave('deckEstimation', (): DeckEstimationDetails => ({
+  const { statsRef, finish, begin } = useSessionSave('deckEstimation', (): DeckEstimationDetails => ({
     type: 'deckEstimation',
     deckCount,
     accuracyMode,
@@ -234,10 +234,11 @@ export function DeckEstimation() {
   }, [round, numRounds, generateQuestion, finish])
 
   const startTraining = useCallback(() => {
+    begin()
     setStats(INITIAL_STATS)
     setRound(1)
     generateQuestion()
-  }, [generateQuestion])
+  }, [generateQuestion, begin])
 
   // Quick Fire timer countdown
   useEffect(() => {

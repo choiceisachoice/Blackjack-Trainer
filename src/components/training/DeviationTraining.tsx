@@ -56,13 +56,14 @@ export function DeviationTraining() {
   // so Analytics' weakest-hands panel and deviation stats reflect real answers.
   const perDeviationRef = useRef<Record<string, { correct: number; incorrect: number }>>({})
 
-  const { statsRef, finish } = useSessionSave('deviationFlashCards', (): DeviationDetails => ({
+  const { statsRef, finish, begin } = useSessionSave('deviationFlashCards', (): DeviationDetails => ({
     type: 'deviationFlashCards',
     deviationSet: 'all',
     perDeviation: perDeviationRef.current,
   }))
 
   const startSession = useCallback(() => {
+    begin()
     perDeviationRef.current = {}
     setSession(buildFlashSession(level, numQuestions, dealerHitsSoft17))
     setQIndex(0)
@@ -73,7 +74,7 @@ export function DeviationTraining() {
     setCurrentStreak(0)
     setBestStreak(0)
     setPhase('question')
-  }, [level, numQuestions, dealerHitsSoft17])
+  }, [level, numQuestions, dealerHitsSoft17, begin])
 
   const handleAnswer = useCallback((action: Action) => {
     if (!question) return

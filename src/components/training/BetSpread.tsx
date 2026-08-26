@@ -121,7 +121,7 @@ export function BetSpread() {
   const betCorrectRef = useRef(0)
   const betTotalRef = useRef(0)
 
-  const { statsRef, finish } = useSessionSave('betSpread', (): BetSpreadDetails => ({
+  const { statsRef, finish, begin } = useSessionSave('betSpread', (): BetSpreadDetails => ({
     type: 'betSpread',
     questionMode,
     tcCorrect: tcCorrectRef.current,
@@ -131,6 +131,7 @@ export function BetSpread() {
   }))
 
   const startSession = useCallback(() => {
+    begin()
     setSession(buildSession(questionMode, numQuestions))
     setQIndex(0)
     setTcAnswer(0)
@@ -146,7 +147,7 @@ export function BetSpread() {
     betCorrectRef.current = 0
     betTotalRef.current = 0
     setPhase('question')
-  }, [questionMode, numQuestions])
+  }, [questionMode, numQuestions, begin])
 
   const handleSubmitBet = useCallback((bet: number) => {
     if (!question) return

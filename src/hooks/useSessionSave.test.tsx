@@ -54,4 +54,45 @@ describe('useSessionSave', () => {
     unmount()
     expect(recordSpy).toHaveBeenCalledTimes(1)
   })
+
+  /**
+   * A second round inside one visit is the case the guard used to swallow.
+   * Every summary screen offers "play again", and it restarts the mode without
+   * unmounting it — so `finish()` met a guard that had never been re-opened and
+   * the round was dropped with no error anywhere.
+   */
+  it('records a second round started with begin() in the same visit', () => {
+    function TwoRounds() {
+      const { statsRef, finish, begin } = useSessionSave('speedDrill', details)
+      useEffect(() => {
+        statsRef.current = { totalQuestions: 20, correctAnswers: 18, bestStreak: 4 }
+        finish()
+        begin()
+        statsRef.current = { totalQuestions: 12, correctAnswers: 11, bestStreak: 6 }
+        finish()
+      }, [statsRef, finish, begin])
+      return null
+    }
+    render(<TwoRounds />)
+    expect(recordSpy).toHaveBeenCalledTimes(2)
+    expect(recordSpy.mock.calls[0][0]).toMatchObject({ totalQuestions: 20 })
+    expect(recordSpy.mock.calls[1][0]).toMatchObject({ totalQuestions: 12 })
+  })
+
+  /** begin() re-opens the guard; it must not weaken the double-save guard for
+   *  a round that has already been recorded and not restarted. */
+  it('still records only once when finish() is called twice without begin()', () => {
+    function TwiceFinished() {
+      const { statsRef, finish } = useSessionSave('speedDrill', details)
+      useEffect(() => {
+        statsRef.current = { totalQuestions: 20, correctAnswers: 18, bestStreak: 4 }
+        finish()
+        finish()
+      }, [statsRef, finish])
+      return null
+    }
+    const { unmount } = render(<TwiceFinished />)
+    unmount()
+    expect(recordSpy).toHaveBeenCalledTimes(1)
+  })
 })

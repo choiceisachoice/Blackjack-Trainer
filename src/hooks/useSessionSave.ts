@@ -29,6 +29,20 @@ interface SessionStats {
  * mid-session, and `savedRef` keeps all three paths idempotent — whichever
  * fires first wins, and a session is neither lost nor counted twice.
  *
+ * ## Why `begin` exists
+ *
+ * That guard has to survive until a genuinely new session starts, or `pagehide`
+ * followed by unmount would record the same drill twice. But it was only ever
+ * re-armed on a bfcache restore, and the summary screens all offer a "play
+ * again" that restarts the mode **without unmounting it**. So the second drill
+ * of a visit ran, ended, called `finish()`, met a guard that was still closed,
+ * and vanished: no session row, no accuracy, no XP, and no error anywhere.
+ *
+ * Modes call `begin()` from the same function that deals the first card. It
+ * re-arms the guard and re-stamps the start time, which was also stale — every
+ * round after the first would otherwise have reported a duration measured from
+ * the moment the mode was opened.
+ *
  * @param mode - Training mode identifier
  * @param buildDetails - Function that returns the mode-specific details object
  */
@@ -47,6 +61,13 @@ export function useSessionSave(
    * `pagehide` handlers.
    */
   finish: () => void
+  /**
+   * Start a new session inside the same mounted mode.
+   *
+   * Call this wherever a round begins — including a restart from the summary,
+   * which is the case that was silently dropping sessions before.
+   */
+  begin: () => void
 } {
   const statsRef = useRef<SessionStats>({
     totalQuestions: 0,
@@ -106,5 +127,13 @@ export function useSessionSave(
     }
   }, [save])
 
-  return { statsRef, startTimeRef, finish: save }
+  // Re-arm for a fresh round. Both halves matter: the guard, or the round is
+  // not recorded at all, and the timestamp, or its duration is measured from
+  // whenever the mode was first opened.
+  const begin = useCallback(() => {
+    savedRef.current = false
+    startTimeRef.current = Date.now()
+  }, [])
+
+  return { statsRef, startTimeRef, finish: save, begin }
 }
