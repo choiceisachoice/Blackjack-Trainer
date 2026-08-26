@@ -56,7 +56,7 @@ export function LeaveSessionDialog() {
     // A mode switch stays inside the app; a route change leaves it, which is
     // what makes the second kind worth asking about in the first place.
     if (target.kind === 'mode') setMode(target.mode)
-    else if (target.kind === 'route') navigate(target.path)
+    else if (target.kind === 'route') void navigate(target.path)
     else void signOutAndClearLocal().then(() => navigate('/'))
   }
 

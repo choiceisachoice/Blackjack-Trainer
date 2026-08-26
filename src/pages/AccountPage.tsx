@@ -107,7 +107,7 @@ export function AccountPage() {
     if (signingOut) return
     setSigningOut(true)
     await signOutAndClearLocal()
-    navigate('/')
+    void navigate('/')
   }
 
   return (

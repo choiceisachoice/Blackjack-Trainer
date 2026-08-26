@@ -55,11 +55,11 @@ function App() {
 
   // Load the auth session once. Harmless (resolves to signed-out) when Supabase
   // isn't configured yet.
-  useEffect(() => { initAuth() }, [initAuth])
+  useEffect(() => { void initAuth() }, [initAuth])
 
   // On sign-in: migrate local data to the cloud (once) and hydrate from it.
   useEffect(() => {
-    if (authStatus === 'signedIn') handleSignedIn()
+    if (authStatus === 'signedIn') void handleSignedIn()
   }, [authStatus])
 
   // Resume a "Go Pro" intent a visitor made while signed out (from the landing):
@@ -83,7 +83,7 @@ function App() {
     params.delete('checkout')
     const qs = params.toString()
     window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''))
-    if (outcome === 'success') useEntitlementStore.getState().refreshUntilPro()
+    if (outcome === 'success') void useEntitlementStore.getState().refreshUntilPro()
   }, [authStatus])
 
   /**
@@ -111,7 +111,7 @@ function App() {
     let alive = true
     // `allSettled`: a chunk that fails to load must not hold the screen hostage.
     // The route's own Suspense boundary and error handling take it from there.
-    Promise.allSettled(wanted).then(() => { if (alive) setChunksReady(true) })
+    void Promise.allSettled(wanted).then(() => { if (alive) setChunksReady(true) })
     return () => { alive = false }
   }, [])
 

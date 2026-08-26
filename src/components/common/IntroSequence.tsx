@@ -183,7 +183,7 @@ export function IntroSequence({
   useEffect(() => {
     if (typeReady) return
     let alive = true
-    document.fonts.ready.then(() => { if (alive) setTypeReady(true) })
+    void document.fonts.ready.then(() => { if (alive) setTypeReady(true) })
     return () => { alive = false }
   }, [typeReady])
 

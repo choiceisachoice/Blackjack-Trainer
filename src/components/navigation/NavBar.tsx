@@ -99,7 +99,7 @@ export function NavBar() {
     // and never rejects, so navigating afterwards is unconditional: a failed
     // revoke must not leave someone parked on a signed-in screen.
     await signOutAndClearLocal()
-    navigate('/')
+    void navigate('/')
   }
 
   /**
@@ -211,7 +211,7 @@ export function NavBar() {
           )}
           {signedIn && (
             <button
-              onClick={() => { if (requestLeaveApp({ kind: 'route', path: '/account' })) navigate('/account') }}
+              onClick={() => { if (requestLeaveApp({ kind: 'route', path: '/account' })) void navigate('/account') }}
               data-testid="account"
               aria-label={t('nav.accountAndBilling')}
               title={t('nav.accountAndBilling')}

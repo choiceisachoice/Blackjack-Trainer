@@ -66,7 +66,7 @@ export function DashboardHeader() {
   // and achievements each load it themselves), so without this a returning
   // user's dashboard would read zero on a fresh page load.
   useEffect(() => {
-    if (lifetimeStats == null) loadStats()
+    if (lifetimeStats == null) void loadStats()
   }, [lifetimeStats, loadStats])
 
   const played = (lifetimeStats?.totalSessions ?? 0) > 0

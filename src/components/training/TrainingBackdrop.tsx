@@ -82,7 +82,7 @@ function ContextRails({ mode, breakpoint }: { mode: TrainingMode; breakpoint: 'x
   // Training screens don't otherwise hydrate the stats store; load it once so
   // the last-run figures reflect real saved sessions rather than an empty store.
   useEffect(() => {
-    if (lifetimeStats == null) loadStats()
+    if (lifetimeStats == null) void loadStats()
   }, [lifetimeStats, loadStats])
 
   const lastSession = sessions.find(s => s.mode === mode)

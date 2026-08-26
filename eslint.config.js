@@ -38,6 +38,38 @@ export default defineConfig([
   },
 
   /*
+    A promise nobody is holding.
+
+    `tseslint.configs.recommended` above is the syntax-only preset, so
+    `no-floating-promises` — which needs type information — was not running.
+    That is the rule that catches an async call whose failure goes nowhere, and
+    this codebase has the scar: three writes on the payment path failed
+    silently because `supabase-js` neither throws nor reports a write that
+    matched nothing, and only one of the three call sites remembered.
+
+    All twenty existing sites turned out to be safe on inspection — mostly
+    `navigate()`, which returns a promise in react-router 7, plus loaders that
+    already catch internally. They carry `void` now, which is the point: the
+    rule does not forbid fire-and-forget, it forbids *silent* fire-and-forget,
+    and `void` is a signature saying somebody looked.
+
+    Its own block, scoped to `src`, because type-aware parsing needs a tsconfig
+    project and the config files at the repo root are not in one.
+  */
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    // Tests live in `tsconfig.test.json`, not the app project, and a dropped
+    // promise in a test harms nobody — not worth a second project service.
+    ignores: ['**/*.test.ts', '**/*.test.tsx'],
+    languageOptions: {
+      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
+    },
+  },
+
+  /*
     Hard-coded copy in a screen.
 
     The seven-language sweep was verified with a script that looked for text

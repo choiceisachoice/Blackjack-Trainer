@@ -46,7 +46,7 @@ export function useAnimationQueue() {
 
   const start = useCallback(() => {
     if (runningRef.current) return
-    runQueue()
+    void runQueue()
   }, [runQueue])
 
   const cancel = useCallback(() => {

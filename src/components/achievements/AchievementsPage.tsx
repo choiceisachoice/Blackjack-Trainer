@@ -136,7 +136,7 @@ export function AchievementsPage() {
   const [filter, setFilter] = useState<FilterMode>('all')
 
   useEffect(() => {
-    loadStats()
+    void loadStats()
     refreshLevel()
   }, [loadStats, refreshLevel])
 

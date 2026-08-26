@@ -108,7 +108,7 @@ export function TrainingPlan({
 
   // The plan is entirely derived from session history, so it has to be loaded.
   useEffect(() => {
-    if (lifetimeStats == null) loadStats()
+    if (lifetimeStats == null) void loadStats()
   }, [lifetimeStats, loadStats])
 
   // ── 0. Brand-new account → say hello before asking anything ──

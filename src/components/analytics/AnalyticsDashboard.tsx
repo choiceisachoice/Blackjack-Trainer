@@ -224,7 +224,7 @@ export function AnalyticsDashboard() {
   const [range, setRange] = useState<TimeRange>('30d')
 
   useEffect(() => {
-    loadStats()
+    void loadStats()
   }, [loadStats])
 
   // Stable "now" per mount so all derivations agree on the window.

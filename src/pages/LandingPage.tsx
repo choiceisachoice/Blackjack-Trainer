@@ -76,13 +76,13 @@ export function LandingPage() {
   const saving = monthly && yearly ? yearlySaving(monthly.amount, yearly.amount) : null
   const money = (minor: number, currency: string) => formatMoney(minor, currency, i18n.language)
 
-  function startFree() { navigate(authed ? '/app' : '/login') }
+  function startFree() { void navigate(authed ? '/app' : '/login') }
   async function goPro() {
     if (busy) return
     if (!authed) {
       // Remember the intent so checkout resumes automatically after sign-in.
       setPendingCheckout(plan)
-      navigate('/login')
+      void navigate('/login')
       return
     }
     // Someone who already pays does not get sent to a payment form. This is the
@@ -91,7 +91,7 @@ export function LandingPage() {
     // visitor usually sees first. The half that actually protects the customer
     // is in the Edge Function, which asks Stripe.
     if (hasSubscription) {
-      navigate('/account')
+      void navigate('/account')
       return
     }
     setCheckoutError(null)
@@ -103,7 +103,7 @@ export function LandingPage() {
       if (outcome === 'already-subscribed') {
         // The server knows better than this page did. Their account page is
         // where the existing subscription can be seen and managed.
-        navigate('/account')
+        void navigate('/account')
       }
     } catch (e) {
       logFailure('checkout-landing', e)

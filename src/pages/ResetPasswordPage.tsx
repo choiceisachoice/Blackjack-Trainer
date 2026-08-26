@@ -96,7 +96,7 @@ export function ResetPasswordPage() {
       // router state so the next screen can say what just happened instead of
       // looking like an unexplained logout.
       if (!err) {
-        navigate('/login', {
+        void navigate('/login', {
           replace: true,
           state: { notice: t('auth.passwordChanged') },
         })
