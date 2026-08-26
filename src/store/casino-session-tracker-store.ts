@@ -94,6 +94,14 @@ interface CasinoSessionTrackerStore {
 
   // Actions
   addSession(session: TrackedCasinoSession): void
+  /**
+   * Replace the tracked set wholesale.
+   *
+   * Used by the sign-in sync to put back what `clearLocalAppData` wiped, which
+   * it can now do because the bankroll figures ride along in the synced
+   * session record. See `services/casino-tracker-rebuild.ts`.
+   */
+  hydrate(sessions: TrackedCasinoSession[]): void
   setStartingBankroll(amount: number): void
   deleteSession(id: string): void
   reset(): void
@@ -144,6 +152,10 @@ export const useCasinoSessionTrackerStore = create<CasinoSessionTrackerStore>()(
 
       addSession(session) {
         set(state => ({ sessions: [...state.sessions, session] }))
+      },
+
+      hydrate(sessions) {
+        set({ sessions })
       },
 
       setStartingBankroll(amount) {

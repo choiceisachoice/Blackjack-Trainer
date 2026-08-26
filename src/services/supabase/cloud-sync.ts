@@ -6,6 +6,8 @@ import { syncAchievementsOnSignIn } from './achievements-sync'
 import { syncProfileOnSignIn } from './profiles-sync'
 import { fetchCloudSessions, upsertCloudSessions, normalizeId, mergeById } from './bankroll-sync'
 import { useStatsStore } from '../../store/stats-store'
+import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker-store'
+import { rebuildTrackedSessions, mergeTrackedSessions } from '../casino-tracker-rebuild'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useLevelStore } from '../../store/level-store'
 import { useBankrollTrackerStore } from '../../store/bankroll-tracker-store'
@@ -183,6 +185,27 @@ async function runSignInSync(): Promise<void> {
     await useEntitlementStore.getState().loadEntitlement()
 
     await useStatsStore.getState().loadStats()
+
+    /*
+      Put the Casino Session Tracker back.
+
+      It is the one piece of progress with no table of its own, so `signOut`'s
+      mandatory local wipe used to destroy it outright while everything else
+      came back from the cloud. Signing out silently deleted a log of
+      real-money bankroll figures.
+
+      No fifth table was needed in the end: `training_sessions.details` is
+      jsonb, so the two bankroll figures and the table config now ride along in
+      the session record, and the tracker is derivable from what already syncs.
+      Merged rather than replaced, and local wins — the same rule the bankroll
+      sync uses, so an offline session added on this device is not overwritten
+      by a reconstruction of what the cloud saw.
+    */
+    const tracker = useCasinoSessionTrackerStore.getState()
+    tracker.hydrate(mergeTrackedSessions(
+      tracker.sessions,
+      rebuildTrackedSessions(useStatsStore.getState().sessions)
+    ))
   } catch (e) {
     console.error('cloud sync on sign-in failed', e)
   }

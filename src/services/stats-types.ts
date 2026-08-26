@@ -110,6 +110,22 @@ export interface CasinoSessionDetails {
   splitAces: boolean
   /** Maximum hands from a single split (e.g. 4 = split to 4 hands). */
   maxSplitHands: number
+  /**
+   * Bankroll at the first hand.
+   *
+   * Optional because sessions recorded before this existed do not have it, and
+   * the tracker rebuild deliberately skips those rather than inventing a
+   * balance — see `services/casino-tracker-rebuild.ts`.
+   */
+  startingBankroll?: number
+  /** Bankroll when the session ended. */
+  finalBankroll?: number
+  /** The table this was played on, as the tracker reports it. */
+  tableConfig?: {
+    numDecks: number
+    minBet: number
+    blackjackPays: number
+  }
 }
 
 /** Discriminated union of all detail types. */

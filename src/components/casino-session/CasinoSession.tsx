@@ -133,6 +133,15 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
       longestWinStreak,
       splitAces,
       maxSplitHands,
+      // Carried so the Casino Session Tracker can be rebuilt after a sign-out
+      // wipes it. `details` is jsonb, so this costs no migration.
+      startingBankroll: sessionResult.startingBankroll,
+      finalBankroll: sessionResult.finalBankroll,
+      tableConfig: {
+        numDecks: sessionResult.config.numDecks,
+        minBet: sessionResult.config.minBet,
+        blackjackPays: sessionResult.config.blackjackPays,
+      },
     }
     const totalDecisions = sessionResult.totalPlayDecisions + sessionResult.totalBetDecisions
     const correctDecisions = sessionResult.correctPlayDecisions + sessionResult.correctBetDecisions
