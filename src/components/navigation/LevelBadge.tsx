@@ -1,5 +1,4 @@
 import { useLevelStore } from '../../store/level-store'
-import { useLevelPalette } from '../../hooks/useLevelPalette'
 import { useTranslation } from 'react-i18next'
 
 /**
@@ -9,10 +8,7 @@ import { useTranslation } from 'react-i18next'
  */
 export function LevelBadge() {
   const { t } = useTranslation()
-  // Through the palette: the ladder's colours are authored for the dark
-  // theme, where pale reads as brilliant. On the light surface the elite
-  // tier fell to about 1.1:1 — see `services/level-palette.ts`.
-  const level = useLevelPalette(useLevelStore(s => s.level))
+  const level = useLevelStore(s => s.level)
   const progress = useLevelStore(s => s.progress)
   const totalXP = useLevelStore(s => s.totalXP)
 

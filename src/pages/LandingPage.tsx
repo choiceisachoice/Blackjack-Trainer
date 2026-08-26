@@ -18,8 +18,6 @@ import { FeatureShowcase } from '../components/landing/FeatureShowcase'
 // text has painted, so it never blocks the landing's first paint.
 const HeroCanvas = lazy(() => import('../components/landing/HeroCanvas').then(m => ({ default: m.HeroCanvas })))
 
-
-
 /*
  * The hero used to carry an ambient gold wash over the canvas. It read as a
  * pale haze rather than as atmosphere and sat oddly against the cards coming out
@@ -151,9 +149,6 @@ export function LandingPage() {
         </nav>
       </header>
 
-      {/* Hero + credibility strip form one dark stage, in both themes.
-          See `.hero-stage` in index.css for why it does not follow the theme. */}
-      <div className="hero-stage">
       <section className="relative min-h-[calc(100vh-62px)] flex items-center overflow-hidden">
         <HeroLayer />
         <div className="relative z-[5] w-full intro-enter">
@@ -190,7 +185,6 @@ export function LandingPage() {
           <span><b className="text-content font-semibold">Illustrious 18</b> + Fab 4</span>
           <span><b className="text-content font-semibold">{t('landing.tag.realBold')}</b> {t('landing.tag.realTable')}</span>
         </div>
-      </div>
       </div>
 
       {/* Features */}

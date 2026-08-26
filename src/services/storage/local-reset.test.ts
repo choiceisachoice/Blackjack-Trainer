@@ -30,8 +30,8 @@ describe('local-reset — account isolation', () => {
     localStorage.setItem('bjt_daily_challenge', '{}')
     localStorage.setItem('bjt_cloud_migrated_user-a', '2026-07-10')
     localStorage.setItem(LOCAL_OWNER_KEY, 'user-a')
+    localStorage.setItem('bjt_theme', 'light')
     // Device preferences — must survive.
-    localStorage.setItem('bjt_theme', 'dark')
     localStorage.setItem('bjt_sound_settings', '{"enabled":true}')
     localStorage.setItem('bjt_dealing_speed', 'fast')
     localStorage.setItem('bjt_ambient_volume', '0.5')
@@ -43,11 +43,13 @@ describe('local-reset — account isolation', () => {
     for (const gone of [
       'bjt_sessions', 'bjt_achievements', 'bjt_level_xp', 'bjt_sim_count',
       'bjt_daily_challenge', 'bjt_cloud_migrated_user-a', LOCAL_OWNER_KEY,
+      // Left behind on devices that used the light theme before it was
+      // removed. It is no longer a device preference, so the wipe takes it.
+      'bjt_theme',
     ]) {
       expect(localStorage.getItem(gone), `${gone} must be wiped`).toBeNull()
     }
 
-    expect(localStorage.getItem('bjt_theme')).toBe('dark')
     expect(localStorage.getItem('bjt_sound_settings')).toBe('{"enabled":true}')
     expect(localStorage.getItem('bjt_dealing_speed')).toBe('fast')
     expect(localStorage.getItem('bjt_ambient_volume')).toBe('0.5')

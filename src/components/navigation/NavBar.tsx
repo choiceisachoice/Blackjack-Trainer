@@ -1,6 +1,6 @@
 import {
   Zap, Spade, GraduationCap, Coins, Layers, Club,
-  BarChart3, Grid3x3, Trophy, BookOpen, Route, Volume2, VolumeX, Sun, Moon, LogOut,
+  BarChart3, Grid3x3, Trophy, BookOpen, Route, Volume2, VolumeX, LogOut,
   Lock, Crown, Settings, Loader2,
   type LucideIcon,
 } from 'lucide-react'
@@ -53,7 +53,7 @@ const TOOL_ITEMS: NavItem[] = [
 /**
  * Global top navigation bar. Shown on every screen (home + all modes).
  * Provides one-click access to all features with an active-state highlight,
- * plus the counting-system indicator, sound and theme toggles, and the level badge.
+ * plus the counting-system indicator, the sound toggle and the level badge.
  */
 export function NavBar() {
   const currentMode = useAppStore(s => s.currentMode)
@@ -74,8 +74,6 @@ export function NavBar() {
   }
   const soundEnabled = useAppStore(s => s.soundEnabled)
   const toggleSound = useAppStore(s => s.toggleSound)
-  const theme = useAppStore(s => s.theme)
-  const toggleTheme = useAppStore(s => s.toggleTheme)
   const authStatus = useAuthStore(s => s.status)
   const signedIn = isSupabaseConfigured && authStatus === 'signedIn'
   const isPro = useIsPro()
@@ -229,15 +227,6 @@ export function NavBar() {
             className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
           >
             {soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
-          </button>
-          <button
-            onClick={toggleTheme}
-            data-testid="theme-toggle"
-            aria-label={theme === 'dark' ? t('nav.switchToLight') : t('nav.switchToDark')}
-            title={theme === 'dark' ? t('nav.switchToLight') : t('nav.switchToDark')}
-            className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
-          >
-            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
           </button>
           {signedIn && (
             <button

@@ -39,7 +39,7 @@
      three cards into grey slabs with the light theme's dark text on them. */
   --color-warm-wash: rgba(24, 20, 10, 0.6);
 
-  /* ── Theme-dynamic colors (dark defaults; overridden by [data-theme="light"]) ── */
+  /* ── Surface and accent colors ── */
   --color-casino-bg: #070809;
   --color-surface: #0d0f13;
   --color-surface-2: #14171d;
@@ -48,9 +48,9 @@
   --color-gold: #d4a847;
   --color-gold-bright: #f0cd82;
 
-  /* Semantic content/surface colors for theme switching.
-     `content` is opaque — use with Tailwind opacity modifiers (text-content/50).
-     `contrast` drives bg-contrast/5, border-contrast/10, etc. */
+  /* `content` is opaque — use it with Tailwind's opacity modifiers
+     (`text-content/50`); `contrast` drives `bg-contrast/5`,
+     `border-contrast/10` and friends. */
   --color-content: #f4f5f6;
   /* Trennlinien mit Gewicht. Drei Stellen in AchievementsPage und die
      Fortschrittsleiste im LevelBadge referenzierten diesen Token mit einem
@@ -169,187 +169,24 @@
   font-display: swap;
 }
 
-/* ── Light Theme Overrides ── */
-[data-theme="light"] {
-  --color-casino-bg: #f4f5f7;
-  --color-surface: #ffffff;
-  --color-surface-2: #f0f1f4;
-  --color-felt: #1a7a45;
-  --color-felt-dark: #12603a;
-  --color-gold: #a8801f;
-  --color-gold-bright: #c79a32;
+/* ── The dim-text ramp's floor ──────────────────────────────────
+   Measured on the real page: `text-content/40` renders **3.49:1** on the page
+   ground and 3.58 on a card — below AA, and it is used on roughly a hundred
+   and twenty labels.
 
-  --color-content: #14161a;
-  --color-line-strong: rgba(0, 0, 0, 0.16);
-  --color-warm-wash: rgba(212, 168, 71, 0.13);
-
-  /* The semantic three were filed under "static colors (same in both themes)"
-     and never got a light variant. They are tuned to glow on near-black, and on
-     white they collapse: #22c55e measured 1.86:1, #ef4444 about 3.2:1 — on the
-     accuracy chips, the trend arrows and every correct/wrong signal in the app.
-     A colour that carries meaning is the last one that may fade. Same hues,
-     taken down to where they read on paper.
-
-     Deep enough to survive their own tint, which is the part that is easy to
-     miss: these appear as `text-success` on `bg-success/10`, and a colour
-     sitting on 10% of itself loses roughly half a step. #15803d measures 5.02
-     on white and only 4.37 on that chip — under AA on exactly the accuracy
-     badges and trend arrows the numbers exist for. */
-  --color-success: #136b34;
-  --color-error: #b91c1c;
-  --color-warning: #9a4708;
-  --color-contrast: #000000;
-  --color-topbar: rgba(255, 255, 255, 0.85);
-  --color-input-bg: rgba(0, 0, 0, 0.04);
-  --color-select-bg: #ffffff;
-  --color-tooltip-bg: #ffffff;
-  --color-tooltip-border: rgba(0, 0, 0, 0.10);
-}
-
-/* ── Gold has two jobs, and on a light surface they pull apart ────────────
-   `--color-gold` is both an accent *text* colour and a button *fill*. On
-   near-black both work, because everything around them is dark. On white they
-   want opposite things, and the numbers say so: at #a8801f, gold text on the
-   page reads 3.33:1 (fails AA) while the dark label on a gold button reads
-   4.98:1 (passes). Darkening the token to #856314 swaps them exactly — 5.08
-   for the text, 3.27 for the button label. One value cannot serve both.
-
-   So the fill keeps `--color-gold` and the text gets its own token. In the dark
-   theme they are the same colour, which is why this never surfaced there.
-
-   `gold-bright` inverts rather than lightens: "brighter" means *more emphasis*,
-   and on a light ground more emphasis is darker, not lighter. Same reasoning as
-   the level ladder in `services/level-palette.ts`. */
-:root {
-  --color-gold-on-surface: var(--color-gold);
-  --color-gold-bright-on-surface: var(--color-gold-bright);
-}
-[data-theme="light"] {
-  --color-gold-on-surface: #856314;
-  --color-gold-bright-on-surface: #7d5d12;
-}
-[data-theme="light"] .text-gold { color: var(--color-gold-on-surface); }
-[data-theme="light"] .text-gold-bright { color: var(--color-gold-bright-on-surface); }
-/* The opacity variants need saying separately: Tailwind generates
-   `.text-gold\/70` as its own class, so overriding `.text-gold` above does not
-   reach it. Missed on the first pass, and it showed on the paywall — the Pro
-   card's group labels sat at 2.23:1. Dimming an already-dark gold on a light
-   ground buys nothing, so these hold full strength; in the dark theme they keep
-   the fade, because there it is doing real work. */
-[data-theme="light"] .text-gold\/60,
-[data-theme="light"] .text-gold\/70,
-[data-theme="light"] .text-gold\/80 { color: var(--color-gold-on-surface); }
-
-/* ── The dim-text ramp's floor, in the dark theme ───────────────────
-   I said earlier in this sweep that the dark theme "was never wrong". That was
-   too kind. Measured on the real page: `text-content/40` is **3.49:1** on the
-   page ground and 3.58 on a card — below AA, on the theme that ships by
-   default. Less badly wrong than the light theme's 2.56, and wrong.
-
-   Only the failing steps move. Everything from /50 up already clears (4.98 on
-   the page, 4.92 on `surface-2`), and those values are the designed look —
-   lifting them would restyle every screen to fix something that is not broken.
-   /30 through /45 land on 50%, which is where this theme first clears; they
-   collapse into one step for the same reason the light ramp's floor does, and
-   /20 and /25 stay decorative. */
-[data-theme="dark"] .text-content\/20 { color: color-mix(in oklab, var(--color-content) 25%, transparent); }
-[data-theme="dark"] .text-content\/25 { color: color-mix(in oklab, var(--color-content) 30%, transparent); }
-[data-theme="dark"] .text-content\/30,
-[data-theme="dark"] .text-content\/35,
-[data-theme="dark"] .text-content\/40,
-[data-theme="dark"] .text-content\/45 { color: color-mix(in oklab, var(--color-content) 50%, transparent); }
-
-/* ── The dim-text ramp, re-cut for the light theme ────────────────────────
-   Alpha blending is not symmetric, and that is the whole of this problem.
-   `text-content/40` is 40% of #f4f5f6 on near-black in the dark theme — about
-   3.5:1 — and 40% of #14161a on white in the light theme, which is **2.56:1**.
-   Same class, same intent, one theme legible and the other not. Measured in
-   the browser across the ramp: #14161a on white needs 60% before it clears
-   AA's 4.5, where the dark theme gets there at roughly 45%.
-
-   Re-cutting the ramp here fixes ~480 call sites in one place and leaves the
-   dark theme, which was never wrong, exactly as it was. The ordering is kept
-   so the hierarchy still reads as a hierarchy — /40 is still quieter than /50,
-   which is still quieter than /60 — the range is simply shifted to where those
-   steps survive a white background.
-
-   The bottom of the ramp deliberately collapses. /30, /35 and /40 all land on
-   the same value, because on a light ground five points of alpha is worth about
-   half a step of contrast — measured, not guessed: 55% gives 4.01, 59% gives
-   4.41, 62% gives 5.05. Those three steps cannot both stay distinct and clear
-   AA, and losing a difference nobody could see costs less than keeping text
-   nobody can read. It matters concretely: the achievements grid labels locked
-   awards with `text-content/35`, and an award's name is exactly what that
-   screen exists to show. /20 and /25 stay below AA on purpose — separators,
-   spacer glyphs and rules, never words. */
-[data-theme="light"] .text-content\/20 { color: color-mix(in oklab, var(--color-content) 36%, transparent); }
-[data-theme="light"] .text-content\/25 { color: color-mix(in oklab, var(--color-content) 42%, transparent); }
-[data-theme="light"] .text-content\/30 { color: color-mix(in oklab, var(--color-content) 62%, transparent); }
-[data-theme="light"] .text-content\/35 { color: color-mix(in oklab, var(--color-content) 62%, transparent); }
-[data-theme="light"] .text-content\/40 { color: color-mix(in oklab, var(--color-content) 62%, transparent); }
-[data-theme="light"] .text-content\/45 { color: color-mix(in oklab, var(--color-content) 63%, transparent); }
-[data-theme="light"] .text-content\/50 { color: color-mix(in oklab, var(--color-content) 66%, transparent); }
-[data-theme="light"] .text-content\/55 { color: color-mix(in oklab, var(--color-content) 69%, transparent); }
-[data-theme="light"] .text-content\/60 { color: color-mix(in oklab, var(--color-content) 72%, transparent); }
-[data-theme="light"] .text-content\/65 { color: color-mix(in oklab, var(--color-content) 76%, transparent); }
-[data-theme="light"] .text-content\/70 { color: color-mix(in oklab, var(--color-content) 80%, transparent); }
-[data-theme="light"] .text-content\/80 { color: color-mix(in oklab, var(--color-content) 87%, transparent); }
-[data-theme="light"] .text-content\/85 { color: color-mix(in oklab, var(--color-content) 91%, transparent); }
-[data-theme="light"] .text-content\/90 { color: color-mix(in oklab, var(--color-content) 94%, transparent); }
-
-/* ── A panel that stays dark in both themes ───────────────────────────────
-   The reshuffle notice sits on the green felt, and a dark card over a table is
-   right in either theme — but its text was following the theme, so in light
-   mode it put the dark gold on a dark panel. Same shape as the hero below,
-   small enough to want a name rather than a third copy of the token block. */
-[data-theme="light"] .on-dark {
-  --color-content: #f4f5f6;
-  --color-contrast: #ffffff;
-  --color-gold-on-surface: #d4a847;
-  --color-gold-bright-on-surface: #f0cd82;
-}
-
-/* ── The landing hero is a stage, not chrome ──────────────────────────────
-   The WebGL scene, the scrim and the inset vignette are authored dark. In
-   light theme the surrounding page correctly turns white, but the stage
-   cannot follow without re-authoring a 3D scene — so it stays dark, the way
-   a film still stays a film still on a white page.
-
-   What was actually broken is the text on top of it: the headline, subtitle
-   and secondary CTA all used `text-content`, which flips to near-black, so
-   the first thing a light-theme visitor saw was a dark headline on a black
-   hero. The credibility strip below had the same problem from the other
-   side: a hardcoded `rgba(7,8,9,.55)` background under `text-content`.
-
-   Scoping the dark tokens to the stage fixes every child at once, including
-   children added later, and keeps the fix in one place instead of a dozen
-   pinned colours. `--color-casino-bg` is included because the scrim fades to
-   it — without that the bottom of the hero bled to white in light mode. */
-[data-theme="light"] .hero-stage {
-  --color-casino-bg: #070809;
-  /* The stage needs a ground of its own, not only tokens. The hero section
-     carries its own dark layers, but the credibility strip below it is a 55%
-     black wash — over the light page that composited to mid-grey (rgb 114),
-     which turned a deliberate dark band into a flat grey placeholder and put
-     its light text at 4.35:1 instead of the 18:1 it reads at on black. */
-  background: var(--color-casino-bg);
-  --color-content: #f4f5f6;
-  --color-contrast: #ffffff;
-  --color-gold: #d4a847;
-  --color-gold-bright: #f0cd82;
-  /* The stage is dark, so gold-as-text is the bright gold again. Without this
-     the light theme's dark gold (#856314, chosen to read on white) would be
-     painting gold text on black. */
-  --color-gold-on-surface: #d4a847;
-  --color-gold-bright-on-surface: #f0cd82;
-  /* Re-resolving `color` here is not redundant. The headline carries no colour
-     class at all — it inherits from `body`, where `color: var(--color-content)`
-     was already computed to near-black. Redefining the token further down does
-     not revisit that: inheritance passes the resolved rgb, not the variable.
-     So the stage has to set the colour as well as the token — the token serves
-     children that reference it, this serves children that merely inherit. */
-  color: var(--color-content);
-}
+   Only the failing steps move. Everything from /50 up already clears at 4.98,
+   and those values are the designed look — lifting them would restyle every
+   screen to fix something that is not broken. /30 through /45 land on 50%,
+   where this palette first clears; they collapse into one step because five
+   points of alpha down here is worth about half a step of contrast, and losing
+   a difference nobody can see costs less than keeping text nobody can read.
+   /20 and /25 stay below AA on purpose — separators and rules, never words. */
+.text-content\/20 { color: color-mix(in oklab, var(--color-content) 25%, transparent); }
+.text-content\/25 { color: color-mix(in oklab, var(--color-content) 30%, transparent); }
+.text-content\/30,
+.text-content\/35,
+.text-content\/40,
+.text-content\/45 { color: color-mix(in oklab, var(--color-content) 50%, transparent); }
 
 /* ── Diagramm-Achsen folgen dem Theme ──────────────────────────────────────
    Recharts bekam Achsenbeschriftung, Achsenlinie und Referenzlinie als feste
@@ -450,22 +287,6 @@ body {
   background-repeat: no-repeat;
 }
 
-/* Light theme: the same three layers — but far quieter, not louder.
-   These used to be *stronger* than the dark ones (gold at 0.18 against 0.10),
-   which is backwards. A warm glow on near-black is a light source and reads as
-   depth; the same warm wash on white has nothing to light and reads as a stain,
-   and at 0.18 it covered the top half of every screen in the app. Judged side
-   by side in the browser at 0.18, 0.09 and 0.05: the first two both still show
-   a visible tan band across the top. The vignette is eased off for the same
-   reason — darkening the edges of a white page dirties it rather than shaping
-   it. */
-:root[data-theme='light'] .app-canvas {
-  background-image:
-    radial-gradient(90vw 55vh at 50% -8vh, rgba(212, 168, 71, 0.05), transparent 70%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.028) 0%, rgba(0, 0, 0, 0.010) 30%, transparent 65%),
-    radial-gradient(130vw 110vh at 50% 38%, transparent 60%, rgba(0, 0, 0, 0.05) 100%);
-}
-
 /* ─────────────────────────────────────────────────────────────
    Design system utilities — dark luxury (Blackjack 2.0)
    ───────────────────────────────────────────────────────────── */
@@ -516,19 +337,12 @@ body {
   box-shadow: 0 0 24px -6px color-mix(in srgb, var(--color-gold) 45%, transparent);
 }
 
-/* Gold gradient text for the wordmark / hero.
-
-   Built from the *text* tokens, not the fill tokens. It is type, so on a light
-   surface it needs the darker gold for the same reason plain `text-gold` does:
-   with the fill tokens this ran #c79a32 → #a8801f, which is 2.4:1 at the start
-   of the sweep and fails even the 3:1 that large text is allowed. Inside
-   `.hero-stage` the on-surface tokens resolve back to the bright pair, so the
-   headline over the dark hero is unchanged. */
+/* Gold gradient text for the wordmark and the hero headline. */
 .text-gold-gradient {
   background: linear-gradient(120deg,
-    var(--color-gold-bright-on-surface) 0%,
-    var(--color-gold-on-surface) 45%,
-    color-mix(in srgb, var(--color-gold-on-surface) 70%, #7a5716) 100%);
+    var(--color-gold-bright) 0%,
+    var(--color-gold) 45%,
+    color-mix(in srgb, var(--color-gold) 70%, #7a5716) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

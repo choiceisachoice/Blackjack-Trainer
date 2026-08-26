@@ -27,7 +27,7 @@ const MODE_LABEL_KEY: Record<string, string> = {
 /**
  * Top navigation bar shown in every training mode.
  * Displays home button, current mode name, selected counting system,
- * sound toggle, and theme toggle.
+ * and the sound toggle.
  */
 export function TopBar() {
   const { t } = useTranslation()
@@ -42,8 +42,6 @@ export function TopBar() {
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const soundEnabled = useAppStore(s => s.soundEnabled)
   const toggleSound = useAppStore(s => s.toggleSound)
-  const theme = useAppStore(s => s.theme)
-  const toggleTheme = useAppStore(s => s.toggleTheme)
 
   const systemConfig = getSystemById(selectedSystem)
 
@@ -69,14 +67,6 @@ export function TopBar() {
           className="text-base text-content/50 hover:text-content transition-colors cursor-pointer"
         >
           {soundEnabled ? '\uD83D\uDD0A' : '\uD83D\uDD07'}
-        </button>
-        <button
-          onClick={toggleTheme}
-          data-testid="theme-toggle"
-          title={theme === 'dark' ? t('nav.switchToLight') : t('nav.switchToDark')}
-          className="text-base text-content/50 hover:text-content transition-colors cursor-pointer"
-        >
-          {theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19'}
         </button>
       </div>
     </div>

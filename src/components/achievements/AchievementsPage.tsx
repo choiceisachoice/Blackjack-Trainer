@@ -1,11 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { darkenToContrast, levelPalette } from '../../services/level-palette'
-import { useAppStore } from '../../store/app-store'
 import { useTranslation } from 'react-i18next'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useStatsStore } from '../../store/stats-store'
 import { useLevelStore } from '../../store/level-store'
-import { useLevelPalette } from '../../hooks/useLevelPalette'
 import { achievementEngine } from '../../services/achievements/achievement-engine'
 import { ALL_ACHIEVEMENTS, achievementName, achievementDescription } from '../../services/achievements/achievement-list'
 import { LEVELS } from '../../services/level-system'
@@ -56,20 +53,6 @@ const TIER_HEX: Record<AchievementTier, string> = {
   silver: '#c9c9c9',
   gold: '#ffd23f',
   diamond: '#9fe9ff',
-}
-
-/**
- * A tier's colour, dark enough to read on the surface it lands on.
- *
- * Shares `darkenToContrast` with the level ladder, which holds the hue and
- * raises chroma as it darkens — so bronze stays bronze and diamond stays a
- * cold blue rather than all four collapsing into the same grey.
- *
- * @param tier - The achievement tier
- * @param theme - The active theme
- */
-function tierInk(tier: AchievementTier, theme: 'light' | 'dark'): string {
-  return theme === 'light' ? darkenToContrast(TIER_HEX[tier]) : TIER_HEX[tier]
 }
 
 /**
@@ -128,8 +111,7 @@ export function AchievementsPage() {
   // Through the palette: the ladder's colours are authored for the dark
   // theme, where pale reads as brilliant. On the light surface the elite
   // tier fell to about 1.1:1 — see `services/level-palette.ts`.
-  const theme = useAppStore(s => s.theme)
-  const level = useLevelPalette(useLevelStore(s => s.level))
+  const level = useLevelStore(s => s.level)
   const levelProgress = useLevelStore(s => s.progress)
   const refreshLevel = useLevelStore(s => s.refresh)
 
@@ -223,12 +205,9 @@ export function AchievementsPage() {
             </div>
           </div>
           <div className="relative flex gap-6 md:gap-7">
-            {/* `--color-gold-bright-on-surface`, not `--color-gold-bright`:
-                these are numerals on the page, so they need gold's text value,
-                not its fill value. See the gold block in `index.css`. */}
-            <HeroStat value={totalUnlocked} label={t('awards.unlocked')} color="var(--color-gold-bright-on-surface)" />
+            <HeroStat value={totalUnlocked} label={t('awards.unlocked')} color="var(--color-gold-bright)" />
             <HeroStat value={total - totalUnlocked} label={t('awards.locked')} />
-            <HeroStat value={diamondUnlocked} label={t('awards.diamond')} color={tierInk('diamond', theme)} />
+            <HeroStat value={diamondUnlocked} label={t('awards.diamond')} color={TIER_HEX.diamond} />
           </div>
         </section>
 
@@ -240,13 +219,13 @@ export function AchievementsPage() {
               {closest.map(({ a, p }) => (
                 <div key={a.id} className="flex items-center gap-3.5 p-4 rounded-2xl border border-contrast/15 bg-surface"
                   data-testid={`next-up-${a.id}`}>
-                  <ProgressRing percent={p} size={56} color={tierInk(a.tier, theme)}>
+                  <ProgressRing percent={p} size={56} color={TIER_HEX[a.tier]}>
                     <span className="text-[1.3rem]">{a.icon}</span>
                   </ProgressRing>
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold text-sm truncate text-content">{achievementName(a, t)}</div>
                     <div className="text-[11.5px] text-content/40 leading-snug mt-0.5">{achievementDescription(a, t)}</div>
-                    <div className="text-[0.75rem] font-semibold mt-1" style={{ color: tierInk(a.tier, theme) }}>{t('awards.percentComplete', { pct: p })}</div>
+                    <div className="text-[0.75rem] font-semibold mt-1" style={{ color: TIER_HEX[a.tier] }}>{t('awards.percentComplete', { pct: p })}</div>
                   </div>
                 </div>
               ))}
@@ -339,7 +318,6 @@ function SectionTitle({ children, className = '' }: { children: React.ReactNode;
 /** The 25-level journey as a horizontally scrollable track, scrolled to current. */
 function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
   const { t } = useTranslation()
-  const theme = useAppStore(s => s.theme)
   const scrollRef = useRef<HTMLDivElement>(null)
   const currentRef = useRef<HTMLDivElement>(null)
 
@@ -359,10 +337,7 @@ function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
         <div className="absolute left-0 right-0 top-[15px] h-[3px] rounded-full"
           style={{ background: 'linear-gradient(90deg, var(--color-gold), var(--color-gold) 0%, var(--color-line-strong, rgba(255,255,255,.14)))' }} />
         <div className="relative flex gap-1">
-          {/* Through the palette, like everything else that paints a level.
-              This rail was mapping the raw table, so it kept showing the dark
-              theme's colours — the same consumer-I-missed as the dev gallery. */}
-          {LEVELS.map(raw => levelPalette(raw, theme)).map(l => {
+          {LEVELS.map(l => {
             const done = l.level < currentLevel
             const current = l.level === currentLevel
             return (
@@ -404,8 +379,7 @@ function Medal({ achievement, unlocked, unlockedAt, progress }: {
   progress: number
 }) {
   const { t, i18n } = useTranslation()
-  const theme = useAppStore(s => s.theme)
-  const tc = tierInk(achievement.tier, theme)
+  const tc = TIER_HEX[achievement.tier]
   const name = achievementName(achievement, t)
   const desc = achievementDescription(achievement, t)
   const title = unlocked

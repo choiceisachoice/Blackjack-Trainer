@@ -19,7 +19,6 @@ const APP_PREFIX = 'bjt_'
  * user isn't thrown back to light mode with the sound on after signing out.
  */
 const DEVICE_PREF_KEYS = new Set([
-  'bjt_theme',
   'bjt_sound_settings',
   'bjt_dealing_speed',
   'bjt_ambient_volume',

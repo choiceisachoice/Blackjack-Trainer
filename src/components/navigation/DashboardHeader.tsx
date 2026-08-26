@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { Club, ArrowRight, Flame, Target, Clock, Trophy } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
 import { useLevelStore } from '../../store/level-store'
-import { useLevelPalette } from '../../hooks/useLevelPalette'
 import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
@@ -49,10 +48,7 @@ export function ProductTitle() {
 export function DashboardHeader() {
   const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
-  // Through the palette: the ladder's colours are authored for the dark
-  // theme, where pale reads as brilliant. On the light surface the elite
-  // tier fell to about 1.1:1 — see `services/level-palette.ts`.
-  const level = useLevelPalette(useLevelStore(s => s.level))
+  const level = useLevelStore(s => s.level)
   const progress = useLevelStore(s => s.progress)
   const totalXP = useLevelStore(s => s.totalXP)
   const lifetimeStats = useStatsStore(s => s.lifetimeStats)

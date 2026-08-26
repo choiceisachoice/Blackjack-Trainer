@@ -24,7 +24,7 @@ and a full Casino Session table.
 - **Monetization:** **Stripe subscriptions** (monthly/yearly) gate a **Pro** tier. Server side runs on
   Supabase Edge Functions; entitlement is written only by the signature-verified webhook (see ADR-002).
 - **UI Language:** English
-- **UI Theme:** **Dark-luxury** (near-black `#070809` + gold `#d4a847`), in the style of
+- **UI Theme:** **Dark-luxury only** (near-black `#070809` + gold `#d4a847`), in the style of
   Linear/Resend/Raycast. The Casino Session uses a realistic green-felt table within that shell.
 - **First paint:** every visit opens on a **loading screen** tied to real load state — it holds at
   89% while auth and the route chunk are outstanding and gives up after 9s rather than stranding
@@ -271,21 +271,6 @@ issue and was dealt with".
    the Stripe SDK: testing around it means manufacturing a valid signature,
    which is its own risk and proves less than it looks. Left deliberately.
 
-5. **The light theme has been measured; the felt has not.** Every screen the
-   app reaches without dealing a hand was swept in a browser with a contrast
-   probe, and each one now reports zero failures against WCAG AA — landing,
-   plan, learn, drills, analytics, awards, strategy chart, paywall. The
-   **Casino Session table itself** was not: reaching it means playing, and
-   playing writes to a real account. The felt is authored green in both themes
-   and its own surface was fixed, but its HUD, action bar and settlement text
-   have not been looked at in light mode by anyone.
-
-   Also deliberately unchanged: **the loading screen stays dark in the light
-   theme**, so a light-theme visitor gets a dark film and then a white app. It
-   is built as a film — cards and a gold bar on black — and making it light is
-   re-authoring it, not correcting it. Splash screens are allowed to be
-   brand-dark; recorded so nobody re-opens it as a bug by accident.
-
 ### Closed
 
 - **The light theme is no longer a second-class rendering** (26 Aug 2026).
@@ -305,10 +290,18 @@ issue and was dealt with".
   over white. And two bars — the landing header, the credibility strip — were
   pinned near-black under theme-following text.
 
-  Two rules came out of it worth keeping. **The ink belongs to the fill, not to
-  the theme**: the strategy chart's five action colours and every gold surface
-  now say so by name. And **a panel that is deliberately dark pins its own
-  tokens** rather than letting its text flip — `.hero-stage` and `.on-dark`.
+  Two rules came out of it worth keeping, and they outlived the theme that
+  produced them. **The ink belongs to the fill, not to the theme** — the
+  strategy chart's five action colours and every gold surface say so by name
+  now, via `--color-on-gold`. And **measure, do not look**: white on the chart's
+  yellow read 1.92:1 and the dim-text ramp 3.49:1, both of them in the dark
+  theme, both invisible to the eye that had signed them off.
+
+  **The light theme itself was then removed** (26 Aug 2026, same day). Dark
+  luxury is the product's identity, the felt is green and the cards lie on
+  black; two half-committed looks are weaker than one. Removed rather than
+  hidden, so nothing unreachable is left behind — one commit, and `git revert`
+  brings all of it back if that judgement changes.
 
 - **A sign-out no longer costs progress** (26 Aug 2026). Two things lived only
   in `localStorage`, under `bjt_*` keys that the sign-out wipe clears as a

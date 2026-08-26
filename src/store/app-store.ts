@@ -5,11 +5,7 @@ import { DEFAULT_RULES } from '../engine/rules/types'
 import { soundEngine } from '../services/sound-engine'
 
 const SOUND_SETTINGS_KEY = 'bjt_sound_settings'
-const THEME_KEY = 'bjt_theme'
 const DEALING_SPEED_KEY = 'bjt_dealing_speed'
-
-/** Supported theme modes. */
-export type ThemeMode = 'dark' | 'light'
 
 /**
  * Card-dealing speed presets for the casino table. Only two realistic paces are
@@ -63,41 +59,6 @@ function saveSoundSettings(enabled: boolean, volume: number): void {
   } catch { /* ignore */ }
 }
 
-/** Load persisted theme. Defaults to dark (the app's primary luxury look). */
-function loadTheme(): ThemeMode {
-  try {
-    const stored = localStorage.getItem(THEME_KEY)
-    if (stored === 'light' || stored === 'dark') return stored
-  } catch { /* ignore */ }
-  // Dark is the intended default; light remains available via the toggle.
-  return 'dark'
-}
-
-/**
- * The browser chrome each theme paints itself against.
- *
- * `index.html` ships a fixed `theme-color` of `#070809`, which is right for the
- * default dark theme and wrong the moment someone switches. On mobile that meta
- * tag colours the address bar, so a light-theme user got a white page under a
- * black bar — the one piece of the interface the theme toggle could not reach.
- * The values match `--color-casino-bg` in `index.css`; they are literals because
- * the tag takes a colour, not a variable.
- */
-const THEME_COLOR: Record<ThemeMode, string> = {
-  dark: '#070809',
-  light: '#f4f5f7',
-}
-
-/** Apply theme to the document root element. */
-function applyTheme(theme: ThemeMode): void {
-  if (typeof document !== 'undefined') {
-    document.documentElement.setAttribute('data-theme', theme)
-    document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', THEME_COLOR[theme])
-  }
-}
-
 /** Available training modes in the app. */
 export type AppMode =
   | 'home'
@@ -121,7 +82,6 @@ export interface AppStoreState {
   selectedRules: CasinoRules
   soundEnabled: boolean
   soundVolume: number
-  theme: ThemeMode
   dealingSpeed: DealingSpeed
 }
 
@@ -131,8 +91,6 @@ export interface AppStoreActions {
   setRules: (rules: CasinoRules) => void
   toggleSound: () => void
   setSoundVolume: (v: number) => void
-  toggleTheme: () => void
-  setTheme: (theme: ThemeMode) => void
   setDealingSpeed: (speed: DealingSpeed) => void
 }
 
@@ -143,15 +101,11 @@ const initialSound = loadSoundSettings()
 soundEngine.enabled = initialSound.enabled
 soundEngine.volume = initialSound.volume
 
-// Initialize theme
-const initialTheme = loadTheme()
-applyTheme(initialTheme)
-
 /**
  * Zustand store for app-level navigation and global settings.
  *
  * Controls which training mode is active and which counting system / rules
- * are selected across all modes. Also manages theme (dark/light).
+ * are selected across all modes.
  */
 export const useAppStore = create<AppStore>((set, get) => ({
   currentMode: 'home',
@@ -159,7 +113,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
   selectedRules: DEFAULT_RULES,
   soundEnabled: initialSound.enabled,
   soundVolume: initialSound.volume,
-  theme: initialTheme,
   dealingSpeed: loadDealingSpeed(),
 
   setMode: (mode) => set({ currentMode: mode }),
@@ -178,19 +131,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
     soundEngine.volume = clamped
     saveSoundSettings(get().soundEnabled, clamped)
     set({ soundVolume: clamped })
-  },
-
-  toggleTheme: () => {
-    const next: ThemeMode = get().theme === 'dark' ? 'light' : 'dark'
-    applyTheme(next)
-    try { localStorage.setItem(THEME_KEY, next) } catch { /* ignore */ }
-    set({ theme: next })
-  },
-
-  setTheme: (theme) => {
-    applyTheme(theme)
-    try { localStorage.setItem(THEME_KEY, theme) } catch { /* ignore */ }
-    set({ theme })
   },
 
   setDealingSpeed: (speed) => {

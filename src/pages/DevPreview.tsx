@@ -205,7 +205,6 @@ function IntroPlayback({ hold, brief }: { hold: boolean; brief: boolean }) {
  * the account being simulated.
  */
 const DEVICE_KEYS = new Set([
-  'bjt_theme',
   'bjt_sound_settings',
   'bjt_ambient_volume',
   'bjt_dealing_speed',

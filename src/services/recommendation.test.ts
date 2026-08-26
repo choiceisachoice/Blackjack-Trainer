@@ -125,7 +125,7 @@ describe('the storage keys', () => {
   })
 
   it('does not collide with the device preferences a reset deliberately keeps', () => {
-    const kept = ['bjt_theme', 'bjt_sound_settings', 'bjt_dealing_speed', 'bjt_ambient_volume']
+    const kept = ['bjt_sound_settings', 'bjt_dealing_speed', 'bjt_ambient_volume']
     for (const key of RECOMMENDATION_KEYS) {
       expect(kept).not.toContain(key)
     }
