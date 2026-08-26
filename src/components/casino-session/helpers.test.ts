@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   isNaturalBlackjack,
+  isRecordableSession,
   fitTable,
   TABLE_DESIGN,
   TABLE_MAX_SCALE,
@@ -104,5 +105,22 @@ describe('isNaturalBlackjack', () => {
 
   it('is NOT a blackjack for a non-21 two-card hand', () => {
     expect(isNaturalBlackjack(1, [c(Rank.Nine), c(Rank.Seven)])).toBe(false)
+  })
+})
+
+describe('isRecordableSession', () => {
+  /**
+   * The exploit this closes: the final curriculum stage asks for three casino
+   * sessions at `minAccuracy: 0`, so any counted session qualifies. Opening the
+   * table and leaving used to write one — three times through and the last
+   * stage of the training plan was complete with no card dealt.
+   */
+  it('refuses a session that dealt no hands', () => {
+    expect(isRecordableSession(0)).toBe(false)
+  })
+
+  it('accepts a session with a single real hand', () => {
+    expect(isRecordableSession(1)).toBe(true)
+    expect(isRecordableSession(42)).toBe(true)
   })
 })

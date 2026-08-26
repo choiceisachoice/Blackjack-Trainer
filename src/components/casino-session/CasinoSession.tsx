@@ -7,7 +7,7 @@ import { SessionRecorder } from '../../services/session-recorder'
 import { casinoAmbient } from '../../services/casino-ambient'
 import type { CasinoSessionConfig, CasinoSessionResult } from '../../engine/casino-session/types'
 import type { CasinoSessionDetails } from '../../services/stats-types'
-import { DEFAULT_CONFIG } from './helpers'
+import { DEFAULT_CONFIG, isRecordableSession } from './helpers'
 import type { Phase } from './helpers'
 import { CasinoSessionConfigView } from './CasinoSessionConfig'
 import { CasinoSessionSummary } from './CasinoSessionSummary'
@@ -77,6 +77,22 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
 
     // Compute achievement-relevant fields from hand data
     const hands = sessionResult.hands
+
+    /*
+      A session with no hands in it is not a session.
+
+      Everything below ran unconditionally, so opening the table and leaving
+      again wrote a full row: 60 XP for the casino base reward, a zero-hand
+      entry in the analytics and in the bankroll tracker, and — because the
+      final curriculum stage asks for three casino sessions at `minAccuracy: 0`
+      — one third of the last stage of the training plan. Three open-and-close
+      round trips finished it without a card being dealt.
+
+      The rule itself lives in `helpers.ts` so it can be tested without
+      mounting a table. The summary still shows and the live session still
+      ends — the player sees what they did, only the record is withheld.
+    */
+    if (!isRecordableSession(hands.length)) return
     const hadBlackjack = hands.some(h => h.result === 'blackjack')
     const splitAces = hands.some(h =>
       h.playerCards.length >= 2 &&

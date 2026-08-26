@@ -225,3 +225,23 @@ export const BOT_STATUS_LABEL_KEY: Record<BotStatus, string> = {
   loss: 'casino.bot.loss',
   push: 'casino.bot.push',
 }
+
+/**
+ * Whether a finished casino session is worth writing down.
+ *
+ * A session that dealt no hands is not a session. Everything downstream ran
+ * unconditionally before this existed, so opening the table and leaving again
+ * wrote a full record: the 60 XP casino base reward, a zero-hand row in the
+ * analytics and the bankroll tracker, and one of the three casino sessions the
+ * final curriculum stage asks for — that stage sets `minAccuracy: 0`, so any
+ * counted session qualifies. Three open-and-close trips finished the last stage
+ * of the training plan without a card being dealt.
+ *
+ * The drill modes have carried the equivalent threshold from the start
+ * (`MIN_QUESTIONS` in `useSessionSave`); the casino path never grew one.
+ *
+ * @param handsPlayed - Number of hands actually dealt in the session
+ */
+export function isRecordableSession(handsPlayed: number): boolean {
+  return handsPlayed > 0
+}
