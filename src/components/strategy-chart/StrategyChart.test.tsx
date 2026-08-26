@@ -30,11 +30,13 @@ describe('StrategyChart', () => {
   })
 
   it('opens the detail panel when a cell is clicked', () => {
-    const { container } = render(<StrategyChart />)
-    // Chart cells are the white-text action buttons (controls are not text-white).
-    const cell = [...container.querySelectorAll('button')].find(b => b.className.includes('text-white'))
+    render(<StrategyChart />)
+    // By test id, not by a styling class. This used to look for `text-white`,
+    // which broke the moment the cell ink changed — the same coupling that
+    // once hung a test id on a translated label.
+    const cell = screen.getAllByTestId('chart-cell')[0]
     expect(cell).toBeTruthy()
-    fireEvent.click(cell!)
+    fireEvent.click(cell)
     expect(screen.getByText(/Your Hand:/)).toBeInTheDocument()
   })
 

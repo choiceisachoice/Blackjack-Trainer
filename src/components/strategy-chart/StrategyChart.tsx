@@ -55,6 +55,36 @@ const ACTION_COLORS: Record<ChartAction, string> = {
   SU: '#a855f7',
 }
 
+/**
+ * The ink written on those fills.
+ *
+ * All five are saturated mid-tones, and white on a saturated mid-tone is the
+ * classic near-miss: measured in the browser, white on #eab308 is **1.92:1**
+ * and on #22c55e **2.28:1**, in both themes, on the table people consult most.
+ *
+ * The colour code itself is learned and stays exactly as it is — only the ink
+ * changes, and dark ink clears AA on every one of the five unchanged fills
+ * (H 8.37, S 9.94, D 5.18, SP 5.07, SU 4.82). Not `--color-casino-bg`: these
+ * fills are the same in both themes, so their ink must be too.
+ */
+const ACTION_INK = '#10100c'
+
+/**
+ * The same five as text on a page surface rather than as a fill.
+ *
+ * Used by the detail panel, where the action name is coloured type. The fill
+ * colours are far too light for that on the light theme (#eab308 as text on
+ * white is 1.92:1), so this is the darkened set — each still recognisably its
+ * own hue, and each clears AA against the light surface.
+ */
+const ACTION_TEXT_COLORS: Record<ChartAction, string> = {
+  H: '#15803d',
+  S: '#a16207',
+  D: '#1d4ed8',
+  SP: '#b91c1c',
+  SU: '#7e22ce',
+}
+
 /** Legend labels, as translation keys. */
 const ACTION_LABEL_KEY: Record<ChartAction, string> = {
   H: 'chart.action.H',
@@ -214,15 +244,15 @@ export function StrategyChart() {
         {(Object.keys(ACTION_LABEL_KEY) as ChartAction[]).map(action => (
           <span
             key={action}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white"
-            style={{ backgroundColor: ACTION_COLORS[action] }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+            style={{ backgroundColor: ACTION_COLORS[action], color: ACTION_INK }}
           >
             {action} = {t(ACTION_LABEL_KEY[action])}
           </span>
         ))}
         {showDeviations && (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-content" style={{ border: '2px solid #f0cd82' }}>
-            <span className="grid place-items-center rounded-full text-black font-extrabold" style={{ width: '14px', height: '14px', fontSize: '8px', backgroundColor: '#f0cd82' }}>#</span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-content" style={{ border: '2px solid var(--color-gold-bright)' }}>
+            <span className="grid place-items-center rounded-full text-casino-bg font-extrabold" style={{ width: '14px', height: '14px', fontSize: '8px', backgroundColor: 'var(--color-gold-bright)' }}>#</span>
             {t('chart.countDeviation')}
           </span>
         )}
@@ -275,9 +305,11 @@ export function StrategyChart() {
                       <button
                         key={dealer}
                         onClick={() => setSelected({ hand: row.label, dealer, action })}
-                        className="relative flex items-center justify-center rounded text-xs font-bold text-white cursor-pointer transition-all duration-100"
+                        data-testid="chart-cell"
+                        className="relative flex items-center justify-center rounded text-xs font-bold cursor-pointer transition-all duration-100"
                         style={{
                           backgroundColor: ACTION_COLORS[action],
+                          color: ACTION_INK,
                           padding: '6px 2px',
                           outline: isSelected ? '2px solid white' : 'none',
                           outlineOffset: '-1px',
@@ -325,7 +357,7 @@ export function StrategyChart() {
           </p>
           <p
             className="text-sm font-bold mb-1"
-            style={{ color: ACTION_COLORS[selected.action] }}
+            style={{ color: ACTION_TEXT_COLORS[selected.action] }}
           >
             {selected.action} &mdash; {t(ACTION_LABEL_KEY[selected.action])}
           </p>
