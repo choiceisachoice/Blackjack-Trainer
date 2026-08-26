@@ -30,11 +30,14 @@
      name so the next person does not reach for `casino-bg` again. */
   --color-on-gold: #10100c;
 
-  /* The warm rise at the top of the paywall's Pro card. Dark by default,
-     because over near-black it reads as a gold-tinted lift; the light theme
-     replaces it with an actual gold wash rather than inheriting 60% black over
-     white, which is what turned that card into a slab. */
-  --color-pro-tint: rgba(24, 20, 10, 0.6);
+  /* The warm rise at the top of a highlighted card — the paywall's Pro plan,
+     the plan screen's placement test and its "up next" panel.
+
+     Dark by default, because over near-black a warm near-black reads as a
+     gold-tinted lift. The light theme replaces it with an actual gold wash
+     rather than inheriting 60% black over white, which is what turned those
+     three cards into grey slabs with the light theme's dark text on them. */
+  --color-warm-wash: rgba(24, 20, 10, 0.6);
 
   /* ── Theme-dynamic colors (dark defaults; overridden by [data-theme="light"]) ── */
   --color-casino-bg: #070809;
@@ -178,7 +181,7 @@
 
   --color-content: #14161a;
   --color-line-strong: rgba(0, 0, 0, 0.16);
-  --color-pro-tint: rgba(212, 168, 71, 0.13);
+  --color-warm-wash: rgba(212, 168, 71, 0.13);
 
   /* The semantic three were filed under "static colors (same in both themes)"
      and never got a light variant. They are tuned to glow on near-black, and on
@@ -274,6 +277,18 @@
 [data-theme="light"] .text-content\/80 { color: color-mix(in oklab, var(--color-content) 87%, transparent); }
 [data-theme="light"] .text-content\/85 { color: color-mix(in oklab, var(--color-content) 91%, transparent); }
 [data-theme="light"] .text-content\/90 { color: color-mix(in oklab, var(--color-content) 94%, transparent); }
+
+/* ── A panel that stays dark in both themes ───────────────────────────────
+   The reshuffle notice sits on the green felt, and a dark card over a table is
+   right in either theme — but its text was following the theme, so in light
+   mode it put the dark gold on a dark panel. Same shape as the hero below,
+   small enough to want a name rather than a third copy of the token block. */
+[data-theme="light"] .on-dark {
+  --color-content: #f4f5f6;
+  --color-contrast: #ffffff;
+  --color-gold-on-surface: #d4a847;
+  --color-gold-bright-on-surface: #f0cd82;
+}
 
 /* ── The landing hero is a stage, not chrome ──────────────────────────────
    The WebGL scene, the scrim and the inset vignette are authored dark. In

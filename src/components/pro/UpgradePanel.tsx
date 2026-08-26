@@ -149,7 +149,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
             card the whole screen is selling — into a muddy dark slab with the
             light theme's dark text on it. The tint is a token now. */}
         <div className="relative rounded-2xl border border-gold/45 p-5 flex flex-col
-          bg-[linear-gradient(180deg,var(--color-pro-tint),var(--color-surface))]
+          bg-[linear-gradient(180deg,var(--color-warm-wash),var(--color-surface))]
           shadow-[0_0_0_1px_rgba(212,168,71,.14),0_30px_70px_-50px_rgba(212,168,71,.5)]">
           {isYearly && (
             <span className="absolute -top-2.5 right-5 text-[0.6875rem] font-extrabold tracking-wider

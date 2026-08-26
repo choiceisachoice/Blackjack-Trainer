@@ -272,7 +272,10 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             className="absolute inset-0 z-40 flex items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.6)' }}
           >
-            <div className="px-10 py-5 rounded-2xl shadow-2xl text-center"
+            {/* `on-dark`: this card is deliberately dark over the felt in both
+                themes, so its text is pinned rather than following the theme —
+                otherwise the light theme painted its dark gold on near-black. */}
+            <div className="on-dark px-10 py-5 rounded-2xl shadow-2xl text-center"
               style={{ background: 'rgba(0,0,0,0.85)', border: '2px solid rgba(212, 168, 67, 0.5)' }}
               data-testid="reshuffle-notification"
             >

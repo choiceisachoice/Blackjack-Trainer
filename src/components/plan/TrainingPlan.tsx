@@ -287,7 +287,7 @@ export function TrainingPlan({
             onClick={retake}
             data-testid="plan-take-test"
             className="mt-6 w-full text-left rounded-2xl border border-gold/35 p-4 md:p-5
-              bg-[linear-gradient(180deg,rgba(24,20,10,.5),var(--color-surface))]
+              bg-[linear-gradient(180deg,var(--color-warm-wash),var(--color-surface))]
               hover:border-gold/55 cursor-pointer transition-colors"
           >
             <div className="flex items-center gap-3.5">
@@ -350,7 +350,7 @@ export function TrainingPlan({
         {active ? (
           <div
             className="mt-8 rounded-2xl border border-gold/40 p-5 md:p-6
-              bg-[linear-gradient(180deg,rgba(24,20,10,.6),var(--color-surface))]"
+              bg-[linear-gradient(180deg,var(--color-warm-wash),var(--color-surface))]"
             data-testid="plan-up-next"
           >
             <div className="text-xs font-bold tracking-[0.16em] uppercase text-gold">{t('plan.upNext')}</div>
