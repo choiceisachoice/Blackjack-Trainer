@@ -395,7 +395,7 @@ export function AnalyticsDashboard() {
                         className="text-[1.75rem] font-extrabold tracking-tight"
                         style={{ color: derived.edge.net >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}
                       >
-                        {derived.edge.net >= 0 ? '+' : '−'}${Math.abs(Math.round(derived.edge.net)).toLocaleString('en-US')}
+                        {derived.edge.net >= 0 ? '+' : '−'}${Math.abs(Math.round(derived.edge.net)).toLocaleString(i18n.language)}
                       </span>
                       <span className="text-xs font-bold text-content/50">
                         {t('analytics.edgeStats', { sessions: derived.edge.sessions, hands: derived.edge.handsPlayed.toLocaleString(i18n.language) })}
@@ -430,7 +430,7 @@ export function AnalyticsDashboard() {
                       onClick={() => setMode('deviationTraining')}
                       className="mt-4 inline-flex items-center gap-2 text-[0.85rem] font-semibold px-4 py-2 rounded-[10px] cursor-pointer glow-hover"
                       style={{
-                        color: '#10100c',
+                        color: 'var(--color-casino-bg)',
                         background: 'linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold))',
                         border: '1px solid color-mix(in srgb, var(--color-gold) 50%, transparent)',
                       }}
@@ -467,7 +467,7 @@ export function AnalyticsDashboard() {
                       const disp = MODE_DISPLAY[s.mode]
                       return (
                         <tr key={s.id} className="border-t border-contrast/10">
-                          <td className="px-2.5 py-2.5 text-content/50">{formatWhen(s.timestamp, now)}</td>
+                          <td className="px-2.5 py-2.5 text-content/50">{formatWhen(s.timestamp, now, t)}</td>
                           <td className="px-2.5 py-2.5">
                             <span className="inline-flex items-center gap-2">
                               <i className="w-1.5 h-1.5 rounded-full" style={{ background: disp?.color ?? 'var(--color-gold)' }} />
@@ -512,10 +512,9 @@ export function AnalyticsDashboard() {
         <section className="pt-2 pb-8 flex flex-col items-start gap-2">
           <button
             onClick={async () => {
-              if (!window.confirm(
-                'Delete your training history? Your sessions and the analytics '
-                + 'built from them go for good. Your level, XP and achievements stay.'
-              )) return
+              // Translated: this confirms an irreversible deletion, which is
+              // the last place an English sentence belongs on a German UI.
+              if (!window.confirm(t('errors.resetConfirm'))) return
               setResetError(null)
               try {
                 await resetAllStats()

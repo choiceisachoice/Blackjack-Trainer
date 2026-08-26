@@ -519,7 +519,17 @@
       "doubled": "Doblada",
       "surrendered": "Rendida",
       "handNo": "Mano {{n}}",
-      "handShort": "M{{n}}"
+      "handShort": "M{{n}}",
+      "botsPlaying": "Los bots juegan…",
+      "dealerPlaying": "El crupier juega…",
+      "insuranceShort": "¿Seguro?",
+      "resultWin": "Gana",
+      "resultPush": "Empate",
+      "resultLoss": "Pierde",
+      "resultBlackjack": "¡BJ!",
+      "resultSurrender": "Rend.",
+      "total": "Total",
+      "deal": "Repartir — {{amount}}"
     },
     "act": {
       "hit": "Pedir (H)",
@@ -1442,7 +1452,9 @@
     "yourClimb": "Tu ascenso: nivel {{n}} de {{total}}",
     "noneUnlocked": "Aún no hay logros desbloqueados",
     "allUnlocked": "¡Todos los logros desbloqueados!",
-    "unlockCount": "{{n}}/{{total}} desbloqueados"
+    "unlockCount": "{{n}}/{{total}} desbloqueados",
+    "xpAmount": "{{xp}} XP",
+    "xpToNext": "{{xp}} XP para el nivel {{n}}"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1804,7 +1816,9 @@
     "heatMore": "más",
     "drillTheseHands": "Practicar estas manos",
     "viewAll": "Ver todos",
-    "rangeAll": "Todo"
+    "rangeAll": "Todo",
+    "today": "Hoy",
+    "yesterday": "Ayer"
   },
   "sim": {
     "onboardTitle": "Haz seguimiento de tu bankroll",
@@ -1920,7 +1934,20 @@
   "errors": {
     "checkout": "No pudimos abrir la página de pago. Inténtalo de nuevo — si sigue ocurriendo, escribe a {{email}} y lo solucionamos.",
     "portal": "No pudimos abrir tus ajustes de facturación. Inténtalo de nuevo — si sigue ocurriendo, escribe a {{email}}.",
-    "reset": "No se pudieron borrar tus datos. No se cambió nada — inténtalo de nuevo."
+    "reset": "No se pudieron borrar tus datos. No se cambió nada — inténtalo de nuevo.",
+    "auth": {
+      "emailNotConfirmed": "Confirma primero tu correo — revisa tu bandeja de entrada.",
+      "emailTaken": "Ya existe una cuenta con este correo. ¿Iniciar sesión?",
+      "expiredLink": "Este enlace ha caducado. Solicita uno nuevo.",
+      "generic": "Algo salió mal. Inténtalo de nuevo en un momento.",
+      "invalidCredentials": "Ese correo y contraseña no coinciden con ninguna cuenta.",
+      "invalidEmail": "Eso no parece una dirección de correo válida.",
+      "rateLimit": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+      "samePassword": "Elige una contraseña distinta de la actual.",
+      "unavailable": "El inicio de sesión no está disponible temporalmente. Inténtalo más tarde.",
+      "weakPassword": "Elige una contraseña más larga — al menos 8 caracteres."
+    },
+    "resetConfirm": "¿Borrar tu historial de entrenamiento? Tus sesiones y las estadísticas basadas en ellas se pierden para siempre. Tu nivel, XP y logros se mantienen."
   },
   "xp": {
     "source": {
@@ -1929,5 +1956,8 @@
       "achievement": "Logro",
       "achievements": "Logros"
     }
+  },
+  "simulator": {
+    "startLine": "Inicio"
   }
 }

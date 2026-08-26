@@ -519,7 +519,17 @@
       "doubled": "Çiftlendi",
       "surrendered": "Teslim oldu",
       "handNo": "El {{n}}",
-      "handShort": "E{{n}}"
+      "handShort": "E{{n}}",
+      "botsPlaying": "Botlar oynuyor…",
+      "dealerPlaying": "Krupiye oynuyor…",
+      "insuranceShort": "Sigorta?",
+      "resultWin": "Kazanç",
+      "resultPush": "Berabere",
+      "resultLoss": "Kayıp",
+      "resultBlackjack": "BJ!",
+      "resultSurrender": "Çekil.",
+      "total": "Toplam",
+      "deal": "Dağıt — {{amount}}"
     },
     "act": {
       "hit": "Kart Al (H)",
@@ -1442,7 +1452,9 @@
     "yourClimb": "Tırmanışınız — {{total}} seviyeden {{n}}.",
     "noneUnlocked": "Henüz açılmış ödül yok",
     "allUnlocked": "Bütün ödüller açıldı!",
-    "unlockCount": "{{n}}/{{total}} açıldı"
+    "unlockCount": "{{n}}/{{total}} açıldı",
+    "xpAmount": "{{xp}} XP",
+    "xpToNext": "Seviye {{n}} için {{xp}} XP"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1804,7 +1816,9 @@
     "heatMore": "çok",
     "drillTheseHands": "Bu elleri çalış",
     "viewAll": "Tümünü gör",
-    "rangeAll": "Tümü"
+    "rangeAll": "Tümü",
+    "today": "Bugün",
+    "yesterday": "Dün"
   },
   "sim": {
     "onboardTitle": "Bankroll’unuzu takip edin",
@@ -1920,7 +1934,20 @@
   "errors": {
     "checkout": "Ödeme sayfasını açamadık. Lütfen tekrar deneyin — devam ederse {{email}} adresine yazın, hallederiz.",
     "portal": "Fatura ayarlarınızı açamadık. Lütfen tekrar deneyin — devam ederse {{email}} adresine yazın.",
-    "reset": "Verileriniz silinemedi. Hiçbir şey değişmedi — lütfen tekrar deneyin."
+    "reset": "Verileriniz silinemedi. Hiçbir şey değişmedi — lütfen tekrar deneyin.",
+    "auth": {
+      "emailNotConfirmed": "Lütfen önce e-posta adresinizi onaylayın — gelen kutunuza bakın.",
+      "emailTaken": "Bu e-posta ile zaten bir hesap var. Giriş yapmak ister misiniz?",
+      "expiredLink": "Bu bağlantının süresi doldu. Lütfen yenisini isteyin.",
+      "generic": "Bir şeyler ters gitti. Lütfen birazdan tekrar deneyin.",
+      "invalidCredentials": "Bu e-posta ve parola hiçbir hesapla eşleşmiyor.",
+      "invalidEmail": "Bu geçerli bir e-posta adresi gibi görünmüyor.",
+      "rateLimit": "Çok fazla deneme. Lütfen birkaç dakika bekleyin.",
+      "samePassword": "Lütfen mevcut parolanızdan farklı bir parola seçin.",
+      "unavailable": "Giriş geçici olarak kullanılamıyor. Lütfen daha sonra deneyin.",
+      "weakPassword": "Lütfen daha uzun bir parola seçin — en az 8 karakter."
+    },
+    "resetConfirm": "Antrenman geçmişini sil? Oturumlarınız ve onlardan oluşan analizler kalıcı olarak gider. Seviyeniz, XP’niz ve başarılarınız kalır."
   },
   "xp": {
     "source": {
@@ -1929,5 +1956,8 @@
       "achievement": "Başarım",
       "achievements": "Başarımlar"
     }
+  },
+  "simulator": {
+    "startLine": "Başlangıç"
   }
 }

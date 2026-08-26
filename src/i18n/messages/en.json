@@ -519,7 +519,17 @@
       "doubled": "Doubled",
       "surrendered": "Surrendered",
       "handNo": "Hand {{n}}",
-      "handShort": "H{{n}}"
+      "handShort": "H{{n}}",
+      "botsPlaying": "Bots playing…",
+      "dealerPlaying": "Dealer playing…",
+      "insuranceShort": "Insurance?",
+      "resultWin": "Win",
+      "resultPush": "Push",
+      "resultLoss": "Loss",
+      "resultBlackjack": "BJ!",
+      "resultSurrender": "Surr",
+      "total": "Total",
+      "deal": "Deal — {{amount}}"
     },
     "act": {
       "hit": "Hit (H)",
@@ -1442,7 +1452,9 @@
     "yourClimb": "Your climb — level {{n}} of {{total}}",
     "noneUnlocked": "No achievements unlocked yet",
     "allUnlocked": "All achievements unlocked!",
-    "unlockCount": "{{n}}/{{total}} unlocked"
+    "unlockCount": "{{n}}/{{total}} unlocked",
+    "xpAmount": "{{xp}} XP",
+    "xpToNext": "{{xp}} XP to level {{n}}"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1804,7 +1816,9 @@
     "heatMore": "more",
     "drillTheseHands": "Drill these hands",
     "viewAll": "View All",
-    "rangeAll": "All"
+    "rangeAll": "All",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "sim": {
     "onboardTitle": "Start Tracking Your Bankroll",
@@ -1920,7 +1934,20 @@
   "errors": {
     "checkout": "We could not open the payment page. Please try again — if it keeps happening, write to {{email}} and we will sort it out.",
     "portal": "We could not open your billing settings. Please try again — if it keeps happening, write to {{email}}.",
-    "reset": "Your data could not be deleted. Nothing was changed — please try again."
+    "reset": "Your data could not be deleted. Nothing was changed — please try again.",
+    "auth": {
+      "emailNotConfirmed": "Please confirm your email address first — check your inbox.",
+      "emailTaken": "An account with this email already exists. Sign in instead?",
+      "expiredLink": "This link has expired. Please request a new one.",
+      "generic": "Something went wrong. Please try again in a moment.",
+      "invalidCredentials": "That email and password do not match an account.",
+      "invalidEmail": "That does not look like a valid email address.",
+      "rateLimit": "Too many attempts. Please wait a few minutes and try again.",
+      "samePassword": "Please choose a password different from your current one.",
+      "unavailable": "Sign-in is temporarily unavailable. Please try again later.",
+      "weakPassword": "Please choose a longer password — at least 8 characters."
+    },
+    "resetConfirm": "Delete your training history? Your sessions and the analytics built from them go for good. Your level, XP and achievements stay."
   },
   "xp": {
     "source": {
@@ -1929,5 +1956,8 @@
       "achievement": "Achievement",
       "achievements": "Achievements"
     }
+  },
+  "simulator": {
+    "startLine": "Starting"
   }
 }

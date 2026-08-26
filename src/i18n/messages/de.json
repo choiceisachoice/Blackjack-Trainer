@@ -519,7 +519,17 @@
       "doubled": "Verdoppelt",
       "surrendered": "Aufgegeben",
       "handNo": "Hand {{n}}",
-      "handShort": "H{{n}}"
+      "handShort": "H{{n}}",
+      "botsPlaying": "Bots spielen…",
+      "dealerPlaying": "Dealer spielt…",
+      "insuranceShort": "Versicherung?",
+      "resultWin": "Gewinn",
+      "resultPush": "Push",
+      "resultLoss": "Verlust",
+      "resultBlackjack": "BJ!",
+      "resultSurrender": "Aufg.",
+      "total": "Gesamt",
+      "deal": "Geben — {{amount}}"
     },
     "act": {
       "hit": "Ziehen (H)",
@@ -1442,7 +1452,9 @@
     "yourClimb": "Dein Aufstieg — Level {{n}} von {{total}}",
     "noneUnlocked": "Noch keine Erfolge freigeschaltet",
     "allUnlocked": "Alle Erfolge freigeschaltet!",
-    "unlockCount": "{{n}}/{{total}} freigeschaltet"
+    "unlockCount": "{{n}}/{{total}} freigeschaltet",
+    "xpAmount": "{{xp}} XP",
+    "xpToNext": "{{xp}} XP bis Level {{n}}"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1804,7 +1816,9 @@
     "heatMore": "mehr",
     "drillTheseHands": "Diese Hände üben",
     "viewAll": "Alle ansehen",
-    "rangeAll": "Alle"
+    "rangeAll": "Alle",
+    "today": "Heute",
+    "yesterday": "Gestern"
   },
   "sim": {
     "onboardTitle": "Verfolge deine Bankroll",
@@ -1920,7 +1934,20 @@
   "errors": {
     "checkout": "Wir konnten die Bezahlseite nicht öffnen. Versuch es bitte nochmal — wenn es weiter passiert, schreib an {{email}}, dann klären wir das.",
     "portal": "Wir konnten deine Rechnungseinstellungen nicht öffnen. Versuch es bitte nochmal — wenn es weiter passiert, schreib an {{email}}.",
-    "reset": "Deine Daten konnten nicht gelöscht werden. Es wurde nichts verändert — versuch es bitte nochmal."
+    "reset": "Deine Daten konnten nicht gelöscht werden. Es wurde nichts verändert — versuch es bitte nochmal.",
+    "auth": {
+      "emailNotConfirmed": "Bitte bestätige zuerst deine E-Mail-Adresse — schau in dein Postfach.",
+      "emailTaken": "Mit dieser E-Mail gibt es bereits ein Konto. Stattdessen anmelden?",
+      "expiredLink": "Dieser Link ist abgelaufen. Bitte fordere einen neuen an.",
+      "generic": "Etwas ist schiefgelaufen. Bitte versuch es gleich noch einmal.",
+      "invalidCredentials": "E-Mail und Passwort passen zu keinem Konto.",
+      "invalidEmail": "Das sieht nicht nach einer gültigen E-Mail-Adresse aus.",
+      "rateLimit": "Zu viele Versuche. Bitte warte ein paar Minuten.",
+      "samePassword": "Bitte wähle ein anderes Passwort als das aktuelle.",
+      "unavailable": "Die Anmeldung ist vorübergehend nicht verfügbar. Bitte später erneut versuchen.",
+      "weakPassword": "Bitte wähle ein längeres Passwort — mindestens 8 Zeichen."
+    },
+    "resetConfirm": "Trainingsverlauf löschen? Deine Sessions und die daraus gebaute Auswertung sind endgültig weg. Level, XP und Erfolge bleiben."
   },
   "xp": {
     "source": {
@@ -1929,5 +1956,8 @@
       "achievement": "Erfolg",
       "achievements": "Erfolge"
     }
+  },
+  "simulator": {
+    "startLine": "Start"
   }
 }

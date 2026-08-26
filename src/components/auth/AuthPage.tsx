@@ -167,7 +167,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
 
           {error && (
             <p className="text-sm text-error bg-error/10 border border-error/20 rounded-lg px-3 py-2" data-testid="auth-error">
-              {error}
+              {t(error)}
             </p>
           )}
           {notice && (

@@ -519,7 +519,17 @@
       "doubled": "Raddoppiata",
       "surrendered": "Abbandonata",
       "handNo": "Mano {{n}}",
-      "handShort": "M{{n}}"
+      "handShort": "M{{n}}",
+      "botsPlaying": "I bot giocano…",
+      "dealerPlaying": "Il banco gioca…",
+      "insuranceShort": "Assicurazione?",
+      "resultWin": "Vinta",
+      "resultPush": "Pareggio",
+      "resultLoss": "Persa",
+      "resultBlackjack": "BJ!",
+      "resultSurrender": "Res.",
+      "total": "Totale",
+      "deal": "Distribuisci — {{amount}}"
     },
     "act": {
       "hit": "Carta (H)",
@@ -1442,7 +1452,9 @@
     "yourClimb": "La tua scalata — livello {{n}} di {{total}}",
     "noneUnlocked": "Nessun riconoscimento sbloccato",
     "allUnlocked": "Tutti i riconoscimenti sbloccati!",
-    "unlockCount": "{{n}}/{{total}} sbloccati"
+    "unlockCount": "{{n}}/{{total}} sbloccati",
+    "xpAmount": "{{xp}} XP",
+    "xpToNext": "{{xp}} XP al livello {{n}}"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1804,7 +1816,9 @@
     "heatMore": "più",
     "drillTheseHands": "Allena queste mani",
     "viewAll": "Vedi tutti",
-    "rangeAll": "Tutto"
+    "rangeAll": "Tutto",
+    "today": "Oggi",
+    "yesterday": "Ieri"
   },
   "sim": {
     "onboardTitle": "Tieni traccia della tua bankroll",
@@ -1920,7 +1934,20 @@
   "errors": {
     "checkout": "Non siamo riusciti ad aprire la pagina di pagamento. Riprova — se continua, scrivi a {{email}} e lo sistemiamo.",
     "portal": "Non siamo riusciti ad aprire le impostazioni di fatturazione. Riprova — se continua, scrivi a {{email}}.",
-    "reset": "Non è stato possibile eliminare i tuoi dati. Nulla è stato modificato — riprova."
+    "reset": "Non è stato possibile eliminare i tuoi dati. Nulla è stato modificato — riprova.",
+    "auth": {
+      "emailNotConfirmed": "Conferma prima il tuo indirizzo email — controlla la posta.",
+      "emailTaken": "Esiste già un account con questa email. Vuoi accedere?",
+      "expiredLink": "Questo link è scaduto. Richiedine uno nuovo.",
+      "generic": "Qualcosa è andato storto. Riprova tra un momento.",
+      "invalidCredentials": "Email e password non corrispondono a nessun account.",
+      "invalidEmail": "Non sembra un indirizzo email valido.",
+      "rateLimit": "Troppi tentativi. Attendi qualche minuto e riprova.",
+      "samePassword": "Scegli una password diversa da quella attuale.",
+      "unavailable": "L’accesso non è disponibile al momento. Riprova più tardi.",
+      "weakPassword": "Scegli una password più lunga — almeno 8 caratteri."
+    },
+    "resetConfirm": "Eliminare la cronologia di allenamento? Le sessioni e le statistiche che ne derivano andranno perse per sempre. Livello, XP e obiettivi restano."
   },
   "xp": {
     "source": {
@@ -1929,5 +1956,8 @@
       "achievement": "Obiettivo",
       "achievements": "Obiettivi"
     }
+  },
+  "simulator": {
+    "startLine": "Inizio"
   }
 }

@@ -56,9 +56,15 @@ describe('formatting helpers', () => {
   })
 
   it('formatWhen labels today/yesterday/date', () => {
-    expect(formatWhen(NOW.toISOString(), NOW)).toBe('Today')
-    expect(formatWhen(new Date(NOW.getTime() - DAY).toISOString(), NOW)).toBe('Yesterday')
-    expect(formatWhen(new Date(NOW.getTime() - 5 * DAY).toISOString(), NOW)).toBe('Jul 3')
+    // Echo the key back, so the assertions show *which* label was chosen rather
+    // than what English happens to say — the point of the change was that the
+    // two relative labels are no longer English at all.
+    const t = (key: string): string => key
+    expect(formatWhen(NOW.toISOString(), NOW, t)).toBe('analytics.today')
+    expect(formatWhen(new Date(NOW.getTime() - DAY).toISOString(), NOW, t)).toBe('analytics.yesterday')
+    // The absolute fallback still formats a real date; the locale comes from
+    // the active i18n instance, which is `en` in the test setup.
+    expect(formatWhen(new Date(NOW.getTime() - 5 * DAY).toISOString(), NOW, t)).toBe('Jul 3')
   })
 })
 

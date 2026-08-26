@@ -59,11 +59,14 @@ describe('auth-store', () => {
     expect(useAuthStore.getState().error).toBeNull()
   })
 
-  it('signIn surfaces the error message on failure', async () => {
+  it('signIn surfaces a translated reason, not the raw message', async () => {
+    // The failure still has to be visible — that was always the point. What
+    // changed is that "Invalid login credentials" is English written for a
+    // developer, and it used to go straight onto a German sign-in form.
     auth.signInWithPassword.mockResolvedValue({ error: { message: 'Invalid login credentials' } })
     const err = await useAuthStore.getState().signIn('a@b.com', 'wrong')
-    expect(err).toBe('Invalid login credentials')
-    expect(useAuthStore.getState().error).toBe('Invalid login credentials')
+    expect(err).toBe('errors.auth.invalidCredentials')
+    expect(useAuthStore.getState().error).toBe('errors.auth.invalidCredentials')
   })
 
   it('signUp passes the username as metadata', async () => {
@@ -101,8 +104,11 @@ describe('auth-store', () => {
       error: { message: 'Signups not allowed for this instance' },
     })
     const result = await useAuthStore.getState().signUp('a@b.com', 'secret1')
-    expect(result.error).toBe('Signups not allowed for this instance')
-    expect(useAuthStore.getState().error).toBe('Signups not allowed for this instance')
+    // Nothing matches this message, so it lands on the generic key rather than
+    // being shown verbatim — an unrecognised string is the one most likely to
+    // have been written for a developer.
+    expect(result.error).toBe('errors.auth.generic')
+    expect(useAuthStore.getState().error).toBe('errors.auth.generic')
   })
 
   it('sends a reset link back to the running origin', async () => {
@@ -137,16 +143,16 @@ describe('auth-store', () => {
     })
     const err = await useAuthStore.getState().requestPasswordReset('a@b.com')
 
-    expect(err).toBe('Error sending recovery email')
-    expect(useAuthStore.getState().error).toBe('Error sending recovery email')
+    expect(err).toBe('errors.auth.generic')
+    expect(useAuthStore.getState().error).toBe('errors.auth.generic')
   })
 
   it('updatePassword reports a rejected password instead of claiming success', async () => {
     auth.updateUser.mockResolvedValue({ data: {}, error: { message: 'Password should be at least 6 characters' } })
     const err = await useAuthStore.getState().updatePassword('abc')
 
-    expect(err).toBe('Password should be at least 6 characters')
-    expect(useAuthStore.getState().error).toBe('Password should be at least 6 characters')
+    expect(err).toBe('errors.auth.weakPassword')
+    expect(useAuthStore.getState().error).toBe('errors.auth.weakPassword')
   })
 
   it('updatePassword succeeds quietly', async () => {

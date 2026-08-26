@@ -123,4 +123,16 @@ void i18next
 if (startingLocale !== DEFAULT_LOCALE) void setLocale(startingLocale)
 reflectLocale(startingLocale)
 
+/**
+ * The locale the app is currently showing, normalised to a supported one.
+ *
+ * For module-level formatters that have no component to take `i18n.language`
+ * from. Components that already hold `i18n` should keep using it — this exists
+ * so a helper defined at module scope is not forced into `'en-US'`, which is
+ * what nine of them had settled for.
+ */
+export function activeLocale(): Locale {
+  return resolveLocale(i18next.language)
+}
+
 export default i18next

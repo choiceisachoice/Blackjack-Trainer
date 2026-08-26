@@ -1,4 +1,6 @@
 import { create } from 'zustand'
+import { authErrorKey, AUTH_UNAVAILABLE } from '../services/auth-errors'
+import { logFailure } from '../services/failure-log'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from '../services/supabase/client'
 
@@ -93,7 +95,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   async signUp(email, password, username) {
-    if (!supabase) return { error: 'Sign-up is unavailable until Supabase is configured.' }
+    if (!supabase) return { error: AUTH_UNAVAILABLE }
     set({ error: null })
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -101,8 +103,14 @@ export const useAuthStore = create<AuthStore>((set) => ({
       options: username ? { data: { username } } : undefined,
     })
     if (error) {
-      set({ error: error.message })
-      return { error: error.message }
+      // The key, never the message. `supabase-js` writes for a developer:
+      // "User already registered" in English on a German sign-up form, at the
+      // moment someone was trying to create an account. Same split as the
+      // checkout path — cause to the console, sentence to the reader.
+      logFailure('auth-signup', error)
+      const key = authErrorKey(error)
+      set({ error: key })
+      return { error: key }
     }
     /*
       Whether a confirmation email is required is a *dashboard* setting, not an
@@ -119,7 +127,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   async requestPasswordReset(email) {
-    if (!supabase) return 'Password reset is unavailable until Supabase is configured.'
+    if (!supabase) return AUTH_UNAVAILABLE
     set({ error: null })
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -142,14 +150,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
       back, because those are about *us*, not about who exists.
     */
     if (error && !/user not found|not found/i.test(error.message)) {
-      set({ error: error.message })
-      return error.message
+      logFailure('auth-reset-password', error)
+      const key = authErrorKey(error)
+      set({ error: key })
+      return key
     }
     return null
   },
 
   async updatePassword(password) {
-    if (!supabase) return 'Password reset is unavailable until Supabase is configured.'
+    if (!supabase) return AUTH_UNAVAILABLE
     set({ error: null })
 
     // Works on the recovery session Supabase created from the emailed link.
@@ -157,8 +167,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
     // link must not be able to change anyone's password.
     const { error } = await supabase.auth.updateUser({ password })
     if (error) {
-      set({ error: error.message })
-      return error.message
+      logFailure('auth', error)
+      const key = authErrorKey(error)
+      set({ error: key })
+      return key
     }
 
     /*
@@ -194,12 +206,14 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   async signIn(email, password) {
-    if (!supabase) return 'Sign-in is unavailable until Supabase is configured.'
+    if (!supabase) return AUTH_UNAVAILABLE
     set({ error: null })
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      set({ error: error.message })
-      return error.message
+      logFailure('auth', error)
+      const key = authErrorKey(error)
+      set({ error: key })
+      return key
     }
     return null
   },

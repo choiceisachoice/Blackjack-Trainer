@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { Card } from '../../engine/shoe/types'
 import type { BotPlayer, BotRoundResult } from '../../engine/casino-session/types'
 import { DealerView } from './DealerView'
@@ -121,10 +122,12 @@ export function CasinoTable({
 }: CasinoTableProps) {
   void isDealPhase
 
+  const { t } = useTranslation()
+
   const centerMessage =
-    gameStep === 'bot_playing' ? 'Bots playing…' :
-    gameStep === 'dealer_playing' ? 'Dealer playing…' :
-    gameStep === 'insurance' ? 'Insurance?' : null
+    gameStep === 'bot_playing' ? t('casino.table.botsPlaying') :
+    gameStep === 'dealer_playing' ? t('casino.table.dealerPlaying') :
+    gameStep === 'insurance' ? t('casino.table.insuranceShort') : null
 
   const { ref: fitRef, fit } = useTableFit()
 

@@ -519,7 +519,17 @@
       "doubled": "Doublé",
       "surrendered": "Abandonnée",
       "handNo": "Main {{n}}",
-      "handShort": "M{{n}}"
+      "handShort": "M{{n}}",
+      "botsPlaying": "Les bots jouent…",
+      "dealerPlaying": "Le croupier joue…",
+      "insuranceShort": "Assurance ?",
+      "resultWin": "Gain",
+      "resultPush": "Égalité",
+      "resultLoss": "Perte",
+      "resultBlackjack": "BJ !",
+      "resultSurrender": "Aband.",
+      "total": "Total",
+      "deal": "Distribuer — {{amount}}"
     },
     "act": {
       "hit": "Tirer (H)",
@@ -1442,7 +1452,9 @@
     "yourClimb": "Votre ascension — niveau {{n}} sur {{total}}",
     "noneUnlocked": "Aucun succès débloqué",
     "allUnlocked": "Tous les succès débloqués !",
-    "unlockCount": "{{n}}/{{total}} débloqués"
+    "unlockCount": "{{n}}/{{total}} débloqués",
+    "xpAmount": "{{xp}} XP",
+    "xpToNext": "{{xp}} XP jusqu’au niveau {{n}}"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1804,7 +1816,9 @@
     "heatMore": "plus",
     "drillTheseHands": "Travailler ces mains",
     "viewAll": "Tout voir",
-    "rangeAll": "Tout"
+    "rangeAll": "Tout",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier"
   },
   "sim": {
     "onboardTitle": "Suivez votre bankroll",
@@ -1920,7 +1934,20 @@
   "errors": {
     "checkout": "Nous n’avons pas pu ouvrir la page de paiement. Réessayez — si cela persiste, écrivez à {{email}} et nous réglerons cela.",
     "portal": "Nous n’avons pas pu ouvrir vos paramètres de facturation. Réessayez — si cela persiste, écrivez à {{email}}.",
-    "reset": "Vos données n’ont pas pu être supprimées. Rien n’a été modifié — réessayez."
+    "reset": "Vos données n’ont pas pu être supprimées. Rien n’a été modifié — réessayez.",
+    "auth": {
+      "emailNotConfirmed": "Merci de confirmer d’abord votre e-mail — vérifiez votre boîte de réception.",
+      "emailTaken": "Un compte existe déjà avec cet e-mail. Se connecter plutôt ?",
+      "expiredLink": "Ce lien a expiré. Merci d’en demander un nouveau.",
+      "generic": "Une erreur est survenue. Merci de réessayer dans un instant.",
+      "invalidCredentials": "Cet e-mail et ce mot de passe ne correspondent à aucun compte.",
+      "invalidEmail": "Cette adresse e-mail ne semble pas valide.",
+      "rateLimit": "Trop de tentatives. Merci de patienter quelques minutes.",
+      "samePassword": "Choisissez un mot de passe différent de l’actuel.",
+      "unavailable": "La connexion est momentanément indisponible. Merci de réessayer plus tard.",
+      "weakPassword": "Choisissez un mot de passe plus long — au moins 8 caractères."
+    },
+    "resetConfirm": "Supprimer votre historique d’entraînement ? Vos sessions et les analyses qui en découlent seront perdues définitivement. Votre niveau, vos XP et vos succès sont conservés."
   },
   "xp": {
     "source": {
@@ -1929,5 +1956,8 @@
       "achievement": "Succès",
       "achievements": "Succès"
     }
+  },
+  "simulator": {
+    "startLine": "Départ"
   }
 }

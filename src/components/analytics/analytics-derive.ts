@@ -3,6 +3,8 @@ import type {
   TrainingSessionResult,
 } from '../../services/stats-types'
 import { dayKey, shiftDayKey } from '../../services/date-utils'
+import { activeLocale } from '../../i18n'
+import type { Translate } from '../../i18n/translate'
 
 /** Selectable time window for the dashboard. */
 export type TimeRange = '7d' | '30d' | '90d' | 'all'
@@ -64,12 +66,23 @@ export function splitHoursMinutes(seconds: number): { hours: number; minutes: nu
   }
 }
 
-/** Format an ISO timestamp as a short relative label ("Today", "Yesterday", "Mar 4"). */
-export function formatWhen(iso: string, now: Date): string {
+/**
+ * Format an ISO timestamp as a short relative label ("Today", "Yesterday", "4 Mar").
+ *
+ * Takes a translator rather than returning English, the same injection the rest
+ * of the pure modules use (`achievementDescription(a, t)`). The two relative
+ * labels were hardcoded and the fallback formatted `en-US`, so a German session
+ * list read "Today / Yesterday / Jul 3".
+ *
+ * @param iso - Timestamp to label
+ * @param now - Reference "now", injected so the function stays pure
+ * @param t - Translator
+ */
+export function formatWhen(iso: string, now: Date, t: Translate): string {
   const day = dayKey(iso)
-  if (day === dayKey(now)) return 'Today'
-  if (day === shiftDayKey(dayKey(now), -1)) return 'Yesterday'
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  if (day === dayKey(now)) return t('analytics.today')
+  if (day === shiftDayKey(dayKey(now), -1)) return t('analytics.yesterday')
+  return new Date(iso).toLocaleDateString(activeLocale(), { month: 'short', day: 'numeric' })
 }
 
 /** Inclusive lower-bound timestamp (ms) for a range, or -Infinity for `all`. */
@@ -223,7 +236,7 @@ export function buildKpis(
     {
       key: 'hands',
       labelKey: 'analytics.kpi.hands',
-      display: curHands.toLocaleString('en-US'),
+      display: curHands.toLocaleString(activeLocale()),
       delta: handsDelta,
       deltaDisplay: handsDelta === null ? '' : fmtSigned(handsDelta),
       spark: dailySeries(cur, d => sumBy(d, s => s.totalQuestions)),

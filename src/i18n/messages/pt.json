@@ -519,7 +519,17 @@
       "doubled": "Dobrada",
       "surrendered": "Desistiu",
       "handNo": "Mão {{n}}",
-      "handShort": "M{{n}}"
+      "handShort": "M{{n}}",
+      "botsPlaying": "Os bots jogam…",
+      "dealerPlaying": "O dealer joga…",
+      "insuranceShort": "Seguro?",
+      "resultWin": "Ganho",
+      "resultPush": "Empate",
+      "resultLoss": "Perda",
+      "resultBlackjack": "BJ!",
+      "resultSurrender": "Desist.",
+      "total": "Total",
+      "deal": "Distribuir — {{amount}}"
     },
     "act": {
       "hit": "Pedir (H)",
@@ -1442,7 +1452,9 @@
     "yourClimb": "A sua subida — nível {{n}} de {{total}}",
     "noneUnlocked": "Ainda sem prémios desbloqueados",
     "allUnlocked": "Todos os prémios desbloqueados!",
-    "unlockCount": "{{n}}/{{total}} desbloqueados"
+    "unlockCount": "{{n}}/{{total}} desbloqueados",
+    "xpAmount": "{{xp}} XP",
+    "xpToNext": "{{xp}} XP até o nível {{n}}"
   },
   "modes": {
     "speedDrill": "Speed Drill",
@@ -1804,7 +1816,9 @@
     "heatMore": "mais",
     "drillTheseHands": "Treinar estas mãos",
     "viewAll": "Ver todos",
-    "rangeAll": "Tudo"
+    "rangeAll": "Tudo",
+    "today": "Hoje",
+    "yesterday": "Ontem"
   },
   "sim": {
     "onboardTitle": "Acompanhe a sua bankroll",
@@ -1920,7 +1934,20 @@
   "errors": {
     "checkout": "Não conseguimos abrir a página de pagamento. Tente novamente — se continuar, escreva para {{email}} e resolvemos.",
     "portal": "Não conseguimos abrir as suas definições de faturacão. Tente novamente — se continuar, escreva para {{email}}.",
-    "reset": "Não foi possível apagar os seus dados. Nada foi alterado — tente novamente."
+    "reset": "Não foi possível apagar os seus dados. Nada foi alterado — tente novamente.",
+    "auth": {
+      "emailNotConfirmed": "Confirme primeiro o seu e-mail — verifique a caixa de entrada.",
+      "emailTaken": "Já existe uma conta com este e-mail. Entrar em vez disso?",
+      "expiredLink": "Este link expirou. Solicite um novo.",
+      "generic": "Algo deu errado. Tente novamente em instantes.",
+      "invalidCredentials": "Esse e-mail e senha não correspondem a nenhuma conta.",
+      "invalidEmail": "Isso não parece um endereço de e-mail válido.",
+      "rateLimit": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "samePassword": "Escolha uma senha diferente da atual.",
+      "unavailable": "O acesso está temporariamente indisponível. Tente mais tarde.",
+      "weakPassword": "Escolha uma senha mais longa — pelo menos 8 caracteres."
+    },
+    "resetConfirm": "Apagar o seu histórico de treino? As sessões e as análises criadas a partir delas serão perdidas definitivamente. O seu nível, XP e conquistas permanecem."
   },
   "xp": {
     "source": {
@@ -1929,5 +1956,8 @@
       "achievement": "Conquista",
       "achievements": "Conquistas"
     }
+  },
+  "simulator": {
+    "startLine": "Início"
   }
 }
