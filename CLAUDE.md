@@ -272,7 +272,79 @@ issue and was dealt with".
    the Stripe SDK: testing around it means manufacturing a valid signature,
    which is its own risk and proves less than it looks. Left deliberately.
 
+5. **The light theme has been measured; the felt has not.** Every screen the
+   app reaches without dealing a hand was swept in a browser with a contrast
+   probe, and each one now reports zero failures against WCAG AA — landing,
+   plan, learn, drills, analytics, awards, strategy chart, paywall. The
+   **Casino Session table itself** was not: reaching it means playing, and
+   playing writes to a real account. The felt is authored green in both themes
+   and its own surface was fixed, but its HUD, action bar and settlement text
+   have not been looked at in light mode by anyone.
+
+   Also deliberately unchanged: **the loading screen stays dark in the light
+   theme**, so a light-theme visitor gets a dark film and then a white app. It
+   is built as a film — cards and a gold bar on black — and making it light is
+   re-authoring it, not correcting it. Splash screens are allowed to be
+   brand-dark; recorded so nobody re-opens it as a bug by accident.
+
 ### Closed
+
+- **The light theme is no longer a second-class rendering** (26 Aug 2026).
+  Measured screen by screen in a browser rather than judged by eye, which
+  mattered: the failures were not scattered mistakes but six assumptions, each
+  made in one place and inherited everywhere.
+
+  A colour that works on near-black does not work on white — the semantic
+  green measured **1.86:1**, the top of the level ladder **1.05:1**, and the
+  achievement metals **1.24:1**, all of them carrying meaning. Alpha does not
+  blend symmetrically, so one dim-text ramp cannot serve both themes; it now
+  has a floor per theme, and the dark one was quietly failing too. Gold does
+  two jobs — accent type and button fill — that pull in opposite directions on
+  a light ground, so the ink on gold became its own static token, which is also
+  the correction of a change made earlier the same day in the wrong direction.
+  Three cards carried a warm lift that is a gold glow over black and half-black
+  over white. And two bars — the landing header, the credibility strip — were
+  pinned near-black under theme-following text.
+
+  Two rules came out of it worth keeping. **The ink belongs to the fill, not to
+  the theme**: the strategy chart's five action colours and every gold surface
+  now say so by name. And **a panel that is deliberately dark pins its own
+  tokens** rather than letting its text flip — `.hero-stage` and `.on-dark`.
+
+- **A sign-out no longer costs progress** (26 Aug 2026). Two things lived only
+  in `localStorage`, under `bjt_*` keys that the sign-out wipe clears as a
+  security boundary — and unlike everything else it clears, they did not come
+  back from the cloud.
+
+  The **Casino Session Tracker** is a log of real-money bankroll figures, and
+  signing out deleted it silently and for good. No fifth table was needed:
+  `training_sessions.details` is jsonb, so the opening and closing bankroll and
+  the table config now ride along in the session record and the tracker is
+  rebuilt on sign-in. Sessions recorded before those fields existed are skipped
+  rather than filled with zeros — a money chart with an invented starting
+  balance looks exactly as authoritative as a real one.
+
+  The **claimed-stage list** is the only thing between a finished curriculum
+  stage and being paid for it twice. It was wiped the same way while the
+  session history it is derived from came back, so every finished stage looked
+  unpaid and paid again; level XP reconciles by `max`, so the inflated total
+  then won the merge. Signing out was worth free XP, repeatedly. It travels in
+  `profiles.settings` now — a jsonb column the schema already had — and merges
+  as a union.
+
+- **A session with no hands is no longer a session** (26 Aug 2026). Opening the
+  casino table and leaving wrote a full record: 60 XP, a zero-hand row in the
+  analytics and the tracker, and one third of the final curriculum stage, which
+  asks for three casino sessions at `minAccuracy: 0`. Three open-and-close trips
+  finished the last stage of the training plan without a card being dealt. The
+  drill modes have had the equivalent threshold from the start; the casino path
+  never grew one.
+
+  Related, from the same sweep: only the **first** drill of a mode visit was
+  ever recorded. The double-save guard was re-armed on a bfcache restore and
+  nowhere else, and every summary screen offers "play again", which restarts
+  the mode without unmounting it. The second round ran, ended, met a closed
+  guard and vanished — no row, no XP, no error.
 
 - **The error a customer reads is written for them** (19 Aug 2026). Four screens
   did `setError(e instanceof Error ? e.message : t(…))`, which puts whatever was
