@@ -60,6 +60,7 @@ export function NavBar() {
   const { t } = useTranslation()
   const rawSetMode = useAppStore(s => s.setMode)
   const requestLeave = useLiveSessionStore(s => s.requestLeave)
+  const requestLeaveApp = useLiveSessionStore(s => s.requestLeaveApp)
   /**
    * Every mode change in this bar goes through the live-session guard.
    *
@@ -89,6 +90,10 @@ export function NavBar() {
 
   const signOut = async () => {
     if (signingOut) return
+    // Signing out leaves the app, which unmounts the session for good. The
+    // dialog answers by navigating, so the sign-out itself has to wait for the
+    // route change rather than run behind it.
+    if (!requestLeaveApp({ kind: 'signOut' })) return
     setSigningOut(true)
     // `signOutAndClearLocal` clears this device before it talks to the server
     // and never rejects, so navigating afterwards is unconditional: a failed
@@ -206,7 +211,7 @@ export function NavBar() {
           )}
           {signedIn && (
             <button
-              onClick={() => navigate('/account')}
+              onClick={() => { if (requestLeaveApp({ kind: 'route', path: '/account' })) navigate('/account') }}
               data-testid="account"
               aria-label={t('nav.accountAndBilling')}
               title={t('nav.accountAndBilling')}

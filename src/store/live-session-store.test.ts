@@ -40,12 +40,12 @@ describe('standing in a running session', () => {
 
   it('refuses the navigation and raises the question instead', () => {
     expect(store().requestLeave('home')).toBe(false)
-    expect(store().pending).toEqual({ target: 'home', from: 'casinoSession' })
+    expect(store().pending).toEqual({ target: { kind: 'mode', mode: 'home' }, from: 'casinoSession' })
   })
 
   it('remembers where the user was trying to go', () => {
     store().requestLeave('learn')
-    expect(store().confirmLeave()).toBe('learn')
+    expect(store().confirmLeave()).toEqual({ kind: 'mode', mode: 'learn' })
   })
 
   it('stays put when the user backs out, and keeps the session', () => {
@@ -112,7 +112,7 @@ describe('with a session paused in the background', () => {
   it('asks again the moment the user is back on the session screen', () => {
     standingIn('casinoSession')
     expect(store().requestLeave('home')).toBe(false)
-    expect(store().pending).toEqual({ target: 'home', from: 'casinoSession' })
+    expect(store().pending).toEqual({ target: { kind: 'mode', mode: 'home' }, from: 'casinoSession' })
   })
 })
 
@@ -138,5 +138,48 @@ describe('when the session ends', () => {
 describe('confirmLeave without a pending question', () => {
   it('returns null instead of inventing a destination', () => {
     expect(store().confirmLeave()).toBeNull()
+  })
+})
+
+describe('leaving the app rather than switching mode', () => {
+  beforeEach(() => {
+    useLiveSessionStore.setState({ activeMode: null, pending: null })
+    useAppStore.setState({ currentMode: 'home' })
+  })
+
+  /**
+   * The account and sign-out buttons navigate by route, and a route change
+   * unmounts `TrainerApp` — the engine, the shoe and the clock go with it. So
+   * unlike a mode switch, there is no screen from which this is harmless, and
+   * the "are you standing on the table" condition must not apply.
+   */
+  it('asks even when the user is somewhere else in the app', () => {
+    store().beginSession('casinoSession')
+    useAppStore.setState({ currentMode: 'analytics' })
+
+    // A mode switch from here is free — the session stays mounted.
+    expect(store().requestLeave('home')).toBe(true)
+    expect(store().pending).toBeNull()
+
+    // Leaving the app from the same screen is not.
+    expect(store().requestLeaveApp({ kind: 'route', path: '/account' })).toBe(false)
+    expect(store().pending).toEqual({
+      target: { kind: 'route', path: '/account' },
+      from: 'casinoSession',
+    })
+    expect(store().confirmLeave()).toEqual({ kind: 'route', path: '/account' })
+  })
+
+  it('carries sign-out as its own kind, not as a route', () => {
+    store().beginSession('casinoSession')
+    expect(store().requestLeaveApp({ kind: 'signOut' })).toBe(false)
+    // Not a path: signing out revokes the session and wipes this device before
+    // it goes anywhere, so a route would have skipped the part that matters.
+    expect(store().confirmLeave()).toEqual({ kind: 'signOut' })
+  })
+
+  it('does not ask when there is no session to lose', () => {
+    expect(store().requestLeaveApp({ kind: 'signOut' })).toBe(true)
+    expect(store().pending).toBeNull()
   })
 })

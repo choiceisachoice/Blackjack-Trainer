@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle } from 'lucide-react'
 import { useLiveSessionStore } from '../../store/live-session-store'
+import { signOutAndClearLocal } from '../../services/supabase/cloud-sync'
 import { useAppStore } from '../../store/app-store'
 
 /**
@@ -34,6 +36,7 @@ export function LeaveSessionDialog() {
   const confirmLeave = useLiveSessionStore(s => s.confirmLeave)
   const cancelLeave = useLiveSessionStore(s => s.cancelLeave)
   const setMode = useAppStore(s => s.setMode)
+  const navigate = useNavigate()
   const stayRef = useRef<HTMLButtonElement>(null)
 
   // Escape closes it the safe way, and the focus starts on "stay".
@@ -49,7 +52,12 @@ export function LeaveSessionDialog() {
 
   const leave = () => {
     const target = confirmLeave()
-    if (target) setMode(target)
+    if (!target) return
+    // A mode switch stays inside the app; a route change leaves it, which is
+    // what makes the second kind worth asking about in the first place.
+    if (target.kind === 'mode') setMode(target.mode)
+    else if (target.kind === 'route') navigate(target.path)
+    else void signOutAndClearLocal().then(() => navigate('/'))
   }
 
   return (

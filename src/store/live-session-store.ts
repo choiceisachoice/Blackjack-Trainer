@@ -26,14 +26,40 @@ import { useAppStore, type AppMode } from './app-store'
  * else. The Casino Session's own "home" button is on the summary, by which
  * point `endSession` has already run.
  *
- * So the complete set of navigations that can raise the dialog is: the NavBar,
- * clicked while the Casino Session is on screen and playing.
+ * So the complete set of *mode* navigations that can raise the dialog is: the
+ * NavBar, clicked while the Casino Session is on screen and playing.
+ *
+ * ── Leaving the app is a different question ──
+ * Two buttons in that same NavBar navigate by **route** rather than by mode:
+ * account, and sign out. They went around the guard entirely, and they are the
+ * worse case. A mode switch destroys nothing — `TrainerApp` keeps the session
+ * mounted precisely so a player can return to the same hand. A route change
+ * unmounts `TrainerApp`, and with it the engine, the shoe and the clock, from
+ * *any* screen. So `requestLeaveApp` asks whenever a session exists at all,
+ * without the "standing on the table" condition that is right for mode
+ * switches and wrong here.
  */
+
+/** Where a blocked navigation was heading. */
+export type LeaveTarget =
+  /** Another training mode, inside the app. */
+  | { readonly kind: 'mode'; readonly mode: AppMode }
+  /** Out of the app entirely — the account page. */
+  | { readonly kind: 'route'; readonly path: string }
+  /**
+   * Signing out.
+   *
+   * Its own kind rather than a route, because signing out is not a navigation:
+   * it revokes the session and wipes this device's caches, and only then goes
+   * home. Modelling it as a path would have sent the dialog to a route that
+   * does not exist and quietly skipped the part that matters.
+   */
+  | { readonly kind: 'signOut' }
 
 /** What the user is being asked, or null when nothing is pending. */
 export interface PendingLeave {
   /** Where they were trying to go. */
-  readonly target: AppMode
+  readonly target: LeaveTarget
   /** The mode holding the running session. */
   readonly from: AppMode
 }
@@ -65,8 +91,17 @@ export interface LiveSessionActions {
    * through `confirmLeave` or `cancelLeave`.
    */
   requestLeave(target: AppMode): boolean
+  /**
+   * Ask to leave the app for `target`.
+   *
+   * Same contract as `requestLeave`, one difference that matters: it asks
+   * whenever a session is in flight, from any screen. Leaving the app tears
+   * down `TrainerApp`, so unlike a mode switch there is no screen from which
+   * this is harmless.
+   */
+  requestLeaveApp(target: Exclude<LeaveTarget, { kind: 'mode' }>): boolean
   /** The user chose to leave. Returns the target, or null if nothing pending. */
-  confirmLeave(): AppMode | null
+  confirmLeave(): LeaveTarget | null
   /** The user chose to stay. */
   cancelLeave(): void
 }
@@ -121,6 +156,13 @@ export const useLiveSessionStore = create<LiveSessionStore>((set, get) => ({
     */
     if (useAppStore.getState().currentMode !== activeMode) return true
 
+    set({ pending: { target: { kind: 'mode', mode: target }, from: activeMode } })
+    return false
+  },
+
+  requestLeaveApp(target) {
+    const { activeMode } = get()
+    if (!activeMode) return true
     set({ pending: { target, from: activeMode } })
     return false
   },
