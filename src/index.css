@@ -240,6 +240,25 @@
 [data-theme="light"] .text-gold\/70,
 [data-theme="light"] .text-gold\/80 { color: var(--color-gold-on-surface); }
 
+/* ── The dim-text ramp's floor, in the dark theme ───────────────────
+   I said earlier in this sweep that the dark theme "was never wrong". That was
+   too kind. Measured on the real page: `text-content/40` is **3.49:1** on the
+   page ground and 3.58 on a card — below AA, on the theme that ships by
+   default. Less badly wrong than the light theme's 2.56, and wrong.
+
+   Only the failing steps move. Everything from /50 up already clears (4.98 on
+   the page, 4.92 on `surface-2`), and those values are the designed look —
+   lifting them would restyle every screen to fix something that is not broken.
+   /30 through /45 land on 50%, which is where this theme first clears; they
+   collapse into one step for the same reason the light ramp's floor does, and
+   /20 and /25 stay decorative. */
+[data-theme="dark"] .text-content\/20 { color: color-mix(in oklab, var(--color-content) 25%, transparent); }
+[data-theme="dark"] .text-content\/25 { color: color-mix(in oklab, var(--color-content) 30%, transparent); }
+[data-theme="dark"] .text-content\/30,
+[data-theme="dark"] .text-content\/35,
+[data-theme="dark"] .text-content\/40,
+[data-theme="dark"] .text-content\/45 { color: color-mix(in oklab, var(--color-content) 50%, transparent); }
+
 /* ── The dim-text ramp, re-cut for the light theme ────────────────────────
    Alpha blending is not symmetric, and that is the whole of this problem.
    `text-content/40` is 40% of #f4f5f6 on near-black in the dark theme — about

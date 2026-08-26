@@ -115,7 +115,14 @@ export function LandingPage() {
   return (
     <div className="app-canvas text-content overflow-x-hidden">
       {/* Nav */}
-      <header className="sticky top-0 z-40 backdrop-blur-md bg-[rgba(9,10,12,.6)] border-b border-white/8">
+      {/* `--color-topbar`, not a pinned near-black. This bar was a fixed 60%
+          black in both themes while its links used `text-content`, which flips
+          — so on the light theme dark ink sat on a dark-grey bar at 2.69:1.
+          The token already exists and the app's own top bar already uses it;
+          only the landing page was doing its own thing. The hairline goes with
+          it, for the same reason. */}
+      <header className="sticky top-0 z-40 backdrop-blur-md border-b border-contrast/10"
+        style={{ backgroundColor: 'var(--color-topbar)' }}>
         {/* Tighter padding and gaps below sm: at 360px the wordmark and the
             actions otherwise meet with zero space between them. */}
         <nav className="max-w-6xl mx-auto w-full px-4 sm:px-6 h-[62px] flex items-center justify-between gap-3">
