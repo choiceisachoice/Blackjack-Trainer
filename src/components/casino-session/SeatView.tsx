@@ -1,4 +1,19 @@
 import { useTranslation } from 'react-i18next'
+import type { HandOutcome } from './useGameLoop'
+
+/**
+ * The player's own result, as a key rather than a sentence.
+ *
+ * `casino.table.result*` is the same set the split hands and the bots already
+ * use, so a table shows one vocabulary rather than two.
+ */
+const SETTLEMENT_KEY: Record<HandOutcome, string> = {
+  blackjack: 'casino.table.resultBlackjack',
+  win: 'casino.table.resultWin',
+  loss: 'casino.table.resultLoss',
+  push: 'casino.table.resultPush',
+  surrender: 'casino.table.resultSurrender',
+}
 import { motion, useReducedMotion } from 'framer-motion'
 import type { Card } from '../../engine/shoe/types'
 import type { BotPlayer, BotRoundResult } from '../../engine/casino-session/types'
@@ -73,7 +88,7 @@ interface HumanSeatProps {
   bankroll: number
   handDoubled: Set<number>
   isSurrendered: boolean
-  humanSettlement: { label: string; profit: number } | null
+  humanSettlement: { result: HandOutcome; profit: number } | null
   gameStep: GameStep
   isActivePlayer: boolean
   isDimmed: boolean
@@ -143,15 +158,15 @@ export function HumanSeat({
           initial={reduced ? false : { scale: 0.8 }}
           animate={{ scale: 1 }}
           className={`text-sm md:text-base font-black whitespace-nowrap drop-shadow-lg px-2 py-0.5 rounded ${
-            humanSettlement.label === 'Blackjack!'
-              ? 'bg-gold text-black'
+            humanSettlement.result === 'blackjack'
+              ? 'bg-gold text-casino-bg'
               : humanSettlement.profit > 0 ? 'text-success'
               : humanSettlement.profit < 0 ? 'text-error'
               : 'text-gold'
           }`}
           data-testid="human-settlement"
         >
-          {humanSettlement.label} {humanSettlement.profit > 0 ? '+' : ''}{formatDollar(humanSettlement.profit)}
+          {t(SETTLEMENT_KEY[humanSettlement.result])} {humanSettlement.profit > 0 ? '+' : ''}{formatDollar(humanSettlement.profit)}
         </motion.div>
       )}
 

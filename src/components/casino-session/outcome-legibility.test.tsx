@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import i18n from '../../i18n'
 import { BotStatusBadge } from './CardComponents'
 import { HumanSeat } from './SeatView'
 import { Rank, Suit, type Card } from '../../engine/shoe/types'
@@ -59,10 +60,14 @@ afterEach(() => { vi.useRealTimers() })
 describe('the settlement label on the human seat', () => {
   it('is readable the moment it appears', () => {
     render(
-      <HumanSeat {...seatProps} humanSettlement={{ label: 'Blackjack!', profit: 75 }} />,
+      <HumanSeat {...seatProps} humanSettlement={{ result: 'blackjack', profit: 75 }} />,
     )
     const label = screen.getByTestId('human-settlement')
-    expect(label).toHaveTextContent('Blackjack!')
+    // Against the translation, not against a typed-out word. The settlement
+    // carries the *result* now and the seat translates it, so hardcoding
+    // "Blackjack!" here would pin the test to one language's copy — which is
+    // how the old label became untranslatable in the first place.
+    expect(label).toHaveTextContent(i18n.t('casino.table.resultBlackjack'))
     expect(effectiveOpacity(label)).toBe(1)
   })
 
@@ -70,7 +75,7 @@ describe('the settlement label on the human seat', () => {
     // Losses are the ones a player is most likely to have looked away from and
     // come back to.
     render(
-      <HumanSeat {...seatProps} humanSettlement={{ label: 'Loss', profit: -50 }} />,
+      <HumanSeat {...seatProps} humanSettlement={{ result: 'loss', profit: -50 }} />,
     )
     expect(effectiveOpacity(screen.getByTestId('human-settlement'))).toBe(1)
   })

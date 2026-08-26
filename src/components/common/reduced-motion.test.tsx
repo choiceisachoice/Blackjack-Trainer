@@ -50,7 +50,7 @@ const seatProps = {
   isActivePlayer: false,
   isDimmed: false,
   isDealPhase: false,
-  humanSettlement: { label: 'Blackjack!', profit: 75 },
+  humanSettlement: { result: 'blackjack' as const, profit: 75 },
 }
 
 afterEach(() => { vi.unstubAllGlobals() })

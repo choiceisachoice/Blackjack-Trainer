@@ -1,4 +1,22 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
+
+/** How a hand can end, as the settlement reports it. */
+export type HandOutcome = 'blackjack' | 'win' | 'loss' | 'push' | 'surrender'
+
+const OUTCOMES: readonly HandOutcome[] = ['blackjack', 'win', 'loss', 'push', 'surrender']
+
+/**
+ * Narrow the engine's loosely-typed result string.
+ *
+ * `surrender` is the fallback for the same reason the old ternary chain ended
+ * there: it is the only outcome that is not one of the four the engine names
+ * explicitly, so anything unrecognised was already being shown as a surrender.
+ */
+function asOutcome(result: string): HandOutcome {
+  return (OUTCOMES as readonly string[]).includes(result)
+    ? (result as HandOutcome)
+    : 'surrender'
+}
 import { soundEngine } from '../../services/sound-engine'
 import { useAppStore, DEALING_SPEED_MULTIPLIER } from '../../store/app-store'
 import { CasinoSessionEngine, canReSplitAces } from '../../engine/casino-session/session-engine'
@@ -16,7 +34,7 @@ import type {
 } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
 import type { GameStep, BotStatus } from './helpers'
-import { formatDollar, isNaturalBlackjack } from './helpers'
+import { isNaturalBlackjack } from './helpers'
 import { useStepAnimation, type AnimStep } from './useStepAnimation'
 
 // ─── Visible State ───────────────────────────────────
@@ -38,8 +56,16 @@ export interface VisibleState {
   humanVisibleCards: number
 
   currentBet: number
-  humanSettlement: { label: string; profit: number } | null
-  settlementMsg: string | null
+  /**
+   * How the player's own hand ended, and what it paid.
+   *
+   * The **result**, not a label. It used to carry the finished English string
+   * ("Blackjack!", "Win", …) and `SeatView` decided its styling by comparing
+   * against `'Blackjack!'` — so the text was simultaneously the display and
+   * the condition, and translating it would have silently taken the gold
+   * blackjack treatment with it.
+   */
+  humanSettlement: { result: HandOutcome; profit: number } | null
 
   showInsurance: boolean
   isSurrendered: boolean
@@ -146,8 +172,7 @@ export function useGameLoop(
   const [humanVisibleCards, setHumanVisibleCards] = useState(999)
 
   const [currentBet, setCurrentBet] = useState(0)
-  const [humanSettlement, setHumanSettlement] = useState<{ label: string; profit: number } | null>(null)
-  const [settlementMsg, setSettlementMsg] = useState<string | null>(null)
+  const [humanSettlement, setHumanSettlement] = useState<{ result: HandOutcome; profit: number } | null>(null)
 
   const [showInsurance, setShowInsurance] = useState(false)
   const [isSurrendered, setIsSurrendered] = useState(false)
@@ -243,7 +268,6 @@ export function useGameLoop(
     setHandDoubled(new Set())
     setCountFeedback(null)
     setHandReview(null)
-    setSettlementMsg(null)
     setHumanSettlement(null)
     setShowReshuffle(false)
     setBotVisibleCards({})
@@ -374,15 +398,7 @@ export function useGameLoop(
       engine.getCurrentHandNumber(),
     )
 
-    const resultLabel = handResult === 'blackjack' ? 'Blackjack!'
-      : handResult === 'win' ? 'Win'
-      : handResult === 'loss' ? 'Loss'
-      : handResult === 'push' ? 'Push'
-      : 'Surrender'
-
-    const sign = profit > 0 ? '+' : ''
-    setSettlementMsg(`${resultLabel} ${sign}${formatDollar(profit)}`)
-    setHumanSettlement({ label: resultLabel, profit })
+    setHumanSettlement({ result: asOutcome(handResult), profit })
     setGameStep('settlement')
 
     const dr = dealResultRef.current
@@ -1601,7 +1617,6 @@ export function useGameLoop(
     humanVisibleCards,
     currentBet,
     humanSettlement,
-    settlementMsg,
     showInsurance,
     isSurrendered,
     handDoubled,

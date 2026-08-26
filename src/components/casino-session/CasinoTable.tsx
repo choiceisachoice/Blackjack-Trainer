@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { HandOutcome } from './useGameLoop'
 import type { Card } from '../../engine/shoe/types'
 import type { BotPlayer, BotRoundResult } from '../../engine/casino-session/types'
 import { DealerView } from './DealerView'
@@ -69,7 +70,7 @@ interface CasinoTableProps {
   currentBet: number
   handDoubled: Set<number>
   isSurrendered: boolean
-  humanSettlement: { label: string; profit: number } | null
+  humanSettlement: { result: HandOutcome; profit: number } | null
   activeBotId: string | null
   botStatuses: Record<string, BotStatus>
   botResults: BotRoundResult[]

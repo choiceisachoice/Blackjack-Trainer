@@ -37,7 +37,6 @@ vi.mock('./useGameLoop', () => ({
       isSurrendered: false,
       showReshuffle: false,
       showInsurance: false,
-      settlementMsg: '',
       humanSettlement: null,
       rcInput: '',
       tcInput: '',
