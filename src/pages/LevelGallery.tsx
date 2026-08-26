@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { LEVELS } from '../services/level-system'
 import type { LevelDefinition } from '../services/level-system'
 import { useLevelStore } from '../store/level-store'
+import { useAppStore } from '../store/app-store'
+import { levelPalette } from '../services/level-palette'
 import { LevelUpPopup } from '../components/navigation/LevelUpPopup'
 import { hasSeenLevelIntro } from '../services/level-intro'
 
@@ -31,6 +33,7 @@ export function LevelGallery() {
   const { t, i18n } = useTranslation()
   const [from, setFrom] = useState<number | null>(null)
   const showLevelUp = useLevelStore(s => s.showLevelUp)
+  const theme = useAppStore(s => s.theme)
 
   /** Put the real popup on screen for `to`, arriving from the level below. */
   const preview = (to: LevelDefinition, jump = 1) => {
@@ -96,7 +99,10 @@ export function LevelGallery() {
       </header>
 
       <div className="max-w-6xl mx-auto grid gap-3 grid-cols-[repeat(auto-fill,minmax(190px,1fr))]">
-        {LEVELS.map(l => (
+        {/* Through the palette, exactly as the app paints them. The gallery
+            exists to be an honest preview; showing the raw table would make it
+            display colours no player ever sees. */}
+        {LEVELS.map(raw => levelPalette(raw, theme)).map(l => (
           <button
             key={l.level}
             onClick={() => preview(l)}
@@ -118,7 +124,10 @@ export function LevelGallery() {
             <div className="mt-1 font-bold leading-tight" style={{ color: l.color }}>
               {t(l.titleKey)}
             </div>
-            <div className="mt-2 flex items-center justify-between text-[0.6875rem]">
+            {/* Wraps and allows the pill to shrink. A long tier name next to a
+                five-digit XP figure ("FORTGESCHRITTEN 2.200 XP") overflowed the
+                card and printed outside it. */}
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[0.6875rem] min-w-0">
               <span
                 className="px-2 py-0.5 rounded-full font-semibold tracking-wider uppercase"
                 style={{ backgroundColor: `${l.color}22`, color: l.color }}

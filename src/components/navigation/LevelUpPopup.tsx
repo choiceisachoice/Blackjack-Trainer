@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { useLevelStore } from '../../store/level-store'
+import { useAppStore } from '../../store/app-store'
+import { levelPalette } from '../../services/level-palette'
 import { hasSeenLevelIntro, markLevelIntroSeen } from '../../services/level-intro'
 
 const TIER_LABEL_KEY: Record<string, string> = {
@@ -28,6 +30,7 @@ export function LevelUpPopup() {
   const showLevelUp = useLevelStore(s => s.showLevelUp)
   const levelUpData = useLevelStore(s => s.levelUpData)
   const dismissLevelUp = useLevelStore(s => s.dismissLevelUp)
+  const theme = useAppStore(s => s.theme)
 
   // Whether to show the explainer.
   //
@@ -69,7 +72,12 @@ export function LevelUpPopup() {
 
   if (!showLevelUp || !levelUpData) return null
 
-  const { oldLevel, newLevel, breakdown } = levelUpData
+  // The pure function, not the hook: this sits after an early return, where a
+  // hook may not go. Both levels are painted at once here, so both are lit —
+  // the "from" badge is as unreadable on a light surface as the "to" badge.
+  const { oldLevel: rawOld, newLevel: rawNew, breakdown } = levelUpData
+  const oldLevel = levelPalette(rawOld, theme)
+  const newLevel = levelPalette(rawNew, theme)
   const totalXP = breakdown.reduce((sum, b) => sum + b.amount, 0)
 
   // Closing is NOT the same as "I have understood this". It used to be, which
