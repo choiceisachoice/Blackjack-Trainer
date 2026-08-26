@@ -43,9 +43,29 @@ export interface LevelDefinition {
  * Requirements were lowered, never raised. A rebalance must not take a level
  * away from somebody who already earned it.
  */
+/*
+ * ## Why four of these are lighter than they look designed to be
+ *
+ * Levels 1, 10, 11 and 12 were the four darkest rungs, and they were the four
+ * that failed. Measured on the live app against the three grounds these ever
+ * appear on — the page, the top bar and a card — they read 3.71, 3.47, 4.24 and
+ * 3.15 against AA's 4.5. Level 1 is the one a new account sees, in the nav bar,
+ * on every screen.
+ *
+ * Two of them were the awkward ones: 10 and 12 were authored as *darker*
+ * variants of their neighbours, and on a dark theme that direction does not
+ * exist. Lightening them the minimum needed to clear AA turned them into
+ * near-duplicates — 17 and 9 units from their neighbour where the ladder's
+ * typical spacing is 53. They are lightened further and slightly desaturated
+ * instead, which buys back the separation (45 and 43) without moving the hue,
+ * so the climb still reads grey → green → blue → violet → gold → diamond.
+ *
+ * `level-system.contrast.test.ts` walks the whole table, so a rung added later
+ * cannot quietly reintroduce this.
+ */
 export const LEVELS: LevelDefinition[] = [
   // Beginner (grey tones) — levels 1-5
-  { level: 1,  titleKey: 'levels.l1',                   xpRequired: 0,        tier: 'beginner', color: '#6b7280', glowColor: 'rgba(107,114,128,0.3)' },
+  { level: 1,  titleKey: 'levels.l1',                   xpRequired: 0,        tier: 'beginner', color: '#7a8190', glowColor: 'rgba(122,129,144,0.3)' },
   { level: 2,  titleKey: 'levels.l2',                  xpRequired: 50,       tier: 'beginner', color: '#9ca3af', glowColor: 'rgba(156,163,175,0.3)' },
   { level: 3,  titleKey: 'levels.l3',               xpRequired: 200,      tier: 'beginner', color: '#a8a29e', glowColor: 'rgba(168,162,158,0.3)' },
   { level: 4,  titleKey: 'levels.l4',             xpRequired: 450,      tier: 'beginner', color: '#b8b8b8', glowColor: 'rgba(184,184,184,0.3)' },
@@ -56,11 +76,11 @@ export const LEVELS: LevelDefinition[] = [
   { level: 7,  titleKey: 'levels.l7',             xpRequired: 2_200,    tier: 'mid', color: '#16a34a', glowColor: 'rgba(22,163,74,0.3)' },
   { level: 8,  titleKey: 'levels.l8',           xpRequired: 3_300,    tier: 'mid', color: '#0ea5e9', glowColor: 'rgba(14,165,233,0.3)' },
   { level: 9,  titleKey: 'levels.l9',          xpRequired: 4_800,    tier: 'mid', color: '#3b82f6', glowColor: 'rgba(59,130,246,0.3)' },
-  { level: 10, titleKey: 'levels.l10',                  xpRequired: 6_800,   tier: 'mid', color: '#2563eb', glowColor: 'rgba(37,99,235,0.4)' },
+  { level: 10, titleKey: 'levels.l10',                  xpRequired: 6_800,   tier: 'mid', color: '#628ae1', glowColor: 'rgba(98,138,225,0.4)' },
 
   // Advanced (purple → gold) — levels 11-17
-  { level: 11, titleKey: 'levels.l11',            xpRequired: 9_400,   tier: 'advanced', color: '#8b5cf6', glowColor: 'rgba(139,92,246,0.3)' },
-  { level: 12, titleKey: 'levels.l12',             xpRequired: 12_800,   tier: 'advanced', color: '#7c3aed', glowColor: 'rgba(124,58,237,0.3)' },
+  { level: 11, titleKey: 'levels.l11',            xpRequired: 9_400,   tier: 'advanced', color: '#9266f7', glowColor: 'rgba(146,102,247,0.3)' },
+  { level: 12, titleKey: 'levels.l12',             xpRequired: 12_800,   tier: 'advanced', color: '#aa86e8', glowColor: 'rgba(170,134,232,0.3)' },
   { level: 13, titleKey: 'levels.l13',              xpRequired: 17_000,   tier: 'advanced', color: '#a855f7', glowColor: 'rgba(168,85,247,0.4)' },
   { level: 14, titleKey: 'levels.l14',            xpRequired: 22_000,   tier: 'advanced', color: '#c084fc', glowColor: 'rgba(192,132,252,0.4)' },
   { level: 15, titleKey: 'levels.l15',               xpRequired: 28_000,   tier: 'advanced', color: '#d4a843', glowColor: 'rgba(212,168,67,0.4)' },
