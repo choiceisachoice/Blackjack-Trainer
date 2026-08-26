@@ -3,9 +3,12 @@ import { useTranslation } from 'react-i18next'
 import {
   Zap, GraduationCap, Coins, Layers, Wallet, Club,
   ClipboardList, BarChart3, Grid3x3, Trophy, BookOpen, ArrowRight,
+  Lock,
   type LucideIcon,
 } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
+import { isProMode } from '../../services/pro-features'
+import { useIsPro } from '../../store/entitlement-store'
 import type { AppMode } from '../../store/app-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
@@ -97,6 +100,7 @@ export function HomeScreen() {
 function HomeSections() {
   const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
+  const isPro = useIsPro()
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
 
   return (
@@ -123,6 +127,22 @@ function HomeSections() {
               data-testid={`mode-card-${mode}`}
               className="surface lift-glow group relative flex flex-col items-start p-5 text-left cursor-pointer overflow-hidden"
             >
+              {/* The lock the nav bar has always drawn, and this grid did not.
+                  Same modes, same app, two different answers to "can I open
+                  this" — and the grid's answer was found out by clicking it and
+                  landing on the paywall. The training plan states the rule
+                  outright a few lines further up: say so, rather than pointing
+                  at a locked door. */}
+              {!isPro && isProMode(mode) && (
+                <span
+                  className="absolute top-5 right-5 flex items-center gap-1 text-[0.625rem]
+                    font-bold tracking-[0.12em] uppercase text-gold/80"
+                  aria-label={t('nav.proFeature')}
+                >
+                  <Lock size={10} />
+                  {t('pricing.pro')}
+                </span>
+              )}
               <span className="grid place-items-center w-11 h-11 rounded-xl mb-4 text-gold
                 bg-gold/10 border border-gold/20 transition-all duration-200
                 group-hover:bg-gold/15 group-hover:border-gold/40">
@@ -153,7 +173,21 @@ function HomeSections() {
             <Club size={24} className="fill-current" />
           </span>
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-gold">{t('modes.casinoSession')}</h3>
+            <h3 className="text-lg font-semibold text-gold flex items-center gap-2">
+              {t('modes.casinoSession')}
+              {/* The most prominent card on the screen, presented as the thing
+                  the product is for, with nothing to say it is gated. */}
+              {!isPro && (
+                <span
+                  className="flex items-center gap-1 text-[0.625rem] font-bold
+                    tracking-[0.12em] uppercase text-gold/80"
+                  aria-label={t('nav.proFeature')}
+                >
+                  <Lock size={10} />
+                  {t('pricing.pro')}
+                </span>
+              )}
+            </h3>
             <p className="text-sm text-content/55">{t('home.desc.casinoSession')}</p>
           </div>
           <ArrowRight size={18} className="ml-auto text-gold/60 group-hover:translate-x-1 transition-transform" />
