@@ -129,7 +129,3 @@ export function totalStageXP(): number {
   return CURRICULUM.reduce((sum, s) => sum + stageXP(s.id), 0)
 }
 
-/** Whether finishing this stage is worth any XP at all. */
-export function stagePaysXP(id: StageId): boolean {
-  return stageXP(id) > 0
-}

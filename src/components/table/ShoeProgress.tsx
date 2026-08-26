@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { useGameStore } from '../../store/game-store'
 
 /**
  * Single scaling constant used by BOTH shoe and discard.
@@ -252,37 +251,3 @@ export function DiscardTray({
   )
 }
 
-/**
- * Visual shoe (right side of table).
- * Reads remainingInShoe from the store – shrinks on every dealt card.
- */
-export function ShoeStack() {
-  const remainingInShoe = useGameStore(s => s.remainingInShoe)
-  const totalCards = useGameStore(s => s.totalCards)
-  const penetration = useGameStore(s => s.rules.penetration)
-  const shoe = useGameStore(s => s.shoe)
-
-  if (!shoe) return <div style={{ width: `${SHOE_HOUSING_WIDTH}px` }} />
-
-  return (
-    <ShoeHousing
-      cardCount={remainingInShoe}
-      totalCards={totalCards}
-      penetration={penetration}
-    />
-  )
-}
-
-/**
- * Visual discard tray (left side of table).
- * Reads cardsInDiscard from the store – grows only after settlement + newRound.
- */
-export function DiscardStack() {
-  const cardsInDiscard = useGameStore(s => s.cardsInDiscard)
-  const totalCards = useGameStore(s => s.totalCards)
-  const shoe = useGameStore(s => s.shoe)
-
-  if (!shoe) return <div style={{ width: `${DISCARD_CONTAINER_WIDTH}px` }} />
-
-  return <DiscardTray cardCount={cardsInDiscard} totalCards={totalCards} />
-}

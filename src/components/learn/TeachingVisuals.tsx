@@ -123,18 +123,3 @@ export function HandFigure({ cards, label, size = 'md', hideSecond = false, note
   )
 }
 
-/** Hi-Lo tag for a card, shown under it — the counting lesson's core image. */
-export function TaggedCard({ card, tag }: { card: Card; tag: number }) {
-  const sign = tag > 0 ? `+${tag}` : `${tag}`
-  return (
-    <div className="flex flex-col items-center gap-1.5">
-      <TeachingCard card={card} size="sm" />
-      <span className={`text-xs font-bold tabular-nums ${
-        tag > 0 ? 'text-[#37c46b]' : tag < 0 ? 'text-[#e5566b]' : 'text-content/40'
-      }`}>
-        {sign}
-      </span>
-    </div>
-  )
-}
-

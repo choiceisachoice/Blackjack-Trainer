@@ -99,9 +99,6 @@ export interface CommitmentOption {
   sessionsPerWeek: number
 }
 
-/** Roughly how long one drill plus reviewing it takes. */
-export const MINUTES_PER_SESSION = 8
-
 /**
  * Stated in sessions, not hours.
  *

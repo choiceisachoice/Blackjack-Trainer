@@ -3,24 +3,6 @@ import { initReactI18next } from 'react-i18next'
 import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY, LOCALES, resolveLocale, type Locale } from './locales'
 import en from './messages/en.json'
 
-/**
- * Translation setup.
- *
- * ── Why English is bundled and the rest are not ──
- * English is the source language and the fallback: every missing key lands
- * there, so it has to be present before the first paint or a gap would render
- * as a raw key. The other six are fetched on demand — bundling all seven would
- * put six languages nobody is reading into every visitor's download.
- *
- * ── Why no automatic detection beyond the first visit ──
- * The browser's language is a starting guess, not an instruction. Once someone
- * picks a language it is remembered and wins, because a person who chose
- * English on a German browser meant it, and being corrected on every visit is
- * infuriating in a way that no amount of clever detection makes up for.
- */
-
-export type Messages = typeof en
-
 /** Locales already fetched, so a second switch back is instant. */
 const loaded = new Set<Locale>([DEFAULT_LOCALE])
 

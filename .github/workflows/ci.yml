@@ -1,0 +1,52 @@
+# Everything that has to hold before a change reaches the deploy.
+#
+# The suite, the two typecheck projects and the linter all existed and all had
+# to be remembered by hand. A guard nobody runs is a guard that has already
+# stopped working, and on a codebase that touches payments that is not a
+# theoretical problem — the payment-path audit in `docs/` exists because three
+# writes failed silently in production.
+#
+# Deliberately not a matrix. One Node version, the one the app is built and
+# deployed on; testing against versions nothing runs would cost minutes per
+# push to defend against a scenario that does not exist here.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12'
+          cache: npm
+
+      # `ci`, not `install`: the lockfile is the source of truth, and a build
+      # that quietly resolves a different tree than the one committed is not
+      # the build that was reviewed.
+      - run: npm ci
+
+      # Ordered cheapest-first, so an obvious break reports in seconds rather
+      # than after the full suite.
+      - name: Typecheck (app and tests)
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm run test:run
+
+      # Last, because it is the slowest and the least likely to be the thing
+      # that broke — but it stays, since a green suite over code that does not
+      # bundle is not a passing build.
+      - name: Build
+        run: npm run build

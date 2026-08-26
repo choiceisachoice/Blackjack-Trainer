@@ -171,7 +171,6 @@ blackjack-trainer/
 ├── supabase/
 │   ├── migrations/              # Database migrations
 │   └── seed.sql                 # Test data
-├── tests/                       # Integration tests
 ├── docs/                        # Documentation
 │   ├── blackjack-trainer-prd.docx
 │   └── decisions-log.md

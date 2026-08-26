@@ -45,24 +45,6 @@ export const ALL_ACTIONS: Action[] = [
   Action.Hit, Action.Stand, Action.Double, Action.Split, Action.Surrender, Action.Insurance,
 ]
 
-/**
- * Determines which actions are enabled for a Flash Card deviation question.
- * All buttons are always shown; disabled ones appear greyed out.
- */
-export function getFlashCardActionEnabled(deviation: Deviation): Record<string, boolean> {
-  const isPair = deviation.playerHand.includes(',')
-  const isDealerAce = deviation.dealerUpcard === 'A'
-
-  return {
-    [Action.Hit]: true,
-    [Action.Stand]: true,
-    [Action.Double]: true,      // All deviation hands are initial 2-card hands
-    [Action.Split]: isPair,
-    [Action.Surrender]: true,   // All deviation hands are initial 2-card hands
-    [Action.Insurance]: isDealerAce,
-  }
-}
-
 /** Names of reversed deviations (I18 #14-18: BS=Stand, deviate to Hit at low TC). */
 const REVERSED_DEVIATION_NAMES = new Set([
   '13 vs 2', '12 vs 4', '12 vs 5', '12 vs 6', '13 vs 3',
@@ -76,14 +58,6 @@ const REVERSED_DEVIATION_NAMES = new Set([
  */
 export function isReversedDeviation(deviation: Deviation): boolean {
   return REVERSED_DEVIATION_NAMES.has(deviation.name)
-}
-
-/**
- * Returns the basic strategy action for a deviation
- * (what you would do without counting).
- */
-export function getBasicAction(deviation: Deviation): Action {
-  return isReversedDeviation(deviation) ? deviation.actionAbove : deviation.actionBelow
 }
 
 /**

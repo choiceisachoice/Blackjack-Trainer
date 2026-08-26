@@ -16,7 +16,6 @@ import { cardAt, faceOf, filmState, CARD_COUNT, HERO_INDEX, STAGE_W as W, STAGE_
  * do one job only: light.
  */
 
-export const FELT = '#0d4633'
 export const FELT_DEEP = '#04150f'
 export const GOLD = '#d4a847'
 export const GOLD_LIT = '#ffeec2'

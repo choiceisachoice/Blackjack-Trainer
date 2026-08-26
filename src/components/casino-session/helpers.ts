@@ -167,10 +167,6 @@ export function getChipDenominations(minBet: number, maxBet: number): number[] {
 
 export const SUIT_MAP: Record<string, string> = { Hearts: '\u2665', Diamonds: '\u2666', Clubs: '\u2663', Spades: '\u2660' }
 
-export function cardLabel(c: Card): string {
-  return `${c.rank}${SUIT_MAP[c.suit] ?? c.suit}`
-}
-
 export function handValueStr(cards: Card[]): string {
   if (cards.length === 0) return ''
   const { best } = getHandValue(cards)

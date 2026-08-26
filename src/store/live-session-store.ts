@@ -179,7 +179,3 @@ export const useLiveSessionStore = create<LiveSessionStore>((set, get) => ({
   },
 }))
 
-/** Reactive hook: is a training session in flight? */
-export function useHasLiveSession(): boolean {
-  return useLiveSessionStore(s => s.activeMode !== null)
-}

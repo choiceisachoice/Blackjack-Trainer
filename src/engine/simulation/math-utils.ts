@@ -21,8 +21,6 @@ export const EDGE_PER_TC = 0.005;
 export const DEVIATION_TC_BONUS = 0.0002;
 /** Standard deviation per hand in units of bet */
 export const HAND_SD = 1.15;
-/** Assumed hands per hour for hourly EV */
-export const HANDS_PER_HOUR = 100;
 
 /**
  * Generate a normally distributed random number using Box-Muller transform.
