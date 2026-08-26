@@ -52,7 +52,7 @@ function Segmented<T extends string | number>({ options, value, onChange, ariaLa
             aria-pressed={active}
             onClick={() => onChange(opt.value)}
             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 cursor-pointer
-              ${active ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+              ${active ? 'bg-gold text-on-gold shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
           >
             {opt.label}
           </button>

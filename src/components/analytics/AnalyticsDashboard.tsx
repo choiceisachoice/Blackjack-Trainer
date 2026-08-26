@@ -525,7 +525,11 @@ export function AnalyticsDashboard() {
                 setResetError(t('errors.reset'))
               }
             }}
-            className="text-sm text-error/60 hover:text-error transition-colors cursor-pointer"
+            // Full strength, not 60%. This is the control that deletes a
+            // training history, and at `text-error/60` it read 3.12:1 on the
+            // light theme — quiet is the right tone for a destructive action,
+            // unreadable is not. The hover moves the underline instead.
+            className="text-sm text-error hover:underline transition-colors cursor-pointer"
             data-testid="reset-all-stats"
           >
             {t('analytics.deleteHistory')}

@@ -321,7 +321,7 @@ export function DeckEstimation() {
                 onClick={() => setQuickFire(false)}
                 aria-pressed={!quickFire}
                 className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer
-                  ${!quickFire ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+                  ${!quickFire ? 'bg-gold text-on-gold shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
               >
                 {t('training.deck.normal')}
               </button>
@@ -330,7 +330,7 @@ export function DeckEstimation() {
                 data-testid="quick-fire-toggle"
                 aria-pressed={quickFire}
                 className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer
-                  ${quickFire ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+                  ${quickFire ? 'bg-gold text-on-gold shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
               >
                 {t('training.deck.quickFire')}
               </button>

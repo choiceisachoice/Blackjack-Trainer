@@ -120,7 +120,7 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
         {/* Buttons */}
         <div className="flex gap-3">
           <button onClick={onPlayAgain} data-testid="play-again"
-            className="flex-1 py-3 rounded-xl bg-gold text-black font-bold hover:bg-gold/90 transition-colors cursor-pointer">
+            className="flex-1 py-3 rounded-xl bg-gold text-on-gold font-bold hover:bg-gold/90 transition-colors cursor-pointer">
             {t('casino.summary.playAgain')}
           </button>
           <button onClick={onHome} data-testid="go-home"

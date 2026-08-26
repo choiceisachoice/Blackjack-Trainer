@@ -159,7 +159,7 @@ export function HumanSeat({
           animate={{ scale: 1 }}
           className={`text-sm md:text-base font-black whitespace-nowrap drop-shadow-lg px-2 py-0.5 rounded ${
             humanSettlement.result === 'blackjack'
-              ? 'bg-gold text-casino-bg'
+              ? 'bg-gold text-on-gold'
               : humanSettlement.profit > 0 ? 'text-success'
               : humanSettlement.profit < 0 ? 'text-error'
               : 'text-gold'

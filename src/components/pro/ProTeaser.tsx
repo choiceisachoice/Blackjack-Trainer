@@ -41,7 +41,7 @@ export function ProTeaser({ title, subtitle, items, upgradeHeadline }: ProTeaser
       <button
         onClick={() => show(upgradeHeadline)}
         data-testid="pro-teaser-cta"
-        className="glow-hover inline-flex items-center gap-2 mt-1 px-5 py-2.5 rounded-xl bg-gold text-black text-sm font-semibold cursor-pointer hover:bg-gold/90"
+        className="glow-hover inline-flex items-center gap-2 mt-1 px-5 py-2.5 rounded-xl bg-gold text-on-gold text-sm font-semibold cursor-pointer hover:bg-gold/90"
       >
         <Crown size={15} />
         {t('plan.unlockPro')}

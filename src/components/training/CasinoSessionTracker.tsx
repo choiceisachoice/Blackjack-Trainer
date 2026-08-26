@@ -214,7 +214,7 @@ export function CasinoSessionTracker() {
               onClick={handleStartTracking}
               data-testid="start-tracking-btn"
               disabled={!onboardingBankroll || parseFloat(onboardingBankroll) <= 0}
-              className="px-8 py-3 rounded-xl bg-gold text-black font-semibold text-lg hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-8 py-3 rounded-xl bg-gold text-on-gold font-semibold text-lg hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {t('tracker.startTracking')}
             </button>

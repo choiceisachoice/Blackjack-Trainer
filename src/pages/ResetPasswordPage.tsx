@@ -159,7 +159,7 @@ export function ResetPasswordPage() {
             disabled={busy}
             data-testid="reset-password-submit"
             className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold
-              bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer
+              bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer
               disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {busy && <Loader2 size={16} className="animate-spin" />}

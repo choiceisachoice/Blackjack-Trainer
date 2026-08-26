@@ -166,7 +166,7 @@ export function MotionFilm() {
 
       <div className="mt-4 flex items-center gap-3 flex-wrap">
         <button onClick={() => (t >= DURATION ? restart() : setPlaying(p => !p))}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gold text-casino-bg font-semibold text-sm cursor-pointer">
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gold text-on-gold font-semibold text-sm cursor-pointer">
           {playing ? <Pause size={15} /> : <Play size={15} />}
           {t >= DURATION ? 'Replay' : playing ? 'Pause' : 'Play'}
         </button>

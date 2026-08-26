@@ -216,7 +216,7 @@ export function StrategyChart() {
               onClick={() => setH17(isH17)}
               aria-pressed={h17 === isH17}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold cursor-pointer transition-colors
-                ${h17 === isH17 ? 'bg-gold text-black' : 'text-content/60 hover:text-content'}`}
+                ${h17 === isH17 ? 'bg-gold text-on-gold' : 'text-content/60 hover:text-content'}`}
             >
               {label}
             </button>
@@ -252,7 +252,7 @@ export function StrategyChart() {
         ))}
         {showDeviations && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-content" style={{ border: '2px solid var(--color-gold-bright)' }}>
-            <span className="grid place-items-center rounded-full text-casino-bg font-extrabold" style={{ width: '14px', height: '14px', fontSize: '8px', backgroundColor: 'var(--color-gold-bright)' }}>#</span>
+            <span className="grid place-items-center rounded-full text-on-gold font-extrabold" style={{ width: '14px', height: '14px', fontSize: '8px', backgroundColor: 'var(--color-gold-bright)' }}>#</span>
             {t('chart.countDeviation')}
           </span>
         )}

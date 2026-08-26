@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { darkenToContrast } from '../../services/level-palette'
+import { darkenToContrast, levelPalette } from '../../services/level-palette'
 import { useAppStore } from '../../store/app-store'
 import { useTranslation } from 'react-i18next'
 import { useAchievementStore } from '../../store/achievement-store'
@@ -339,6 +339,7 @@ function SectionTitle({ children, className = '' }: { children: React.ReactNode;
 /** The 25-level journey as a horizontally scrollable track, scrolled to current. */
 function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
   const { t } = useTranslation()
+  const theme = useAppStore(s => s.theme)
   const scrollRef = useRef<HTMLDivElement>(null)
   const currentRef = useRef<HTMLDivElement>(null)
 
@@ -358,7 +359,10 @@ function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
         <div className="absolute left-0 right-0 top-[15px] h-[3px] rounded-full"
           style={{ background: 'linear-gradient(90deg, var(--color-gold), var(--color-gold) 0%, var(--color-line-strong, rgba(255,255,255,.14)))' }} />
         <div className="relative flex gap-1">
-          {LEVELS.map(l => {
+          {/* Through the palette, like everything else that paints a level.
+              This rail was mapping the raw table, so it kept showing the dark
+              theme's colours — the same consumer-I-missed as the dev gallery. */}
+          {LEVELS.map(raw => levelPalette(raw, theme)).map(l => {
             const done = l.level < currentLevel
             const current = l.level === currentLevel
             return (
@@ -367,9 +371,13 @@ function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
                   className="w-[30px] h-[30px] rounded-full grid place-items-center text-xs font-bold border-2 relative z-[1]"
                   style={
                     done
-                      ? { background: 'var(--color-gold)', borderColor: 'var(--color-gold)', color: 'var(--color-casino-bg)' }
+                      ? { background: 'var(--color-gold)', borderColor: 'var(--color-gold)', color: 'var(--color-on-gold)' }
                       : current
-                        ? { background: `color-mix(in srgb, ${l.color} 25%, var(--color-surface))`, borderColor: l.color, color: l.color, boxShadow: `0 0 0 4px color-mix(in srgb, ${l.color} 25%, transparent)` }
+                        // 8%, not 25%: the numeral is the level's own colour
+                        // sitting on a wash of that same colour, and at 25% it
+                        // measured 3.75:1. The ring keeps its 25% — it is
+                        // decoration, not a ground for text.
+                        ? { background: `color-mix(in srgb, ${l.color} 8%, var(--color-surface))`, borderColor: l.color, color: l.color, boxShadow: `0 0 0 4px color-mix(in srgb, ${l.color} 25%, transparent)` }
                         : { background: 'var(--color-surface-2)', borderColor: 'var(--color-line-strong, rgba(255,255,255,.14))', color: 'var(--color-content)', opacity: 0.5 }
                   }
                 >

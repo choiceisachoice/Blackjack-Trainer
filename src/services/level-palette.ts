@@ -73,6 +73,17 @@ export const LIGHT_SURFACE: readonly [number, number, number] = [244, 245, 247]
 /** WCAG AA for normal-size text. Level titles are body-sized, so 4.5 applies. */
 export const AA_NORMAL = 4.5
 
+/**
+ * What the derivation actually aims for.
+ *
+ * A quarter-step above AA, because `LIGHT_SURFACE` is the *page*, and these
+ * colours are read on cards that sit slightly darker than it — the level rail
+ * lives on `--color-surface-2`. Landing exactly on 4.5 against the page meant
+ * arriving at 4.43 on the card, which is a failure produced entirely by a
+ * margin nobody left. The cost is a barely perceptible extra darkening.
+ */
+export const PALETTE_TARGET = 4.75
+
 /** sRGB → HSL, all components 0..1 except hue in degrees. */
 function toHsl([r, g, b]: readonly [number, number, number]): [number, number, number] {
   const [rn, gn, bn] = [r / 255, g / 255, b / 255]
@@ -163,7 +174,7 @@ export function levelPalette(
   theme: 'light' | 'dark'
 ): LevelDefinition {
   if (theme !== 'light') return level
-  const color = darkenToContrast(level.color)
+  const color = darkenToContrast(level.color, LIGHT_SURFACE, PALETTE_TARGET)
   const [r, g, b] = parseHex(color)
   return { ...level, color, glowColor: `rgba(${r},${g},${b},0.28)` }
 }

@@ -236,7 +236,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button onClick={continueSession} data-testid="resume-continue"
-                    className="px-8 py-3 bg-gold text-black rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
+                    className="px-8 py-3 bg-gold text-on-gold rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
                     {t('session.resume.continue')}
                   </button>
                   <button onClick={restartSession} data-testid="resume-restart"
@@ -249,7 +249,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
               <>
                 <h2 className="text-3xl font-bold text-gold">{t('session.paused')}</h2>
                 <button onClick={() => actions.setPaused(false)}
-                  className="px-8 py-3 bg-gold text-black rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
+                  className="px-8 py-3 bg-gold text-on-gold rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
                   {t('session.resumeButton')}
                 </button>
                 <button onClick={actions.quitSession} data-testid="quit-session"
@@ -316,7 +316,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                   onClick={() => setDealingSpeed(s)}
                   aria-pressed={dealingSpeed === s}
                   className={`px-2 py-0.5 rounded text-[0.6875rem] transition-colors cursor-pointer
-                    ${dealingSpeed === s ? 'bg-gold text-black font-semibold' : 'text-content/50 hover:text-content'}`}
+                    ${dealingSpeed === s ? 'bg-gold text-on-gold font-semibold' : 'text-content/50 hover:text-content'}`}
                 >
                   {t(DEALING_SPEED_LABEL[s])}
                 </button>
@@ -397,7 +397,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             <span className="text-sm text-content">{t('casino.hud.insuranceAsk')}</span>
             <div className="flex gap-3">
               <button onClick={() => actions.handleInsurance(true)} data-testid="insurance-yes"
-                className="px-6 py-2 bg-gold text-black rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
+                className="px-6 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
                 {t('casino.hud.yes')}
               </button>
               <button onClick={() => actions.handleInsurance(false)} data-testid="insurance-no"
@@ -440,7 +440,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                   </label>
                 </div>
                 <button onClick={actions.submitCount} data-testid="submit-count"
-                  className="px-6 py-2 bg-gold text-black rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
+                  className="px-6 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
                   {t('casino.hud.submitEnter')}
                 </button>
               </>
@@ -500,7 +500,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
               )
             })()}
             <button onClick={actions.nextHand} data-testid="next-hand"
-              className="px-6 py-2 bg-gold text-black rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
+              className="px-6 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
               {t('casino.hud.nextHand')}
             </button>
           </div>
@@ -510,7 +510,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         {state.gameStep === 'settlement' && (
           <div className="flex flex-col items-center gap-2">
             <button onClick={actions.nextHand} data-testid="next-hand"
-              className="px-6 py-2 bg-gold text-black rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
+              className="px-6 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
               {t('casino.hud.nextHand')}
             </button>
           </div>

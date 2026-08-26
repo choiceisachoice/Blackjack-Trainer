@@ -172,7 +172,7 @@ export function AccountPage() {
                     recovery this page used to duplicate — so there is no reason
                     for a second way to buy.
                   */
-                  <button onClick={() => showUpgrade(t('account.upgradeHintShort'))} data-testid="account-go-pro" className="rounded-xl px-5 py-3 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer inline-flex items-center gap-2">
+                  <button onClick={() => showUpgrade(t('account.upgradeHintShort'))} data-testid="account-go-pro" className="rounded-xl px-5 py-3 font-semibold bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer inline-flex items-center gap-2">
                     {t('pricing.goPro')}
                   </button>
                 )}

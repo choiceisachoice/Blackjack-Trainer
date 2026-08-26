@@ -120,7 +120,7 @@ export function LandingPage() {
             actions otherwise meet with zero space between them. */}
         <nav className="max-w-6xl mx-auto w-full px-4 sm:px-6 h-[62px] flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 font-bold">
-            <span className="w-7 h-7 rounded-lg grid place-items-center bg-gradient-to-br from-gold-bright to-gold text-casino-bg shrink-0"><Spade size={15} /></span>
+            <span className="w-7 h-7 rounded-lg grid place-items-center bg-gradient-to-br from-gold-bright to-gold text-on-gold shrink-0"><Spade size={15} /></span>
             {/* Below 360px the wordmark plus the actions need ~342px, so it
                 would wrap to two lines inside a 62px bar. Drop to the mark
                 alone there; from 360px up it fits on one line. */}
@@ -137,7 +137,7 @@ export function LandingPage() {
             ) : (
               <>
                 <Link to="/login" className="hover:text-content">{t('landing.nav.signIn')}</Link>
-                <button onClick={startFree} className="rounded-lg px-3.5 sm:px-4 py-2.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer whitespace-nowrap">{t('landing.nav.startFree')}</button>
+                <button onClick={startFree} className="rounded-lg px-3.5 sm:px-4 py-2.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer whitespace-nowrap">{t('landing.nav.startFree')}</button>
               </>
             )}
           </div>
@@ -162,7 +162,7 @@ export function LandingPage() {
               {t('landing.hero.subtitle')}
             </p>
             <div className="mt-8 flex flex-wrap gap-3.5">
-              <button onClick={startFree} className="rounded-xl px-6 py-3.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer shadow-[0_8px_30px_-10px_rgba(212,168,71,.6)]">
+              <button onClick={startFree} className="rounded-xl px-6 py-3.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer shadow-[0_8px_30px_-10px_rgba(212,168,71,.6)]">
                 {authed ? t('landing.hero.ctaOpen') : t('landing.hero.ctaStart')}
               </button>
               <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">{t('landing.hero.ctaSeePro')}</a>
@@ -204,7 +204,7 @@ export function LandingPage() {
           {STEPS.map((s, i) => (
             <Reveal key={s.n} delay={i * 0.06}>
               <div className="surface rounded-2xl p-6 h-full">
-                <div className="w-7 h-7 rounded-lg grid place-items-center text-sm font-extrabold bg-gradient-to-br from-gold-bright to-gold text-casino-bg mb-3.5">{s.n}</div>
+                <div className="w-7 h-7 rounded-lg grid place-items-center text-sm font-extrabold bg-gradient-to-br from-gold-bright to-gold text-on-gold mb-3.5">{s.n}</div>
                 <h3 className="text-lg font-bold">{s.title}</h3>
                 <p className="mt-2 text-sm text-content/60">{s.body}</p>
               </div>
@@ -239,7 +239,7 @@ export function LandingPage() {
           </div>
           {/* Pro */}
           <div className="rounded-2xl p-7 flex flex-col relative border border-gold/50 bg-[linear-gradient(180deg,rgba(24,20,10,.55),var(--color-surface))] shadow-[0_0_0_1px_rgba(212,168,71,.15),0_40px_80px_-46px_rgba(212,168,71,.4)]">
-            <div className="absolute -top-2.5 right-6 text-xs font-extrabold text-casino-bg bg-gradient-to-br from-gold-bright to-gold px-3 py-1 rounded-full">{t('pricing.mostPopular')}</div>
+            <div className="absolute -top-2.5 right-6 text-xs font-extrabold text-on-gold bg-gradient-to-br from-gold-bright to-gold px-3 py-1 rounded-full">{t('pricing.mostPopular')}</div>
             <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">{t('pricing.pro')}</div>
             {/* Fetched from Stripe, never asserted. The marketing page is the
                 place a wrong price does the most damage, so it shows a skeleton
@@ -290,8 +290,8 @@ export function LandingPage() {
             </div>
             <div className="text-xs text-content/45 mt-1" data-testid="pricing-vat-note">{t('pricing.vatNote', { rate: formatDecimal(CH_VAT_PERCENT, i18n.language) })}</div>
             <div className="inline-flex mt-2 self-start bg-surface-2 border border-white/8 rounded-[11px] p-1 gap-1">
-              <button onClick={() => setPlan('yearly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'yearly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>{t('pricing.yearly')}</button>
-              <button onClick={() => setPlan('monthly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'monthly' ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg' : 'text-content/60'}`}>{t('pricing.monthly')}</button>
+              <button onClick={() => setPlan('yearly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'yearly' ? 'bg-gradient-to-br from-gold-bright to-gold text-on-gold' : 'text-content/60'}`}>{t('pricing.yearly')}</button>
+              <button onClick={() => setPlan('monthly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'monthly' ? 'bg-gradient-to-br from-gold-bright to-gold text-on-gold' : 'text-content/60'}`}>{t('pricing.monthly')}</button>
             </div>
             <div className="mt-5 flex flex-col gap-2.5 text-sm text-content/60">
               <div className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" /><span className="text-content">{t('pricing.everythingInFree')}</span></div>
@@ -338,7 +338,7 @@ export function LandingPage() {
           <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.closing.eyebrow')}</div>
           <h2 className="mt-3.5 text-3xl md:text-4xl font-extrabold tracking-tight max-w-[16em] mx-auto text-balance">{t('landing.closing.title')}</h2>
           <div className="mt-7 flex justify-center gap-3.5 flex-wrap">
-            <button onClick={startFree} className="rounded-xl px-6 py-3.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer">{authed ? t('landing.hero.ctaOpen') : t('landing.hero.ctaStart')}</button>
+            <button onClick={startFree} className="rounded-xl px-6 py-3.5 font-semibold bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer">{authed ? t('landing.hero.ctaOpen') : t('landing.hero.ctaStart')}</button>
             <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">{t('landing.closing.seePro')}</a>
           </div>
         </Reveal>
@@ -349,7 +349,7 @@ export function LandingPage() {
         {/* text-content/40 fails WCAG AA here (3.53:1 on the near-black
             background); /60 clears the 4.5:1 threshold for this size. */}
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-between items-center gap-4 text-sm text-content/60">
-          <div className="flex items-center gap-2.5 font-semibold text-content/80"><span className="w-6 h-6 rounded-md grid place-items-center bg-gradient-to-br from-gold-bright to-gold text-casino-bg"><Spade size={13} /></span> Blackjack Trainer</div>
+          <div className="flex items-center gap-2.5 font-semibold text-content/80"><span className="w-6 h-6 rounded-md grid place-items-center bg-gradient-to-br from-gold-bright to-gold text-on-gold"><Spade size={13} /></span> Blackjack Trainer</div>
           <div className="flex gap-5 flex-wrap">
             <a href="#features" className="hover:text-content">{t('landing.nav.features')}</a>
             <a href="#pricing" className="hover:text-content">{t('landing.nav.pricing')}</a>

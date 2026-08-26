@@ -174,7 +174,7 @@ export function LoaderGallery() {
           <button
             onClick={() => setShowFull(true)}
             className="ml-auto text-sm px-4 py-1.5 rounded-lg font-semibold
-              bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer"
+              bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer"
           >
             Echten Ladescreen ansehen →
           </button>

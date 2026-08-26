@@ -272,7 +272,7 @@ export function BankrollSimulator() {
               onClick={handleStartTracking}
               data-testid="start-tracking-btn"
               disabled={!onboardingBankroll || parseFloat(onboardingBankroll) <= 0}
-              className="px-8 py-3 rounded-xl bg-gold text-black font-semibold text-lg hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-8 py-3 rounded-xl bg-gold text-on-gold font-semibold text-lg hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {t('tracker.startTracking')}
             </button>
@@ -450,7 +450,7 @@ export function BankrollSimulator() {
             <button
               onClick={openAddForm}
               data-testid="add-session-btn"
-              className="px-4 py-2 rounded-xl bg-gold text-black font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-gold text-on-gold font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer"
             >
               {t('sim.addSession')}
             </button>
@@ -589,7 +589,7 @@ export function BankrollSimulator() {
                 onClick={handleSave}
                 data-testid="form-save"
                 disabled={!formAmount || parseFloat(formAmount) < 0 || !formHours || parseFloat(formHours) <= 0}
-                className="px-6 py-2 rounded-lg bg-gold text-casino-bg font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-6 py-2 rounded-lg bg-gold text-on-gold font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {editingId ? t('simulator.saveChanges') : t('simulator.saveSession')}
               </button>

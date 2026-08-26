@@ -400,7 +400,7 @@ export function TrainingPlan({
                 onClick={() => updateProfile({ goal: harder })}
                 data-testid="plan-extend-goal"
                 className="mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold
-                  bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer"
+                  bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer"
               >
                 <TrendingUp size={16} />
                 {t('plan.aimFor', { stage: t(CURRICULUM[stageIndex(goalStage(harder))].titleKey) })}
@@ -487,7 +487,7 @@ export function TrainingPlan({
                   <span
                     className={`grid place-items-center w-7 h-7 rounded-full shrink-0 text-xs font-bold border ${
                       p.done
-                        ? 'bg-gold border-gold text-casino-bg'
+                        ? 'bg-gold border-gold text-on-gold'
                         : isActive
                           ? 'border-gold text-gold'
                           : 'border-contrast/20 text-content/40'
@@ -785,7 +785,7 @@ function StageActions({
   const { t } = useTranslation()
   const { stage } = p
   const base = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors'
-  const gold = `${base} bg-gradient-to-br from-gold-bright to-gold text-casino-bg`
+  const gold = `${base} bg-gradient-to-br from-gold-bright to-gold text-on-gold`
   const ghost = `${base} border border-contrast/15 text-content hover:border-gold/45`
 
   return (

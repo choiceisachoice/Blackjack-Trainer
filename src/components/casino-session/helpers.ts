@@ -197,7 +197,7 @@ export const BOT_STATUS_STYLE: Record<BotStatus, { bg: string; text: string; ani
   split: { bg: 'bg-blue-500/80', text: 'text-white' },
   surrender: { bg: 'bg-purple-500/80', text: 'text-white' },
   bust: { bg: 'bg-red-600/90', text: 'text-white' },
-  blackjack: { bg: 'bg-gold', text: 'text-black' },
+  blackjack: { bg: 'bg-gold', text: 'text-on-gold' },
   twentyone: { bg: 'bg-green-400/90', text: 'text-white' },
   win: { bg: 'bg-green-500/80', text: 'text-white' },
   loss: { bg: 'bg-red-500/80', text: 'text-white' },

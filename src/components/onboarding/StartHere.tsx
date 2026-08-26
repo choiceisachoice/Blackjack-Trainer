@@ -90,7 +90,7 @@ export function StartHere({ onTour }: { onTour: () => void }) {
               onClick={() => put(() => setMode(move.mode))}
               data-testid="start-here-go"
               className="inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold
-                bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer"
+                bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer"
             >
               {move.action} <ArrowRight size={16} />
             </button>

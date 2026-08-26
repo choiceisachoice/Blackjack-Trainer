@@ -48,7 +48,7 @@ export function ActionButtons() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={newRound}
-          className="px-8 py-3 rounded-lg bg-gold text-black font-bold text-base shadow-lg"
+          className="px-8 py-3 rounded-lg bg-gold text-on-gold font-bold text-base shadow-lg"
         >
           {t('training.newRoundSpace')}
         </motion.button>

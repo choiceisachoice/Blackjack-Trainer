@@ -187,7 +187,7 @@ export function Hand({ cards, isDealer = false, hideFirst = false, label, isActi
     <div className="flex flex-col items-center gap-1">
       {label && (
         <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-          isActive ? 'bg-gold text-black' : 'bg-contrast/10 text-content/60'
+          isActive ? 'bg-gold text-on-gold' : 'bg-contrast/10 text-content/60'
         }`}>
           {label}
         </span>

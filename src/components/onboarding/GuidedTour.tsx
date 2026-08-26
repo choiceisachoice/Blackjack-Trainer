@@ -289,7 +289,7 @@ export function GuidedTour({ onClose }: { onClose: () => void }) {
             onClick={next}
             data-testid="tour-next"
             className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold
-              bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer"
+              bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer"
           >
             {last ? t('tour.done') : t('tour.next')} {!last && <ArrowRight size={14} />}
           </button>

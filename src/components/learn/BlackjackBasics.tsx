@@ -26,7 +26,7 @@ function Block({ n, title, children, figure }: {
     <div className="surface rounded-2xl p-5 md:p-6">
       <div className="flex items-baseline gap-3">
         <span className="grid place-items-center w-6 h-6 shrink-0 rounded-lg text-[0.75rem] font-extrabold
-          bg-gradient-to-br from-gold-bright to-gold text-casino-bg">
+          bg-gradient-to-br from-gold-bright to-gold text-on-gold">
           {n}
         </span>
         <h3 className="text-base md:text-lg font-bold">{title}</h3>

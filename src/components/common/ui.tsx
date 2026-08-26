@@ -28,7 +28,7 @@ export function Button({ variant = 'primary', size = 'md', icon: Icon, className
   const base = 'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed'
   const variantClass =
     variant === 'primary'
-      ? 'lift-glow text-black bg-gradient-to-b from-gold-bright to-gold border border-gold/50 shadow-[0_10px_30px_-12px_var(--color-gold)]'
+      ? 'lift-glow text-on-gold bg-gradient-to-b from-gold-bright to-gold border border-gold/50 shadow-[0_10px_30px_-12px_var(--color-gold)]'
       : variant === 'secondary'
       ? 'bg-contrast/10 text-content hover:bg-contrast/15 border border-contrast/10'
       : 'text-content/60 hover:text-content'
@@ -106,7 +106,7 @@ export function Segmented<T extends string | number>({ options, value, onChange,
             aria-pressed={active}
             onClick={() => onChange(opt.value)}
             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 cursor-pointer ${fluid ? 'flex-1' : ''}
-              ${active ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+              ${active ? 'bg-gold text-on-gold shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
           >
             {opt.label}
           </button>

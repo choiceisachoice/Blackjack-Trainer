@@ -104,13 +104,13 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
             data-testid={`billing-${id}`}
             className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer transition-colors ${
               plan === id
-                ? 'bg-gradient-to-br from-gold-bright to-gold text-casino-bg'
+                ? 'bg-gradient-to-br from-gold-bright to-gold text-on-gold'
                 : 'text-content/60 hover:text-content'
             }`}
           >
             {t(`pricing.${id}`)}
             {id === 'yearly' && saving && (
-              <span className={plan === id ? 'text-casino-bg/70' : 'text-gold'}>
+              <span className={plan === id ? 'text-on-gold/70' : 'text-gold'}>
                 {' '}−{saving.percent}%
               </span>
             )}
@@ -143,12 +143,17 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
         </div>
 
         {/* Pro */}
+        {/* The warm lift at the top of this card was a fixed
+            `rgba(24,20,10,.6)`. Over near-black that is a faint gold-tinted
+            rise; over white it is 60% black, which turned the Pro plan — the
+            card the whole screen is selling — into a muddy dark slab with the
+            light theme's dark text on it. The tint is a token now. */}
         <div className="relative rounded-2xl border border-gold/45 p-5 flex flex-col
-          bg-[linear-gradient(180deg,rgba(24,20,10,.6),var(--color-surface))]
+          bg-[linear-gradient(180deg,var(--color-pro-tint),var(--color-surface))]
           shadow-[0_0_0_1px_rgba(212,168,71,.14),0_30px_70px_-50px_rgba(212,168,71,.5)]">
           {isYearly && (
             <span className="absolute -top-2.5 right-5 text-[0.6875rem] font-extrabold tracking-wider
-              text-casino-bg bg-gradient-to-br from-gold-bright to-gold px-2.5 py-0.5 rounded-full">
+              text-on-gold bg-gradient-to-br from-gold-bright to-gold px-2.5 py-0.5 rounded-full">
               {t('pricing.bestValue')}
             </span>
           )}
@@ -213,7 +218,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
             data-testid={`upgrade-${plan}`}
             className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3
               font-semibold cursor-pointer transition-colors disabled:opacity-60
-              bg-gradient-to-br from-gold-bright to-gold text-casino-bg"
+              bg-gradient-to-br from-gold-bright to-gold text-on-gold"
           >
             {busy !== null && <Loader2 size={16} className="animate-spin" />}
             {/* Names the amount when it knows it. Unpriced the button still
@@ -282,10 +287,14 @@ function GroupTitle({ children, gold = false }: { children: string; gold?: boole
 function FreeRow({ row }: { row: ComparisonRow }) {
   const { t } = useTranslation()
   if (row.free === 'none') {
+    // Struck through, not hidden: someone deciding whether to pay has to be
+    // able to read what they would not be getting. At `text-content/25` this
+    // measured 2.68:1 on the light theme — de-emphasis had become concealment,
+    // on the one screen where that costs a sale.
     return (
-      <div className="flex gap-2.5 items-start text-content/25">
+      <div className="flex gap-2.5 items-start text-content/50">
         <X size={15} className="shrink-0 mt-0.5" />
-        <span className="line-through decoration-content/20">{t(`paywall.${row.labelKey}`)}</span>
+        <span className="line-through decoration-content/30">{t(`paywall.${row.labelKey}`)}</span>
       </div>
     )
   }

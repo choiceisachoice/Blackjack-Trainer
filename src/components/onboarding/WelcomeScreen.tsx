@@ -109,7 +109,7 @@ export function WelcomeScreen({ isPro, onStart }: { isPro: boolean; onStart: () 
             onClick={onStart}
             data-testid="welcome-start"
             className="group inline-flex items-center gap-2.5 rounded-xl px-6 py-3.5 text-[1.0625rem] font-semibold
-              bg-gradient-to-br from-gold-bright to-gold text-casino-bg cursor-pointer
+              bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer
               shadow-[0_10px_30px_-12px_var(--color-gold)] hover:shadow-[0_14px_38px_-12px_var(--color-gold)]
               transition-shadow"
           >

@@ -331,7 +331,7 @@ export function SpeedDrill() {
                   onClick={() => setCardCount(n)}
                   aria-pressed={cardCount === n}
                   className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer
-                    ${cardCount === n ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+                    ${cardCount === n ? 'bg-gold text-on-gold shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
                 >
                   {n}
                 </button>
@@ -349,7 +349,7 @@ export function SpeedDrill() {
                   onClick={() => setSpeedMs(s.ms)}
                   aria-pressed={speedMs === s.ms}
                   className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer
-                    ${speedMs === s.ms ? 'bg-gold text-black shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
+                    ${speedMs === s.ms ? 'bg-gold text-on-gold shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
                 >
                   {t(s.labelKey)}
                 </button>

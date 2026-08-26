@@ -113,7 +113,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
               onClick={() => switchMode(m)}
               aria-pressed={mode === m}
               className={`flex-1 px-3 py-1.5 rounded-md text-sm font-semibold cursor-pointer transition-colors
-                ${(mode === 'reset' ? 'signin' : mode) === m ? 'bg-gold text-black' : 'text-content/60 hover:text-content'}`}
+                ${(mode === 'reset' ? 'signin' : mode) === m ? 'bg-gold text-on-gold' : 'text-content/60 hover:text-content'}`}
             >
               {m === 'signin' ? t('auth.signIn') : t('auth.register')}
             </button>
@@ -180,7 +180,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
             type="submit"
             disabled={busy}
             data-testid="auth-submit"
-            className="w-full py-2.5 rounded-xl font-semibold text-black bg-gradient-to-b from-gold-bright to-gold
+            className="w-full py-2.5 rounded-xl font-semibold text-on-gold bg-gradient-to-b from-gold-bright to-gold
               border border-gold/50 cursor-pointer flex items-center justify-center gap-2
               shadow-[0_10px_30px_-12px_var(--color-gold)] disabled:opacity-60 disabled:cursor-not-allowed"
           >

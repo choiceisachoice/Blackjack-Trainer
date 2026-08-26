@@ -106,7 +106,7 @@ function BandHead({ label, headline, sub, gold = false }: {
     <div className="mb-5 flex flex-wrap items-baseline gap-x-3.5 gap-y-1">
       <span className={`text-[0.75rem] font-extrabold tracking-[0.16em] uppercase rounded-full px-2.5 py-1 ${
         gold
-          ? 'text-casino-bg bg-gradient-to-br from-gold-bright to-gold'
+          ? 'text-on-gold bg-gradient-to-br from-gold-bright to-gold'
           : 'text-content/60 bg-contrast/8 border border-contrast/12'
       }`}>
         {label}

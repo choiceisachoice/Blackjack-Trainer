@@ -53,7 +53,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
       </div>
       <button onClick={onConfirm} data-testid="confirm-bet"
         disabled={currentBet < minBet && bankroll >= minBet}
-        className="px-8 py-2 bg-gold text-casino-bg rounded-xl font-bold hover:bg-gold/90 cursor-pointer disabled:opacity-50">
+        className="px-8 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer disabled:opacity-50">
         {t('casino.table.deal', { amount: formatDollar(currentBet > 0 ? currentBet : minBet) })}
       </button>
     </div>

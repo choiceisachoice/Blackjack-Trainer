@@ -26,7 +26,7 @@ export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, hum
         </button>
         <button onClick={() => onAction(Action.Double)} data-testid="action-double"
           disabled={!canDouble || humanBusted}
-          className="px-5 py-2 bg-gold text-black rounded-lg font-semibold hover:bg-gold/80 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+          className="px-5 py-2 bg-gold text-on-gold rounded-lg font-semibold hover:bg-gold/80 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
           {t('casino.act.double')}
         </button>
         <button onClick={() => onAction(Action.Split)} data-testid="action-split"

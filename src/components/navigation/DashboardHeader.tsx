@@ -137,7 +137,7 @@ export function DashboardHeader() {
           <button
             onClick={() => setMode(resume?.mode ?? planTarget)}
             className="lift-glow inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold
-              text-black bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
+              text-on-gold bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
               shadow-[0_10px_30px_-12px_var(--color-gold)]"
           >
             <Club size={18} className="fill-current" />

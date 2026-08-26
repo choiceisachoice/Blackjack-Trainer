@@ -96,7 +96,7 @@ export function LeaveSessionDialog() {
             onClick={cancelLeave}
             data-testid="leave-session-stay"
             className="px-4 py-2.5 rounded-xl font-semibold cursor-pointer
-              bg-gradient-to-br from-gold-bright to-gold text-casino-bg"
+              bg-gradient-to-br from-gold-bright to-gold text-on-gold"
           >
             {t('session.leave.stay')}
           </button>
