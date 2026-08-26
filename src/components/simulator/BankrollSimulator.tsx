@@ -216,7 +216,7 @@ export function BankrollSimulator() {
     const result = formIsWin ? amount : -amount
     const sessionData = {
       date: formDate,
-      casino: formCasino.trim() || 'Unknown',
+      casino: formCasino.trim() || t('simulator.unknownVenue'),
       result,
       hoursPlayed: hours,
       notes: formNotes.trim(),
@@ -228,7 +228,7 @@ export function BankrollSimulator() {
       addSession(sessionData)
     }
     resetForm()
-  }, [formDate, formCasino, formAmount, formIsWin, formHours, formNotes, editingId, addSession, editSession, resetForm])
+  }, [formDate, formCasino, formAmount, formIsWin, formHours, formNotes, editingId, addSession, editSession, resetForm, t])
 
   const handleDelete = useCallback((id: string) => {
     deleteSession(id)
@@ -461,7 +461,7 @@ export function BankrollSimulator() {
         {showForm && (
           <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 mb-4" data-testid="session-form">
             <h3 className="text-sm font-semibold text-content mb-3">
-              {editingId ? 'Edit Session' : '+ New Session'}
+              {editingId ? t('simulator.editSession') : `+ ${t('simulator.newSession')}`}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Date */}
@@ -589,9 +589,9 @@ export function BankrollSimulator() {
                 onClick={handleSave}
                 data-testid="form-save"
                 disabled={!formAmount || parseFloat(formAmount) < 0 || !formHours || parseFloat(formHours) <= 0}
-                className="px-6 py-2 rounded-lg bg-gold text-black font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-6 py-2 rounded-lg bg-gold text-casino-bg font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {editingId ? 'Save Changes' : 'Save Session'}
+                {editingId ? t('simulator.saveChanges') : t('simulator.saveSession')}
               </button>
             </div>
           </div>

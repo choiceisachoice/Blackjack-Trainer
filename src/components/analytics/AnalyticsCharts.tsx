@@ -231,7 +231,7 @@ export function SkillRadar({ axes }: { axes: RadarAxis[] }) {
         return (
           <g key={a.axis}>
             <line x1={cx} y1={cy} x2={ex.toFixed(1)} y2={ey.toFixed(1)} stroke={GRID} strokeWidth={1} />
-            <text x={lx.toFixed(1)} y={(ly + 3).toFixed(1)} textAnchor={anchor} fontSize={10} fontWeight={600} fill={FAINT}>{a.axis}</text>
+            <text x={lx.toFixed(1)} y={(ly + 3).toFixed(1)} textAnchor={anchor} fontSize={10} fontWeight={600} fill={FAINT}>{t(a.axis)}</text>
           </g>
         )
       })}

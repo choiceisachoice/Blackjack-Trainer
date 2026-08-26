@@ -379,7 +379,7 @@ export function AnalyticsDashboard() {
                   <div className="flex-1 min-w-[150px] flex flex-col gap-2 text-[12.5px]">
                     {radarSorted.map(a => (
                       <div key={a.axis} className="flex items-center justify-between gap-3">
-                        <span className="text-content/50">{a.axis}</span>
+                        <span className="text-content/50">{t(a.axis)}</span>
                         <b className="font-bold" style={{ color: radarColor(a.value) }}>{a.value}</b>
                       </div>
                     ))}

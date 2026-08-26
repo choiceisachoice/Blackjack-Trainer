@@ -181,8 +181,11 @@ describe('buildSkillRadar', () => {
   it('maps each area to its mode accuracy (0 when untrained)', () => {
     const sessions = [makeSession({ mode: 'speedDrill', totalQuestions: 10, correctAnswers: 9 })]
     const radar = buildSkillRadar(sessions, 'all', NOW)
-    const counting = radar.find(a => a.axis === 'Counting')!
-    const betting = radar.find(a => a.axis === 'Betting')!
+    // Keys now, not words: the five axes were the last English in the Pro
+    // analytics, and asserting on the copy would put the test back in the way
+    // of translating them.
+    const counting = radar.find(a => a.axis === 'analytics.axisCounting')!
+    const betting = radar.find(a => a.axis === 'analytics.axisBetting')!
     expect(counting.value).toBe(90)
     expect(betting.value).toBe(0)
     expect(radar).toHaveLength(5)

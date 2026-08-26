@@ -1818,7 +1818,12 @@
     "viewAll": "Tümünü gör",
     "rangeAll": "Tümü",
     "today": "Bugün",
-    "yesterday": "Dün"
+    "yesterday": "Dün",
+    "axisCounting": "Sayma",
+    "axisDeviations": "Sapmalar",
+    "axisBetting": "Bahis",
+    "axisEstimation": "Tahmin",
+    "axisTablePlay": "Masa oyunu"
   },
   "sim": {
     "onboardTitle": "Bankroll’unuzu takip edin",
@@ -1958,6 +1963,11 @@
     }
   },
   "simulator": {
-    "startLine": "Başlangıç"
+    "startLine": "Başlangıç",
+    "newSession": "Yeni oturum",
+    "editSession": "Oturumu düzenle",
+    "saveSession": "Oturumu kaydet",
+    "saveChanges": "Değişiklikleri kaydet",
+    "unknownVenue": "Bilinmiyor"
   }
 }

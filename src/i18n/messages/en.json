@@ -1818,7 +1818,12 @@
     "viewAll": "View All",
     "rangeAll": "All",
     "today": "Today",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "axisCounting": "Counting",
+    "axisDeviations": "Deviations",
+    "axisBetting": "Betting",
+    "axisEstimation": "Estimation",
+    "axisTablePlay": "Table play"
   },
   "sim": {
     "onboardTitle": "Start Tracking Your Bankroll",
@@ -1958,6 +1963,11 @@
     }
   },
   "simulator": {
-    "startLine": "Starting"
+    "startLine": "Starting",
+    "newSession": "New session",
+    "editSession": "Edit session",
+    "saveSession": "Save session",
+    "saveChanges": "Save changes",
+    "unknownVenue": "Unknown"
   }
 }

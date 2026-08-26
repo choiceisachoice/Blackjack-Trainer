@@ -1818,7 +1818,12 @@
     "viewAll": "Ver todos",
     "rangeAll": "Todo",
     "today": "Hoy",
-    "yesterday": "Ayer"
+    "yesterday": "Ayer",
+    "axisCounting": "Conteo",
+    "axisDeviations": "Desviaciones",
+    "axisBetting": "Apuesta",
+    "axisEstimation": "Estimación",
+    "axisTablePlay": "Juego en mesa"
   },
   "sim": {
     "onboardTitle": "Haz seguimiento de tu bankroll",
@@ -1958,6 +1963,11 @@
     }
   },
   "simulator": {
-    "startLine": "Inicio"
+    "startLine": "Inicio",
+    "newSession": "Nueva sesión",
+    "editSession": "Editar sesión",
+    "saveSession": "Guardar sesión",
+    "saveChanges": "Guardar cambios",
+    "unknownVenue": "Desconocido"
   }
 }

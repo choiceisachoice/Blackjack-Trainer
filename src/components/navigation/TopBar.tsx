@@ -65,7 +65,7 @@ export function TopBar() {
         <button
           onClick={toggleSound}
           data-testid="sound-toggle"
-          title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+          title={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
           className="text-base text-content/50 hover:text-content transition-colors cursor-pointer"
         >
           {soundEnabled ? '\uD83D\uDD0A' : '\uD83D\uDD07'}
@@ -73,7 +73,7 @@ export function TopBar() {
         <button
           onClick={toggleTheme}
           data-testid="theme-toggle"
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          title={theme === 'dark' ? t('nav.switchToLight') : t('nav.switchToDark')}
           className="text-base text-content/50 hover:text-content transition-colors cursor-pointer"
         >
           {theme === 'dark' ? '\u2600\uFE0F' : '\uD83C\uDF19'}

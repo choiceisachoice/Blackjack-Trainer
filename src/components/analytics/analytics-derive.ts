@@ -409,11 +409,14 @@ export function buildSkillRadar(
     return Math.round(accuracyOf(list) * 100)
   }
   return [
-    { axis: 'Counting', mode: 'speedDrill', value: accFor(['speedDrill']) },
-    { axis: 'Deviations', mode: 'deviationFlashCards', value: accFor(['deviationFlashCards', 'deviationAtTable']) },
-    { axis: 'Betting', mode: 'betSpread', value: accFor(['betSpread']) },
-    { axis: 'Estimation', mode: 'deckEstimation', value: accFor(['deckEstimation']) },
-    { axis: 'Table Play', mode: 'casinoSession', value: accFor(['casinoSession']) },
+    // Keys, not words. The radar's five axes were the last English left in the
+    // Pro analytics, and they are strings inside a constant array — one more
+    // shape `no-literal-string` cannot see.
+    { axis: 'analytics.axisCounting', mode: 'speedDrill', value: accFor(['speedDrill']) },
+    { axis: 'analytics.axisDeviations', mode: 'deviationFlashCards', value: accFor(['deviationFlashCards', 'deviationAtTable']) },
+    { axis: 'analytics.axisBetting', mode: 'betSpread', value: accFor(['betSpread']) },
+    { axis: 'analytics.axisEstimation', mode: 'deckEstimation', value: accFor(['deckEstimation']) },
+    { axis: 'analytics.axisTablePlay', mode: 'casinoSession', value: accFor(['casinoSession']) },
   ]
 }
 
