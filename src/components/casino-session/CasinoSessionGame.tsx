@@ -196,8 +196,13 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   const humanBusted = humanCards.length > 0 && isBust(humanCards)
   const isDealPhase = state.gameStep === 'dealing'
 
+  // The ground under the table follows the theme. It used to be a hard
+  // `#0c0c0c` while every label inside uses `text-content`, which does flip —
+  // so in light mode the HUD, the action bar and both prompts rendered
+  // near-black on near-black at about 1.05:1. The felt itself keeps its green:
+  // that is a physical object, not chrome.
   return (
-    <div className="flex-1 flex flex-col relative overflow-hidden" style={{ background: '#0c0c0c' }}>
+    <div className="flex-1 flex flex-col relative overflow-hidden bg-surface">
       {/*
         Pause Overlay.
 

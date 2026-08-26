@@ -93,7 +93,11 @@ export function AchievementToast() {
 
       {/* Text */}
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-[#FFD700] uppercase tracking-wider">
+        {/* `text-gold`, not a literal #FFD700: the token darkens to #a8801f in
+            light mode, which is what keeps this readable on a light card. The
+            tier metals above are deliberately literal — bronze is bronze in
+            both themes. */}
+        <p className="text-xs font-semibold text-gold uppercase tracking-wider">
           {t('awards.unlockedBang')}
         </p>
         <p className="text-base font-bold text-content truncate">{achievementName(current, t)}</p>

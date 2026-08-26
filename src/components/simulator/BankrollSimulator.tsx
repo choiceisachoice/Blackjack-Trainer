@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { activeLocale } from '../../i18n'
 import {
   XAxis,
   YAxis,
@@ -16,13 +17,13 @@ import { useBankrollTrackerStore, type TrackedSession } from '../../store/bankro
 
 function fmtDollar(n: number, showSign = false): string {
   const sign = showSign && n > 0 ? '+' : n < 0 ? '-' : ''
-  return `${sign}$${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+  return `${sign}$${Math.abs(n).toLocaleString(activeLocale(), { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
 function fmtDate(dateStr: string): string {
   if (dateStr === 'Start') return 'Start'
   const d = new Date(dateStr + 'T12:00:00')
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return d.toLocaleDateString(activeLocale(), { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function winRateGlow(rate: number): string {
@@ -401,12 +402,12 @@ export function BankrollSimulator() {
                 </defs>
                 <XAxis
                   dataKey="label"
-                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
-                  axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+                  tick={{ fontSize: 11 }}
+                  axisLine
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }}
+                  tick={{ fontSize: 11 }}
                   tickFormatter={(val: number) => `$${(val / 1000).toFixed(0)}k`}
                   axisLine={false}
                   tickLine={false}
@@ -415,9 +416,9 @@ export function BankrollSimulator() {
                 <Tooltip content={<ChartTooltip />} />
                 <ReferenceLine
                   y={startingBankroll}
-                  stroke="rgba(255,255,255,0.2)"
+                  stroke="currentColor"
                   strokeDasharray="4 4"
-                  label={{ value: 'Starting', fill: 'rgba(255,255,255,0.3)', fontSize: 10, position: 'right' }}
+                  label={{ value: t('simulator.startLine'), fontSize: 10, position: 'right' }}
                 />
                 <Area
                   type="monotone"

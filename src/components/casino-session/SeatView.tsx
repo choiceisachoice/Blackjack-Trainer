@@ -38,7 +38,7 @@ function BetChip({ amount, active }: { amount: number; active?: boolean }) {
       className="grid place-items-center rounded-full shrink-0"
       style={{
         width: 34, height: 34,
-        fontSize: 10, fontWeight: 700, color: '#10100c',
+        fontSize: 10, fontWeight: 700, color: 'var(--color-casino-bg)',
         background: 'radial-gradient(circle at 50% 35%, var(--color-gold-bright), var(--color-gold))',
         border: `2px dashed rgba(0,0,0,0.25)`,
         boxShadow: active ? '0 0 16px -2px var(--color-gold)' : '0 3px 8px rgba(0,0,0,0.4)',
@@ -221,7 +221,7 @@ export function BotSeat({
             const shownCards = hand.cards.slice(0, handVisible)
             if (shownCards.length === 0) return null
 
-            const resultLabel = hand.result === 'win' ? 'Win' : hand.result === 'push' ? 'Push' : hand.result === 'loss' ? 'Loss' : hand.result === 'blackjack' ? 'BJ!' : null
+            const resultLabel = hand.result === 'win' ? t('casino.table.resultWin') : hand.result === 'push' ? t('casino.table.resultPush') : hand.result === 'loss' ? t('casino.table.resultLoss') : hand.result === 'blackjack' ? t('casino.table.resultBlackjack') : null
             const isHandActive = activeSplitHand === hi
             const hasActiveHand = activeSplitHand >= 0
 
@@ -269,7 +269,7 @@ export function BotSeat({
         <span className={`text-[0.65rem] md:text-[0.6875rem] font-bold ${
           botSettlement.profit > 0 ? 'text-success' : botSettlement.profit < 0 ? 'text-error' : 'text-white/50'
         }`} data-testid="bot-settlement">
-          {hasSplit ? 'Total: ' : (botSettlement.result === 'blackjack' ? 'BJ! ' : botSettlement.result === 'win' ? 'Win ' : botSettlement.result === 'push' ? 'Push ' : botSettlement.result === 'surrender' ? 'Surr ' : 'Loss ')}
+          {hasSplit ? `${t('casino.table.total')}: ` : `${botSettlement.result === 'blackjack' ? t('casino.table.resultBlackjack') : botSettlement.result === 'win' ? t('casino.table.resultWin') : botSettlement.result === 'push' ? t('casino.table.resultPush') : botSettlement.result === 'surrender' ? t('casino.table.resultSurrender') : t('casino.table.resultLoss')} `}
           {botSettlement.profit > 0 ? '+' : ''}{formatDollar(botSettlement.profit)}
         </span>
       )}

@@ -73,10 +73,28 @@ function loadTheme(): ThemeMode {
   return 'dark'
 }
 
+/**
+ * The browser chrome each theme paints itself against.
+ *
+ * `index.html` ships a fixed `theme-color` of `#070809`, which is right for the
+ * default dark theme and wrong the moment someone switches. On mobile that meta
+ * tag colours the address bar, so a light-theme user got a white page under a
+ * black bar — the one piece of the interface the theme toggle could not reach.
+ * The values match `--color-casino-bg` in `index.css`; they are literals because
+ * the tag takes a colour, not a variable.
+ */
+const THEME_COLOR: Record<ThemeMode, string> = {
+  dark: '#070809',
+  light: '#f4f5f7',
+}
+
 /** Apply theme to the document root element. */
 function applyTheme(theme: ThemeMode): void {
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme', theme)
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', THEME_COLOR[theme])
   }
 }
 

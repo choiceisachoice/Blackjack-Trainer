@@ -65,7 +65,7 @@ export function GlowTitle({ children }: { children: string }) {
         fontWeight: 800,
         fontStyle: 'italic',
         lineHeight: 1.2,
-        color: '#d4a843',
+        color: 'var(--color-gold)',
         textShadow: '0 0 40px rgba(212, 168, 67, 0.6), 0 0 80px rgba(255, 107, 0, 0.3), 0 0 120px rgba(255, 107, 0, 0.15)',
       }}>
         {children}
