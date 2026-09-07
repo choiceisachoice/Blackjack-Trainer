@@ -169,8 +169,18 @@ export function CasinoTable({
           // box at every size without a second layout pass.
           transformOrigin: 'center center',
           borderRadius: '14px 14px 46% 46% / 14px 14px 32% 32%',
-          background: 'radial-gradient(ellipse 110% 80% at 50% -8%, #1a6b3c 0%, #15603a 48%, #0d4a2a 92%)',
-          border: '12px solid #5c3a1e',
+          // The felt reads from the theme now. `--color-felt` and `--color-wood` were
+          // declared with the rest of the palette and referenced by nothing, while the
+          // table painted its own copy of the same greens in hex — the same defect as
+          // the chips, where four colour tokens sat unused next to grey rectangles.
+          // The darker stops are derived from the token rather than re-typed, so
+          // changing the felt in one place changes the whole table.
+          background:
+            'radial-gradient(ellipse 110% 80% at 50% -8%,' +
+            ' var(--color-felt) 0%,' +
+            ' color-mix(in srgb, var(--color-felt) 88%, black) 48%,' +
+            ' color-mix(in srgb, var(--color-felt) 62%, black) 92%)',
+          border: '12px solid var(--color-wood)',
           boxShadow: '0 0 0 2px #3d2510, 0 0 0 5px #6b4423, 0 12px 40px rgba(0,0,0,0.5), inset 0 0 80px rgba(0,0,0,0.22)',
           padding: '14px 18px 12px',
         }}

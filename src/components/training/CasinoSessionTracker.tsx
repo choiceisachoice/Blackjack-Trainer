@@ -15,6 +15,7 @@ import {
   useCasinoSessionTrackerStore,
   type TrackedCasinoSession,
 } from '../../store/casino-session-tracker-store'
+import { Input } from '../common/ui'
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -200,13 +201,13 @@ export function CasinoSessionTracker() {
               <span className="text-sm text-content/60 block mb-2">{t('tracker.startingBankroll')}</span>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
-                <input
+                <Input
                   type="number"
                   value={onboardingBankroll}
                   onChange={e => setOnboardingBankroll(e.target.value)}
                   placeholder="10,000"
                   data-testid="onboarding-bankroll-input"
-                  className="w-full pl-7 pr-3 py-3 rounded-xl bg-input-bg border border-contrast/20 text-content text-lg text-center focus:outline-none focus:border-gold/60"
+                  className="w-full pl-7 pr-3 py-3 rounded-xl text-lg text-center"
                 />
               </div>
             </label>
@@ -245,12 +246,12 @@ export function CasinoSessionTracker() {
             {isEditingStart ? (
               <span className="inline-flex items-center gap-1.5">
                 <span>{t('tracker.startingPrefix')} $</span>
-                <input
+                <Input
                   type="number"
                   value={editStartValue}
                   onChange={e => setEditStartValue(e.target.value)}
                   data-testid="edit-starting-input"
-                  className="w-24 px-2 py-0.5 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm text-center focus:outline-none focus:border-gold/60"
+                  className="w-24 px-2 py-0.5 text-center"
                   autoFocus
                 />
                 <button

@@ -12,6 +12,7 @@ import { CasinoTable } from './CasinoTable'
 import { ActionButtons } from './ActionButtons'
 import { BettingControls } from './BettingControls'
 import { formatDollar, formatTime } from './helpers'
+import { ProgressBar, Input } from '../common/ui'
 
 interface CasinoSessionGameProps {
   config: CasinoSessionConfig
@@ -303,9 +304,13 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5" data-testid="shoe-progress">
             <span className="text-content/40 text-[0.6875rem]">{t('casino.hud.shoe')}</span>
-            <div className="w-16 h-1.5 bg-contrast/10 rounded-full overflow-hidden">
-              <div className="h-full bg-gold/60 rounded-full transition-all" style={{ width: `${Math.min(100, shoeProgress * 100)}%` }} />
-            </div>
+            <ProgressBar
+              value={shoeProgress * 100}
+              height={6}
+              fill="color-mix(in srgb, var(--color-gold) 60%, transparent)"
+              className="w-16"
+              label={t('casino.hud.shoe')}
+            />
           </div>
           <div className="flex items-center gap-1" data-testid="speed-control">
             <span className="text-content/40 text-[0.6875rem]">{t('casino.hud.speed')}</span>
@@ -428,15 +433,15 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2">
                     <span className="text-sm text-content/60">RC:</span>
-                    <input type="number" value={state.rcInput} onChange={e => actions.setRcInput(e.target.value)}
+                    <Input type="number" value={state.rcInput} onChange={e => actions.setRcInput(e.target.value)}
                       data-testid="rc-input" autoFocus
-                      className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content w-20 text-center" />
+                      className="px-3 py-1.5 w-20 text-center" />
                   </label>
                   <label className="flex items-center gap-2">
                     <span className="text-sm text-content/60">TC:</span>
-                    <input type="number" step="0.5" value={state.tcInput} onChange={e => actions.setTcInput(e.target.value)}
+                    <Input type="number" step="0.5" value={state.tcInput} onChange={e => actions.setTcInput(e.target.value)}
                       data-testid="tc-input"
-                      className="bg-input-bg border border-contrast/20 rounded px-3 py-1.5 text-sm text-content w-20 text-center" />
+                      className="px-3 py-1.5 w-20 text-center" />
                   </label>
                 </div>
                 <button onClick={actions.submitCount} data-testid="submit-count"

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import type { CasinoSessionResult } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
 import { formatDollar, formatTime } from './helpers'
+import { ProgressBar } from '../common/ui'
 
 interface CasinoSessionSummaryProps {
   result: CasinoSessionResult
@@ -74,9 +75,7 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
                 <span className="text-content/70">{label}</span>
                 <span className="text-content">{val.toFixed(1)}% <span className="text-content/40 text-xs">({detail})</span></span>
               </div>
-              <div className="h-2 bg-contrast/10 rounded-full overflow-hidden">
-                <div className="h-full bg-gold rounded-full transition-all" style={{ width: `${Math.min(100, val)}%` }} />
-              </div>
+              <ProgressBar value={val} height={8} />
             </div>
           ))}
         </div>

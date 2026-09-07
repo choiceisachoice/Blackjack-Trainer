@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Coins, Check, X, Minus, Plus } from 'lucide-react'
-import { Panel, Segmented, Button } from '../common/ui'
+import { Panel, Segmented, Button, Input, StatCard } from '../common/ui'
 import { calculateTrueCount } from '../../engine/counting/counting-engine'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
@@ -292,18 +292,9 @@ export function BetSpread() {
         <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
           <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">{t('training.common.sessionComplete')}</h3>
           <div className="grid grid-cols-2 gap-3 w-full text-center">
-            <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-              <div className="text-xs text-content/50">{t('training.common.accuracy')}</div>
-              <div className="text-xl font-bold text-content" data-testid="summary-accuracy">{accuracy}%</div>
-            </div>
-            <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-              <div className="text-xs text-content/50">{t('training.common.correct')}</div>
-              <div className="text-xl font-bold text-content">{totalCorrect}/{totalAttempts}</div>
-            </div>
-            <div className="rounded-xl px-4 py-3 col-span-2 bg-contrast/5 border border-contrast/10">
-              <div className="text-xs text-content/50">{t('training.common.bestStreak')}</div>
-              <div className="text-xl font-bold text-gold">{bestStreak}</div>
-            </div>
+            <StatCard label={t('training.common.accuracy')} value={`${accuracy}%`} testId="summary-accuracy" />
+            <StatCard label={t('training.common.correct')} value={`${totalCorrect}/${totalAttempts}`} />
+            <StatCard label={t('training.common.bestStreak')} value={bestStreak} accent className="col-span-2" />
           </div>
           <Button className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
             {t('training.common.backToSettings')}
@@ -369,14 +360,14 @@ export function BetSpread() {
                 >
                   <Minus size={18} />
                 </button>
-                <input
+                <Input
                   type="number"
                   step="0.5"
                   value={tcAnswer}
                   onChange={(e) => setTcAnswer(Number(e.target.value) || 0)}
                   data-testid="tc-input"
                   className="w-20 h-12 text-center text-xl font-bold bg-contrast/10 border border-contrast/20
-                    rounded-xl text-content focus:outline-none focus:border-gold/60
+                    rounded-xl text-content focus:border-gold/60
                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <button

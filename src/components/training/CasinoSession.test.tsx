@@ -407,8 +407,10 @@ describe('CasinoSession', () => {
       // Table has semi-circular border-radius (flat top, curved bottom)
       const style = feltTable.getAttribute('style') || ''
       expect(style).toContain('border-radius')
-      // Green felt: hex #1a6b3c may be converted to rgb(26, 107, 60) by JSDOM
-      expect(style).toMatch(/#1a6b3c|rgb\(26, 107, 60\)/)
+      // The felt reads from the theme rather than a hex copy. Asserting the
+      // token is the stronger check: it fails if the table ever goes back to
+      // painting its own green, which is the defect this replaced.
+      expect(style).toContain('var(--color-felt)')
     })
 
     it('renders human player with gold highlight label in info strip', () => {

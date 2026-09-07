@@ -456,3 +456,12 @@ body {
     transparent 70%);
   z-index: 0;
 }
+
+/* Diagonal stripes travelling along an active progress bar. The idea is the
+   classic striped loader; the colours are ours. One 24px cycle, so the speed
+   reads the same at every bar width. Neutralised by the reduced-motion reset
+   further up, which zeroes every animation-duration in the app. */
+@keyframes bar-stripes {
+  from { background-position: 0 0; }
+  to   { background-position: 24px 0; }
+}

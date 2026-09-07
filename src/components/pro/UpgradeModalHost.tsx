@@ -2,6 +2,7 @@ import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
 import { UpgradePanel } from './UpgradePanel'
+import { ModalBackdrop } from '../common/ModalBackdrop'
 
 /**
  * Renders the Pro paywall as a modal when any gated surface opens it via
@@ -16,11 +17,7 @@ export function UpgradeModalHost() {
   if (!open) return null
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
-      onClick={hide}
-      data-testid="upgrade-modal"
-    >
+    <ModalBackdrop onClose={hide} z="z-50" scroll testId="upgrade-modal">
       <div className="relative my-auto" onClick={e => e.stopPropagation()}>
         <button
           onClick={hide}
@@ -31,6 +28,6 @@ export function UpgradeModalHost() {
         </button>
         <UpgradePanel headline={headline ?? undefined} />
       </div>
-    </div>
+    </ModalBackdrop>
   )
 }

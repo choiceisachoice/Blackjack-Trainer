@@ -4,7 +4,7 @@ import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useAppStore } from '../../store/app-store'
 import { useIsPro } from '../../store/entitlement-store'
-import { Route, ChevronRight } from 'lucide-react'
+import { Route, ChevronRight, BarChart3, TrendingUp, Wallet, CalendarOff, Target, Trophy } from 'lucide-react'
 import { ProTeaser } from '../pro/ProTeaser'
 import { logFailure } from '../../services/failure-log'
 import {
@@ -43,6 +43,7 @@ import {
   SkillRadar,
   EdgeChart,
 } from './AnalyticsCharts'
+import { Skeleton, ProgressBar, EmptyState } from '../common/ui'
 
 /** Reusable elevated panel. */
 function Panel({
@@ -197,12 +198,7 @@ function PlanStrip({
         <span className="block mt-0.5 font-semibold truncate">
           {active ? t(active.stage.titleKey) : t('plan.everyStageComplete')}
         </span>
-        <span className="block mt-2 h-1.5 rounded-full bg-contrast/10 overflow-hidden">
-          <span
-            className="block h-full rounded-full bg-gold transition-[width] duration-300"
-            style={{ width: `${(done / Math.max(total, 1)) * 100}%` }}
-          />
-        </span>
+        <ProgressBar className="mt-2" height={6} value={done} max={Math.max(total, 1)} />
       </span>
       <ChevronRight size={16} className="shrink-0 text-content/30" />
     </button>
@@ -245,9 +241,26 @@ export function AnalyticsDashboard() {
   }, [sessions, range, streak, now])
 
   if (isLoading) {
+    // A placeholder shaped like the page, not a sentence in the middle of an
+    // empty screen. Eight panels of charts used to announce themselves with one
+    // line of centred text and then snap in all at once; this holds the layout
+    // so nothing jumps, and shows how much is on its way.
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-content/50">{t('analytics.loading')}</p>
+      <div className="flex-1 p-6 space-y-6" role="status" aria-label={t('analytics.loading')}>
+        <div className="flex gap-3 flex-wrap">
+          {Array.from({ length: 5 }, (_, i) => (
+            <Skeleton key={i} className="h-20 flex-1 min-w-[140px]" rounded="rounded-xl" />
+          ))}
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-64" rounded="rounded-2xl" />
+          <Skeleton className="h-64" rounded="rounded-2xl" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          <Skeleton className="h-40" rounded="rounded-2xl" />
+          <Skeleton className="h-40" rounded="rounded-2xl" />
+          <Skeleton className="h-40" rounded="rounded-2xl" />
+        </div>
       </div>
     )
   }
@@ -291,9 +304,13 @@ export function AnalyticsDashboard() {
         </header>
 
         {!hasData ? (
-          <div className="surface p-10 text-center">
-            <p className="text-content/60 text-lg font-medium">{t('analytics.noSessions')}</p>
-            <p className="text-content/40 text-sm mt-1">{t('analytics.noSessionsBody')}</p>
+          <div className="surface p-10">
+            <EmptyState
+              icon={BarChart3}
+              title={t('analytics.noSessions')}
+              body={t('analytics.noSessionsBody')}
+              action={{ label: t('common.startLearning'), onClick: () => setMode('plan') }}
+            />
           </div>
         ) : (
           <>
@@ -354,8 +371,8 @@ export function AnalyticsDashboard() {
                 {derived.trend.length >= 2 ? (
                   <TrendChart points={derived.trend} />
                 ) : (
-                  <div className="h-[230px] grid place-items-center text-content/40 text-sm">
-                    {t('analytics.trendEmpty')}
+                  <div className="h-[230px] grid place-items-center">
+                    <EmptyState compact icon={TrendingUp} title={t('analytics.trendEmpty')} />
                   </div>
                 )}
               </Panel>
@@ -405,8 +422,8 @@ export function AnalyticsDashboard() {
                     <EdgeChart points={derived.edge.points} />
                   </>
                 ) : (
-                  <div className="h-[132px] grid place-items-center text-center text-content/40 text-sm px-4">
-                    {t('analytics.edgeEmpty')}
+                  <div className="h-[132px] grid place-items-center px-4">
+                    <EmptyState compact icon={Wallet} title={t('analytics.edgeEmpty')} />
                   </div>
                 )}
               </Panel>
@@ -418,7 +435,9 @@ export function AnalyticsDashboard() {
                 {derived.modes.length > 0 ? (
                   <ModeBars rows={derived.modes} />
                 ) : (
-                  <div className="h-24 grid place-items-center text-content/40 text-sm">{t('analytics.noneInRange')}</div>
+                  <div className="h-24 grid place-items-center">
+                    <EmptyState compact icon={CalendarOff} title={t('analytics.noneInRange')} />
+                  </div>
                 )}
               </Panel>
 
@@ -439,8 +458,8 @@ export function AnalyticsDashboard() {
                     </button>
                   </>
                 ) : (
-                  <div className="h-24 grid place-items-center text-center text-content/40 text-sm px-4">
-                    {t('analytics.weakEmpty')}
+                  <div className="h-24 grid place-items-center px-4">
+                    <EmptyState compact icon={Target} title={t('analytics.weakEmpty')} />
                   </div>
                 )}
               </Panel>
@@ -590,8 +609,8 @@ function RecentAchievements() {
           ))}
         </div>
       ) : (
-        <div className="text-center text-content/40 py-4" data-testid="no-achievements">
-          {t('analytics.noAchievements')}
+        <div data-testid="no-achievements">
+          <EmptyState compact icon={Trophy} title={t('analytics.noAchievements')} />
         </div>
       )}
     </Panel>

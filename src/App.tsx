@@ -36,6 +36,9 @@ const LoaderGallery = import.meta.env.DEV
 const LevelGallery = import.meta.env.DEV
   ? lazy(() => import('./pages/LevelGallery').then(m => ({ default: m.LevelGallery })))
   : null
+const ControlsPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/ControlsPreview').then(m => ({ default: m.ControlsPreview })))
+  : null
 const MotionFilm = import.meta.env.DEV
   ? lazy(() => import('./pages/MotionFilm').then(m => ({ default: m.MotionFilm })))
   : null
@@ -177,6 +180,7 @@ function App() {
             to look at. DEV-only, so it cannot reach production. */}
         {DevPreview && <Route path="/dev" element={<DevPreview />} />}
         {LoaderGallery && <Route path="/dev/loaders" element={<LoaderGallery />} />}
+        {ControlsPreview && <Route path="/dev/controls" element={<ControlsPreview />} />}
         {LevelGallery && <Route path="/dev/levels" element={<LevelGallery />} />}
         {MotionFilm && <Route path="/dev/motion" element={<MotionFilm />} />}
         <Route path="*" element={<Navigate to="/" replace />} />

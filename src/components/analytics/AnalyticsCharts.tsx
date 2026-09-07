@@ -1,5 +1,6 @@
 import type { TrendPoint, HeatCell, ModeAccuracy, RadarAxis, EdgePoint } from './analytics-derive'
 import { useTranslation } from 'react-i18next'
+import { ProgressBar } from '../common/ui'
 
 /**
  * Hand-authored SVG chart primitives for the Analytics dashboard.
@@ -170,9 +171,7 @@ export function ModeBars({ rows }: { rows: ModeAccuracy[] }) {
               </span>
             )}
           </div>
-          <div className="h-2.5 rounded-full bg-contrast/5 border border-contrast/10 overflow-hidden">
-            <div className="h-full rounded-full" style={{ width: `${Math.round(r.accuracy * 100)}%`, background: barColor(r.accuracy) }} />
-          </div>
+          <ProgressBar height={10} value={Math.round(r.accuracy * 100)} fill={barColor(r.accuracy)} glow={`color-mix(in srgb, ${barColor(r.accuracy)} 40%, transparent)`} />
           <div className="text-[0.85rem] font-bold text-right text-content">{Math.round(r.accuracy * 100)}%</div>
         </div>
       ))}
@@ -189,9 +188,7 @@ export function WeakestHands({ hands }: { hands: { name: string; accuracy: numbe
         return (
           <div key={h.name} className="grid items-center gap-3" style={{ gridTemplateColumns: '1fr 90px 40px' }}>
             <span className="text-[0.85rem] font-medium text-content truncate">{h.name}</span>
-            <div className="h-2 rounded-full bg-contrast/5 border border-contrast/10 overflow-hidden">
-              <div className="h-full rounded-full" style={{ width: `${miss}%`, background: 'linear-gradient(90deg, var(--color-warning), var(--color-error))' }} />
-            </div>
+            <ProgressBar height={8} value={miss} fill="linear-gradient(90deg, var(--color-warning), var(--color-error))" glow="color-mix(in srgb, var(--color-error) 40%, transparent)" />
             <span className="text-[0.85rem] font-bold text-right" style={{ color: 'var(--color-error)' }}>{miss}%</span>
           </div>
         )

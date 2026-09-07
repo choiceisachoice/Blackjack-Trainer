@@ -7,6 +7,8 @@ import { achievementEngine } from '../../services/achievements/achievement-engin
 import { ALL_ACHIEVEMENTS, achievementName, achievementDescription } from '../../services/achievements/achievement-list'
 import { LEVELS } from '../../services/level-system'
 import type { Achievement, AchievementCategory, AchievementTier } from '../../services/achievements/achievement-types'
+import { ProgressBar, Tooltip, EmptyState } from '../common/ui'
+import { Lock, Trophy } from 'lucide-react'
 
 /** Filter options for the collection. */
 type FilterMode = 'all' | 'unlocked' | 'locked'
@@ -194,9 +196,13 @@ export function AchievementsPage() {
                 ? t('levels.tierNext', { tier: t(`levels.tier.${level.tier}`), name: t(nextKey) })
                 : t('levels.tierMax', { tier: t(`levels.tier.${level.tier}`) })}
             </div>
-            <div className="mt-3 h-2.5 rounded-full bg-surface-2 border border-contrast/10 overflow-hidden">
-              <div className="h-full rounded-full" style={{ width: `${levelProgress.required === 0 ? 100 : levelProgress.percent}%`, background: `linear-gradient(90deg, ${level.color}, var(--color-gold-bright))` }} />
-            </div>
+            <ProgressBar
+              className="mt-3"
+              height={10}
+              value={levelProgress.required === 0 ? 100 : levelProgress.percent}
+              fill={`linear-gradient(90deg, ${level.color}, var(--color-gold-bright))`}
+              label={t('awards.levelProgress', { defaultValue: 'Level' })}
+            />
             <div className="flex justify-between text-[0.75rem] text-content/40 mt-1.5">
               <span>{t('awards.xpAmount', { xp: levelProgress.current.toLocaleString(i18n.language) })}</span>
               {/* `awards.maxLevel` already existed; this line carried its own
@@ -269,9 +275,13 @@ export function AchievementsPage() {
                 <div className="flex items-center gap-2.5 mb-3">
                   <span className="text-lg">{CATEGORY_ICON[cat]}</span>
                   <span className="text-sm font-semibold text-content">{t(`awards.cat.${cat}`)}</span>
-                  <div className="flex-1 max-w-[160px] h-1 rounded-full bg-surface-2 overflow-hidden">
-                    <div className="h-full bg-gold" style={{ width: `${catTotal ? (catDone / catTotal) * 100 : 0}%` }} />
-                  </div>
+                  <ProgressBar
+                    value={catDone}
+                    max={catTotal}
+                    height={4}
+                    className="flex-1 max-w-[160px]"
+                    label={t(`awards.cat.${cat}`)}
+                  />
                   <span className="text-[0.75rem] text-content/40">{catDone}/{catTotal}</span>
                 </div>
                 <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))' }}>
@@ -290,9 +300,10 @@ export function AchievementsPage() {
           })}
 
           {filtered.length === 0 && (
-            <div className="text-center py-12 text-content/40">
-              {filter === 'unlocked' ? t('awards.noneUnlocked') : t('awards.allUnlocked')}
-            </div>
+            <EmptyState
+              icon={filter === 'unlocked' ? Lock : Trophy}
+              title={filter === 'unlocked' ? t('awards.noneUnlocked') : t('awards.allUnlocked')}
+            />
           )}
         </section>
       </div>
@@ -392,7 +403,8 @@ function Medal({ achievement, unlocked, unlockedAt, progress }: {
     // against <html> and its static offset (far down a long list) inflates the
     // document's scroll height — the page then scrolls past its own content
     // into empty space, next to the real scrollbar of the app shell.
-    <div className="relative text-center" data-testid={`achievement-card-${achievement.id}`} title={title}>
+    <Tooltip label={title} focusable={false} className="w-full">
+    <div className="relative text-center w-full" data-testid={`achievement-card-${achievement.id}`}>
       <div
         className="w-14 h-14 mx-auto rounded-full grid place-items-center text-[1.5rem] border-2"
         style={
@@ -410,5 +422,6 @@ function Medal({ achievement, unlocked, unlockedAt, progress }: {
         ? <span className="sr-only" data-testid={`unlocked-date-${achievement.id}`}>{unlockedAt ? formatDate(unlockedAt, i18n.language) : t('awards.unknownDate')}</span>
         : <span className="sr-only" data-testid={`progress-${achievement.id}`}>{Math.round(progress)}%</span>}
     </div>
+    </Tooltip>
   )
 }

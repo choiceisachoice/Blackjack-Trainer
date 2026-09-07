@@ -49,6 +49,7 @@ import { deriveRhythm, rhythmMessage } from '../../services/training-rhythm'
 import { WelcomeScreen } from '../onboarding/WelcomeScreen'
 import { hasSeenWelcome, setWelcomeSeen } from '../../services/onboarding'
 import { setRecommendation } from '../../services/recommendation'
+import { ProgressBar } from '../common/ui'
 
 /**
  * Used only when the profile is somehow missing while a placement exists —
@@ -400,7 +401,7 @@ export function TrainingPlan({
                 onClick={() => updateProfile({ goal: harder })}
                 data-testid="plan-extend-goal"
                 className="mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold
-                  bg-gradient-to-br from-gold-bright to-gold text-on-gold cursor-pointer"
+                  bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer"
               >
                 <TrendingUp size={16} />
                 {t('plan.aimFor', { stage: t(CURRICULUM[stageIndex(goalStage(harder))].titleKey) })}
@@ -457,12 +458,12 @@ export function TrainingPlan({
                 +{CHALLENGE_XP[challenge.difficulty]} XP
               </span>
             </div>
-            <div className="mt-3 h-1.5 rounded-full bg-contrast/10 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gold transition-[width] duration-300"
-                style={{ width: `${Math.min(challengeState.progress / Math.max(challenge.target, 1), 1) * 100}%` }}
-              />
-            </div>
+            <ProgressBar
+              className="mt-3"
+              height={6}
+              value={Math.min(challengeState.progress, challenge.target)}
+              max={Math.max(challenge.target, 1)}
+            />
           </button>
         )}
 
@@ -519,12 +520,7 @@ export function TrainingPlan({
                     {p.stage.drill && (
                       <>
                         <div className="mt-2 flex items-center gap-2.5">
-                          <div className="h-1.5 w-28 rounded-full bg-contrast/10 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-gold transition-[width] duration-300"
-                              style={{ width: `${(p.current / Math.max(p.target, 1)) * 100}%` }}
-                            />
-                          </div>
+                          <ProgressBar className="w-28" height={6} value={p.current} max={Math.max(p.target, 1)} />
                           <span className="text-xs text-content/45 tabular-nums">
                             {p.current}/{p.target} — {drillDescription(p.stage.drill, t)}
                           </span>
@@ -785,7 +781,7 @@ function StageActions({
   const { t } = useTranslation()
   const { stage } = p
   const base = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors'
-  const gold = `${base} bg-gradient-to-br from-gold-bright to-gold text-on-gold`
+  const gold = `${base} bg-gradient-to-b from-gold-bright to-gold text-on-gold`
   const ghost = `${base} border border-contrast/15 text-content hover:border-gold/45`
 
   return (

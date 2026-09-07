@@ -143,6 +143,46 @@ export function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+/** The body colour of a chip and the ink that stays legible on it. */
+export interface ChipFace {
+  /** CSS colour for the chip body, always a token reference. */
+  readonly fill: string
+  /** Tailwind text-colour class for the value printed on the chip. */
+  readonly ink: string
+}
+
+/**
+ * Map a bet denomination to a chip colour, following casino convention.
+ *
+ * The four `--color-chip-*` tokens have existed in `index.css` since the theme
+ * was written and were referenced by nothing — `bg-chip-red`, `bg-chip-green`
+ * and `bg-chip-black` had zero occurrences in the whole app, while the betting
+ * controls rendered every denomination as the same grey rectangle. This is what
+ * they were declared for.
+ *
+ * The thresholds are the real table convention rather than an arbitrary ramp,
+ * so a player who has sat at a table reads the value before reading the number:
+ * red fives, blue tens, green twenty-fives, black hundreds. Above five hundred
+ * the house colour takes over, because the palette has no purple and inventing
+ * one for a single denomination would put a fifth colour outside the theme.
+ *
+ * Ink is chosen by the fill and never by the theme — the rule the light-theme
+ * work in `CLAUDE.md` left behind — which is why the gold chip gets
+ * `text-on-gold` and not `text-white`.
+ *
+ * @param value Denomination in whole currency units. Values below five, which
+ *   `getChipDenominations` can produce from a low table minimum, take the red
+ *   face rather than a colour of their own.
+ * @returns The chip's fill colour and the text colour to print on it.
+ */
+export function chipFace(value: number): ChipFace {
+  if (value >= 500) return { fill: 'var(--color-gold)', ink: 'text-on-gold' }
+  if (value >= 100) return { fill: 'var(--color-chip-black)', ink: 'text-white' }
+  if (value >= 25) return { fill: 'var(--color-chip-green)', ink: 'text-white' }
+  if (value >= 10) return { fill: 'var(--color-chip-blue)', ink: 'text-white' }
+  return { fill: 'var(--color-chip-red)', ink: 'text-white' }
+}
+
 export function getChipDenominations(minBet: number, maxBet: number): number[] {
   const allChips: number[] = [minBet]
   const standards = [5, 10, 15, 25, 50, 100, 200, 250, 500, 1000, 2500, 5000]

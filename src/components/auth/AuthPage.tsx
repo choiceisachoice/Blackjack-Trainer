@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { PasswordInput } from './PasswordInput'
 import { Spade, Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth-store'
+import { Input } from '../common/ui'
 
 /**
  * `reset` is a third mode rather than a separate route.
@@ -123,25 +124,25 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
         <form onSubmit={onSubmit} className="space-y-3">
           {mode === 'signup' && (
             <Field label={t('auth.username')}>
-              <input
+              <Input
                 type="text"
                 autoComplete="username"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                className={inputClass}
+                className="w-full"
                 placeholder={t('auth.usernamePlaceholder')}
               />
             </Field>
           )}
 
           <Field label={t('auth.email')}>
-            <input
+            <Input
               type="email"
               required
               autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className={inputClass}
+              className="w-full"
               placeholder="you@example.com"
               data-testid="auth-email"
             />
@@ -217,10 +218,6 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
     </div>
   )
 }
-
-const inputClass =
-  'w-full bg-surface-2 border border-contrast/15 rounded-lg px-3 py-2 text-sm text-content ' +
-  'placeholder:text-content/30 hover:border-gold/40 focus:border-gold/60 focus:outline-none transition-colors'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

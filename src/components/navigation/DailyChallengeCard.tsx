@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { CalendarCheck } from 'lucide-react'
 import { useChallengeStore } from '../../store/challenge-store'
 import { CHALLENGE_XP } from '../../services/challenges/challenge-types'
+import { ProgressBar } from '../common/ui'
 
 /** Format seconds as HH:MM:SS. */
 function formatCountdown(totalSeconds: number): string {
@@ -134,15 +135,13 @@ export function DailyChallengeCard() {
       </p>
 
       {/* Progress bar */}
-      <div className="w-full h-2 rounded-full bg-contrast/10 overflow-hidden mb-1">
-        <div
-          data-testid="progress-bar"
-          className={`h-full rounded-full transition-all duration-500 ${
-            state.completed ? 'bg-green-500' : 'bg-gold'
-          }`}
-          style={{ width: `${progressPct}%` }}
-        />
-      </div>
+      <ProgressBar
+        className="mb-1"
+        height={8}
+        value={progressPct}
+        testId="progress-bar"
+        fill={state.completed ? 'linear-gradient(180deg, #4ade80, var(--color-success))' : undefined}
+      />
 
       {/* Progress text */}
       <div className="flex items-center justify-between text-xs">

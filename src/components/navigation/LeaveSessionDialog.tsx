@@ -5,6 +5,7 @@ import { AlertTriangle } from 'lucide-react'
 import { useLiveSessionStore } from '../../store/live-session-store'
 import { signOutAndClearLocal } from '../../services/supabase/cloud-sync'
 import { useAppStore } from '../../store/app-store'
+import { ModalBackdrop } from '../common/ModalBackdrop'
 
 /**
  * The question asked before a running session is left behind.
@@ -43,9 +44,8 @@ export function LeaveSessionDialog() {
   useEffect(() => {
     if (!pending) return
     stayRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') cancelLeave() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    // Escape is handled by ModalBackdrop now.
+    return undefined
   }, [pending, cancelLeave])
 
   if (!pending) return null
@@ -61,12 +61,9 @@ export function LeaveSessionDialog() {
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[60] grid place-items-center bg-black/70 backdrop-blur-sm px-4"
-      // A click on the backdrop is the same as Escape: the harmless answer.
-      onClick={cancelLeave}
-      data-testid="leave-session-backdrop"
-    >
+    // A click on the backdrop is the same as Escape: the harmless answer. Both
+    // now come from ModalBackdrop, which also holds the page still underneath.
+    <ModalBackdrop onClose={cancelLeave} z="z-[60]" testId="leave-session-backdrop">
       <div
         role="alertdialog"
         aria-modal="true"
@@ -96,7 +93,7 @@ export function LeaveSessionDialog() {
             onClick={cancelLeave}
             data-testid="leave-session-stay"
             className="px-4 py-2.5 rounded-xl font-semibold cursor-pointer
-              bg-gradient-to-br from-gold-bright to-gold text-on-gold"
+              bg-gradient-to-b from-gold-bright to-gold text-on-gold"
           >
             {t('session.leave.stay')}
           </button>
@@ -110,6 +107,6 @@ export function LeaveSessionDialog() {
           </button>
         </div>
       </div>
-    </div>
+    </ModalBackdrop>
   )
 }

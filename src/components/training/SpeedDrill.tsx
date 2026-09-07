@@ -15,6 +15,7 @@ import type { Card } from '../../engine/shoe/types'
 import { Suit } from '../../engine/shoe/types'
 import type { SpeedDrillDetails } from '../../services/stats-types'
 import { TrainingBackdrop } from './TrainingBackdrop'
+import { ProgressBar, Input, StatCard } from '../common/ui'
 
 type Phase = 'settings' | 'drill' | 'input' | 'result'
 
@@ -388,12 +389,7 @@ export function SpeedDrill() {
             <span>{t('training.speed.cardProgress', { n: currentIndex + 1, total: cards.length })}</span>
             <span>{Math.round(progress)}%</span>
           </div>
-          <div className="h-1.5 bg-contrast/10 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gold rounded-full transition-all duration-200"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+          <ProgressBar height={6} value={progress} active />
         </div>
 
         {/*
@@ -472,13 +468,13 @@ export function SpeedDrill() {
           >
             <Minus size={22} />
           </button>
-          <input
+          <Input
             type="number"
             value={userAnswer}
             onChange={(e) => setUserAnswer(Number(e.target.value) || 0)}
             data-testid="count-input"
             className="w-24 h-16 text-center text-3xl font-bold bg-contrast/10 border border-contrast/20
-              rounded-xl text-content focus:outline-none focus:border-gold/60
+              rounded-xl text-content focus:border-gold/60
               [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <button
@@ -533,20 +529,9 @@ export function SpeedDrill() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 w-full text-center">
-          <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-            <div className="text-xs text-content/50">{t('training.common.streak')}</div>
-            <div className="text-xl font-bold text-content">{streak}</div>
-          </div>
-          <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-            <div className="text-xs text-content/50">{t('training.common.bestStreak')}</div>
-            <div className="text-xl font-bold text-gold">{bestStreak}</div>
-          </div>
-          <div className="rounded-xl px-4 py-3 col-span-2 bg-contrast/5 border border-contrast/10">
-            <div className="text-xs text-content/50">{t('training.common.accuracy')}</div>
-            <div className="text-xl font-bold text-content">
-              {totalCorrect}/{totalAttempts} ({accuracy}%)
-            </div>
-          </div>
+          <StatCard label={t('training.common.streak')} value={streak} />
+          <StatCard label={t('training.common.bestStreak')} value={bestStreak} accent />
+          <StatCard label={t('training.common.accuracy')} value={`${totalCorrect}/${totalAttempts} (${accuracy}%)`} className="col-span-2" />
         </div>
 
         {/* Actions */}

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { CalendarRange } from 'lucide-react'
 import { useWeeklyChallengeStore } from '../../store/weekly-challenge-store'
 import { weeklyChallengeEngine } from '../../services/challenges/weekly-challenge'
+import { ProgressBar } from '../common/ui'
 
 /** Format remaining time as "Xd Xh Xm". */
 function formatTimeRemaining(remaining: { days: number; hours: number; minutes: number }): string {
@@ -121,15 +122,13 @@ export function WeeklyChallengeCard() {
       </p>
 
       {/* Progress bar */}
-      <div className="w-full h-2 rounded-full bg-contrast/10 overflow-hidden mb-1">
-        <div
-          data-testid="weekly-progress-bar"
-          className={`h-full rounded-full transition-all duration-500 ${
-            state.completed ? 'bg-green-500' : 'bg-gold'
-          }`}
-          style={{ width: `${progressPct}%` }}
-        />
-      </div>
+      <ProgressBar
+        className="mb-1"
+        height={8}
+        value={progressPct}
+        testId="progress-bar"
+        fill={state.completed ? 'linear-gradient(180deg, #4ade80, var(--color-success))' : undefined}
+      />
 
       {/* Progress text */}
       <div className="flex items-center justify-between text-xs">

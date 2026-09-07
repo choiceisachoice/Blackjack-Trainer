@@ -12,6 +12,7 @@ import {
 } from 'recharts'
 import { Wallet } from 'lucide-react'
 import { useBankrollTrackerStore, type TrackedSession } from '../../store/bankroll-tracker-store'
+import { Input } from '../common/ui'
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -258,13 +259,13 @@ export function BankrollSimulator() {
               <span className="text-sm text-content/60 block mb-2">{t('tracker.startingBankroll')}</span>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
-                <input
+                <Input
                   type="number"
                   value={onboardingBankroll}
                   onChange={e => setOnboardingBankroll(e.target.value)}
                   placeholder="10,000"
                   data-testid="onboarding-bankroll-input"
-                  className="w-full pl-7 pr-3 py-3 rounded-xl bg-input-bg border border-contrast/20 text-content text-lg text-center focus:outline-none focus:border-gold/60"
+                  className="w-full pl-7 pr-3 py-3 rounded-xl text-lg text-center"
                 />
               </div>
             </label>
@@ -303,12 +304,12 @@ export function BankrollSimulator() {
             {isEditingStart ? (
               <span className="inline-flex items-center gap-1.5">
                 <span>{t('tracker.startingPrefix')} $</span>
-                <input
+                <Input
                   type="number"
                   value={editStartValue}
                   onChange={e => setEditStartValue(e.target.value)}
                   data-testid="edit-starting-input"
-                  className="w-24 px-2 py-0.5 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm text-center focus:outline-none focus:border-gold/60"
+                  className="w-24 px-2 py-0.5 text-center"
                   autoFocus
                 />
                 <button
@@ -467,26 +468,26 @@ export function BankrollSimulator() {
               {/* Date */}
               <label className="block">
                 <span className="text-xs text-content/60">{t('sim.date')}</span>
-                <input
+                <Input
                   type="date"
                   value={formDate}
                   onChange={e => setFormDate(e.target.value)}
                   data-testid="form-date"
-                  className="w-full mt-1 px-3 py-2 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm focus:outline-none focus:border-gold/60"
+                  className="w-full mt-1"
                 />
               </label>
 
               {/* Casino */}
               <label className="block relative" ref={casinoInputRef}>
                 <span className="text-xs text-content/60">{t('sim.casino')}</span>
-                <input
+                <Input
                   type="text"
                   value={formCasino}
                   onChange={e => { setFormCasino(e.target.value); setShowCasinoDropdown(true) }}
                   onFocus={() => setShowCasinoDropdown(true)}
                   placeholder="e.g. Bellagio"
                   data-testid="form-casino"
-                  className="w-full mt-1 px-3 py-2 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm focus:outline-none focus:border-gold/60"
+                  className="w-full mt-1"
                 />
                 {showCasinoDropdown && filteredCasinos.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-casino-bg border border-contrast/20 rounded-lg shadow-lg max-h-32 overflow-y-auto"
@@ -532,14 +533,14 @@ export function BankrollSimulator() {
                   </button>
                   <div className="relative flex-1">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
-                    <input
+                    <Input
                       type="number"
                       value={formAmount}
                       onChange={e => setFormAmount(e.target.value)}
                       placeholder="0"
                       min="0"
                       data-testid="form-amount"
-                      className={`w-full pl-7 pr-3 py-2 rounded-lg bg-input-bg text-content text-sm focus:outline-none border ${
+                      className={`w-full pl-7 pr-3 py-2 rounded-lg bg-input-bg text-content text-sm border ${
                         formIsWin
                           ? 'border-green-500/30 focus:border-green-500/60'
                           : 'border-red-500/30 focus:border-red-500/60'
@@ -552,14 +553,14 @@ export function BankrollSimulator() {
               {/* Hours */}
               <label className="block">
                 <span className="text-xs text-content/60">{t('sim.hoursPlayed')}</span>
-                <input
+                <Input
                   type="number"
                   value={formHours}
                   onChange={e => setFormHours(e.target.value)}
                   min="0.5"
                   step="0.5"
                   data-testid="form-hours"
-                  className="w-full mt-1 px-3 py-2 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm focus:outline-none focus:border-gold/60"
+                  className="w-full mt-1"
                 />
               </label>
 
@@ -572,7 +573,7 @@ export function BankrollSimulator() {
                   placeholder={t('sim.notesPlaceholder')}
                   rows={2}
                   data-testid="form-notes"
-                  className="w-full mt-1 px-3 py-2 rounded-lg bg-input-bg border border-contrast/20 text-content text-sm focus:outline-none focus:border-gold/60 resize-none"
+                  className="w-full mt-1 resize-none"
                 />
               </div>
             </div>

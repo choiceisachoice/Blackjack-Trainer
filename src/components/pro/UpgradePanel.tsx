@@ -104,7 +104,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
             data-testid={`billing-${id}`}
             className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer transition-colors ${
               plan === id
-                ? 'bg-gradient-to-br from-gold-bright to-gold text-on-gold'
+                ? 'bg-gradient-to-b from-gold-bright to-gold text-on-gold'
                 : 'text-content/60 hover:text-content'
             }`}
           >
@@ -153,7 +153,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
           shadow-[0_0_0_1px_rgba(212,168,71,.14),0_30px_70px_-50px_rgba(212,168,71,.5)]">
           {isYearly && (
             <span className="absolute -top-2.5 right-5 text-[0.6875rem] font-extrabold tracking-wider
-              text-on-gold bg-gradient-to-br from-gold-bright to-gold px-2.5 py-0.5 rounded-full">
+              text-on-gold bg-gradient-to-b from-gold-bright to-gold px-2.5 py-0.5 rounded-full">
               {t('pricing.bestValue')}
             </span>
           )}
@@ -218,7 +218,7 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
             data-testid={`upgrade-${plan}`}
             className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3
               font-semibold cursor-pointer transition-colors disabled:opacity-60
-              bg-gradient-to-br from-gold-bright to-gold text-on-gold"
+              bg-gradient-to-b from-gold-bright to-gold text-on-gold"
           >
             {busy !== null && <Loader2 size={16} className="animate-spin" />}
             {/* Names the amount when it knows it. Unpriced the button still

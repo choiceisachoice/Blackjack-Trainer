@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { GraduationCap, Check, X } from 'lucide-react'
-import { Panel, Segmented, Button } from '../common/ui'
+import { Panel, Segmented, Button, StatCard } from '../common/ui'
 import { Action } from '../../engine/rules/types'
 import { buildFlashSession, enabledActions, type FlashLevel, type FlashQuestion } from '../../engine/strategy/flashcards'
 import { Trans, useTranslation } from 'react-i18next'
@@ -190,18 +190,9 @@ export function DeviationTraining() {
         <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
           <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">{t('training.common.sessionComplete')}</h3>
           <div className="grid grid-cols-2 gap-3 w-full text-center">
-            <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-              <div className="text-xs text-content/50">{t('training.common.accuracy')}</div>
-              <div className="text-xl font-bold text-content">{accuracy}%</div>
-            </div>
-            <div className="rounded-xl px-4 py-3 bg-contrast/5 border border-contrast/10">
-              <div className="text-xs text-content/50">{t('training.common.correct')}</div>
-              <div className="text-xl font-bold text-content">{totalCorrect}/{totalAttempts}</div>
-            </div>
-            <div className="rounded-xl px-4 py-3 col-span-2 bg-contrast/5 border border-contrast/10">
-              <div className="text-xs text-content/50">{t('training.common.bestStreak')}</div>
-              <div className="text-xl font-bold text-gold">{bestStreak}</div>
-            </div>
+            <StatCard label={t('training.common.accuracy')} value={`${accuracy}%`} />
+            <StatCard label={t('training.common.correct')} value={`${totalCorrect}/${totalAttempts}`} />
+            <StatCard label={t('training.common.bestStreak')} value={bestStreak} accent className="col-span-2" />
           </div>
           <Button className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
             {t('training.common.backToSettings')}

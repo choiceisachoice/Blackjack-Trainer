@@ -3,13 +3,28 @@ import { useTranslation } from 'react-i18next'
 import { Timer, Users, Wallet, Scale, GraduationCap, Volume2, Play, type LucideIcon } from 'lucide-react'
 import type { CasinoSessionConfig } from '../../engine/casino-session/types'
 import { TrainingBackdrop } from '../training/TrainingBackdrop'
+import { Field, Segmented, Toggle, Input } from '../common/ui'
 
 interface CasinoSessionConfigProps {
   initialConfig: CasinoSessionConfig
   onStart: (config: CasinoSessionConfig) => void
 }
 
-/* ── Small local primitives (dark-luxury form controls) ── */
+/*
+ * Two local primitives, and only two.
+ *
+ * `Field`, `Segmented` and `Toggle` used to be defined here as well — `Toggle`
+ * character for character identical to the one in `common/ui.tsx`, `Field` the
+ * same, `Segmented` the same minus its `fluid` option, which nothing on this
+ * screen passes. Fifty lines of a second copy that could drift from the first
+ * without anything failing. They now come from the shared module.
+ *
+ * `Panel` stays, and it is **not** the duplicate it looks like: this one draws a
+ * 32px icon tile with `rounded-lg`, the shared one draws a 40px `rounded-xl`
+ * tile through `IconTile`. Swapping it would change how this screen looks, which
+ * is a design decision and not a cleanup. `NumberField` has no shared
+ * equivalent at all.
+ */
 
 /** Collapsible-free titled panel with an icon. */
 function Panel({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: React.ReactNode }) {
@@ -26,66 +41,6 @@ function Panel({ icon: Icon, title, children }: { icon: LucideIcon; title: strin
   )
 }
 
-/** A row: label on the left, control on the right. */
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-sm text-content/60">{label}</span>
-      {children}
-    </div>
-  )
-}
-
-interface SegOption<T> { label: string; value: T }
-/** Segmented control — replaces native selects / radios for small option sets. */
-function Segmented<T extends string | number>({ options, value, onChange, ariaLabel }: {
-  options: SegOption<T>[]; value: T; onChange: (v: T) => void; ariaLabel: string
-}) {
-  return (
-    <div role="group" aria-label={ariaLabel} className="inline-flex p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
-      {options.map(opt => {
-        const active = opt.value === value
-        return (
-          <button
-            key={String(opt.value)}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onChange(opt.value)}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 cursor-pointer
-              ${active ? 'bg-gold text-on-gold shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
-          >
-            {opt.label}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-/** iOS-style toggle switch — replaces native checkboxes. */
-function Toggle({ checked, onChange, label, testId }: {
-  checked: boolean; onChange: (v: boolean) => void; label: string; testId?: string
-}) {
-  return (
-    <label className="flex items-center justify-between gap-4 cursor-pointer">
-      <span className="text-sm text-content/80">{label}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        data-testid={testId}
-        onClick={() => onChange(!checked)}
-        className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer shrink-0
-          ${checked ? 'bg-gold' : 'bg-contrast/15'}`}
-      >
-        <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200
-          ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
-      </button>
-    </label>
-  )
-}
-
 /** Styled numeric input. */
 function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
   value: number; min: number; max: number; step?: number; onChange: (v: number) => void; prefix?: string; label: string
@@ -93,7 +48,7 @@ function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
   return (
     <div className="relative">
       {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-content/40">{prefix}</span>}
-      <input
+      <Input
         type="number"
         aria-label={label}
         min={min}
@@ -101,8 +56,7 @@ function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
         step={step}
         value={value}
         onChange={e => onChange(Math.max(min, Math.min(max, parseInt(e.target.value) || min)))}
-        className={`w-28 bg-surface-2 border border-contrast/15 rounded-lg py-1.5 text-sm text-content text-right
-          hover:border-gold/40 focus:border-gold/60 transition-colors ${prefix ? 'pl-7 pr-3' : 'px-3'}`}
+        className={`w-28 py-1.5 text-right ${prefix ? 'pl-7 pr-3' : 'px-3'}`}
       />
     </div>
   )

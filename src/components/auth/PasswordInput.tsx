@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Eye, EyeOff } from 'lucide-react'
+import { Input } from '../common/ui'
 
 /**
  * A password box with a reveal toggle.
@@ -46,7 +47,7 @@ export function PasswordInput({
 
   return (
     <div className="relative">
-      <input
+      <Input
         id={id}
         type={shown ? 'text' : 'password'}
         required
@@ -59,8 +60,7 @@ export function PasswordInput({
         data-testid={testId}
         // Right padding leaves room for the button, so a long password scrolls
         // under the eye instead of behind it.
-        className="w-full rounded-xl border border-contrast/12 bg-contrast/[.03] pl-3.5 pr-11 py-2.5
-          text-content outline-none focus:border-gold/50 placeholder:text-content/25"
+        className="w-full rounded-xl pl-3.5 pr-11 py-2.5"
       />
       <button
         type="button"
