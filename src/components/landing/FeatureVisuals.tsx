@@ -8,17 +8,13 @@
  * All are decorative: every tile states its meaning in text, so each visual is
  * `aria-hidden` and carries no information of its own.
  */
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
+import { S17_STRATEGY } from '../../engine/strategy/basic-strategy-tables'
+import { ACTION_COLORS, ACTION_INK, DEVIATION_CELLS, formatTC, resolveAction, type DealerKey } from '../strategy-chart/chart-primitives'
 import { CasinoTable } from '../casino-session/CasinoTable'
 import { Rank, Suit, type Card } from '../../engine/shoe/types'
 import type { BotPlayer } from '../../engine/casino-session/types'
 import type { BotStatus } from '../casino-session/helpers'
-
-/** Chart action colours — must match StrategyChart's ACTION_COLORS. */
-const ACTION = {
-  hit: '#22c55e',
-  stand: '#eab308',
-} as const
 
 /** A miniature playing card. */
 function MiniCard({ rank, suit, red = false, className = '' }: {
@@ -205,42 +201,74 @@ const SHOWCASE_BOT_STATUS: Record<string, BotStatus> = { 'bot-0': 'stand', 'bot-
 const SHOWCASE_BOT_VISIBLE: Record<string, number> = { 'bot-0': 3, 'bot-1': 2 }
 const NO_DOUBLES = new Set<number>()
 
+/**
+ * The deviations tile — an excerpt of the real strategy chart.
+ *
+ * The drawing this replaces hard-coded "hit up to 16, stand on 17" for the
+ * slice it showed, which is not what the chart says: with late surrender, 16
+ * against 9, 10 and Ace and 15 against 10 are surrenders, in violet. A visitor
+ * who later opened the real chart would have found a different table from the
+ * one that sold it to them. These cells come from `S17_STRATEGY` through the
+ * same `resolveAction` the chart uses, wear the same fills and ink, carry the
+ * chart's own gold ring on every Illustrious 18 cell, and select 16 vs 10 with
+ * the chart's own white outline. The rule under it is the chart's own sentence
+ * (`chart.deviationRule`), not a pill invented for the landing page.
+ *
+ * Only the geometry is adapted to the tile: six rows against five upcards,
+ * tighter cells, a narrower label column.
+ */
 export function DeviationChartVisual() {
   const { t } = useTranslation()
-  const dealers = ['7', '8', '9', '10', 'A']
-  const players = ['12', '13', '14', '15', '16', '17']
+  const dealers: DealerKey[] = ['7', '8', '9', '10', 'A']
+  const rows = ['17', '16', '15', '14', '13', '12']
+  const selected = { hand: '16', dealer: '10' as DealerKey }
+  const dev = DEVIATION_CELLS[`${selected.hand}|${selected.dealer}`]
 
   return (
     <div aria-hidden className="inline-block">
-      <div className="flex gap-[3px] pl-[22px] mb-[3px]">
+      <div className="grid gap-px mb-px" style={{ gridTemplateColumns: '28px repeat(5, 30px)' }}>
+        <div />
         {dealers.map(d => (
-          <span key={d} className="w-[26px] text-center text-[0.65rem] font-semibold text-content/35 tabular-nums">{d}</span>
+          <div key={d} className="text-[0.65rem] font-semibold text-content/50 text-center py-0.5 tabular-nums">{d}</div>
         ))}
       </div>
-      {players.map(p => (
-        <div key={p} className="flex gap-[3px] mb-[3px] items-center">
-          <span className="w-[19px] text-right text-[0.65rem] font-semibold text-content/35 tabular-nums">{p}</span>
+      {rows.map(hand => (
+        <div key={hand} className="grid gap-px mb-px" style={{ gridTemplateColumns: '28px repeat(5, 30px)' }}>
+          <div className="text-[0.65rem] font-semibold text-content/70 flex items-center justify-center tabular-nums">{hand}</div>
           {dealers.map(d => {
-            // Basic strategy for this slice: hit everything up to 16, stand on 17.
-            const stand = p === '17'
-            const isDeviation = p === '16' && d === '10'
+            const action = resolveAction(S17_STRATEGY.hardTotals[hand][d])
+            const isDev = Boolean(DEVIATION_CELLS[`${hand}|${d}`])
+            const isSelected = hand === selected.hand && d === selected.dealer
             return (
-              <span
+              <div
                 key={d}
-                style={{ background: stand ? ACTION.stand : ACTION.hit }}
-                className={`w-[26px] h-[19px] rounded-[3px] grid place-items-center text-[0.65rem] font-bold text-black/75
-                  ${isDeviation ? 'ring-2 ring-gold ring-offset-1 ring-offset-[#0b0c0e] relative z-10' : 'opacity-60'}`}
+                className="relative flex items-center justify-center rounded text-[0.65rem] font-bold h-[22px]"
+                style={{
+                  backgroundColor: ACTION_COLORS[action],
+                  color: ACTION_INK,
+                  outline: isSelected ? '2px solid white' : 'none',
+                  outlineOffset: '-1px',
+                  boxShadow: isDev ? 'inset 0 0 0 2px #f0cd82' : undefined,
+                  zIndex: isSelected ? 1 : undefined,
+                }}
               >
-                {stand ? 'S' : 'H'}
-              </span>
+                {action}
+              </div>
             )
           })}
         </div>
       ))}
-      <div className="mt-2.5 inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold
-        text-gold bg-gold/10 border border-gold/30 rounded-full px-2 py-0.5">
-        {t('landing.visual.tcStand')}
-      </div>
+      {dev && (
+        <div className="mt-2.5 text-[0.6875rem] text-content/70 leading-snug">
+          <span className="font-semibold text-gold">{t('chart.countDeviation')}</span>
+          {' · '}
+          <Trans
+            i18nKey="chart.deviationRule"
+            values={{ tc: formatTC(dev.threshold), action: dev.above }}
+            components={{ b: <b className="text-content" /> }}
+          />
+        </div>
+      )}
     </div>
   )
 }

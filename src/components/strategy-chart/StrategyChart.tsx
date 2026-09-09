@@ -4,70 +4,18 @@ import type { Translate } from '../../i18n/translate'
 import { Lock } from 'lucide-react'
 import { S17_STRATEGY, H17_STRATEGY } from '../../engine/strategy/basic-strategy-tables'
 import type { StrategyAction, StrategyTable } from '../../engine/strategy/types'
-import { ILLUSTRIOUS_18 } from '../../engine/counting/deviations'
+import {
+  ACTION_COLORS,
+  ACTION_INK,
+  DEALER_KEYS,
+  DEVIATION_CELLS,
+  formatTC,
+  resolveAction,
+  type ChartAction,
+} from './chart-primitives'
 import { useAppStore } from '../../store/app-store'
 import { useIsPro } from '../../store/entitlement-store'
 import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
-
-/** A count-based deviation attached to a chart cell. */
-interface DevInfo {
-  /** 1-based number in the Illustrious 18 list. */
-  index: number
-  /** True-count threshold at/above which `above` applies. */
-  threshold: number
-  /** Action at/above the threshold. */
-  above: string
-  /** Action below the threshold. */
-  below: string
-}
-
-/**
- * Map of `playerHand|dealerUpcard` → deviation, derived from the engine's
- * Illustrious 18. Insurance (playerHand '*') is a side bet, not a chart cell.
- */
-const DEVIATION_CELLS: Record<string, DevInfo> = {}
-ILLUSTRIOUS_18.forEach((d, i) => {
-  if (d.playerHand === '*') return
-  DEVIATION_CELLS[`${d.playerHand}|${d.dealerUpcard}`] = {
-    index: i + 1,
-    threshold: d.trueCountThreshold,
-    above: d.actionAbove,
-    below: d.actionBelow,
-  }
-})
-
-/** Format a true count with an explicit sign (e.g. "+2", "0", "−1"). */
-function formatTC(tc: number): string {
-  if (tc > 0) return `+${tc}`
-  if (tc < 0) return `−${Math.abs(tc)}`
-  return '0'
-}
-
-/** Display action codes shown in chart cells. */
-type ChartAction = 'H' | 'S' | 'D' | 'SP' | 'SU'
-
-/** Background colors for each chart action. */
-const ACTION_COLORS: Record<ChartAction, string> = {
-  H: '#22c55e',
-  S: '#eab308',
-  D: '#3b82f6',
-  SP: '#ef4444',
-  SU: '#a855f7',
-}
-
-/**
- * The ink written on those fills.
- *
- * All five are saturated mid-tones, and white on a saturated mid-tone is the
- * classic near-miss: measured in the browser, white on #eab308 is **1.92:1**
- * and on #22c55e **2.28:1**, in both themes, on the table people consult most.
- *
- * The colour code itself is learned and stays exactly as it is — only the ink
- * changes, and dark ink clears AA on every one of the five unchanged fills
- * (H 8.37, S 9.94, D 5.18, SP 5.07, SU 4.82). Not `--color-casino-bg`: these
- * fills are the same in both themes, so their ink must be too.
- */
-const ACTION_INK = '#10100c'
 
 /**
  * The same five as text on a page surface rather than as a fill.
@@ -92,22 +40,6 @@ const ACTION_LABEL_KEY: Record<ChartAction, string> = {
   D: 'chart.action.D',
   SP: 'chart.action.SP',
   SU: 'chart.action.SU',
-}
-
-/** Dealer upcard columns in display order. */
-const DEALER_KEYS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'A'] as const
-
-/** Resolve a conditional StrategyAction to a simple ChartAction for display. */
-function resolveAction(action: StrategyAction): ChartAction {
-  switch (action) {
-    case 'H': return 'H'
-    case 'S': return 'S'
-    case 'D': return 'D'
-    case 'Ds': return 'D'
-    case 'P': return 'SP'
-    case 'Rh': return 'SU'
-    case 'Rs': return 'SU'
-  }
 }
 
 /** Full explanation text for the detail panel. */
