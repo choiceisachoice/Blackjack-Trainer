@@ -299,6 +299,18 @@ export class CasinoSessionEngine {
    * First checks for applicable deviations, then falls back to basic strategy.
    * @returns The correct action, whether it's a deviation, and the deviation name
    */
+  /**
+   * True when the session is played on basic strategy alone.
+   *
+   * In that mode there is no count, so nothing that depends on one may apply:
+   * no deviations, no count prompts, no bet sizing, and insurance is always the
+   * wrong bet. Each of those rules lives in its own method below and asks this
+   * first, so the mode cannot be half-applied.
+   */
+  isBasicPlay(): boolean {
+    return this.config.playStyle === 'basic'
+  }
+
   getCorrectAction(
     playerCards: Card[],
     dealerUpCard: Card,
@@ -308,6 +320,13 @@ export class CasinoSessionEngine {
     _canSurrender: boolean,
   ): { action: Action; isDeviation: boolean; deviationName?: string } {
     const bsAction = getOptimalAction(playerCards, dealerUpCard, this.casinoRules)
+
+    // Without a count the index plays do not exist. Grading against them would
+    // mark a correct basic-strategy decision wrong every time a deviation
+    // situation came up — the one thing this mode must never do.
+    if (this.isBasicPlay()) {
+      return { action: bsAction, isDeviation: false }
+    }
 
     // Pairs: if BS says Split, always split (hard-total deviations like
     // "16 vs 10" do NOT apply to pairs like 8,8). Only pair-specific
@@ -359,6 +378,7 @@ export class CasinoSessionEngine {
    * Insurance is correct at TC >= +3 (I18 #1).
    */
   getCorrectInsurance(trueCount: number): boolean {
+    if (this.isBasicPlay()) return false
     return trueCount >= 3
   }
 
@@ -934,11 +954,16 @@ export class CasinoSessionEngine {
     // renormalize. An absent component (counting turned off, or no deviation
     // situations this session) must NOT be scored as a phantom 100%, which
     // would inflate the grade and hand out top achievements for nothing.
+    //
+    // In basic play, betting and deviations are not merely absent — they are
+    // not part of the game being graded. A flat bettor without a count would
+    // otherwise be marked against a spread they were never asked to follow.
+    const basic = this.isBasicPlay()
     const scoreParts: Array<{ value: number; weight: number }> = [
-      { value: betAccuracy, weight: betDecisions.length > 0 ? 0.25 : 0 },
+      { value: betAccuracy, weight: !basic && betDecisions.length > 0 ? 0.25 : 0 },
       { value: playAccuracy, weight: allDecisions.length > 0 ? 0.40 : 0 },
       { value: countAccuracy, weight: countChecks.length > 0 ? 0.25 : 0 },
-      { value: deviationAccuracy, weight: deviationHands.length > 0 ? 0.10 : 0 },
+      { value: deviationAccuracy, weight: !basic && deviationHands.length > 0 ? 0.10 : 0 },
     ]
     const totalWeight = scoreParts.reduce((sum, p) => sum + p.weight, 0)
     const overallScore = totalWeight > 0
@@ -1021,6 +1046,7 @@ export class CasinoSessionEngine {
     dealerUpCard: Card,
     trueCount: number,
   ): { name: string; correctAction: Action } | null {
+    if (this.isBasicPlay()) return null
     const bsAction = getOptimalAction(playerCards, dealerUpCard, this.casinoRules)
     const playDeviations = this.allDeviations.filter(d => d.playerHand !== '*')
 
@@ -1049,6 +1075,7 @@ export class CasinoSessionEngine {
    * @returns true if a count check should be performed
    */
   shouldCheckCount(handNumber: number): boolean {
+    if (this.isBasicPlay()) return false
     switch (this.config.countCheckFrequency) {
       case 'every': return true
       case 'every5': return handNumber % 5 === 0

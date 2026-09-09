@@ -984,6 +984,75 @@ describe('CasinoSessionEngine', () => {
       expect(result.overallScore).toBeLessThan(50)
     })
 
+    describe('basic play style — Just Blackjack', () => {
+      const basic = () =>
+        new CasinoSessionEngine(createTestConfig({ playStyle: 'basic', countCheckFrequency: 'every' }))
+
+      it('never asks for the count, whatever the frequency says', () => {
+        const e = basic()
+        expect(e.shouldCheckCount(1)).toBe(false)
+        expect(e.shouldCheckCount(5)).toBe(false)
+        expect(e.shouldCheckCount(10)).toBe(false)
+      })
+
+      it('grades basic strategy even where a deviation would fire', () => {
+        // Hard 12 vs 3 at TC +3. The Illustrious 18 index is +2, so a counter
+        // stands here; basic strategy hits. A player who is not counting cannot
+        // know the index, so the basic play must be the correct one — otherwise
+        // the mode marks correct play wrong in every deviation situation.
+        //
+        // (Not 16 vs 10: with late surrender on, basic strategy there is
+        // Surrender, which is what made the first version of this test wrong.)
+        const hand = [card(Rank.Ten), card(Rank.Two)]
+        const up = card(Rank.Three)
+
+        // Control: the same spot in a counting session really is a deviation.
+        const counting = new CasinoSessionEngine(createTestConfig()).getCorrectAction(hand, up, 3, false, true, true)
+        expect(counting.action).toBe(Action.Stand)
+        expect(counting.isDeviation).toBe(true)
+
+        const r = basic().getCorrectAction(hand, up, 3, false, true, true)
+        expect(r.action).toBe(Action.Hit)
+        expect(r.isDeviation).toBe(false)
+      })
+
+      it('reports no deviation situations', () => {
+        expect(basic().checkDeviation([card(Rank.Ten), card(Rank.Six)], card(Rank.Ten), 3)).toBeNull()
+      })
+
+      it('insurance is never the right call without a count', () => {
+        expect(basic().getCorrectInsurance(5)).toBe(false)
+      })
+
+      it('the grade rests on play alone — a bad bet and a missed deviation cost nothing', () => {
+        const e = basic()
+        e.recordHand(perfectHand({
+          countChecked: false,
+          betCorrect: false,
+          betError: 200,
+          decisions: [{ action: 'Hit', correctAction: 'Stand', isCorrect: false, handValueAfter: 22 }],
+          firstActionCorrect: false,
+        }))
+        const r = e.calculateSessionResult(0, 1000)
+        expect(r.overallScore).toBe(0)
+        expect(r.grade).toBe('F')
+      })
+
+      it('a perfect basic-strategy session is an A+ regardless of the bets', () => {
+        const e = basic()
+        e.recordHand(perfectHand({ countChecked: false, betCorrect: false, betError: 200 }))
+        const r = e.calculateSessionResult(0, 1000)
+        expect(r.overallScore).toBeCloseTo(100, 0)
+        expect(r.grade).toBe('A+')
+      })
+
+      it('a counting session still grades the bets (control)', () => {
+        const e = new CasinoSessionEngine(createTestConfig({ countCheckFrequency: 'never' }))
+        e.recordHand(perfectHand({ countChecked: false, wasDeviationSituation: false, betCorrect: false, betError: 200 }))
+        expect(e.calculateSessionResult(0, 1000).overallScore).toBeLessThan(100)
+      })
+    })
+
     it('grade assignment matches score ranges', () => {
       const engine = new CasinoSessionEngine(createTestConfig({ countCheckFrequency: 'every' }))
       engine.recordHand(perfectHand())

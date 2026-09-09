@@ -39,6 +39,17 @@ export interface CasinoSessionConfig {
   /** Maximum number of hands a player can hold after splitting. */
   maxSplitHands: number
 
+  /**
+   * How the session is played and graded.
+   *
+   * `'counting'` is the trainer as it always was: the count is tracked, bets are
+   * graded against the spread, deviations apply, and the player is quizzed on
+   * RC/TC. `'basic'` is Blackjack without any of that — no count prompts, no
+   * deviations, no bet sizing — graded on basic strategy alone. Optional so a
+   * config saved before the field existed still loads as a counting session.
+   */
+  playStyle?: 'counting' | 'basic'
+
   /** Whether to show feedback after every hand. */
   trainingMode: boolean
   /** How often the player is asked to input their running/true count. */

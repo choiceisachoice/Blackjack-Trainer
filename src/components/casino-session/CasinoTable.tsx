@@ -199,17 +199,26 @@ export function CasinoTable({
         {/* Curved gold legend — sits in the UPPER part of the open felt so it
             keeps clear of the seats' betting spots below (a little overlap is
             fine once cards are out, but not during betting). */}
-        <div className="relative flex-1 min-h-0 flex items-center justify-center">
+        {/*
+          The status line ("Bots spielen…", "Dealer zieht…") used to be an
+          absolute overlay pinned to the bottom of this band. On a short window
+          the band shrinks, the legend is centred inside it, and its last line —
+          INSURANCE PAYS 2 TO 1 — landed exactly where the overlay was pinned.
+          Two texts on top of each other. The line is in normal flow now, under
+          the legend, with its height reserved so the legend does not jump when
+          the message comes and goes.
+        */}
+        <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5">
           <div className="w-[min(80%,620px)]">
             <TableLegend blackjackPays={blackjackPays} dealerHitsSoft17={dealerHitsSoft17} />
           </div>
-          {centerMessage && (
-            <div className="absolute inset-x-0 bottom-1 flex justify-center pointer-events-none">
+          <div className="h-5 flex items-center justify-center pointer-events-none" aria-live="polite">
+            {centerMessage && (
               <span className={`text-sm italic ${gameStep === 'insurance' ? 'text-gold font-semibold' : 'text-white/50'}`}>
                 {centerMessage}
               </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Seats row — self-sizing blocks following the table's arc (outer seats sit higher) */}

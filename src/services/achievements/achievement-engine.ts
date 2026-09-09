@@ -654,14 +654,18 @@ export class AchievementEngine {
         // A grade only means something over a real session, not two lucky hands.
         return details.handsPlayed >= MIN_GRADE_HANDS && details.overallScore >= value
       case 'casino_bet_accuracy':
-        return details.betAccuracy >= value
+        // Bet sizing is a counting skill. In "Just Blackjack" there is no count
+        // to size from, so every bet is recorded as correct and betAccuracy is
+        // 100 by construction — an unlock there would be paid for nothing.
+        return details.playStyle !== 'basic' && details.betAccuracy >= value
       case 'casino_play_accuracy':
         return details.playAccuracy >= value
       case 'casino_count_accuracy':
         return (details.totalCountChecks ?? 0) >= MIN_COUNT_CHECKS &&
                details.countAccuracy >= value
       case 'casino_triple':
-        return (details.totalCountChecks ?? 0) >= MIN_COUNT_CHECKS &&
+        return details.playStyle !== 'basic' &&
+               (details.totalCountChecks ?? 0) >= MIN_COUNT_CHECKS &&
                details.betAccuracy >= value &&
                details.playAccuracy >= value &&
                details.countAccuracy >= value

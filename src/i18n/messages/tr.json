@@ -506,7 +506,11 @@
       "showFeedback": "Her elden sonra geri bildirim göster",
       "showHints": "Sapma ipuçlarını göster",
       "sound": "Ses",
-      "ambience": "Kumarhane atmosferi"
+      "ambience": "Kumarhane atmosferi",
+      "playStyle": "Oyun tarzı",
+      "styleCounting": "Kart sayma",
+      "styleBasic": "Sadece Blackjack",
+      "styleBasicHint": "Running count yok, true count yok — sadece oyna. Yalnızca temel strateji değerlendirilir ve yine de XP kazanırsın."
     },
     "table": {
       "you": "SİZ",
@@ -576,7 +580,8 @@
       "playAgain": "Tekrar oyna",
       "home": "Ana sayfa",
       "overallScore": "Genel puan: %{{pct}}",
-      "anomalies": "Oturum sırasında saptanan anormallik: {{count}}"
+      "anomalies": "Oturum sırasında saptanan anormallik: {{count}}",
+      "basicMode": "Sadece Blackjack · temel stratejiye göre değerlendirildi"
     },
     "review": {
       "correct": "Doğru",

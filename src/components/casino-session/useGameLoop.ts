@@ -1041,8 +1041,11 @@ export function useGameLoop(
 
     const tc = engine.getTrueCount()
     const rc = engine.getRunningCount()
-    const correctBet = engine.getCorrectBet(tc)
-    const betCorrect = engine.isBetCorrect(clampedBet, correctBet)
+    // Without a count there is no bet to size from, so the bet the player
+    // chose *is* the correct bet — flat betting is the whole strategy.
+    const basic = engine.isBasicPlay()
+    const correctBet = basic ? clampedBet : engine.getCorrectBet(tc)
+    const betCorrect = basic ? true : engine.isBetCorrect(clampedBet, correctBet)
 
     soundEngine.chipPlace()
 

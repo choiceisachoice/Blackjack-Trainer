@@ -506,7 +506,11 @@
       "showFeedback": "Show feedback after each hand",
       "showHints": "Show deviation hints",
       "sound": "Sound",
-      "ambience": "Casino ambience"
+      "ambience": "Casino ambience",
+      "playStyle": "Play style",
+      "styleCounting": "Card counting",
+      "styleBasic": "Just Blackjack",
+      "styleBasicHint": "No running count, no true count — just play. Only basic strategy is graded, and you still earn XP."
     },
     "table": {
       "you": "YOU",
@@ -576,7 +580,8 @@
       "playAgain": "Play Again",
       "home": "Home",
       "overallScore": "Overall Score: {{pct}}%",
-      "anomalies": "Anomalies detected during the session: {{count}}"
+      "anomalies": "Anomalies detected during the session: {{count}}",
+      "basicMode": "Just Blackjack · graded on basic strategy"
     },
     "review": {
       "correct": "Correct",

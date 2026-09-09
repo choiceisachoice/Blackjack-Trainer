@@ -70,6 +70,7 @@ function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
 export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessionConfigProps) {
   const { t } = useTranslation()
   const [config, setConfig] = useState<CasinoSessionConfig>(initialConfig)
+  const basicPlay = config.playStyle === 'basic'
 
   const update = <K extends keyof CasinoSessionConfig>(key: K, val: CasinoSessionConfig[K]) =>
     setConfig(prev => ({ ...prev, [key]: val }))
@@ -178,6 +179,35 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
 
           {/* Training options */}
           <Panel icon={GraduationCap} title={t('casino.setup.trainingOptions')}>
+            {/*
+              The first question on the table is whether the player is counting
+              at all. "Just Blackjack" is the same table without the count: no
+              RC/TC prompts, no deviations, bets not graded — basic strategy
+              only, still with feedback, still with a grade and XP. Choosing it
+              also turns the count-dependent options off underneath, so a stale
+              'every5' cannot survive in a config that no longer asks.
+            */}
+            <Field label={t('casino.setup.playStyle')}>
+              <Segmented
+                ariaLabel={t('casino.setup.playStyle')}
+                value={config.playStyle ?? 'counting'}
+                onChange={v => setConfig(c => ({
+                  ...c,
+                  playStyle: v,
+                  ...(v === 'basic' ? { countCheckFrequency: 'never' as const, showDeviationHints: false } : {}),
+                }))}
+                options={[
+                  { label: t('casino.setup.styleCounting'), value: 'counting' as const },
+                  { label: t('casino.setup.styleBasic'), value: 'basic' as const },
+                ]}
+              />
+            </Field>
+            {basicPlay && (
+              <p className="text-xs text-content/50 leading-relaxed" data-testid="basic-play-hint">
+                {t('casino.setup.styleBasicHint')}
+              </p>
+            )}
+            {!basicPlay && (
             <Field label={t('casino.setup.countCheck')}>
               <Segmented
                 ariaLabel={t('casino.setup.countCheck')}
@@ -191,9 +221,12 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
                 ]}
               />
             </Field>
+            )}
             <div className="pt-1 space-y-3">
               <Toggle label={t('casino.setup.showFeedback')} checked={config.trainingMode} onChange={v => update('trainingMode', v)} />
-              <Toggle label={t('casino.setup.showHints')} checked={config.showDeviationHints} onChange={v => update('showDeviationHints', v)} />
+              {!basicPlay && (
+                <Toggle label={t('casino.setup.showHints')} checked={config.showDeviationHints} onChange={v => update('showDeviationHints', v)} />
+              )}
             </div>
           </Panel>
 

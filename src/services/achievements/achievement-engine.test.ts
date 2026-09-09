@@ -447,6 +447,23 @@ describe('AchievementEngine', () => {
       expect(unlocked.some(a => a.id === 'casino_first_session')).toBe(true)
     })
 
+    it('a Just-Blackjack session cannot buy the betting achievement (regression)', () => {
+      // In basic play every bet is recorded as correct, so betAccuracy is 100
+      // by construction. Without the play-style guard this unlocked
+      // casino_bet_master for playing a single session without a count.
+      const stats = makeStats({ totalSessions: 1, byMode: { casinoSession: { totalSessions: 1, totalQuestions: 40, totalCorrect: 32, accuracy: 0.8, bestAccuracy: 0.8, totalPracticeSeconds: 300, bestStreak: 0 } } })
+
+      const basic = makeCasinoSession({ playStyle: 'basic', betAccuracy: 100, totalCountChecks: 0, totalDeviationSituations: 0 })
+      const unlockedBasic = engine.checkAfterSession(basic, stats, 0, [basic])
+      expect(unlockedBasic.some(a => a.id === 'casino_bet_master')).toBe(false)
+      expect(unlockedBasic.some(a => a.id === 'casino_triple_threat')).toBe(false)
+
+      // Control: the same numbers in a counting session do unlock it.
+      const counting = makeCasinoSession({ playStyle: 'counting', betAccuracy: 100 })
+      const unlockedCounting = engine.checkAfterSession(counting, stats, 0, [counting])
+      expect(unlockedCounting.some(a => a.id === 'casino_bet_master')).toBe(true)
+    })
+
     it('casino grade A+ achievement requires 95%+', () => {
       // 94% — not enough
       const lowSession = makeCasinoSession({ overallScore: 94, grade: 'A' })

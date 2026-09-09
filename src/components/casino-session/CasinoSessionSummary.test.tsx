@@ -93,3 +93,25 @@ describe('CasinoSessionSummary', () => {
     expect(screen.queryByTestId('anomaly-warning')).toBeNull()
   })
 })
+
+describe('CasinoSessionSummary — Just Blackjack', () => {
+  const basic: CasinoSessionResult = { ...RESULT, config: { ...DEFAULT_CONFIG, playStyle: 'basic' } }
+
+  it('says which game was graded', () => {
+    render(<CasinoSessionSummary result={basic} onPlayAgain={vi.fn()} onHome={vi.fn()} />)
+    expect(screen.getByTestId('summary-basic-mode')).toBeTruthy()
+  })
+
+  it('does not report a count the player was never asked for', () => {
+    // The counting row's detail is the literal "RC: x/y, TC: x/y" — not
+    // translated, so it is a safe handle across every locale the tests run in.
+    render(<CasinoSessionSummary result={basic} onPlayAgain={vi.fn()} onHome={vi.fn()} />)
+    expect(screen.queryByText(/RC: \d+\/\d+/)).toBeNull()
+  })
+
+  it('still reports the count in a counting session (control)', () => {
+    render(<CasinoSessionSummary result={RESULT} onPlayAgain={vi.fn()} onHome={vi.fn()} />)
+    expect(screen.getByText(/RC: \d+\/\d+/)).toBeTruthy()
+    expect(screen.queryByTestId('summary-basic-mode')).toBeNull()
+  })
+})

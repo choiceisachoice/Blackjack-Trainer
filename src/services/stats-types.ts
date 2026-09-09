@@ -100,6 +100,11 @@ export interface CasinoSessionDetails {
   deviationAccuracy: number
   /** How many deviation situations actually arose — the sample size behind deviationAccuracy. */
   totalDeviationSituations?: number
+  /**
+   * Whether the session was played on the count or on basic strategy alone.
+   * Optional: sessions recorded before the mode existed were all counting.
+   */
+  playStyle?: 'counting' | 'basic'
   /** Number of bots at the table. */
   numBots: number
   /** Whether the player got a blackjack during the session. */

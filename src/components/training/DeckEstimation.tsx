@@ -419,24 +419,39 @@ export function DeckEstimation() {
           </div>
         )}
 
-        {/* Realistic discard tray on felt — estimate the decks played */}
-        <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="large" />
+        {/*
+          The tray and the answers have to be on screen together. In Quick Fire
+          there are three seconds to answer, and the buttons used to sit below
+          the fold — the player looked at the tray, scrolled, and lost the round
+          to the scrollbar. On a wide screen the two sit side by side; on a
+          narrow one the answer row sticks to the bottom of the scroll box, so
+          it stays in reach while the tray is in view above it.
+        */}
+        <div className="w-full max-w-4xl flex flex-col items-center gap-6 md:grid md:grid-cols-[auto_minmax(0,1fr)] md:items-center md:gap-10">
+          <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="large" />
 
-        <p className="text-content font-medium text-center">{t('training.deck.howMany')}</p>
+          <div
+            className="w-full flex flex-col items-center gap-4
+              sticky bottom-0 z-10 py-3 -mb-6 bg-casino-bg/90 backdrop-blur-sm
+              md:static md:py-0 md:mb-0 md:bg-transparent md:backdrop-blur-none"
+          >
+            <p className="text-content font-medium text-center">{t('training.deck.howMany')}</p>
 
-        {/* Deck option buttons */}
-        <div className="flex flex-wrap gap-2 justify-center max-w-lg">
-          {deckOptions.map(d => (
-            <button
-              key={d}
-              onClick={() => handleAnswer(d)}
-              data-testid={`deck-${d}`}
-              className="px-4 py-2.5 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
-                rounded-xl transition-colors cursor-pointer text-sm min-w-[56px]"
-            >
-              {d}
-            </button>
-          ))}
+            {/* Deck option buttons */}
+            <div className="flex flex-wrap gap-2 justify-center max-w-lg">
+              {deckOptions.map(d => (
+                <button
+                  key={d}
+                  onClick={() => handleAnswer(d)}
+                  data-testid={`deck-${d}`}
+                  className="px-4 py-2.5 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
+                    rounded-xl transition-colors cursor-pointer text-sm min-w-[56px]"
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     )

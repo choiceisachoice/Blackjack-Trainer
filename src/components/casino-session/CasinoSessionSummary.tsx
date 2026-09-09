@@ -27,6 +27,16 @@ interface CasinoSessionSummaryProps {
 export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: CasinoSessionSummaryProps) {
   const { t } = useTranslation()
   const anomalyCount = recorder?.getAnomalyCount() ?? 0
+  // In basic play the count never existed, so the rows that measure it would
+  // report a phantom 100% for something the player was never asked to do.
+  const basicPlay = result.config.playStyle === 'basic'
+  const accuracyRows = [
+    { key: 'betting', label: t('casino.summary.betting'), val: result.betAccuracy, detail: `${result.correctBetDecisions}/${result.totalBetDecisions}` },
+    { key: 'play', label: t('casino.summary.play'), val: result.playAccuracy, detail: `${result.correctPlayDecisions}/${result.totalPlayDecisions}` },
+    { key: 'counting', label: t('casino.summary.counting'), val: result.countAccuracy, detail: `RC: ${result.correctRCChecks}/${result.totalCountChecks}, TC: ${result.correctTCChecks}/${result.totalCountChecks}` },
+    { key: 'deviations', label: t('casino.summary.deviations'), val: result.deviationAccuracy, detail: `${result.correctDeviations}/${result.totalDeviationSituations}` },
+    { key: 'insurance', label: t('casino.summary.insurance'), val: result.insuranceAccuracy, detail: `${result.correctInsuranceDecisions}/${result.totalInsuranceOffers}` },
+  ].filter(r => !basicPlay || r.key === 'play' || r.key === 'insurance')
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6">
@@ -39,6 +49,11 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
           <div className="text-sm text-content/50">
             {t('casino.summary.overallScore', { pct: result.overallScore.toFixed(1) })}
           </div>
+          {basicPlay && (
+            <div className="text-xs text-content/40 mt-1" data-testid="summary-basic-mode">
+              {t('casino.summary.basicMode')}
+            </div>
+          )}
         </div>
 
         {/* Bankroll Summary */}
@@ -63,13 +78,7 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
         {/* Accuracy Breakdown */}
         <div className="bg-contrast/5 rounded-xl p-4 border border-contrast/10 space-y-3">
           <h3 className="text-sm font-semibold text-gold">{t('casino.summary.accuracy')}</h3>
-          {[
-            { label: t('casino.summary.betting'), val: result.betAccuracy, detail: `${result.correctBetDecisions}/${result.totalBetDecisions}` },
-            { label: t('casino.summary.play'), val: result.playAccuracy, detail: `${result.correctPlayDecisions}/${result.totalPlayDecisions}` },
-            { label: t('casino.summary.counting'), val: result.countAccuracy, detail: `RC: ${result.correctRCChecks}/${result.totalCountChecks}, TC: ${result.correctTCChecks}/${result.totalCountChecks}` },
-            { label: t('casino.summary.deviations'), val: result.deviationAccuracy, detail: `${result.correctDeviations}/${result.totalDeviationSituations}` },
-            { label: t('casino.summary.insurance'), val: result.insuranceAccuracy, detail: `${result.correctInsuranceDecisions}/${result.totalInsuranceOffers}` },
-          ].map(({ label, val, detail }) => (
+          {accuracyRows.map(({ label, val, detail }) => (
             <div key={label}>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-content/70">{label}</span>
@@ -88,10 +97,14 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
             <span className="text-content text-right">{result.hands.length}</span>
             <span className="text-content/60">{t('casino.summary.duration')}</span>
             <span className="text-content text-right">{formatTime(result.durationSeconds)}</span>
-            <span className="text-content/60">{t('casino.summary.avgRcError')}</span>
-            <span className="text-content text-right">{result.avgRCError.toFixed(1)}</span>
-            <span className="text-content/60">{t('casino.summary.avgTcError')}</span>
-            <span className="text-content text-right">{result.avgTCError.toFixed(1)}</span>
+            {!basicPlay && (
+              <>
+                <span className="text-content/60">{t('casino.summary.avgRcError')}</span>
+                <span className="text-content text-right">{result.avgRCError.toFixed(1)}</span>
+                <span className="text-content/60">{t('casino.summary.avgTcError')}</span>
+                <span className="text-content text-right">{result.avgTCError.toFixed(1)}</span>
+              </>
+            )}
           </div>
         </div>
 

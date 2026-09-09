@@ -506,7 +506,11 @@
       "showFeedback": "Mostrar comentarios tras cada mano",
       "showHints": "Mostrar pistas de desviación",
       "sound": "Sonido",
-      "ambience": "Ambiente de casino"
+      "ambience": "Ambiente de casino",
+      "playStyle": "Estilo de juego",
+      "styleCounting": "Conteo de cartas",
+      "styleBasic": "Solo Blackjack",
+      "styleBasicHint": "Sin running count ni true count: solo juega. Solo se evalúa la estrategia básica y aun así ganas XP."
     },
     "table": {
       "you": "TÚ",
@@ -576,7 +580,8 @@
       "playAgain": "Jugar otra vez",
       "home": "Inicio",
       "overallScore": "Puntuación global: {{pct}} %",
-      "anomalies": "Anomalías detectadas durante la sesión: {{count}}"
+      "anomalies": "Anomalías detectadas durante la sesión: {{count}}",
+      "basicMode": "Solo Blackjack · evaluado por estrategia básica"
     },
     "review": {
       "correct": "Correcto",

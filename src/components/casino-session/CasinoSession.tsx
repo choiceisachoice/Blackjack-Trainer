@@ -128,6 +128,7 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
       totalCountChecks: sessionResult.totalCountChecks,
       deviationAccuracy: sessionResult.deviationAccuracy,
       totalDeviationSituations: sessionResult.totalDeviationSituations,
+      playStyle: sessionResult.config.playStyle ?? 'counting',
       numBots: sessionResult.config.numBots,
       hadBlackjack,
       longestWinStreak,
@@ -143,8 +144,12 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
         blackjackPays: sessionResult.config.blackjackPays,
       },
     }
-    const totalDecisions = sessionResult.totalPlayDecisions + sessionResult.totalBetDecisions
-    const correctDecisions = sessionResult.correctPlayDecisions + sessionResult.correctBetDecisions
+    // XP follows the same rule as the grade: in basic play the bets are not a
+    // decision the player was asked to get right, so they do not count against
+    // the accuracy that sets the XP tier.
+    const basicPlay = sessionResult.config.playStyle === 'basic'
+    const totalDecisions = sessionResult.totalPlayDecisions + (basicPlay ? 0 : sessionResult.totalBetDecisions)
+    const correctDecisions = sessionResult.correctPlayDecisions + (basicPlay ? 0 : sessionResult.correctBetDecisions)
     // Fire-and-forget by design: the session, the XP and the achievements are
     // all applied synchronously inside, and persistence is best-effort and
     // cannot reject. See the tail of `recordSession`.

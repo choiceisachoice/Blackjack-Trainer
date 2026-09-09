@@ -506,7 +506,11 @@
       "showFeedback": "Nach jeder Hand Rückmeldung zeigen",
       "showHints": "Abweichungs-Hinweise zeigen",
       "sound": "Ton",
-      "ambience": "Casino-Atmosphäre"
+      "ambience": "Casino-Atmosphäre",
+      "playStyle": "Spielstil",
+      "styleCounting": "Kartenzählen",
+      "styleBasic": "Nur Blackjack",
+      "styleBasicHint": "Kein Running Count, kein True Count – einfach spielen. Bewertet wird nur die Basisstrategie, XP gibt es trotzdem."
     },
     "table": {
       "you": "DU",
@@ -576,7 +580,8 @@
       "playAgain": "Noch eine Session",
       "home": "Startseite",
       "overallScore": "Gesamtwertung: {{pct}} %",
-      "anomalies": "Auffälligkeiten während der Session: {{count}}"
+      "anomalies": "Auffälligkeiten während der Session: {{count}}",
+      "basicMode": "Nur Blackjack · bewertet nach Basisstrategie"
     },
     "review": {
       "correct": "Richtig",

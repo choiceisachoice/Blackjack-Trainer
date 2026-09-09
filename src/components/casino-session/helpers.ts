@@ -39,6 +39,7 @@ export const DEFAULT_CONFIG: CasinoSessionConfig = {
   blackjackPays: 1.5,
   penetration: 0.75,
   maxSplitHands: 4,
+  playStyle: 'counting',
   trainingMode: true,
   countCheckFrequency: 'every5',
   showDeviationHints: true,

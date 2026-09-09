@@ -506,7 +506,11 @@
       "showFeedback": "Afficher un retour après chaque main",
       "showHints": "Afficher les indices de déviation",
       "sound": "Son",
-      "ambience": "Ambiance casino"
+      "ambience": "Ambiance casino",
+      "playStyle": "Style de jeu",
+      "styleCounting": "Comptage des cartes",
+      "styleBasic": "Blackjack seul",
+      "styleBasicHint": "Pas de running count ni de true count — jouez simplement. Seule la stratégie de base est notée, et vous gagnez quand même des XP."
     },
     "table": {
       "you": "VOUS",
@@ -576,7 +580,8 @@
       "playAgain": "Rejouer",
       "home": "Accueil",
       "overallScore": "Score global : {{pct}} %",
-      "anomalies": "Anomalies détectées pendant la session : {{count}}"
+      "anomalies": "Anomalies détectées pendant la session : {{count}}",
+      "basicMode": "Blackjack seul · noté sur la stratégie de base"
     },
     "review": {
       "correct": "Correct",
