@@ -86,8 +86,17 @@ function DiscardScene({ remainingCards, totalCards, size }: {
       className="relative rounded-2xl"
       style={{
         padding: isLarge ? '20px 40px 28px' : '12px 24px 16px',
-        background: 'radial-gradient(ellipse 130% 100% at 50% 0%, #12613a 0%, #0c4a2d 55%, #083a24 100%)',
-        border: `${isLarge ? 10 : 6}px solid #4a2f18`,
+        // Same felt and wood as the casino table, read from the theme. The hex
+        // here was `#12613a` and `#4a2f18` — the exact token values, retyped —
+        // so this swap changes nothing on screen and removes the second copy
+        // that would have drifted the next time the felt was tuned. The darker
+        // stops derive from the token the way the table's do.
+        background:
+          'radial-gradient(ellipse 130% 100% at 50% 0%,' +
+          ' var(--color-felt) 0%,' +
+          ' color-mix(in srgb, var(--color-felt) 78%, black) 55%,' +
+          ' color-mix(in srgb, var(--color-felt) 60%, black) 100%)',
+        border: `${isLarge ? 10 : 6}px solid var(--color-wood)`,
         boxShadow: 'inset 0 0 60px rgba(0,0,0,0.35), 0 10px 40px rgba(0,0,0,0.5)',
       }}
     >
