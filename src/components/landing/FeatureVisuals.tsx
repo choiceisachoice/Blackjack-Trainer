@@ -10,7 +10,7 @@
  */
 import { Trans, useTranslation } from 'react-i18next'
 import { S17_STRATEGY } from '../../engine/strategy/basic-strategy-tables'
-import { ACTION_COLORS, ACTION_INK, DEVIATION_CELLS, formatTC, resolveAction, type DealerKey } from '../strategy-chart/chart-primitives'
+import { ACTION_COLORS, ACTION_INK, DEVIATION_CELLS, actionLabelKey, formatTC, resolveAction, type DealerKey } from '../strategy-chart/chart-primitives'
 import { CasinoTable } from '../casino-session/CasinoTable'
 import { Rank, Suit, type Card } from '../../engine/shoe/types'
 import type { BotPlayer } from '../../engine/casino-session/types'
@@ -264,7 +264,7 @@ export function DeviationChartVisual() {
           {' · '}
           <Trans
             i18nKey="chart.deviationRule"
-            values={{ tc: formatTC(dev.threshold), action: dev.above }}
+            values={{ tc: formatTC(dev.threshold), action: t(actionLabelKey(dev.above)) }}
             components={{ b: <b className="text-content" /> }}
           />
         </div>

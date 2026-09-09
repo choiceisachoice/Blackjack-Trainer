@@ -9,6 +9,7 @@ import {
   ACTION_INK,
   DEALER_KEYS,
   DEVIATION_CELLS,
+  actionLabelKey,
   formatTC,
   resolveAction,
   type ChartAction,
@@ -310,10 +311,10 @@ export function StrategyChart() {
               <p className="text-content/70 text-xs mt-1">
                 <Trans
                   i18nKey="chart.deviationRule"
-                  values={{ tc: formatTC(selectedDev.threshold), action: selectedDev.above }}
+                  values={{ tc: formatTC(selectedDev.threshold), action: t(actionLabelKey(selectedDev.above)) }}
                   components={{ b: <b className="text-content" /> }}
                 />
-                <span className="text-content/40"> {t('chart.belowThat', { action: selectedDev.below })}</span>
+                <span className="text-content/40"> {t('chart.belowThat', { action: t(actionLabelKey(selectedDev.below)) })}</span>
               </p>
             </div>
           )}

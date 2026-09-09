@@ -4,6 +4,7 @@ import { S17_STRATEGY } from '../../engine/strategy/basic-strategy-tables'
 import {
   ACTION_COLORS,
   ACTION_INK,
+  actionLabelKey,
   DEALER_KEYS,
   DEVIATION_CELLS,
   formatTC,
@@ -43,6 +44,16 @@ describe('chart-primitives', () => {
     const plays = ILLUSTRIOUS_18.filter(d => d.playerHand !== '*')
     expect(Object.keys(DEVIATION_CELLS)).toHaveLength(plays.length)
     expect(DEVIATION_CELLS['*|A']).toBeUndefined()
+  })
+
+  it('maps the engine action names onto the chart label keys, and passes the rest through', () => {
+    expect(actionLabelKey('Hit')).toBe('chart.action.H')
+    expect(actionLabelKey('Stand')).toBe('chart.action.S')
+    expect(actionLabelKey('Double')).toBe('chart.action.D')
+    expect(actionLabelKey('Split')).toBe('chart.action.SP')
+    expect(actionLabelKey('Surrender')).toBe('chart.action.SU')
+    // No cell code exists for this; it must not become a missing-key string.
+    expect(actionLabelKey('Insurance')).toBe('Insurance')
   })
 
   it('carries the play the landing page shows: 16 vs 10 stands from TC 0', () => {

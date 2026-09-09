@@ -82,6 +82,28 @@ ILLUSTRIOUS_18.forEach((d, i) => {
   }
 })
 
+/**
+ * The translation key for an engine action name as the chart labels it.
+ *
+ * The deviation list carries the engine's `Action` values — `'Stand'`,
+ * `'Hit'` — and both the chart's detail panel and the landing tile used to
+ * print them verbatim, which put an English word inside every other language's
+ * sentence ("Ab True Count 0 → Stand"). The chart already has translated
+ * labels for its five cell codes; this maps the engine's name onto them.
+ * Returns the name itself for anything without a cell code, so an unexpected
+ * value shows as text rather than as a missing key.
+ */
+export function actionLabelKey(action: string): string {
+  switch (action) {
+    case 'Hit': return 'chart.action.H'
+    case 'Stand': return 'chart.action.S'
+    case 'Double': return 'chart.action.D'
+    case 'Split': return 'chart.action.SP'
+    case 'Surrender': return 'chart.action.SU'
+    default: return action
+  }
+}
+
 /** Format a true count with an explicit sign (e.g. "+2", "0", "−1"). */
 export function formatTC(tc: number): string {
   if (tc > 0) return `+${tc}`
