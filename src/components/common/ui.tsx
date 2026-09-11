@@ -77,12 +77,19 @@ export function Panel({ icon, title, subtitle, className = '', children }: {
   )
 }
 
-/** Label-left / control-right row. */
+/**
+ * Label-left / control-right row.
+ *
+ * Wraps. The penetration row of the casino setup carries five options, and at
+ * the card width that screen lays out the control was wider than the space
+ * beside its label — it ran out of its card and over the tip column. A control
+ * that does not fit beside its label drops below it, still on the right.
+ */
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
       <span className="text-sm text-content/60">{label}</span>
-      {children}
+      <span className="ml-auto flex items-center max-w-full">{children}</span>
     </div>
   )
 }

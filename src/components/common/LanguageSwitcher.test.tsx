@@ -36,7 +36,7 @@ describe('LanguageSwitcher', () => {
 
   it('names the current language, so the button is not a mystery glyph', () => {
     render(<LanguageSwitcher />)
-    // The trigger shows a card corner — "EN" over a pip. Without a label a
+    // The trigger shows the code — "EN" — and a chevron. Without a label a
     // screen reader would read two characters and no purpose.
     expect(screen.getByTestId('language-switcher')).toHaveAccessibleName(/English/)
   })

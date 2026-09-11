@@ -91,7 +91,17 @@
     "sectionData": "DEINE DATEN",
     "deleteHistoryHint": "Entfernt deine Sessions und die daraus gebaute Auswertung. Level, XP und Erfolge bleiben.",
     "deleteAccount": "Konto löschen",
-    "deleteAccountHint": "Um dein Konto und alles, was dazu gespeichert ist, zu löschen, schreib an {{email}} — von der Adresse, mit der du dich registriert hast."
+    "deleteAccountHint": "Um dein Konto und alles, was dazu gespeichert ist, zu löschen, schreib an {{email}} — von der Adresse, mit der du dich registriert hast.",
+    "displayName": "Anzeigename",
+    "saveName": "Namen speichern",
+    "nameSaved": "Name gespeichert.",
+    "nameInvalid": "Verwende {{min}} bis {{max}} Zeichen.",
+    "nameSaveFailed": "Dein Name konnte nicht gespeichert werden. Nichts wurde geändert — bitte versuch es noch einmal.",
+    "xp": "XP",
+    "sessions": "Sessions",
+    "achievements": "Erfolge",
+    "downloadData": "Meine Daten herunterladen",
+    "downloadDataHint": "Eine JSON-Datei mit deinen Sessions, Erfolgen, deinem Level und dem Bankroll-Protokoll — alles, was diese App über dich gespeichert hat."
   },
   "pricing": {
     "vatNote": "Endpreis, inkl. {{rate}}% Schweizer MWST für Kunden in der Schweiz",

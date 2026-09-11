@@ -91,7 +91,17 @@
     "sectionData": "YOUR DATA",
     "deleteHistoryHint": "Removes your sessions and the analytics built from them. Level, XP and achievements stay.",
     "deleteAccount": "Delete account",
-    "deleteAccountHint": "To delete your account and everything stored with it, write to {{email}} from the address you signed up with."
+    "deleteAccountHint": "To delete your account and everything stored with it, write to {{email}} from the address you signed up with.",
+    "displayName": "Display name",
+    "saveName": "Save name",
+    "nameSaved": "Name saved.",
+    "nameInvalid": "Use between {{min}} and {{max}} characters.",
+    "nameSaveFailed": "Your name could not be saved. Nothing was changed — please try again.",
+    "xp": "XP",
+    "sessions": "Sessions",
+    "achievements": "Achievements",
+    "downloadData": "Download my data",
+    "downloadDataHint": "A JSON file with your sessions, achievements, level and bankroll log — everything this app holds about you."
   },
   "pricing": {
     "vatNote": "Final price, incl. {{rate}}% Swiss VAT for customers in Switzerland",

@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { Timer, Users, Wallet, Scale, GraduationCap, Volume2, Play, type LucideIcon } from 'lucide-react'
 import type { CasinoSessionConfig } from '../../engine/casino-session/types'
 import { TrainingBackdrop } from '../training/TrainingBackdrop'
-import { Field, Segmented, Toggle, Input } from '../common/ui'
+import { Field, Segmented, Toggle, Input, Slider } from '../common/ui'
+import { useAppStore } from '../../store/app-store'
+import { casinoAmbient } from '../../services/casino-ambient'
 
 interface CasinoSessionConfigProps {
   initialConfig: CasinoSessionConfig
@@ -70,6 +72,10 @@ function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
 export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessionConfigProps) {
   const { t } = useTranslation()
   const [config, setConfig] = useState<CasinoSessionConfig>(initialConfig)
+  const soundEnabled = useAppStore(s => s.soundEnabled)
+  const toggleSound = useAppStore(s => s.toggleSound)
+  // Mirrored from the singleton so the slider moves; the singleton persists.
+  const [ambientVolume, setAmbientVolume] = useState(() => casinoAmbient.volume)
   const basicPlay = config.playStyle === 'basic'
 
   const update = <K extends keyof CasinoSessionConfig>(key: K, val: CasinoSessionConfig[K]) =>
@@ -231,8 +237,23 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
           </Panel>
 
           {/* Sound */}
+          {/*
+            The sound panel used to hold one toggle and a lot of air. The
+            effects switch is the same one as the nav bar's mute button; the
+            ambience volume was only reachable from the HUD mid-session, which
+            is the one moment nobody wants to reach for it.
+          */}
           <Panel icon={Volume2} title={t('casino.setup.sound')}>
+            <Toggle label={t('account.sounds')} checked={soundEnabled} onChange={() => toggleSound()} testId="toggle-sound-effects" />
             <Toggle label={t('casino.setup.ambience')} checked={config.casinoAmbience} onChange={v => update('casinoAmbience', v)} testId="toggle-ambience" />
+            {config.casinoAmbience && (
+              <Slider
+                label={t('casino.hud.ambientVolume')}
+                value={ambientVolume}
+                onChange={v => { casinoAmbient.volume = v; setAmbientVolume(v) }}
+                testId="setup-ambient-volume"
+              />
+            )}
           </Panel>
         </div>
 

@@ -29,6 +29,18 @@ vi.mock('../services/supabase/billing', () => ({
   startCheckout: vi.fn(),
 }))
 
+const updateDisplayName = vi.fn<(name: string) => Promise<void>>()
+vi.mock('../services/supabase/profile-name', async importOriginal => ({
+  ...(await importOriginal<typeof import('../services/supabase/profile-name')>()),
+  updateDisplayName: (name: string) => updateDisplayName(name),
+}))
+
+const downloadJson = vi.fn<(name: string, data: unknown) => void>()
+vi.mock('../services/data-export', async importOriginal => ({
+  ...(await importOriginal<typeof import('../services/data-export')>()),
+  downloadJson: (name: string, data: unknown) => downloadJson(name, data),
+}))
+
 import { AccountPage } from './AccountPage'
 import { supabase } from '../services/supabase/client'
 import { useAuthStore } from '../store/auth-store'
@@ -60,6 +72,53 @@ describe('profile', () => {
     renderPage()
     expect(screen.getByText('ada@example.com')).toBeInTheDocument()
     expect(screen.getByTestId('account-member-since')).toHaveTextContent(/2026/)
+  })
+
+  it('shows the name chosen at sign-up, which nothing displayed before', () => {
+    useAuthStore.setState({
+      user: { id: 'u1', email: 'ada@example.com', user_metadata: { username: 'Ada' } } as never,
+    })
+    renderPage()
+    expect(screen.getByTestId('account-display-name')).toHaveTextContent('Ada')
+  })
+
+  it('shows level, XP, sessions and achievements from the stores', () => {
+    renderPage()
+    expect(screen.getByTestId('account-stats')).toBeInTheDocument()
+    expect(screen.getByText('Level')).toBeInTheDocument()
+    expect(screen.getByText('XP')).toBeInTheDocument()
+  })
+
+  it('edits the name in place and reports the save', async () => {
+    updateDisplayName.mockResolvedValue(undefined)
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-edit-name'))
+    fireEvent.change(screen.getByTestId('account-name-input'), { target: { value: '  Ada  Lovelace ' } })
+    fireEvent.click(screen.getByTestId('account-name-save'))
+    expect(await screen.findByTestId('account-name-saved', {}, T)).toBeInTheDocument()
+    // Normalised before it leaves the page: trimmed, inner whitespace collapsed.
+    expect(updateDisplayName).toHaveBeenCalledWith('Ada Lovelace')
+  })
+
+  it('refuses a one-letter name before asking the server', () => {
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-edit-name'))
+    fireEvent.change(screen.getByTestId('account-name-input'), { target: { value: 'A' } })
+    fireEvent.click(screen.getByTestId('account-name-save'))
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    expect(updateDisplayName).not.toHaveBeenCalled()
+  })
+
+  it('says so when the save fails, and keeps the field open to retry', async () => {
+    updateDisplayName.mockRejectedValue(new Error('permission denied'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-edit-name'))
+    fireEvent.change(screen.getByTestId('account-name-input'), { target: { value: 'Ada' } })
+    fireEvent.click(screen.getByTestId('account-name-save'))
+    const alert = await screen.findByRole('alert', {}, T)
+    expect(alert.textContent).not.toContain('permission denied')
+    expect(screen.getByTestId('account-name-input')).toBeInTheDocument()
   })
 })
 
@@ -99,6 +158,15 @@ describe('preferences', () => {
 })
 
 describe('your data', () => {
+  it('hands over a dated JSON file with the person’s data', () => {
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-export-data'))
+    expect(downloadJson).toHaveBeenCalledOnce()
+    const [name, data] = downloadJson.mock.calls[0]
+    expect(name).toMatch(/^blackjack-trainer-\d{4}-\d{2}-\d{2}\.json$/)
+    expect(data).toMatchObject({ app: 'blackjack-trainer', version: 1, email: 'ada@example.com' })
+  })
+
   it('asks before deleting the training history and does nothing on cancel', () => {
     const resetAllStats = vi.fn().mockResolvedValue(undefined)
     useStatsStore.setState({ resetAllStats })

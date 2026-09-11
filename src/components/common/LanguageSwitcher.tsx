@@ -1,59 +1,26 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Check, ChevronDown, Languages } from 'lucide-react'
 import { LOCALES, LOCALE_NAMES, resolveLocale, type Locale } from '../../i18n/locales'
 import { setLocale } from '../../i18n'
-
-/**
- * A suit per language, cycling the four.
- *
- * Not decoration for its own sake: it makes seven otherwise identical chips
- * read as a *hand* at a glance, and gives each language a fixed shape a
- * returning visitor can aim for without reading. Red on the red suits, because
- * a deck where every card is gold is not a deck.
- */
-const SUIT: Record<Locale, { glyph: string; red: boolean }> = {
-  en: { glyph: '♠', red: false },
-  de: { glyph: '♥', red: true },
-  fr: { glyph: '♦', red: true },
-  it: { glyph: '♣', red: false },
-  es: { glyph: '♠', red: false },
-  pt: { glyph: '♥', red: true },
-  tr: { glyph: '♦', red: true },
-}
-
-/**
- * The corner of a playing card: rank over pip.
- *
- * The trainer draws its real cards this way — a rank index in the corner and a
- * pip beneath it — so the switcher is built from the app's own vocabulary
- * rather than a borrowed globe. The language code takes the rank's place.
- */
-function CardCorner({ locale, size = 'sm' }: { locale: Locale; size?: 'sm' | 'md' }) {
-  const suit = SUIT[locale]
-  return (
-    <span
-      aria-hidden
-      className={`flex flex-col items-center justify-center leading-none rounded-[3px]
-        ${size === 'md' ? 'w-7 h-9 gap-1' : 'w-6 h-6 gap-px'}`}
-    >
-      <span className={`font-bold tracking-tight text-gold ${size === 'md' ? 'text-[0.8rem]' : 'text-[0.68rem]'}`}>
-        {locale.toUpperCase()}
-      </span>
-      <span className={`${suit.red ? 'text-chip-red' : 'text-content/45'} ${size === 'md' ? 'text-[0.7rem]' : 'text-[0.55rem]'}`}>
-        {suit.glyph}
-      </span>
-    </span>
-  )
-}
 
 interface LanguageSwitcherProps {
   className?: string
 }
 
 /**
- * Choosing the language — a hand of cards rather than a dropdown.
+ * Choosing the language.
  *
- * ## Why this is not a native `<select>` any more
+ * ## Why it looks like a language menu and not a hand of cards
+ *
+ * An earlier version drew each language as a playing-card corner — the code
+ * where the rank goes, a suit beneath it. Seven languages over four suits meant
+ * three pairs shared a card, which made the one control that must be legible
+ * before anything else can be read into a puzzle. This is the plain form:
+ * the current code on the trigger, every language named in itself in the list,
+ * the code beside it, a tick on the chosen one.
+ *
+ * ## Why this is not a native `<select>`
  *
  * The native element used to be the whole argument: keyboard, screen reader and
  * a phone's own picker, all for free. Giving that up means re-earning it by
@@ -149,22 +116,22 @@ export function LanguageSwitcher({ className = '' }: LanguageSwitcherProps) {
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
         aria-label={`${t('common.language')}: ${LOCALE_NAMES[current]}`}
-        // Lifts and tilts on hover — a card being picked up off the felt.
-        // `h-8` to sit at the same size as the icon buttons beside it. Both
-        // rows it lives in have a fixed height and centre their children, so
-        // this is about looking of a piece, not about preventing a shift.
-        className={`group grid place-items-center h-8 rounded-md border px-1.5 cursor-pointer
-          transition-[transform,border-color,box-shadow] duration-200 will-change-transform
-          motion-safe:hover:-translate-y-0.5 motion-safe:hover:-rotate-2
+        // `h-8` to sit at the same size as the icon buttons beside it in the
+        // nav bar; the same height reads as one row of controls, not two.
+        className={`inline-flex items-center gap-1.5 h-8 rounded-lg border px-2.5 cursor-pointer
+          text-sm font-semibold text-content/80 transition-colors
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60
           ${open
-            ? 'border-gold/60 shadow-[0_6px_18px_-10px_var(--color-gold)]'
-            : 'border-contrast/15 hover:border-gold/45 hover:shadow-[0_6px_18px_-12px_var(--color-gold)]'}`}
-        style={{
-          background: 'linear-gradient(160deg, color-mix(in srgb, var(--color-surface-2) 88%, transparent), var(--color-surface))',
-        }}
+            ? 'border-gold/60 text-content bg-contrast/5'
+            : 'border-contrast/15 hover:border-gold/45 hover:text-content'}`}
       >
-        <CardCorner locale={current} />
+        <Languages size={15} className="text-content/50" aria-hidden />
+        <span className="tracking-wide">{current.toUpperCase()}</span>
+        <ChevronDown
+          size={14}
+          aria-hidden
+          className={`text-content/40 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
@@ -174,11 +141,11 @@ export function LanguageSwitcher({ className = '' }: LanguageSwitcherProps) {
           aria-label={t('common.language')}
           aria-activedescendant={`${listId}-${active}`}
           data-testid="language-list"
-          className="absolute right-0 top-full mt-2 z-50 min-w-[11.5rem] p-1.5 rounded-xl
-            border border-gold/25 bg-surface/95 backdrop-blur-sm
+          className="absolute right-0 top-full mt-2 z-50 min-w-[12.5rem] p-1.5 rounded-xl
+            border border-contrast/12 bg-surface/95 backdrop-blur-sm
             shadow-[0_24px_60px_-28px_rgba(0,0,0,.9)]"
         >
-          {LOCALES.map((locale, i) => {
+          {LOCALES.map(locale => {
             const selected = locale === current
             return (
               <li
@@ -189,28 +156,19 @@ export function LanguageSwitcher({ className = '' }: LanguageSwitcherProps) {
                 data-testid={`language-option-${locale}`}
                 onClick={() => choose(locale)}
                 onPointerEnter={() => setActive(locale)}
-                // Dealt out one after another. `motion-safe` only — a stagger
-                // is charm, and charm is the first thing to drop when someone
-                // has asked the system for less movement.
-                className={`motion-safe:animate-[rise-in_.22s_ease-out_both] flex items-center gap-2.5
-                  px-2 py-1.5 rounded-lg cursor-pointer transition-colors
-                  ${locale === active ? 'bg-gold/12' : ''}
+                className={`flex items-center gap-3 px-2.5 py-2 rounded-lg cursor-pointer transition-colors
+                  ${locale === active ? 'bg-contrast/8' : ''}
                   ${selected ? 'text-content' : 'text-content/70'}`}
-                style={{ animationDelay: `${i * 28}ms` }}
               >
                 <span
-                  className={`grid place-items-center rounded-[4px] border shrink-0
-                    ${selected ? 'border-gold/55' : 'border-contrast/12'}`}
-                  style={{
-                    background: 'linear-gradient(160deg, color-mix(in srgb, var(--color-surface-2) 92%, transparent), var(--color-surface))',
-                  }}
+                  aria-hidden
+                  className={`w-7 shrink-0 text-[0.65rem] font-bold tracking-wider text-center
+                    ${selected ? 'text-gold' : 'text-content/40'}`}
                 >
-                  <CardCorner locale={locale} size="md" />
+                  {locale.toUpperCase()}
                 </span>
                 <span className="text-sm font-medium truncate">{LOCALE_NAMES[locale]}</span>
-                {/* The card already dealt: a thin gold edge, no tick — the
-                    raised card is the state, the same way it is at a table. */}
-                {selected && <span aria-hidden className="ml-auto w-1 h-5 rounded-full bg-gold shrink-0" />}
+                {selected && <Check size={15} aria-hidden className="ml-auto text-gold shrink-0" />}
               </li>
             )
           })}

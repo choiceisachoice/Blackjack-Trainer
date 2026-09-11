@@ -91,7 +91,17 @@
     "sectionData": "VERİLERİN",
     "deleteHistoryHint": "Oturumlarını ve onlardan oluşturulan analizleri kaldırır. Seviye, XP ve başarılar kalır.",
     "deleteAccount": "Hesabı sil",
-    "deleteAccountHint": "Hesabını ve onunla birlikte saklanan her şeyi silmek için kayıt olduğun adresten {{email}} adresine yaz."
+    "deleteAccountHint": "Hesabını ve onunla birlikte saklanan her şeyi silmek için kayıt olduğun adresten {{email}} adresine yaz.",
+    "displayName": "Görünen ad",
+    "saveName": "Adı kaydet",
+    "nameSaved": "Ad kaydedildi.",
+    "nameInvalid": "{{min}} ile {{max}} karakter arasında kullan.",
+    "nameSaveFailed": "Adın kaydedilemedi. Hiçbir şey değişmedi — lütfen tekrar dene.",
+    "xp": "XP",
+    "sessions": "Oturumlar",
+    "achievements": "Başarılar",
+    "downloadData": "Verilerimi indir",
+    "downloadDataHint": "Oturumların, başarıların, seviyen ve kasa kaydınla birlikte bir JSON dosyası — bu uygulamanın senin hakkında sakladığı her şey."
   },
   "pricing": {
     "vatNote": "Nihai fiyat; İsviçre'deki müşteriler için %{{rate}} İsviçre KDV'si dâhildir",
