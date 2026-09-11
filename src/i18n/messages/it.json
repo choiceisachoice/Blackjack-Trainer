@@ -119,7 +119,14 @@
       "kingHearts": "Re di cuori",
       "queenDiamonds": "Regina di quadri",
       "jackClubs": "Fante di fiori"
-    }
+    },
+    "avatarLevel": "Livello {{level}}",
+    "avatarLockedLevel": "Si sblocca al livello {{level}}",
+    "avatarLockedAchievement": "Si sblocca con il traguardo: {{name}}",
+    "avatarGroupBase": "Tue fin dall’inizio",
+    "avatarGroupLevels": "Una per livello",
+    "avatarGroupAchievements": "Per i traguardi più difficili",
+    "avatarUnlockedCount": "{{n}} di {{total}} sbloccate"
   },
   "pricing": {
     "vatNote": "Prezzo finale, IVA svizzera dell'{{rate}}% inclusa per i clienti in Svizzera",

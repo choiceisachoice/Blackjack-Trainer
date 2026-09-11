@@ -119,7 +119,14 @@
       "kingHearts": "Kupa papazı",
       "queenDiamonds": "Karo kızı",
       "jackClubs": "Sinek valesi"
-    }
+    },
+    "avatarLevel": "Seviye {{level}}",
+    "avatarLockedLevel": "Seviye {{level}}’de açılır",
+    "avatarLockedAchievement": "Şu başarıyla açılır: {{name}}",
+    "avatarGroupBase": "Baştan itibaren senin",
+    "avatarGroupLevels": "Her seviyeye bir tane",
+    "avatarGroupAchievements": "En zor başarılar için",
+    "avatarUnlockedCount": "{{total}} resimden {{n}} tanesi açık"
   },
   "pricing": {
     "vatNote": "Nihai fiyat; İsviçre'deki müşteriler için %{{rate}} İsviçre KDV'si dâhildir",

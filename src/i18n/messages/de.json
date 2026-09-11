@@ -119,7 +119,14 @@
       "kingHearts": "Herz-König",
       "queenDiamonds": "Karo-Dame",
       "jackClubs": "Kreuz-Bube"
-    }
+    },
+    "avatarLevel": "Level {{level}}",
+    "avatarLockedLevel": "Ab Level {{level}}",
+    "avatarLockedAchievement": "Mit dem Erfolg: {{name}}",
+    "avatarGroupBase": "Von Anfang an deine",
+    "avatarGroupLevels": "Eines pro Level",
+    "avatarGroupAchievements": "Für die schwersten Erfolge",
+    "avatarUnlockedCount": "{{n}} von {{total}} freigeschaltet"
   },
   "pricing": {
     "vatNote": "Endpreis, inkl. {{rate}}% Schweizer MWST für Kunden in der Schweiz",

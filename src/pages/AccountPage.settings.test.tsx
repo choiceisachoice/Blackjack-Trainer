@@ -54,6 +54,9 @@ import { useAppStore } from '../store/app-store'
 import { useStatsStore } from '../store/stats-store'
 import { useEntitlementStore } from '../store/entitlement-store'
 import { casinoAmbient } from '../services/casino-ambient'
+import { useLevelStore } from '../store/level-store'
+import { useAchievementStore } from '../store/achievement-store'
+import { LEVELS } from '../services/level-system'
 
 const auth = (supabase as unknown as { auth: Record<string, ReturnType<typeof vi.fn>> }).auth
 const renderPage = () => render(<MemoryRouter><AccountPage /></MemoryRouter>)
@@ -71,6 +74,8 @@ beforeEach(() => {
   })
   useEntitlementStore.setState({ status: 'free', currentPeriodEnd: null, cancelAtPeriodEnd: false, loaded: true })
   useAppStore.setState({ soundEnabled: true, soundVolume: 0.3, dealingSpeed: 'slow' })
+  useLevelStore.setState({ level: LEVELS[0] })
+  useAchievementStore.setState({ unlockedIds: [], totalUnlocked: 0 })
 })
 
 describe('profile', () => {
@@ -129,12 +134,51 @@ describe('profile', () => {
 })
 
 describe('profile picture', () => {
-  it('opens a tray of the initial plus twelve presets', () => {
+  it('opens the whole catalogue: the initial, twelve base pictures and thirty-nine to earn', () => {
     renderPage()
     fireEvent.click(screen.getByTestId('account-avatar-button'))
     const tray = screen.getByTestId('account-avatar-tray')
-    expect(tray.querySelectorAll('button')).toHaveLength(13)
+    expect(tray.querySelectorAll('button[data-testid^="account-avatar-"]')).toHaveLength(1 + 51)
     // Nothing chosen yet, so the initial is the pressed one.
+    expect(screen.getByTestId('account-avatar-initial')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('account-avatar-count')).toHaveTextContent(/12 of 51/)
+  })
+
+  it('shows a locked picture greyed, says what earns it, and will not take it', () => {
+    // A picture you cannot see is not something to aim for, so locked ones
+    // stay visible — but a click on one must not reach the server.
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-avatar-button'))
+    const locked = screen.getByTestId('account-avatar-level-7')
+    expect(locked).toBeDisabled()
+    expect(locked).toHaveAttribute('title', expect.stringMatching(/level 7/i))
+    fireEvent.click(locked)
+    expect(updateAvatar).not.toHaveBeenCalled()
+
+    const award = screen.getByTestId('account-avatar-ach-legendary')
+    expect(award).toBeDisabled()
+    expect(award).toHaveAttribute('title', expect.stringMatching(/Legendary/))
+  })
+
+  it('opens the level pictures up to the current level', () => {
+    useLevelStore.setState({ level: LEVELS[6] })   // level 7
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-avatar-button'))
+    expect(screen.getByTestId('account-avatar-level-7')).toBeEnabled()
+    expect(screen.getByTestId('account-avatar-level-8')).toBeDisabled()
+    expect(screen.getByTestId('account-avatar-count')).toHaveTextContent(/18 of 51/)
+  })
+
+  it('does not draw a stored picture that was not earned', () => {
+    // The metadata is client-writable. Level 1, claiming the level-25 picture:
+    // the header falls back to the initial and the catalogue shows nothing pressed but it.
+    useAuthStore.setState({
+      user: { id: 'u1', email: 'ada@example.com', user_metadata: { avatar: 'level-25' } } as never,
+    })
+    renderPage()
+    // The pencil badge is an SVG too; the picture is the one on the 64-unit canvas.
+    expect(screen.getByTestId('account-avatar-button').querySelector('svg[viewBox="0 0 64 64"]')).toBeNull()
+    fireEvent.click(screen.getByTestId('account-avatar-button'))
     expect(screen.getByTestId('account-avatar-initial')).toHaveAttribute('aria-pressed', 'true')
   })
 

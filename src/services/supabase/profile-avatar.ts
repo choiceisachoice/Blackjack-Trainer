@@ -1,37 +1,14 @@
 import type { User } from '@supabase/supabase-js'
 import { requireSupabase } from './client'
+import { isAvatarId, type AvatarId, type BaseAvatarId } from '../avatar-catalog'
 
-/**
- * The pictures a person can choose from, drawn by the app in its own
- * vocabulary — the four suits, four chips, four court cards.
- *
- * Presets rather than uploads, deliberately. An uploaded photo needs a storage
- * bucket, per-user policies, client-side resizing and something to do about a
- * picture that should not be there; a preset needs one string in the auth
- * metadata. The ids are stable — they are what gets stored — so a rename here
- * would orphan every account that chose the old one.
- */
-export const AVATAR_IDS = [
-  'spade', 'heart', 'diamond', 'club',
-  'chip-red', 'chip-blue', 'chip-green', 'chip-black',
-  'ace-spades', 'king-hearts', 'queen-diamonds', 'jack-clubs',
-] as const
+export type { AvatarId } from '../avatar-catalog'
+export { AVATAR_IDS, BASE_AVATAR_IDS, isAvatarId } from '../avatar-catalog'
 
-export type AvatarId = (typeof AVATAR_IDS)[number]
-
-/** The translation key naming an avatar, for its accessible name. */
-export function avatarLabelKey(id: AvatarId): string {
+/** The translation key naming a base picture, for its accessible name. */
+export function avatarLabelKey(id: BaseAvatarId): string {
   const camel = id.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
   return `account.avatar.${camel}`
-}
-
-/**
- * Whether a stored value names one of the presets.
- *
- * @param value - Whatever the metadata holds
- */
-export function isAvatarId(value: unknown): value is AvatarId {
-  return typeof value === 'string' && (AVATAR_IDS as readonly string[]).includes(value)
 }
 
 /**
@@ -41,6 +18,10 @@ export function isAvatarId(value: unknown): value is AvatarId {
  * `profiles.settings`: the profile sync rewrites that jsonb from a copy it
  * took at sign-in, so a value written there separately would be overwritten
  * by the next XP push.
+ *
+ * This says what was *chosen*, not what may be shown — the metadata is
+ * client-writable. `resolveAvatar` in the catalogue does the second half
+ * against the stores.
  *
  * @param user - The signed-in user, or null
  */
@@ -53,7 +34,7 @@ export function avatarOf(user: User | null): AvatarId | null {
 /**
  * Choose a picture, or none.
  *
- * @param id - A preset id, or null to go back to the initial
+ * @param id - A catalogue id, or null to go back to the initial
  * @throws When the metadata write fails
  */
 export async function updateAvatar(id: AvatarId | null): Promise<void> {

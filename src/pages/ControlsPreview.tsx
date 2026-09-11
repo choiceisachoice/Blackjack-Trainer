@@ -5,7 +5,7 @@ import { Action } from '../engine/rules/types'
 import { ProgressBar, Input, Skeleton, Button, Tooltip, EmptyState } from '../components/common/ui'
 import { BarChart3, TrendingUp, Lock } from 'lucide-react'
 import { Avatar } from '../components/common/Avatar'
-import { AVATAR_IDS } from '../services/supabase/profile-avatar'
+import { AVATAR_CATALOG, BASE_AVATAR_IDS } from '../services/avatar-catalog'
 
 /**
  * TEMPORARY side-by-side review harness. Delete after review.
@@ -323,21 +323,28 @@ export function ControlsPreview() {
       </section>
 
       <section>
-        <h2 className="text-sm font-semibold tracking-wide text-gold mb-4">11 · Profilbilder — die Initiale und zwölf Vorlagen</h2>
-        <div className="surface p-6 inline-block">
-          <p className="text-xs tracking-[0.18em] text-content/40 mb-3">64 PX, WIE IM PROFILKOPF</p>
+        <h2 className="text-sm font-semibold tracking-wide text-gold mb-4">11 · Profilbilder — 12 Grundlagen, 24 Level, 15 Erfolge</h2>
+        <div className="surface p-6 inline-block max-w-3xl">
+          <p className="text-xs tracking-[0.18em] text-content/40 mb-3">GRUNDLAGEN — 64 PX, WIE IM PROFILKOPF</p>
           <div className="flex flex-wrap gap-3">
             <Avatar id={null} initial="D" size={64} className="rounded-2xl" />
-            {AVATAR_IDS.map(id => <Avatar key={id} id={id} initial="D" size={64} className="rounded-2xl" />)}
+            {BASE_AVATAR_IDS.map(id => <Avatar key={id} id={id} initial="D" size={64} className="rounded-2xl" />)}
           </div>
-          <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">44 PX, WIE IM AUSWAHLFELD</p>
+          <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">EINES PRO LEVEL, 2 BIS 25 — 44 PX, WIE IM AUSWAHLFELD</p>
           <div className="flex flex-wrap gap-2">
-            <Avatar id={null} initial="D" size={44} className="rounded-[10px]" />
-            {AVATAR_IDS.map(id => <Avatar key={id} id={id} initial="D" size={44} className="rounded-[10px]" />)}
+            {AVATAR_CATALOG.filter(d => d.unlock.kind === 'level').map(d => (
+              <Avatar key={d.id} id={d.id} initial="D" size={44} className="rounded-[10px]" />
+            ))}
+          </div>
+          <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">FÜR DIE SCHWERSTEN ERFOLGE — 64 PX</p>
+          <div className="flex flex-wrap gap-3">
+            {AVATAR_CATALOG.filter(d => d.unlock.kind === 'achievement').map(d => (
+              <Avatar key={d.id} id={d.id} initial="D" size={64} className="rounded-2xl" />
+            ))}
           </div>
           <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">22 PX, WIE IN DER NAVBAR</p>
           <div className="flex flex-wrap gap-2 items-center">
-            {AVATAR_IDS.map(id => <Avatar key={id} id={id} initial="D" size={22} className="rounded-md" />)}
+            {AVATAR_CATALOG.map(d => <Avatar key={d.id} id={d.id} initial="D" size={22} className="rounded-md" />)}
           </div>
         </div>
       </section>

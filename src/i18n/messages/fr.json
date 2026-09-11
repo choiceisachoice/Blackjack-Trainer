@@ -119,7 +119,14 @@
       "kingHearts": "Roi de cœur",
       "queenDiamonds": "Dame de carreau",
       "jackClubs": "Valet de trèfle"
-    }
+    },
+    "avatarLevel": "Niveau {{level}}",
+    "avatarLockedLevel": "Se débloque au niveau {{level}}",
+    "avatarLockedAchievement": "Se débloque avec le succès : {{name}}",
+    "avatarGroupBase": "À toi dès le départ",
+    "avatarGroupLevels": "Une par niveau",
+    "avatarGroupAchievements": "Pour les succès les plus durs",
+    "avatarUnlockedCount": "{{n}} sur {{total}} débloquées"
   },
   "pricing": {
     "vatNote": "Prix final, TVA suisse de {{rate}}% incluse pour les clients en Suisse",

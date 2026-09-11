@@ -119,7 +119,14 @@
       "kingHearts": "Rey de corazones",
       "queenDiamonds": "Reina de diamantes",
       "jackClubs": "Jota de tréboles"
-    }
+    },
+    "avatarLevel": "Nivel {{level}}",
+    "avatarLockedLevel": "Se desbloquea en el nivel {{level}}",
+    "avatarLockedAchievement": "Se desbloquea con el logro: {{name}}",
+    "avatarGroupBase": "Tuyas desde el principio",
+    "avatarGroupLevels": "Una por nivel",
+    "avatarGroupAchievements": "Para los logros más difíciles",
+    "avatarUnlockedCount": "{{n}} de {{total}} desbloqueadas"
   },
   "pricing": {
     "vatNote": "Precio final, IVA suizo del {{rate}}% incluido para clientes en Suiza",

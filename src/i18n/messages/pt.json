@@ -119,7 +119,14 @@
       "kingHearts": "Rei de copas",
       "queenDiamonds": "Dama de ouros",
       "jackClubs": "Valete de paus"
-    }
+    },
+    "avatarLevel": "Nível {{level}}",
+    "avatarLockedLevel": "Desbloqueia no nível {{level}}",
+    "avatarLockedAchievement": "Desbloqueia com a conquista: {{name}}",
+    "avatarGroupBase": "Tuas desde o início",
+    "avatarGroupLevels": "Uma por nível",
+    "avatarGroupAchievements": "Para as conquistas mais difíceis",
+    "avatarUnlockedCount": "{{n}} de {{total}} desbloqueadas"
   },
   "pricing": {
     "vatNote": "Preço final, IVA suíço de {{rate}}% incluído para clientes na Suíça",

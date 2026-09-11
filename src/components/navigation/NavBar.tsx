@@ -19,6 +19,9 @@ import { signOutAndClearLocal } from '../../services/supabase/cloud-sync'
 import { LevelBadge } from './LevelBadge'
 import { Avatar } from '../common/Avatar'
 import { avatarOf } from '../../services/supabase/profile-avatar'
+import { resolveAvatar } from '../../services/avatar-catalog'
+import { useLevelStore } from '../../store/level-store'
+import { useAchievementStore } from '../../store/achievement-store'
 
 interface NavItem {
   mode: AppMode
@@ -79,7 +82,12 @@ export function NavBar() {
   const authStatus = useAuthStore(s => s.status)
   // The chosen profile picture takes the gear's place once there is one —
   // the way every account menu people know works.
-  const avatar = useAuthStore(s => avatarOf(s.user))
+  // Resolved against the stores, not trusted from the metadata: a picture
+  // that was not earned is not drawn, whatever the account says.
+  const chosenAvatar = useAuthStore(s => avatarOf(s.user))
+  const levelNumber = useLevelStore(s => s.level.level)
+  const unlockedIds = useAchievementStore(s => s.unlockedIds)
+  const avatar = resolveAvatar(chosenAvatar, { level: levelNumber, unlockedAchievementIds: unlockedIds })
   const signedIn = isSupabaseConfigured && authStatus === 'signedIn'
   const isPro = useIsPro()
   const showUpgradeModal = useUpgradePrompt(s => s.show)

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Crown, LogOut, ExternalLink, Loader2, Download, Pencil } from 'lucide-react'
+import { ArrowLeft, Crown, LogOut, ExternalLink, Loader2, Download, Pencil, Lock, X } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { useEntitlementStore, useIsPro } from '../store/entitlement-store'
 import { useAppStore, DEALING_SPEED_LABEL } from '../store/app-store'
@@ -16,10 +16,14 @@ import {
   displayNameOf, normalizeDisplayName, updateDisplayName,
   DISPLAY_NAME_MIN, DISPLAY_NAME_MAX,
 } from '../services/supabase/profile-name'
+import { avatarLabelKey, avatarOf, updateAvatar, type AvatarId } from '../services/supabase/profile-avatar'
 import {
-  AVATAR_IDS, avatarLabelKey, avatarOf, updateAvatar, type AvatarId,
-} from '../services/supabase/profile-avatar'
+  AVATAR_CATALOG, countUnlocked, isAvatarUnlocked, resolveAvatar,
+  type AvatarDef, type AvatarProgress,
+} from '../services/avatar-catalog'
+import { getAchievementById, achievementName } from '../services/achievements/achievement-list'
 import { Avatar } from '../components/common/Avatar'
+import { ModalBackdrop } from '../components/common/ModalBackdrop'
 import { collectDataExport, downloadJson, exportFileName } from '../services/data-export'
 import { ALL_ACHIEVEMENTS } from '../services/achievements/achievement-list'
 import { casinoAmbient } from '../services/casino-ambient'
@@ -264,6 +268,8 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
   const totalXP = useLevelStore(s => s.totalXP)
   const sessionCount = useStatsStore(s => s.lifetimeStats?.totalSessions ?? s.sessions.length)
   const unlocked = useAchievementStore(s => s.totalUnlocked)
+  const unlockedIds = useAchievementStore(s => s.unlockedIds)
+  const progress: AvatarProgress = { level: level.level, unlockedAchievementIds: unlockedIds }
   const [signingOut, setSigningOut] = useState(false)
 
   /**
@@ -288,7 +294,7 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
   return (
     <section className="surface rounded-2xl p-6 mt-6" data-testid="account-profile">
       <div className="flex items-start gap-5 flex-wrap">
-        <AvatarPicker current={avatarOf(user)} initial={initial} editable={editable} />
+        <AvatarPicker current={resolveAvatar(avatarOf(user), progress)} progress={progress} initial={initial} editable={editable} />
         <div className="min-w-0 flex-1">
           <NameEditor current={name} editable={editable} />
           {email && <div className="text-sm text-content/60 truncate">{email}</div>}
@@ -319,15 +325,18 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
 }
 
 /**
- * The profile picture, and the tray of presets it is chosen from.
+ * The profile picture, and the catalogue it is chosen from.
  *
  * The tile itself is the button — the thing you want to change is the thing
- * you press — and it opens a tray of the twelve presets plus the initial.
- * Choosing writes to the auth metadata, and the header redraws from the
- * `USER_UPDATED` event like the name does.
+ * you press — and it opens the catalogue: the twelve everyone has, one per
+ * level, and one for each of the hardest awards. Locked pictures are shown,
+ * greyed and with a lock, each saying what earns it: a picture you cannot
+ * see is not something to aim for. Choosing writes to the auth metadata, and
+ * the header redraws from the `USER_UPDATED` event like the name does.
  */
-function AvatarPicker({ current, initial, editable }: {
+function AvatarPicker({ current, progress, initial, editable }: {
   current: AvatarId | null
+  progress: AvatarProgress
   initial: string
   editable: boolean
 }) {
@@ -356,13 +365,39 @@ function AvatarPicker({ current, initial, editable }: {
 
   if (!editable) return <Avatar id={current} initial={initial} size={64} className="rounded-2xl" />
 
-  const options: (AvatarId | null)[] = [null, ...AVATAR_IDS]
+  /** What a picture is called, and — if locked — what earns it. */
+  const describe = (def: AvatarDef | null): { name: string; lockedBy: string | null } => {
+    if (def === null) return { name: t('account.avatar.initial'), lockedBy: null }
+    const locked = !isAvatarUnlocked(def.id, progress)
+    switch (def.unlock.kind) {
+      case 'base':
+        return { name: t(avatarLabelKey(def.id as Parameters<typeof avatarLabelKey>[0])), lockedBy: null }
+      case 'level':
+        return {
+          name: t('account.avatarLevel', { level: def.unlock.level }),
+          lockedBy: locked ? t('account.avatarLockedLevel', { level: def.unlock.level }) : null,
+        }
+      case 'achievement': {
+        const a = getAchievementById(def.unlock.achievementId)
+        const name = a ? achievementName(a, t) : def.unlock.achievementId
+        return { name, lockedBy: locked ? t('account.avatarLockedAchievement', { name }) : null }
+      }
+    }
+  }
+
+  const groups: { label: string; items: (AvatarDef | null)[] }[] = [
+    { label: t('account.avatarGroupBase'), items: [null, ...AVATAR_CATALOG.filter(d => d.unlock.kind === 'base')] },
+    { label: t('account.avatarGroupLevels'), items: AVATAR_CATALOG.filter(d => d.unlock.kind === 'level') },
+    { label: t('account.avatarGroupAchievements'), items: AVATAR_CATALOG.filter(d => d.unlock.kind === 'achievement') },
+  ]
+  const unlockedCount = countUnlocked(progress)
 
   return (
     <div className="relative shrink-0">
       <button
         type="button"
-        onClick={() => setOpen(v => !v)}
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
         aria-expanded={open}
         aria-label={t('account.changePicture')}
         title={t('account.changePicture')}
@@ -382,39 +417,79 @@ function AvatarPicker({ current, initial, editable }: {
         <span role="status" className="sr-only" data-testid="account-picture-saved">{t('account.pictureSaved')}</span>
       )}
       {open && (
-        <div
-          role="group"
-          aria-label={t('account.changePicture')}
-          data-testid="account-avatar-tray"
-          className="absolute left-0 top-full mt-2 z-40 w-[17.5rem] p-3 rounded-2xl border border-contrast/12 bg-surface/95 backdrop-blur-sm
-            shadow-[0_24px_60px_-28px_rgba(0,0,0,.9)]"
-        >
-          <div className="grid grid-cols-5 gap-2">
-            {options.map(id => {
-              const selected = id === current
-              const label = id === null ? t('account.avatar.initial') : t(avatarLabelKey(id))
-              return (
-                <button
-                  key={id ?? 'initial'}
-                  type="button"
-                  onClick={() => void choose(id)}
-                  aria-pressed={selected}
-                  aria-label={label}
-                  title={label}
-                  disabled={busy !== 'idle'}
-                  data-testid={`account-avatar-${id ?? 'initial'}`}
-                  className={`grid place-items-center rounded-xl p-0.5 cursor-pointer transition-[box-shadow,transform] motion-safe:hover:-translate-y-0.5
-                    ${selected ? 'ring-2 ring-gold' : 'ring-1 ring-contrast/10 hover:ring-gold/50'} disabled:opacity-60`}
-                >
-                  {busy === id
-                    ? <span className="grid place-items-center w-11 h-11"><Loader2 size={16} className="animate-spin text-gold" /></span>
-                    : <Avatar id={id} initial={initial} size={44} className="rounded-[10px]" />}
-                </button>
-              )
-            })}
+        <ModalBackdrop onClose={() => setOpen(false)} z="z-50" scroll testId="account-avatar-backdrop">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('account.changePicture')}
+            data-testid="account-avatar-tray"
+            // The backdrop closes on any click that reaches it; a click on a
+            // picture must stop here, or choosing one would shut the dialog
+            // before the save.
+            onClick={e => e.stopPropagation()}
+            className="surface rounded-2xl p-6 w-[min(92vw,44rem)] max-h-[85vh] overflow-y-auto"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold">{t('account.changePicture')}</h2>
+                <p className="text-sm text-content/50" data-testid="account-avatar-count">
+                  {t('account.avatarUnlockedCount', { n: unlockedCount, total: AVATAR_CATALOG.length })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label={t('common.close')}
+                className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-content hover:bg-contrast/5 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            {groups.map(group => (
+              <section key={group.label} className="mt-5">
+                <h3 className="text-xs uppercase tracking-wide text-content/45 font-semibold mb-2.5">{group.label}</h3>
+                <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-9 gap-2">
+                  {group.items.map(def => {
+                    const id = def?.id ?? null
+                    const selected = id === current
+                    const { name, lockedBy } = describe(def)
+                    const locked = lockedBy !== null
+                    const title = lockedBy ?? name
+                    return (
+                      <button
+                        key={id ?? 'initial'}
+                        type="button"
+                        onClick={() => void choose(id)}
+                        aria-pressed={selected}
+                        aria-label={title}
+                        aria-disabled={locked || undefined}
+                        title={title}
+                        disabled={busy !== 'idle' || locked}
+                        data-testid={`account-avatar-${id ?? 'initial'}`}
+                        data-locked={locked || undefined}
+                        className={`relative grid place-items-center rounded-xl p-0.5 transition-[box-shadow,transform]
+                          ${locked
+                            ? 'opacity-40 grayscale cursor-not-allowed ring-1 ring-contrast/10'
+                            : `cursor-pointer motion-safe:hover:-translate-y-0.5 ${selected ? 'ring-2 ring-gold' : 'ring-1 ring-contrast/10 hover:ring-gold/50'}`}
+                          disabled:opacity-40`}
+                      >
+                        {busy === id
+                          ? <span className="grid place-items-center w-11 h-11"><Loader2 size={16} className="animate-spin text-gold" /></span>
+                          : <Avatar id={id} initial={initial} size={44} className="rounded-[10px]" />}
+                        {locked && (
+                          <span aria-hidden className="absolute -bottom-1 -right-1 grid place-items-center w-5 h-5 rounded-md bg-surface border border-contrast/15 text-content">
+                            <Lock size={10} />
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
+            ))}
+            {problem && <p role="alert" className="mt-4 text-sm text-error">{problem}</p>}
           </div>
-          {problem && <p role="alert" className="mt-2 text-xs text-error">{problem}</p>}
-        </div>
+        </ModalBackdrop>
       )}
     </div>
   )

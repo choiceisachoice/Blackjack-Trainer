@@ -119,7 +119,14 @@
       "kingHearts": "King of hearts",
       "queenDiamonds": "Queen of diamonds",
       "jackClubs": "Jack of clubs"
-    }
+    },
+    "avatarLevel": "Level {{level}}",
+    "avatarLockedLevel": "Unlocks at level {{level}}",
+    "avatarLockedAchievement": "Unlocks with the award: {{name}}",
+    "avatarGroupBase": "Yours from the start",
+    "avatarGroupLevels": "One per level",
+    "avatarGroupAchievements": "For the hardest awards",
+    "avatarUnlockedCount": "{{n}} of {{total}} unlocked"
   },
   "pricing": {
     "vatNote": "Final price, incl. {{rate}}% Swiss VAT for customers in Switzerland",

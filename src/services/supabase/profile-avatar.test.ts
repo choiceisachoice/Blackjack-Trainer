@@ -7,42 +7,34 @@ vi.mock('./client', () => ({
   isSupabaseConfigured: true,
 }))
 
-import { AVATAR_IDS, avatarLabelKey, avatarOf, isAvatarId, updateAvatar } from './profile-avatar'
+import { AVATAR_IDS, BASE_AVATAR_IDS, avatarLabelKey, avatarOf, updateAvatar } from './profile-avatar'
 
 const user = (meta: Record<string, unknown>): User =>
   ({ id: 'u1', email: 'ada@example.com', user_metadata: meta }) as unknown as User
 
 describe('the preset list', () => {
-  it('has twelve distinct, stable ids', () => {
-    expect(new Set(AVATAR_IDS).size).toBe(12)
-    // Stored verbatim in every account that chose one — a rename orphans them.
-    expect(AVATAR_IDS).toContain('spade')
-    expect(AVATAR_IDS).toContain('ace-spades')
+  it('starts with the twelve base pictures and carries the earned ones after', () => {
+    expect(BASE_AVATAR_IDS).toHaveLength(12)
+    expect(AVATAR_IDS.length).toBeGreaterThan(12)
+    expect(AVATAR_IDS.slice(0, 12)).toEqual([...BASE_AVATAR_IDS])
   })
 
-  it('names each one with a translation key', () => {
+  it('names each base picture with a translation key', () => {
     expect(avatarLabelKey('chip-red')).toBe('account.avatar.chipRed')
     expect(avatarLabelKey('spade')).toBe('account.avatar.spade')
   })
 })
 
 describe('avatarOf', () => {
-  it('reads the chosen preset from the metadata', () => {
+  it('reads the chosen picture from the metadata', () => {
     expect(avatarOf(user({ avatar: 'heart' }))).toBe('heart')
+    expect(avatarOf(user({ avatar: 'level-7' }))).toBe('level-7')
   })
 
-  it('ignores anything that is not a preset, so a bad value shows the initial', () => {
+  it('ignores anything that is not in the catalogue, so a bad value shows the initial', () => {
     expect(avatarOf(user({ avatar: 'https://evil/x.png' }))).toBeNull()
     expect(avatarOf(user({}))).toBeNull()
     expect(avatarOf(null)).toBeNull()
-  })
-})
-
-describe('isAvatarId', () => {
-  it('accepts presets and nothing else', () => {
-    expect(isAvatarId('club')).toBe(true)
-    expect(isAvatarId('CLUB')).toBe(false)
-    expect(isAvatarId(3)).toBe(false)
   })
 })
 
