@@ -4,6 +4,8 @@ import { BettingControls } from '../components/casino-session/BettingControls'
 import { Action } from '../engine/rules/types'
 import { ProgressBar, Input, Skeleton, Button, Tooltip, EmptyState } from '../components/common/ui'
 import { BarChart3, TrendingUp, Lock } from 'lucide-react'
+import { Avatar } from '../components/common/Avatar'
+import { AVATAR_IDS } from '../services/supabase/profile-avatar'
 
 /**
  * TEMPORARY side-by-side review harness. Delete after review.
@@ -318,6 +320,26 @@ export function ControlsPreview() {
           geteilten Modul. Auf dem Bildschirm ändert das nichts, und genau das war die Absicht:
           eine zweite Kopie kann abdriften, ohne dass etwas fehlschlägt.
         </p>
+      </section>
+
+      <section>
+        <h2 className="text-sm font-semibold tracking-wide text-gold mb-4">11 · Profilbilder — die Initiale und zwölf Vorlagen</h2>
+        <div className="surface p-6 inline-block">
+          <p className="text-xs tracking-[0.18em] text-content/40 mb-3">64 PX, WIE IM PROFILKOPF</p>
+          <div className="flex flex-wrap gap-3">
+            <Avatar id={null} initial="D" size={64} className="rounded-2xl" />
+            {AVATAR_IDS.map(id => <Avatar key={id} id={id} initial="D" size={64} className="rounded-2xl" />)}
+          </div>
+          <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">44 PX, WIE IM AUSWAHLFELD</p>
+          <div className="flex flex-wrap gap-2">
+            <Avatar id={null} initial="D" size={44} className="rounded-[10px]" />
+            {AVATAR_IDS.map(id => <Avatar key={id} id={id} initial="D" size={44} className="rounded-[10px]" />)}
+          </div>
+          <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">22 PX, WIE IN DER NAVBAR</p>
+          <div className="flex flex-wrap gap-2 items-center">
+            {AVATAR_IDS.map(id => <Avatar key={id} id={id} initial="D" size={22} className="rounded-md" />)}
+          </div>
+        </div>
       </section>
     </div>
   )

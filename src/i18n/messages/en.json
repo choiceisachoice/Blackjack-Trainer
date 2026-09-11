@@ -101,7 +101,25 @@
     "sessions": "Sessions",
     "achievements": "Achievements",
     "downloadData": "Download my data",
-    "downloadDataHint": "A JSON file with your sessions, achievements, level and bankroll log — everything this app holds about you."
+    "downloadDataHint": "A JSON file with your sessions, achievements, level and bankroll log — everything this app holds about you.",
+    "changePicture": "Change picture",
+    "pictureSaved": "Picture saved.",
+    "pictureSaveFailed": "Your picture could not be saved. Nothing was changed — please try again.",
+    "avatar": {
+      "initial": "Your initial",
+      "spade": "Spade",
+      "heart": "Heart",
+      "diamond": "Diamond",
+      "club": "Club",
+      "chipRed": "Red chip",
+      "chipBlue": "Blue chip",
+      "chipGreen": "Green chip",
+      "chipBlack": "Black chip",
+      "aceSpades": "Ace of spades",
+      "kingHearts": "King of hearts",
+      "queenDiamonds": "Queen of diamonds",
+      "jackClubs": "Jack of clubs"
+    }
   },
   "pricing": {
     "vatNote": "Final price, incl. {{rate}}% Swiss VAT for customers in Switzerland",

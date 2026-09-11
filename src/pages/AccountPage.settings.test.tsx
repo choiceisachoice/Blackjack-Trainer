@@ -35,6 +35,12 @@ vi.mock('../services/supabase/profile-name', async importOriginal => ({
   updateDisplayName: (name: string) => updateDisplayName(name),
 }))
 
+const updateAvatar = vi.fn<(id: string | null) => Promise<void>>()
+vi.mock('../services/supabase/profile-avatar', async importOriginal => ({
+  ...(await importOriginal<typeof import('../services/supabase/profile-avatar')>()),
+  updateAvatar: (id: string | null) => updateAvatar(id),
+}))
+
 const downloadJson = vi.fn<(name: string, data: unknown) => void>()
 vi.mock('../services/data-export', async importOriginal => ({
   ...(await importOriginal<typeof import('../services/data-export')>()),
@@ -119,6 +125,48 @@ describe('profile', () => {
     const alert = await screen.findByRole('alert', {}, T)
     expect(alert.textContent).not.toContain('permission denied')
     expect(screen.getByTestId('account-name-input')).toBeInTheDocument()
+  })
+})
+
+describe('profile picture', () => {
+  it('opens a tray of the initial plus twelve presets', () => {
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-avatar-button'))
+    const tray = screen.getByTestId('account-avatar-tray')
+    expect(tray.querySelectorAll('button')).toHaveLength(13)
+    // Nothing chosen yet, so the initial is the pressed one.
+    expect(screen.getByTestId('account-avatar-initial')).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('saves a chosen preset and closes the tray', async () => {
+    updateAvatar.mockResolvedValue(undefined)
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-avatar-button'))
+    fireEvent.click(screen.getByTestId('account-avatar-chip-red'))
+    await waitFor(() => expect(screen.queryByTestId('account-avatar-tray')).toBeNull(), T)
+    expect(updateAvatar).toHaveBeenCalledWith('chip-red')
+    expect(screen.getByTestId('account-picture-saved')).toBeInTheDocument()
+  })
+
+  it('shows the chosen preset as pressed and lets it be undone', () => {
+    useAuthStore.setState({
+      user: { id: 'u1', email: 'ada@example.com', user_metadata: { avatar: 'heart' } } as never,
+    })
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-avatar-button'))
+    expect(screen.getByTestId('account-avatar-heart')).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(screen.getByTestId('account-avatar-initial'))
+    expect(updateAvatar).toHaveBeenCalledWith(null)
+  })
+
+  it('says so when the save fails and keeps the tray open', async () => {
+    updateAvatar.mockRejectedValue(new Error('nope'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-avatar-button'))
+    fireEvent.click(screen.getByTestId('account-avatar-spade'))
+    expect(await screen.findByRole('alert', {}, T)).toBeInTheDocument()
+    expect(screen.getByTestId('account-avatar-tray')).toBeInTheDocument()
   })
 })
 

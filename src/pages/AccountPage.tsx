@@ -16,6 +16,10 @@ import {
   displayNameOf, normalizeDisplayName, updateDisplayName,
   DISPLAY_NAME_MIN, DISPLAY_NAME_MAX,
 } from '../services/supabase/profile-name'
+import {
+  AVATAR_IDS, avatarLabelKey, avatarOf, updateAvatar, type AvatarId,
+} from '../services/supabase/profile-avatar'
+import { Avatar } from '../components/common/Avatar'
 import { collectDataExport, downloadJson, exportFileName } from '../services/data-export'
 import { ALL_ACHIEVEMENTS } from '../services/achievements/achievement-list'
 import { casinoAmbient } from '../services/casino-ambient'
@@ -279,18 +283,14 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
   }
 
   const initial = (name ?? email ?? '?').trim().charAt(0).toUpperCase()
+  const editable = isSupabaseConfigured && !!user
 
   return (
     <section className="surface rounded-2xl p-6 mt-6" data-testid="account-profile">
       <div className="flex items-start gap-5 flex-wrap">
-        <span
-          aria-hidden
-          className="grid place-items-center w-16 h-16 rounded-2xl text-2xl font-extrabold text-on-gold bg-gradient-to-b from-gold-bright to-gold shrink-0"
-        >
-          {initial}
-        </span>
+        <AvatarPicker current={avatarOf(user)} initial={initial} editable={editable} />
         <div className="min-w-0 flex-1">
-          <NameEditor current={name} editable={isSupabaseConfigured && !!user} />
+          <NameEditor current={name} editable={editable} />
           {email && <div className="text-sm text-content/60 truncate">{email}</div>}
           {memberSince && (
             <div className="text-sm text-content/50" data-testid="account-member-since">
@@ -315,6 +315,108 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
         <Stat label={t('account.achievements')} value={`${unlocked} / ${ALL_ACHIEVEMENTS.length}`} />
       </dl>
     </section>
+  )
+}
+
+/**
+ * The profile picture, and the tray of presets it is chosen from.
+ *
+ * The tile itself is the button — the thing you want to change is the thing
+ * you press — and it opens a tray of the twelve presets plus the initial.
+ * Choosing writes to the auth metadata, and the header redraws from the
+ * `USER_UPDATED` event like the name does.
+ */
+function AvatarPicker({ current, initial, editable }: {
+  current: AvatarId | null
+  initial: string
+  editable: boolean
+}) {
+  const { t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState<AvatarId | null | 'idle'>('idle')
+  const [problem, setProblem] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  const choose = async (id: AvatarId | null) => {
+    if (busy !== 'idle' || id === current) { setOpen(false); return }
+    setBusy(id)
+    setProblem(null)
+    setSaved(false)
+    try {
+      await updateAvatar(id)
+      setSaved(true)
+      setOpen(false)
+    } catch (err) {
+      logFailure('profile-avatar', err)
+      setProblem(t('account.pictureSaveFailed'))
+    } finally {
+      setBusy('idle')
+    }
+  }
+
+  if (!editable) return <Avatar id={current} initial={initial} size={64} className="rounded-2xl" />
+
+  const options: (AvatarId | null)[] = [null, ...AVATAR_IDS]
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        aria-expanded={open}
+        aria-label={t('account.changePicture')}
+        title={t('account.changePicture')}
+        data-testid="account-avatar-button"
+        className="group relative block rounded-2xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+      >
+        <Avatar id={current} initial={initial} size={64} className="rounded-2xl" />
+        <span
+          aria-hidden
+          className="absolute -bottom-1 -right-1 grid place-items-center w-6 h-6 rounded-lg bg-surface border border-contrast/15 text-content/60
+            group-hover:text-gold group-hover:border-gold/45 transition-colors"
+        >
+          <Pencil size={12} />
+        </span>
+      </button>
+      {saved && !open && (
+        <span role="status" className="sr-only" data-testid="account-picture-saved">{t('account.pictureSaved')}</span>
+      )}
+      {open && (
+        <div
+          role="group"
+          aria-label={t('account.changePicture')}
+          data-testid="account-avatar-tray"
+          className="absolute left-0 top-full mt-2 z-40 w-[17.5rem] p-3 rounded-2xl border border-contrast/12 bg-surface/95 backdrop-blur-sm
+            shadow-[0_24px_60px_-28px_rgba(0,0,0,.9)]"
+        >
+          <div className="grid grid-cols-5 gap-2">
+            {options.map(id => {
+              const selected = id === current
+              const label = id === null ? t('account.avatar.initial') : t(avatarLabelKey(id))
+              return (
+                <button
+                  key={id ?? 'initial'}
+                  type="button"
+                  onClick={() => void choose(id)}
+                  aria-pressed={selected}
+                  aria-label={label}
+                  title={label}
+                  disabled={busy !== 'idle'}
+                  data-testid={`account-avatar-${id ?? 'initial'}`}
+                  className={`grid place-items-center rounded-xl p-0.5 cursor-pointer transition-[box-shadow,transform] motion-safe:hover:-translate-y-0.5
+                    ${selected ? 'ring-2 ring-gold' : 'ring-1 ring-contrast/10 hover:ring-gold/50'} disabled:opacity-60`}
+                >
+                  {busy === id
+                    ? <span className="grid place-items-center w-11 h-11"><Loader2 size={16} className="animate-spin text-gold" /></span>
+                    : <Avatar id={id} initial={initial} size={44} className="rounded-[10px]" />}
+                </button>
+              )
+            })}
+          </div>
+          {problem && <p role="alert" className="mt-2 text-xs text-error">{problem}</p>}
+        </div>
+      )}
+    </div>
   )
 }
 

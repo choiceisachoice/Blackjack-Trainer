@@ -17,6 +17,8 @@ import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
 import { isProMode } from '../../services/pro-features'
 import { signOutAndClearLocal } from '../../services/supabase/cloud-sync'
 import { LevelBadge } from './LevelBadge'
+import { Avatar } from '../common/Avatar'
+import { avatarOf } from '../../services/supabase/profile-avatar'
 
 interface NavItem {
   mode: AppMode
@@ -75,6 +77,9 @@ export function NavBar() {
   const soundEnabled = useAppStore(s => s.soundEnabled)
   const toggleSound = useAppStore(s => s.toggleSound)
   const authStatus = useAuthStore(s => s.status)
+  // The chosen profile picture takes the gear's place once there is one —
+  // the way every account menu people know works.
+  const avatar = useAuthStore(s => avatarOf(s.user))
   const signedIn = isSupabaseConfigured && authStatus === 'signedIn'
   const isPro = useIsPro()
   const showUpgradeModal = useUpgradePrompt(s => s.show)
@@ -215,7 +220,7 @@ export function NavBar() {
               title={t('nav.accountAndBilling')}
               className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
             >
-              <Settings size={17} />
+              {avatar ? <Avatar id={avatar} initial="" size={22} className="rounded-md" /> : <Settings size={17} />}
             </button>
           )}
           <LanguageSwitcher />

@@ -101,7 +101,25 @@
     "sessions": "Sessions",
     "achievements": "Erfolge",
     "downloadData": "Meine Daten herunterladen",
-    "downloadDataHint": "Eine JSON-Datei mit deinen Sessions, Erfolgen, deinem Level und dem Bankroll-Protokoll — alles, was diese App über dich gespeichert hat."
+    "downloadDataHint": "Eine JSON-Datei mit deinen Sessions, Erfolgen, deinem Level und dem Bankroll-Protokoll — alles, was diese App über dich gespeichert hat.",
+    "changePicture": "Bild ändern",
+    "pictureSaved": "Bild gespeichert.",
+    "pictureSaveFailed": "Dein Bild konnte nicht gespeichert werden. Nichts wurde geändert — bitte versuch es noch einmal.",
+    "avatar": {
+      "initial": "Dein Anfangsbuchstabe",
+      "spade": "Pik",
+      "heart": "Herz",
+      "diamond": "Karo",
+      "club": "Kreuz",
+      "chipRed": "Roter Chip",
+      "chipBlue": "Blauer Chip",
+      "chipGreen": "Grüner Chip",
+      "chipBlack": "Schwarzer Chip",
+      "aceSpades": "Pik-Ass",
+      "kingHearts": "Herz-König",
+      "queenDiamonds": "Karo-Dame",
+      "jackClubs": "Kreuz-Bube"
+    }
   },
   "pricing": {
     "vatNote": "Endpreis, inkl. {{rate}}% Schweizer MWST für Kunden in der Schweiz",

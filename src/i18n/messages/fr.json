@@ -101,7 +101,25 @@
     "sessions": "Sessions",
     "achievements": "Succès",
     "downloadData": "Télécharger mes données",
-    "downloadDataHint": "Un fichier JSON avec tes sessions, tes succès, ton niveau et ton journal de bankroll — tout ce que cette app conserve sur toi."
+    "downloadDataHint": "Un fichier JSON avec tes sessions, tes succès, ton niveau et ton journal de bankroll — tout ce que cette app conserve sur toi.",
+    "changePicture": "Changer l’image",
+    "pictureSaved": "Image enregistrée.",
+    "pictureSaveFailed": "Ton image n’a pas pu être enregistrée. Rien n’a été modifié — réessaie.",
+    "avatar": {
+      "initial": "Ton initiale",
+      "spade": "Pique",
+      "heart": "Cœur",
+      "diamond": "Carreau",
+      "club": "Trèfle",
+      "chipRed": "Jeton rouge",
+      "chipBlue": "Jeton bleu",
+      "chipGreen": "Jeton vert",
+      "chipBlack": "Jeton noir",
+      "aceSpades": "As de pique",
+      "kingHearts": "Roi de cœur",
+      "queenDiamonds": "Dame de carreau",
+      "jackClubs": "Valet de trèfle"
+    }
   },
   "pricing": {
     "vatNote": "Prix final, TVA suisse de {{rate}}% incluse pour les clients en Suisse",

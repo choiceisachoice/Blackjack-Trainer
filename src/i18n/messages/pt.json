@@ -101,7 +101,25 @@
     "sessions": "Sessões",
     "achievements": "Conquistas",
     "downloadData": "Transferir os meus dados",
-    "downloadDataHint": "Um ficheiro JSON com as tuas sessões, conquistas, nível e registo de bankroll — tudo o que esta app guarda sobre ti."
+    "downloadDataHint": "Um ficheiro JSON com as tuas sessões, conquistas, nível e registo de bankroll — tudo o que esta app guarda sobre ti.",
+    "changePicture": "Alterar imagem",
+    "pictureSaved": "Imagem guardada.",
+    "pictureSaveFailed": "Não foi possível guardar a tua imagem. Nada foi alterado — tenta novamente.",
+    "avatar": {
+      "initial": "A tua inicial",
+      "spade": "Espadas",
+      "heart": "Copas",
+      "diamond": "Ouros",
+      "club": "Paus",
+      "chipRed": "Ficha vermelha",
+      "chipBlue": "Ficha azul",
+      "chipGreen": "Ficha verde",
+      "chipBlack": "Ficha preta",
+      "aceSpades": "Ás de espadas",
+      "kingHearts": "Rei de copas",
+      "queenDiamonds": "Dama de ouros",
+      "jackClubs": "Valete de paus"
+    }
   },
   "pricing": {
     "vatNote": "Preço final, IVA suíço de {{rate}}% incluído para clientes na Suíça",

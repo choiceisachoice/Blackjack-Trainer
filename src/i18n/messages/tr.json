@@ -101,7 +101,25 @@
     "sessions": "Oturumlar",
     "achievements": "Başarılar",
     "downloadData": "Verilerimi indir",
-    "downloadDataHint": "Oturumların, başarıların, seviyen ve kasa kaydınla birlikte bir JSON dosyası — bu uygulamanın senin hakkında sakladığı her şey."
+    "downloadDataHint": "Oturumların, başarıların, seviyen ve kasa kaydınla birlikte bir JSON dosyası — bu uygulamanın senin hakkında sakladığı her şey.",
+    "changePicture": "Resmi değiştir",
+    "pictureSaved": "Resim kaydedildi.",
+    "pictureSaveFailed": "Resmin kaydedilemedi. Hiçbir şey değişmedi — lütfen tekrar dene.",
+    "avatar": {
+      "initial": "Baş harfin",
+      "spade": "Maça",
+      "heart": "Kupa",
+      "diamond": "Karo",
+      "club": "Sinek",
+      "chipRed": "Kırmızı fiş",
+      "chipBlue": "Mavi fiş",
+      "chipGreen": "Yeşil fiş",
+      "chipBlack": "Siyah fiş",
+      "aceSpades": "Maça ası",
+      "kingHearts": "Kupa papazı",
+      "queenDiamonds": "Karo kızı",
+      "jackClubs": "Sinek valesi"
+    }
   },
   "pricing": {
     "vatNote": "Nihai fiyat; İsviçre'deki müşteriler için %{{rate}} İsviçre KDV'si dâhildir",

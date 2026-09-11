@@ -101,7 +101,25 @@
     "sessions": "Sessioni",
     "achievements": "Traguardi",
     "downloadData": "Scarica i miei dati",
-    "downloadDataHint": "Un file JSON con le tue sessioni, i traguardi, il livello e il registro del bankroll — tutto ciò che questa app conserva su di te."
+    "downloadDataHint": "Un file JSON con le tue sessioni, i traguardi, il livello e il registro del bankroll — tutto ciò che questa app conserva su di te.",
+    "changePicture": "Cambia immagine",
+    "pictureSaved": "Immagine salvata.",
+    "pictureSaveFailed": "Impossibile salvare l’immagine. Nulla è stato modificato — riprova.",
+    "avatar": {
+      "initial": "La tua iniziale",
+      "spade": "Picche",
+      "heart": "Cuori",
+      "diamond": "Quadri",
+      "club": "Fiori",
+      "chipRed": "Fiche rossa",
+      "chipBlue": "Fiche blu",
+      "chipGreen": "Fiche verde",
+      "chipBlack": "Fiche nera",
+      "aceSpades": "Asso di picche",
+      "kingHearts": "Re di cuori",
+      "queenDiamonds": "Regina di quadri",
+      "jackClubs": "Fante di fiori"
+    }
   },
   "pricing": {
     "vatNote": "Prezzo finale, IVA svizzera dell'{{rate}}% inclusa per i clienti in Svizzera",
