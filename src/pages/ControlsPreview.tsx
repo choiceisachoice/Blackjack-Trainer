@@ -330,10 +330,16 @@ export function ControlsPreview() {
             <Avatar id={null} initial="D" size={64} className="rounded-2xl" />
             {BASE_AVATAR_IDS.map(id => <Avatar key={id} id={id} initial="D" size={64} className="rounded-2xl" />)}
           </div>
-          <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">EINES PRO LEVEL, 2 BIS 25 — 44 PX, WIE IM AUSWAHLFELD</p>
+          <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">EINES PRO LEVEL, 2 BIS 14 — 64 PX</p>
           <div className="flex flex-wrap gap-2">
-            {AVATAR_CATALOG.filter(d => d.unlock.kind === 'level').map(d => (
-              <Avatar key={d.id} id={d.id} initial="D" size={44} className="rounded-[10px]" />
+            {AVATAR_CATALOG.filter(d => d.unlock.kind === 'level' && d.unlock.level <= 14).map(d => (
+              <Avatar key={d.id} id={d.id} initial="D" size={64} className="rounded-2xl" />
+            ))}
+          </div>
+          <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">LEVEL 15 BIS 25 — 96 PX, ZUM BEURTEILEN GROSS</p>
+          <div className="flex flex-wrap gap-3">
+            {AVATAR_CATALOG.filter(d => d.unlock.kind === 'level' && d.unlock.level >= 15).map(d => (
+              <Avatar key={d.id} id={d.id} initial="D" size={96} className="rounded-3xl" />
             ))}
           </div>
           <p className="text-xs tracking-[0.18em] text-content/40 mt-6 mb-3">FÜR DIE SCHWERSTEN ERFOLGE — 64 PX</p>
