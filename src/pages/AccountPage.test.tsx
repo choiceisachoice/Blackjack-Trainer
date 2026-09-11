@@ -54,7 +54,8 @@ describe('AccountPage', () => {
   it('renders the plan and sign-out (no backend → treated as Pro)', () => {
     renderPage()
     expect(screen.getByRole('heading', { name: 'Account' })).toBeInTheDocument()
-    expect(screen.getByText(/Sign out/i)).toBeInTheDocument()
+    // By id: the preferences hint now also says "sign out", in prose.
+    expect(screen.getByTestId('account-sign-out')).toHaveTextContent(/Sign out/i)
     expect(screen.getByText(/Manage subscription/i)).toBeInTheDocument()
   })
 })

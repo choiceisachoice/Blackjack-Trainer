@@ -35,6 +35,9 @@ describe('local-reset — account isolation', () => {
     localStorage.setItem('bjt_sound_settings', '{"enabled":true}')
     localStorage.setItem('bjt_dealing_speed', 'fast')
     localStorage.setItem('bjt_ambient_volume', '0.5')
+    // The chosen language is a device preference too. It used to be wiped,
+    // which put a sign-out on an English-locale browser onto an English screen.
+    localStorage.setItem('bjt_locale', 'de')
     // Foreign key — untouched.
     localStorage.setItem('other_app_key', 'keep me')
 
@@ -53,6 +56,7 @@ describe('local-reset — account isolation', () => {
     expect(localStorage.getItem('bjt_sound_settings')).toBe('{"enabled":true}')
     expect(localStorage.getItem('bjt_dealing_speed')).toBe('fast')
     expect(localStorage.getItem('bjt_ambient_volume')).toBe('0.5')
+    expect(localStorage.getItem('bjt_locale')).toBe('de')
     expect(localStorage.getItem('other_app_key')).toBe('keep me')
   })
 

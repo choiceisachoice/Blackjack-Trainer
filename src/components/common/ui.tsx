@@ -267,6 +267,49 @@ export function Input({ invalid = false, className = '', ...props }: InputHTMLAt
 }
 
 /**
+ * A range slider with its value written beside it.
+ *
+ * The casino HUD had the only volume slider in the app, hand-rolled, and the
+ * account page needed two more. A range input with no readout is a control
+ * whose state you can only guess at, so the percentage is part of the mark
+ * rather than something each caller remembers to add. `value` is 0–1; the
+ * readout is rounded to a whole percent because "37.5%" is precision nobody
+ * asked for on a volume knob.
+ */
+export function Slider({ value, onChange, label, testId, className = '' }: {
+  /** 0–1. */
+  value: number
+  onChange: (v: number) => void
+  /** Accessible name; also the visible row label. */
+  label: string
+  testId?: string
+  className?: string
+}) {
+  return (
+    <label className={`flex items-center justify-between gap-4 ${className}`}>
+      <span className="text-sm text-content/80">{label}</span>
+      <span className="flex items-center gap-2.5">
+        <span className="text-xs tabular-nums text-content/50 w-9 text-right" aria-hidden>
+          {Math.round(value * 100)}%
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={value}
+          aria-label={label}
+          aria-valuetext={`${Math.round(value * 100)}%`}
+          data-testid={testId}
+          onChange={e => onChange(parseFloat(e.target.value))}
+          className="w-32 h-1 accent-gold cursor-pointer"
+        />
+      </span>
+    </label>
+  )
+}
+
+/**
  * A loading placeholder shaped like the thing that is coming.
  *
  * The word "skeleton" appeared three times in the codebase and all three were

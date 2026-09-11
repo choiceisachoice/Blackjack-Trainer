@@ -1,15 +1,26 @@
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Crown, LogOut, ExternalLink, Loader2 } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { useEntitlementStore, useIsPro } from '../store/entitlement-store'
+import { useAppStore, DEALING_SPEED_LABEL } from '../store/app-store'
+import type { DealingSpeed } from '../store/app-store'
+import { useStatsStore } from '../store/stats-store'
 import { openBillingPortal } from '../services/supabase/billing'
 import { signOutAndClearLocal } from '../services/supabase/cloud-sync'
+import { casinoAmbient } from '../services/casino-ambient'
 import { useUpgradePrompt } from '../store/upgrade-prompt-store'
 import { UpgradeModalHost } from '../components/pro/UpgradeModalHost'
+import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
+import { PasswordInput } from '../components/auth/PasswordInput'
+import { Field, Segmented, Slider, Toggle } from '../components/common/ui'
 import { logFailure } from '../services/failure-log'
 import { LEGAL_META } from './legal/legal-meta'
+
+/** Supabase rejects anything shorter; checked here so the message arrives sooner. */
+const MIN_PASSWORD_LENGTH = 6
 
 /**
  * Human-readable label + tone for a subscription status.
@@ -38,15 +49,37 @@ function formatDate(ms: number | null): string | null {
   return new Date(ms).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
+/** One card on the page, with the small uppercase label the account card set. */
+function Section({ label, testId, children }: { label: string; testId?: string; children: ReactNode }) {
+  return (
+    <section className="surface rounded-2xl p-6 mt-4" data-testid={testId}>
+      <h2 className="text-sm uppercase tracking-wide text-content/50 font-semibold">{label}</h2>
+      <div className="mt-4 space-y-4">{children}</div>
+    </section>
+  )
+}
+
 /**
- * `/account` — subscription & billing. Shows the current plan and routes to the
- * Stripe customer portal (Manage / Cancel) for Pro users, or to checkout for
- * free users. Also surfaces the signed-in email and sign-out.
+ * `/account` — the one place a person's account, preferences and data are
+ * looked after.
+ *
+ * It used to hold two cards: the plan, and an email address with a sign-out
+ * button under it. Everything else that belongs on a page like this was
+ * scattered — the language in the nav bar, the sound in the nav bar and again
+ * in the top bar, the dealing speed and the ambience volume inside the casino
+ * HUD where they can only be reached mid-session, and no way at all to change
+ * a password without pretending to have forgotten it.
+ *
+ * The preferences here are the device's, not the account's: they live in
+ * `localStorage` and survive a sign-out on purpose (see `local-reset.ts`).
+ * The page says so, because a person who sets the volume here and then finds
+ * it different on their phone deserves to know why.
  */
 export function AccountPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const email = useAuthStore(s => s.user?.email ?? null)
+  const createdAt = useAuthStore(s => s.user?.created_at ?? null)
   const isPro = useIsPro()
   const status = useEntitlementStore(s => s.status)
   const loaded = useEntitlementStore(s => s.loaded)
@@ -74,6 +107,7 @@ export function AccountPage() {
 
   const plan = planLabel(status, isPro, cancelAtPeriodEnd)
   const periodEnd = formatDate(currentPeriodEnd)
+  const memberSince = formatDate(createdAt ? Date.parse(createdAt) : null)
   const renewLabel =
     status === 'past_due' ? t('account.paymentDueBy')
     // "Access ends on", not "Renews on". Same date, opposite promise.
@@ -190,19 +224,28 @@ export function AccountPage() {
           )}
         </div>
 
-        {/* Account info */}
-        <div className="surface rounded-2xl p-6 mt-4">
-          <div className="text-sm uppercase tracking-wide text-content/50 font-semibold">{t('account.sectionAccount')}</div>
-          {email && <div className="mt-2 text-content">{email}</div>}
+        <Section label={t('account.sectionProfile')} testId="account-profile">
+          {email && <div className="text-content">{email}</div>}
+          {memberSince && (
+            <div className="text-sm text-content/50" data-testid="account-member-since">
+              {t('account.memberSince')} {memberSince}
+            </div>
+          )}
           <button
             onClick={handleSignOut}
             disabled={signingOut}
             data-testid="account-sign-out"
-            className="mt-4 inline-flex items-center gap-2 text-sm text-content/60 hover:text-error transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
+            className="inline-flex items-center gap-2 text-sm text-content/60 hover:text-error transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-default"
           >
             {signingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />} {t('nav.signOut')}
           </button>
-        </div>
+        </Section>
+
+        <PreferencesSection />
+
+        {isSupabaseConfigured && <SecuritySection />}
+
+        <DataSection />
       </div>
 
       {/* Mounted here because `/account` is its own route, outside the app
@@ -211,5 +254,228 @@ export function AccountPage() {
           call of its own in the first place. */}
       <UpgradeModalHost />
     </div>
+  )
+}
+
+/**
+ * The device preferences, gathered from the four places they were.
+ *
+ * Every control here writes to the same store or singleton the scattered
+ * originals write to, so the nav bar's mute button and the HUD's speed toggle
+ * stay in step with this page — there is one setting, shown twice, not two
+ * settings that drift.
+ */
+function PreferencesSection() {
+  const { t } = useTranslation()
+  const soundEnabled = useAppStore(s => s.soundEnabled)
+  const toggleSound = useAppStore(s => s.toggleSound)
+  const soundVolume = useAppStore(s => s.soundVolume)
+  const setSoundVolume = useAppStore(s => s.setSoundVolume)
+  const dealingSpeed = useAppStore(s => s.dealingSpeed)
+  const setDealingSpeed = useAppStore(s => s.setDealingSpeed)
+  // The ambience volume lives on a singleton rather than in a store — it only
+  // ever had one reader, the casino HUD. Mirrored into state so the slider
+  // moves; the singleton stays the owner and does the persisting.
+  const [ambientVolume, setAmbientVolume] = useState(() => casinoAmbient.volume)
+
+  const speeds: DealingSpeed[] = ['slow', 'normal']
+
+  return (
+    <Section label={t('account.sectionPreferences')} testId="account-preferences">
+      <Field label={t('account.language')}>
+        <span data-testid="account-language"><LanguageSwitcher /></span>
+      </Field>
+      <Toggle
+        label={t('account.sounds')}
+        checked={soundEnabled}
+        onChange={() => toggleSound()}
+        testId="account-sound-toggle"
+      />
+      {soundEnabled && (
+        <Slider
+          label={t('account.soundVolume')}
+          value={soundVolume}
+          onChange={setSoundVolume}
+          testId="account-sound-volume"
+        />
+      )}
+      <Field label={t('account.dealingSpeed')}>
+        <span data-testid="account-speed">
+          <Segmented
+            ariaLabel={t('account.dealingSpeed')}
+            value={dealingSpeed}
+            onChange={setDealingSpeed}
+            options={speeds.map(s => ({ value: s, label: t(DEALING_SPEED_LABEL[s]) }))}
+          />
+        </span>
+      </Field>
+      <Slider
+        label={t('account.ambientVolume')}
+        value={ambientVolume}
+        onChange={v => { casinoAmbient.volume = v; setAmbientVolume(v) }}
+        testId="account-ambient-volume"
+      />
+      <p className="text-xs text-content/40">{t('account.devicePrefsHint')}</p>
+    </Section>
+  )
+}
+
+/**
+ * Changing the password while signed in.
+ *
+ * Until now the only way was the reset flow: sign out, claim to have forgotten
+ * it, wait for an email. The two fields share one reveal toggle for the same
+ * reason the reset page's do — revealing half of a pair you are asked to match
+ * is no help. Validation runs here first so the two cheap mistakes (too short,
+ * mistyped) are caught before a round trip, and the server's answer is shown
+ * as a translated key, never as its own message.
+ */
+function SecuritySection() {
+  const { t } = useTranslation()
+  const changePassword = useAuthStore(s => s.changePassword)
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [shown, setShown] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [problem, setProblem] = useState<string | null>(null)
+  const [changed, setChanged] = useState(false)
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (busy) return
+    setProblem(null)
+    setChanged(false)
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setProblem(t('auth.minChars', { min: MIN_PASSWORD_LENGTH }))
+      return
+    }
+    if (password !== confirm) {
+      setProblem(t('auth.passwordsDiffer'))
+      return
+    }
+    setBusy(true)
+    try {
+      const err = await changePassword(password)
+      if (err) {
+        setProblem(t(err))
+      } else {
+        setChanged(true)
+        setPassword('')
+        setConfirm('')
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Section label={t('account.sectionSecurity')} testId="account-security">
+      <div>
+        <div className="font-semibold">{t('account.changePassword')}</div>
+        <p className="mt-1 text-sm text-content/50">{t('account.changePasswordHint')}</p>
+      </div>
+      <form onSubmit={onSubmit} className="space-y-3 max-w-sm">
+        <div>
+          <label htmlFor="account-password-new" className="block text-[0.7rem] font-semibold tracking-wider uppercase text-content/45 mb-1.5">
+            {t('auth.newPassword')}
+          </label>
+          <PasswordInput
+            id="account-password-new"
+            value={password}
+            onChange={setPassword}
+            autoComplete="new-password"
+            testId="account-password-new"
+            shown={shown}
+            onToggle={() => setShown(v => !v)}
+          />
+        </div>
+        <div>
+          <label htmlFor="account-password-confirm" className="block text-[0.7rem] font-semibold tracking-wider uppercase text-content/45 mb-1.5">
+            {t('auth.repeatPassword')}
+          </label>
+          <PasswordInput
+            id="account-password-confirm"
+            value={confirm}
+            onChange={setConfirm}
+            autoComplete="new-password"
+            testId="account-password-confirm"
+            shown={shown}
+            onToggle={() => setShown(v => !v)}
+          />
+        </div>
+        {problem && (
+          <p role="alert" className="text-sm text-error" data-testid="account-password-error">{problem}</p>
+        )}
+        {changed && (
+          <p role="status" className="text-sm text-success" data-testid="account-password-changed">
+            {t('account.passwordChangedNotice')}
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={busy}
+          data-testid="account-password-submit"
+          className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {busy && <Loader2 size={16} className="animate-spin" />}
+          {busy ? t('auth.saving') : t('account.savePassword')}
+        </button>
+      </form>
+    </Section>
+  )
+}
+
+/**
+ * What can be deleted, and how.
+ *
+ * The history reset is the same action the analytics page offers, reached from
+ * the place a person looks for it. Account deletion is not self-service: it
+ * needs a server-side call with the service role, and there is none yet — so
+ * the page says how it is done rather than showing a button that cannot do it.
+ */
+function DataSection() {
+  const { t } = useTranslation()
+  const resetAllStats = useStatsStore(s => s.resetAllStats)
+  const [resetError, setResetError] = useState<string | null>(null)
+
+  async function deleteHistory() {
+    // Translated: this confirms an irreversible deletion.
+    if (!window.confirm(t('errors.resetConfirm'))) return
+    setResetError(null)
+    try {
+      await resetAllStats()
+    } catch (e) {
+      logFailure('data-reset', e)
+      setResetError(t('errors.reset'))
+    }
+  }
+
+  return (
+    <Section label={t('account.sectionData')} testId="account-data">
+      <div>
+        <button
+          onClick={deleteHistory}
+          data-testid="account-delete-history"
+          className="text-sm font-semibold text-error hover:underline cursor-pointer"
+        >
+          {t('analytics.deleteHistory')}
+        </button>
+        <p className="mt-1 text-sm text-content/50">{t('account.deleteHistoryHint')}</p>
+        {resetError && <p role="alert" className="mt-2 text-sm text-error">{resetError}</p>}
+      </div>
+      <div>
+        <div className="text-sm font-semibold">{t('account.deleteAccount')}</div>
+        <p className="mt-1 text-sm text-content/50">
+          {t('account.deleteAccountHint', { email: LEGAL_META.contactEmail })}
+        </p>
+        <a
+          href={`mailto:${LEGAL_META.contactEmail}`}
+          data-testid="account-delete-account"
+          className="inline-block mt-2 text-sm text-gold hover:text-gold-bright"
+        >
+          {LEGAL_META.contactEmail}
+        </a>
+      </div>
+    </Section>
   )
 }

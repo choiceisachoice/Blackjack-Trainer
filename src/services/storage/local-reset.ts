@@ -17,11 +17,18 @@ const APP_PREFIX = 'bjt_'
 /**
  * Keys that describe the *device*, not the *person*. These survive a wipe so a
  * user isn't thrown back to light mode with the sound on after signing out.
+ *
+ * The language is one of them, and was not: `bjt_locale` matched the prefix
+ * and fell to the wipe, so signing out flipped the interface back to whatever
+ * the browser reports — a German reader on an English-locale browser landed on
+ * an English sign-in screen every time. Nothing about the choice belongs to an
+ * account; it belongs to whoever reads this screen.
  */
 const DEVICE_PREF_KEYS = new Set([
   'bjt_sound_settings',
   'bjt_dealing_speed',
   'bjt_ambient_volume',
+  'bjt_locale',
 ])
 
 /** localStorage key recording which user the local caches currently belong to. */

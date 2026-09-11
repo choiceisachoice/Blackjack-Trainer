@@ -1,9 +1,19 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { Zap } from 'lucide-react'
-import { Button, Segmented, Toggle, StatCard, Panel } from './ui'
+import { Button, Segmented, Toggle, StatCard, Panel, Slider } from './ui'
 
 describe('common/ui primitives', () => {
+  it('Slider shows its value as a whole percent and reports changes as 0–1', () => {
+    const onChange = vi.fn()
+    render(<Slider label="Volume" value={0.375} onChange={onChange} />)
+    const input = screen.getByRole('slider', { name: 'Volume' })
+    expect(screen.getByText('38%')).toBeInTheDocument()
+    expect(input.getAttribute('aria-valuetext')).toBe('38%')
+    fireEvent.change(input, { target: { value: '0.6' } })
+    expect(onChange).toHaveBeenCalledWith(0.6)
+  })
+
   it('Button renders children and fires onClick', () => {
     const onClick = vi.fn()
     render(<Button onClick={onClick}>Go</Button>)
