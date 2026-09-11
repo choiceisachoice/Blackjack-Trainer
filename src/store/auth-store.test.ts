@@ -192,36 +192,6 @@ describe('auth-store', () => {
     expect(console.error).toHaveBeenCalled()
   })
 
-  describe('changePassword, from inside a signed-in session', () => {
-    it('sets the new password and reports success', async () => {
-      expect(await useAuthStore.getState().changePassword('longenough')).toBeNull()
-      expect(auth.updateUser).toHaveBeenCalledWith({ password: 'longenough' })
-      expect(useAuthStore.getState().error).toBeNull()
-    })
-
-    it('revokes the other sessions and keeps this one', async () => {
-      // The reason to rotate a password is that another device or person may
-      // hold the old one — so those go. This session was just used to prove
-      // the owner holds it; ending it would turn the change into a logout.
-      await useAuthStore.getState().changePassword('longenough')
-      expect(auth.signOut).toHaveBeenCalledWith({ scope: 'others' })
-      expect(auth.signOut).not.toHaveBeenCalledWith({ scope: 'global' })
-    })
-
-    it('reports a rejected password as a key, not the raw message', async () => {
-      auth.updateUser.mockResolvedValue({ data: {}, error: { message: 'New password should be different from the old password.' } })
-      const err = await useAuthStore.getState().changePassword('sameasbefore')
-      expect(err).toBe('errors.auth.samePassword')
-      expect(auth.signOut).not.toHaveBeenCalled()
-    })
-
-    it('still reports success if revoking the other sessions fails', async () => {
-      auth.signOut.mockRejectedValueOnce(new Error('network down'))
-      vi.spyOn(console, 'error').mockImplementation(() => {})
-      expect(await useAuthStore.getState().changePassword('longenough')).toBeNull()
-    })
-  })
-
   it('signOut clears the session', async () => {
     useAuthStore.setState({ status: 'signedIn', user: { id: 'u1' } as never, session: {} as never })
     await useAuthStore.getState().signOut()

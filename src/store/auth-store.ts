@@ -41,13 +41,6 @@ export interface AuthStoreActions {
   requestPasswordReset: (email: string) => Promise<string | null>
   /** Set a new password for the account the current recovery session belongs to. */
   updatePassword: (password: string) => Promise<string | null>
-  /**
-   * Change the password from inside a signed-in session.
-   *
-   * Returns an error key or null. Other sessions are revoked; this one stays —
-   * see the implementation for why that differs from `updatePassword`.
-   */
-  changePassword: (password: string) => Promise<string | null>
   /** Sign out the current user. */
   signOut: () => Promise<void>
   /** Clear the current error message. */
@@ -207,45 +200,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
       await supabase.auth.signOut({ scope: 'global' })
     } catch (e) {
       console.error('could not sign out sessions after a password change', e)
-    }
-
-    return null
-  },
-
-  async changePassword(password) {
-    if (!supabase) return AUTH_UNAVAILABLE
-    set({ error: null })
-
-    const { error } = await supabase.auth.updateUser({ password })
-    if (error) {
-      logFailure('auth-change-password', error)
-      const key = authErrorKey(error)
-      set({ error: key })
-      return key
-    }
-
-    /*
-      `others`, not `global` — the opposite call from `updatePassword`, for the
-      opposite situation.
-
-      A reset runs on a session the emailed link created, on a machine the
-      owner may not control, so that session has to die with the change. This
-      runs on a session the owner just proved they hold by being signed in on
-      it. Ending it would turn "change password" into "sign me out and make me
-      type the new one", and the person most likely to give up at that point is
-      the one who was changing it because they suspected someone else had it.
-
-      What still has to go is every *other* session: the reason to rotate a
-      password is that another device or another person may hold the old one,
-      and `updateUser` on its own revokes nothing. Best effort, as in
-      `updatePassword` — the password is already changed and cannot be
-      un-changed, so a failure here is logged rather than reported as a failed
-      change.
-    */
-    try {
-      await supabase.auth.signOut({ scope: 'others' })
-    } catch (e) {
-      console.error('could not sign out other sessions after a password change', e)
     }
 
     return null

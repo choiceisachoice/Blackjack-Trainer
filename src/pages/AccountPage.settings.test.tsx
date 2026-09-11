@@ -6,8 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  * The account page as a settings page.
  *
  * Supabase is mocked as *configured* here, unlike `AccountPage.test.tsx`,
- * because the security section only exists when there is a backend to change
- * a password against, and the profile shows what the session carries.
+ * so the profile shows what a real session carries.
  */
 
 vi.mock('../services/supabase/client', () => {
@@ -15,7 +14,6 @@ vi.mock('../services/supabase/client', () => {
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
       onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
-      updateUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } }, error: null }),
       signOut: vi.fn().mockResolvedValue({ error: null }),
     },
   }
@@ -46,7 +44,6 @@ const T = { timeout: 5000 }
 beforeEach(() => {
   cleanup()
   vi.clearAllMocks()
-  auth.updateUser.mockResolvedValue({ data: { user: { id: 'u1' } }, error: null })
   auth.signOut.mockResolvedValue({ error: null })
   useAuthStore.setState({
     status: 'signedIn',
@@ -98,51 +95,6 @@ describe('preferences', () => {
     fireEvent.change(screen.getByTestId('account-ambient-volume'), { target: { value: '0.42' } })
     expect(casinoAmbient.volume).toBeCloseTo(0.42)
     casinoAmbient.volume = before
-  })
-})
-
-describe('changing the password while signed in', () => {
-  const fill = (a: string, b: string) => {
-    fireEvent.change(screen.getByTestId('account-password-new'), { target: { value: a } })
-    fireEvent.change(screen.getByTestId('account-password-confirm'), { target: { value: b } })
-    fireEvent.click(screen.getByTestId('account-password-submit'))
-  }
-
-  it('refuses a short password before asking the server', () => {
-    renderPage()
-    fill('abc', 'abc')
-    expect(screen.getByRole('alert')).toBeInTheDocument()
-    expect(auth.updateUser).not.toHaveBeenCalled()
-  })
-
-  it('refuses a mismatched pair before asking the server', () => {
-    renderPage()
-    fill('longenough', 'longenougH')
-    expect(screen.getByRole('alert')).toBeInTheDocument()
-    expect(auth.updateUser).not.toHaveBeenCalled()
-  })
-
-  it('changes it, says so, and clears the fields', async () => {
-    renderPage()
-    fill('longenough', 'longenough')
-    expect(await screen.findByTestId('account-password-changed', {}, T)).toBeInTheDocument()
-    expect(auth.updateUser).toHaveBeenCalledWith({ password: 'longenough' })
-    expect(screen.getByTestId('account-password-new')).toHaveValue('')
-    // Other sessions go, this one stays — it is the one that just proved
-    // itself by being signed in.
-    expect(auth.signOut).toHaveBeenCalledWith({ scope: 'others' })
-  })
-
-  it('shows the translated reason when the server refuses, never its message', async () => {
-    auth.updateUser.mockResolvedValue({
-      data: {},
-      error: { message: 'New password should be different from the old password.' },
-    })
-    renderPage()
-    fill('sameasbefore', 'sameasbefore')
-    const alert = await screen.findByRole('alert', {}, T)
-    expect(alert.textContent).not.toContain('should be different')
-    expect(alert.textContent).toMatch(/different from your current one/i)
   })
 })
 

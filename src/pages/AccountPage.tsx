@@ -14,13 +14,9 @@ import { casinoAmbient } from '../services/casino-ambient'
 import { useUpgradePrompt } from '../store/upgrade-prompt-store'
 import { UpgradeModalHost } from '../components/pro/UpgradeModalHost'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
-import { PasswordInput } from '../components/auth/PasswordInput'
 import { Field, Segmented, Slider, Toggle } from '../components/common/ui'
 import { logFailure } from '../services/failure-log'
 import { LEGAL_META } from './legal/legal-meta'
-
-/** Supabase rejects anything shorter; checked here so the message arrives sooner. */
-const MIN_PASSWORD_LENGTH = 6
 
 /**
  * Human-readable label + tone for a subscription status.
@@ -67,8 +63,11 @@ function Section({ label, testId, children }: { label: string; testId?: string; 
  * button under it. Everything else that belongs on a page like this was
  * scattered — the language in the nav bar, the sound in the nav bar and again
  * in the top bar, the dealing speed and the ambience volume inside the casino
- * HUD where they can only be reached mid-session, and no way at all to change
- * a password without pretending to have forgotten it.
+ * HUD where they can only be reached mid-session.
+ *
+ * Deliberately not here: changing the password. The reset flow already covers
+ * it, and a security control does not belong between a volume slider and a
+ * delete button.
  *
  * The preferences here are the device's, not the account's: they live in
  * `localStorage` and survive a sign-out on purpose (see `local-reset.ts`).
@@ -243,8 +242,6 @@ export function AccountPage() {
 
         <PreferencesSection />
 
-        {isSupabaseConfigured && <SecuritySection />}
-
         <DataSection />
       </div>
 
@@ -316,111 +313,6 @@ function PreferencesSection() {
         testId="account-ambient-volume"
       />
       <p className="text-xs text-content/40">{t('account.devicePrefsHint')}</p>
-    </Section>
-  )
-}
-
-/**
- * Changing the password while signed in.
- *
- * Until now the only way was the reset flow: sign out, claim to have forgotten
- * it, wait for an email. The two fields share one reveal toggle for the same
- * reason the reset page's do — revealing half of a pair you are asked to match
- * is no help. Validation runs here first so the two cheap mistakes (too short,
- * mistyped) are caught before a round trip, and the server's answer is shown
- * as a translated key, never as its own message.
- */
-function SecuritySection() {
-  const { t } = useTranslation()
-  const changePassword = useAuthStore(s => s.changePassword)
-  const [password, setPassword] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [shown, setShown] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [problem, setProblem] = useState<string | null>(null)
-  const [changed, setChanged] = useState(false)
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (busy) return
-    setProblem(null)
-    setChanged(false)
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      setProblem(t('auth.minChars', { min: MIN_PASSWORD_LENGTH }))
-      return
-    }
-    if (password !== confirm) {
-      setProblem(t('auth.passwordsDiffer'))
-      return
-    }
-    setBusy(true)
-    try {
-      const err = await changePassword(password)
-      if (err) {
-        setProblem(t(err))
-      } else {
-        setChanged(true)
-        setPassword('')
-        setConfirm('')
-      }
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <Section label={t('account.sectionSecurity')} testId="account-security">
-      <div>
-        <div className="font-semibold">{t('account.changePassword')}</div>
-        <p className="mt-1 text-sm text-content/50">{t('account.changePasswordHint')}</p>
-      </div>
-      <form onSubmit={onSubmit} className="space-y-3 max-w-sm">
-        <div>
-          <label htmlFor="account-password-new" className="block text-[0.7rem] font-semibold tracking-wider uppercase text-content/45 mb-1.5">
-            {t('auth.newPassword')}
-          </label>
-          <PasswordInput
-            id="account-password-new"
-            value={password}
-            onChange={setPassword}
-            autoComplete="new-password"
-            testId="account-password-new"
-            shown={shown}
-            onToggle={() => setShown(v => !v)}
-          />
-        </div>
-        <div>
-          <label htmlFor="account-password-confirm" className="block text-[0.7rem] font-semibold tracking-wider uppercase text-content/45 mb-1.5">
-            {t('auth.repeatPassword')}
-          </label>
-          <PasswordInput
-            id="account-password-confirm"
-            value={confirm}
-            onChange={setConfirm}
-            autoComplete="new-password"
-            testId="account-password-confirm"
-            shown={shown}
-            onToggle={() => setShown(v => !v)}
-          />
-        </div>
-        {problem && (
-          <p role="alert" className="text-sm text-error" data-testid="account-password-error">{problem}</p>
-        )}
-        {changed && (
-          <p role="status" className="text-sm text-success" data-testid="account-password-changed">
-            {t('account.passwordChangedNotice')}
-          </p>
-        )}
-        <button
-          type="submit"
-          disabled={busy}
-          data-testid="account-password-submit"
-          className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {busy && <Loader2 size={16} className="animate-spin" />}
-          {busy ? t('auth.saving') : t('account.savePassword')}
-        </button>
-      </form>
     </Section>
   )
 }
