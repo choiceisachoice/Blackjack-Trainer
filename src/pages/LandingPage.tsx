@@ -10,6 +10,8 @@ import { usePlanPriceStore, selectPlan } from '../store/plan-price-store'
 import { logFailure } from '../services/failure-log'
 import { LEGAL_META } from './legal/legal-meta'
 import { usePageMeta } from '../hooks/use-page-meta'
+import { JsonLd } from '../components/common/JsonLd'
+import { siteJsonLd } from '../services/structured-data'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
@@ -114,6 +116,7 @@ export function LandingPage() {
 
   return (
     <div className="app-canvas text-content overflow-x-hidden">
+      <JsonLd data={siteJsonLd(t)} />
       {/* Nav */}
       {/* `--color-topbar`, not a pinned near-black. This bar was a fixed 60%
           black in both themes while its links used `text-content`, which flips

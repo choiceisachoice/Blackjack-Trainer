@@ -3,6 +3,8 @@ import { Trans, useTranslation } from 'react-i18next'
 import { ChevronDown, BookOpen, Sigma, Grid3x3, Coins, Zap, GraduationCap, Layers, Club, Spade } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { BlackjackBasics } from './BlackjackBasics'
+import { DeviationTables } from './DeviationTables'
+import { FAQ_COUNT } from '../../services/structured-data'
 
 interface Topic {
   /** Doubles as the accordion's identity and the stem of its message keys. */
@@ -61,6 +63,9 @@ const MODE_GUIDE: { icon: LucideIcon; nameKey: string; textKey: string }[] = [
 
 /** Every topic id, in page order. */
 const ALL_TOPICS = SECTIONS.flatMap(s => s.topics.map(t => t.id))
+
+/** Every topic carries four chapter paragraphs under `more`. */
+const CHAPTER_PARAGRAPHS = ['p1', 'p2', 'p3', 'p4'] as const
 
 /**
  * Learn / theory page — explains card counting for beginners.
@@ -144,8 +149,21 @@ export function LearnPage({ openAll = false }: { openAll?: boolean } = {}) {
                         />
                       </button>
                       {isOpen && (
-                        <div className="px-4 pb-4 -mt-1 text-sm text-content/60 leading-relaxed">
-                          <Trans i18nKey={`learn.topics.${topic.id}.body`} components={BODY_TAGS} />
+                        <div className="px-4 pb-4 -mt-1 text-sm text-content/60 leading-relaxed space-y-3">
+                          <p className="text-content/75">
+                            <Trans i18nKey={`learn.topics.${topic.id}.body`} components={BODY_TAGS} />
+                          </p>
+                          {/* The chapter proper: four paragraphs with the worked
+                              numbers. The short body above is the summary a
+                              returning reader wants; these are for the first
+                              time — and for a search engine, which ranks a
+                              paragraph, not a sentence. */}
+                          {CHAPTER_PARAGRAPHS.map(p => (
+                            <p key={p}>
+                              <Trans i18nKey={`learn.topics.${topic.id}.more.${p}`} components={BODY_TAGS} />
+                            </p>
+                          ))}
+                          {topic.id === 'i18-fab4' && <DeviationTables />}
                         </div>
                       )}
                     </div>
@@ -154,6 +172,24 @@ export function LearnPage({ openAll = false }: { openAll?: boolean } = {}) {
               </div>
             </section>
           ))}
+
+          {/* The questions people actually type into a search box, answered
+              in the open — not in an accordion, because a closed answer is
+              not in the DOM. The public page mirrors these as FAQPage data. */}
+          <section data-testid="learn-faq">
+            <h2 className="flex items-center gap-2 text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-3">
+              <BookOpen size={14} className="text-gold" />
+              {t('learn.faq.title')}
+            </h2>
+            <div className="surface p-4 space-y-4">
+              {Array.from({ length: FAQ_COUNT }, (_, i) => i + 1).map(n => (
+                <div key={n}>
+                  <h3 className="text-sm font-semibold text-content">{t(`learn.faq.q${n}`)}</h3>
+                  <p className="mt-1 text-sm text-content/60 leading-relaxed">{t(`learn.faq.a${n}`)}</p>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {/* Mode guide */}
           <section>

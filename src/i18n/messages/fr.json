@@ -952,35 +952,83 @@
     "topics": {
       "what-is-counting": {
         "title": "Qu’est-ce que le comptage de cartes ?",
-        "body": "Vous tenez un simple compte au fil des cartes. S’il reste beaucoup de hautes cartes, les probabilités penchent de votre côté — vous misez donc plus et ajustez quelques coups. C’est une affaire d’attention et de calcul, pas de triche, et c’est parfaitement légal."
+        "body": "Vous tenez un simple compte au fil des cartes. S’il reste beaucoup de hautes cartes, les probabilités penchent de votre côté — vous misez donc plus et ajustez quelques coups. C’est une affaire d’attention et de calcul, pas de triche, et c’est parfaitement légal.",
+        "more": {
+          "p1": "Compter les cartes, c’est suivre une seule chose : le rapport entre cartes hautes et cartes basses encore présentes dans le sabot. Chaque carte distribuée modifie ce qui reste, et le compte résume tout cela en un seul nombre que tu peux garder en tête.",
+          "p2": "Cela fonctionne parce que les deux moitiés du jeu ne se valent pas. Les cartes hautes — <c>les dix et les as</c> — te favorisent : plus de blackjacks payés <g>3:2</g>, des doubles plus forts, et un croupier qui saute plus souvent quand il doit tirer sur une main faible. Les cartes basses favorisent le croupier. Quand les cartes à venir sont riches en dix, l’avantage bascule discrètement de la maison vers toi.",
+          "p3": "Ce que ce n’est pas : mémoriser chaque carte, ni une astuce quelconque. Le compte Hi-Lo est une somme courante de <g>+1</g> et de <g>−1</g>, et les mathématiques derrière ont été publiées par Edward Thorp en 1962. C’est légal partout ; un casino peut quand même inviter un compteur gagnant à partir, parce que c’est sa maison.",
+          "p4": "À la table, tout se résume à quatre habitudes : tenir le compte, le convertir en true count, miser plus quand il est positif, et changer une poignée de décisions. Le reste n’est que stratégie de base. Le <c>Speed Drill</c> de cet entraîneur construit la première de ces habitudes jusqu’à ce qu’elle tourne toute seule."
+        }
       },
       "hi-lo": {
         "title": "Le comptage Hi-Lo",
-        "body": "Chaque carte a une valeur : cartes basses <g>2–6 = +1</g>, moyennes <g>7–9 = 0</g>, hautes <g>10, V, D, R, A = −1</g>. Additionnez au fil des cartes — ce total est votre <c>running count</c>. Un compte fortement positif signifie qu’il reste beaucoup de hautes cartes — à votre avantage."
+        "body": "Chaque carte a une valeur : cartes basses <g>2–6 = +1</g>, moyennes <g>7–9 = 0</g>, hautes <g>10, V, D, R, A = −1</g>. Additionnez au fil des cartes — ce total est votre <c>running count</c>. Un compte fortement positif signifie qu’il reste beaucoup de hautes cartes — à votre avantage.",
+        "more": {
+          "p1": "Le Hi-Lo est un compte <c>équilibré</c> : un jeu complet totalise exactement zéro. Vingt cartes basses (2–6) apportent <g>+20</g>, vingt cartes hautes (10, V, D, R, A) apportent <g>−20</g>, et les douze cartes moyennes (7, 8, 9) n’apportent rien. C’est pourquoi un compte positif signifie que le sabot est maintenant plus riche en cartes hautes qu’au départ.",
+          "p2": "Un tour détaillé. Les cartes sortent 5, R, 2, 9, A, 7, 4. Pas à pas : <g>+1, −1, +1, 0, −1, 0, +1</g>. Le running count après ces sept cartes est <g>+1</g>. Il ne se passe rien de plus dans la tête que cette addition, carte après carte.",
+          "p3": "L’astuce qui rend la chose rapide est l’annulation par paires : une carte haute et une carte basse ensemble font zéro, donc tu apprends à voir <g>R + 5 = 0</g> comme une unité et à la sauter. Entraîne-toi chez toi avec un seul jeu — distribue-le entièrement et tu dois finir exactement à zéro, ce qui te dit si tu as glissé.",
+          "p4": "Pourquoi le Hi-Lo et pas l’un des douze autres systèmes ? Parce qu’il capte presque tout l’avantage disponible — sa corrélation de mise est d’environ <g>0,97</g> — tout en restant assez simple pour tenir dans le bruit d’un casino. Les systèmes à plusieurs niveaux comme l’Omega II gagnent une fraction de pour cent et coûtent bien plus d’attention. Les équipes professionnelles utilisent le Hi-Lo, et chaque mode de cet entraîneur aussi."
+        }
       },
       "true-count": {
         "title": "Running count et true count",
-        "body": "Le running count seul ne suffit pas : +6 avec six jeux restants est faible, +6 avec un seul jeu est fort. On divise donc : <g>true count = running count ÷ jeux restants</g>. Le true count est votre véritable avantage, et il commande à la fois vos mises et vos déviations."
+        "body": "Le running count seul ne suffit pas : +6 avec six jeux restants est faible, +6 avec un seul jeu est fort. On divise donc : <g>true count = running count ÷ jeux restants</g>. Le true count est votre véritable avantage, et il commande à la fois vos mises et vos déviations.",
+        "more": {
+          "p1": "Le running count dit combien de cartes hautes en trop il reste, mais pas à quel point elles sont concentrées. Un compte de <g>+6</g> avec six jeux encore à distribuer, c’est une carte haute en trop par jeu — presque rien. Le même <g>+6</g> avec un seul jeu restant, c’est six cartes hautes en trop dans les cinquante-deux prochaines. C’est un sabot très différent.",
+          "p2": "Alors tu divises. <g>True Count = Running Count ÷ jeux restants</g>. Un running count de <g>+8</g> avec quatre jeux restants donne un true count de <g>+2</g> ; le même <g>+8</g> avec deux jeux restants donne <g>+4</g>. La plupart des compteurs arrondissent vers zéro pour les décisions de mise, donc un +2,7 est traité comme +2 — le côté prudent.",
+          "p3": "Ce que le nombre veut dire en argent : chaque point de true count déplace l’avantage d’environ <g>un demi pour cent</g>. À un true count de zéro, la maison détient environ 0,5 % contre un joueur parfait en stratégie de base. À <g>+1</g> le jeu est presque équilibré, à <g>+2</g> tu détiens environ un demi pour cent, à <g>+3</g> environ un pour cent. C’est tout le modèle économique : miser petit sous +1, gros au-dessus.",
+          "p4": "Le true count pilote les deux moitiés de la méthode — combien tu mises, et quelles décisions tu changes. Sa seule entrée que tu ne peux pas lire sur la table est le nombre de jeux restants, qu’il faut estimer à l’œil. Cette compétence a son propre chapitre et son propre mode d’entraînement."
+        }
       },
       "basic-strategy": {
         "title": "Stratégie de base",
-        "body": "Le coup mathématiquement optimal pour chaque main — tirer, rester, doubler, séparer ou abandonner — en supposant que vous ne comptez <c>pas</c>. Apprenez-la d’abord : c’est la fondation, et elle réduit déjà l’avantage de la maison à presque rien. Le mode <c>Cartes mémo</c> l’entraîne main par main."
+        "body": "Le coup mathématiquement optimal pour chaque main — tirer, rester, doubler, séparer ou abandonner — en supposant que vous ne comptez <c>pas</c>. Apprenez-la d’abord : c’est la fondation, et elle réduit déjà l’avantage de la maison à presque rien. Le mode <c>Cartes mémo</c> l’entraîne main par main.",
+        "more": {
+          "p1": "La stratégie de base est la décision mathématiquement optimale pour chaque combinaison de ta main et de la carte visible du croupier, en supposant que tu ne sais rien des cartes restantes. Elle a été résolue en faisant passer des millions de mains dans un ordinateur, et elle dépend des règles : nombre de jeux, croupier tirant ou non sur un 17 souple, double après partage ou non, abandon proposé ou non.",
+          "p2": "Quelques-uns de ses piliers valent la peine d’être connus par cœur avant de travailler le reste : partage toujours <c>les as et les huit</c>, ne partage jamais les dix ni les cinq. Double un <g>11</g> dur contre tout sauf un as. Reste sur un <g>17</g> dur et plus. Avec une main faible — 12 à 16 dur — reste contre un croupier de 2 à 6 et tire contre 7 ou plus, la seule exception étant le 12, qui tire contre 2 et 3.",
+          "p3": "Jouée parfaitement avec de bonnes règles, la stratégie de base ramène l’avantage de la maison à environ <g>0,5 %</g>. Le joueur moyen en cède 2 % ou plus en devinant. Avant même que le comptage n’apporte quoi que ce soit, la stratégie de base seule récupère la plus grande partie de l’argent qu’un joueur occasionnel perd — c’est pourquoi elle vient en premier.",
+          "p4": "Elle doit devenir automatique. Compter demande de l’attention, et si une partie de cette attention sert encore à se demander s’il faut tirer un 15 contre un 9, le compte va glisser. Le mode <c>Cartes mémoire</c> te montre toutes les mains qui existent jusqu’à ce que la bonne décision arrive avant la question."
+        }
       },
       "deviations": {
         "title": "Déviations",
-        "body": "Quand le compte monte ou descend, une poignée de coups s’écartent de la stratégie de base. Exemple classique : normalement vous <c>tirez</c> sur un 16 dur contre un 10 du croupier — mais à partir d’un true count de 0 vous <c>restez</c>. C’est de ces changements liés au compte que vient l’avantage supplémentaire."
+        "body": "Quand le compte monte ou descend, une poignée de coups s’écartent de la stratégie de base. Exemple classique : normalement vous <c>tirez</c> sur un 16 dur contre un 10 du croupier — mais à partir d’un true count de 0 vous <c>restez</c>. C’est de ces changements liés au compte que vient l’avantage supplémentaire.",
+        "more": {
+          "p1": "La stratégie de base suppose un sabot neutre. Quand le compte dit que le sabot est riche en dix, certaines de ses décisions ne sont plus les meilleures : tu restes plus souvent, parce que le croupier saute plus souvent ; tu doubles plus souvent, parce que ta carte unique a plus de chances d’être un dix ; et tu prends l’assurance, parce que la carte cachée du croupier a plus de chances d’être un dix. Quand le compte est bas, l’inverse — tu tires sur des mains où tu resterais normalement.",
+          "p2": "L’exemple classique est le <g>16 dur contre un 10</g>. La stratégie de base tire, et perd la plupart du temps de toute façon. À un true count de <g>0 ou plus</g> tu restes à la place, parce que le dix qui te ferait sauter est maintenant la carte la plus probable. La déviation la plus précieuse de toutes est l’assurance à un true count de <g>+3</g> : l’assurance est une mise annexe sur un blackjack du croupier, et elle est rentable quand plus d’un tiers des cartes restantes sont des dix.",
+          "p3": "Chaque déviation a un <c>indice</c> : le true count auquel la meilleure décision bascule. À l’indice ou au-dessus, tu fais la déviation ; en dessous, tu joues la stratégie de base. Certains indices sont négatifs — ce sont des décisions que tu changes quand le compte est bas, comme tirer un 13 contre un 2 à un true count de −1 ou pire.",
+          "p4": "Les déviations ajoutent environ <g>10–20 %</g> au profit attendu d’un compteur ; l’écart de mise produit le reste. Apprends-les donc en dernier, quand le compte et la stratégie de base sont automatiques, et apprends d’abord les plus précieuses — le chapitre suivant est cette liste."
+        }
       },
       "i18-fab4": {
         "title": "Illustrious 18 et Fab 4",
-        "body": "De toutes les déviations possibles, l’essentiel de la valeur tient à un petit ensemble : les <g>Illustrious 18</g> (les 18 déviations de jeu les plus rentables) et les <g>Fab 4</g> (les 4 déviations d’abandon les plus rentables). Inutile de retenir les noms — le niveau « Déviations » des cartes mémo les enseigne directement comme des situations."
+        "body": "De toutes les déviations possibles, l’essentiel de la valeur tient à un petit ensemble : les <g>Illustrious 18</g> (les 18 déviations de jeu les plus rentables) et les <g>Fab 4</g> (les 4 déviations d’abandon les plus rentables). Inutile de retenir les noms — le niveau « Déviations » des cartes mémo les enseigne directement comme des situations.",
+        "more": {
+          "p1": "Il existe des centaines de déviations possibles, et la plupart ne valent presque rien. En 1986, Don Schlesinger a identifié les dix-huit qui portent la grande majorité de la valeur — les <c>Illustrious 18</c> — puis les quatre décisions d’abandon qui comptent quand l’abandon tardif est proposé, les <c>Fab 4</c>. Ensemble, elles captent environ <g>80–90 %</g> de tout ce que les déviations peuvent te donner.",
+          "p2": "La liste commence par les quatre qui comptent le plus : l’assurance à <g>+3</g>, rester sur 16 contre un 10 à <g>0</g>, rester sur 15 contre un 10 à <g>+4</g>, et partager une paire de dix contre un 5 à <g>+5</g>. Si tu n’apprends rien d’autre, apprends celles-là.",
+          "p3": "Les décisions à indice négatif sont celles que les débutants oublient : à compte bas, tu <c>tires</c> sur des mains où la stratégie de base reste, comme 12 contre 4, 5 ou 6, et 13 contre 2 ou 3. Elles reviennent sans cesse, parce que les comptes bas sont aussi fréquents que les hauts.",
+          "p4": "Les tableaux ci-dessous sont générés par le moteur même de cet entraîneur — les mêmes chiffres que ceux avec lesquels la table de casino te note, ils ne peuvent donc pas diverger. Les indices valent pour une partie à six jeux où le croupier reste sur un 17 souple. Le niveau déviations des <c>Cartes mémoire</c> enseigne chacune d’elles comme une situation plutôt que comme une ligne d’une liste."
+        }
       },
       "bet-spread": {
         "title": "Bet spread",
-        "body": "Vous misez petit quand le compte est bas et gros quand il est haut — cet écart est votre <c>bet spread</c>. Presque tout le profit d’un compteur vient de mettre plus d’argent sur la table quand les probabilités vous favorisent. Un écart de <g>1 à 16</g> est un standard professionnel courant."
+        "body": "Vous misez petit quand le compte est bas et gros quand il est haut — cet écart est votre <c>bet spread</c>. Presque tout le profit d’un compteur vient de mettre plus d’argent sur la table quand les probabilités vous favorisent. Un écart de <g>1 à 16</g> est un standard professionnel courant.",
+        "more": {
+          "p1": "Presque tout le profit d’un compteur vient d’une seule chose : avoir plus d’argent sur la table quand le true count est haut que quand il est bas. Le rapport entre ta plus petite et ta plus grande mise est ton <c>écart de mise</c>. Un écart de <g>1–8</g> à une table à 25 signifie 25 quand le compte est neutre et 200 au sommet.",
+          "p2": "Une rampe courante pour six jeux : une unité à un true count de <g>+1 ou moins</g>, deux unités à <g>+2</g>, quatre à <g>+3</g>, huit à <g>+4</g>, et soit s’arrêter là, soit passer à douze ou seize à +5. La règle empirique derrière est Kelly : mise environ ton avantage en pour cent de ta bankroll — à un pour cent d’avantage, un pour cent de ce que tu as.",
+          "p3": "La bankroll est ce qui rend l’écart survivable. Les fluctuations sont brutales même avec un avantage ; une règle courante est d’avoir au moins <g>100 à 200</g> mises maximales, et plus la bankroll est petite, plus le risque de tout perdre avant que l’avantage se manifeste est élevé. Les outils <c>Bankroll</c> de l’entraîneur te montrent ce risque comme un nombre plutôt qu’une impression.",
+          "p4": "Il y a aussi la question de la couverture : sauter d’une unité à seize dès que le compte monte est la chose la plus visible qu’un compteur puisse faire. Monter par paliers, et ne pas retomber au minimum dès que le compte baisse, coûte un peu d’avantage et achète beaucoup de temps à la table. Le mode <c>Écart de mise</c> entraîne la rampe ; la session casino note chaque mise que tu fais par rapport à elle."
+        }
       },
       "deck-estimation": {
         "title": "Estimation des jeux",
-        "body": "Pour transformer le running count en true count, il faut juger combien de jeux restent — à l’œil, à l’épaisseur du sabot de défausse, comme à une vraie table. Cela paraît difficile mais devient rapide avec la pratique. C’est exactement ce qu’entraîne le mode <c>Estimation des jeux</c>."
+        "body": "Pour transformer le running count en true count, il faut juger combien de jeux restent — à l’œil, à l’épaisseur du sabot de défausse, comme à une vraie table. Cela paraît difficile mais devient rapide avec la pratique. C’est exactement ce qu’entraîne le mode <c>Estimation des jeux</c>.",
+        "more": {
+          "p1": "Le true count a besoin d’un nombre que la table ne te montre pas : combien de jeux restent à distribuer. Tu le lis dans la défausse. Un jeu de 52 cartes fait environ <g>1,5 cm</g> (0,6 pouce) de haut, donc un sabot de six jeux mesure environ 9 cm, et une défausse de 3 cm de cartes signifie que deux jeux sont partis et qu’il en reste quatre.",
+          "p2": "Estime en demi-jeux, pas en cartes. Regarde la défausse, estime les cartes écartées, soustrais du sabot. Dans un sabot de six jeux avec environ <g>2,5 jeux</g> dans la défausse, il en reste <g>3,5</g>. Rappelle-toi que la carte de coupe se situe généralement vers 75 % de pénétration, donc le dernier jeu et demi n’est jamais distribué — ce qui compte, c’est le compte par rapport à ce qui sera réellement joué.",
+          "p3": "La précision au demi-jeu suffit, et moins ne suffit pas. Un running count de +6 avec trois jeux restants est un true count de <g>+2</g> ; trompe-toi d’un jeu sur la défausse et tu l’appelles <g>+3</g>, tu mises le mauvais montant et tu fais une déviation que tu n’aurais pas dû faire. La plupart des erreurs de comptage aux vraies tables sont des erreurs d’estimation, pas d’addition.",
+          "p4": "Cela devient rapide avec la répétition, comme juger qu’un verre est à moitié plein. Le mode <c>Estimation des jeux</c> te montre des défausses de tailles aléatoires et note ton estimation ; vise à être à un demi-jeu près à chaque fois, puis fais-le avec le compte qui tourne en même temps."
+        }
       }
     },
     "modesTitle": "Les modes d’entraînement",
@@ -994,6 +1042,35 @@
     "cta": {
       "title": "Prêt à rendre le compte automatique ?",
       "body": "Tout ce qui précède devient un réflexe avec la pratique. Commence par les exercices gratuits — aucune carte bancaire nécessaire."
+    },
+    "table": {
+      "i18Title": "Les Illustrious 18",
+      "fab4Title": "Les Fab 4",
+      "hand": "Ta main",
+      "dealer": "Le croupier montre",
+      "index": "À partir du true count",
+      "play": "Décision",
+      "otherwise": "En dessous",
+      "any": "Toute main",
+      "insurance": "Prendre l’assurance",
+      "note": "Généré par le moteur même de cet entraîneur — les mêmes chiffres avec lesquels la table de casino te note. Six jeux, le croupier reste sur un 17 souple, abandon tardif pour les Fab 4."
+    },
+    "faq": {
+      "title": "Questions fréquentes",
+      "q1": "Compter les cartes est-il illégal ?",
+      "a1": "Non. Compter les cartes, c’est réfléchir aux cartes que tu as vues, et aucune loi nulle part ne l’interdit. Ce que les casinos peuvent faire, c’est refuser de te laisser jouer — un casino est une propriété privée. Utiliser un appareil ou un complice caché est une autre affaire, illégale dans la plupart des pays. Cet entraîneur enseigne uniquement la compétence mentale.",
+      "q2": "Combien de temps faut-il pour apprendre le Hi-Lo ?",
+      "a2": "La plupart des gens tiennent un running count exact sur un seul jeu après une semaine de pratique quotidienne, et atteignent la vitesse de table — une carte par seconde ou moins, avec conversion en true count et stratégie de base en parallèle — en un à trois mois. Le difficile n’est pas de compter ; c’est de le faire pendant que tout le reste se passe.",
+      "q3": "Quel système de comptage un débutant devrait-il utiliser ?",
+      "a3": "Le Hi-Lo. Il obtient environ 97 % de la valeur qu’un système parfait pourrait donner, c’est un seul niveau de +1 et −1, et toutes les équipes sérieuses l’utilisent. Les systèmes à plusieurs niveaux ajoutent une fraction de pour cent contre beaucoup plus d’efforts et plus d’erreurs.",
+      "q4": "Quel est l’avantage d’un compteur de cartes ?",
+      "a4": "Petit. Un bon compteur avec un écart de mise solide et des règles correctes a en moyenne un avantage d’environ 0,5 à 1,5 pour cent sur l’ensemble du jeu — avec des fluctuations brutales à court terme. C’est un travail de fond mesuré sur des milliers de mains, pas un moyen de battre un casino en une soirée.",
+      "q5": "Dois-je mémoriser chaque carte jouée ?",
+      "a5": "Non. Le compte est un seul nombre qui monte et descend d’une unité. Tu ne retiens jamais les cartes individuelles, seulement le total courant et à peu près combien de jeux il reste.",
+      "q6": "Quel écart de mise utiliser ?",
+      "a6": "À six jeux, un écart de 1–8 à 1–16 est le standard professionnel : une unité à un true count de +1 ou moins, doublement à chaque point, plafonné à huit à seize unités. Plus étroit cède la plus grande partie de l’avantage ; plus large attire l’attention.",
+      "q7": "Cet entraîneur implique-t-il de l’argent réel ?",
+      "a7": "Non. Chaque main est simulée. L’entraîneur est un outil pédagogique pour la stratégie de base et le comptage Hi-Lo ; il n’y a ni jeu d’argent, ni dépôt, ni gain."
     }
   },
   "basics": {

@@ -952,35 +952,83 @@
     "topics": {
       "what-is-counting": {
         "title": "O que é contar cartas?",
-        "body": "Mantém uma contagem simples à medida que as cartas saem. Se ainda faltarem muitas cartas altas, as probabilidades pendem a seu favor — aposta mais e ajusta algumas jogadas. É atenção e matemática, não batota, e é perfeitamente legal."
+        "body": "Mantém uma contagem simples à medida que as cartas saem. Se ainda faltarem muitas cartas altas, as probabilidades pendem a seu favor — aposta mais e ajusta algumas jogadas. É atenção e matemática, não batota, e é perfeitamente legal.",
+        "more": {
+          "p1": "Contar cartas é acompanhar uma única coisa: a proporção entre cartas altas e cartas baixas que ainda restam no shoe. Cada carta distribuída muda o que sobra, e a contagem comprime tudo isso num só número que consegues guardar na cabeça.",
+          "p2": "Funciona porque as duas metades do baralho não são iguais. As cartas altas — <c>dezes e ases</c> — favorecem-te: mais blackjacks pagos a <g>3:2</g>, dobros mais fortes e um dealer que rebenta mais vezes quando tem de pedir com uma mão fraca. As cartas baixas favorecem o dealer. Quando as cartas por sair são ricas em dezes, a vantagem passa em silêncio da casa para ti.",
+          "p3": "O que não é: memorizar cada carta, nem truque algum. A contagem Hi-Lo é uma soma corrente de <g>+1</g> e <g>−1</g>, e a matemática por trás foi publicada por Edward Thorp em 1962. É legal em todo o lado; um casino pode ainda assim convidar um contador a sair, porque a casa é dele.",
+          "p4": "À mesa resume-se a quatro hábitos: manter a contagem, convertê-la em true count, apostar mais quando é positiva e mudar uma mão-cheia de jogadas. Tudo o resto é estratégia básica simples. O <c>Speed Drill</c> deste treinador constrói o primeiro desses hábitos até funcionar sozinho."
+        }
       },
       "hi-lo": {
         "title": "A contagem Hi-Lo",
-        "body": "Cada carta tem um valor: cartas baixas <g>2–6 = +1</g>, médias <g>7–9 = 0</g>, altas <g>10, J, Q, K, A = −1</g>. Some-as à medida que saem — esse total é o seu <c>running count</c>. Uma contagem muito positiva significa que restam muitas cartas altas, o que o favorece."
+        "body": "Cada carta tem um valor: cartas baixas <g>2–6 = +1</g>, médias <g>7–9 = 0</g>, altas <g>10, J, Q, K, A = −1</g>. Some-as à medida que saem — esse total é o seu <c>running count</c>. Uma contagem muito positiva significa que restam muitas cartas altas, o que o favorece.",
+        "more": {
+          "p1": "O Hi-Lo é uma contagem <c>equilibrada</c>: um baralho completo soma exatamente zero. Vinte cartas baixas (2–6) contribuem <g>+20</g>, vinte cartas altas (10, J, Q, K, A) contribuem <g>−20</g>, e as doze cartas médias (7, 8, 9) não contribuem nada. É por isso que uma contagem positiva significa que o shoe está agora mais rico em cartas altas do que no início.",
+          "p2": "Uma ronda resolvida. Saem 5, K, 2, 9, A, 7, 4. Passo a passo: <g>+1, −1, +1, 0, −1, 0, +1</g>. O running count depois destas sete cartas é <g>+1</g>. Na cabeça não acontece mais nada além desta soma, carta a carta.",
+          "p3": "O truque que torna isto rápido é cancelar em pares: uma carta alta e uma baixa juntas dão zero, por isso aprendes a ver <g>K + 5 = 0</g> como uma unidade e a saltá-la. Pratica em casa com um único baralho — distribui-o todo e tens de acabar exatamente em zero, o que te diz se te enganaste.",
+          "p4": "Porquê o Hi-Lo e não um da dúzia de outros sistemas? Porque capta quase toda a vantagem disponível — a sua correlação de aposta é de cerca de <g>0,97</g> — mantendo-se simples o suficiente para aguentar o ruído de um casino. Sistemas de vários níveis como o Omega II ganham uma fração de ponto percentual e custam muito mais atenção. As equipas profissionais usam Hi-Lo, e cada modo deste treinador também."
+        }
       },
       "true-count": {
         "title": "Running count e true count",
-        "body": "O running count sozinho não chega: +6 com seis baralhos por jogar é fraco, mas +6 com um baralho é forte. Por isso divide-se: <g>true count = running count ÷ baralhos restantes</g>. O true count é a sua vantagem real e comanda tanto a aposta como os desvios."
+        "body": "O running count sozinho não chega: +6 com seis baralhos por jogar é fraco, mas +6 com um baralho é forte. Por isso divide-se: <g>true count = running count ÷ baralhos restantes</g>. O true count é a sua vantagem real e comanda tanto a aposta como os desvios.",
+        "more": {
+          "p1": "O running count diz quantas cartas altas a mais restam, mas não quão concentradas estão. Uma contagem de <g>+6</g> com seis baralhos por distribuir é uma carta alta a mais por baralho — quase nada. O mesmo <g>+6</g> com um baralho restante são seis cartas altas a mais nas próximas cinquenta e duas. É um shoe muito diferente.",
+          "p2": "Então divides. <g>True Count = Running Count ÷ baralhos restantes</g>. Um running count de <g>+8</g> com quatro baralhos restantes dá um true count de <g>+2</g>; o mesmo <g>+8</g> com dois baralhos dá <g>+4</g>. A maioria dos contadores arredonda para zero nas decisões de aposta, por isso um +2,7 é tratado como +2 — o lado prudente.",
+          "p3": "O que o número significa em dinheiro: cada ponto de true count desloca a vantagem cerca de <g>meio ponto percentual</g>. Com true count zero a casa tem cerca de 0,5% contra um jogador perfeito de estratégia básica. A <g>+1</g> o jogo está quase equilibrado, a <g>+2</g> tens cerca de meio ponto, a <g>+3</g> cerca de um ponto. É todo o modelo de negócio: apostar pouco abaixo de +1, muito acima.",
+          "p4": "O true count comanda as duas metades do método — quanto apostas e que jogadas mudas. O único dado que não consegues ler na mesa é o número de baralhos restantes, que tens de estimar a olho. Essa competência tem o seu próprio capítulo e o seu próprio modo de treino."
+        }
       },
       "basic-strategy": {
         "title": "Estratégia básica",
-        "body": "A jogada matematicamente melhor para cada mão — pedir, ficar, dobrar, dividir ou desistir — assumindo que <c>não</c> está a contar. Aprenda-a primeiro: é a base e já reduz a vantagem da casa a quase nada. O modo <c>Cartões</c> treina-a mão a mão."
+        "body": "A jogada matematicamente melhor para cada mão — pedir, ficar, dobrar, dividir ou desistir — assumindo que <c>não</c> está a contar. Aprenda-a primeiro: é a base e já reduz a vantagem da casa a quase nada. O modo <c>Cartões</c> treina-a mão a mão.",
+        "more": {
+          "p1": "A estratégia básica é a decisão matematicamente melhor para cada combinação da tua mão com a carta visível do dealer, assumindo que não sabes nada das cartas restantes. Foi resolvida passando milhões de mãos por um computador, e depende das regras: quantos baralhos, se o dealer pede com 17 suave, se podes dobrar depois de dividir, se há rendição.",
+          "p2": "Vale a pena saber de cor alguns dos seus pilares antes de treinar o resto: divide sempre <c>ases e oitos</c>, nunca dividas dezes ou cincos. Dobra um <g>11</g> duro contra tudo menos um ás. Fica com <g>17</g> duro ou mais. Com uma mão fraca — 12 a 16 duro — fica contra um dealer de 2 a 6 e pede contra 7 ou mais, com a única exceção do 12, que pede contra 2 e 3.",
+          "p3": "Jogada na perfeição com boas regras, a estratégia básica reduz a vantagem da casa para cerca de <g>0,5%</g>. O jogador médio oferece 2% ou mais a adivinhar. Antes de a contagem acrescentar o que quer que seja, a estratégia básica sozinha recupera a maior parte do dinheiro que um jogador ocasional perde — por isso vem primeiro.",
+          "p4": "Tem de se tornar automática. Contar exige atenção, e se parte dessa atenção ainda é gasta a pensar se pedes um 15 contra um 9, a contagem escapa. O modo <c>Cartões</c> mostra-te todas as mãos que existem até a jogada certa chegar antes da pergunta."
+        }
       },
       "deviations": {
         "title": "Desvios",
-        "body": "Quando a contagem sobe ou desce, um punhado de jogadas afasta-se da estratégia básica. Exemplo clássico: normalmente <c>pede</c> com um 16 duro contra um 10 do dealer — mas a partir de um true count de 0 <c>fica</c>. É destas mudanças ligadas à contagem que vem a vantagem extra."
+        "body": "Quando a contagem sobe ou desce, um punhado de jogadas afasta-se da estratégia básica. Exemplo clássico: normalmente <c>pede</c> com um 16 duro contra um 10 do dealer — mas a partir de um true count de 0 <c>fica</c>. É destas mudanças ligadas à contagem que vem a vantagem extra.",
+        "more": {
+          "p1": "A estratégia básica assume um shoe neutro. Quando a contagem diz que o shoe está rico em dezes, algumas das suas jogadas deixam de ser as melhores: ficas mais vezes, porque o dealer rebenta mais vezes; dobras mais vezes, porque a tua única carta tem mais probabilidade de ser um dez; e tomas o seguro, porque a carta escondida do dealer tem mais probabilidade de ser um dez. Com a contagem baixa, o contrário — pedes em mãos em que normalmente ficarias.",
+          "p2": "O exemplo clássico é o <g>16 duro contra um 10</g>. A estratégia básica pede, e perde na mesma a maior parte das vezes. Com um true count de <g>0 ou mais</g> ficas em vez disso, porque o dez que te faria rebentar é agora a carta mais provável. A desviação mais valiosa de todas é o seguro a true count <g>+3</g>: o seguro é uma aposta lateral em que o dealer tem blackjack, e compensa quando mais de um terço das cartas restantes são dezes.",
+          "p3": "Cada desviação tem um <c>índice</c>: o true count em que a melhor jogada muda. No índice ou acima fazes a desviação; abaixo jogas estratégia básica. Alguns índices são negativos — são jogadas que mudas quando a contagem está baixa, como pedir com 13 contra um 2 a true count −1 ou pior.",
+          "p4": "As desviações acrescentam cerca de <g>10–20%</g> ao lucro esperado de um contador; o spread de apostas produz o resto. Por isso aprende-as por último, quando a contagem e a estratégia básica forem automáticas, e aprende primeiro as valiosas — o próximo capítulo é essa lista."
+        }
       },
       "i18-fab4": {
         "title": "Illustrious 18 e Fab 4",
-        "body": "De todos os desvios possíveis, quase todo o valor está num grupo pequeno: os <g>Illustrious 18</g> (os 18 desvios de jogo mais valiosos) e os <g>Fab 4</g> (os 4 desvios de desistência mais valiosos). Não precisa de decorar os nomes — o nível «Desvios» dos cartões ensina-os diretamente como situações."
+        "body": "De todos os desvios possíveis, quase todo o valor está num grupo pequeno: os <g>Illustrious 18</g> (os 18 desvios de jogo mais valiosos) e os <g>Fab 4</g> (os 4 desvios de desistência mais valiosos). Não precisa de decorar os nomes — o nível «Desvios» dos cartões ensina-os diretamente como situações.",
+        "more": {
+          "p1": "Há centenas de desviações possíveis, e a maioria não vale quase nada. Em 1986 Don Schlesinger identificou as dezoito que carregam a grande maioria do valor — as <c>Illustrious 18</c> — e depois as quatro jogadas de rendição que importam quando há rendição tardia, as <c>Fab 4</c>. Juntas captam cerca de <g>80–90%</g> de tudo o que as desviações te podem dar.",
+          "p2": "A lista começa com as quatro que mais importam: seguro a <g>+3</g>, ficar com 16 contra um 10 a <g>0</g>, ficar com 15 contra um 10 a <g>+4</g>, e dividir um par de dezes contra um 5 a <g>+5</g>. Se não aprenderes mais nada, aprende estas.",
+          "p3": "As jogadas de índice negativo são as que os principiantes esquecem: com a contagem baixa <c>pedes</c> em mãos em que a estratégia básica fica, como 12 contra 4, 5 ou 6, e 13 contra 2 ou 3. Aparecem constantemente, porque as contagens baixas são tão frequentes como as altas.",
+          "p4": "As tabelas abaixo são geradas pelo próprio motor deste treinador — os mesmos números com que a mesa de casino te avalia, por isso não podem divergir. Os índices valem para um jogo de seis baralhos em que o dealer fica com 17 suave. O nível de desviações dos <c>Cartões</c> ensina cada uma delas como situação e não como linha de uma lista."
+        }
       },
       "bet-spread": {
         "title": "Bet spread",
-        "body": "Aposta pouco quando a contagem está baixa e muito quando está alta — essa diferença é o seu <c>bet spread</c>. Quase todo o lucro de um contador vem de pôr mais dinheiro na mesa quando as probabilidades o favorecem. Um spread de <g>1–16</g> é um padrão profissional comum."
+        "body": "Aposta pouco quando a contagem está baixa e muito quando está alta — essa diferença é o seu <c>bet spread</c>. Quase todo o lucro de um contador vem de pôr mais dinheiro na mesa quando as probabilidades o favorecem. Um spread de <g>1–16</g> é um padrão profissional comum.",
+        "more": {
+          "p1": "Quase todo o lucro de um contador vem de uma só coisa: ter mais dinheiro na mesa quando o true count está alto do que quando está baixo. A relação entre a tua aposta mais pequena e a maior é o teu <c>spread de apostas</c>. Um spread de <g>1–8</g> numa mesa de 25 significa 25 com contagem neutra e 200 no topo.",
+          "p2": "Uma rampa comum para seis baralhos: uma unidade a true count <g>+1 ou menos</g>, duas unidades a <g>+2</g>, quatro a <g>+3</g>, oito a <g>+4</g>, e aí parar ou subir para doze ou dezasseis a +5. A regra prática por trás é Kelly: aposta cerca da tua vantagem em percentagem do bankroll — com um por cento de vantagem, um por cento do que tens.",
+          "p3": "O bankroll é o que torna o spread suportável. As oscilações são brutais mesmo com vantagem; uma orientação comum é ter pelo menos <g>100 a 200</g> apostas máximas, e quanto mais pequeno o bankroll, maior o risco de perder tudo antes de a vantagem aparecer. As ferramentas de <c>Bankroll</c> do treinador mostram-te esse risco como número e não como sensação.",
+          "p4": "Há ainda a questão da cobertura: saltar de uma unidade para dezasseis assim que a contagem sobe é a coisa mais visível que um contador pode fazer. Subir por degraus, e não cair para o mínimo no instante em que a contagem desce, custa um pouco de vantagem e compra muito tempo à mesa. O modo <c>Spread de apostas</c> treina a rampa; a sessão de casino avalia cada aposta que fazes contra ela."
+        }
       },
       "deck-estimation": {
         "title": "Estimativa de baralhos",
-        "body": "Para transformar o running count em true count tem de avaliar quantos baralhos faltam — a olho, pela espessura do tabuleiro de descartes, tal como numa mesa a sério. Parece difícil, mas com prática torna-se rápido. É exatamente isso que o modo <c>Estimativa de baralhos</c> treina."
+        "body": "Para transformar o running count em true count tem de avaliar quantos baralhos faltam — a olho, pela espessura do tabuleiro de descartes, tal como numa mesa a sério. Parece difícil, mas com prática torna-se rápido. É exatamente isso que o modo <c>Estimativa de baralhos</c> treina.",
+        "more": {
+          "p1": "O true count precisa de um número que a mesa não te mostra: quantos baralhos faltam distribuir. Lês isso na pilha de descarte. Um baralho de 52 cartas tem cerca de <g>1,5 cm</g> (0,6 polegadas) de altura, por isso um shoe de seis baralhos tem cerca de 9 cm, e um descarte com 3 cm de cartas significa que dois baralhos já saíram e restam quatro.",
+          "p2": "Estima em meios baralhos, não em cartas. Olha para o descarte, estima as cartas descartadas, subtrai ao shoe. Num shoe de seis baralhos com cerca de <g>2,5 baralhos</g> no descarte, restam <g>3,5</g>. Lembra-te de que a carta de corte costuma estar perto de 75% de penetração, por isso o último baralho e meio nunca é distribuído — o que conta é a contagem face ao que será realmente jogado.",
+          "p3": "Precisão de meio baralho chega, e menos não chega. Um running count de +6 com três baralhos restantes é um true count de <g>+2</g>; engana-te num baralho no descarte e chamas-lhe <g>+3</g>, apostas o valor errado e fazes uma desviação que não devias. A maioria dos erros de contagem em mesas reais são erros de estimativa, não de soma.",
+          "p4": "Torna-se rápido com repetição, como julgar um copo meio cheio. O modo <c>Estimativa de baralhos</c> mostra-te descartes de tamanhos aleatórios e pontua a tua estimativa; procura ficar a meio baralho de cada vez, e depois fá-lo com a contagem a correr ao mesmo tempo."
+        }
       }
     },
     "modesTitle": "Os modos de treino",
@@ -994,6 +1042,35 @@
     "cta": {
       "title": "Pronto para tornar a contagem automática?",
       "body": "Tudo o que está acima torna-se reflexo com prática. Começa pelos exercícios gratuitos — sem cartão."
+    },
+    "table": {
+      "i18Title": "As Illustrious 18",
+      "fab4Title": "As Fab 4",
+      "hand": "A tua mão",
+      "dealer": "O dealer mostra",
+      "index": "A partir de true count",
+      "play": "Jogada",
+      "otherwise": "Abaixo disso",
+      "any": "Qualquer mão",
+      "insurance": "Tomar o seguro",
+      "note": "Gerado pelo próprio motor deste treinador — os mesmos números com que a mesa de casino te avalia. Seis baralhos, o dealer fica com 17 suave, rendição tardia para as Fab 4."
+    },
+    "faq": {
+      "title": "Perguntas frequentes",
+      "q1": "Contar cartas é ilegal?",
+      "a1": "Não. Contar cartas é pensar nas cartas que viste, e nenhuma lei em lado nenhum o proíbe. O que os casinos podem fazer é não te deixar jogar — um casino é propriedade privada. Usar um dispositivo ou um ajudante escondido é outra coisa, ilegal na maioria dos países. Este treinador ensina apenas a competência mental.",
+      "q2": "Quanto tempo demora a aprender Hi-Lo?",
+      "a2": "A maioria das pessoas mantém um running count exato num único baralho ao fim de uma semana de prática diária, e chega à velocidade de mesa — uma carta por segundo ou menos, com conversão em true count e estratégia básica em simultâneo — em um a três meses. O difícil não é contar; é fazê-lo enquanto tudo o resto acontece.",
+      "q3": "Que sistema de contagem deve usar um principiante?",
+      "a3": "Hi-Lo. Obtém cerca de 97% do valor que um sistema perfeito daria, é um único nível de +1 e −1, e todas as equipas sérias o usam. Os sistemas de vários níveis acrescentam uma fração de ponto percentual em troca de muito mais esforço e mais erros.",
+      "q4": "Qual é a vantagem de um contador de cartas?",
+      "a4": "Pequena. Um bom contador com um spread sólido e regras decentes tem em média uma vantagem de cerca de 0,5 a 1,5 pontos percentuais sobre o jogo inteiro — com oscilações brutais a curto prazo. É um trabalho de fundo medido em milhares de mãos, não uma forma de vencer um casino numa noite.",
+      "q5": "Tenho de memorizar cada carta jogada?",
+      "a5": "Não. A contagem é um único número que sobe e desce um valor de cada vez. Nunca te lembras de cartas individuais, só do total corrente e de mais ou menos quantos baralhos restam.",
+      "q6": "Que spread de apostas devo usar?",
+      "a6": "Com seis baralhos, um spread de 1–8 a 1–16 é o padrão profissional: uma unidade a true count +1 ou menos, a dobrar a cada ponto, com teto de oito a dezasseis unidades. Mais estreito oferece a maior parte da vantagem; mais largo chama a atenção.",
+      "q7": "Este treinador envolve dinheiro real?",
+      "a7": "Não. Cada mão é simulada. O treinador é uma ferramenta educativa para a estratégia básica e a contagem Hi-Lo; não há jogo a dinheiro, nem depósitos, nem pagamentos."
     }
   },
   "basics": {

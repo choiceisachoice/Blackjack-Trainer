@@ -952,35 +952,83 @@
     "topics": {
       "what-is-counting": {
         "title": "Kart sayma nedir?",
-        "body": "Kartlar çıktıkça basit bir sayım tutarsınız. Yüksek kartların çoğu hâlâ gelecekse olasılıklar sizin lehinize döner — o zaman daha çok yatırır ve birkaç hamlenizi değiştirirsiniz. Bu bir dikkat ve matematik becerisidir, hile değildir ve tamamen yasaldır."
+        "body": "Kartlar çıktıkça basit bir sayım tutarsınız. Yüksek kartların çoğu hâlâ gelecekse olasılıklar sizin lehinize döner — o zaman daha çok yatırır ve birkaç hamlenizi değiştirirsiniz. Bu bir dikkat ve matematik becerisidir, hile değildir ve tamamen yasaldır.",
+        "more": {
+          "p1": "Kart saymak tek bir şeyi takip etmektir: ayakkabıda hâlâ kalan yüksek kartların düşük kartlara oranı. Dağıtılan her kart kalanı değiştirir ve sayım tüm bunları aklında taşıyabileceğin tek bir sayıya sıkıştırır.",
+          "p2": "İşe yaramasının nedeni destenin iki yarısının eşit olmamasıdır. Yüksek kartlar — <c>onluklar ve aslar</c> — senin lehinedir: <g>3:2</g> ödenen daha çok blackjack, daha güçlü katlamalar ve zayıf bir elle çekmek zorunda kaldığında daha sık batan bir krupiye. Düşük kartlar krupiyenin lehinedir. Gelecek kartlar onluk açısından zenginse avantaj sessizce kasadan sana geçer.",
+          "p3": "Ne olmadığı: her kartı ezberlemek ya da herhangi bir hile. Hi-Lo sayımı <g>+1</g> ve <g>−1</g>’lerden oluşan bir toplamdır ve arkasındaki matematiği Edward Thorp 1962’de yayımladı. Her yerde yasaldır; bir casino kazanan bir sayıcıdan yine de ayrılmasını isteyebilir, çünkü orası onun evidir.",
+          "p4": "Masada iş dört alışkanlığa iner: sayımı tutmak, true count’a çevirmek, pozitifken daha çok bahis yapmak ve bir avuç oyunu değiştirmek. Geri kalan her şey düz temel stratejidir. Bu antrenördeki <c>Speed Drill</c> bu alışkanlıkların ilkini kendi kendine işleyene kadar inşa eder."
+        }
       },
       "hi-lo": {
         "title": "Hi-Lo sayımı",
-        "body": "Her kartın bir değeri vardır: düşük kartlar <g>2–6 = +1</g>, orta kartlar <g>7–9 = 0</g>, yüksek kartlar <g>10, J, Q, K, A = −1</g>. Kartlar geldikçe toplayın — bu toplam sizin <c>running count</c>’unuzdur. Yüksek pozitif bir sayım, çok sayıda yüksek kartın kaldığı anlamına gelir; bu sizin lehinizedir."
+        "body": "Her kartın bir değeri vardır: düşük kartlar <g>2–6 = +1</g>, orta kartlar <g>7–9 = 0</g>, yüksek kartlar <g>10, J, Q, K, A = −1</g>. Kartlar geldikçe toplayın — bu toplam sizin <c>running count</c>’unuzdur. Yüksek pozitif bir sayım, çok sayıda yüksek kartın kaldığı anlamına gelir; bu sizin lehinizedir.",
+        "more": {
+          "p1": "Hi-Lo <c>dengeli</c> bir sayımdır: tam bir deste tam olarak sıfır eder. Yirmi düşük kart (2–6) <g>+20</g> katar, yirmi yüksek kart (10, J, Q, K, A) <g>−20</g> katar ve on iki orta kart (7, 8, 9) hiçbir şey katmaz. Bu yüzden pozitif bir sayım, ayakkabının başlangıca göre yüksek kart açısından daha zengin olduğu anlamına gelir.",
+          "p2": "Çözülmüş bir tur. Kartlar 5, K, 2, 9, A, 7, 4 olarak gelir. Adım adım: <g>+1, −1, +1, 0, −1, 0, +1</g>. Bu yedi karttan sonra running count <g>+1</g>’dir. Kafanda kart kart bu toplamadan başka bir şey olmaz.",
+          "p3": "Hızlandıran hile çiftler halinde silmektir: bir yüksek ve bir düşük kart birlikte sıfırdır, bu yüzden <g>K + 5 = 0</g>’ı tek birim olarak görüp atlamayı öğrenirsin. Evde tek deste ile çalış — hepsini dağıt ve tam sıfırda bitmelisin; bu sana kaçırıp kaçırmadığını söyler.",
+          "p4": "Neden Hi-Lo, neden düzine kadar başka sistemden biri değil? Çünkü mevcut avantajın neredeyse tamamını yakalar — bahis korelasyonu yaklaşık <g>0,97</g> — ve casino gürültüsünde tutulacak kadar basittir. Omega II gibi çok seviyeli sistemler yüzde birin bir kesrini kazandırır ve çok daha fazla dikkat ister. Profesyonel ekipler Hi-Lo kullanır, bu antrenördeki her mod da öyle."
+        }
       },
       "true-count": {
         "title": "Running count ve true count",
-        "body": "Running count tek başına yetmez — altı deste kalmışken +6 zayıf, bir deste kalmışken +6 güçlüdür. Bu yüzden bölersiniz: <g>true count = running count ÷ kalan deste</g>. Gerçek avantajınız true count’tur; hem bahsinizi hem sapmalarınızı o belirler."
+        "body": "Running count tek başına yetmez — altı deste kalmışken +6 zayıf, bir deste kalmışken +6 güçlüdür. Bu yüzden bölersiniz: <g>true count = running count ÷ kalan deste</g>. Gerçek avantajınız true count’tur; hem bahsinizi hem sapmalarınızı o belirler.",
+        "more": {
+          "p1": "Running count kaç fazla yüksek kart kaldığını söyler ama ne kadar yoğun olduklarını söylemez. Dağıtılacak altı deste varken <g>+6</g>, deste başına bir fazla yüksek karttır — neredeyse hiç. Bir deste kalmışken aynı <g>+6</g>, sonraki elli iki kartta altı fazla yüksek karttır. Bu çok farklı bir ayakkabıdır.",
+          "p2": "O yüzden bölersin. <g>True Count = Running Count ÷ kalan deste</g>. Dört deste kalmışken <g>+8</g> running count, <g>+2</g> true count verir; iki deste kalmışken aynı <g>+8</g>, <g>+4</g> verir. Çoğu sayıcı bahis kararlarında sıfıra doğru yuvarlar, yani +2,7 +2 sayılır — temkinli taraf.",
+          "p3": "Sayının para olarak anlamı: her true count puanı avantajı yaklaşık <g>yarım puan</g> kaydırır. True count sıfırda kasa, kusursuz temel strateji oynayan birine karşı yaklaşık %0,5 tutar. <g>+1</g>’de oyun neredeyse başa baştır, <g>+2</g>’de yaklaşık yarım puan sendedir, <g>+3</g>’te yaklaşık bir puan. Bütün iş modeli budur: +1’in altında küçük, üstünde büyük oyna.",
+          "p4": "True count yöntemin iki yarısını da yönetir — ne kadar bahis yaptığını ve hangi oyunları değiştirdiğini. Masadan okuyamadığın tek girdi kalan deste sayısıdır; onu gözle tahmin etmen gerekir. O becerinin kendi bölümü ve kendi antrenman modu var."
+        }
       },
       "basic-strategy": {
         "title": "Temel strateji",
-        "body": "Her el için matematiksel olarak en iyi hamle — kart al, dur, çiftle, böl ya da teslim ol — sayım <c>yapmadığınız</c> varsayımıyla. Önce bunu öğrenin: temel budur ve kasa avantajını neredeyse sıfıra indirir. <c>Bilgi kartları</c> modu bunu el el çalıştırır."
+        "body": "Her el için matematiksel olarak en iyi hamle — kart al, dur, çiftle, böl ya da teslim ol — sayım <c>yapmadığınız</c> varsayımıyla. Önce bunu öğrenin: temel budur ve kasa avantajını neredeyse sıfıra indirir. <c>Bilgi kartları</c> modu bunu el el çalıştırır.",
+        "more": {
+          "p1": "Temel strateji, elinle krupiyenin açık kartının her kombinasyonu için matematiksel olarak en iyi karardır; kalan kartlar hakkında hiçbir şey bilmediğin varsayılır. Milyonlarca eli bilgisayardan geçirerek çözülmüştür ve kurallara bağlıdır: kaç deste, krupiye yumuşak 17’de çeker mi, bölmeden sonra katlayabilir misin, teslim var mı.",
+          "p2": "Gerisini çalışmadan önce birkaç temel direğini ezbere bilmeye değer: <c>asları ve sekizleri</c> her zaman böl, onlukları veya beşleri asla bölme. Sert <g>11</g>’i as dışında her şeye karşı katla. Sert <g>17</g> ve üstünde dur. Zayıf bir elle — sert 12’den 16’ya — krupiyenin 2–6’sına karşı dur, 7 ve üstüne karşı çek; tek istisna 2 ve 3’e karşı çeken 12’dir.",
+          "p3": "İyi kurallarla kusursuz oynandığında temel strateji kasa avantajını yaklaşık <g>%0,5</g>’e indirir. Ortalama oyuncu tahminle %2 veya daha fazlasını verir. Sayım daha hiçbir şey eklemeden, tek başına temel strateji sıradan bir oyuncunun kaybettiği paranın çoğunu geri alır — bu yüzden önce gelir.",
+          "p4": "Otomatik hale gelmesi gerekir. Saymak dikkat ister ve o dikkatin bir kısmı hâlâ 9’a karşı 15’i çekip çekmemeye harcanıyorsa sayım kayar. <c>Kartlar</c> modu, doğru oyun sorudan önce gelene kadar var olan her eli sana gösterir."
+        }
       },
       "deviations": {
         "title": "Sapmalar",
-        "body": "Sayım yükseldiğinde ya da düştüğünde bir avuç hamle temel stratejiden ayrılır. Klasik örnek: krupiyenin 10’una karşı sert 16’da normalde <c>kart alırsınız</c> — ama true count 0 ve üzerindeyse <c>durursunuz</c>. Ek avantaj işte bu sayıma dayalı değişikliklerden gelir."
+        "body": "Sayım yükseldiğinde ya da düştüğünde bir avuç hamle temel stratejiden ayrılır. Klasik örnek: krupiyenin 10’una karşı sert 16’da normalde <c>kart alırsınız</c> — ama true count 0 ve üzerindeyse <c>durursunuz</c>. Ek avantaj işte bu sayıma dayalı değişikliklerden gelir.",
+        "more": {
+          "p1": "Temel strateji nötr bir ayakkabı varsayar. Sayım ayakkabının onluk açısından zengin olduğunu söylediğinde bazı oyunları artık en iyi değildir: daha sık durursun, çünkü krupiye daha sık batar; daha sık katlarsın, çünkü tek kartının onluk olma olasılığı artar; ve sigorta alırsın, çünkü krupiyenin kapalı kartının onluk olma olasılığı artar. Sayım düşükken tersi — normalde duracağın ellerde çekersin.",
+          "p2": "Klasik örnek <g>10’a karşı sert 16</g>’dır. Temel strateji çeker ve çoğu zaman zaten kaybeder. <g>0 veya üstü</g> true count’ta bunun yerine durursun, çünkü seni batıracak onluk artık en olası karttır. Tüm sapmaların en değerlisi <g>+3</g> true count’ta sigortadır: sigorta krupiyenin blackjack’i olduğuna dair yan bahistir ve kalan kartların üçte birinden fazlası onlukken kazandırır.",
+          "p3": "Her sapmanın bir <c>indeksi</c> vardır: daha iyi oyunun değiştiği true count. İndekste veya üstünde sapmayı yaparsın; altında temel strateji oynarsın. Bazı indeksler negatiftir — bunlar sayım düşükken değiştirdiğin oyunlardır, örneğin −1 veya daha kötü true count’ta 2’ye karşı 13 çekmek.",
+          "p4": "Sapmalar bir sayıcının beklenen kârına yaklaşık <g>%10–20</g> ekler; gerisini bahis aralığı üretir. O yüzden onları en son, sayım ve temel strateji otomatikleştiğinde öğren ve önce değerli olanları öğren — sonraki bölüm o listedir."
+        }
       },
       "i18-fab4": {
         "title": "Illustrious 18 ve Fab 4",
-        "body": "Olası tüm sapmalar içinde değerin çoğu küçük bir kümede toplanır: <g>Illustrious 18</g> (en değerli 18 oyun sapması) ve <g>Fab 4</g> (en değerli 4 teslim sapması). İsimleri ezberlemeniz gerekmez — bilgi kartlarının “Sapmalar” seviyesi bunları doğrudan durum olarak öğretir."
+        "body": "Olası tüm sapmalar içinde değerin çoğu küçük bir kümede toplanır: <g>Illustrious 18</g> (en değerli 18 oyun sapması) ve <g>Fab 4</g> (en değerli 4 teslim sapması). İsimleri ezberlemeniz gerekmez — bilgi kartlarının “Sapmalar” seviyesi bunları doğrudan durum olarak öğretir.",
+        "more": {
+          "p1": "Yüzlerce olası sapma vardır ve çoğu neredeyse hiçbir şey etmez. 1986’da Don Schlesinger değerin büyük çoğunluğunu taşıyan on sekizini — <c>Illustrious 18</c> — ve sonra geç teslim sunulduğunda önemli olan dört teslim oyununu, <c>Fab 4</c>’ü belirledi. Birlikte sapmaların sana verebileceği her şeyin yaklaşık <g>%80–90</g>’ını yakalarlar.",
+          "p2": "Liste en çok önem taşıyan dördüyle başlar: <g>+3</g>’te sigorta, <g>0</g>’da 10’a karşı 16 ile durmak, <g>+4</g>’te 10’a karşı 15 ile durmak ve <g>+5</g>’te 5’e karşı onluk çiftini bölmek. Başka hiçbir şey öğrenmesen bile bunları öğren.",
+          "p3": "Negatif indeksli oyunlar yeni başlayanların unuttuklarıdır: düşük sayımda temel stratejinin durduğu ellerde <c>çekersin</c>, örneğin 4, 5 veya 6’ya karşı 12 ve 2 veya 3’e karşı 13. Sürekli çıkarlar, çünkü düşük sayımlar yüksekler kadar yaygındır.",
+          "p4": "Aşağıdaki tablolar bu antrenörün kendi motorundan üretilir — casino masasının seni değerlendirdiği aynı sayılar, yani ayrışamazlar. İndeksler krupiyenin yumuşak 17’de durduğu altı desteli oyun içindir. <c>Kartlar</c>’ın sapma seviyesi her birini listedeki bir satır olarak değil, bir durum olarak öğretir."
+        }
       },
       "bet-spread": {
         "title": "Bet spread",
-        "body": "Sayım düşükken az, yüksekken çok yatırırsınız — bu fark sizin <c>bet spread</c>’inizdir. Bir sayıcının kârının neredeyse tamamı, olasılıklar lehineyken masaya daha çok para koymaktan gelir. <g>1–16</g> aralığı yaygın bir profesyonel standarttır."
+        "body": "Sayım düşükken az, yüksekken çok yatırırsınız — bu fark sizin <c>bet spread</c>’inizdir. Bir sayıcının kârının neredeyse tamamı, olasılıklar lehineyken masaya daha çok para koymaktan gelir. <g>1–16</g> aralığı yaygın bir profesyonel standarttır.",
+        "more": {
+          "p1": "Bir sayıcının kârının neredeyse tamamı tek bir şeyden gelir: true count yüksekken masada düşükken olduğundan daha fazla para olması. En küçük ve en büyük bahsin arasındaki oran senin <c>bahis aralığındır</c>. 25’lik bir masada <g>1–8</g> aralığı, nötr sayımda 25 ve tepede 200 demektir.",
+          "p2": "Altı deste için yaygın bir rampa: <g>+1 veya altı</g> true count’ta bir birim, <g>+2</g>’de iki birim, <g>+3</g>’te dört, <g>+4</g>’te sekiz ve orada durmak ya da +5’te on iki veya on altıya çıkmak. Arkasındaki pratik kural Kelly’dir: kasanın yüzdesi olarak yaklaşık avantajın kadar bahis yap — yüzde bir avantajda sahip olduğunun yüzde biri.",
+          "p3": "Aralığı hayatta kalınabilir yapan kasadır. Avantajla bile dalgalanmalar acımasızdır; yaygın bir kılavuz en az <g>100 ila 200</g> maksimum bahistir ve kasa küçüldükçe avantaj kendini göstermeden her şeyi kaybetme riski artar. Antrenördeki <c>Kasa</c> araçları bu riski bir his olarak değil, bir sayı olarak gösterir.",
+          "p4": "Bir de kamuflaj meselesi var: sayım yükselir yükselmez bir birimden on altıya sıçramak bir sayıcının yapabileceği en görünür şeydir. Kademeli yükselmek ve sayım düştüğü an minimuma inmemek biraz avantaja mal olur ve masada çok zaman kazandırır. <c>Bahis aralığı</c> modu rampayı çalıştırır; casino oturumu yaptığın her bahsi ona göre puanlar."
+        }
       },
       "deck-estimation": {
         "title": "Deste tahmini",
-        "body": "Running count’u true count’a çevirmek için kaç deste kaldığını kestirmeniz gerekir — gözle, atık tepsisinin kalınlığından, tıpkı gerçek bir masadaki gibi. Zor gibi görünür ama alıştırmayla hızlanır. <c>Deste tahmini</c> modunun çalıştırdığı tam da budur."
+        "body": "Running count’u true count’a çevirmek için kaç deste kaldığını kestirmeniz gerekir — gözle, atık tepsisinin kalınlığından, tıpkı gerçek bir masadaki gibi. Zor gibi görünür ama alıştırmayla hızlanır. <c>Deste tahmini</c> modunun çalıştırdığı tam da budur.",
+        "more": {
+          "p1": "True count’un masanın sana göstermediği bir sayıya ihtiyacı var: dağıtılacak kaç deste kaldığı. Onu ıskarta yığınından okursun. 52 kartlık bir deste yaklaşık <g>1,5 cm</g> (0,6 inç) yüksekliğindedir, yani altı desteli bir ayakkabı yaklaşık 9 cm’dir ve 3 cm kart tutan bir ıskarta iki destenin gittiği, dördün kaldığı anlamına gelir.",
+          "p2": "Kart değil, yarım deste olarak tahmin et. Iskartaya bak, atılan kartları tahmin et, ayakkabıdan çıkar. Iskartada yaklaşık <g>2,5 deste</g> olan altı desteli bir ayakkabıda <g>3,5</g> kalır. Kesme kartının genellikle %75 penetrasyon civarında olduğunu unutma; son bir buçuk deste asla dağıtılmaz — önemli olan, gerçekten oynanacak olana karşı sayımdır.",
+          "p3": "Yarım deste hassasiyeti yeter, daha azı yetmez. Üç deste kalmışken +6 running count <g>+2</g> true count’tur; ıskartayı bir deste yanlış tahmin edersen <g>+3</g> dersin, yanlış miktarı oynarsın ve yapmaman gereken bir sapma yaparsın. Gerçek masalardaki sayım hatalarının çoğu toplama değil, tahmin hatasıdır.",
+          "p4": "Tekrarla hızlanır, bir bardağı yarı dolu diye değerlendirmek gibi. <c>Deste tahmini</c> modu sana rastgele boyutta ıskarta yığınları gösterir ve tahminini puanlar; her seferinde yarım deste içinde kalmayı hedefle, sonra aynı anda sayım çalışırken yap."
+        }
       }
     },
     "modesTitle": "Antrenman modları",
@@ -994,6 +1042,35 @@
     "cta": {
       "title": "Sayımı otomatik hale getirmeye hazır mısın?",
       "body": "Yukarıdakilerin hepsi pratikle refleks olur. Ücretsiz alıştırmalarla başla — kart gerekmez."
+    },
+    "table": {
+      "i18Title": "Illustrious 18",
+      "fab4Title": "Fab 4",
+      "hand": "Senin elin",
+      "dealer": "Krupiye gösteriyor",
+      "index": "True count’tan itibaren",
+      "play": "Oyun",
+      "otherwise": "Altında",
+      "any": "Herhangi bir el",
+      "insurance": "Sigorta al",
+      "note": "Bu antrenörün kendi motorundan üretildi — casino masasının seni değerlendirdiği aynı sayılar. Altı deste, krupiye yumuşak 17’de durur, Fab 4 için geç teslim."
+    },
+    "faq": {
+      "title": "Sık sorulan sorular",
+      "q1": "Kart saymak yasa dışı mı?",
+      "a1": "Hayır. Kart saymak gördüğün kartlar üzerine düşünmektir ve hiçbir yerde hiçbir yasa bunu yasaklamaz. Casinoların yapabileceği şey seni oynatmamaktır — casino özel mülktür. Bir cihaz veya gizli bir yardımcı kullanmak başka bir konudur ve çoğu yerde yasa dışıdır. Bu antrenör yalnızca zihinsel beceriyi öğretir.",
+      "q2": "Hi-Lo öğrenmek ne kadar sürer?",
+      "a2": "Çoğu insan bir hafta günlük pratikle tek destede doğru bir running count tutabilir ve masa hızına — saniyede bir kart veya daha hızlı, yanında true count dönüşümü ve temel strateji ile — bir ila üç ayda ulaşır. Zor olan saymak değil; her şey olup biterken saymaktır.",
+      "q3": "Yeni başlayan hangi sayma sistemini kullanmalı?",
+      "a3": "Hi-Lo. Kusursuz bir sistemin verebileceği değerin yaklaşık %97’sini alır, +1 ve −1’den oluşan tek seviyedir ve her ciddi ekip onu kullanır. Çok seviyeli sistemler çok daha fazla çaba ve daha fazla hata karşılığında yüzde birin bir kesrini ekler.",
+      "q4": "Bir kart sayıcının avantajı ne kadar?",
+      "a4": "Küçük. Sağlam bir bahis aralığı ve makul kurallarla iyi bir sayıcı, oyunun tamamında ortalama yüzde 0,5 ila 1,5 avantaja sahiptir — kısa vadede acımasız dalgalanmalarla. Bu, binlerce el üzerinden ölçülen bir uğraştır, bir casinoyu bir akşamda yenmenin yolu değil.",
+      "q5": "Oynanan her kartı ezberlemem mi gerekiyor?",
+      "a5": "Hayır. Sayım birer birer inip çıkan tek bir sayıdır. Tek tek kartları asla hatırlamazsın, yalnızca o anki toplamı ve kabaca kaç deste kaldığını.",
+      "q6": "Hangi bahis aralığını kullanmalıyım?",
+      "a6": "Altı destede 1–8 ile 1–16 arası aralık profesyonel standarttır: +1 veya altı true count’ta bir birim, her puanda ikiye katlanır, sekiz ila on altı birimde tavan yapar. Daha dar olan avantajın çoğunu verir; daha geniş olan dikkat çeker.",
+      "q7": "Bu antrenörde gerçek para var mı?",
+      "a7": "Hayır. Her el simülasyondur. Antrenör, temel strateji ve Hi-Lo kart sayımı için bir eğitim aracıdır; kumar, para yatırma ve ödeme yoktur."
     }
   },
   "basics": {

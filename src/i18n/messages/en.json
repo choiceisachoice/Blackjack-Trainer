@@ -952,35 +952,83 @@
     "topics": {
       "what-is-counting": {
         "title": "What is card counting?",
-        "body": "You keep a simple running tally as the cards come out. When lots of high cards are still to come, the odds tilt in your favour — so you bet more and adjust a few plays. It is a skill of attention and math, not cheating, and it is perfectly legal."
+        "body": "You keep a simple running tally as the cards come out. When lots of high cards are still to come, the odds tilt in your favour — so you bet more and adjust a few plays. It is a skill of attention and math, not cheating, and it is perfectly legal.",
+        "more": {
+          "p1": "Card counting is keeping track of one thing: the ratio of high cards to low cards still left in the shoe. Every card that is dealt changes what remains, and the count compresses all of that into a single number you can carry in your head.",
+          "p2": "It works because the two halves of the deck are not equal. High cards — <c>tens and aces</c> — favour you: more blackjacks paid at <g>3:2</g>, stronger doubles, and a dealer who busts more often when forced to draw on a stiff hand. Low cards favour the dealer. When the cards still to come are rich in tens, the edge quietly flips from the house to you.",
+          "p3": "What it is not: memorising every card, or any kind of trick. The Hi-Lo count is a running tally of <g>+1</g> and <g>−1</g>, and the maths behind it was published by Edward Thorp in 1962. It is legal everywhere; a casino may still ask a winning counter to leave, because it is their house.",
+          "p4": "At the table it comes down to four habits: keep the count, convert it to a true count, bet more when it is positive, and change a handful of plays. Everything else is plain basic strategy. The <c>Speed Drill</c> in this trainer builds the first of those habits until it runs on its own."
+        }
       },
       "hi-lo": {
         "title": "The Hi-Lo count",
-        "body": "Every card gets a value: low cards <g>2–6 = +1</g>, middle cards <g>7–9 = 0</g>, high cards <g>10, J, Q, K, A = −1</g>. Add them up as cards appear — that total is your <c>Running Count</c>. A high positive count means many high cards remain — good for you."
+        "body": "Every card gets a value: low cards <g>2–6 = +1</g>, middle cards <g>7–9 = 0</g>, high cards <g>10, J, Q, K, A = −1</g>. Add them up as cards appear — that total is your <c>Running Count</c>. A high positive count means many high cards remain — good for you.",
+        "more": {
+          "p1": "Hi-Lo is a <c>balanced</c> count: a full deck adds up to exactly zero. Twenty low cards (2–6) contribute <g>+20</g>, twenty high cards (10, J, Q, K, A) contribute <g>−20</g>, and the twelve middle cards (7, 8, 9) contribute nothing. That is why a positive count means the shoe is now richer in high cards than it started.",
+          "p2": "A worked round. The cards come out 5, K, 2, 9, A, 7, 4. Step by step: <g>+1, −1, +1, 0, −1, 0, +1</g>. The running count after those seven cards is <g>+1</g>. Nothing more happens in your head than that addition, card by card.",
+          "p3": "The trick that makes it fast is cancelling in pairs: a high card and a low card together are zero, so you learn to see <g>K + 5 = 0</g> as one unit and skip it. Practise with a single deck at home — deal through it and you must end at exactly zero, which tells you whether you slipped.",
+          "p4": "Why Hi-Lo and not one of the dozen other systems? Because it captures almost all of the available edge — its betting correlation is about <g>0.97</g> — while being simple enough to hold under casino noise. Multi-level systems like Omega II gain a fraction of a percent and cost far more attention. Professional teams use Hi-Lo, and so does every mode in this trainer."
+        }
       },
       "true-count": {
         "title": "Running Count vs True Count",
-        "body": "The Running Count alone isn’t enough — a +6 with six decks left is weak, but +6 with one deck left is strong. So you divide: <g>True Count = Running Count ÷ decks remaining</g>. The True Count is your real edge, and it’s what drives both your bet and your deviations."
+        "body": "The Running Count alone isn’t enough — a +6 with six decks left is weak, but +6 with one deck left is strong. So you divide: <g>True Count = Running Count ÷ decks remaining</g>. The True Count is your real edge, and it’s what drives both your bet and your deviations.",
+        "more": {
+          "p1": "The running count says how many extra high cards are left, but not how concentrated they are. A count of <g>+6</g> with six decks still to be dealt is one extra high card per deck — barely anything. The same <g>+6</g> with one deck left is six extra high cards in the next fifty-two. That is a very different shoe.",
+          "p2": "So you divide. <g>True Count = Running Count ÷ decks remaining</g>. Running count <g>+8</g> with four decks left gives a true count of <g>+2</g>; the same <g>+8</g> with two decks left gives <g>+4</g>. Most counters round towards zero for betting decisions, so a +2.7 is treated as +2 — the conservative side.",
+          "p3": "What the number means in money: each point of true count moves the edge by roughly <g>half a percent</g>. At a true count of zero the house holds about 0.5% against a perfect basic-strategy player. At <g>+1</g> the game is close to even, at <g>+2</g> you hold about half a percent, at <g>+3</g> about one percent. That is the whole business model: bet small below +1, big above it.",
+          "p4": "The true count drives both halves of the method — how much you bet, and which plays you change. Its one input you cannot read off the table is the number of decks remaining, which you have to estimate by eye. That skill has its own chapter and its own training mode."
+        }
       },
       "basic-strategy": {
         "title": "Basic Strategy",
-        "body": "The mathematically best play for every hand — hit, stand, double, split or surrender — assuming you are <c>not</c> counting. Learn this first: it’s the foundation, and it already cuts the house edge to almost nothing. The <c>Flashcards</c> mode drills it hand by hand."
+        "body": "The mathematically best play for every hand — hit, stand, double, split or surrender — assuming you are <c>not</c> counting. Learn this first: it’s the foundation, and it already cuts the house edge to almost nothing. The <c>Flashcards</c> mode drills it hand by hand.",
+        "more": {
+          "p1": "Basic strategy is the mathematically best decision for every combination of your hand and the dealer's upcard, assuming you know nothing about the remaining cards. It was solved by running millions of hands through a computer, and it depends on the rules: how many decks, whether the dealer hits soft 17, whether you may double after a split, whether surrender is offered.",
+          "p2": "A few of its pillars are worth knowing by heart before you drill the rest: always split <c>aces and eights</c>, never split tens or fives. Double a hard <g>11</g> against everything but an ace. Stand on hard <g>17</g> and above. With a stiff hand — hard 12 to 16 — stand against a dealer 2 to 6 and hit against 7 or higher, the one exception being 12, which hits against 2 and 3.",
+          "p3": "Played perfectly at good rules, basic strategy cuts the house edge to about <g>0.5%</g>. The average player gives away 2% or more through guesswork. So before counting adds anything, basic strategy alone recovers most of the money a casual player loses — which is why it comes first.",
+          "p4": "It has to become automatic. Counting takes attention, and if any of that attention is still spent wondering whether to hit 15 against a 9, the count will slip. The <c>Flashcards</c> mode shows you every hand there is until the right play arrives before the question does."
+        }
       },
       "deviations": {
         "title": "Deviations",
-        "body": "When the count runs high or low, a handful of plays change from Basic Strategy. Classic example: normally you <c>Hit</c> a hard 16 vs a dealer 10 — but at a True Count of 0 or higher you <c>Stand</c>. These count-based changes are where the extra edge comes from."
+        "body": "When the count runs high or low, a handful of plays change from Basic Strategy. Classic example: normally you <c>Hit</c> a hard 16 vs a dealer 10 — but at a True Count of 0 or higher you <c>Stand</c>. These count-based changes are where the extra edge comes from.",
+        "more": {
+          "p1": "Basic strategy assumes a neutral shoe. When the count says the shoe is rich in tens, some of its plays are no longer best: you stand more often, because the dealer busts more often; you double more often, because your one card is more likely a ten; and you take insurance, because the dealer's hole card is more likely a ten. When the count is low, the reverse — you hit hands you would normally stand on.",
+          "p2": "The classic example is hard <g>16 against a 10</g>. Basic strategy hits it, and loses either way most of the time. At a true count of <g>0 or higher</g> you stand instead, because the ten that would bust you is now the likeliest card. The most valuable deviation of all is insurance at a true count of <g>+3</g>: insurance is a side bet that the dealer holds a blackjack, and it pays when more than a third of the remaining cards are tens.",
+          "p3": "Every deviation has an <c>index</c>: the true count at which the better play flips. At or above the index you make the deviation; below it you play basic strategy. Some indices are negative — those are plays you change when the count is low, such as hitting a 13 against a 2 at a true count of −1 or worse.",
+          "p4": "Deviations add roughly <g>10–20%</g> to a counter's expected profit; the bet spread produces the rest. So learn them last, after the count and basic strategy are automatic, and learn the valuable ones first — the next chapter is that list."
+        }
       },
       "i18-fab4": {
         "title": "Illustrious 18 & Fab 4",
-        "body": "Of all the possible deviations, most of the value comes from a small set: the <g>Illustrious 18</g> (the 18 most valuable playing deviations) and the <g>Fab 4</g> (the 4 most valuable surrender deviations). You don’t need to memorise the names — the Flashcards “Deviations” level teaches them directly as situations."
+        "body": "Of all the possible deviations, most of the value comes from a small set: the <g>Illustrious 18</g> (the 18 most valuable playing deviations) and the <g>Fab 4</g> (the 4 most valuable surrender deviations). You don’t need to memorise the names — the Flashcards “Deviations” level teaches them directly as situations.",
+        "more": {
+          "p1": "There are hundreds of possible deviations, and most of them are worth almost nothing. In 1986 Don Schlesinger identified the eighteen that carry the great majority of the value — the <c>Illustrious 18</c> — and later the four surrender plays that matter when late surrender is offered, the <c>Fab 4</c>. Together they capture around <g>80–90%</g> of everything deviations can give you.",
+          "p2": "The list starts with the four that matter most: insurance at <g>+3</g>, standing on 16 against a 10 at <g>0</g>, standing on 15 against a 10 at <g>+4</g>, and splitting a pair of tens against a 5 at <g>+5</g>. If you learn nothing else, learn those.",
+          "p3": "The negative-index plays are the ones beginners forget: at a low count you <c>hit</c> hands that basic strategy stands on, such as 12 against a 4, 5 or 6, and 13 against a 2 or 3. They come up constantly, because low counts are as common as high ones.",
+          "p4": "The tables below are generated from this trainer's own engine — the same numbers the casino table grades you against, so they cannot drift apart. Indices are for a six-deck game where the dealer stands on soft 17. The <c>Flashcards</c> deviations level teaches every one of them as a situation rather than a line in a list."
+        }
       },
       "bet-spread": {
         "title": "Bet Spread",
-        "body": "You bet small when the count is low and big when it’s high — that gap is your <c>bet spread</c>. Almost all of a counter’s profit comes from getting more money on the table when the odds favour you. A <g>1–16</g> spread is a common professional standard."
+        "body": "You bet small when the count is low and big when it’s high — that gap is your <c>bet spread</c>. Almost all of a counter’s profit comes from getting more money on the table when the odds favour you. A <g>1–16</g> spread is a common professional standard.",
+        "more": {
+          "p1": "Nearly all of a counter's profit comes from one thing: having more money on the table when the true count is high than when it is low. The ratio between your smallest and largest bet is your <c>bet spread</c>. A <g>1–8</g> spread at a 25 table means 25 when the count is neutral and 200 at the top.",
+          "p2": "A common ramp for six decks: one unit at a true count of <g>+1 or below</g>, two units at <g>+2</g>, four at <g>+3</g>, eight at <g>+4</g>, and either stop there or go to twelve or sixteen at +5. The rule of thumb behind it is Kelly: bet about your edge in percent of your bankroll — at a one-percent edge, one percent of what you have.",
+          "p3": "The bankroll is what makes the spread survivable. Swings are brutal even with an edge; a common guideline is at least <g>100 to 200</g> maximum bets, and the smaller the bankroll the higher the risk of losing it all before the edge shows. The <c>Bankroll</c> tools in the trainer let you see that risk as a number instead of a feeling.",
+          "p4": "There is also the question of cover: jumping from one unit to sixteen the moment the count rises is the most visible thing a counter can do. Ramping up in steps, and not dropping to the minimum the instant the count falls, costs a little edge and buys a lot of time at the table. The <c>Bet Spread</c> mode trains the ramp; the casino session grades every bet you make against it."
+        }
       },
       "deck-estimation": {
         "title": "Deck Estimation",
-        "body": "To turn the Running Count into a True Count you must judge how many decks are left — by eye, from the thickness of the discard tray, just like at a real table. It sounds hard but becomes fast with practice. That’s exactly what the <c>Deck Estimation</c> mode trains."
+        "body": "To turn the Running Count into a True Count you must judge how many decks are left — by eye, from the thickness of the discard tray, just like at a real table. It sounds hard but becomes fast with practice. That’s exactly what the <c>Deck Estimation</c> mode trains.",
+        "more": {
+          "p1": "The true count needs one number the table does not show you: how many decks are still to be dealt. You read it from the discard tray. A deck of 52 cards is about <g>1.5 cm</g> (0.6 in) tall, so a six-deck shoe stands about 9 cm, and a tray holding 3 cm of cards means two decks have gone and four remain.",
+          "p2": "Judge in half-decks, not cards. Look at the tray, estimate the discards, subtract from the shoe. In a six-deck shoe with about <g>2.5 decks</g> in the tray, <g>3.5</g> remain. Remember that the cut card usually sits at around 75% penetration, so the last deck and a half is never dealt — what matters is the count against what will actually be played.",
+          "p3": "Half-deck precision is enough, and less is not. A running count of +6 with three decks left is a true count of <g>+2</g>; misjudge the tray by one deck and you call it <g>+3</g>, bet the wrong amount, and make a deviation you should not have. Most counting errors at real tables are estimation errors, not addition errors.",
+          "p4": "It becomes fast with repetition, like judging a glass as half full. The <c>Deck Estimation</c> mode shows you discard piles of random sizes and scores your guess; aim to be within half a deck every time, and then do it with the count running at the same time."
+        }
       }
     },
     "modesTitle": "The Training Modes",
@@ -994,6 +1042,35 @@
     "cta": {
       "title": "Ready to make the count automatic?",
       "body": "Everything above becomes reflex with practice. Start with the free drills — no card needed."
+    },
+    "table": {
+      "i18Title": "The Illustrious 18",
+      "fab4Title": "The Fab 4",
+      "hand": "Your hand",
+      "dealer": "Dealer shows",
+      "index": "From true count",
+      "play": "Play",
+      "otherwise": "Below that",
+      "any": "Any hand",
+      "insurance": "Take insurance",
+      "note": "Generated from the trainer's own engine — the same numbers the casino table grades you against. Six decks, dealer stands on soft 17, late surrender for the Fab 4."
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "q1": "Is card counting illegal?",
+      "a1": "No. Counting cards is thinking about the cards you have seen, and no law anywhere forbids that. What casinos may do is refuse to let you play — a casino is private property. Using a device or a hidden helper is a different matter and is illegal in most places. This trainer teaches the mental skill only.",
+      "q2": "How long does it take to learn Hi-Lo?",
+      "a2": "Most people can keep an accurate running count on a single deck within a week of daily practice, and reach table speed — a card every second or less, with true-count conversion and basic strategy running alongside — in one to three months. The hard part is not the counting; it is doing it while everything else is happening.",
+      "q3": "Which counting system should a beginner use?",
+      "a3": "Hi-Lo. It gets about 97% of the value a perfect system could give, it is a single level of +1 and −1, and every serious team uses it. Multi-level systems add a fraction of a percent in return for much more effort and more mistakes.",
+      "q4": "How big is a card counter's edge?",
+      "a4": "Small. A good counter with a solid bet spread at decent rules averages an edge of about 0.5 to 1.5 percent over the game as a whole — with brutal short-term swings. It is a grind measured over thousands of hands, not a way to beat a casino in an evening.",
+      "q5": "Do I have to memorise every card that has been played?",
+      "a5": "No. The count is a single number that goes up and down by one. You never remember individual cards, only the running total and roughly how many decks are left.",
+      "q6": "What bet spread should I use?",
+      "a6": "At six decks, a spread of 1–8 to 1–16 is the professional standard: one unit at a true count of +1 or below, doubling with each point, capped at eight to sixteen units. Anything narrower gives away most of the edge; anything wider draws attention.",
+      "q7": "Does this trainer involve real money?",
+      "a7": "No. Every hand is simulated. The trainer is an educational tool for basic strategy and Hi-Lo card counting; there is no gambling, no deposits and no payouts."
     }
   },
   "basics": {

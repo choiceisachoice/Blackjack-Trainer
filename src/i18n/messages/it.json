@@ -952,35 +952,83 @@
     "topics": {
       "what-is-counting": {
         "title": "Cos’è il conteggio delle carte?",
-        "body": "Tieni un semplice conteggio mentre escono le carte. Se restano molte carte alte, le probabilità pendono a tuo favore: punti di più e correggi qualche giocata. È una questione di attenzione e di calcolo, non di imbroglio, ed è del tutto legale."
+        "body": "Tieni un semplice conteggio mentre escono le carte. Se restano molte carte alte, le probabilità pendono a tuo favore: punti di più e correggi qualche giocata. È una questione di attenzione e di calcolo, non di imbroglio, ed è del tutto legale.",
+        "more": {
+          "p1": "Contare le carte significa tenere d’occhio una sola cosa: il rapporto tra carte alte e carte basse ancora presenti nel sabot. Ogni carta distribuita cambia ciò che resta, e il conteggio comprime tutto questo in un unico numero che puoi tenere a mente.",
+          "p2": "Funziona perché le due metà del mazzo non si equivalgono. Le carte alte — <c>dieci e assi</c> — ti favoriscono: più blackjack pagati <g>3:2</g>, raddoppi più forti e un banco che sballa più spesso quando deve pedire su una mano debole. Le carte basse favoriscono il banco. Quando le carte ancora da uscire sono ricche di dieci, il vantaggio passa silenziosamente dal banco a te.",
+          "p3": "Cosa non è: memorizzare ogni carta, né alcun trucco. Il conteggio Hi-Lo è una somma progressiva di <g>+1</g> e <g>−1</g>, e la matematica dietro è stata pubblicata da Edward Thorp nel 1962. È legale ovunque; un casinò può comunque invitare un contatore vincente ad andarsene, perché è casa sua.",
+          "p4": "Al tavolo si riduce a quattro abitudini: tenere il conteggio, convertirlo in true count, puntare di più quando è positivo e cambiare una manciata di giocate. Tutto il resto è semplice strategia di base. Lo <c>Speed Drill</c> di questo trainer costruisce la prima di queste abitudini finché non va da sola."
+        }
       },
       "hi-lo": {
         "title": "Il conteggio Hi-Lo",
-        "body": "Ogni carta ha un valore: carte basse <g>2–6 = +1</g>, medie <g>7–9 = 0</g>, alte <g>10, J, Q, K, A = −1</g>. Sommale man mano che escono: quel totale è il tuo <c>running count</c>. Un conteggio molto positivo significa che restano molte carte alte — a tuo favore."
+        "body": "Ogni carta ha un valore: carte basse <g>2–6 = +1</g>, medie <g>7–9 = 0</g>, alte <g>10, J, Q, K, A = −1</g>. Sommale man mano che escono: quel totale è il tuo <c>running count</c>. Un conteggio molto positivo significa che restano molte carte alte — a tuo favore.",
+        "more": {
+          "p1": "L’Hi-Lo è un conteggio <c>bilanciato</c>: un mazzo completo somma esattamente zero. Venti carte basse (2–6) contribuiscono <g>+20</g>, venti carte alte (10, J, Q, K, A) contribuiscono <g>−20</g>, e le dodici carte medie (7, 8, 9) non contribuiscono nulla. Ecco perché un conteggio positivo significa che il sabot è ora più ricco di carte alte di quanto fosse all’inizio.",
+          "p2": "Una mano svolta. Escono 5, K, 2, 9, A, 7, 4. Passo per passo: <g>+1, −1, +1, 0, −1, 0, +1</g>. Il running count dopo queste sette carte è <g>+1</g>. Nella testa non succede nulla di più di questa addizione, carta dopo carta.",
+          "p3": "Il trucco che lo rende veloce è annullare a coppie: una carta alta e una bassa insieme fanno zero, quindi impari a vedere <g>K + 5 = 0</g> come un’unità e a saltarla. Esercitati a casa con un solo mazzo — distribuiscilo tutto e devi finire esattamente a zero, il che ti dice se hai sbagliato.",
+          "p4": "Perché l’Hi-Lo e non uno della dozzina di altri sistemi? Perché cattura quasi tutto il vantaggio disponibile — la sua correlazione di puntata è circa <g>0,97</g> — restando abbastanza semplice da reggere nel rumore di un casinò. I sistemi a più livelli come l’Omega II guadagnano una frazione di punto percentuale e costano molta più attenzione. Le squadre professioniste usano l’Hi-Lo, e così ogni modalità di questo trainer."
+        }
       },
       "true-count": {
         "title": "Running count e true count",
-        "body": "Il running count da solo non basta: +6 con sei mazzi rimasti è debole, +6 con un mazzo è forte. Quindi si divide: <g>true count = running count ÷ mazzi rimasti</g>. Il true count è il tuo vantaggio reale e guida sia le puntate sia le deviazioni."
+        "body": "Il running count da solo non basta: +6 con sei mazzi rimasti è debole, +6 con un mazzo è forte. Quindi si divide: <g>true count = running count ÷ mazzi rimasti</g>. Il true count è il tuo vantaggio reale e guida sia le puntate sia le deviazioni.",
+        "more": {
+          "p1": "Il running count dice quante carte alte in più restano, ma non quanto siano concentrate. Un conteggio di <g>+6</g> con sei mazzi ancora da distribuire è una carta alta in più per mazzo — quasi nulla. Lo stesso <g>+6</g> con un solo mazzo rimasto sono sei carte alte in più nelle prossime cinquantadue. È un sabot molto diverso.",
+          "p2": "Quindi dividi. <g>True Count = Running Count ÷ mazzi rimanenti</g>. Un running count di <g>+8</g> con quattro mazzi rimasti dà un true count di <g>+2</g>; lo stesso <g>+8</g> con due mazzi dà <g>+4</g>. La maggior parte dei contatori arrotonda verso lo zero per le decisioni di puntata, quindi un +2,7 viene trattato come +2 — il lato prudente.",
+          "p3": "Cosa significa il numero in denaro: ogni punto di true count sposta il vantaggio di circa <g>mezzo punto percentuale</g>. A true count zero il banco ha circa lo 0,5% contro un giocatore perfetto di strategia di base. A <g>+1</g> il gioco è quasi pari, a <g>+2</g> hai circa mezzo punto, a <g>+3</g> circa un punto. È tutto il modello: puntare poco sotto +1, molto sopra.",
+          "p4": "Il true count guida entrambe le metà del metodo — quanto punti e quali giocate cambi. L’unico dato che non puoi leggere dal tavolo è il numero di mazzi rimanenti, che devi stimare a occhio. Quell’abilità ha un capitolo suo e una modalità di allenamento sua."
+        }
       },
       "basic-strategy": {
         "title": "Strategia di base",
-        "body": "La giocata matematicamente migliore per ogni mano — carta, stare, raddoppiare, dividere o abbandonare — supponendo che tu <c>non</c> stia contando. Imparala per prima: è la base e riduce già il vantaggio del banco quasi a zero. La modalità <c>Flashcard</c> la allena mano per mano."
+        "body": "La giocata matematicamente migliore per ogni mano — carta, stare, raddoppiare, dividere o abbandonare — supponendo che tu <c>non</c> stia contando. Imparala per prima: è la base e riduce già il vantaggio del banco quasi a zero. La modalità <c>Flashcard</c> la allena mano per mano.",
+        "more": {
+          "p1": "La strategia di base è la decisione matematicamente migliore per ogni combinazione della tua mano e della carta scoperta del banco, supponendo di non sapere nulla delle carte rimanenti. È stata risolta facendo girare milioni di mani in un computer, e dipende dalle regole: quanti mazzi, se il banco pesca sul 17 soft, se puoi raddoppiare dopo una divisione, se è offerta la resa.",
+          "p2": "Alcuni dei suoi pilastri vale la pena saperli a memoria prima di esercitare il resto: dividi sempre <c>assi e otto</c>, non dividere mai dieci o cinque. Raddoppia un <g>11</g> hard contro tutto tranne un asso. Stai su <g>17</g> hard e oltre. Con una mano debole — hard da 12 a 16 — stai contro un banco da 2 a 6 e pedisci contro 7 o più, con l’unica eccezione del 12, che pedisce contro 2 e 3.",
+          "p3": "Giocata alla perfezione con buone regole, la strategia di base riduce il vantaggio del banco a circa lo <g>0,5%</g>. Il giocatore medio ne regala il 2% o più tirando a indovinare. Prima ancora che il conteggio aggiunga qualcosa, la sola strategia di base recupera la maggior parte del denaro che un giocatore occasionale perde — per questo viene prima.",
+          "p4": "Deve diventare automatica. Contare richiede attenzione, e se parte di quell’attenzione è ancora spesa a chiedersi se pedire un 15 contro un 9, il conteggio scivola. La modalità <c>Flashcard</c> ti mostra ogni mano esistente finché la giocata giusta arriva prima della domanda."
+        }
       },
       "deviations": {
         "title": "Deviazioni",
-        "body": "Quando il conteggio sale o scende, una manciata di giocate si discosta dalla strategia di base. Esempio classico: di norma <c>chiedi carta</c> su un 16 duro contro un 10 del banco — ma da un true count di 0 in su <c>stai</c>. Da queste variazioni legate al conteggio arriva il vantaggio in più."
+        "body": "Quando il conteggio sale o scende, una manciata di giocate si discosta dalla strategia di base. Esempio classico: di norma <c>chiedi carta</c> su un 16 duro contro un 10 del banco — ma da un true count di 0 in su <c>stai</c>. Da queste variazioni legate al conteggio arriva il vantaggio in più.",
+        "more": {
+          "p1": "La strategia di base presuppone un sabot neutro. Quando il conteggio dice che il sabot è ricco di dieci, alcune delle sue giocate non sono più le migliori: stai più spesso, perché il banco sballa più spesso; raddoppi più spesso, perché la tua unica carta è più probabilmente un dieci; e prendi l’assicurazione, perché la carta coperta del banco è più probabilmente un dieci. Quando il conteggio è basso, il contrario — pedisci su mani su cui normalmente staresti.",
+          "p2": "L’esempio classico è il <g>16 hard contro un 10</g>. La strategia di base pedisce, e perde comunque la maggior parte delle volte. A un true count di <g>0 o più</g> stai invece, perché il dieci che ti farebbe sballare è ora la carta più probabile. La deviazione più preziosa di tutte è l’assicurazione a true count <g>+3</g>: l’assicurazione è una puntata laterale sul blackjack del banco, e paga quando più di un terzo delle carte rimanenti sono dieci.",
+          "p3": "Ogni deviazione ha un <c>indice</c>: il true count al quale la giocata migliore cambia. All’indice o sopra fai la deviazione; sotto giochi la strategia di base. Alcuni indici sono negativi — sono giocate che cambi quando il conteggio è basso, come pedire un 13 contro un 2 a true count −1 o peggio.",
+          "p4": "Le deviazioni aggiungono circa il <g>10–20%</g> al profitto atteso di un contatore; lo spread delle puntate produce il resto. Imparale quindi per ultime, quando conteggio e strategia di base sono automatici, e impara prima quelle preziose — il prossimo capitolo è quella lista."
+        }
       },
       "i18-fab4": {
         "title": "Illustrious 18 e Fab 4",
-        "body": "Di tutte le deviazioni possibili, quasi tutto il valore sta in un piccolo gruppo: le <g>Illustrious 18</g> (le 18 deviazioni di gioco più preziose) e le <g>Fab 4</g> (le 4 deviazioni di resa più preziose). Non serve memorizzare i nomi: il livello «Deviazioni» delle flashcard te le insegna direttamente come situazioni."
+        "body": "Di tutte le deviazioni possibili, quasi tutto il valore sta in un piccolo gruppo: le <g>Illustrious 18</g> (le 18 deviazioni di gioco più preziose) e le <g>Fab 4</g> (le 4 deviazioni di resa più preziose). Non serve memorizzare i nomi: il livello «Deviazioni» delle flashcard te le insegna direttamente come situazioni.",
+        "more": {
+          "p1": "Esistono centinaia di deviazioni possibili, e la maggior parte non vale quasi nulla. Nel 1986 Don Schlesinger identificò le diciotto che portano la grande maggioranza del valore — le <c>Illustrious 18</c> — e poi le quattro giocate di resa che contano quando è offerta la resa tardiva, le <c>Fab 4</c>. Insieme catturano circa l’<g>80–90%</g> di tutto ciò che le deviazioni possono darti.",
+          "p2": "La lista comincia con le quattro che contano di più: assicurazione a <g>+3</g>, stare con 16 contro un 10 a <g>0</g>, stare con 15 contro un 10 a <g>+4</g>, e dividere una coppia di dieci contro un 5 a <g>+5</g>. Se non impari altro, impara queste.",
+          "p3": "Le giocate a indice negativo sono quelle che i principianti dimenticano: a conteggio basso <c>pedisci</c> su mani su cui la strategia di base sta, come 12 contro 4, 5 o 6, e 13 contro 2 o 3. Capitano di continuo, perché i conteggi bassi sono frequenti quanto quelli alti.",
+          "p4": "Le tabelle qui sotto sono generate dal motore stesso di questo trainer — gli stessi numeri con cui il tavolo da casinò ti valuta, quindi non possono divergere. Gli indici valgono per un gioco a sei mazzi in cui il banco sta sul 17 soft. Il livello deviazioni delle <c>Flashcard</c> insegna ognuna di esse come situazione invece che come riga di una lista."
+        }
       },
       "bet-spread": {
         "title": "Bet spread",
-        "body": "Punti poco quando il conteggio è basso e molto quando è alto: quella forbice è il tuo <c>bet spread</c>. Quasi tutto il profitto di un contatore viene dal mettere più denaro sul tavolo quando le probabilità sono a favore. Una forbice <g>1–16</g> è uno standard professionale diffuso."
+        "body": "Punti poco quando il conteggio è basso e molto quando è alto: quella forbice è il tuo <c>bet spread</c>. Quasi tutto il profitto di un contatore viene dal mettere più denaro sul tavolo quando le probabilità sono a favore. Una forbice <g>1–16</g> è uno standard professionale diffuso.",
+        "more": {
+          "p1": "Quasi tutto il profitto di un contatore viene da una cosa sola: avere più denaro sul tavolo quando il true count è alto rispetto a quando è basso. Il rapporto tra la tua puntata più piccola e quella più grande è il tuo <c>spread delle puntate</c>. Uno spread <g>1–8</g> a un tavolo da 25 significa 25 a conteggio neutro e 200 al massimo.",
+          "p2": "Una rampa comune per sei mazzi: un’unità a true count <g>+1 o inferiore</g>, due unità a <g>+2</g>, quattro a <g>+3</g>, otto a <g>+4</g>, e lì fermarsi oppure salire a dodici o sedici a +5. La regola pratica dietro è Kelly: punta circa il tuo vantaggio in percentuale del bankroll — con un vantaggio dell’uno per cento, l’uno per cento di ciò che hai.",
+          "p3": "Il bankroll è ciò che rende lo spread sopportabile. Le oscillazioni sono brutali anche con un vantaggio; una linea guida comune è almeno <g>100–200</g> puntate massime, e più piccolo è il bankroll più alto è il rischio di perdere tutto prima che il vantaggio si manifesti. Gli strumenti <c>Bankroll</c> del trainer ti mostrano quel rischio come numero invece che come sensazione.",
+          "p4": "C’è poi la questione della copertura: saltare da un’unità a sedici appena il conteggio sale è la cosa più visibile che un contatore possa fare. Salire a gradini, e non scendere al minimo nell’istante in cui il conteggio cala, costa un po’ di vantaggio e compra molto tempo al tavolo. La modalità <c>Spread delle puntate</c> allena la rampa; la sessione casinò valuta ogni tua puntata rispetto a essa."
+        }
       },
       "deck-estimation": {
         "title": "Stima dei mazzi",
-        "body": "Per trasformare il running count in true count devi valutare quanti mazzi restano — a occhio, dallo spessore nel vassoio degli scarti, come a un tavolo vero. Sembra difficile ma con la pratica diventa rapido. È esattamente ciò che allena la modalità <c>Stima dei mazzi</c>."
+        "body": "Per trasformare il running count in true count devi valutare quanti mazzi restano — a occhio, dallo spessore nel vassoio degli scarti, come a un tavolo vero. Sembra difficile ma con la pratica diventa rapido. È esattamente ciò che allena la modalità <c>Stima dei mazzi</c>.",
+        "more": {
+          "p1": "Il true count ha bisogno di un numero che il tavolo non ti mostra: quanti mazzi restano da distribuire. Lo leggi dallo scarto. Un mazzo di 52 carte è alto circa <g>1,5 cm</g> (0,6 pollici), quindi un sabot da sei mazzi è alto circa 9 cm, e uno scarto con 3 cm di carte significa che due mazzi sono andati e ne restano quattro.",
+          "p2": "Stima in mezzi mazzi, non in carte. Guarda lo scarto, stima le carte scartate, sottrai dal sabot. In un sabot da sei mazzi con circa <g>2,5 mazzi</g> nello scarto, ne restano <g>3,5</g>. Ricorda che la carta di taglio di solito sta intorno al 75% di penetrazione, quindi l’ultimo mazzo e mezzo non viene mai distribuito — ciò che conta è il conteggio rispetto a ciò che verrà effettivamente giocato.",
+          "p3": "La precisione al mezzo mazzo basta, meno no. Un running count di +6 con tre mazzi rimasti è un true count di <g>+2</g>; sbaglia lo scarto di un mazzo e lo chiami <g>+3</g>, punti l’importo sbagliato e fai una deviazione che non avresti dovuto fare. La maggior parte degli errori di conteggio ai tavoli veri sono errori di stima, non di addizione.",
+          "p4": "Diventa veloce con la ripetizione, come giudicare un bicchiere mezzo pieno. La modalità <c>Stima dei mazzi</c> ti mostra scarti di dimensioni casuali e valuta la tua stima; punta a stare entro mezzo mazzo ogni volta, e poi fallo con il conteggio in corso allo stesso tempo."
+        }
       }
     },
     "modesTitle": "Le modalità di allenamento",
@@ -994,6 +1042,35 @@
     "cta": {
       "title": "Pronto a rendere il conteggio automatico?",
       "body": "Tutto quello che hai letto diventa un riflesso con la pratica. Inizia dagli esercizi gratuiti — nessuna carta richiesta."
+    },
+    "table": {
+      "i18Title": "Le Illustrious 18",
+      "fab4Title": "Le Fab 4",
+      "hand": "La tua mano",
+      "dealer": "Il banco mostra",
+      "index": "Da true count",
+      "play": "Giocata",
+      "otherwise": "Sotto",
+      "any": "Qualsiasi mano",
+      "insurance": "Prendi l’assicurazione",
+      "note": "Generato dal motore stesso di questo trainer — gli stessi numeri con cui il tavolo da casinò ti valuta. Sei mazzi, il banco sta sul 17 soft, resa tardiva per le Fab 4."
+    },
+    "faq": {
+      "title": "Domande frequenti",
+      "q1": "Contare le carte è illegale?",
+      "a1": "No. Contare le carte significa ragionare sulle carte che hai visto, e nessuna legge lo vieta da nessuna parte. Ciò che i casinò possono fare è non lasciarti giocare — un casinò è proprietà privata. Usare un dispositivo o un aiutante nascosto è un’altra cosa, illegale nella maggior parte dei paesi. Questo trainer insegna solo l’abilità mentale.",
+      "q2": "Quanto tempo serve per imparare l’Hi-Lo?",
+      "a2": "La maggior parte delle persone tiene un running count preciso su un mazzo dopo una settimana di pratica quotidiana, e raggiunge la velocità del tavolo — una carta al secondo o meno, con conversione in true count e strategia di base in parallelo — in uno-tre mesi. La parte difficile non è contare; è farlo mentre succede tutto il resto.",
+      "q3": "Quale sistema di conteggio dovrebbe usare un principiante?",
+      "a3": "L’Hi-Lo. Ottiene circa il 97% del valore che un sistema perfetto potrebbe dare, è un solo livello di +1 e −1, e ogni squadra seria lo usa. I sistemi a più livelli aggiungono una frazione di punto percentuale in cambio di molto più sforzo e più errori.",
+      "q4": "Quanto è grande il vantaggio di un contatore di carte?",
+      "a4": "Piccolo. Un buon contatore con uno spread solido e regole decenti ha in media un vantaggio di circa 0,5–1,5 punti percentuali sull’intero gioco — con oscillazioni brutali nel breve. È una fatica misurata su migliaia di mani, non un modo per battere un casinò in una sera.",
+      "q5": "Devo memorizzare ogni carta giocata?",
+      "a5": "No. Il conteggio è un solo numero che sale e scende di uno. Non ricordi mai le singole carte, solo il totale progressivo e più o meno quanti mazzi restano.",
+      "q6": "Quale spread di puntate dovrei usare?",
+      "a6": "A sei mazzi, uno spread da 1–8 a 1–16 è lo standard professionale: un’unità a true count +1 o inferiore, raddoppio a ogni punto, con tetto a otto-sedici unità. Più stretto regala la maggior parte del vantaggio; più largo attira l’attenzione.",
+      "q7": "Questo trainer coinvolge denaro reale?",
+      "a7": "No. Ogni mano è simulata. Il trainer è uno strumento didattico per la strategia di base e il conteggio Hi-Lo; non c’è gioco d’azzardo, nessun deposito e nessuna vincita."
     }
   },
   "basics": {

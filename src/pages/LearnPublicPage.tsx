@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { Spade } from 'lucide-react'
 import { LearnPage } from '../components/learn/LearnPage'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
+import { JsonLd } from '../components/common/JsonLd'
+import { faqJsonLd } from '../services/structured-data'
 import { usePageMeta } from '../hooks/use-page-meta'
 
 /**
@@ -49,6 +51,7 @@ export function LearnPublicPage() {
       </header>
 
       <main className="py-8 md:py-12">
+        <JsonLd data={faqJsonLd(t)} />
         <LearnPage openAll />
 
         {/* The way in, at the point where the reading ends. */}

@@ -952,35 +952,83 @@
     "topics": {
       "what-is-counting": {
         "title": "Was ist Kartenzählen?",
-        "body": "Du führst eine einfache laufende Bilanz, während die Karten fallen. Sind noch viele hohe Karten im Schlitten, kippen die Chancen zu dir — also setzt du mehr und passt ein paar Züge an. Das ist eine Frage von Aufmerksamkeit und Rechnen, kein Betrug, und völlig legal."
+        "body": "Du führst eine einfache laufende Bilanz, während die Karten fallen. Sind noch viele hohe Karten im Schlitten, kippen die Chancen zu dir — also setzt du mehr und passt ein paar Züge an. Das ist eine Frage von Aufmerksamkeit und Rechnen, kein Betrug, und völlig legal.",
+        "more": {
+          "p1": "Kartenzählen heißt, eine einzige Sache im Blick zu behalten: das Verhältnis von hohen zu niedrigen Karten, die noch im Schlitten stecken. Jede ausgeteilte Karte verändert den Rest, und der Count verdichtet all das zu einer einzigen Zahl, die du im Kopf tragen kannst.",
+          "p2": "Es funktioniert, weil die beiden Hälften des Decks nicht gleichwertig sind. Hohe Karten — <c>Zehner und Asse</c> — nützen dir: mehr Blackjacks, die mit <g>3:2</g> bezahlt werden, stärkere Verdopplungen und ein Dealer, der öfter überkauft, wenn er auf eine schwache Hand ziehen muss. Niedrige Karten nützen dem Dealer. Sind die noch kommenden Karten reich an Zehnern, kippt der Vorteil leise vom Haus zu dir.",
+          "p3": "Was es nicht ist: jede Karte auswendig lernen, oder irgendein Trick. Der Hi-Lo-Count ist eine laufende Summe aus <g>+1</g> und <g>−1</g>, und die Mathematik dahinter hat Edward Thorp 1962 veröffentlicht. Es ist überall legal; ein Casino darf einen gewinnenden Zähler trotzdem hinauskomplimentieren, denn es ist sein Haus.",
+          "p4": "Am Tisch läuft es auf vier Gewohnheiten hinaus: den Count führen, in einen True Count umrechnen, mehr setzen, wenn er positiv ist, und eine Handvoll Spielzüge ändern. Alles andere ist schlichte Basisstrategie. Der <c>Speed Drill</c> in diesem Trainer baut die erste dieser Gewohnheiten auf, bis sie von allein läuft."
+        }
       },
       "hi-lo": {
         "title": "Der Hi-Lo-Count",
-        "body": "Jede Karte bekommt einen Wert: niedrige Karten <g>2–6 = +1</g>, mittlere <g>7–9 = 0</g>, hohe <g>10, B, D, K, A = −1</g>. Addiere sie, während die Karten erscheinen — die Summe ist dein <c>Running Count</c>. Ein hoher positiver Count heisst: viele hohe Karten sind noch da — gut für dich."
+        "body": "Jede Karte bekommt einen Wert: niedrige Karten <g>2–6 = +1</g>, mittlere <g>7–9 = 0</g>, hohe <g>10, B, D, K, A = −1</g>. Addiere sie, während die Karten erscheinen — die Summe ist dein <c>Running Count</c>. Ein hoher positiver Count heisst: viele hohe Karten sind noch da — gut für dich.",
+        "more": {
+          "p1": "Hi-Lo ist ein <c>ausgeglichener</c> Count: Ein volles Deck ergibt genau null. Zwanzig niedrige Karten (2–6) steuern <g>+20</g> bei, zwanzig hohe Karten (10, B, D, K, A) steuern <g>−20</g> bei, und die zwölf mittleren Karten (7, 8, 9) gar nichts. Deshalb bedeutet ein positiver Count, dass der Schlitten jetzt reicher an hohen Karten ist als am Anfang.",
+          "p2": "Eine durchgerechnete Runde. Die Karten kommen als 5, K, 2, 9, A, 7, 4. Schritt für Schritt: <g>+1, −1, +1, 0, −1, 0, +1</g>. Der Running Count nach diesen sieben Karten ist <g>+1</g>. Mehr passiert im Kopf nicht als diese Addition, Karte für Karte.",
+          "p3": "Schnell wird es durch das Streichen in Paaren: Eine hohe und eine niedrige Karte zusammen sind null, also lernst du, <g>K + 5 = 0</g> als eine Einheit zu sehen und zu überspringen. Übe zu Hause mit einem einzelnen Deck — teile es durch, und du musst genau bei null landen, was dir verrät, ob du dich verzählt hast.",
+          "p4": "Warum Hi-Lo und nicht eines der Dutzend anderen Systeme? Weil es fast den gesamten verfügbaren Vorteil einfängt — seine Wett-Korrelation liegt bei etwa <g>0,97</g> — und dabei einfach genug ist, um es im Lärm eines Casinos durchzuhalten. Mehrstufige Systeme wie Omega II gewinnen einen Bruchteil eines Prozents und kosten weit mehr Aufmerksamkeit. Profi-Teams nutzen Hi-Lo, und jeder Modus in diesem Trainer ebenso."
+        }
       },
       "true-count": {
         "title": "Running Count und True Count",
-        "body": "Der Running Count allein reicht nicht — +6 bei sechs Restdecks ist schwach, +6 bei einem Restdeck ist stark. Also teilst du: <g>True Count = Running Count ÷ Restdecks</g>. Der True Count ist dein tatsächlicher Vorteil, und er steuert Einsatz wie Abweichungen."
+        "body": "Der Running Count allein reicht nicht — +6 bei sechs Restdecks ist schwach, +6 bei einem Restdeck ist stark. Also teilst du: <g>True Count = Running Count ÷ Restdecks</g>. Der True Count ist dein tatsächlicher Vorteil, und er steuert Einsatz wie Abweichungen.",
+        "more": {
+          "p1": "Der Running Count sagt, wie viele hohe Karten zu viel übrig sind, aber nicht, wie konzentriert sie sind. Ein Count von <g>+6</g> bei sechs noch auszuteilenden Decks ist eine hohe Karte zu viel pro Deck — fast nichts. Dasselbe <g>+6</g> bei einem verbleibenden Deck sind sechs hohe Karten zu viel in den nächsten zweiundfünfzig. Das ist ein völlig anderer Schlitten.",
+          "p2": "Also teilst du. <g>True Count = Running Count ÷ verbleibende Decks</g>. Running Count <g>+8</g> bei vier verbleibenden Decks ergibt einen True Count von <g>+2</g>; dasselbe <g>+8</g> bei zwei Decks ergibt <g>+4</g>. Die meisten Zähler runden für Einsatzentscheidungen Richtung null, ein +2,7 gilt also als +2 — die vorsichtige Seite.",
+          "p3": "Was die Zahl in Geld bedeutet: Jeder Punkt True Count verschiebt den Vorteil um etwa <g>ein halbes Prozent</g>. Bei True Count null hält das Haus rund 0,5 % gegen einen perfekten Basisstrategie-Spieler. Bei <g>+1</g> ist das Spiel nahezu ausgeglichen, bei <g>+2</g> hältst du etwa ein halbes Prozent, bei <g>+3</g> etwa ein Prozent. Das ist das ganze Geschäftsmodell: klein setzen unter +1, groß darüber.",
+          "p4": "Der True Count steuert beide Hälften der Methode — wie viel du setzt und welche Spielzüge du änderst. Seine eine Eingabe, die du nicht vom Tisch ablesen kannst, ist die Zahl der verbleibenden Decks, die du nach Augenmaß schätzen musst. Diese Fähigkeit hat ein eigenes Kapitel und einen eigenen Trainingsmodus."
+        }
       },
       "basic-strategy": {
         "title": "Basisstrategie",
-        "body": "Der mathematisch beste Zug für jede Hand — ziehen, stehen, verdoppeln, splitten oder aufgeben — unter der Annahme, dass du <c>nicht</c> zählst. Lerne das zuerst: es ist das Fundament und drückt den Hausvorteil bereits auf fast null. Der Modus <c>Lernkarten</c> übt es Hand für Hand."
+        "body": "Der mathematisch beste Zug für jede Hand — ziehen, stehen, verdoppeln, splitten oder aufgeben — unter der Annahme, dass du <c>nicht</c> zählst. Lerne das zuerst: es ist das Fundament und drückt den Hausvorteil bereits auf fast null. Der Modus <c>Lernkarten</c> übt es Hand für Hand.",
+        "more": {
+          "p1": "Die Basisstrategie ist die mathematisch beste Entscheidung für jede Kombination aus deiner Hand und der offenen Karte des Dealers, unter der Annahme, dass du nichts über die restlichen Karten weißt. Sie wurde gelöst, indem Millionen von Händen durch einen Computer liefen, und sie hängt von den Regeln ab: wie viele Decks, ob der Dealer bei Soft 17 zieht, ob du nach einem Split verdoppeln darfst, ob Surrender angeboten wird.",
+          "p2": "Ein paar ihrer Säulen lohnt es sich auswendig zu kennen, bevor du den Rest übst: Teile immer <c>Asse und Achten</c>, teile nie Zehner oder Fünfer. Verdopple eine harte <g>11</g> gegen alles außer einem Ass. Bleibe bei harter <g>17</g> und höher stehen. Mit einer schwachen Hand — hart 12 bis 16 — bleibst du gegen Dealer 2 bis 6 stehen und ziehst gegen 7 oder höher, mit der einen Ausnahme 12, die gegen 2 und 3 zieht.",
+          "p3": "Perfekt gespielt bei guten Regeln senkt die Basisstrategie den Hausvorteil auf etwa <g>0,5 %</g>. Der durchschnittliche Spieler verschenkt 2 % oder mehr durch Raten. Bevor das Zählen also überhaupt etwas beisteuert, holt die Basisstrategie allein den größten Teil des Geldes zurück, das ein Gelegenheitsspieler verliert — deshalb kommt sie zuerst.",
+          "p4": "Sie muss automatisch werden. Zählen kostet Aufmerksamkeit, und wenn davon noch etwas darauf verwendet wird, ob man 15 gegen eine 9 zieht, rutscht der Count. Der Modus <c>Karteikarten</c> zeigt dir jede Hand, die es gibt, bis der richtige Spielzug vor der Frage da ist."
+        }
       },
       "deviations": {
         "title": "Abweichungen",
-        "body": "Läuft der Count hoch oder tief, ändern sich eine Handvoll Züge gegenüber der Basisstrategie. Klassisches Beispiel: normalerweise <c>ziehst</c> du bei hart 16 gegen eine Dealer-10 — ab einem True Count von 0 aufwärts <c>bleibst du stehen</c>. Aus diesen count-basierten Änderungen kommt der zusätzliche Vorteil."
+        "body": "Läuft der Count hoch oder tief, ändern sich eine Handvoll Züge gegenüber der Basisstrategie. Klassisches Beispiel: normalerweise <c>ziehst</c> du bei hart 16 gegen eine Dealer-10 — ab einem True Count von 0 aufwärts <c>bleibst du stehen</c>. Aus diesen count-basierten Änderungen kommt der zusätzliche Vorteil.",
+        "more": {
+          "p1": "Die Basisstrategie geht von einem neutralen Schlitten aus. Wenn der Count sagt, dass der Schlitten reich an Zehnern ist, sind einige ihrer Spielzüge nicht mehr die besten: Du bleibst öfter stehen, weil der Dealer öfter überkauft; du verdoppelst öfter, weil deine eine Karte eher eine Zehn ist; und du nimmst Versicherung, weil die verdeckte Karte des Dealers eher eine Zehn ist. Bei niedrigem Count das Gegenteil — du ziehst bei Händen, bei denen du normalerweise stehen bleibst.",
+          "p2": "Das klassische Beispiel ist hart <g>16 gegen eine 10</g>. Die Basisstrategie zieht, und verliert meistens so oder so. Bei einem True Count von <g>0 oder höher</g> bleibst du stattdessen stehen, weil die Zehn, die dich überkaufen würde, jetzt die wahrscheinlichste Karte ist. Die wertvollste Abweichung überhaupt ist Versicherung bei einem True Count von <g>+3</g>: Versicherung ist eine Nebenwette darauf, dass der Dealer einen Blackjack hält, und sie zahlt sich aus, wenn mehr als ein Drittel der restlichen Karten Zehner sind.",
+          "p3": "Jede Abweichung hat einen <c>Index</c>: den True Count, bei dem der bessere Spielzug kippt. Beim Index oder darüber machst du die Abweichung; darunter spielst du Basisstrategie. Manche Indizes sind negativ — das sind Spielzüge, die du bei niedrigem Count änderst, etwa eine 13 gegen eine 2 bei True Count −1 oder schlechter zu ziehen.",
+          "p4": "Abweichungen bringen etwa <g>10–20 %</g> zum erwarteten Gewinn eines Zählers hinzu; den Rest liefert die Einsatzspreizung. Lerne sie also zuletzt, wenn Count und Basisstrategie automatisch laufen, und lerne die wertvollen zuerst — das nächste Kapitel ist diese Liste."
+        }
       },
       "i18-fab4": {
         "title": "Illustrious 18 & Fab 4",
-        "body": "Von allen möglichen Abweichungen steckt der meiste Wert in einer kleinen Auswahl: den <g>Illustrious 18</g> (den 18 wertvollsten Spielabweichungen) und den <g>Fab 4</g> (den 4 wertvollsten Aufgabe-Abweichungen). Die Namen musst du dir nicht merken — die Lernkarten-Stufe „Abweichungen“ bringt sie dir direkt als Situationen bei."
+        "body": "Von allen möglichen Abweichungen steckt der meiste Wert in einer kleinen Auswahl: den <g>Illustrious 18</g> (den 18 wertvollsten Spielabweichungen) und den <g>Fab 4</g> (den 4 wertvollsten Aufgabe-Abweichungen). Die Namen musst du dir nicht merken — die Lernkarten-Stufe „Abweichungen“ bringt sie dir direkt als Situationen bei.",
+        "more": {
+          "p1": "Es gibt Hunderte möglicher Abweichungen, und die meisten sind fast nichts wert. 1986 identifizierte Don Schlesinger die achtzehn, die den weitaus größten Teil des Wertes tragen — die <c>Illustrious 18</c> — und später die vier Surrender-Züge, die zählen, wenn Late Surrender angeboten wird, die <c>Fab 4</c>. Zusammen fangen sie rund <g>80–90 %</g> von allem ein, was Abweichungen dir geben können.",
+          "p2": "Die Liste beginnt mit den vier wichtigsten: Versicherung bei <g>+3</g>, Stehenbleiben mit 16 gegen eine 10 bei <g>0</g>, Stehenbleiben mit 15 gegen eine 10 bei <g>+4</g>, und das Teilen eines Zehnerpaars gegen eine 5 bei <g>+5</g>. Wenn du sonst nichts lernst, lerne diese.",
+          "p3": "Die Züge mit negativem Index sind die, die Anfänger vergessen: Bei niedrigem Count <c>ziehst</c> du bei Händen, bei denen die Basisstrategie stehen bleibt, etwa 12 gegen 4, 5 oder 6 und 13 gegen 2 oder 3. Sie kommen ständig vor, denn niedrige Counts sind so häufig wie hohe.",
+          "p4": "Die Tabellen unten werden aus der Engine dieses Trainers erzeugt — dieselben Zahlen, an denen dich der Casino-Tisch misst, sie können also nicht auseinanderlaufen. Die Indizes gelten für ein Spiel mit sechs Decks, bei dem der Dealer auf Soft 17 stehen bleibt. Die Abweichungs-Stufe der <c>Karteikarten</c> lehrt jede einzelne als Situation statt als Zeile in einer Liste."
+        }
       },
       "bet-spread": {
         "title": "Bet Spread",
-        "body": "Du setzt klein, wenn der Count tief ist, und gross, wenn er hoch ist — dieser Abstand ist dein <c>Bet Spread</c>. Fast der ganze Gewinn eines Zählers kommt daher, mehr Geld auf den Tisch zu bringen, wenn die Chancen für dich stehen. Ein Spread von <g>1–16</g> ist ein verbreiteter professioneller Standard."
+        "body": "Du setzt klein, wenn der Count tief ist, und gross, wenn er hoch ist — dieser Abstand ist dein <c>Bet Spread</c>. Fast der ganze Gewinn eines Zählers kommt daher, mehr Geld auf den Tisch zu bringen, wenn die Chancen für dich stehen. Ein Spread von <g>1–16</g> ist ein verbreiteter professioneller Standard.",
+        "more": {
+          "p1": "Fast der gesamte Gewinn eines Zählers kommt aus einer Sache: mehr Geld auf dem Tisch zu haben, wenn der True Count hoch ist, als wenn er niedrig ist. Das Verhältnis zwischen deinem kleinsten und größten Einsatz ist deine <c>Einsatzspreizung</c>. Eine Spreizung von <g>1–8</g> an einem 25er-Tisch heißt 25 bei neutralem Count und 200 an der Spitze.",
+          "p2": "Eine übliche Rampe für sechs Decks: eine Einheit bei True Count <g>+1 oder darunter</g>, zwei Einheiten bei <g>+2</g>, vier bei <g>+3</g>, acht bei <g>+4</g>, und dort entweder aufhören oder bei +5 auf zwölf oder sechzehn gehen. Die Faustregel dahinter ist Kelly: Setze etwa deinen Vorteil in Prozent deiner Bankroll — bei einem Prozent Vorteil ein Prozent dessen, was du hast.",
+          "p3": "Die Bankroll ist das, was die Spreizung überlebbar macht. Die Schwankungen sind selbst mit Vorteil brutal; eine gängige Richtlinie sind mindestens <g>100 bis 200</g> Höchsteinsätze, und je kleiner die Bankroll, desto höher das Risiko, alles zu verlieren, bevor sich der Vorteil zeigt. Die <c>Bankroll</c>-Werkzeuge im Trainer zeigen dir dieses Risiko als Zahl statt als Gefühl.",
+          "p4": "Dann ist da noch die Frage der Tarnung: Von einer Einheit auf sechzehn zu springen, sobald der Count steigt, ist das Sichtbarste, was ein Zähler tun kann. In Stufen hochzugehen und nicht sofort aufs Minimum zu fallen, wenn der Count sinkt, kostet ein wenig Vorteil und kauft viel Zeit am Tisch. Der Modus <c>Einsatzspreizung</c> trainiert die Rampe; die Casino-Session bewertet jeden Einsatz, den du machst, daran."
+        }
       },
       "deck-estimation": {
         "title": "Deck-Schätzung",
-        "body": "Um aus dem Running Count einen True Count zu machen, musst du abschätzen, wie viele Decks übrig sind — mit blossem Auge, an der Dicke im Ablagefach, genau wie am echten Tisch. Das klingt schwer, geht mit Übung aber schnell. Genau das trainiert der Modus <c>Deck-Schätzung</c>."
+        "body": "Um aus dem Running Count einen True Count zu machen, musst du abschätzen, wie viele Decks übrig sind — mit blossem Auge, an der Dicke im Ablagefach, genau wie am echten Tisch. Das klingt schwer, geht mit Übung aber schnell. Genau das trainiert der Modus <c>Deck-Schätzung</c>.",
+        "more": {
+          "p1": "Der True Count braucht eine Zahl, die der Tisch dir nicht zeigt: wie viele Decks noch auszuteilen sind. Du liest sie an der Ablage ab. Ein Deck mit 52 Karten ist etwa <g>1,5 cm</g> (0,6 Zoll) hoch, ein Schlitten mit sechs Decks steht also rund 9 cm hoch, und eine Ablage mit 3 cm Karten heißt, zwei Decks sind weg und vier bleiben.",
+          "p2": "Schätze in halben Decks, nicht in Karten. Schau auf die Ablage, schätze die abgelegten Karten, ziehe sie vom Schlitten ab. In einem Schlitten mit sechs Decks und etwa <g>2,5 Decks</g> in der Ablage bleiben <g>3,5</g>. Denk daran, dass die Schnittkarte meist bei rund 75 % Durchdringung sitzt, das letzte anderthalb Deck wird also nie ausgeteilt — was zählt, ist der Count gegenüber dem, was tatsächlich gespielt wird.",
+          "p3": "Halbdeck-Genauigkeit reicht, weniger nicht. Ein Running Count von +6 bei drei verbleibenden Decks ist ein True Count von <g>+2</g>; verschätzt du die Ablage um ein Deck, nennst du ihn <g>+3</g>, setzt den falschen Betrag und machst eine Abweichung, die du nicht hättest machen sollen. Die meisten Zählfehler an echten Tischen sind Schätzfehler, keine Additionsfehler.",
+          "p4": "Mit Wiederholung wird es schnell, wie ein Glas als halb voll zu erkennen. Der Modus <c>Deck-Schätzung</c> zeigt dir Ablagestapel zufälliger Größe und bewertet deine Schätzung; ziele darauf, jedes Mal innerhalb eines halben Decks zu liegen, und mach es dann bei laufendem Count."
+        }
       }
     },
     "modesTitle": "Die Trainingsmodi",
@@ -994,6 +1042,35 @@
     "cta": {
       "title": "Bereit, den Count zum Reflex zu machen?",
       "body": "Alles oben wird mit Übung zum Automatismus. Fang mit den kostenlosen Übungen an — keine Karte nötig."
+    },
+    "table": {
+      "i18Title": "Die Illustrious 18",
+      "fab4Title": "Die Fab 4",
+      "hand": "Deine Hand",
+      "dealer": "Dealer zeigt",
+      "index": "Ab True Count",
+      "play": "Spielzug",
+      "otherwise": "Darunter",
+      "any": "Jede Hand",
+      "insurance": "Versicherung nehmen",
+      "note": "Erzeugt aus der Engine dieses Trainers — dieselben Zahlen, an denen dich der Casino-Tisch misst. Sechs Decks, Dealer bleibt bei Soft 17 stehen, Late Surrender für die Fab 4."
+    },
+    "faq": {
+      "title": "Häufige Fragen",
+      "q1": "Ist Kartenzählen illegal?",
+      "a1": "Nein. Kartenzählen heißt, über die Karten nachzudenken, die du gesehen hast, und kein Gesetz irgendwo verbietet das. Was Casinos dürfen, ist dich nicht spielen zu lassen — ein Casino ist Privatgelände. Ein Gerät oder ein versteckter Helfer ist etwas anderes und in den meisten Ländern illegal. Dieser Trainer lehrt ausschließlich die geistige Fähigkeit.",
+      "q2": "Wie lange dauert es, Hi-Lo zu lernen?",
+      "a2": "Die meisten halten nach einer Woche täglicher Übung einen genauen Running Count über ein einzelnes Deck und erreichen Tischgeschwindigkeit — eine Karte pro Sekunde oder schneller, mit True-Count-Umrechnung und Basisstrategie nebenher — in ein bis drei Monaten. Das Schwere ist nicht das Zählen; es ist, es zu tun, während alles andere passiert.",
+      "q3": "Welches Zählsystem sollte ein Anfänger nutzen?",
+      "a3": "Hi-Lo. Es holt etwa 97 % des Wertes, den ein perfektes System liefern könnte, es ist eine einzige Stufe aus +1 und −1, und jedes ernsthafte Team nutzt es. Mehrstufige Systeme bringen einen Bruchteil eines Prozents mehr, für viel mehr Aufwand und mehr Fehler.",
+      "q4": "Wie groß ist der Vorteil eines Kartenzählers?",
+      "a4": "Klein. Ein guter Zähler mit solider Einsatzspreizung bei anständigen Regeln hat über das ganze Spiel einen Vorteil von etwa 0,5 bis 1,5 Prozent — mit brutalen kurzfristigen Schwankungen. Es ist eine Mühe, gemessen über Tausende von Händen, kein Weg, ein Casino an einem Abend zu schlagen.",
+      "q5": "Muss ich mir jede gespielte Karte merken?",
+      "a5": "Nein. Der Count ist eine einzige Zahl, die um eins rauf- und runtergeht. Du merkst dir nie einzelne Karten, nur die laufende Summe und ungefähr, wie viele Decks noch übrig sind.",
+      "q6": "Welche Einsatzspreizung sollte ich nutzen?",
+      "a6": "Bei sechs Decks ist eine Spreizung von 1–8 bis 1–16 der professionelle Standard: eine Einheit bei True Count +1 oder darunter, Verdopplung mit jedem Punkt, gedeckelt bei acht bis sechzehn Einheiten. Alles Engere verschenkt den größten Teil des Vorteils; alles Weitere zieht Aufmerksamkeit auf sich.",
+      "q7": "Geht es in diesem Trainer um echtes Geld?",
+      "a7": "Nein. Jede Hand ist simuliert. Der Trainer ist ein Lernwerkzeug für Basisstrategie und Hi-Lo-Kartenzählen; es gibt kein Glücksspiel, keine Einzahlungen und keine Auszahlungen."
     }
   },
   "basics": {
