@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { LOCALES, LOCALE_NAMES, DEFAULT_LOCALE, resolveLocale, isLocale } from './locales'
+import { LOCALES, LOCALE_NAMES, DEFAULT_LOCALE, resolveLocale, isLocale, localeFromPath, localizedPath, publicPathOf } from './locales'
 
 // Suffixed on purpose: the Italian bundle imported as `it` shadows vitest's
 // `it`, and every test in the file then fails with "is not a function".
@@ -147,6 +147,35 @@ describe('resolveLocale', () => {
 
   it('is not fooled by case or an underscore separator', () => {
     expect(resolveLocale('FR_ch')).toBe('fr')
+  })
+})
+
+describe('language prefixes in the URL', () => {
+  it('reads a prefix that is a whole segment, and nothing else', () => {
+    expect(localeFromPath('/de/learn')).toEqual({ locale: 'de', basename: '/de' })
+    expect(localeFromPath('/de')).toEqual({ locale: 'de', basename: '/de' })
+    expect(localeFromPath('/learn')).toBeNull()
+    expect(localeFromPath('/')).toBeNull()
+    // `/deck…` is not German, and English has no prefix.
+    expect(localeFromPath('/deck-estimation')).toBeNull()
+    expect(localeFromPath('/en/learn')).toBeNull()
+    expect(localeFromPath('/ja/learn')).toBeNull()
+  })
+
+  it('builds the URL of a page in a language', () => {
+    expect(localizedPath('/learn', 'en')).toBe('/learn')
+    expect(localizedPath('/learn', 'de')).toBe('/de/learn')
+    expect(localizedPath('/', 'en')).toBe('/')
+    expect(localizedPath('/', 'fr')).toBe('/fr')
+  })
+
+  it('knows which pages have language versions', () => {
+    expect(publicPathOf('/de/learn')).toBe('/learn')
+    expect(publicPathOf('/de')).toBe('/')
+    expect(publicPathOf('/de/')).toBe('/')
+    expect(publicPathOf('/terms')).toBe('/terms')
+    expect(publicPathOf('/app')).toBeNull()
+    expect(publicPathOf('/de/app')).toBeNull()
   })
 })
 

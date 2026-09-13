@@ -85,6 +85,22 @@ npx supabase db reset      # Reset local database
 npx supabase migration new <name>  # Create new migration
 ```
 
+## Public pages, prerendered, in seven languages
+
+`npm run build` ends with `node scripts/prerender.mjs`: it builds
+`src/entry-prerender.tsx` for Node, renders the five public routes (`/`,
+`/learn`, `/terms`, `/privacy`, `/contact`) in every language and writes 35
+HTML files into `dist` — `dist/learn/index.html`, `dist/de/learn/index.html`
+and so on — plus `sitemap.xml` with hreflang alternates. The client does
+**not** hydrate them; `main.tsx` reads the language prefix off the URL, opens
+the router at that basename (`/de`) and replaces the markup behind the
+loading screen. English lives at the root, the other six under a prefix.
+A stored or browser language never changes a URL; a URL always sets the
+language. `Reveal` renders plain on the server, or every landing section
+would ship at `opacity: 0`. `usePageMeta` gives each page its own title,
+description and canonical, prefix included. The theory page is public at
+`/learn` with every topic expanded — a collapsed topic is not in the DOM.
+
 ## Dev-only screens
 
 Four routes that exist only under `import.meta.env.DEV` and never reach a production
@@ -246,17 +262,27 @@ issue and was dealt with".
    customer, and it is now open rather than blocked — but it is a person
    choosing to write in, not a signal, and it should not be mistaken for one.
 
-2. **Cache headers are prepared but not applied.** Measured on 19 Aug 2026, not
-   assumed: Caddy already sends an `ETag` on everything, so a returning visitor
-   re-downloads nothing — they just *ask*, about thirty times, one conditional
-   request per asset before the page paints. It costs round trips, not bytes,
-   which makes this an optimisation rather than a hole.
+2. **The repository's Caddyfile has not been seen running yet** (13 Sep 2026).
+   `nixpacks.toml` points the start command at `./Caddyfile`, which serves the
+   prerendered pages (`try_files {path} {path}/index.html /shell.html`) and
+   sets `Cache-Control: immutable` on `/assets` — closing the cache-header gap
+   that `docs/traefik-cache-headers.yml` was written for. Nixpacks' own
+   Caddyfile cannot be read from the repo, so this is the only way to change
+   the server; it is the Nixpacks template with three lines changed.
 
-   [`docs/traefik-cache-headers.yml`](./traefik-cache-headers.yml) is ready to
-   paste, scoped to `/assets` only — the one place Vite content-hashes, and
-   therefore the only place `immutable` is safe. **One blank remains** and it is
-   the one that decides whether it works: the service name Dokploy generated,
-   which cannot be read from here. Rollback is deleting the file.
+   **Verify after the first deploy**, from outside:
+
+   ```bash
+   curl -s https://black-jack-training.com/learn | grep -c "<h1"
+   ```
+
+   `1` means the Caddyfile is live (the prerendered page was served); `0`
+   means the request fell back to the shell and Nixpacks ignored the start
+   override. Also `curl -sI https://black-jack-training.com/assets/` on any
+   hashed file should show `cache-control: public, max-age=31536000, immutable`.
+   Rollback is deleting `nixpacks.toml`. If the override is ignored, `/`
+   is still prerendered — `dist/index.html` is the landing — but the other
+   34 pages are unreachable until the server learns `{path}/index.html`.
 
 3. **The business side is unproven.** Zero subscribers. The purchase path was
    exercised once, by hand, on 18 Aug 2026 — that is one data point, not a

@@ -13,12 +13,17 @@ interface RevealProps {
  * then leaves them alone (`once`), so nothing re-animates on the way back up.
  *
  * Renders as a plain element — no transform, no motion — when the visitor
- * prefers reduced motion. Landing-page decoration only: never wrap anything
- * whose visibility the reader depends on.
+ * prefers reduced motion, and when there is no window at all: the public
+ * pages are prerendered at build time, and a `motion.div` rendered on the
+ * server writes its `initial` state inline, so every section of the landing
+ * would sit in the HTML at `opacity: 0`. Text a crawler has to read through
+ * a zero opacity is text it may well discount. Landing-page decoration
+ * only: never wrap anything whose visibility the reader depends on.
  */
 export function Reveal({ children, delay = 0, className }: RevealProps) {
   const reduced = useReducedMotion()
-  if (reduced) return <div className={className}>{children}</div>
+  const server = typeof window === 'undefined'
+  if (reduced || server) return <div className={className}>{children}</div>
 
   return (
     <motion.div

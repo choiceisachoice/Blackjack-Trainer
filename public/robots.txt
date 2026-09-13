@@ -1,11 +1,18 @@
 # Blackjack Card Counting Trainer
-# The landing page is public. Everything behind /app is per-user and needs a
-# login, so there is nothing there for a crawler to index.
+# The landing, the theory and the legal pages are public, in seven languages
+# (/, /learn, /terms, /privacy, /contact and the same under /de, /fr, /it,
+# /es, /pt, /tr). Everything behind /app is per-user and needs a login, so
+# there is nothing there for a crawler to index — in any language.
 
 User-agent: *
 Allow: /
 Disallow: /app
 Disallow: /account
 Disallow: /login
+Disallow: /reset-password
+Disallow: /*/app
+Disallow: /*/account
+Disallow: /*/login
+Disallow: /*/reset-password
 
 Sitemap: https://black-jack-training.com/sitemap.xml

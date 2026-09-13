@@ -51,3 +51,55 @@ export function resolveLocale(requested: string | null | undefined): Locale {
   const base = requested.toLowerCase().split(/[-_]/)[0]
   return isLocale(base) ? base : DEFAULT_LOCALE
 }
+
+/**
+ * The public routes that exist in every language, at `/<locale><path>`.
+ *
+ * English lives at the root and the six others under a prefix: `/learn` and
+ * `/de/learn` are the same page in two languages, each with its own
+ * canonical URL, so a search engine can offer a German reader the German
+ * one. The app routes are not on this list — `/de/app` still works, because
+ * the router treats the prefix as its base, but there is nothing there for
+ * a crawler and the URL a person shares is the unprefixed one.
+ */
+export const PUBLIC_PATHS = ['/', '/learn', '/terms', '/privacy', '/contact'] as const
+
+/**
+ * Read a language prefix off a pathname.
+ *
+ * `/de/learn` → `{ locale: 'de', basename: '/de' }`; `/learn` and `/` → null.
+ * `/deck` is not German: the prefix has to be a whole segment.
+ *
+ * @param pathname - `window.location.pathname` or equivalent
+ */
+export function localeFromPath(pathname: string): { locale: Locale; basename: string } | null {
+  const m = /^\/([a-z]{2})(?=\/|$)/.exec(pathname)
+  if (!m || !isLocale(m[1]) || m[1] === DEFAULT_LOCALE) return null
+  return { locale: m[1], basename: `/${m[1]}` }
+}
+
+/**
+ * The URL of a public page in a given language.
+ *
+ * @param path - One of {@link PUBLIC_PATHS}
+ * @param locale - The language wanted
+ * @returns `/learn` for English, `/de/learn` for German; `/` and `/de` for the landing
+ */
+export function localizedPath(path: string, locale: Locale): string {
+  if (locale === DEFAULT_LOCALE) return path
+  return path === '/' ? `/${locale}` : `/${locale}${path}`
+}
+
+/**
+ * Strip the language prefix, if any, and say whether what is left is public.
+ *
+ * @param pathname - The current pathname, prefix included
+ * @returns The unprefixed path when it is a public page, else null
+ */
+export function publicPathOf(pathname: string): string | null {
+  const prefix = localeFromPath(pathname)
+  let rest = prefix ? pathname.slice(prefix.basename.length) : pathname
+  if (rest === '') rest = '/'
+  if (rest.length > 1 && rest.endsWith('/')) rest = rest.slice(0, -1)
+  return (PUBLIC_PATHS as readonly string[]).includes(rest) ? rest : null
+}

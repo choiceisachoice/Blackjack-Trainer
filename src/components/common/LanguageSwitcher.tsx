@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, ChevronDown, Languages } from 'lucide-react'
-import { LOCALES, LOCALE_NAMES, resolveLocale, type Locale } from '../../i18n/locales'
+import { LOCALES, LOCALE_NAMES, resolveLocale, localizedPath, publicPathOf, type Locale } from '../../i18n/locales'
 import { setLocale } from '../../i18n'
+import { hardNavigate } from '../../utils/hard-navigate'
 
 interface LanguageSwitcherProps {
   className?: string
@@ -58,10 +59,27 @@ export function LanguageSwitcher({ className = '' }: LanguageSwitcherProps) {
   }, [open])
 
   const choose = (locale: Locale) => {
-    void setLocale(locale)
     setActive(locale)
     setOpen(false)
     triggerRef.current?.focus()
+    /*
+      On a public page, the language is part of the URL — `/learn` is English,
+      `/de/learn` is German, each its own canonical page — so choosing a
+      language means going to that page. A full navigation, because the
+      router is rooted at the prefix and cannot step outside it. The choice is
+      persisted first, so the page that loads already knows it.
+
+      Inside the app there is no such URL, and the language just switches.
+    */
+    const publicPath = typeof window === 'undefined' ? null : publicPathOf(window.location.pathname)
+    if (publicPath !== null) {
+      const target = localizedPath(publicPath, locale)
+      if (target !== window.location.pathname.replace(/(.)\/$/, '$1')) {
+        void setLocale(locale).then(() => hardNavigate(target))
+        return
+      }
+    }
+    void setLocale(locale)
   }
 
   const openWith = (locale: Locale) => {

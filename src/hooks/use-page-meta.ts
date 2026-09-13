@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Translate } from '../i18n/translate'
+import { localeFromPath } from '../i18n/locales'
 
 /** The public origin, for canonical and Open Graph URLs. */
 export const SITE_ORIGIN = 'https://black-jack-training.com'
@@ -84,7 +85,12 @@ export function applyPageMeta(doc: Document, meta: PageMeta): void {
  */
 export function usePageMeta(page: PageKey, path: string): void {
   const { t } = useTranslation()
-  const meta = pageMeta(t, page, path)
+  // The language prefix is part of the canonical URL: `/de/learn` must not
+  // declare `/learn` as its canonical, or a crawler folds the German page
+  // into the English one. Read from the URL rather than the router, so the
+  // hook works wherever the page is rendered.
+  const prefix = typeof window === 'undefined' ? '' : (localeFromPath(window.location.pathname)?.basename ?? '')
+  const meta = pageMeta(t, page, prefix && path === '/' ? prefix : `${prefix}${path}`)
   useEffect(() => {
     if (typeof document === 'undefined') return
     applyPageMeta(document, meta)

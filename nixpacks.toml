@@ -1,0 +1,8 @@
+# Start Caddy with the repository's Caddyfile instead of the one Nixpacks
+# generates. See the comment at the top of ./Caddyfile for why.
+#
+# The `caddy` binary comes from the phase Nixpacks adds for any Vite app it
+# recognises; only the start command changes. Deleting this file restores the
+# default behaviour.
+[start]
+cmd = "exec caddy run --config /app/Caddyfile --adapter caddyfile 2>&1"

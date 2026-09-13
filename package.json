@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/prerender.mjs",
     "typecheck": "tsc -b && tsc --noEmit -p tsconfig.test.json",
     "typecheck:tests": "tsc --noEmit -p tsconfig.test.json",
     "lint": "eslint .",
