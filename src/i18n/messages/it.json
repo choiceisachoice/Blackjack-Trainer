@@ -1617,10 +1617,13 @@
     },
     "jumped": "{{n}} livelli in un colpo",
     "total": "Totale",
-    "whatIsThis": "<b>Che cos’è?</b> Il livello misura quanto hai allenato. Guadagni punti per gli esercizi completati e le sfide giornaliere — più sei preciso, più ne prendi. I livelli non sbloccano nulla: sono solo il registro del lavoro.",
+    "whatIsThis": "<b>Che cos’è?</b> Il livello misura quanto hai allenato. Guadagni punti per gli esercizi completati e le sfide giornaliere — più sei preciso, più ne prendi. I livelli non cambiano l’allenamento in sé: ognuno sblocca un’immagine del profilo, nient’altro.",
     "abbr": "Liv.{{n}}",
     "levelUp": "Livello su",
-    "hideExplainer": "Ho capito — non mostrare più"
+    "hideExplainer": "Ho capito — non mostrare più",
+    "newPicture": "Nuova immagine del profilo sbloccata",
+    "newPictures": "{{n}} nuove immagini del profilo sbloccate",
+    "choosePicture": "Usala come immagine"
   },
   "chal": {
     "warm_up": {

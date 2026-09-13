@@ -1617,10 +1617,13 @@
     },
     "jumped": "Bir seferde {{n}} seviye",
     "total": "Toplam",
-    "whatIsThis": "<b>Bu nedir?</b> Seviyeniz ne kadar çalıştığınızı gösterir. Tamamlanan alıştırmalar ve günlük görevler puan kazandırır — ne kadar isabetliyseniz o kadar çok. Seviyeler hiçbir şeyin kilidini açmaz; yalnızca yapılan işin kaydıdır.",
+    "whatIsThis": "<b>Bu nedir?</b> Seviyeniz ne kadar çalıştığınızı gösterir. Tamamlanan alıştırmalar ve günlük görevler puan kazandırır — ne kadar isabetliyseniz o kadar çok. Seviyeler antrenmanın kendisini değiştirmez; her biri bir profil resmi açar, hepsi bu.",
     "abbr": "Sv.{{n}}",
     "levelUp": "Seviye atladın",
-    "hideExplainer": "Anladım — bir daha gösterme"
+    "hideExplainer": "Anladım — bir daha gösterme",
+    "newPicture": "Yeni profil resmi açıldı",
+    "newPictures": "{{n}} yeni profil resmi açıldı",
+    "choosePicture": "Profil resmi olarak kullan"
   },
   "chal": {
     "warm_up": {

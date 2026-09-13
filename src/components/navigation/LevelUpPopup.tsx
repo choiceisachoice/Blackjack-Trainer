@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
+import { useInRouterContext, useNavigate } from 'react-router-dom'
 import { useLevelStore } from '../../store/level-store'
+import { useLiveSessionStore } from '../../store/live-session-store'
 import { hasSeenLevelIntro, markLevelIntroSeen } from '../../services/level-intro'
+import { levelAvatarId } from '../../services/avatar-catalog'
+import { Avatar } from '../common/Avatar'
 
 const TIER_LABEL_KEY: Record<string, string> = {
   beginner: 'levels.tier.beginner',
@@ -15,6 +19,57 @@ const TIER_ICONS: Record<string, string> = {
   mid: '\u2660\uFE0F',
   advanced: '\uD83D\uDCB0',
   elite: '\uD83C\uDCCF',
+}
+
+/** How many of a multi-level run are drawn. The rest is said in words. */
+const MAX_PICTURES_SHOWN = 4
+
+/**
+ * The pictures this level-up unlocked, and the way to the page that sets one.
+ *
+ * The button is rendered only inside a router: the popup is also rendered
+ * in the dev gallery and in tests without one, and a `useNavigate` outside
+ * a router throws. The pictures themselves need no router and always show.
+ */
+function NewPictures({ from, to, onLeave }: { from: number; to: number; onLeave: () => void }) {
+  const { t } = useTranslation()
+  const inRouter = useInRouterContext()
+  const levels = Array.from({ length: to - from }, (_, i) => from + 1 + i)
+  if (levels.length === 0) return null
+  const shown = levels.slice(-MAX_PICTURES_SHOWN)
+  return (
+    <div className="mb-7" data-testid="level-up-pictures">
+      <div className="text-xs uppercase tracking-[2px] text-content/50 font-semibold mb-3">
+        {levels.length === 1 ? t('levels.newPicture') : t('levels.newPictures', { n: levels.length })}
+      </div>
+      <div className="flex items-center justify-center gap-2">
+        {shown.map(level => (
+          <Avatar key={level} id={levelAvatarId(level)} initial="" size={level === to ? 56 : 40} className="rounded-xl" />
+        ))}
+      </div>
+      {inRouter && <ChoosePictureButton onLeave={onLeave} />}
+    </div>
+  )
+}
+
+/** Goes to the account page, through the live-session guard like the nav bar does. */
+function ChoosePictureButton({ onLeave }: { onLeave: () => void }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const requestLeaveApp = useLiveSessionStore(s => s.requestLeaveApp)
+  const go = () => {
+    onLeave()
+    if (requestLeaveApp({ kind: 'route', path: '/account' })) void navigate('/account')
+  }
+  return (
+    <button
+      onClick={go}
+      data-testid="level-up-choose-picture"
+      className="mt-3 text-xs text-gold hover:text-gold-bright underline underline-offset-4 cursor-pointer transition-colors"
+    >
+      {t('levels.choosePicture')}
+    </button>
+  )
 }
 
 /**
@@ -164,12 +219,24 @@ export function LevelUpPopup() {
         </div>
 
         {/*
+          The one thing a level does unlock: its picture.
+
+          Levels change nothing in the training — that is what Pro does — and
+          the explainer below says so. But since the catalogue exists, every
+          level-up hands out a profile picture, and a reward nobody is told
+          about is a reward that does not exist. A multi-level burst shows the
+          whole run, newest last, so the picture that matches the new level is
+          the one beside the button.
+        */}
+        <NewPictures from={oldLevel.level} to={newLevel.level} onLeave={dismiss} />
+
+        {/*
           What this actually is, in plain words.
 
           The popup used to show only numbers and titles — "Lv.1 Rookie →
           Lv.3 Card Player, BEGINNER" — which means nothing to someone seeing
           it for the first time. It is also deliberately honest about the
-          limit: levels in this app unlock NOTHING (that is what Pro does).
+          limit: levels change nothing in the training (that is what Pro does).
           Implying a reward that does not exist would be worse than silence.
         */}
         {/* Where the XP came from. A jump with no explanation is a mystery;

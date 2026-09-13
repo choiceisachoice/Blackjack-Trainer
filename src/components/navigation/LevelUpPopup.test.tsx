@@ -39,7 +39,46 @@ describe('LevelUpPopup', () => {
     show(3, 5) // oldLevel is NOT 1
     render(<LevelUpPopup />)
     expect(screen.getByTestId('level-up-explainer')).toBeInTheDocument()
-    expect(screen.getByTestId('level-up-explainer').textContent).toMatch(/don.t unlock anything/i)
+    expect(screen.getByTestId('level-up-explainer').textContent).toMatch(/unlocks a profile picture/i)
+  })
+
+  it('shows the picture the new level unlocked', () => {
+    show(3, 4)
+    render(<LevelUpPopup />)
+    const block = screen.getByTestId('level-up-pictures')
+    expect(block).toHaveTextContent(/new profile picture unlocked/i)
+    expect(block.querySelectorAll('svg[viewBox="0 0 64 64"]')).toHaveLength(1)
+  })
+
+  it('shows every picture of a multi-level burst and says how many', () => {
+    show(1, 4)
+    render(<LevelUpPopup />)
+    const block = screen.getByTestId('level-up-pictures')
+    expect(block).toHaveTextContent(/3 new profile pictures/i)
+    expect(block.querySelectorAll('svg[viewBox="0 0 64 64"]')).toHaveLength(3)
+  })
+
+  it('offers no way to the account page outside a router, and does not crash', () => {
+    // The dev gallery and these tests render it without one.
+    show(1, 2)
+    render(<LevelUpPopup />)
+    expect(screen.queryByTestId('level-up-choose-picture')).toBeNull()
+  })
+
+  it('leads to the account page from inside the app, closing the popup first', async () => {
+    const { MemoryRouter, Routes, Route } = await import('react-router-dom')
+    show(1, 2)
+    render(
+      <MemoryRouter initialEntries={['/app']}>
+        <Routes>
+          <Route path="/app" element={<LevelUpPopup />} />
+          <Route path="/account" element={<div data-testid="account-page" />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    fireEvent.click(screen.getByTestId('level-up-choose-picture'))
+    expect(screen.getByTestId('account-page')).toBeInTheDocument()
+    expect(useLevelStore.getState().showLevelUp).toBe(false)
   })
 
   it('keeps explaining until the reader says they have got it', () => {

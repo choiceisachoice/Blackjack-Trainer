@@ -1617,10 +1617,13 @@
     },
     "jumped": "{{n}} niveaux d’un coup",
     "total": "Total",
-    "whatIsThis": "<b>Qu’est-ce que c’est ?</b> Votre niveau reflète le travail accompli. Vous gagnez des points pour les exercices terminés et les défis quotidiens — plus vous êtes précis, plus vous en gagnez. Les niveaux ne débloquent rien ; ils sont simplement la trace du travail.",
+    "whatIsThis": "<b>Qu’est-ce que c’est ?</b> Votre niveau reflète le travail accompli. Vous gagnez des points pour les exercices terminés et les défis quotidiens — plus vous êtes précis, plus vous en gagnez. Les niveaux ne changent rien à l’entraînement lui-même ; chacun débloque une image de profil, rien de plus.",
     "abbr": "Niv.{{n}}",
     "levelUp": "Niveau supérieur",
-    "hideExplainer": "Compris — ne plus afficher"
+    "hideExplainer": "Compris — ne plus afficher",
+    "newPicture": "Nouvelle image de profil débloquée",
+    "newPictures": "{{n}} nouvelles images de profil débloquées",
+    "choosePicture": "L’utiliser comme image"
   },
   "chal": {
     "warm_up": {

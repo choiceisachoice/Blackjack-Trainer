@@ -1617,10 +1617,13 @@
     },
     "jumped": "Jumped {{n}} levels",
     "total": "Total",
-    "whatIsThis": "<b>What is this?</b> Your level tracks how much you have trained. You earn points for finished drills and daily challenges — the more accurate you are, the more you get. Levels don’t unlock anything; they are simply a record of the work.",
+    "whatIsThis": "<b>What is this?</b> Your level tracks how much you have trained. You earn points for finished drills and daily challenges — the more accurate you are, the more you get. Levels don’t change the training itself; each one unlocks a profile picture, and that is all.",
     "abbr": "Lv.{{n}}",
     "levelUp": "Level up",
-    "hideExplainer": "Got it — don’t show this again"
+    "hideExplainer": "Got it — don’t show this again",
+    "newPicture": "New profile picture unlocked",
+    "newPictures": "{{n}} new profile pictures unlocked",
+    "choosePicture": "Use it as your picture"
   },
   "chal": {
     "warm_up": {

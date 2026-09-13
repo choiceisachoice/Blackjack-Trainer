@@ -202,6 +202,13 @@ describe('DeckEstimation', () => {
     setMockRandom(Array.from({ length: 60 }, () => 0.5))
     levelSystem.resetAll()
     useLevelStore.setState({ lastAward: null })
+    // The session payout itself, not whatever award happened to come last.
+    // This used to read `lastAward.labelKey` and expect the session — but a
+    // perfect run also unlocks accuracy achievements, which pay *after* the
+    // session and take `lastAward` with them. Whether they do depends on
+    // what earlier tests in this file left in the engines, which is how the
+    // assertion was green for weeks and then red on a Sunday.
+    const addSessionXP = vi.spyOn(useLevelStore.getState(), 'addSessionXP')
 
     const { unmount } = render(<DeckEstimation />)
     fireEvent.click(screen.getByText('10'))
@@ -214,10 +221,10 @@ describe('DeckEstimation', () => {
 
     // Summary is up — and so is the XP.
     expect(screen.getByTestId('summary-title')).toBeInTheDocument()
+    expect(addSessionXP).toHaveBeenCalledTimes(1)
     const award = useLevelStore.getState().lastAward
     expect(award).not.toBeNull()
     expect(award!.amount).toBeGreaterThan(0)
-    expect(award!.labelKey).toBe('xp.source.session')
 
     const paid = levelSystem.getTotalXP()
     expect(paid).toBeGreaterThan(0)
@@ -225,6 +232,7 @@ describe('DeckEstimation', () => {
     // Leaving must not pay a second time: `savedRef` makes finish/unmount/
     // pagehide idempotent, and a double payout would be worse than none.
     unmount()
+    expect(addSessionXP).toHaveBeenCalledTimes(1)
     expect(levelSystem.getTotalXP()).toBe(paid)
   })
 

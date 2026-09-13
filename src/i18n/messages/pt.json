@@ -1617,10 +1617,13 @@
     },
     "jumped": "{{n}} níveis de uma vez",
     "total": "Total",
-    "whatIsThis": "<b>O que é isto?</b> O seu nível mostra quanto treinou. Ganha pontos por exercícios concluídos e desafios diários — quanto mais preciso for, mais recebe. Os níveis não desbloqueiam nada; são apenas o registo do trabalho.",
+    "whatIsThis": "<b>O que é isto?</b> O seu nível mostra quanto treinou. Ganha pontos por exercícios concluídos e desafios diários — quanto mais preciso for, mais recebe. Os níveis não mudam o treino em si; cada um desbloqueia uma imagem de perfil, nada mais.",
     "abbr": "Nív.{{n}}",
     "levelUp": "Subiu de nível",
-    "hideExplainer": "Percebi — não mostrar mais"
+    "hideExplainer": "Percebi — não mostrar mais",
+    "newPicture": "Nova imagem de perfil desbloqueada",
+    "newPictures": "{{n}} novas imagens de perfil desbloqueadas",
+    "choosePicture": "Usar como imagem"
   },
   "chal": {
     "warm_up": {

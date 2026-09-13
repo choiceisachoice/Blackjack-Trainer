@@ -1617,10 +1617,13 @@
     },
     "jumped": "{{n}} niveles de golpe",
     "total": "Total",
-    "whatIsThis": "<b>¿Qué es esto?</b> Tu nivel refleja cuánto has entrenado. Ganas puntos por ejercicios terminados y retos diarios: cuanto más preciso eres, más consigues. Los niveles no desbloquean nada; son simplemente el registro del trabajo.",
+    "whatIsThis": "<b>¿Qué es esto?</b> Tu nivel refleja cuánto has entrenado. Ganas puntos por ejercicios terminados y retos diarios: cuanto más preciso eres, más consigues. Los niveles no cambian el entrenamiento en sí; cada uno desbloquea una imagen de perfil, nada más.",
     "abbr": "Niv.{{n}}",
     "levelUp": "Subes de nivel",
-    "hideExplainer": "Entendido — no mostrar más"
+    "hideExplainer": "Entendido — no mostrar más",
+    "newPicture": "Nueva imagen de perfil desbloqueada",
+    "newPictures": "{{n}} imágenes de perfil nuevas desbloqueadas",
+    "choosePicture": "Usarla como imagen"
   },
   "chal": {
     "warm_up": {
