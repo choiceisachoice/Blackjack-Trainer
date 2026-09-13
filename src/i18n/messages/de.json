@@ -156,7 +156,8 @@
       "pricing": "Preise",
       "signIn": "Anmelden",
       "openApp": "App öffnen →",
-      "startFree": "Gratis starten"
+      "startFree": "Gratis starten",
+      "learn": "Lernen"
     },
     "hero": {
       "subtitle": "Übungen, Abweichungen, ein vollständiger Casino-Tisch und die Auswertung, die genau zeigt, wo dein Vorteil verloren geht — alles, damit das Zählen automatisch wird.",
@@ -279,7 +280,8 @@
     "visual": {
       "running": "Laufend",
       "tcStand": "TC ≥ 0 → Stehen bleiben"
-    }
+    },
+    "brand": "Blackjack Trainer"
   },
   "auth": {
     "signIn": "Anmelden",
@@ -988,6 +990,10 @@
       "bet": "Wähle den passenden Einsatz zum Count an realistischen Tischen.",
       "deck": "Schätze die Restdecks am Ablagefach ab.",
       "casino": "Bring alles zusammen — an einem realistischen, voll besetzten Tisch."
+    },
+    "cta": {
+      "title": "Bereit, den Count zum Reflex zu machen?",
+      "body": "Alles oben wird mit Übung zum Automatismus. Fang mit den kostenlosen Übungen an — keine Karte nötig."
     }
   },
   "basics": {

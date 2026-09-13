@@ -156,7 +156,8 @@
       "pricing": "Pricing",
       "signIn": "Sign in",
       "openApp": "Open app →",
-      "startFree": "Start free"
+      "startFree": "Start free",
+      "learn": "Learn"
     },
     "hero": {
       "subtitle": "Drills, deviations, a full casino table and the analytics that show exactly where your advantage leaks — everything you need to make the count automatic.",
@@ -279,7 +280,8 @@
     "visual": {
       "running": "Running",
       "tcStand": "TC ≥ 0 → Stand"
-    }
+    },
+    "brand": "Blackjack Trainer"
   },
   "auth": {
     "signIn": "Sign In",
@@ -988,6 +990,10 @@
       "bet": "Pick the right bet for the count at realistic tables.",
       "deck": "Judge the decks remaining from the discard tray.",
       "casino": "Put it all together in a realistic multi-seat session."
+    },
+    "cta": {
+      "title": "Ready to make the count automatic?",
+      "body": "Everything above becomes reflex with practice. Start with the free drills — no card needed."
     }
   },
   "basics": {

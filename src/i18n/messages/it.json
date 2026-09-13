@@ -156,7 +156,8 @@
       "pricing": "Prezzi",
       "signIn": "Accedi",
       "openApp": "Apri l’app →",
-      "startFree": "Inizia gratis"
+      "startFree": "Inizia gratis",
+      "learn": "Impara"
     },
     "hero": {
       "subtitle": "Esercizi, deviazioni, un vero tavolo da casinò e l’analisi che mostra esattamente dove si perde il tuo vantaggio — tutto per rendere il conteggio automatico.",
@@ -279,7 +280,8 @@
     "visual": {
       "running": "Corrente",
       "tcStand": "TC ≥ 0 → Stare"
-    }
+    },
+    "brand": "Blackjack Trainer"
   },
   "auth": {
     "signIn": "Accedi",
@@ -988,6 +990,10 @@
       "bet": "Scegli la puntata giusta per il conteggio, a tavoli realistici.",
       "deck": "Valuta i mazzi rimasti dal vassoio degli scarti.",
       "casino": "Metti tutto insieme in una sessione realistica a più posti."
+    },
+    "cta": {
+      "title": "Pronto a rendere il conteggio automatico?",
+      "body": "Tutto quello che hai letto diventa un riflesso con la pratica. Inizia dagli esercizi gratuiti — nessuna carta richiesta."
     }
   },
   "basics": {

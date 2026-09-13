@@ -136,6 +136,7 @@ export function LandingPage() {
           <div className="flex items-center gap-4 sm:gap-5 text-sm text-content/70 shrink-0">
             <a href="#features" className="hidden sm:inline hover:text-content">{t('landing.nav.features')}</a>
             <a href="#pricing" className="hidden sm:inline hover:text-content">{t('landing.nav.pricing')}</a>
+            <Link to="/learn" className="hidden sm:inline hover:text-content">{t('landing.nav.learn')}</Link>
             {/* The one control a visitor may need before they can read the rest.
                 It belongs on the page they land on, not only inside the app. */}
             <LanguageSwitcher />
@@ -356,6 +357,7 @@ export function LandingPage() {
           <div className="flex gap-5 flex-wrap">
             <a href="#features" className="hover:text-content">{t('landing.nav.features')}</a>
             <a href="#pricing" className="hover:text-content">{t('landing.nav.pricing')}</a>
+            <Link to="/learn" className="hover:text-content">{t('landing.nav.learn')}</Link>
             <Link to="/login" className="hover:text-content">{t('landing.nav.signIn')}</Link>
             <Link to="/terms" className="hover:text-content">{t('landing.footer.terms')}</Link>
             <Link to="/privacy" className="hover:text-content">{t('landing.footer.privacy')}</Link>

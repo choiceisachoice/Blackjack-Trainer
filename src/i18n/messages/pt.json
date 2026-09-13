@@ -156,7 +156,8 @@
       "pricing": "Preços",
       "signIn": "Iniciar sessão",
       "openApp": "Abrir a aplicação →",
-      "startFree": "Começar grátis"
+      "startFree": "Começar grátis",
+      "learn": "Aprender"
     },
     "hero": {
       "subtitle": "Exercícios, desvios, uma mesa de casino completa e a análise que mostra exatamente por onde foge a sua vantagem — tudo para a contagem sair sozinha.",
@@ -279,7 +280,8 @@
     "visual": {
       "running": "Corrente",
       "tcStand": "TC ≥ 0 → Parar"
-    }
+    },
+    "brand": "Blackjack Trainer"
   },
   "auth": {
     "signIn": "Iniciar sessão",
@@ -988,6 +990,10 @@
       "bet": "Escolha a aposta certa para a contagem, em mesas realistas.",
       "deck": "Avalie os baralhos restantes pelo tabuleiro de descartes.",
       "casino": "Junte tudo numa sessão realista com vários lugares."
+    },
+    "cta": {
+      "title": "Pronto para tornar a contagem automática?",
+      "body": "Tudo o que está acima torna-se reflexo com prática. Começa pelos exercícios gratuitos — sem cartão."
     }
   },
   "basics": {

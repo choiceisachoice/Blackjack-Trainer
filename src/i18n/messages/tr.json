@@ -156,7 +156,8 @@
       "pricing": "Fiyatlar",
       "signIn": "Giriş yap",
       "openApp": "Uygulamayı aç →",
-      "startFree": "Ücretsiz başla"
+      "startFree": "Ücretsiz başla",
+      "learn": "Öğren"
     },
     "hero": {
       "subtitle": "Alıştırmalar, sapmalar, tam bir kumarhane masası ve avantajınızın tam olarak nereden sızdığını gösteren analiz — sayımın kendiliğinden gelmesi için gereken her şey.",
@@ -279,7 +280,8 @@
     "visual": {
       "running": "Yürüyen",
       "tcStand": "TC ≥ 0 → Dur"
-    }
+    },
+    "brand": "Blackjack Trainer"
   },
   "auth": {
     "signIn": "Giriş yap",
@@ -988,6 +990,10 @@
       "bet": "Gerçekçi masalarda sayıma uygun bahsi seçin.",
       "deck": "Atık tepsisinden kalan desteyi kestirin.",
       "casino": "Hepsini gerçekçi, çok kişilik bir oturumda birleştirin."
+    },
+    "cta": {
+      "title": "Sayımı otomatik hale getirmeye hazır mısın?",
+      "body": "Yukarıdakilerin hepsi pratikle refleks olur. Ücretsiz alıştırmalarla başla — kart gerekmez."
     }
   },
   "basics": {

@@ -59,10 +59,20 @@ const MODE_GUIDE: { icon: LucideIcon; nameKey: string; textKey: string }[] = [
   { icon: Club, nameKey: 'casino.name', textKey: 'learn.mode.casino' },
 ]
 
-/** Learn / theory page — explains card counting for beginners. */
-export function LearnPage() {
+/** Every topic id, in page order. */
+const ALL_TOPICS = SECTIONS.flatMap(s => s.topics.map(t => t.id))
+
+/**
+ * Learn / theory page — explains card counting for beginners.
+ *
+ * @param openAll - Start with every topic expanded. The public `/learn` page
+ *   passes this: a collapsed topic is not in the DOM, and what is not in the
+ *   DOM is not indexed — a crawler would see eight headings and one paragraph.
+ *   Inside the app the accordion starts with the first topic open, as before.
+ */
+export function LearnPage({ openAll = false }: { openAll?: boolean } = {}) {
   const { t } = useTranslation()
-  const [open, setOpen] = useState<Set<string>>(new Set(['what-is-counting']))
+  const [open, setOpen] = useState<Set<string>>(() => new Set(openAll ? ALL_TOPICS : ['what-is-counting']))
 
   const toggle = (id: string) =>
     setOpen(prev => {
@@ -118,7 +128,9 @@ export function LearnPage() {
                 {section.topics.map(topic => {
                   const isOpen = open.has(topic.id)
                   return (
-                    <div key={topic.id} className="surface overflow-hidden">
+                    // `id` so `/learn#hi-lo` lands on the topic, and so the
+                    // chapters can be linked from outside.
+                    <div key={topic.id} id={topic.id} className="surface overflow-hidden scroll-mt-24">
                       <button
                         onClick={() => toggle(topic.id)}
                         aria-expanded={isOpen}
