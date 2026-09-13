@@ -1988,7 +1988,38 @@
     "statusDone": "Complete"
   },
   "meta": {
-    "title": "Blackjack Card Counting Trainer — Learn Hi-Lo Properly"
+    "title": "Blackjack Card Counting Trainer — Learn Hi-Lo Properly",
+    "description": "Train Hi-Lo card counting properly: timed drills, every basic-strategy hand, the Illustrious 18, a full casino table and analytics that find your leaks.",
+    "pages": {
+      "learn": {
+        "title": "Learn Card Counting — Hi-Lo, True Count, Basic Strategy, Illustrious 18",
+        "description": "How blackjack works, how the Hi-Lo count works, running count to true count, basic strategy, the Illustrious 18 and Fab 4 deviations, bet spread and deck estimation — explained for beginners."
+      },
+      "login": {
+        "title": "Sign in — Blackjack Card Counting Trainer",
+        "description": "Sign in or create a free account to train Hi-Lo card counting and keep your progress in sync across devices."
+      },
+      "app": {
+        "title": "Training — Blackjack Card Counting Trainer",
+        "description": "Your training plan, drills, flashcards, bet spread, deck estimation and the casino table."
+      },
+      "account": {
+        "title": "Account — Blackjack Card Counting Trainer",
+        "description": "Your plan, profile picture, preferences and data."
+      },
+      "terms": {
+        "title": "Terms of Use — Blackjack Card Counting Trainer",
+        "description": "The terms under which the Blackjack Card Counting Trainer is offered: what the service is, what it is not, subscriptions, cancellation and liability."
+      },
+      "privacy": {
+        "title": "Privacy Policy — Blackjack Card Counting Trainer",
+        "description": "What data the Blackjack Card Counting Trainer stores, where it is processed, for how long, and your rights under Swiss and EU data protection law."
+      },
+      "contact": {
+        "title": "Contact & Imprint — Blackjack Card Counting Trainer",
+        "description": "Who operates the Blackjack Card Counting Trainer and how to reach us for support, billing and data requests."
+      }
+    }
   },
   "errors": {
     "checkout": "We could not open the payment page. Please try again — if it keeps happening, write to {{email}} and we will sort it out.",

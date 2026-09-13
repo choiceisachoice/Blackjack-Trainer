@@ -1,12 +1,14 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { AuthPage } from '../components/auth/AuthPage'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
+import { usePageMeta } from '../hooks/use-page-meta'
 
 /**
  * The `/login` route. Redirects into the app once signed in (or when there's no
  * backend, where auth is moot); otherwise shows the login/register form.
  */
 export function LoginPage() {
+  usePageMeta('login', '/login')
   const status = useAuthStore(s => s.status)
   /**
    * A message carried here from somewhere else — right now, the password-reset

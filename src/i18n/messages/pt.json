@@ -1988,7 +1988,38 @@
     "statusDone": "Pronto"
   },
   "meta": {
-    "title": "Blackjack: contagem de cartas — aprender Hi-Lo"
+    "title": "Blackjack: contagem de cartas — aprender Hi-Lo",
+    "description": "Treina a sério a contagem Hi-Lo: exercícios cronometrados, todas as mãos da estratégia básica, as Illustrious 18, uma mesa de casino completa e análises que encontram as tuas falhas.",
+    "pages": {
+      "learn": {
+        "title": "Aprender a contar cartas — Hi-Lo, True Count, estratégia básica, Illustrious 18",
+        "description": "Como funciona o blackjack, como funciona a contagem Hi-Lo, do running count ao true count, a estratégia básica, os desvios Illustrious 18 e Fab 4, o spread de apostas e a estimativa de baralhos — explicado para principiantes."
+      },
+      "login": {
+        "title": "Iniciar sessão — Treinador de contagem de cartas",
+        "description": "Inicia sessão ou cria uma conta gratuita para treinar a contagem Hi-Lo e manter o teu progresso em todos os dispositivos."
+      },
+      "app": {
+        "title": "Treino — Treinador de contagem de cartas",
+        "description": "O teu plano de treino, exercícios, cartões, spread de apostas, estimativa de baralhos e a mesa de casino."
+      },
+      "account": {
+        "title": "Conta — Treinador de contagem de cartas",
+        "description": "O teu plano, imagem de perfil, preferências e dados."
+      },
+      "terms": {
+        "title": "Termos de utilização — Treinador de contagem de cartas",
+        "description": "As condições do serviço: o que é, o que não é, subscrições, cancelamento e responsabilidade."
+      },
+      "privacy": {
+        "title": "Privacidade — Treinador de contagem de cartas",
+        "description": "Que dados o serviço guarda, onde são processados, por quanto tempo, e os teus direitos segundo a lei suíça e da UE."
+      },
+      "contact": {
+        "title": "Contacto e informação legal — Treinador de contagem de cartas",
+        "description": "Quem opera o serviço e como nos contactar para suporte, faturação e pedidos de dados."
+      }
+    }
   },
   "errors": {
     "checkout": "Não conseguimos abrir a página de pagamento. Tente novamente — se continuar, escreva para {{email}} e resolvemos.",

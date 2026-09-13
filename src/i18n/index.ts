@@ -55,21 +55,15 @@ export function initialLocale(): Locale {
 /**
  * Reflect the current language in the document itself.
  *
- * `lang` is what a screen reader picks its pronunciation from, and the title is
- * what the tab, the bookmark and the history entry say — the one piece of copy
- * that stays on screen after someone has navigated away.
- *
- * The `<title>` in `index.html` stays English on purpose and is not a fallback
- * worth apologising for: this is a static SPA, so a crawler is served that file
- * whatever language the visitor would have chosen. Rewriting `og:description`
- * here would change nothing a crawler ever sees. The tab, on the other hand, is
- * read by a person.
+ * `lang` is what a screen reader picks its pronunciation from. The title is
+ * not set here any more: every routed page owns its own through
+ * `usePageMeta`, which re-runs on a language change. When this module also
+ * wrote `meta.title` after `changeLanguage`, the two raced and the page's
+ * title lost.
  */
 function reflectLocale(locale: Locale): void {
   if (typeof document === 'undefined') return
   document.documentElement.lang = locale
-  const title = i18next.t('meta.title')
-  if (title) document.title = title
 }
 
 /** Switch language, remember it, and fetch the messages if this is the first time. */

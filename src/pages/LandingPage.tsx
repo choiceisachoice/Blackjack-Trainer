@@ -9,6 +9,7 @@ import { PRO_BENEFITS, formatMoney, formatDecimal, yearlySaving, CH_VAT_PERCENT 
 import { usePlanPriceStore, selectPlan } from '../store/plan-price-store'
 import { logFailure } from '../services/failure-log'
 import { LEGAL_META } from './legal/legal-meta'
+import { usePageMeta } from '../hooks/use-page-meta'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
@@ -45,6 +46,7 @@ export function LandingPage() {
     { q: t('landing.faq.q3'), a: t('landing.faq.a3') },
     { q: t('landing.faq.q4'), a: t('landing.faq.a4') },
   ]
+  usePageMeta('landing', '/')
   const signedIn = useAuthStore(s => s.status === 'signedIn')
   const authed = !isSupabaseConfigured || signedIn
   const hasSubscription = useHasSubscription()

@@ -32,6 +32,7 @@ import { UpgradeModalHost } from '../components/pro/UpgradeModalHost'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
 import { Field, Input, Segmented, Slider, Toggle } from '../components/common/ui'
 import { logFailure } from '../services/failure-log'
+import { usePageMeta } from '../hooks/use-page-meta'
 import { LEGAL_META } from './legal/legal-meta'
 
 /**
@@ -102,6 +103,7 @@ function Section({ label, testId, className = '', children }: {
  */
 export function AccountPage() {
   const { t } = useTranslation()
+  usePageMeta('account', '/account')
   const navigate = useNavigate()
   const isPro = useIsPro()
   const status = useEntitlementStore(s => s.status)

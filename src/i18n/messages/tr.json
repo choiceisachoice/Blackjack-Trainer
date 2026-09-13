@@ -1988,7 +1988,38 @@
     "statusDone": "Hazır"
   },
   "meta": {
-    "title": "Blackjack kart sayma — Hi-Lo’yu doğru öğrenin"
+    "title": "Blackjack kart sayma — Hi-Lo’yu doğru öğrenin",
+    "description": "Hi-Lo kart saymayı doğru çalış: süreli alıştırmalar, her temel strateji eli, Illustrious 18, tam bir casino masası ve zayıf noktalarını bulan analizler.",
+    "pages": {
+      "learn": {
+        "title": "Kart Saymayı Öğren — Hi-Lo, True Count, Temel Strateji, Illustrious 18",
+        "description": "Blackjack nasıl işler, Hi-Lo sayımı nasıl işler, running count’tan true count’a, temel strateji, Illustrious 18 ve Fab 4 sapmaları, bahis aralığı ve deste tahmini — yeni başlayanlar için anlatıldı."
+      },
+      "login": {
+        "title": "Giriş — Kart Sayma Antrenörü",
+        "description": "Hi-Lo kart saymayı çalışmak ve ilerlemeni tüm cihazlarında korumak için giriş yap veya ücretsiz hesap oluştur."
+      },
+      "app": {
+        "title": "Antrenman — Kart Sayma Antrenörü",
+        "description": "Antrenman planın, alıştırmalar, kartlar, bahis aralığı, deste tahmini ve casino masası."
+      },
+      "account": {
+        "title": "Hesap — Kart Sayma Antrenörü",
+        "description": "Planın, profil resmin, tercihlerin ve verilerin."
+      },
+      "terms": {
+        "title": "Kullanım Koşulları — Kart Sayma Antrenörü",
+        "description": "Hizmetin koşulları: ne olduğu, ne olmadığı, abonelikler, iptal ve sorumluluk."
+      },
+      "privacy": {
+        "title": "Gizlilik — Kart Sayma Antrenörü",
+        "description": "Hizmetin hangi verileri sakladığı, nerede ve ne kadar süre işlendiği ve İsviçre ile AB hukukuna göre hakların."
+      },
+      "contact": {
+        "title": "İletişim ve Künye — Kart Sayma Antrenörü",
+        "description": "Hizmeti kimin işlettiği ve destek, faturalama ve veri talepleri için bize nasıl ulaşacağın."
+      }
+    }
   },
   "errors": {
     "checkout": "Ödeme sayfasını açamadık. Lütfen tekrar deneyin — devam ederse {{email}} adresine yazın, hallederiz.",

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useAppStore } from '../store/app-store'
+import { usePageMeta } from '../hooks/use-page-meta'
 import { useLiveSessionStore } from '../store/live-session-store'
 import { HomeScreen } from '../components/navigation/HomeScreen'
 import { NavBar } from '../components/navigation/NavBar'
@@ -41,6 +42,7 @@ const SCROLLABLE_MODES = new Set([
  * behaviour); Pro-gated modes show the upgrade paywall when the user isn't Pro.
  */
 export function TrainerApp() {
+  usePageMeta('app', '/app')
   const currentMode = useAppStore(s => s.currentMode)
   const setMode = useAppStore(s => s.setMode)
   const isPro = useIsPro()

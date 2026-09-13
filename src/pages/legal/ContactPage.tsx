@@ -2,6 +2,7 @@ import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Spade, ArrowLeft, Mail, AlertTriangle } from 'lucide-react'
 import { LEGAL_META as M, hasUnsetPlaceholders } from './legal-meta'
+import { usePageMeta } from '../../hooks/use-page-meta'
 
 /**
  * Contact page. Deliberately a plain address, not a form: a form that posts
@@ -11,6 +12,7 @@ import { LEGAL_META as M, hasUnsetPlaceholders } from './legal-meta'
  */
 export function ContactPage() {
   const { t } = useTranslation()
+  usePageMeta('contact', '/contact')
   const draft = hasUnsetPlaceholders()
   const email = M.contactEmail
 

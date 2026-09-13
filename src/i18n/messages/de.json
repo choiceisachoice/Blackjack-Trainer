@@ -1988,7 +1988,38 @@
     "statusDone": "Fertig"
   },
   "meta": {
-    "title": "Blackjack Kartenzählen lernen — Hi-Lo richtig trainieren"
+    "title": "Blackjack Kartenzählen lernen — Hi-Lo richtig trainieren",
+    "description": "Hi-Lo-Kartenzählen richtig trainieren: Übungen auf Zeit, jede Basisstrategie-Hand, die Illustrious 18, ein voller Casino-Tisch und eine Auswertung, die deine Schwächen findet.",
+    "pages": {
+      "learn": {
+        "title": "Kartenzählen lernen — Hi-Lo, True Count, Basisstrategie, Illustrious 18",
+        "description": "Wie Blackjack funktioniert, wie der Hi-Lo-Count funktioniert, Running Count zu True Count, Basisstrategie, die Abweichungen der Illustrious 18 und Fab 4, Einsatzspreizung und Deck-Schätzung — für Einsteiger erklärt."
+      },
+      "login": {
+        "title": "Anmelden — Blackjack Kartenzähl-Trainer",
+        "description": "Melde dich an oder erstelle ein kostenloses Konto, um Hi-Lo-Kartenzählen zu trainieren und deinen Fortschritt geräteübergreifend zu behalten."
+      },
+      "app": {
+        "title": "Training — Blackjack Kartenzähl-Trainer",
+        "description": "Dein Trainingsplan, Übungen, Karteikarten, Einsatzspreizung, Deck-Schätzung und der Casino-Tisch."
+      },
+      "account": {
+        "title": "Konto — Blackjack Kartenzähl-Trainer",
+        "description": "Dein Tarif, Profilbild, Einstellungen und Daten."
+      },
+      "terms": {
+        "title": "Nutzungsbedingungen — Blackjack Kartenzähl-Trainer",
+        "description": "Die Bedingungen, unter denen der Blackjack Kartenzähl-Trainer angeboten wird: was der Dienst ist, was er nicht ist, Abos, Kündigung und Haftung."
+      },
+      "privacy": {
+        "title": "Datenschutz — Blackjack Kartenzähl-Trainer",
+        "description": "Welche Daten der Blackjack Kartenzähl-Trainer speichert, wo sie verarbeitet werden, wie lange, und deine Rechte nach Schweizer und EU-Datenschutzrecht."
+      },
+      "contact": {
+        "title": "Kontakt & Impressum — Blackjack Kartenzähl-Trainer",
+        "description": "Wer den Blackjack Kartenzähl-Trainer betreibt und wie du uns für Support, Abrechnung und Datenanfragen erreichst."
+      }
+    }
   },
   "errors": {
     "checkout": "Wir konnten die Bezahlseite nicht öffnen. Versuch es bitte nochmal — wenn es weiter passiert, schreib an {{email}}, dann klären wir das.",

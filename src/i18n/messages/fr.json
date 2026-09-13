@@ -1988,7 +1988,38 @@
     "statusDone": "Terminé"
   },
   "meta": {
-    "title": "Blackjack : compter les cartes — apprendre le Hi-Lo"
+    "title": "Blackjack : compter les cartes — apprendre le Hi-Lo",
+    "description": "Entraîne-toi sérieusement au comptage Hi-Lo : exercices chronométrés, chaque main de stratégie de base, les Illustrious 18, une vraie table de casino et des analyses qui trouvent tes failles.",
+    "pages": {
+      "learn": {
+        "title": "Apprendre le comptage de cartes — Hi-Lo, True Count, stratégie de base, Illustrious 18",
+        "description": "Comment fonctionne le blackjack, comment fonctionne le compte Hi-Lo, du running count au true count, la stratégie de base, les déviations Illustrious 18 et Fab 4, l’écart de mise et l’estimation des jeux — expliqués aux débutants."
+      },
+      "login": {
+        "title": "Connexion — Entraîneur de comptage de cartes",
+        "description": "Connecte-toi ou crée un compte gratuit pour t’entraîner au comptage Hi-Lo et garder ta progression sur tous tes appareils."
+      },
+      "app": {
+        "title": "Entraînement — Entraîneur de comptage de cartes",
+        "description": "Ton plan d’entraînement, les exercices, les cartes mémoire, l’écart de mise, l’estimation des jeux et la table de casino."
+      },
+      "account": {
+        "title": "Compte — Entraîneur de comptage de cartes",
+        "description": "Ton abonnement, ton image de profil, tes préférences et tes données."
+      },
+      "terms": {
+        "title": "Conditions d’utilisation — Entraîneur de comptage de cartes",
+        "description": "Les conditions du service : ce qu’il est, ce qu’il n’est pas, abonnements, résiliation et responsabilité."
+      },
+      "privacy": {
+        "title": "Confidentialité — Entraîneur de comptage de cartes",
+        "description": "Quelles données le service conserve, où elles sont traitées, combien de temps, et tes droits selon le droit suisse et européen."
+      },
+      "contact": {
+        "title": "Contact et mentions légales — Entraîneur de comptage de cartes",
+        "description": "Qui exploite le service et comment nous joindre pour l’assistance, la facturation et les demandes liées aux données."
+      }
+    }
   },
   "errors": {
     "checkout": "Nous n’avons pas pu ouvrir la page de paiement. Réessayez — si cela persiste, écrivez à {{email}} et nous réglerons cela.",

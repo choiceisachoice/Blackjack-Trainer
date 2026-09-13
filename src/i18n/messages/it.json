@@ -1988,7 +1988,38 @@
     "statusDone": "Pronto"
   },
   "meta": {
-    "title": "Blackjack: contare le carte — imparare il Hi-Lo"
+    "title": "Blackjack: contare le carte — imparare il Hi-Lo",
+    "description": "Allena il conteggio Hi-Lo sul serio: esercizi a tempo, ogni mano della strategia di base, le Illustrious 18, un tavolo da casinò completo e analisi che trovano i tuoi punti deboli.",
+    "pages": {
+      "learn": {
+        "title": "Imparare a contare le carte — Hi-Lo, True Count, strategia di base, Illustrious 18",
+        "description": "Come funziona il blackjack, come funziona il conteggio Hi-Lo, dal running count al true count, la strategia di base, le deviazioni Illustrious 18 e Fab 4, lo spread delle puntate e la stima dei mazzi — spiegati ai principianti."
+      },
+      "login": {
+        "title": "Accedi — Trainer per il conteggio delle carte",
+        "description": "Accedi o crea un account gratuito per allenare il conteggio Hi-Lo e mantenere i progressi su tutti i dispositivi."
+      },
+      "app": {
+        "title": "Allenamento — Trainer per il conteggio delle carte",
+        "description": "Il tuo piano di allenamento, esercizi, flashcard, spread delle puntate, stima dei mazzi e il tavolo da casinò."
+      },
+      "account": {
+        "title": "Account — Trainer per il conteggio delle carte",
+        "description": "Il tuo piano, l’immagine del profilo, le preferenze e i dati."
+      },
+      "terms": {
+        "title": "Termini d’uso — Trainer per il conteggio delle carte",
+        "description": "Le condizioni del servizio: cos’è, cosa non è, abbonamenti, disdetta e responsabilità."
+      },
+      "privacy": {
+        "title": "Privacy — Trainer per il conteggio delle carte",
+        "description": "Quali dati conserva il servizio, dove vengono trattati, per quanto tempo, e i tuoi diritti secondo il diritto svizzero ed europeo."
+      },
+      "contact": {
+        "title": "Contatti e note legali — Trainer per il conteggio delle carte",
+        "description": "Chi gestisce il servizio e come raggiungerci per assistenza, fatturazione e richieste sui dati."
+      }
+    }
   },
   "errors": {
     "checkout": "Non siamo riusciti ad aprire la pagina di pagamento. Riprova — se continua, scrivi a {{email}} e lo sistemiamo.",

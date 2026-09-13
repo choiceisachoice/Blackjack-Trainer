@@ -1988,7 +1988,38 @@
     "statusDone": "Listo"
   },
   "meta": {
-    "title": "Blackjack: contar cartas — aprender Hi-Lo"
+    "title": "Blackjack: contar cartas — aprender Hi-Lo",
+    "description": "Entrena el conteo Hi-Lo en serio: ejercicios cronometrados, cada mano de estrategia básica, las Illustrious 18, una mesa de casino completa y análisis que encuentran tus fugas.",
+    "pages": {
+      "learn": {
+        "title": "Aprender a contar cartas — Hi-Lo, True Count, estrategia básica, Illustrious 18",
+        "description": "Cómo funciona el blackjack, cómo funciona el conteo Hi-Lo, del running count al true count, la estrategia básica, las desviaciones Illustrious 18 y Fab 4, el spread de apuestas y la estimación de mazos — explicado para principiantes."
+      },
+      "login": {
+        "title": "Iniciar sesión — Entrenador de conteo de cartas",
+        "description": "Inicia sesión o crea una cuenta gratuita para entrenar el conteo Hi-Lo y mantener tu progreso en todos tus dispositivos."
+      },
+      "app": {
+        "title": "Entrenamiento — Entrenador de conteo de cartas",
+        "description": "Tu plan de entrenamiento, ejercicios, tarjetas, spread de apuestas, estimación de mazos y la mesa de casino."
+      },
+      "account": {
+        "title": "Cuenta — Entrenador de conteo de cartas",
+        "description": "Tu plan, imagen de perfil, preferencias y datos."
+      },
+      "terms": {
+        "title": "Términos de uso — Entrenador de conteo de cartas",
+        "description": "Las condiciones del servicio: qué es, qué no es, suscripciones, cancelación y responsabilidad."
+      },
+      "privacy": {
+        "title": "Privacidad — Entrenador de conteo de cartas",
+        "description": "Qué datos guarda el servicio, dónde se procesan, durante cuánto tiempo y tus derechos según la ley suiza y de la UE."
+      },
+      "contact": {
+        "title": "Contacto y aviso legal — Entrenador de conteo de cartas",
+        "description": "Quién opera el servicio y cómo contactarnos para soporte, facturación y solicitudes de datos."
+      }
+    }
   },
   "errors": {
     "checkout": "No pudimos abrir la página de pago. Inténtalo de nuevo — si sigue ocurriendo, escribe a {{email}} y lo solucionamos.",
