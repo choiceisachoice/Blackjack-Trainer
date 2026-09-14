@@ -299,6 +299,41 @@ issue and was dealt with".
 
 ### Closed
 
+- **Progress reaches the cloud again, and can no longer go backwards**
+  (14 Sep 2026). Level, XP, the simulation counters and the paid curriculum
+  stages had not been written to `profiles` since 1 Aug — the day migration
+  `20260724120000` went live. That migration removed the client's INSERT
+  policy on purpose (a client may read and update its own row, never create
+  one), and the progress sync wrote the row with an **upsert**. Postgres
+  checks the INSERT policy for `INSERT … ON CONFLICT DO UPDATE` before it
+  looks at the conflict, so every write answered 403. The sign-in merge logged
+  "profile sync on sign-in failed" to a console nobody reads and carried on;
+  the push after each XP award is fire-and-forget and said nothing. The row
+  sat at `level_xp = 0` while the real number lived in one browser's
+  localStorage, and the first sign-out took it — level 3 became level 1,
+  the second time this product has lost a level that way.
+
+  Found by reading the network panel, not the code: the request
+  `POST /rest/v1/profiles?on_conflict=id` at 403, one line above the sessions
+  and achievements at 200. Their tables have a `for all` policy, so they never
+  noticed.
+
+  Two fixes, independent of each other. The sync writes with `update` plus
+  the `.select('id')` row check, which the existing policy allows. And
+  migration `20260914120000` adds `protect_progress_columns`: for a client
+  write, `level_xp`, `sim_count` and `sim_best_edge` keep the greater value
+  and `onboarding_seen` stays dismissed — so a device with an empty local copy
+  can never write a small number over the cloud's, whatever the client does.
+  `service_role` bypasses it for deliberate corrections.
+
+  The lesson worth more than the fix: **a policy change needs the app's
+  writes listed against it.** The July migration verified that nothing
+  deletes a profile and did not ask what *creates* one — and an upsert is a
+  create until the database decides otherwise. The suite could not catch it:
+  the sync's tests ran with Supabase unconfigured and asserted only that the
+  functions did not throw. They now mock the client and pin `update` over
+  `upsert` by name.
+
 - **The light theme is no longer a second-class rendering** (26 Aug 2026).
   Measured screen by screen in a browser rather than judged by eye, which
   mattered: the failures were not scattered mistakes but six assumptions, each

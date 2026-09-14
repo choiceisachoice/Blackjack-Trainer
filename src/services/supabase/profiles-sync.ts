@@ -78,23 +78,37 @@ async function fetchCloud(userId: string): Promise<ProfileScalars> {
   }
 }
 
-/** Upsert the progress scalars onto the user's profile row. */
-async function upsertCloud(userId: string, s: ProfileScalars): Promise<void> {
-  const { error } = await requireSupabase()
+/**
+ * Write the progress scalars onto the user's profile row.
+ *
+ * An `update`, not an `upsert` — and the difference cost six weeks of
+ * progress. The row is created by the signup trigger and a client may only
+ * read and update its own (migration 20260724120000, deliberately no INSERT
+ * policy). Postgres checks the INSERT policy for `INSERT … ON CONFLICT DO
+ * UPDATE` before it looks at the conflict, so from the day that policy went
+ * live every upsert here answered 403: the sign-in merge logged "profile sync
+ * failed" and the fire-and-forget push after each XP award said nothing at
+ * all. Level, XP, the sim counters and the paid stages lived only in
+ * `localStorage`, and the first sign-out took them with it.
+ *
+ * `.select('id')` plus a row check, for the same reason as everywhere else:
+ * supabase-js does not report an update that matched nothing.
+ */
+async function writeCloud(userId: string, s: ProfileScalars): Promise<void> {
+  const { data, error } = await requireSupabase()
     .from('profiles')
-    .upsert(
-      {
-        id: userId,
-        level_xp: s.levelXp,
-        sim_count: s.simCount,
-        sim_best_edge: s.simBestEdge,
-        onboarding_seen: s.onboardingSeen,
-        settings: { ...cloudSettings, claimed_stages: s.claimedStages },
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'id' },
-    )
+    .update({
+      level_xp: s.levelXp,
+      sim_count: s.simCount,
+      sim_best_edge: s.simBestEdge,
+      onboarding_seen: s.onboardingSeen,
+      settings: { ...cloudSettings, claimed_stages: s.claimedStages },
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', userId)
+    .select('id')
   if (error) throw error
+  if (!data || data.length === 0) throw new Error(`profile row not found for user ${userId}`)
 }
 
 /**
@@ -129,20 +143,24 @@ export async function syncProfileOnSignIn(): Promise<void> {
   achievementEngine.setSimCounters(merged.simCount, merged.simBestEdge)
   setOnboardingSeen(merged.onboardingSeen)
   setClaimedStages(merged.claimedStages)
-  await upsertCloud(userId, merged)
+  await writeCloud(userId, merged)
 }
 
 /**
  * Push the current local progress scalars to the cloud. Fire-and-forget and
  * best-effort: a failed push is reconciled by the max-merge on the next
  * sign-in. Safe to call after any XP or simulation change.
+ *
+ * The local value is written as it is, without the max-merge — the
+ * `protect_progress_columns` trigger on the row is what stops a device that
+ * has lost its local copy from writing a lower number over the cloud's.
  */
 export function pushProfileScalars(): void {
   if (!isSupabaseConfigured) return
   void (async () => {
     try {
       const userId = await currentUserId()
-      if (userId) await upsertCloud(userId, localScalars())
+      if (userId) await writeCloud(userId, localScalars())
     } catch (e) {
       console.error('profile cloud push failed', e)
     }
