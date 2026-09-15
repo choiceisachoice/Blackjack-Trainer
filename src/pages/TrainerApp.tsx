@@ -98,6 +98,12 @@ export function TrainerApp() {
       {/* Reset key on the mode so switching screens clears a crashed one. A render
           error shows a recoverable fallback instead of blanking the whole app. */}
       <div className={`flex-1 min-h-0 flex flex-col ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+        {/* Every screen but the menu gets the arrow back to it — the Casino
+            Session included, above the felt. It was left out at first because
+            its HUD has an exit of its own; the first person to use the app
+            looked for the arrow there and did not find it. One convention on
+            every screen beats a second one on the one screen that differs. */}
+        {currentMode !== 'home' && <BackToMenu />}
         {/* Persistent, so a mode change does not destroy a running session.
             Hidden rather than unmounted; its own boundary, unkeyed. */}
         {casinoMounted && (
@@ -111,10 +117,6 @@ export function TrainerApp() {
             </ErrorBoundary>
           </div>
         )}
-        {/* Every screen but the menu gets the arrow back to it. The Casino
-            Session is the exception: its own HUD carries the way out, and a
-            bar above the felt would push the table down. */}
-        {currentMode !== 'home' && currentMode !== 'casinoSession' && <BackToMenu />}
         <ErrorBoundary key={currentMode} onReset={() => setMode('home')}>
         {locked ? (
           <div className="flex-1 flex items-start justify-center p-4 md:p-8">
