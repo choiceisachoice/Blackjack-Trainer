@@ -39,7 +39,8 @@
     "muteSounds": "Couper le son",
     "enableSounds": "Activer le son",
     "signOut": "Se déconnecter",
-    "proFeature": "Fonction Pro"
+    "proFeature": "Fonction Pro",
+    "backToMenu": "Retour au menu principal"
   },
   "session": {
     "leave": {
@@ -422,7 +423,13 @@
       "youChose": "Vous avez choisi <w>{{chosen}}</w>, la bonne réponse était <r>{{right}}</r>.",
       "basicIs": "Stratégie de base : <h>{{action}}</h>.",
       "deviation": "À TC {{tc}}, <h>{{action}}</h> — une déviation du jeu de base ({{basic}}).",
-      "noDeviation": "À TC {{tc}}, restez sur la stratégie de base : <h>{{action}}</h> (pas de déviation ici)."
+      "noDeviation": "À TC {{tc}}, restez sur la stratégie de base : <h>{{action}}</h> (pas de déviation ici).",
+      "focusTitle": "Focus : vos mains les plus faibles",
+      "focusSub": "{{count}} mains issues des Analytics. Chaque question porte sur l'une d'elles, avec le count au-dessus et en dessous de l'index.",
+      "focusHands": "Ces mains",
+      "focusClear": "Travailler toutes les mains",
+      "focusResults": "Par main",
+      "focusAgain": "Les retravailler"
     },
     "bet": {
       "title": "Bet Spread",

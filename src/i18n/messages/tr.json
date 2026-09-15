@@ -39,7 +39,8 @@
     "muteSounds": "Sesi kapat",
     "enableSounds": "Sesi aç",
     "signOut": "Çıkış yap",
-    "proFeature": "Pro özelliği"
+    "proFeature": "Pro özelliği",
+    "backToMenu": "Ana menüye dön"
   },
   "session": {
     "leave": {
@@ -422,7 +423,13 @@
       "youChose": "<w>{{chosen}}</w> seçtiniz, doğrusu <r>{{right}}</r> idi.",
       "basicIs": "Temel strateji: <h>{{action}}</h>.",
       "deviation": "TC {{tc}} iken <h>{{action}}</h> — temel oyundan bir sapma ({{basic}}).",
-      "noDeviation": "TC {{tc}} iken temel stratejide kalın: <h>{{action}}</h> (burada sapma yok)."
+      "noDeviation": "TC {{tc}} iken temel stratejide kalın: <h>{{action}}</h> (burada sapma yok).",
+      "focusTitle": "Odak: en zayıf elleriniz",
+      "focusSub": "Analytics'ten {{count}} el. Her soru bunlardan biri; count indeksin üstünde ve altında olabilir.",
+      "focusHands": "Bu eller",
+      "focusClear": "Bunun yerine tüm elleri çalış",
+      "focusResults": "El başına",
+      "focusAgain": "Tekrar çalış"
     },
     "bet": {
       "title": "Bet Spread",

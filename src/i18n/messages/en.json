@@ -39,7 +39,8 @@
     "muteSounds": "Mute sounds",
     "enableSounds": "Enable sounds",
     "signOut": "Sign out",
-    "proFeature": "Pro feature"
+    "proFeature": "Pro feature",
+    "backToMenu": "Back to main menu"
   },
   "session": {
     "leave": {
@@ -422,7 +423,13 @@
       "youChose": "You chose <w>{{chosen}}</w>, correct was <r>{{right}}</r>.",
       "basicIs": "Basic Strategy: <h>{{action}}</h>.",
       "deviation": "At TC {{tc}}, <h>{{action}}</h> — a deviation from the basic play ({{basic}}).",
-      "noDeviation": "At TC {{tc}}, stick with basic strategy: <h>{{action}}</h> (no deviation here)."
+      "noDeviation": "At TC {{tc}}, stick with basic strategy: <h>{{action}}</h> (no deviation here).",
+      "focusTitle": "Focus: your weakest hands",
+      "focusSub": "{{count}} hands from Analytics. Every question is one of them, with the count above and below the index.",
+      "focusHands": "These hands",
+      "focusClear": "Drill everything instead",
+      "focusResults": "Per hand",
+      "focusAgain": "Drill them again"
     },
     "bet": {
       "title": "Bet Spread",

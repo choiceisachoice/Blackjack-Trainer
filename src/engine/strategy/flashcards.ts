@@ -98,8 +98,26 @@ function makeBasicQuestion(table: StrategyTable): FlashQuestion {
   return { handKind: kind, hand, dealer, trueCount: null, correctAction: action, basicAction: action, isDeviation: false }
 }
 
-function makeDeviationQuestion(table: StrategyTable): FlashQuestion {
-  const dev = pick(ALL_DEVIATIONS)
+/** The deviation with this display name, if there is one. */
+function deviationByName(name: string): (typeof ALL_DEVIATIONS)[number] | undefined {
+  return ALL_DEVIATIONS.find(d => d.name === name)
+}
+
+/**
+ * Which of these names are deviations the flashcards can drill.
+ *
+ * The Analytics panel hands over the names it ranked; they came from earlier
+ * sessions, so a name from a deviation that has since been renamed or removed
+ * is possible and is simply dropped rather than failing the whole request.
+ *
+ * @param names - Deviation names as recorded in a session's `perDeviation`
+ * @returns The subset that can be drilled, in the order given, without duplicates
+ */
+export function drillableDeviationNames(names: readonly string[]): string[] {
+  return Array.from(new Set(names.filter(n => deviationByName(n) !== undefined)))
+}
+
+function makeDeviationQuestion(table: StrategyTable, dev = pick(ALL_DEVIATIONS)): FlashQuestion {
   const above = rand() < 0.5
   const tc = above
     ? dev.trueCountThreshold + Math.floor(rand() * 5)
@@ -151,4 +169,58 @@ export function buildFlashSession(level: FlashLevel, count: number, dealerHitsSo
     prevKey = key
   }
   return questions
+}
+
+/**
+ * Builds a session drilling only the named deviations.
+ *
+ * This is what "Drill these hands" on the Analytics page starts. The button
+ * used to open the ordinary flashcards, which drew from every hand at random —
+ * so a person who came to fix their 16 vs 10 saw it perhaps once in twenty
+ * questions. Here every question is one of the named hands, with the count
+ * sometimes above and sometimes below the index, and the hands take turns in
+ * a shuffled cycle so a session of 20 over 5 hands asks each of them 4 times
+ * rather than leaving one to chance.
+ *
+ * Names that are not drillable are ignored (see `drillableDeviationNames`). If
+ * none remain, the session is empty and the caller should fall back to the
+ * ordinary drill rather than start a session with nothing in it.
+ *
+ * @param names - Deviation names to drill, e.g. `['16 vs 10', 'Insurance']`
+ * @param count - Number of questions
+ * @param dealerHitsSoft17 - Use the H17 strategy table when true
+ */
+export function buildFocusFlashSession(names: readonly string[], count: number, dealerHitsSoft17 = false): FlashQuestion[] {
+  const table = dealerHitsSoft17 ? H17_STRATEGY : S17_STRATEGY
+  const devs = drillableDeviationNames(names).map(n => deviationByName(n)!)
+  if (devs.length === 0) return []
+
+  const questions: FlashQuestion[] = []
+  let cycle: typeof devs = []
+  let prevKey = ''
+  let guard = 0
+
+  while (questions.length < count && guard < count * 50) {
+    guard++
+    if (cycle.length === 0) cycle = shuffled(devs)
+    const q = makeDeviationQuestion(table, cycle[cycle.length - 1])
+    const key = questionKey(q)
+    // With a single hand every question shares hand and dealer; only the count
+    // can differ, and the retry below is what makes it differ.
+    if (key === prevKey) continue
+    cycle.pop()
+    questions.push(q)
+    prevKey = key
+  }
+  return questions
+}
+
+/** A shuffled copy (Fisher–Yates). */
+function shuffled<T>(arr: readonly T[]): T[] {
+  const out = [...arr]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
 }

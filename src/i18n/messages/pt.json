@@ -39,7 +39,8 @@
     "muteSounds": "Desligar o som",
     "enableSounds": "Ligar o som",
     "signOut": "Terminar sessão",
-    "proFeature": "Funcionalidade Pro"
+    "proFeature": "Funcionalidade Pro",
+    "backToMenu": "Voltar ao menu principal"
   },
   "session": {
     "leave": {
@@ -422,7 +423,13 @@
       "youChose": "Escolheu <w>{{chosen}}</w>; o correto era <r>{{right}}</r>.",
       "basicIs": "Estratégia básica: <h>{{action}}</h>.",
       "deviation": "Com TC {{tc}}, <h>{{action}}</h> — um desvio da jogada básica ({{basic}}).",
-      "noDeviation": "Com TC {{tc}}, mantenha a estratégia básica: <h>{{action}}</h> (aqui não há desvio)."
+      "noDeviation": "Com TC {{tc}}, mantenha a estratégia básica: <h>{{action}}</h> (aqui não há desvio).",
+      "focusTitle": "Foco: as suas mãos mais fracas",
+      "focusSub": "{{count}} mãos das Analytics. Cada pergunta é uma delas, com o count acima e abaixo do índice.",
+      "focusHands": "Estas mãos",
+      "focusClear": "Treinar antes todas as mãos",
+      "focusResults": "Por mão",
+      "focusAgain": "Treinar outra vez"
     },
     "bet": {
       "title": "Bet Spread",

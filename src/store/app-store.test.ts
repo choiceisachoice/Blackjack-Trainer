@@ -76,4 +76,17 @@ describe('app-store', () => {
     expect(useAppStore.getState().soundVolume).toBe(1)
   })
 
+  it('setFlashFocus hands a copy of the list over and treats an empty list as none', () => {
+    const names = ['16 vs 10', 'Insurance']
+    useAppStore.getState().setFlashFocus(names)
+    expect(useAppStore.getState().flashFocus).toEqual(names)
+    expect(useAppStore.getState().flashFocus).not.toBe(names)
+
+    useAppStore.getState().setFlashFocus([])
+    expect(useAppStore.getState().flashFocus).toBeNull()
+
+    useAppStore.getState().setFlashFocus(names)
+    useAppStore.getState().setFlashFocus(null)
+    expect(useAppStore.getState().flashFocus).toBeNull()
+  })
 })

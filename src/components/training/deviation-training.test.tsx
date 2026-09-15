@@ -19,7 +19,7 @@ function correctForShownHand(): Action {
 describe('DeviationTraining (Flashcards)', () => {
   beforeEach(() => {
     // Force S17 so the test can compute the expected basic action deterministically.
-    useAppStore.setState({ selectedRules: { ...DEFAULT_RULES, dealerHitsSoft17: false } })
+    useAppStore.setState({ selectedRules: { ...DEFAULT_RULES, dealerHitsSoft17: false }, flashFocus: null })
   })
 
   it('renders the settings screen with level and question count', () => {
@@ -108,5 +108,72 @@ describe('DeviationTraining (Flashcards)', () => {
     expect(entries.length).toBeGreaterThan(0)
     const totalRecorded = entries.reduce((s, e) => s + e.correct + e.incorrect, 0)
     expect(totalRecorded).toBe(4)
+  })
+
+  describe('focus drill from Analytics', () => {
+    const FOCUS = ['16 vs 10', 'Insurance']
+
+    it('opens on the named hands instead of the level picker', () => {
+      useAppStore.setState({ flashFocus: FOCUS })
+      render(<DeviationTraining />)
+      expect(screen.getByText('Focus: your weakest hands')).toBeInTheDocument()
+      const hands = screen.getByTestId('focus-hands')
+      expect(within(hands).getByText('16 vs 10')).toBeInTheDocument()
+      expect(within(hands).getByText('Insurance')).toBeInTheDocument()
+      expect(screen.queryByRole('group', { name: 'Level' })).not.toBeInTheDocument()
+      expect(screen.getByTestId('start-training')).toHaveTextContent('Drill these hands')
+    })
+
+    it('asks only those hands, records them, and reports per hand', () => {
+      const recordSpy = vi.fn()
+      useStatsStore.setState({ recordSession: recordSpy })
+      useAppStore.setState({ flashFocus: FOCUS })
+      render(<DeviationTraining />)
+      fireEvent.click(within(screen.getByRole('group', { name: 'Number of questions' })).getByText('10'))
+      fireEvent.click(screen.getByTestId('start-training'))
+
+      for (let i = 0; i < 10; i++) {
+        const hand = screen.getByTestId('player-hand').textContent
+        const dealer = screen.getByTestId('dealer-card').textContent
+        // "16 vs 10" or Insurance ("Any" vs A) — nothing else.
+        expect(`${hand} vs ${dealer}`).toMatch(/^(16 vs 10|Any vs A)$/)
+        expect(screen.getByTestId('true-count')).toBeInTheDocument()
+        fireEvent.click(screen.getByTestId('action-stand'))
+        fireEvent.click(screen.getByTestId('next-question'))
+      }
+
+      // Paid and recorded at the summary, like every other round.
+      expect(screen.getByTestId('summary-title')).toBeInTheDocument()
+      expect(recordSpy).toHaveBeenCalledTimes(1)
+      const details = recordSpy.mock.calls[0][0].details as DeviationDetails
+      expect(Object.keys(details.perDeviation).sort()).toEqual([...FOCUS].sort())
+      expect(details.perDeviation['16 vs 10'].correct + details.perDeviation['16 vs 10'].incorrect).toBe(5)
+
+      const results = screen.getByTestId('focus-results')
+      expect(within(results).getByText('16 vs 10')).toBeInTheDocument()
+      expect(within(results).getByText('Insurance')).toBeInTheDocument()
+      expect(screen.getByTestId('focus-again')).toBeInTheDocument()
+    })
+
+    it('can be dropped for the ordinary drill', () => {
+      useAppStore.setState({ flashFocus: FOCUS })
+      render(<DeviationTraining />)
+      fireEvent.click(screen.getByTestId('focus-clear'))
+      expect(screen.getByRole('group', { name: 'Level' })).toBeInTheDocument()
+      expect(useAppStore.getState().flashFocus).toBeNull()
+    })
+
+    it('ignores names that are not drillable and falls back when none are', () => {
+      useAppStore.setState({ flashFocus: ['no such hand'] })
+      render(<DeviationTraining />)
+      expect(screen.getByRole('group', { name: 'Level' })).toBeInTheDocument()
+    })
+
+    it('clears the hand-off when the screen is left', () => {
+      useAppStore.setState({ flashFocus: FOCUS })
+      const { unmount } = render(<DeviationTraining />)
+      unmount()
+      expect(useAppStore.getState().flashFocus).toBeNull()
+    })
   })
 })

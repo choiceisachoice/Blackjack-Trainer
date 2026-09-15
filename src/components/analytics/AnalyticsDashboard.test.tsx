@@ -93,6 +93,31 @@ describe('AnalyticsDashboard', () => {
     expect(within(weak).getByText('80%')).toBeInTheDocument()
   })
 
+  it('"Drill these hands" hands the ranked list to the flashcards, not just the mode', () => {
+    const sessions = [
+      makeSession({
+        mode: 'deviationFlashCards',
+        details: {
+          type: 'deviationFlashCards',
+          deviationSet: 'i18',
+          perDeviation: {
+            '16 vs 10': { correct: 2, incorrect: 8 },
+            'Insurance': { correct: 5, incorrect: 5 },
+            '12 vs 3': { correct: 9, incorrect: 1 },
+          },
+        },
+      }),
+    ]
+    useStatsStore.setState({ sessions, lifetimeStats: { ...emptyLifetimeStats, totalSessions: 1 } })
+    useAppStore.setState({ currentMode: 'analytics', flashFocus: null })
+    render(<AnalyticsDashboard />)
+
+    fireEvent.click(screen.getByTestId('drill-weakest-hands'))
+    expect(useAppStore.getState().currentMode).toBe('deviationTraining')
+    // Weakest first, every ranked hand included.
+    expect(useAppStore.getState().flashFocus).toEqual(['16 vs 10', 'Insurance', '12 vs 3'])
+  })
+
   it('renders the real Casino Session edge block', () => {
     const sessions = [
       makeSession({

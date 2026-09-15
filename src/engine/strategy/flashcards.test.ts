@@ -7,6 +7,8 @@ import {
   lookupBasicAction,
   enabledActions,
   buildFlashSession,
+  buildFocusFlashSession,
+  drillableDeviationNames,
   type FlashQuestion,
 } from './flashcards'
 
@@ -74,5 +76,52 @@ describe('flashcards engine', () => {
     expect(session).toHaveLength(50)
     expect(session.some(q => q.isDeviation)).toBe(true)
     expect(session.some(q => !q.isDeviation)).toBe(true)
+  })
+
+  describe('focus drill (the Analytics hand-off)', () => {
+    it('drillableDeviationNames keeps known names, drops the rest, and dedupes', () => {
+      expect(drillableDeviationNames(['16 vs 10', 'no such hand', 'Insurance', '16 vs 10']))
+        .toEqual(['16 vs 10', 'Insurance'])
+    })
+
+    it('asks only the named hands, and each of them', () => {
+      const names = ['16 vs 10', '15 vs 10', 'Insurance', '12 vs 3']
+      const session = buildFocusFlashSession(names, 20)
+      expect(session).toHaveLength(20)
+      const asked = new Set<string>()
+      for (const q of session) {
+        expect(q.isDeviation).toBe(true)
+        expect(q.trueCount).not.toBeNull()
+        expect(names).toContain(q.deviationName)
+        asked.add(q.deviationName!)
+      }
+      // A round-robin over 4 hands in 20 questions asks each exactly 5 times.
+      expect(asked.size).toBe(4)
+      for (const n of names) {
+        expect(session.filter(q => q.deviationName === n)).toHaveLength(5)
+      }
+    })
+
+    it('with a single hand, consecutive questions still differ by count', () => {
+      const session = buildFocusFlashSession(['16 vs 10'], 12)
+      expect(session).toHaveLength(12)
+      for (let i = 1; i < session.length; i++) {
+        expect(session[i].trueCount).not.toBe(session[i - 1].trueCount)
+      }
+    })
+
+    it('is empty when nothing drillable was named, so the caller can fall back', () => {
+      expect(buildFocusFlashSession(['no such hand'], 10)).toEqual([])
+      expect(buildFocusFlashSession([], 10)).toEqual([])
+    })
+
+    it('grades the hand against the real deviation index', () => {
+      // 16 vs 10: stand at TC >= 0, otherwise hit.
+      const session = buildFocusFlashSession(['16 vs 10'], 30)
+      for (const q of session) {
+        const expected = q.trueCount! >= 0 ? Action.Stand : Action.Hit
+        expect(q.correctAction).toBe(expected)
+      }
+    })
   })
 })

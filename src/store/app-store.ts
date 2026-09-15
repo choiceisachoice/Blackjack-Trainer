@@ -83,10 +83,22 @@ export interface AppStoreState {
   soundEnabled: boolean
   soundVolume: number
   dealingSpeed: DealingSpeed
+  /**
+   * Deviation names the next Flashcards visit should drill, or null.
+   *
+   * Set by "Drill these hands" on the Analytics page and read once by the
+   * Flashcards screen, which clears it when it unmounts. It is a hand-off
+   * between two screens, not a preference: the mode switch and the list have
+   * to travel together, and a URL parameter is not available because the
+   * modes are not routes.
+   */
+  flashFocus: string[] | null
 }
 
 export interface AppStoreActions {
   setMode: (mode: AppMode) => void
+  /** Hand a list of deviation names to the Flashcards screen, or clear it. */
+  setFlashFocus: (names: string[] | null) => void
   setSystem: (system: CountingSystemId) => void
   setRules: (rules: CasinoRules) => void
   toggleSound: () => void
@@ -114,8 +126,10 @@ export const useAppStore = create<AppStore>((set, get) => ({
   soundEnabled: initialSound.enabled,
   soundVolume: initialSound.volume,
   dealingSpeed: loadDealingSpeed(),
+  flashFocus: null,
 
   setMode: (mode) => set({ currentMode: mode }),
+  setFlashFocus: (names) => set({ flashFocus: names && names.length > 0 ? [...names] : null }),
   setSystem: (system) => set({ selectedSystem: system }),
   setRules: (rules) => set({ selectedRules: rules }),
 

@@ -4,6 +4,7 @@ import { usePageMeta } from '../hooks/use-page-meta'
 import { useLiveSessionStore } from '../store/live-session-store'
 import { HomeScreen } from '../components/navigation/HomeScreen'
 import { NavBar } from '../components/navigation/NavBar'
+import { BackToMenu } from '../components/navigation/BackToMenu'
 import { SpeedDrill } from '../components/training/SpeedDrill'
 import { DeviationTraining } from '../components/training/DeviationTraining'
 import { BetSpread } from '../components/training/BetSpread'
@@ -110,6 +111,10 @@ export function TrainerApp() {
             </ErrorBoundary>
           </div>
         )}
+        {/* Every screen but the menu gets the arrow back to it. The Casino
+            Session is the exception: its own HUD carries the way out, and a
+            bar above the felt would push the table down. */}
+        {currentMode !== 'home' && currentMode !== 'casinoSession' && <BackToMenu />}
         <ErrorBoundary key={currentMode} onReset={() => setMode('home')}>
         {locked ? (
           <div className="flex-1 flex items-start justify-center p-4 md:p-8">

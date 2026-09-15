@@ -1,8 +1,15 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { GraduationCap, Check, X } from 'lucide-react'
+import { GraduationCap, Check, X, Target } from 'lucide-react'
 import { Panel, Segmented, Button, StatCard } from '../common/ui'
 import { Action } from '../../engine/rules/types'
-import { buildFlashSession, enabledActions, type FlashLevel, type FlashQuestion } from '../../engine/strategy/flashcards'
+import {
+  buildFlashSession,
+  buildFocusFlashSession,
+  drillableDeviationNames,
+  enabledActions,
+  type FlashLevel,
+  type FlashQuestion,
+} from '../../engine/strategy/flashcards'
 import { Trans, useTranslation } from 'react-i18next'
 import { ACTION_KEY, ALL_ACTIONS, formatTC } from './deviation-utils'
 import { useAppStore } from '../../store/app-store'
@@ -27,10 +34,30 @@ function formatHand(q: FlashQuestion): string {
 }
 
 /**
+ * The hands a focus session is about, in the order Analytics ranked them.
+ * Null means the ordinary drill.
+ */
+function focusFromHandoff(names: string[] | null): string[] | null {
+  if (!names) return null
+  const drillable = drillableDeviationNames(names)
+  return drillable.length > 0 ? drillable : null
+}
+
+/**
  * Flashcards trainer.
  *
  * Drills Basic Strategy across every meaningful hand, and — at higher levels —
  * count-based deviations. Finite sessions, no repeated questions in a row.
+ *
+ * ## The focus drill
+ *
+ * "Drill these hands" on the Analytics page arrives here with a list of
+ * deviation names in the app store. Then every question is one of those
+ * hands, in turn, until the person chooses to drill everything again. The
+ * session is recorded and paid exactly like any other flashcards round — the
+ * same `useSessionSave`, the same `perDeviation` tally — so the next visit to
+ * Analytics shows whether the drilling worked. The hand-off is cleared when
+ * this screen unmounts: it belongs to the click that made it, not to the mode.
  */
 export function DeviationTraining() {
   const { t } = useTranslation()
@@ -39,6 +66,14 @@ export function DeviationTraining() {
   const [level, setLevel] = useState<FlashLevel>('basic')
   const [numQuestions, setNumQuestions] = useState(20)
   const [phase, setPhase] = useState<Phase>('settings')
+
+  // Read once, on mount. Later changes to the store do not restart a drill.
+  const [focus, setFocus] = useState<string[] | null>(() => focusFromHandoff(useAppStore.getState().flashFocus))
+  useEffect(() => () => useAppStore.getState().setFlashFocus(null), [])
+  const clearFocus = useCallback(() => {
+    setFocus(null)
+    useAppStore.getState().setFlashFocus(null)
+  }, [])
 
   const [session, setSession] = useState<FlashQuestion[]>([])
   const [qIndex, setQIndex] = useState(0)
@@ -65,7 +100,9 @@ export function DeviationTraining() {
   const startSession = useCallback(() => {
     begin()
     perDeviationRef.current = {}
-    setSession(buildFlashSession(level, numQuestions, dealerHitsSoft17))
+    setSession(focus
+      ? buildFocusFlashSession(focus, numQuestions, dealerHitsSoft17)
+      : buildFlashSession(level, numQuestions, dealerHitsSoft17))
     setQIndex(0)
     setSelectedAction(null)
     setIsCorrect(false)
@@ -74,7 +111,7 @@ export function DeviationTraining() {
     setCurrentStreak(0)
     setBestStreak(0)
     setPhase('question')
-  }, [level, numQuestions, dealerHitsSoft17, begin])
+  }, [focus, level, numQuestions, dealerHitsSoft17, begin])
 
   const handleAnswer = useCallback((action: Action) => {
     if (!question) return
@@ -145,23 +182,43 @@ export function DeviationTraining() {
     return (
       <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
         <TrainingBackdrop mode="deviationFlashCards" showRails />
-        <Panel icon={GraduationCap} title={t('training.flash.title')} subtitle={t('training.flash.sub')} className="w-full max-w-xl">
-          {/* Level */}
-          <div>
-            <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.common.level')}</span>
-            <Segmented
-              fluid
-              ariaLabel={t('training.common.level')}
-              value={level}
-              onChange={setLevel}
-              options={[
-                { value: 'basic' as FlashLevel, label: t('training.flash.levelBasic') },
-                { value: 'deviations' as FlashLevel, label: t('training.flash.levelDeviations') },
-                { value: 'mixed' as FlashLevel, label: t('training.flash.levelMixed') },
-              ]}
-            />
-            <p className="text-xs text-content/40 mt-2">{t(LEVEL_HELP[level])}</p>
-          </div>
+        <Panel
+          icon={focus ? Target : GraduationCap}
+          title={focus ? t('training.flash.focusTitle') : t('training.flash.title')}
+          subtitle={focus ? t('training.flash.focusSub', { count: focus.length }) : t('training.flash.sub')}
+          className="w-full max-w-xl"
+        >
+          {focus ? (
+            /* The hands themselves, so the person sees what they are about to
+               drill and can check it against what Analytics showed them. */
+            <div data-testid="focus-hands">
+              <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.flash.focusHands')}</span>
+              <ul className="flex flex-wrap gap-2">
+                {focus.map(name => (
+                  <li key={name} className="px-3 py-1.5 rounded-lg bg-gold/10 border border-gold/25 text-sm font-semibold text-gold tabular-nums">
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            /* Level */
+            <div>
+              <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.common.level')}</span>
+              <Segmented
+                fluid
+                ariaLabel={t('training.common.level')}
+                value={level}
+                onChange={setLevel}
+                options={[
+                  { value: 'basic' as FlashLevel, label: t('training.flash.levelBasic') },
+                  { value: 'deviations' as FlashLevel, label: t('training.flash.levelDeviations') },
+                  { value: 'mixed' as FlashLevel, label: t('training.flash.levelMixed') },
+                ]}
+              />
+              <p className="text-xs text-content/40 mt-2">{t(LEVEL_HELP[level])}</p>
+            </div>
+          )}
 
           {/* Number of questions */}
           <div>
@@ -176,8 +233,17 @@ export function DeviationTraining() {
           </div>
 
           <Button size="lg" className="w-full mt-1" onClick={startSession} data-testid="start-training">
-            {t('training.flash.start')}
+            {focus ? t('analytics.drillTheseHands') : t('training.flash.start')}
           </Button>
+          {focus && (
+            <button
+              onClick={clearFocus}
+              data-testid="focus-clear"
+              className="w-full text-sm text-content/50 hover:text-content transition-colors cursor-pointer"
+            >
+              {t('training.flash.focusClear')}
+            </button>
+          )}
         </Panel>
       </div>
     )
@@ -185,6 +251,15 @@ export function DeviationTraining() {
 
   // ── Summary Phase ──
   if (phase === 'summary') {
+    // For a focus round, the answer to the question the person came with:
+    // did each of those hands get better? Same tally that Analytics reads.
+    const perHand = focus
+      ? focus.map(name => {
+          const r = perDeviationRef.current[name] ?? { correct: 0, incorrect: 0 }
+          const total = r.correct + r.incorrect
+          return { name, correct: r.correct, total, pct: total > 0 ? Math.round((r.correct / total) * 100) : 0 }
+        })
+      : []
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
@@ -194,9 +269,36 @@ export function DeviationTraining() {
             <StatCard label={t('training.common.correct')} value={`${totalCorrect}/${totalAttempts}`} />
             <StatCard label={t('training.common.bestStreak')} value={bestStreak} accent className="col-span-2" />
           </div>
-          <Button className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
-            {t('training.common.backToSettings')}
-          </Button>
+          {focus && (
+            <div className="w-full" data-testid="focus-results">
+              <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.flash.focusResults')}</span>
+              <ul className="divide-y divide-contrast/10 rounded-xl border border-contrast/10 overflow-hidden">
+                {perHand.map(h => (
+                  <li key={h.name} className="flex items-center justify-between px-4 py-2.5 text-sm tabular-nums">
+                    <span className="font-semibold text-content">{h.name}</span>
+                    <span className="flex items-center gap-3">
+                      <span className="text-content/50">{h.correct}/{h.total}</span>
+                      <span className={`font-bold ${h.pct >= 80 ? 'text-success' : h.pct >= 50 ? 'text-gold' : 'text-error'}`}>{h.pct}%</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {focus ? (
+            <div className="w-full flex flex-col gap-2">
+              <Button className="w-full" onClick={startSession} data-testid="focus-again">
+                {t('training.flash.focusAgain')}
+              </Button>
+              <Button variant="ghost" className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
+                {t('training.common.backToSettings')}
+              </Button>
+            </div>
+          ) : (
+            <Button className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
+              {t('training.common.backToSettings')}
+            </Button>
+          )}
         </div>
       </div>
     )

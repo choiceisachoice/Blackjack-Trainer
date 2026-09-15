@@ -39,7 +39,8 @@
     "muteSounds": "Disattiva l'audio",
     "enableSounds": "Attiva l'audio",
     "signOut": "Esci",
-    "proFeature": "Funzione Pro"
+    "proFeature": "Funzione Pro",
+    "backToMenu": "Torna al menu principale"
   },
   "session": {
     "leave": {
@@ -422,7 +423,13 @@
       "youChose": "Hai scelto <w>{{chosen}}</w>, la risposta giusta era <r>{{right}}</r>.",
       "basicIs": "Strategia di base: <h>{{action}}</h>.",
       "deviation": "Con TC {{tc}}, <h>{{action}}</h> — una deviazione dalla giocata di base ({{basic}}).",
-      "noDeviation": "Con TC {{tc}} resta sulla strategia di base: <h>{{action}}</h> (qui nessuna deviazione)."
+      "noDeviation": "Con TC {{tc}} resta sulla strategia di base: <h>{{action}}</h> (qui nessuna deviazione).",
+      "focusTitle": "Focus: le tue mani peggiori",
+      "focusSub": "{{count}} mani dalle Analytics. Ogni domanda è una di queste, con il count sopra e sotto l'indice.",
+      "focusHands": "Queste mani",
+      "focusClear": "Allena invece tutte le mani",
+      "focusResults": "Per mano",
+      "focusAgain": "Allenale di nuovo"
     },
     "bet": {
       "title": "Bet Spread",

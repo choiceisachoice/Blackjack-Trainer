@@ -39,7 +39,8 @@
     "muteSounds": "Ton aus",
     "enableSounds": "Ton an",
     "signOut": "Abmelden",
-    "proFeature": "Pro-Funktion"
+    "proFeature": "Pro-Funktion",
+    "backToMenu": "Zurück zum Hauptmenü"
   },
   "session": {
     "leave": {
@@ -422,7 +423,13 @@
       "youChose": "Du hast <w>{{chosen}}</w> gewählt, richtig war <r>{{right}}</r>.",
       "basicIs": "Basisstrategie: <h>{{action}}</h>.",
       "deviation": "Bei TC {{tc}}: <h>{{action}}</h> — eine Abweichung vom Standardspiel ({{basic}}).",
-      "noDeviation": "Bei TC {{tc}} bleibt es bei der Basisstrategie: <h>{{action}}</h> (hier keine Abweichung)."
+      "noDeviation": "Bei TC {{tc}} bleibt es bei der Basisstrategie: <h>{{action}}</h> (hier keine Abweichung).",
+      "focusTitle": "Fokus: deine schwächsten Hände",
+      "focusSub": "{{count}} Hände aus den Analytics. Jede Frage ist eine davon, mit dem Count über und unter dem Index.",
+      "focusHands": "Diese Hände",
+      "focusClear": "Lieber alle Hände üben",
+      "focusResults": "Pro Hand",
+      "focusAgain": "Noch einmal üben"
     },
     "bet": {
       "title": "Bet Spread",
