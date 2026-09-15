@@ -23,12 +23,17 @@ export function BackToMenu() {
 
   return (
     <div className="shrink-0 px-4 pt-3 -mb-1" data-testid="back-to-menu-bar">
+      {/* A bordered pill, not a line of dim text: on a wide screen a small
+          grey label in the corner of a black canvas is invisible, and the
+          first person to look for it did not find it. */}
       <button
         onClick={() => { if (requestLeave('home')) setMode('home') }}
         data-testid="back-to-menu"
-        className="group inline-flex items-center gap-1.5 text-sm text-content/55 hover:text-gold transition-colors cursor-pointer"
+        className="glow-hover group inline-flex items-center gap-2 pl-2.5 pr-3.5 h-9 rounded-lg
+          border border-contrast/15 bg-contrast/5 text-sm font-medium text-content/80
+          hover:text-gold hover:border-gold/40 hover:bg-gold/10 transition-colors cursor-pointer"
       >
-        <ArrowLeft size={16} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
+        <ArrowLeft size={17} className="text-gold transition-transform duration-200 group-hover:-translate-x-0.5" />
         {t('nav.backToMenu')}
       </button>
     </div>
