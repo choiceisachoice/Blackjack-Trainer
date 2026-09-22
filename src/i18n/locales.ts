@@ -9,6 +9,8 @@
  * source language and the fallback — everything else is a translation of it,
  * and a missing key lands there.
  */
+import { LEARN_TOPIC_PATHS } from '../services/learn-topics'
+
 export const LOCALES = ['en', 'de', 'fr', 'it', 'es', 'pt', 'tr'] as const
 
 export type Locale = (typeof LOCALES)[number]
@@ -62,7 +64,15 @@ export function resolveLocale(requested: string | null | undefined): Locale {
  * the router treats the prefix as its base, but there is nothing there for
  * a crawler and the URL a person shares is the unprefixed one.
  */
-export const PUBLIC_PATHS = ['/', '/learn', '/terms', '/privacy', '/contact'] as const
+export const PUBLIC_PATHS: readonly string[] = [
+  '/',
+  '/learn',
+  ...LEARN_TOPIC_PATHS,
+  '/strategy-chart',
+  '/terms',
+  '/privacy',
+  '/contact',
+]
 
 /**
  * Read a language prefix off a pathname.
@@ -101,5 +111,5 @@ export function publicPathOf(pathname: string): string | null {
   let rest = prefix ? pathname.slice(prefix.basename.length) : pathname
   if (rest === '') rest = '/'
   if (rest.length > 1 && rest.endsWith('/')) rest = rest.slice(0, -1)
-  return (PUBLIC_PATHS as readonly string[]).includes(rest) ? rest : null
+  return PUBLIC_PATHS.includes(rest) ? rest : null
 }

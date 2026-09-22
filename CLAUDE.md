@@ -88,18 +88,31 @@ npx supabase migration new <name>  # Create new migration
 ## Public pages, prerendered, in seven languages
 
 `npm run build` ends with `node scripts/prerender.mjs`: it builds
-`src/entry-prerender.tsx` for Node, renders the five public routes (`/`,
-`/learn`, `/terms`, `/privacy`, `/contact`) in every language and writes 35
-HTML files into `dist` — `dist/learn/index.html`, `dist/de/learn/index.html`
-and so on — plus `sitemap.xml` with hreflang alternates. The client does
+`src/entry-prerender.tsx` for Node, renders the fourteen public routes (`/`,
+`/learn`, the eight chapters `/learn/<slug>`, `/strategy-chart`, `/terms`,
+`/privacy`, `/contact`) in every language and writes 98 HTML files into
+`dist` — `dist/learn/index.html`, `dist/de/learn/true-count/index.html` and
+so on — plus `sitemap.xml` with hreflang alternates. The client does
 **not** hydrate them; `main.tsx` reads the language prefix off the URL, opens
 the router at that basename (`/de`) and replaces the markup behind the
 loading screen. English lives at the root, the other six under a prefix.
 A stored or browser language never changes a URL; a URL always sets the
 language. `Reveal` renders plain on the server, or every landing section
 would ship at `opacity: 0`. `usePageMeta` gives each page its own title,
-description and canonical, prefix included. The theory page is public at
-`/learn` with every topic expanded — a collapsed topic is not in the DOM.
+description and canonical, prefix included.
+
+The theory is public: `/learn` is the hub (summaries, FAQ, a link into
+every chapter) and each chapter is a page of its own with its own title
+and description in every language (`services/learn-topics.ts` maps the
+message-key id to the URL slug; `meta.pages.learn-<slug>` carries the
+head). One URL about eight subjects loses to eight pages about one each,
+so the chapter text lives on the chapter page only and the hub links to
+it. Inside the app the accordion still holds everything. The basic
+strategy chart is public at `/strategy-chart` — the same component the app
+shows, deviations still behind Pro — because a tool earns links where a
+paragraph earns readers. The chapter pages and the chart share
+`PublicShell`, so a visitor from a search result always has the same way
+home and the same way in.
 
 ## Dev-only screens
 

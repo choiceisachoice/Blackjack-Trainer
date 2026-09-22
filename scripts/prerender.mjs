@@ -8,11 +8,13 @@
 // find it. Then throw the SSR build away.
 //
 // Output layout, matched by the Caddyfile at the repo root:
-//   /            -> dist/index.html          (the prerendered landing)
-//   /learn       -> dist/learn/index.html
-//   /de          -> dist/de/index.html
-//   /de/learn    -> dist/de/learn/index.html
-//   anything else-> dist/shell.html          (the empty app shell, for /app etc.)
+//   /                 -> dist/index.html          (the prerendered landing)
+//   /learn            -> dist/learn/index.html
+//   /learn/true-count -> dist/learn/true-count/index.html   (one per chapter)
+//   /strategy-chart   -> dist/strategy-chart/index.html
+//   /de               -> dist/de/index.html
+//   /de/learn         -> dist/de/learn/index.html
+//   anything else     -> dist/shell.html          (the empty app shell, for /app etc.)
 
 import { build } from 'vite'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
@@ -109,8 +111,11 @@ async function main() {
  * site carries the same page in several languages.
  */
 function sitemap(routes) {
-  const priority = route => (route === '/' ? '1.0' : route === '/learn' ? '0.9' : '0.3')
-  const changefreq = route => (route === '/' ? 'weekly' : route === '/learn' ? 'monthly' : 'yearly')
+  // The chapters and the chart are the pages meant to rank; the hub above
+  // them; the legal pages exist and that is all a crawler needs to know.
+  const isContent = route => route.startsWith('/learn/') || route === '/strategy-chart'
+  const priority = route => (route === '/' ? '1.0' : route === '/learn' ? '0.9' : isContent(route) ? '0.8' : '0.3')
+  const changefreq = route => (route === '/' ? 'weekly' : route === '/learn' || isContent(route) ? 'monthly' : 'yearly')
   const urls = []
   for (const { path: route } of routes) {
     const alternates = LOCALES.map(l => ({ lang: l, href: `${SITE}${prefixOf(l)}${route === '/' ? (l === 'en' ? '/' : '') : route}` }))

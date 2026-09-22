@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { ChevronDown, BookOpen, Sigma, Grid3x3, Coins, Zap, GraduationCap, Layers, Club, Spade } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ChevronDown, BookOpen, Sigma, Grid3x3, Coins, Zap, GraduationCap, Layers, Club, Spade, ArrowRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { BlackjackBasics } from './BlackjackBasics'
 import { DeviationTables } from './DeviationTables'
 import { FAQ_COUNT } from '../../services/structured-data'
+import { learnTopicById, learnTopicPath } from '../../services/learn-topics'
 
 interface Topic {
   /** Doubles as the accordion's identity and the stem of its message keys. */
@@ -68,14 +70,42 @@ const ALL_TOPICS = SECTIONS.flatMap(s => s.topics.map(t => t.id))
 const CHAPTER_PARAGRAPHS = ['p1', 'p2', 'p3', 'p4'] as const
 
 /**
+ * The chapter proper: four paragraphs with the worked numbers, and the
+ * deviation tables where the chapter is about them.
+ *
+ * Shared by the accordion inside the app and by the chapter's own public
+ * page, so the two cannot drift. The short `body` above it is the summary a
+ * returning reader wants; these are for the first time — and for a search
+ * engine, which ranks a paragraph, not a sentence.
+ *
+ * @param id - The topic's message-key stem
+ */
+export function TopicChapter({ id }: { id: string }) {
+  return (
+    <>
+      {CHAPTER_PARAGRAPHS.map(p => (
+        <p key={p}>
+          <Trans i18nKey={`learn.topics.${id}.more.${p}`} components={BODY_TAGS} />
+        </p>
+      ))}
+      {id === 'i18-fab4' && <DeviationTables />}
+    </>
+  )
+}
+
+/**
  * Learn / theory page — explains card counting for beginners.
  *
  * @param openAll - Start with every topic expanded. The public `/learn` page
  *   passes this: a collapsed topic is not in the DOM, and what is not in the
  *   DOM is not indexed — a crawler would see eight headings and one paragraph.
  *   Inside the app the accordion starts with the first topic open, as before.
+ * @param chapters - `inline` keeps the whole chapter in the accordion (the
+ *   app). `linked` shows the summary and a link to the chapter's own page
+ *   (the public hub): the same text on two URLs would have each competing
+ *   with the other, so the public site carries every chapter exactly once.
  */
-export function LearnPage({ openAll = false }: { openAll?: boolean } = {}) {
+export function LearnPage({ openAll = false, chapters = 'inline' }: { openAll?: boolean; chapters?: 'inline' | 'linked' } = {}) {
   const { t } = useTranslation()
   const [open, setOpen] = useState<Set<string>>(() => new Set(openAll ? ALL_TOPICS : ['what-is-counting']))
 
@@ -153,17 +183,17 @@ export function LearnPage({ openAll = false }: { openAll?: boolean } = {}) {
                           <p className="text-content/75">
                             <Trans i18nKey={`learn.topics.${topic.id}.body`} components={BODY_TAGS} />
                           </p>
-                          {/* The chapter proper: four paragraphs with the worked
-                              numbers. The short body above is the summary a
-                              returning reader wants; these are for the first
-                              time — and for a search engine, which ranks a
-                              paragraph, not a sentence. */}
-                          {CHAPTER_PARAGRAPHS.map(p => (
-                            <p key={p}>
-                              <Trans i18nKey={`learn.topics.${topic.id}.more.${p}`} components={BODY_TAGS} />
-                            </p>
-                          ))}
-                          {topic.id === 'i18-fab4' && <DeviationTables />}
+                          {chapters === 'inline' ? (
+                            <TopicChapter id={topic.id} />
+                          ) : (
+                            <Link
+                              to={learnTopicPath(learnTopicById(topic.id)!)}
+                              data-testid={`read-${topic.id}`}
+                              className="inline-flex items-center gap-1.5 font-semibold text-gold hover:text-gold-bright"
+                            >
+                              {t('learn.readChapter')} <ArrowRight size={15} />
+                            </Link>
+                          )}
                         </div>
                       )}
                     </div>

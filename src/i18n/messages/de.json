@@ -318,7 +318,8 @@
     "checkingLink": "Wir prüfen deinen Link…",
     "oneMoment": "Einen Moment.",
     "resetUnavailableTitle": "Passwort-Reset ist hier nicht verfügbar",
-    "resetUnavailableBody": "In diesem Build ist kein Backend konfiguriert."
+    "resetUnavailableBody": "In diesem Build ist kein Backend konfiguriert.",
+    "captchaFailed": "Die Bot-Prüfung ist fehlgeschlagen. Bitte lade die Seite neu und versuche es noch einmal."
   },
   "paywall": {
     "g1": "Trainingsübungen",
@@ -1078,7 +1079,11 @@
       "a6": "Bei sechs Decks ist eine Spreizung von 1–8 bis 1–16 der professionelle Standard: eine Einheit bei True Count +1 oder darunter, Verdopplung mit jedem Punkt, gedeckelt bei acht bis sechzehn Einheiten. Alles Engere verschenkt den größten Teil des Vorteils; alles Weitere zieht Aufmerksamkeit auf sich.",
       "q7": "Geht es in diesem Trainer um echtes Geld?",
       "a7": "Nein. Jede Hand ist simuliert. Der Trainer ist ein Lernwerkzeug für Basisstrategie und Hi-Lo-Kartenzählen; es gibt kein Glücksspiel, keine Einzahlungen und keine Auszahlungen."
-    }
+    },
+    "readChapter": "Ganzes Kapitel lesen",
+    "otherChapters": "Weitere Kapitel",
+    "allChapters": "Alle Kapitel",
+    "chapterOf": "Kapitel {{n}} von {{total}}"
   },
   "basics": {
     "you": "Du",
@@ -2083,7 +2088,7 @@
     "pages": {
       "learn": {
         "title": "Kartenzählen lernen — Hi-Lo, True Count, Basisstrategie, Illustrious 18",
-        "description": "Wie Blackjack funktioniert, wie der Hi-Lo-Count funktioniert, Running Count zu True Count, Basisstrategie, die Abweichungen der Illustrious 18 und Fab 4, Einsatzspreizung und Deck-Schätzung — für Einsteiger erklärt."
+        "description": "Hi-Lo-Kartenzählen für Einsteiger: Running Count, True Count, Basisstrategie, Illustrious 18 und Fab 4, Einsatzspreizung und Deck-Schätzung."
       },
       "login": {
         "title": "Anmelden — Blackjack Kartenzähl-Trainer",
@@ -2108,6 +2113,42 @@
       "contact": {
         "title": "Kontakt & Impressum — Blackjack Kartenzähl-Trainer",
         "description": "Wer den Blackjack Kartenzähl-Trainer betreibt und wie du uns für Support, Abrechnung und Datenanfragen erreichst."
+      },
+      "learn-card-counting": {
+        "title": "Was ist Kartenzählen? So funktioniert es beim Blackjack",
+        "description": "Kartenzählen erklärt: warum der Schuh kippt, was die laufende Bilanz verfolgt und warum Zählen legal, aber unerwünscht ist. Einsteigerkapitel mit Rechenbeispielen."
+      },
+      "learn-hi-lo-system": {
+        "title": "Das Hi-Lo-System — Werte, Running Count, Training",
+        "description": "So funktioniert der Hi-Lo-Count: +1 für 2–6, 0 für 7–9, −1 für Zehner und Asse. In Paaren zählen, kürzen, und die Übungen, die daraus einen Reflex machen."
+      },
+      "learn-true-count": {
+        "title": "True Count erklärt — Running Count ÷ Restdecks",
+        "description": "Warum der Running Count nicht reicht und wie du ihn umrechnest: True Count = Running Count geteilt durch Restdecks, mit Rechenbeispielen und Rundung."
+      },
+      "learn-basic-strategy": {
+        "title": "Blackjack-Basisstrategie — jede Hand, S17 und H17",
+        "description": "Der mathematisch beste Zug für jede Hand gegen jede Dealerkarte: ziehen, stehen, verdoppeln, splitten, aufgeben — und warum sie vor dem Zählen kommt."
+      },
+      "learn-deviations": {
+        "title": "Blackjack-Abweichungen — wenn der Count den Zug ändert",
+        "description": "Index-Züge erklärt: wann ein hoher oder tiefer True Count die Basisstrategie überstimmt, warum die Versicherung bei +3 kippt, und wie du Abweichungen sicher lernst."
+      },
+      "learn-illustrious-18-fab-4": {
+        "title": "Illustrious 18 & Fab 4 — Hi-Lo-Indextabelle",
+        "description": "Die Illustrious 18 und Fab 4 als Tabelle: jede Hand, ihr True-Count-Index und der Zug darüber und darunter — die Abweichungen mit dem meisten Wert."
+      },
+      "learn-bet-spread": {
+        "title": "Bet Spread — den Einsatz nach dem True Count bemessen",
+        "description": "Einsätze nach dem Count bemessen: Einheiten, Rampen, ein 1–8-Spread und das Risiko, das mit breiterem Spreizen kommt. Mit der Mathematik dahinter."
+      },
+      "learn-deck-estimation": {
+        "title": "Deck-Schätzung — die Ablage lesen",
+        "description": "Wie du die Restdecks an der Ablage abschätzt, warum es beim True Count auf ein halbes Deck ankommt, und wie du das trainierst."
+      },
+      "strategy-chart": {
+        "title": "Blackjack-Basisstrategie-Tabelle — kostenlos, S17 & H17",
+        "description": "Eine kostenlose Basisstrategie-Tabelle für Blackjack: harte und weiche Hände und Paare gegen jede Dealerkarte, umschaltbar zwischen S17 und H17."
       }
     }
   },

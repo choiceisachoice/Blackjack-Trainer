@@ -11,6 +11,19 @@ table with bots, splits, insurance and payouts. A placement test puts a learner
 on a curriculum, and the plan answers "what do I do next" on every visit. Seven
 languages. Free tier and a paid tier, with real Stripe subscriptions behind it.
 
+The theory is public and needs no account:
+
+- [Learn card counting](https://black-jack-training.com/learn) — the whole
+  guide, with a chapter each on the
+  [Hi-Lo system](https://black-jack-training.com/learn/hi-lo-system),
+  the [true count](https://black-jack-training.com/learn/true-count),
+  [basic strategy](https://black-jack-training.com/learn/basic-strategy) and
+  the [Illustrious 18 and Fab 4](https://black-jack-training.com/learn/illustrious-18-fab-4)
+  with their index tables.
+- [Basic strategy chart](https://black-jack-training.com/strategy-chart) —
+  every hand against every dealer upcard, S17 and H17.
+- In German: [Kartenzählen lernen](https://black-jack-training.com/de/learn).
+
 ---
 
 ## What is interesting about it, technically
@@ -83,7 +96,7 @@ stored, so it cannot drift out of step with Stripe. Copy `.env.example` to
 is in it.
 
 ```bash
-npm run test:run     # 2200+ tests across 131 files
+npm run test:run     # 2300+ tests across 150 files
 npm run typecheck    # app and test projects
 npm run lint         # includes type-aware no-floating-promises
 npm run build

@@ -318,7 +318,8 @@
     "checkingLink": "Checking your link…",
     "oneMoment": "One moment.",
     "resetUnavailableTitle": "Password reset is unavailable here",
-    "resetUnavailableBody": "This build has no backend configured."
+    "resetUnavailableBody": "This build has no backend configured.",
+    "captchaFailed": "The bot check did not go through. Please reload the page and try again."
   },
   "paywall": {
     "g1": "Training drills",
@@ -1078,7 +1079,11 @@
       "a6": "At six decks, a spread of 1–8 to 1–16 is the professional standard: one unit at a true count of +1 or below, doubling with each point, capped at eight to sixteen units. Anything narrower gives away most of the edge; anything wider draws attention.",
       "q7": "Does this trainer involve real money?",
       "a7": "No. Every hand is simulated. The trainer is an educational tool for basic strategy and Hi-Lo card counting; there is no gambling, no deposits and no payouts."
-    }
+    },
+    "readChapter": "Read the full chapter",
+    "otherChapters": "Other chapters",
+    "allChapters": "All chapters",
+    "chapterOf": "Chapter {{n}} of {{total}}"
   },
   "basics": {
     "you": "You",
@@ -2083,7 +2088,7 @@
     "pages": {
       "learn": {
         "title": "Learn Card Counting — Hi-Lo, True Count, Basic Strategy, Illustrious 18",
-        "description": "How blackjack works, how the Hi-Lo count works, running count to true count, basic strategy, the Illustrious 18 and Fab 4 deviations, bet spread and deck estimation — explained for beginners."
+        "description": "Hi-Lo card counting explained for beginners: running count, true count, basic strategy, the Illustrious 18 and Fab 4, bet spread and deck estimation."
       },
       "login": {
         "title": "Sign in — Blackjack Card Counting Trainer",
@@ -2108,6 +2113,42 @@
       "contact": {
         "title": "Contact & Imprint — Blackjack Card Counting Trainer",
         "description": "Who operates the Blackjack Card Counting Trainer and how to reach us for support, billing and data requests."
+      },
+      "learn-card-counting": {
+        "title": "What Is Card Counting? How It Works in Blackjack",
+        "description": "Card counting explained: why the shoe drifts, what the running tally tracks, and why counting is legal but unwelcome. A beginner chapter with worked numbers."
+      },
+      "learn-hi-lo-system": {
+        "title": "The Hi-Lo Card Counting System — Values, Running Count, Practice",
+        "description": "How the Hi-Lo count works: +1 for 2–6, 0 for 7–9, −1 for tens and aces. Counting in pairs, cancelling, and the drills that make it a reflex."
+      },
+      "learn-true-count": {
+        "title": "True Count Explained — Running Count ÷ Decks Remaining",
+        "description": "Why the running count is not enough and how to convert it: true count = running count divided by decks left, with worked examples and rounding."
+      },
+      "learn-basic-strategy": {
+        "title": "Blackjack Basic Strategy — Every Hand, S17 and H17",
+        "description": "The mathematically best play for every hand against every dealer upcard: hit, stand, double, split, surrender — and why it comes before counting."
+      },
+      "learn-deviations": {
+        "title": "Blackjack Deviations — When the Count Changes the Play",
+        "description": "Index plays explained: when a high or low true count overrides basic strategy, why insurance flips at +3, and how to learn deviations safely."
+      },
+      "learn-illustrious-18-fab-4": {
+        "title": "Illustrious 18 & Fab 4 — Hi-Lo Index Chart",
+        "description": "The Illustrious 18 and Fab 4 as a table: each hand, its true-count index and the play above and below it — the deviations that carry most of the value."
+      },
+      "learn-bet-spread": {
+        "title": "Bet Spread — Sizing Your Bet by the True Count",
+        "description": "How to size bets with the count: units, ramps, a 1–8 spread, and the risk that comes with spreading wider. With the maths behind the edge."
+      },
+      "learn-deck-estimation": {
+        "title": "Deck Estimation — Judging the Discard Tray",
+        "description": "How to estimate the decks remaining from the discard tray, why half-deck accuracy matters for the true count, and how to train it."
+      },
+      "strategy-chart": {
+        "title": "Blackjack Basic Strategy Chart — Free, S17 & H17",
+        "description": "A free basic strategy chart for blackjack: hard totals, soft totals and pairs against every dealer upcard, switchable between S17 and H17 rules."
       }
     }
   },

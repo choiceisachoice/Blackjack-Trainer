@@ -113,8 +113,12 @@ function buildSections(table: StrategyTable, t: Translate): ChartSection[] {
  * Interactive Basic Strategy chart generated from the engine strategy tables.
  * Displays 4 sections with colored cells, hover effects, and click-to-detail.
  * Automatically switches between S17 and H17 based on selected casino rules.
+ *
+ * @param heading - The element for the title. `h2` inside the app, where the
+ *   screen is one of many; `h1` on the public page, where the chart is the
+ *   page and a search engine reads the first heading as its subject.
  */
-export function StrategyChart() {
+export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h2' } = {}) {
   const { t } = useTranslation()
   const [selected, setSelected] = useState<CellInfo | null>(null)
   const dealerHitsSoft17 = useAppStore(s => s.selectedRules.dealerHitsSoft17)
@@ -136,7 +140,7 @@ export function StrategyChart() {
     <div className="flex-1 p-4 md:p-6 max-w-4xl mx-auto w-full">
       {/* Header */}
       <div className="text-center mb-5">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">{t('chart.title')}</h2>
+        <Heading className="text-2xl md:text-3xl font-extrabold text-gold-gradient">{t('chart.title')}</Heading>
         <p className="mt-1 text-sm text-content/50">{t('chart.sub')}</p>
       </div>
 

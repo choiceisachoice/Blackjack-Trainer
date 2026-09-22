@@ -176,6 +176,11 @@ describe('language prefixes in the URL', () => {
     expect(publicPathOf('/terms')).toBe('/terms')
     expect(publicPathOf('/app')).toBeNull()
     expect(publicPathOf('/de/app')).toBeNull()
+    // The chapter pages and the chart are public in every language too.
+    expect(publicPathOf('/de/learn/hi-lo-system')).toBe('/learn/hi-lo-system')
+    expect(publicPathOf('/learn/no-such-chapter')).toBeNull()
+    expect(publicPathOf('/fr/strategy-chart')).toBe('/strategy-chart')
+    expect(localizedPath('/learn/true-count', 'it')).toBe('/it/learn/true-count')
   })
 })
 

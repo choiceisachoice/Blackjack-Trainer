@@ -44,6 +44,37 @@ describe('prerender entry', () => {
     expect(meta.title).toMatch(/learn/i)
   })
 
+  it('renders every chapter on a page of its own, with its own head', async () => {
+    const routes = entry.PRERENDER_ROUTES.map(r => r.path)
+    expect(routes.filter(p => p.startsWith('/learn/'))).toHaveLength(8)
+    expect(routes).toContain('/strategy-chart')
+    const { html, meta } = await entry.render('/learn/illustrious-18-fab-4', 'en')
+    expect(html).toMatch(/<h1/)
+    expect(html).toMatch(/Illustrious 18/)
+    expect(html).toMatch(/data-testid="table-i18"/)
+    expect(meta.title).toMatch(/Illustrious 18/)
+    expect(meta.canonical).toBe('https://black-jack-training.com/learn/illustrious-18-fab-4')
+    const de = await entry.render('/learn/true-count', 'de', '/de')
+    expect(de.meta.canonical).toBe('https://black-jack-training.com/de/learn/true-count')
+    expect(de.meta.title).toMatch(/True Count/)
+  })
+
+  it('renders the strategy chart with every cell in the HTML', async () => {
+    const { html, meta } = await entry.render('/strategy-chart', 'en')
+    expect(html).toMatch(/<h1/)
+    // The chart is a grid of cells, not a <table>; a crawler still gets every
+    // hand-versus-upcard decision as text. 10 upcards × 28 rows or more.
+    expect((html.match(/data-testid="chart-cell"/g) ?? []).length).toBeGreaterThan(250)
+    expect(meta.canonical).toBe('https://black-jack-training.com/strategy-chart')
+  })
+
+  it('links the hub to the chapters instead of repeating them', async () => {
+    const { html } = await entry.render('/learn', 'en')
+    expect(html).toMatch(/href="\/learn\/hi-lo-system"/)
+    // The chapter paragraphs live on the chapter pages only.
+    expect(html).not.toMatch(/data-testid="table-i18"/)
+  })
+
   it('renders the legal pages', async () => {
     for (const path of ['/terms', '/privacy', '/contact']) {
       const { html } = await entry.render(path, 'en')

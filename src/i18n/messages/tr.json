@@ -318,7 +318,8 @@
     "checkingLink": "Bağlantınız kontrol ediliyor…",
     "oneMoment": "Bir saniye.",
     "resetUnavailableTitle": "Şifre sıfırlama burada kullanılamıyor",
-    "resetUnavailableBody": "Bu sürümde yapılandırılmış bir arka uç yok."
+    "resetUnavailableBody": "Bu sürümde yapılandırılmış bir arka uç yok.",
+    "captchaFailed": "Bot denetimi başarısız oldu. Lütfen sayfayı yenileyip tekrar deneyin."
   },
   "paywall": {
     "g1": "Alıştırmalar",
@@ -1078,7 +1079,11 @@
       "a6": "Altı destede 1–8 ile 1–16 arası aralık profesyonel standarttır: +1 veya altı true count’ta bir birim, her puanda ikiye katlanır, sekiz ila on altı birimde tavan yapar. Daha dar olan avantajın çoğunu verir; daha geniş olan dikkat çeker.",
       "q7": "Bu antrenörde gerçek para var mı?",
       "a7": "Hayır. Her el simülasyondur. Antrenör, temel strateji ve Hi-Lo kart sayımı için bir eğitim aracıdır; kumar, para yatırma ve ödeme yoktur."
-    }
+    },
+    "readChapter": "Bölümün tamamını oku",
+    "otherChapters": "Diğer bölümler",
+    "allChapters": "Tüm bölümler",
+    "chapterOf": "Bölüm {{n}} / {{total}}"
   },
   "basics": {
     "you": "Siz",
@@ -2083,7 +2088,7 @@
     "pages": {
       "learn": {
         "title": "Kart Saymayı Öğren — Hi-Lo, True Count, Temel Strateji, Illustrious 18",
-        "description": "Blackjack nasıl işler, Hi-Lo sayımı nasıl işler, running count’tan true count’a, temel strateji, Illustrious 18 ve Fab 4 sapmaları, bahis aralığı ve deste tahmini — yeni başlayanlar için anlatıldı."
+        "description": "Yeni başlayanlar için Hi-Lo kart sayma: running count, true count, temel strateji, Illustrious 18 ve Fab 4, bahis aralığı ve deste tahmini."
       },
       "login": {
         "title": "Giriş — Kart Sayma Antrenörü",
@@ -2108,6 +2113,42 @@
       "contact": {
         "title": "İletişim ve Künye — Kart Sayma Antrenörü",
         "description": "Hizmeti kimin işlettiği ve destek, faturalama ve veri talepleri için bize nasıl ulaşacağın."
+      },
+      "learn-card-counting": {
+        "title": "Kart sayma nedir? Blackjack’te nasıl çalışır",
+        "description": "Kart sayma açıklandı: shoe neden kayar, koşan sayım neyi izler ve saymak neden yasal ama istenmez. Sayısal örneklerle başlangıç bölümü."
+      },
+      "learn-hi-lo-system": {
+        "title": "Hi-Lo sistemi — değerler, running count, pratik",
+        "description": "Hi-Lo nasıl çalışır: 2–6 için +1, 7–9 için 0, onluklar ve aslar için −1. Çiftler halinde saymak, sadeleştirmek ve bunu refleks yapan alıştırmalar."
+      },
+      "learn-true-count": {
+        "title": "True count açıklandı — running count ÷ kalan deste",
+        "description": "Running count neden yetmez ve nasıl dönüştürülür: true count = running count bölü kalan deste, örneklerle ve yuvarlamayla."
+      },
+      "learn-basic-strategy": {
+        "title": "Blackjack temel strateji — her el, S17 ve H17",
+        "description": "Her el için krupiyenin her kartına karşı matematiksel en iyi hamle: kart al, dur, ikiye katla, böl, teslim ol — ve neden saymadan önce gelir."
+      },
+      "learn-deviations": {
+        "title": "Blackjack sapmaları — sayım hamleyi değiştirdiğinde",
+        "description": "İndeks oyunları açıklandı: yüksek veya düşük true count temel stratejiyi ne zaman geçersiz kılar, sigorta neden +3’te döner ve sapmalar güvenle nasıl öğrenilir."
+      },
+      "learn-illustrious-18-fab-4": {
+        "title": "Illustrious 18 ve Fab 4 — Hi-Lo indeks tablosu",
+        "description": "Illustrious 18 ve Fab 4 tablo halinde: her el, true count indeksi ve üstündeki ve altındaki hamle — değerin çoğunu taşıyan sapmalar."
+      },
+      "learn-bet-spread": {
+        "title": "Bahis aralığı — bahsi true count’a göre ayarlamak",
+        "description": "Bahisleri sayıma göre boyutlandırmak: birimler, rampalar, 1–8 aralık ve daha geniş açmanın getirdiği risk. Avantajın arkasındaki matematikle."
+      },
+      "learn-deck-estimation": {
+        "title": "Deste tahmini — atılan kartları okumak",
+        "description": "Atılan kart tepsisinden kalan desteleri tahmin etmek, yarım deste hassasiyetinin true count için neden önemli olduğu ve nasıl çalışılacağı."
+      },
+      "strategy-chart": {
+        "title": "Blackjack temel strateji tablosu — ücretsiz, S17 ve H17",
+        "description": "Ücretsiz bir temel strateji tablosu: sert toplamlar, yumuşak toplamlar ve çiftler krupiyenin her kartına karşı, S17 ve H17 kuralları arasında geçişli."
       }
     }
   },

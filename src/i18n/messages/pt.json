@@ -318,7 +318,8 @@
     "checkingLink": "A verificar o seu link…",
     "oneMoment": "Um momento.",
     "resetUnavailableTitle": "A reposição de palavra-passe não está disponível aqui",
-    "resetUnavailableBody": "Esta build não tem backend configurado."
+    "resetUnavailableBody": "Esta build não tem backend configurado.",
+    "captchaFailed": "A verificação anti-bot falhou. Recarregue a página e tente novamente."
   },
   "paywall": {
     "g1": "Exercícios",
@@ -1078,7 +1079,11 @@
       "a6": "Com seis baralhos, um spread de 1–8 a 1–16 é o padrão profissional: uma unidade a true count +1 ou menos, a dobrar a cada ponto, com teto de oito a dezasseis unidades. Mais estreito oferece a maior parte da vantagem; mais largo chama a atenção.",
       "q7": "Este treinador envolve dinheiro real?",
       "a7": "Não. Cada mão é simulada. O treinador é uma ferramenta educativa para a estratégia básica e a contagem Hi-Lo; não há jogo a dinheiro, nem depósitos, nem pagamentos."
-    }
+    },
+    "readChapter": "Ler o capítulo completo",
+    "otherChapters": "Outros capítulos",
+    "allChapters": "Todos os capítulos",
+    "chapterOf": "Capítulo {{n}} de {{total}}"
   },
   "basics": {
     "you": "Você",
@@ -2083,7 +2088,7 @@
     "pages": {
       "learn": {
         "title": "Aprender a contar cartas — Hi-Lo, True Count, estratégia básica, Illustrious 18",
-        "description": "Como funciona o blackjack, como funciona a contagem Hi-Lo, do running count ao true count, a estratégia básica, os desvios Illustrious 18 e Fab 4, o spread de apostas e a estimativa de baralhos — explicado para principiantes."
+        "description": "Contagem de cartas Hi-Lo para iniciantes: running count, true count, estratégia básica, Illustrious 18 e Fab 4, bet spread e estimativa de baralhos."
       },
       "login": {
         "title": "Iniciar sessão — Treinador de contagem de cartas",
@@ -2108,6 +2113,42 @@
       "contact": {
         "title": "Contacto e informação legal — Treinador de contagem de cartas",
         "description": "Quem opera o serviço e como nos contactar para suporte, faturação e pedidos de dados."
+      },
+      "learn-card-counting": {
+        "title": "O que é a contagem de cartas? Como funciona no blackjack",
+        "description": "A contagem de cartas explicada: porque o shoe desequilibra, o que a contagem corrente segue e porque contar é legal mas indesejado. Capítulo para iniciantes com exemplos."
+      },
+      "learn-hi-lo-system": {
+        "title": "O sistema Hi-Lo — valores, running count, prática",
+        "description": "Como funciona o Hi-Lo: +1 para 2–6, 0 para 7–9, −1 para dez e ases. Contar aos pares, anular, e os exercícios que o tornam um reflexo."
+      },
+      "learn-true-count": {
+        "title": "O true count explicado — running count ÷ baralhos restantes",
+        "description": "Porque o running count não chega e como convertê-lo: true count = running count a dividir pelos baralhos restantes, com exemplos e arredondamento."
+      },
+      "learn-basic-strategy": {
+        "title": "Estratégia básica de blackjack — cada mão, S17 e H17",
+        "description": "A melhor jogada matemática para cada mão contra cada carta do dealer: pedir, ficar, dobrar, dividir, render — e porque vem antes da contagem."
+      },
+      "learn-deviations": {
+        "title": "Desvios no blackjack — quando o count muda a jogada",
+        "description": "Os índices explicados: quando um true count alto ou baixo se sobrepõe à estratégia básica, porque o seguro vira em +3, e como aprender desvios sem quebrar a base."
+      },
+      "learn-illustrious-18-fab-4": {
+        "title": "Illustrious 18 e Fab 4 — tabela de índices Hi-Lo",
+        "description": "As Illustrious 18 e Fab 4 em tabela: cada mão, o seu índice de true count e a jogada acima e abaixo — os desvios que carregam a maior parte do valor."
+      },
+      "learn-bet-spread": {
+        "title": "Bet spread — apostar conforme o true count",
+        "description": "Como dimensionar apostas com o count: unidades, rampas, um spread 1–8 e o risco que vem ao alargar. Com a matemática por trás da vantagem."
+      },
+      "learn-deck-estimation": {
+        "title": "Estimativa de baralhos — ler a bandeja de descarte",
+        "description": "Como estimar os baralhos restantes pela bandeja de descarte, porque a precisão ao meio baralho importa para o true count, e como treiná-la."
+      },
+      "strategy-chart": {
+        "title": "Tabela de estratégia básica de blackjack — grátis, S17 e H17",
+        "description": "Uma tabela de estratégia básica gratuita: totais duros, totais suaves e pares contra cada carta do dealer, comutável entre as regras S17 e H17."
       }
     }
   },

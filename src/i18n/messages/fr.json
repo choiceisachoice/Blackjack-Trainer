@@ -318,7 +318,8 @@
     "checkingLink": "Vérification de votre lien…",
     "oneMoment": "Un instant.",
     "resetUnavailableTitle": "La réinitialisation du mot de passe n'est pas disponible ici",
-    "resetUnavailableBody": "Cette version n'a pas de backend configuré."
+    "resetUnavailableBody": "Cette version n'a pas de backend configuré.",
+    "captchaFailed": "La vérification anti-robot a échoué. Rechargez la page et réessayez."
   },
   "paywall": {
     "g1": "Exercices",
@@ -1078,7 +1079,11 @@
       "a6": "À six jeux, un écart de 1–8 à 1–16 est le standard professionnel : une unité à un true count de +1 ou moins, doublement à chaque point, plafonné à huit à seize unités. Plus étroit cède la plus grande partie de l’avantage ; plus large attire l’attention.",
       "q7": "Cet entraîneur implique-t-il de l’argent réel ?",
       "a7": "Non. Chaque main est simulée. L’entraîneur est un outil pédagogique pour la stratégie de base et le comptage Hi-Lo ; il n’y a ni jeu d’argent, ni dépôt, ni gain."
-    }
+    },
+    "readChapter": "Lire le chapitre complet",
+    "otherChapters": "Autres chapitres",
+    "allChapters": "Tous les chapitres",
+    "chapterOf": "Chapitre {{n}} sur {{total}}"
   },
   "basics": {
     "you": "Vous",
@@ -2083,7 +2088,7 @@
     "pages": {
       "learn": {
         "title": "Apprendre le comptage de cartes — Hi-Lo, True Count, stratégie de base, Illustrious 18",
-        "description": "Comment fonctionne le blackjack, comment fonctionne le compte Hi-Lo, du running count au true count, la stratégie de base, les déviations Illustrious 18 et Fab 4, l’écart de mise et l’estimation des jeux — expliqués aux débutants."
+        "description": "Le comptage Hi-Lo expliqué aux débutants : running count, true count, stratégie de base, Illustrious 18 et Fab 4, écart de mise, estimation du sabot."
       },
       "login": {
         "title": "Connexion — Entraîneur de comptage de cartes",
@@ -2108,6 +2113,42 @@
       "contact": {
         "title": "Contact et mentions légales — Entraîneur de comptage de cartes",
         "description": "Qui exploite le service et comment nous joindre pour l’assistance, la facturation et les demandes liées aux données."
+      },
+      "learn-card-counting": {
+        "title": "Qu’est-ce que le comptage de cartes ? Comment ça marche au blackjack",
+        "description": "Le comptage de cartes expliqué : pourquoi le sabot dérive, ce que suit le décompte courant, et pourquoi compter est légal mais mal vu. Avec des exemples chiffrés."
+      },
+      "learn-hi-lo-system": {
+        "title": "Le système Hi-Lo — valeurs, running count, entraînement",
+        "description": "Comment fonctionne le Hi-Lo : +1 pour 2–6, 0 pour 7–9, −1 pour les dix et les as. Compter par paires, annuler, et les exercices qui en font un réflexe."
+      },
+      "learn-true-count": {
+        "title": "Le true count expliqué — running count ÷ jeux restants",
+        "description": "Pourquoi le running count ne suffit pas et comment le convertir : true count = running count divisé par les jeux restants, avec exemples et arrondis."
+      },
+      "learn-basic-strategy": {
+        "title": "Stratégie de base au blackjack — chaque main, S17 et H17",
+        "description": "Le meilleur coup mathématique pour chaque main face à chaque carte du croupier : tirer, rester, doubler, séparer, abandonner — et pourquoi elle précède le comptage."
+      },
+      "learn-deviations": {
+        "title": "Déviations au blackjack — quand le count change le coup",
+        "description": "Les index expliqués : quand un true count haut ou bas l’emporte sur la stratégie de base, pourquoi l’assurance bascule à +3, et comment apprendre sans casser les bases."
+      },
+      "learn-illustrious-18-fab-4": {
+        "title": "Illustrious 18 & Fab 4 — tableau des index Hi-Lo",
+        "description": "Les Illustrious 18 et Fab 4 en tableau : chaque main, son index de true count et le coup au-dessus et en dessous — les déviations qui portent l’essentiel du gain."
+      },
+      "learn-bet-spread": {
+        "title": "Écart de mise — miser selon le true count",
+        "description": "Comment dimensionner ses mises avec le count : unités, rampes, un écart 1–8, et le risque qui vient avec un écart plus large. Avec les maths derrière l’avantage."
+      },
+      "learn-deck-estimation": {
+        "title": "Estimation des jeux — lire la défausse",
+        "description": "Comment estimer les jeux restants à la défausse, pourquoi la précision au demi-jeu compte pour le true count, et comment s’y entraîner."
+      },
+      "strategy-chart": {
+        "title": "Tableau de stratégie de base au blackjack — gratuit, S17 & H17",
+        "description": "Un tableau de stratégie de base gratuit : totaux durs, totaux souples et paires face à chaque carte du croupier, commutable entre les règles S17 et H17."
       }
     }
   },

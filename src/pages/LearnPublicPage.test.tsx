@@ -34,6 +34,13 @@ describe('LearnPublicPage', () => {
     expect(document.body.textContent).toMatch(/illustrious 18/i)
   })
 
+  it('links every topic to its own chapter page rather than repeating the chapter', () => {
+    renderPage()
+    expect(screen.getByTestId('read-hi-lo')).toHaveAttribute('href', '/learn/hi-lo-system')
+    expect(screen.getByTestId('read-i18-fab4')).toHaveAttribute('href', '/learn/illustrious-18-fab-4')
+    expect(screen.queryByTestId('table-i18')).not.toBeInTheDocument()
+  })
+
   it('gives each topic an anchor', () => {
     renderPage()
     expect(document.getElementById('hi-lo')).not.toBeNull()

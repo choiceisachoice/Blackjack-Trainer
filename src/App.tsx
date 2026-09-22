@@ -25,6 +25,9 @@ const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage').then(m => ({ 
 const ContactPage = lazy(() => import('./pages/legal/ContactPage').then(m => ({ default: m.ContactPage })))
 // The theory, public: the one part of the product search engines can answer with.
 const LearnPublicPage = lazy(() => import('./pages/LearnPublicPage').then(m => ({ default: m.LearnPublicPage })))
+const LearnTopicPage = lazy(() => import('./pages/LearnTopicPage').then(m => ({ default: m.LearnTopicPage })))
+// The chart without a login: the one piece of the product that earns a link.
+const StrategyChartPublicPage = lazy(() => import('./pages/StrategyChartPublicPage').then(m => ({ default: m.StrategyChartPublicPage })))
 // The ternary matters: guarding only the <Route> leaves the dynamic import in
 // place, and Rollup emits a DevPreview chunk into the production build that
 // nothing can ever reach. Branching on the statically-known DEV flag lets the
@@ -175,6 +178,8 @@ function App() {
         <Route path="/app" element={<ProtectedRoute><TrainerApp /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
         <Route path="/learn" element={<LearnPublicPage />} />
+        <Route path="/learn/:slug" element={<LearnTopicPage />} />
+        <Route path="/strategy-chart" element={<StrategyChartPublicPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/contact" element={<ContactPage />} />

@@ -35,6 +35,13 @@
 	root * /app/dist
 	encode gzip
 
+	# One host. Traefik in front routes www here as well, and until this
+	# line the www address answered with a full copy of every page — two URLs
+	# for one page, which a search engine has to resolve on its own and may
+	# resolve the wrong way. The apex is the canonical host, so www redirects.
+	@www host www.black-jack-training.com
+	redir @www https://black-jack-training.com{uri} permanent
+
 	# Vite content-hashes everything under /assets, so a returning visitor
 	# need never ask about them again. Everything else keeps Caddy's default.
 	@assets path /assets/*

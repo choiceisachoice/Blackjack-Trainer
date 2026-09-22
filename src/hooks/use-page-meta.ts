@@ -6,8 +6,16 @@ import { localeFromPath } from '../i18n/locales'
 /** The public origin, for canonical and Open Graph URLs. */
 export const SITE_ORIGIN = 'https://black-jack-training.com'
 
-/** Every routed page that has a title of its own. */
-export type PageKey = 'landing' | 'learn' | 'login' | 'app' | 'account' | 'terms' | 'privacy' | 'contact'
+/**
+ * Every routed page that has a title of its own.
+ *
+ * The chapter pages are `learn-<slug>` — one key per chapter, so each has
+ * its own title and description (`meta.pages.learn-hi-lo-system`), which is
+ * the whole reason the chapters became pages.
+ */
+export type PageKey =
+  | 'landing' | 'learn' | 'strategy-chart' | 'login' | 'app' | 'account' | 'terms' | 'privacy' | 'contact'
+  | `learn-${string}`
 
 /** What the head carries for one page. */
 export interface PageMeta {
