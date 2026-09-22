@@ -251,6 +251,15 @@ Deno.serve(async (req) => {
       success_url: `${APP_URL}/app?checkout=success`,
       cancel_url: `${APP_URL}/app?checkout=cancelled`,
       allow_promotion_codes: true,
+      // Show the price in the customer's own currency at the till. The
+      // prices stay in CHF and stay in Stripe — nothing here or on the page
+      // learns a second amount — and Stripe converts at checkout, so a
+      // German reader sees euros and a US reader dollars without a second
+      // price list to keep in step. The parameter overrides the Dashboard
+      // setting, so this is on whatever the Dashboard says. The cost of the
+      // conversion is carried by the customer as part of the localized
+      // price, which is Stripe's rule, not ours.
+      adaptive_pricing: { enabled: true },
       ...(AUTOMATIC_TAX
         ? {
             automatic_tax: { enabled: true },
