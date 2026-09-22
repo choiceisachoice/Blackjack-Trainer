@@ -34,6 +34,7 @@ export const PRIVACY_DOC: LegalDoc = {
             'Bankroll log (optional): if you use the bankroll tracker, we store exactly what you enter — a date, hours played, a casino name you type in, and the money amounts you record (profit or loss, and your bankroll). You choose whether to use this feature at all, and you can edit or delete these entries.',
             'Payment: if you subscribe to Pro, payment is handled by Stripe. We share your email and an internal account identifier with Stripe and receive back your subscription status. We never receive or store your full card number.',
             'Local device storage: your preferences and an offline copy of your progress are kept in your browser (localStorage), and a session cookie keeps you signed in. We do not use advertising or cross-site tracking cookies.',
+            'Bot check: when you sign in, register or request a password reset, Cloudflare Turnstile checks that a person — not a script — is submitting the form. For that check Cloudflare processes your IP address and technical characteristics of your browser under its own privacy policy. We receive only a pass-or-fail token and never see those details.',
           ],
         },
       ],
@@ -52,6 +53,7 @@ export const PRIVACY_DOC: LegalDoc = {
           list: [
             'Supabase — hosts our database, handles authentication, and runs our server-side functions.',
             'Stripe — processes subscription payments as an independent payment processor. Stripe handles your card details under its own privacy policy.',
+            'Cloudflare — runs the bot check (Turnstile) on the sign-in, registration and password-reset forms.',
           ],
         },
       ],

@@ -29,16 +29,18 @@ export interface AuthStoreActions {
     email: string,
     password: string,
     username?: string,
+    /** Turnstile token, when the captcha is configured. Supabase verifies it. */
+    captchaToken?: string,
   ) => Promise<{ error: string | null; needsConfirmation?: boolean }>
   /** Sign in with email + password. Returns an error message on failure. */
-  signIn: (email: string, password: string) => Promise<string | null>
+  signIn: (email: string, password: string, captchaToken?: string) => Promise<string | null>
   /**
    * Send a password-reset link.
    *
    * Returns an error only for problems that are not about the address itself —
    * see the implementation for why an unknown email must not be reported.
    */
-  requestPasswordReset: (email: string) => Promise<string | null>
+  requestPasswordReset: (email: string, captchaToken?: string) => Promise<string | null>
   /** Set a new password for the account the current recovery session belongs to. */
   updatePassword: (password: string) => Promise<string | null>
   /** Sign out the current user. */
@@ -94,13 +96,17 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }
   },
 
-  async signUp(email, password, username) {
+  async signUp(email, password, username, captchaToken) {
     if (!supabase) return { error: AUTH_UNAVAILABLE }
     set({ error: null })
+    const options = {
+      ...(username ? { data: { username } } : {}),
+      ...(captchaToken ? { captchaToken } : {}),
+    }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: username ? { data: { username } } : undefined,
+      options: Object.keys(options).length > 0 ? options : undefined,
     })
     if (error) {
       // The key, never the message. `supabase-js` writes for a developer:
@@ -126,7 +132,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     return { error: null, needsConfirmation: data.session === null }
   },
 
-  async requestPasswordReset(email) {
+  async requestPasswordReset(email, captchaToken) {
     if (!supabase) return AUTH_UNAVAILABLE
     set({ error: null })
 
@@ -136,6 +142,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
       // back to themselves — a hardcoded domain would mail every developer's
       // reset link to the live site.
       redirectTo: `${window.location.origin}/reset-password`,
+      ...(captchaToken ? { captchaToken } : {}),
     })
 
     /*
@@ -205,10 +212,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
     return null
   },
 
-  async signIn(email, password) {
+  async signIn(email, password, captchaToken) {
     if (!supabase) return AUTH_UNAVAILABLE
     set({ error: null })
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    // The token only travels when there is one: with the captcha off the
+    // call is exactly what it was, and the tests that pin it stay honest.
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      ...(captchaToken ? { options: { captchaToken } } : {}),
+    })
     if (error) {
       logFailure('auth', error)
       const key = authErrorKey(error)

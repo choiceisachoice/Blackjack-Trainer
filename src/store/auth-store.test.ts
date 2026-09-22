@@ -69,6 +69,30 @@ describe('auth-store', () => {
     expect(useAuthStore.getState().error).toBe('errors.auth.invalidCredentials')
   })
 
+  it('forwards a captcha token on every auth call, and only when there is one', async () => {
+    // Supabase verifies the token server-side once the captcha is switched
+    // on in the dashboard; from then on a call without it is refused. So the
+    // token has to reach all three calls — and stay out of them when the
+    // captcha is off, which is what the three tests around this one pin.
+    await useAuthStore.getState().signIn('a@b.com', 'secret1', 'tok')
+    expect(auth.signInWithPassword).toHaveBeenLastCalledWith({
+      email: 'a@b.com', password: 'secret1', options: { captchaToken: 'tok' },
+    })
+    await useAuthStore.getState().signUp('a@b.com', 'secret1', 'counter', 'tok')
+    expect(auth.signUp).toHaveBeenLastCalledWith({
+      email: 'a@b.com', password: 'secret1', options: { data: { username: 'counter' }, captchaToken: 'tok' },
+    })
+    await useAuthStore.getState().signUp('a@b.com', 'secret1', undefined, 'tok')
+    expect(auth.signUp).toHaveBeenLastCalledWith({
+      email: 'a@b.com', password: 'secret1', options: { captchaToken: 'tok' },
+    })
+    auth.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null })
+    await useAuthStore.getState().requestPasswordReset('a@b.com', 'tok')
+    expect(auth.resetPasswordForEmail).toHaveBeenLastCalledWith('a@b.com', {
+      redirectTo: `${window.location.origin}/reset-password`, captchaToken: 'tok',
+    })
+  })
+
   it('signUp passes the username as metadata', async () => {
     await useAuthStore.getState().signUp('a@b.com', 'secret1', 'counter')
     expect(auth.signUp).toHaveBeenCalledWith({

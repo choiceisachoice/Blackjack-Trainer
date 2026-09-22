@@ -4,6 +4,8 @@ import { PasswordInput } from './PasswordInput'
 import { Spade, Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth-store'
 import { Input } from '../common/ui'
+import { Turnstile } from './Turnstile'
+import { isCaptchaConfigured } from '../../services/captcha'
 
 /**
  * `reset` is a third mode rather than a separate route.
@@ -40,6 +42,17 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
   // here straight after a password change, which would otherwise look like
   // an unexplained logout.
   const [notice, setNotice] = useState<string | null>(initialNotice ?? null)
+  /*
+    The bot check. With the captcha configured the form will not submit
+    without a token, and a token is single-use — so every attempt, whatever
+    its outcome, bumps `captchaRound` and the widget fetches a fresh one.
+    Without a site key the widget renders nothing and the form is what it
+    always was.
+  */
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaRound, setCaptchaRound] = useState(0)
+  const [captchaFailed, setCaptchaFailed] = useState(false)
+  const captchaBlocks = isCaptchaConfigured && !captchaToken
 
   const switchMode = (m: Mode) => {
     setMode(m)
@@ -49,12 +62,13 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (busy) return
+    if (busy || captchaBlocks) return
     setBusy(true)
     setNotice(null)
+    const token = captchaToken ?? undefined
     try {
       if (mode === 'reset') {
-        const err = await requestPasswordReset(email.trim())
+        const err = await requestPasswordReset(email.trim(), token)
         /*
           The same message whether or not that address has an account.
 
@@ -65,7 +79,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
         */
         if (!err) setNotice(t('auth.resetSent'))
       } else if (mode === 'signup') {
-        const { error, needsConfirmation } = await signUp(email.trim(), password, username.trim() || undefined)
+        const { error, needsConfirmation } = await signUp(email.trim(), password, username.trim() || undefined, token)
         // Only mention email when an email is actually coming. With email
         // confirmation off — which is how the project is configured — the
         // account is live immediately and the auth listener takes the learner
@@ -75,10 +89,11 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
           setNotice(t('auth.accountCreated'))
         }
       } else {
-        await signIn(email.trim(), password)
+        await signIn(email.trim(), password, token)
       }
     } finally {
       setBusy(false)
+      if (isCaptchaConfigured) setCaptchaRound(r => r + 1)
     }
   }
 
@@ -166,6 +181,26 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
             </Field>
           )}
 
+          {/* Keyed on the mode so a switch remounts the widget with the right
+              action name; the round counter refreshes the token after a submit. */}
+          <Turnstile
+            key={mode}
+            action={mode === 'signin' ? 'login' : mode}
+            resetKey={captchaRound}
+            onToken={token => {
+              setCaptchaToken(token)
+              // A null after a token means it expired or the check failed;
+              // a null before any token is just the widget starting up.
+              if (token === null && captchaToken !== null) setCaptchaFailed(true)
+              if (token) setCaptchaFailed(false)
+            }}
+          />
+          {captchaFailed && (
+            <p className="text-sm text-error bg-error/10 border border-error/20 rounded-lg px-3 py-2" data-testid="auth-captcha-error">
+              {t('auth.captchaFailed')}
+            </p>
+          )}
+
           {error && (
             <p className="text-sm text-error bg-error/10 border border-error/20 rounded-lg px-3 py-2" data-testid="auth-error">
               {t(error)}
@@ -179,7 +214,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
 
           <button
             type="submit"
-            disabled={busy}
+            disabled={busy || captchaBlocks}
             data-testid="auth-submit"
             className="w-full py-2.5 rounded-xl font-semibold text-on-gold bg-gradient-to-b from-gold-bright to-gold
               border border-gold/50 cursor-pointer flex items-center justify-center gap-2
