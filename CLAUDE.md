@@ -114,6 +114,20 @@ paragraph earns readers. The chapter pages and the chart share
 `PublicShell`, so a visitor from a search result always has the same way
 home and the same way in.
 
+## Demo recordings
+
+`npm run demo:record` (optionally `-- speed casino`, `--rebuild` after a code
+change) films the product scenes as `recordings/NN_scene.mp4`, 1080p30,
+cursor drawn in. It builds the app once in offline mode into `dist-demo`,
+serves it statically, seeds the browser with the demo learner from
+`scripts/demo/fixture.mjs` (six weeks of sessions, level 12, three weak
+hands, every first-run screen already seen), pins `Math.random` to a seed
+per scene so the shoe and the flashcards deal the same way every run, and
+cuts the load off the front of each clip. Nothing of this is in the app:
+the app is filmed, it is not told. The clips are the website half of the
+coach videos; the coach half comes from Synthesia and the two are cut
+together in the Remotion project under `../Blackjack-Showcase`.
+
 ## Dev-only screens
 
 Four routes that exist only under `import.meta.env.DEV` and never reach a production

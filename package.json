@@ -15,7 +15,8 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "demo:record": "node scripts/demo/record.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.96.0",
@@ -48,6 +49,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "jsdom": "^28.1.0",
+    "playwright": "^1.63.0",
     "supabase": "^2.109.1",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
