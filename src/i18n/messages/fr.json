@@ -127,7 +127,8 @@
     "avatarGroupBase": "À toi dès le départ",
     "avatarGroupLevels": "Une par niveau",
     "avatarGroupAchievements": "Pour les succès les plus durs",
-    "avatarUnlockedCount": "{{n}} sur {{total}} débloquées"
+    "avatarUnlockedCount": "{{n}} sur {{total}} débloquées",
+    "adminAnalytics": "Statistiques du site"
   },
   "pricing": {
     "vatNote": "Prix final, TVA suisse de {{rate}}% incluse pour les clients en Suisse",
@@ -2149,6 +2150,10 @@
       "strategy-chart": {
         "title": "Tableau de stratégie de base au blackjack — gratuit, S17 & H17",
         "description": "Un tableau de stratégie de base gratuit : totaux durs, totaux souples et paires face à chaque carte du croupier, commutable entre les règles S17 et H17."
+      },
+      "admin-analytics": {
+        "title": "Statistiques du site — Blackjack Card Counting Trainer",
+        "description": "Visiteurs, pages vues, durée des sessions, inscriptions et clients payants."
       }
     }
   },
@@ -2185,5 +2190,48 @@
     "saveSession": "Enregistrer la session",
     "saveChanges": "Enregistrer les modifications",
     "unknownVenue": "Inconnu"
+  },
+  "adminAnalytics": {
+    "title": "Statistiques du site",
+    "subtitle": "Visiteurs, pages vues et inscriptions — depuis notre propre base de données, sans tiers.",
+    "reload": "Recharger",
+    "range": {
+      "label": "Période",
+      "today": "Aujourd’hui",
+      "yesterday": "Hier",
+      "last7": "7 derniers jours",
+      "last30": "30 derniers jours",
+      "custom": "Personnalisée",
+      "from": "Du",
+      "to": "Au",
+      "apply": "Appliquer"
+    },
+    "invalidRange": "Le jour de début doit précéder ou égaler le jour de fin.",
+    "kpi": {
+      "visitors": "Visiteurs",
+      "pageViews": "Pages vues",
+      "avgSession": "Session moy.",
+      "registrations": "Inscriptions",
+      "payingCustomers": "Clients payants",
+      "payingNow": "à l’instant, pas par période"
+    },
+    "sessions": "Sessions",
+    "sessionsCount": "{{count}} sessions",
+    "perDay": "Par jour",
+    "topPages": "Pages les plus vues",
+    "referrers": "Provenance",
+    "direct": "Direct / aucune",
+    "devices": {
+      "title": "Appareils",
+      "mobile": "Téléphone",
+      "tablet": "Tablette",
+      "desktop": "Ordinateur"
+    },
+    "unknown": "Inconnu",
+    "empty": "Rien sur cette période pour l’instant.",
+    "loading": "Chargement du rapport…",
+    "errorTitle": "Le rapport n’a pas pu être chargé.",
+    "errorBody": "Seuls les administrateurs inscrits peuvent le lire. Si vous en faites partie, réessayez dans un instant.",
+    "definitions": "Un visiteur est un navigateur doté d’un identifiant aléatoire. Une session se termine après 30 minutes sans activité ; sa durée va de la première page vue à la dernière activité. Les inscriptions sont les comptes créés sur la période. Les clients payants sont les abonnements actifs, comptés à l’instant."
   }
 }

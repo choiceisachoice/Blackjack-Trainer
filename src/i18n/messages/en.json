@@ -127,7 +127,8 @@
     "avatarGroupBase": "Yours from the start",
     "avatarGroupLevels": "One per level",
     "avatarGroupAchievements": "For the hardest awards",
-    "avatarUnlockedCount": "{{n}} of {{total}} unlocked"
+    "avatarUnlockedCount": "{{n}} of {{total}} unlocked",
+    "adminAnalytics": "Website analytics"
   },
   "pricing": {
     "vatNote": "Final price, incl. {{rate}}% Swiss VAT for customers in Switzerland",
@@ -2149,6 +2150,10 @@
       "strategy-chart": {
         "title": "Blackjack Basic Strategy Chart — Free, S17 & H17",
         "description": "A free basic strategy chart for blackjack: hard totals, soft totals and pairs against every dealer upcard, switchable between S17 and H17 rules."
+      },
+      "admin-analytics": {
+        "title": "Website analytics — Blackjack Card Counting Trainer",
+        "description": "Visitors, page views, session length, registrations and paying customers."
       }
     }
   },
@@ -2185,5 +2190,48 @@
     "saveSession": "Save session",
     "saveChanges": "Save changes",
     "unknownVenue": "Unknown"
+  },
+  "adminAnalytics": {
+    "title": "Website analytics",
+    "subtitle": "Visitors, page views and sign-ups — from our own database, nothing third-party.",
+    "reload": "Reload",
+    "range": {
+      "label": "Range",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "last7": "Last 7 days",
+      "last30": "Last 30 days",
+      "custom": "Custom",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply"
+    },
+    "invalidRange": "Choose a start day on or before the end day.",
+    "kpi": {
+      "visitors": "Visitors",
+      "pageViews": "Page views",
+      "avgSession": "Avg. session",
+      "registrations": "Registrations",
+      "payingCustomers": "Paying customers",
+      "payingNow": "as of now, not per range"
+    },
+    "sessions": "Sessions",
+    "sessionsCount": "{{count}} sessions",
+    "perDay": "Per day",
+    "topPages": "Top pages",
+    "referrers": "Referrers",
+    "direct": "Direct / none",
+    "devices": {
+      "title": "Devices",
+      "mobile": "Phone",
+      "tablet": "Tablet",
+      "desktop": "Desktop"
+    },
+    "unknown": "Unknown",
+    "empty": "Nothing in this range yet.",
+    "loading": "Loading the report…",
+    "errorTitle": "The report could not be loaded.",
+    "errorBody": "Only listed admins can read it. If you are one, try again in a moment.",
+    "definitions": "A visitor is a browser with a random id. A session ends after 30 minutes without activity; its length runs from the first page view to the last activity. Registrations are accounts created in the range. Paying customers are active subscriptions, counted right now."
   }
 }

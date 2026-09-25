@@ -127,7 +127,8 @@
     "avatarGroupBase": "Baştan itibaren senin",
     "avatarGroupLevels": "Her seviyeye bir tane",
     "avatarGroupAchievements": "En zor başarılar için",
-    "avatarUnlockedCount": "{{total}} resimden {{n}} tanesi açık"
+    "avatarUnlockedCount": "{{total}} resimden {{n}} tanesi açık",
+    "adminAnalytics": "Site istatistikleri"
   },
   "pricing": {
     "vatNote": "Nihai fiyat; İsviçre'deki müşteriler için %{{rate}} İsviçre KDV'si dâhildir",
@@ -2149,6 +2150,10 @@
       "strategy-chart": {
         "title": "Blackjack temel strateji tablosu — ücretsiz, S17 ve H17",
         "description": "Ücretsiz bir temel strateji tablosu: sert toplamlar, yumuşak toplamlar ve çiftler krupiyenin her kartına karşı, S17 ve H17 kuralları arasında geçişli."
+      },
+      "admin-analytics": {
+        "title": "Site istatistikleri — Blackjack Card Counting Trainer",
+        "description": "Ziyaretçiler, sayfa görüntülemeleri, oturum süresi, kayıtlar ve ödeme yapan müşteriler."
       }
     }
   },
@@ -2185,5 +2190,48 @@
     "saveSession": "Oturumu kaydet",
     "saveChanges": "Değişiklikleri kaydet",
     "unknownVenue": "Bilinmiyor"
+  },
+  "adminAnalytics": {
+    "title": "Site istatistikleri",
+    "subtitle": "Ziyaretçiler, sayfa görüntülemeleri ve kayıtlar — kendi veritabanımızdan, üçüncü taraf olmadan.",
+    "reload": "Yenile",
+    "range": {
+      "label": "Aralık",
+      "today": "Bugün",
+      "yesterday": "Dün",
+      "last7": "Son 7 gün",
+      "last30": "Son 30 gün",
+      "custom": "Özel",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "apply": "Uygula"
+    },
+    "invalidRange": "Başlangıç günü bitiş gününden sonra olamaz.",
+    "kpi": {
+      "visitors": "Ziyaretçi",
+      "pageViews": "Sayfa görüntüleme",
+      "avgSession": "Ort. oturum",
+      "registrations": "Kayıt",
+      "payingCustomers": "Ödeme yapan müşteri",
+      "payingNow": "şu an itibarıyla, aralığa göre değil"
+    },
+    "sessions": "Oturum",
+    "sessionsCount": "{{count}} oturum",
+    "perDay": "Günlük",
+    "topPages": "En çok görüntülenen sayfalar",
+    "referrers": "Kaynak",
+    "direct": "Doğrudan / yok",
+    "devices": {
+      "title": "Cihazlar",
+      "mobile": "Telefon",
+      "tablet": "Tablet",
+      "desktop": "Masaüstü"
+    },
+    "unknown": "Bilinmiyor",
+    "empty": "Bu aralıkta henüz veri yok.",
+    "loading": "Rapor yükleniyor…",
+    "errorTitle": "Rapor yüklenemedi.",
+    "errorBody": "Yalnızca kayıtlı yöneticiler okuyabilir. Yöneticiyseniz biraz sonra tekrar deneyin.",
+    "definitions": "Ziyaretçi, rastgele bir kimliğe sahip bir tarayıcıdır. Oturum, 30 dakika etkinlik olmayınca sona erer; süresi ilk sayfa görüntülemesinden son etkinliğe kadar sayılır. Kayıtlar, aralıkta oluşturulan hesaplardır. Ödeme yapan müşteriler, şu anda sayılan etkin aboneliklerdir."
   }
 }

@@ -6,7 +6,9 @@ import { handleSignedIn } from './services/supabase/cloud-sync'
 import { useEntitlementStore } from './store/entitlement-store'
 import { startCheckout, consumePendingCheckout } from './services/supabase/billing'
 import { ProtectedRoute } from './routes/ProtectedRoute'
+import { AdminRoute } from './routes/AdminRoute'
 import { ScrollToTop } from './routes/ScrollToTop'
+import { PageViewTracker } from './components/analytics-web/PageViewTracker'
 import { AppLoader } from './components/common/AppLoader'
 import { IntroGate } from './components/common/IntroGate'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
@@ -28,6 +30,9 @@ const LearnPublicPage = lazy(() => import('./pages/LearnPublicPage').then(m => (
 const LearnTopicPage = lazy(() => import('./pages/LearnTopicPage').then(m => ({ default: m.LearnTopicPage })))
 // The chart without a login: the one piece of the product that earns a link.
 const StrategyChartPublicPage = lazy(() => import('./pages/StrategyChartPublicPage').then(m => ({ default: m.StrategyChartPublicPage })))
+// The operator's numbers. Behind auth and the admin list; its own chunk, so
+// a visitor never downloads it.
+const AdminAnalyticsPage = lazy(() => import('./pages/AdminAnalyticsPage').then(m => ({ default: m.AdminAnalyticsPage })))
 // The ternary matters: guarding only the <Route> leaves the dynamic import in
 // place, and Rollup emits a DevPreview chunk into the production build that
 // nothing can ever reach. Branching on the statically-known DEV flag lets the
@@ -167,6 +172,9 @@ function App() {
     {/* Outside Suspense: the scroll has to be reset even when the next route's
         chunk is still loading, or the fallback renders at the old offset. */}
     <ScrollToTop />
+    {/* Page views, counted on every route change (ADR-003). Renders nothing;
+        does nothing when Supabase is not configured or the visitor opted out. */}
+    <PageViewTracker />
     <Suspense fallback={<RouteLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -177,6 +185,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/app" element={<ProtectedRoute><TrainerApp /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+        <Route path="/admin/analytics" element={<ProtectedRoute><AdminRoute><AdminAnalyticsPage /></AdminRoute></ProtectedRoute>} />
         <Route path="/learn" element={<LearnPublicPage />} />
         <Route path="/learn/:slug" element={<LearnTopicPage />} />
         <Route path="/strategy-chart" element={<StrategyChartPublicPage />} />

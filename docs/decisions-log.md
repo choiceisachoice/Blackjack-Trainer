@@ -57,4 +57,12 @@ This document records all architectural and product decisions made during the pr
 
 ---
 
+## D-008: Own website analytics on Supabase, written only through definer functions
+**Date:** 2026-09-25
+**Decision:** Page views, sessions and visitors are recorded in our own Postgres (`analytics_*` tables) via two `SECURITY DEFINER` functions the anon key may call; the tables have no client write policy at all. An `app_admins` table is the admin role; the admin dashboard reads one `analytics_report` function that checks membership itself. No third-party analytics.
+**Rationale:** The data stays in the operator's own infrastructure, the schema needs no change to any existing table, and a validated function is a smaller surface than an INSERT/UPDATE grant to `anon`. Registrations and paying customers come from `profiles` as it is. See ADR-003.
+**Impact:** One migration, a tracker component in `App`, a route `/admin/analytics`. The SQL is tested in PGlite because Docker is unavailable locally. Retention is a function, not yet a schedule; EU consent is disclosed, not gated — both are the owner's decisions.
+
+---
+
 *Add new decisions below this line, maintaining sequential numbering.*

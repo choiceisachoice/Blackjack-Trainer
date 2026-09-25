@@ -127,7 +127,8 @@
     "avatarGroupBase": "Tuas desde o início",
     "avatarGroupLevels": "Uma por nível",
     "avatarGroupAchievements": "Para as conquistas mais difíceis",
-    "avatarUnlockedCount": "{{n}} de {{total}} desbloqueadas"
+    "avatarUnlockedCount": "{{n}} de {{total}} desbloqueadas",
+    "adminAnalytics": "Estatísticas do site"
   },
   "pricing": {
     "vatNote": "Preço final, IVA suíço de {{rate}}% incluído para clientes na Suíça",
@@ -2149,6 +2150,10 @@
       "strategy-chart": {
         "title": "Tabela de estratégia básica de blackjack — grátis, S17 e H17",
         "description": "Uma tabela de estratégia básica gratuita: totais duros, totais suaves e pares contra cada carta do dealer, comutável entre as regras S17 e H17."
+      },
+      "admin-analytics": {
+        "title": "Estatísticas do site — Blackjack Card Counting Trainer",
+        "description": "Visitantes, visualizações, duração das sessões, registos e clientes pagantes."
       }
     }
   },
@@ -2185,5 +2190,48 @@
     "saveSession": "Guardar sessão",
     "saveChanges": "Guardar alterações",
     "unknownVenue": "Desconhecido"
+  },
+  "adminAnalytics": {
+    "title": "Estatísticas do site",
+    "subtitle": "Visitantes, visualizações e registos — da nossa própria base de dados, sem terceiros.",
+    "reload": "Recarregar",
+    "range": {
+      "label": "Período",
+      "today": "Hoje",
+      "yesterday": "Ontem",
+      "last7": "Últimos 7 dias",
+      "last30": "Últimos 30 dias",
+      "custom": "Personalizado",
+      "from": "De",
+      "to": "Até",
+      "apply": "Aplicar"
+    },
+    "invalidRange": "O dia inicial tem de ser igual ou anterior ao dia final.",
+    "kpi": {
+      "visitors": "Visitantes",
+      "pageViews": "Visualizações",
+      "avgSession": "Sessão média",
+      "registrations": "Registos",
+      "payingCustomers": "Clientes pagantes",
+      "payingNow": "neste momento, não por período"
+    },
+    "sessions": "Sessões",
+    "sessionsCount": "{{count}} sessões",
+    "perDay": "Por dia",
+    "topPages": "Páginas principais",
+    "referrers": "Origem",
+    "direct": "Direto / nenhuma",
+    "devices": {
+      "title": "Dispositivos",
+      "mobile": "Telemóvel",
+      "tablet": "Tablet",
+      "desktop": "Computador"
+    },
+    "unknown": "Desconhecido",
+    "empty": "Ainda nada neste período.",
+    "loading": "A carregar o relatório…",
+    "errorTitle": "Não foi possível carregar o relatório.",
+    "errorBody": "Só os administradores registados o podem ler. Se for um deles, tente novamente daqui a pouco.",
+    "definitions": "Um visitante é um navegador com um identificador aleatório. Uma sessão termina após 30 minutos sem atividade; a sua duração vai da primeira visualização à última atividade. Os registos são as contas criadas no período. Os clientes pagantes são as subscrições ativas, contadas neste momento."
   }
 }

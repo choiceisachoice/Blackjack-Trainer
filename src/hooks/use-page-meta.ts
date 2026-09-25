@@ -15,6 +15,7 @@ export const SITE_ORIGIN = 'https://black-jack-training.com'
  */
 export type PageKey =
   | 'landing' | 'learn' | 'strategy-chart' | 'login' | 'app' | 'account' | 'terms' | 'privacy' | 'contact'
+  | 'admin-analytics'
   | `learn-${string}`
 
 /** What the head carries for one page. */

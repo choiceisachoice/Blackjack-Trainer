@@ -127,7 +127,8 @@
     "avatarGroupBase": "Tue fin dall’inizio",
     "avatarGroupLevels": "Una per livello",
     "avatarGroupAchievements": "Per i traguardi più difficili",
-    "avatarUnlockedCount": "{{n}} di {{total}} sbloccate"
+    "avatarUnlockedCount": "{{n}} di {{total}} sbloccate",
+    "adminAnalytics": "Statistiche del sito"
   },
   "pricing": {
     "vatNote": "Prezzo finale, IVA svizzera dell'{{rate}}% inclusa per i clienti in Svizzera",
@@ -2149,6 +2150,10 @@
       "strategy-chart": {
         "title": "Tabella della strategia di base — gratuita, S17 e H17",
         "description": "Una tabella di strategia di base gratuita: totali duri, totali morbidi e coppie contro ogni carta del banco, commutabile tra regole S17 e H17."
+      },
+      "admin-analytics": {
+        "title": "Statistiche del sito — Blackjack Card Counting Trainer",
+        "description": "Visitatori, pagine viste, durata delle sessioni, registrazioni e clienti paganti."
       }
     }
   },
@@ -2185,5 +2190,48 @@
     "saveSession": "Salva sessione",
     "saveChanges": "Salva modifiche",
     "unknownVenue": "Sconosciuto"
+  },
+  "adminAnalytics": {
+    "title": "Statistiche del sito",
+    "subtitle": "Visitatori, pagine viste e registrazioni — dal nostro database, senza terze parti.",
+    "reload": "Ricarica",
+    "range": {
+      "label": "Periodo",
+      "today": "Oggi",
+      "yesterday": "Ieri",
+      "last7": "Ultimi 7 giorni",
+      "last30": "Ultimi 30 giorni",
+      "custom": "Personalizzato",
+      "from": "Dal",
+      "to": "Al",
+      "apply": "Applica"
+    },
+    "invalidRange": "Il giorno iniziale deve precedere o coincidere con quello finale.",
+    "kpi": {
+      "visitors": "Visitatori",
+      "pageViews": "Pagine viste",
+      "avgSession": "Sessione media",
+      "registrations": "Registrazioni",
+      "payingCustomers": "Clienti paganti",
+      "payingNow": "ad ora, non per periodo"
+    },
+    "sessions": "Sessioni",
+    "sessionsCount": "{{count}} sessioni",
+    "perDay": "Per giorno",
+    "topPages": "Pagine principali",
+    "referrers": "Provenienza",
+    "direct": "Diretto / nessuna",
+    "devices": {
+      "title": "Dispositivi",
+      "mobile": "Telefono",
+      "tablet": "Tablet",
+      "desktop": "Computer"
+    },
+    "unknown": "Sconosciuto",
+    "empty": "Ancora nulla in questo periodo.",
+    "loading": "Caricamento del rapporto…",
+    "errorTitle": "Impossibile caricare il rapporto.",
+    "errorBody": "Solo gli amministratori registrati possono leggerlo. Se sei uno di loro, riprova tra un istante.",
+    "definitions": "Un visitatore è un browser con un identificativo casuale. Una sessione termina dopo 30 minuti di inattività; la sua durata va dalla prima pagina vista all’ultima attività. Le registrazioni sono gli account creati nel periodo. I clienti paganti sono gli abbonamenti attivi, contati in questo momento."
   }
 }

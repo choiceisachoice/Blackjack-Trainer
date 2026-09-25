@@ -33,7 +33,7 @@ const cloudRow = (overrides: Record<string, unknown> = {}) => ({
 })
 
 /** The object handed to `update()` on the most recent write. */
-const lastWrite = () => update.mock.calls.at(-1)?.[0] as Record<string, unknown>
+const lastWrite = () => (update.mock.calls.at(-1) as unknown as [Record<string, unknown>])[0]
 
 describe('profiles-sync', () => {
   beforeEach(() => {

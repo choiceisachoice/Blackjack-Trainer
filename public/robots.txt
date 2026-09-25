@@ -10,9 +10,11 @@ Disallow: /app
 Disallow: /account
 Disallow: /login
 Disallow: /reset-password
+Disallow: /admin
 Disallow: /*/app
 Disallow: /*/account
 Disallow: /*/login
 Disallow: /*/reset-password
+Disallow: /*/admin
 
 Sitemap: https://black-jack-training.com/sitemap.xml

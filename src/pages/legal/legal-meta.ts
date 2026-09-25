@@ -56,7 +56,7 @@ export const LEGAL_META = {
    * Date these documents were last changed. Update it whenever you edit the
    * Terms or Privacy text — the "last updated" line is legally meaningful.
    */
-  lastUpdated: '10 August 2026',
+  lastUpdated: '25 September 2026',
 } as const
 
 /**

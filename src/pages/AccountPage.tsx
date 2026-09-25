@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Crown, LogOut, ExternalLink, Loader2, Download, Pencil, Lock, X } from 'lucide-react'
+import { ArrowLeft, BarChart3, Crown, LogOut, ExternalLink, Loader2, Download, Pencil, Lock, X } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { useEntitlementStore, useIsPro } from '../store/entitlement-store'
 import { useAppStore, DEALING_SPEED_LABEL } from '../store/app-store'
@@ -11,6 +11,7 @@ import { useStatsStore } from '../store/stats-store'
 import { useLevelStore } from '../store/level-store'
 import { useAchievementStore } from '../store/achievement-store'
 import { openBillingPortal } from '../services/supabase/billing'
+import { isAppAdmin } from '../services/supabase/app-admin'
 import { signOutAndClearLocal } from '../services/supabase/cloud-sync'
 import {
   displayNameOf, normalizeDisplayName, updateDisplayName,
@@ -60,6 +61,34 @@ function planLabel(
 function formatDate(ms: number | null): string | null {
   if (!ms) return null
   return new Date(ms).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+/**
+ * The way to the operator's analytics, shown to admins only.
+ *
+ * Whether to show it is asked of `app_admins`, which answers with the
+ * caller's own row or nothing; everyone else never sees that the page
+ * exists. The page and the report guard themselves — this is a signpost.
+ */
+function OperatorLink() {
+  const { t } = useTranslation()
+  const userId = useAuthStore(s => s.user?.id ?? null)
+  const [admin, setAdmin] = useState(false)
+  useEffect(() => {
+    let alive = true
+    void isAppAdmin().then(ok => { if (alive) setAdmin(ok) })
+    return () => { alive = false }
+  }, [userId])
+  if (!admin) return null
+  return (
+    <Link
+      to="/admin/analytics"
+      data-testid="account-admin-analytics"
+      className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold hover:text-gold-bright"
+    >
+      <BarChart3 size={15} /> {t('account.adminAnalytics')}
+    </Link>
+  )
 }
 
 /** One card on the page, with the small uppercase label the account card set. */
@@ -160,6 +189,7 @@ export function AccountPage() {
         </Link>
         <h1 className="mt-6 text-3xl font-extrabold tracking-tight">{t('account.title')}</h1>
 
+        <OperatorLink />
         <ProfileHeader onSignOut={() => void navigate('/')} />
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2 lg:items-start">

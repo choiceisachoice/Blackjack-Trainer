@@ -128,6 +128,57 @@ the app is filmed, it is not told. The clips are the website half of the
 coach videos; the coach half comes from Synthesia and the two are cut
 together in the Remotion project under `../Blackjack-Showcase`.
 
+## Website analytics (ADR-003)
+
+The operator's five numbers — visitors, page views, average session length,
+registrations, paying customers — at `/admin/analytics`, computed in the
+database from our own tables. No third-party script, no IP address, no user
+agent string stored. Migration `20260925120000_website_analytics.sql`.
+
+**How a page view travels.** `PageViewTracker` (mounted once in `App`, inside
+the router) calls `analytics_track` on every route change with a random
+visitor id from `localStorage.bjt_visitor_id`, the pathname (language prefix
+included), the referrer's host and a device class. The function is
+`SECURITY DEFINER` and is the **only** way a browser writes the analytics
+tables — they have no INSERT/UPDATE policy at all, which is the point. The
+server decides sessions: the visitor's latest one if active within **30
+minutes**, else a new one. `analytics_ping` runs once a minute while the tab
+is visible and once when it is hidden, so time on the last page counts.
+`user_id` comes from `auth.uid()`, never from the client.
+
+**Who may read.** `app_admins` is the admin role this project did not have
+before. No client can insert into it; a user can read their own row, which is
+how the account page knows whether to show the link and how `AdminRoute`
+decides. The real check is inside `analytics_report`, which refuses anyone not
+listed before touching a table. To make someone an admin, in the SQL editor:
+
+```sql
+insert into public.app_admins (user_id)
+select id from auth.users where email = 'owner@example.com';
+```
+
+**The gate.** `services/analytics/consent.ts` → `analyticsAllowed()` is the one
+place tracking can be switched off for a visitor. It already says no without
+Supabase, under automation (`navigator.webdriver`, so the demo recorder is not
+a visitor), and for Global Privacy Control or Do Not Track. If a consent banner
+is ever required, its answer goes there and nothing else moves.
+
+**Definitions** live on the SQL function and in the dashboard's footnote:
+visitors = distinct visitor ids with a view in the range; sessions = started
+in the range; average = mean of last activity − start; registrations =
+`profiles.created_at` in the range; paying = `subscription_status = 'active'`
+counted **now** (there is no history of when a subscription began, so this
+number does not follow the range).
+
+**Retention.** `analytics_purge(interval default '13 months')` exists and is
+not scheduled. The `cron.schedule` line is in the migration, commented, for
+when the retention period is decided.
+
+**Tests.** The SQL runs for real: `supabase/tests/` boots PGlite (Postgres in
+WebAssembly) with a stub `auth` schema, applies every migration, and calls the
+functions as `anon`, `authenticated` and the admin. Docker is not available
+here, so this is what stands between a migration and `db push`.
+
 ## Dev-only screens
 
 Four routes that exist only under `import.meta.env.DEV` and never reach a production
@@ -275,6 +326,17 @@ Live risks that exist right now. Each names who owns it, because "someone should
 these survive to production. Items that have been closed are recorded as closed rather than
 deleted — the next reader needs to know the difference between "never an issue" and "was an
 issue and was dealt with".
+
+0. **The analytics migration is written and tested, not yet pushed** (25 Sep
+   2026). Until `supabase db push` runs, every `analytics_track` call answers
+   `PGRST202` (function not found) — one console warning per page load,
+   nothing a visitor sees, no data. After the push: list the owner in
+   `app_admins` (SQL above), open `/account`, follow "Website analytics".
+   Then decide the retention period and schedule `analytics_purge`, or leave
+   it unscheduled deliberately. The consent question for EU visitors (a
+   stored random id under a strict ePrivacy reading) is open; the privacy
+   policy discloses it, and `analyticsAllowed()` is where a banner's answer
+   would go. Owner: Darius.
 
 1. **A failed checkout still produces no automatic signal.** It is not a
    webhook, so nothing in Stripe notices — and there is nothing server-side to

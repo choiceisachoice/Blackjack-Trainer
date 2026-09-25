@@ -35,6 +35,7 @@ export const PRIVACY_DOC: LegalDoc = {
             'Payment: if you subscribe to Pro, payment is handled by Stripe. We share your email and an internal account identifier with Stripe and receive back your subscription status. We never receive or store your full card number.',
             'Local device storage: your preferences and an offline copy of your progress are kept in your browser (localStorage), and a session cookie keeps you signed in. We do not use advertising or cross-site tracking cookies.',
             'Bot check: when you sign in, register or request a password reset, Cloudflare Turnstile checks that a person — not a script — is submitting the form. For that check Cloudflare processes your IP address and technical characteristics of your browser under its own privacy policy. We receive only a pass-or-fail token and never see those details.',
+            'Visit statistics: to know how many people visit, which pages they read and how long they stay, we record each page view in our own database — the page path, the time, the site that linked to us (its domain only), whether the device is a phone, tablet or desktop, and a random visitor identifier stored in your browser. That identifier is a random number; it is not derived from you or your device, it is not shared with anyone, and signing out replaces it. We do not store your IP address or your browser’s identification string. If you are signed in, a visit is linked to your account. Browsers that send the Global Privacy Control or Do Not Track signal are not counted at all. These statistics are kept for 13 months.',
           ],
         },
       ],
@@ -42,7 +43,7 @@ export const PRIVACY_DOC: LegalDoc = {
     {
       heading: '3. What we do not do',
       blocks: [
-        'We do not sell your data. We do not use advertising networks, and we do not run third-party analytics or tracking that profiles you across the web.',
+        'We do not sell your data. We do not use advertising networks, and we do not run third-party analytics or tracking that profiles you across the web. The visit statistics described above are collected by us alone, stay in our own database and are not combined with data from any other site.',
       ],
     },
     {
@@ -67,7 +68,7 @@ export const PRIVACY_DOC: LegalDoc = {
     {
       heading: '6. How long we keep it',
       blocks: [
-        'We keep your data for as long as your account exists. When you delete your account, the personal data linked to it is removed. Signing out clears the offline copy stored in your browser.',
+        'We keep your data for as long as your account exists. When you delete your account, the personal data linked to it is removed and any visit statistics are unlinked from it. Signing out clears the offline copy stored in your browser. Visit statistics are kept for 13 months.',
       ],
     },
     {

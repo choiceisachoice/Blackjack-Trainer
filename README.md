@@ -96,7 +96,7 @@ stored, so it cannot drift out of step with Stripe. Copy `.env.example` to
 is in it.
 
 ```bash
-npm run test:run     # 2300+ tests across 150 files
+npm run test:run     # 2400+ tests across 160+ files, the SQL migrations included (PGlite)
 npm run typecheck    # app and test projects
 npm run lint         # includes type-aware no-floating-promises
 npm run build
@@ -110,7 +110,8 @@ src/store/       Zustand stores. The only thing components talk to.
 src/services/    Supabase, Stripe, storage, achievements, curriculum, XP.
 src/components/  UI, grouped by feature.
 src/i18n/        Seven locales, with a parity test over the message trees.
-supabase/        Migrations and Edge Functions; `_shared` holds the tested rules.
+supabase/        Migrations and Edge Functions; `_shared` holds the tested rules,
+                 `tests/` runs the migrations for real in PGlite.
 docs/            ADRs, audits, the Stripe setup guide, the decisions log.
 ```
 

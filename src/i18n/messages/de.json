@@ -127,7 +127,8 @@
     "avatarGroupBase": "Von Anfang an deine",
     "avatarGroupLevels": "Eines pro Level",
     "avatarGroupAchievements": "Für die schwersten Erfolge",
-    "avatarUnlockedCount": "{{n}} von {{total}} freigeschaltet"
+    "avatarUnlockedCount": "{{n}} von {{total}} freigeschaltet",
+    "adminAnalytics": "Website-Statistik"
   },
   "pricing": {
     "vatNote": "Endpreis, inkl. {{rate}}% Schweizer MWST für Kunden in der Schweiz",
@@ -2149,6 +2150,10 @@
       "strategy-chart": {
         "title": "Blackjack-Basisstrategie-Tabelle — kostenlos, S17 & H17",
         "description": "Eine kostenlose Basisstrategie-Tabelle für Blackjack: harte und weiche Hände und Paare gegen jede Dealerkarte, umschaltbar zwischen S17 und H17."
+      },
+      "admin-analytics": {
+        "title": "Website-Statistik — Blackjack Card Counting Trainer",
+        "description": "Besucher, Seitenaufrufe, Sitzungsdauer, Registrierungen und zahlende Kunden."
       }
     }
   },
@@ -2185,5 +2190,48 @@
     "saveSession": "Session speichern",
     "saveChanges": "Änderungen speichern",
     "unknownVenue": "Unbekannt"
+  },
+  "adminAnalytics": {
+    "title": "Website-Statistik",
+    "subtitle": "Besucher, Seitenaufrufe und Registrierungen — aus unserer eigenen Datenbank, ohne Drittanbieter.",
+    "reload": "Neu laden",
+    "range": {
+      "label": "Zeitraum",
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "last7": "Letzte 7 Tage",
+      "last30": "Letzte 30 Tage",
+      "custom": "Eigener",
+      "from": "Von",
+      "to": "Bis",
+      "apply": "Anwenden"
+    },
+    "invalidRange": "Der Starttag muss vor oder am Endtag liegen.",
+    "kpi": {
+      "visitors": "Besucher",
+      "pageViews": "Seitenaufrufe",
+      "avgSession": "Ø Sitzung",
+      "registrations": "Registrierungen",
+      "payingCustomers": "Zahlende Kunden",
+      "payingNow": "Stand jetzt, nicht pro Zeitraum"
+    },
+    "sessions": "Sitzungen",
+    "sessionsCount": "{{count}} Sitzungen",
+    "perDay": "Pro Tag",
+    "topPages": "Top-Seiten",
+    "referrers": "Herkunft",
+    "direct": "Direkt / keine",
+    "devices": {
+      "title": "Geräte",
+      "mobile": "Smartphone",
+      "tablet": "Tablet",
+      "desktop": "Desktop"
+    },
+    "unknown": "Unbekannt",
+    "empty": "In diesem Zeitraum noch nichts.",
+    "loading": "Bericht wird geladen…",
+    "errorTitle": "Der Bericht konnte nicht geladen werden.",
+    "errorBody": "Nur eingetragene Admins können ihn lesen. Wenn du einer bist, versuch es gleich noch einmal.",
+    "definitions": "Ein Besucher ist ein Browser mit einer zufälligen Kennung. Eine Sitzung endet nach 30 Minuten ohne Aktivität; ihre Dauer reicht vom ersten Seitenaufruf bis zur letzten Aktivität. Registrierungen sind im Zeitraum erstellte Konten. Zahlende Kunden sind aktive Abonnements, gezählt zum jetzigen Zeitpunkt."
   }
 }
