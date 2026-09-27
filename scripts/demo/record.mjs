@@ -22,7 +22,7 @@
 
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdir, rename, rm } from 'node:fs/promises'
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { chromium } from 'playwright'
 import { buildDemoStorage } from './fixture.mjs'
@@ -31,7 +31,19 @@ const ROOT = process.cwd()
 const OUT = path.join(ROOT, 'recordings')
 const PORT = 5175
 const BASE = `http://localhost:${PORT}`
-const SIZE = { width: 1920, height: 1080 }
+/**
+ * 4K, and how it is reached.
+ *
+ * Playwright's screencast ignores `deviceScaleFactor` — a 2× context still
+ * records at viewport size, pasted into the corner of the requested frame.
+ * So the viewport itself is 3840×2160 and the page is zoomed 2× with CSS,
+ * which halves its layout viewport back to 1920×1080: every breakpoint,
+ * every card and every button is exactly where the 1080p cut had it, drawn
+ * with four times the pixels. Clicks and bounding boxes are in the zoomed
+ * viewport's pixels, which is the coordinate space Playwright uses for both.
+ */
+const SIZE = { width: 3840, height: 2160 }
+const ZOOM = 2
 
 // ── The browser side: seed, cursor, storage ────────────────────────────
 
@@ -208,7 +220,13 @@ const SCENES = {
     const input = page.locator('[data-testid="count-input"]')
     while (!(await input.isVisible().catch(() => false))) {
       const rank = await page.locator('.text-4xl.font-bold').first().textContent().catch(() => null)
-      if (rank && rank !== last) { seen.push(rank.trim()); last = rank }
+      if (rank && rank !== last) {
+        seen.push(rank.trim())
+        last = rank
+        // The card and the moment it appeared, for the film: a running count
+        // drawn over the recording has to tick on the frame the card lands.
+        ;(page.__events ??= []).push({ atMs: Date.now(), kind: 'card', rank: rank.trim(), rc: seen.reduce((s, r) => s + hiLo(r), 0) })
+      }
       await sleep(40)
     }
     const count = seen.reduce((s, r) => s + hiLo(r), 0)
@@ -219,6 +237,7 @@ const SCENES = {
     const stepper = count >= 0 ? 'button[aria-label="Increase count"]' : 'button[aria-label="Decrease count"]'
     for (let i = 0; i < Math.abs(count); i++) await glideClick(page, stepper, { settle: 260, hold: 120 })
     await sleep(700)
+    ;(page.__events ??= []).push({ atMs: Date.now(), kind: 'submit', rc: count })
     await glideClick(page, '[data-testid="submit-answer"]', { settle: 2600 })
   },
 
@@ -408,7 +427,7 @@ const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 9021
  */
 async function findSeed(browser, storage, want = { hand: '16', dealer: '10' }) {
   for (let seed = 1; seed < 400; seed++) {
-    const context = await browser.newContext({ viewport: SIZE })
+    const context = await browser.newContext({ viewport: { width: SIZE.width / ZOOM, height: SIZE.height / ZOOM } })
     await context.addInitScript(initScript({ seed, storage }))
     const page = await context.newPage()
     await page.goto(`${BASE}/app`, { waitUntil: 'networkidle' })
@@ -453,6 +472,9 @@ async function main() {
         locale: 'en-US',
       })
       await context.addInitScript(initScript({ seed: SEEDS[name], storage }))
+      await context.addInitScript((zoom) => {
+        document.addEventListener('DOMContentLoaded', () => { document.documentElement.style.zoom = String(zoom) })
+      }, ZOOM)
       const page = await context.newPage()
       const t0 = Date.now()
       try {
@@ -473,6 +495,12 @@ async function main() {
       if (ffmpeg) {
         const mp4 = webm.replace(/\.webm$/, '.mp4')
         const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', lead.toFixed(2), '-i', webm, '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', '30', '-an', mp4], { stdio: 'inherit', shell: true })
+        // Scene events, in seconds of the finished MP4 (lead already cut), so a
+        // graphic in the film can be tied to the frame something happened on.
+        if (page.__events) {
+          const events = page.__events.map(e => ({ ...e, t: Number(((e.atMs - t0) / 1000 - lead).toFixed(3)), atMs: undefined }))
+          await writeFile(path.join(OUT, `${index}_${name}.events.json`), JSON.stringify(events, null, 1))
+        }
         line += r.status === 0 ? '  → mp4' : '  (mp4 failed)'
       }
       console.log(line)
