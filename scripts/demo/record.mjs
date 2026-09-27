@@ -473,7 +473,24 @@ async function main() {
       })
       await context.addInitScript(initScript({ seed: SEEDS[name], storage }))
       await context.addInitScript((zoom) => {
-        document.addEventListener('DOMContentLoaded', () => { document.documentElement.style.zoom = String(zoom) })
+        document.addEventListener('DOMContentLoaded', () => {
+          document.documentElement.style.zoom = String(zoom)
+          // Film on a flat ground. The app's canvas carries three faint
+          // gradients (a warm bloom, a tonal fall, a vignette), and the
+          // training screens lay a decorative layer over that: a gold glow,
+          // two oversized suit glyphs at 10 %, another vignette. On a screen
+          // all of it reads as depth; on tape it reads as dirt. An 8-bit
+          // gradient this shallow steps every few pixels, the encoder turns
+          // each step into a seam, and a ♠ at 10 % over near-black is a
+          // grey smear the viewer cannot name. On camera the surface is the
+          // product's near-black, and nothing else — the content is the
+          // panel, the cards and the count.
+          const style = document.createElement('style')
+          style.textContent =
+            '.app-canvas { background-image: none !important; }' +
+            'div[aria-hidden].-z-10.pointer-events-none { display: none !important; }'
+          document.head.appendChild(style)
+        })
       }, ZOOM)
       const page = await context.newPage()
       const t0 = Date.now()
@@ -494,7 +511,7 @@ async function main() {
       let line = `${index}_${name}.webm  ${((Date.now() - t0) / 1000).toFixed(1)}s (lead ${lead.toFixed(1)}s cut)`
       if (ffmpeg) {
         const mp4 = webm.replace(/\.webm$/, '.mp4')
-        const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', lead.toFixed(2), '-i', webm, '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', '30', '-an', mp4], { stdio: 'inherit', shell: true })
+        const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', lead.toFixed(2), '-i', webm, '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-r', '30', '-an', mp4], { stdio: 'inherit', shell: true })
         // Scene events, in seconds of the finished MP4 (lead already cut), so a
         // graphic in the film can be tied to the frame something happened on.
         if (page.__events) {
