@@ -55,8 +55,18 @@ const ZOOM = 2
  * and the card is drawn at 750×1050 in the frame instead of 500×700. The film
  * then never scales the footage up: a 4K frame of the product, as rendered.
  */
-const ZOOM_FOR = { speed: 3, flashcards: 3 }
+const ZOOM_FOR = { speed: 3, flashcards: 3, casino: 1 }
 const zoomFor = name => ZOOM_FOR[name] ?? ZOOM
+/**
+ * The casino table is laid out in vh, and under CSS zoom a vh is the
+ * unzoomed viewport: at zoom 2 the table stood twice the frame's height and
+ * the tape showed felt and no cards. That scene is shot at a true 1920×1080
+ * viewport instead — 1080p, correct — and the film, which uses it blurred
+ * behind the close, scales it. A blur hides an upscale; it does not hide a
+ * table with its seats out of frame.
+ */
+const VIEWPORT_FOR = { casino: { width: 1920, height: 1080 } }
+const viewportFor = name => VIEWPORT_FOR[name] ?? SIZE
 /**
  * Stills, for the film's lesson: a screenshot honours `deviceScaleFactor`
  * (the screencast does not), so the setup screen is captured at 4× — 7680×4320
@@ -193,7 +203,8 @@ function markReady(page) {
 async function openApp(page, url = `${BASE}/app`) {
   await page.goto(url, { waitUntil: 'networkidle' })
   await page.locator('[data-testid="nav-home"], header').first().waitFor({ timeout: 30_000 })
-  await page.mouse.move(SIZE.width * 0.55, SIZE.height * 0.6)
+  const vp = page.viewportSize() ?? SIZE
+  await page.mouse.move(vp.width * 0.55, vp.height * 0.6)
   await sleep(300)
   markReady(page)
 }
@@ -525,9 +536,9 @@ async function main() {
       const tmp = path.join(OUT, `.tmp-${name}`)
       await rm(tmp, { recursive: true, force: true })
       const context = await browser.newContext({
-        viewport: SIZE,
+        viewport: viewportFor(name),
         deviceScaleFactor: 1,
-        recordVideo: { dir: tmp, size: SIZE },
+        recordVideo: { dir: tmp, size: viewportFor(name) },
         colorScheme: 'dark',
         locale: 'en-US',
       })
