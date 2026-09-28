@@ -13,8 +13,12 @@
 // open), seeds the browser with the demo learner from `fixture.mjs`, pins
 // `Math.random` to a seed per scene so the shoe and the flashcards deal the
 // same way every run, draws a cursor (headless video has none), and drives
-// each scene with deliberate pauses. Playwright writes WebM; if ffmpeg is on
-// the PATH each clip is also turned into a 1080p30 H.264 MP4.
+// each scene with deliberate pauses. Playwright writes WebM at 25 fps; if
+// ffmpeg is on the PATH each clip is also turned into a 4K H.264 MP4 — at the
+// same 25 fps, deliberately. Resampling to 30 would repeat every fifth frame,
+// and a card sliding in with a hitch five times a second is what "the video
+// stutters" looks like. The film's compositions run at 50 fps, where each
+// recorded frame is shown exactly twice.
 //
 // Nothing here touches the production build: this is a script under
 // `scripts/`, it runs against a local dev server, and the app has no idea it
@@ -44,6 +48,21 @@ const BASE = `http://localhost:${PORT}`
  */
 const SIZE = { width: 3840, height: 2160 }
 const ZOOM = 2
+/**
+ * Scenes that are shot closer. The drill shows one card and the flashcards
+ * one panel, both sized in CSS pixels; at zoom 3 the layout viewport is
+ * 1280×720 (still the desktop layout — the context rails appear from 1280),
+ * and the card is drawn at 750×1050 in the frame instead of 500×700. The film
+ * then never scales the footage up: a 4K frame of the product, as rendered.
+ */
+const ZOOM_FOR = { speed: 3, flashcards: 3 }
+const zoomFor = name => ZOOM_FOR[name] ?? ZOOM
+/**
+ * Stills, for the film's lesson: a screenshot honours `deviceScaleFactor`
+ * (the screencast does not), so the setup screen is captured at 4× — 7680×4320
+ * of the 1920×1080 layout — and a slow push into it stays sharp all the way in.
+ */
+const STILL_SCALE = 4
 
 // ── The browser side: seed, cursor, storage ────────────────────────────
 
@@ -404,10 +423,12 @@ const SCENES = {
     await sleep(1800)
   },
 
-  /** The landing page, for the closing shot. */
-  async landing(page) {
+  /** The landing page, scrolled — the clip; the film's close uses the still of the same name's hero. */
+  async 'landing-scroll'(page) {
     await openApp(page, `${BASE}/`)
-    await sleep(2500)
+    // The hero holds for the film's close (six seconds under the wordmark)
+    // before the page is scrolled.
+    await sleep(7500)
     await page.mouse.wheel(0, 700)
     await sleep(2000)
     await page.mouse.wheel(0, 900)
@@ -415,8 +436,35 @@ const SCENES = {
   },
 }
 
+/**
+ * Stills. Each opens a screen and parks the pointer off the content; the
+ * runner screenshots it at STILL_SCALE × 1920×1080.
+ */
+const STILLS = {
+  /** The Speed Drill setup with the Hi-Lo box open — the film's lesson card. */
+  async 'speed-setup'(page) {
+    await openMode(page, 'speedDrill')
+    await sleep(900)
+    await glideClick(page, 'button:has-text("10")')
+    await glideClick(page, 'button:has-text("Normal")')
+    // The pointer leaves the frame; the cursor is drawn at the mouse position.
+    await page.mouse.move(1919, 1079)
+    await sleep(600)
+  },
+  /**
+   * The landing hero, for the film's close. A still rather than the clip:
+   * under CSS zoom the hero's 100vh is the unzoomed viewport, so on tape the
+   * headline sits on the bottom edge; a screenshot has the true viewport.
+   */
+  async landing(page) {
+    await openApp(page, `${BASE}/`)
+    await page.mouse.move(1919, 1079)
+    await sleep(3200)
+  },
+}
+
 /** Seeds per scene. The flashcards seed was searched for by `findSeed` (see below). */
-const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 90210, strategy: 3, landing: 5 }
+const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 90210, strategy: 3, landing: 5, 'landing-scroll': 5, 'speed-setup': 4242 }
 
 /**
  * Find a seed that makes the flashcards open on a given hand.
@@ -427,7 +475,7 @@ const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 9021
  */
 async function findSeed(browser, storage, want = { hand: '16', dealer: '10' }) {
   for (let seed = 1; seed < 400; seed++) {
-    const context = await browser.newContext({ viewport: { width: SIZE.width / ZOOM, height: SIZE.height / ZOOM } })
+    const context = await browser.newContext({ viewport: { width: SIZE.width / zoomFor('flashcards'), height: SIZE.height / zoomFor('flashcards') } })
     await context.addInitScript(initScript({ seed, storage }))
     const page = await context.newPage()
     await page.goto(`${BASE}/app`, { waitUntil: 'networkidle' })
@@ -447,7 +495,7 @@ async function findSeed(browser, storage, want = { hand: '16', dealer: '10' }) {
 async function main() {
   const wanted = process.argv.slice(2).filter(a => !a.startsWith('-'))
   const names = wanted.length ? wanted : Object.keys(SCENES)
-  for (const n of names) if (!SCENES[n]) throw new Error(`unknown scene "${n}" — have: ${Object.keys(SCENES).join(', ')}`)
+  for (const n of names) if (!SCENES[n] && !STILLS[n]) throw new Error(`unknown scene "${n}" — have: ${[...Object.keys(SCENES), ...Object.keys(STILLS)].join(', ')}`)
 
   await mkdir(OUT, { recursive: true })
   const storage = buildDemoStorage()
@@ -461,6 +509,18 @@ async function main() {
     const ffmpeg = spawnSync('ffmpeg', ['-version'], { stdio: 'ignore', shell: true }).status === 0
 
     for (const name of names) {
+      if (STILLS[name]) {
+        const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: STILL_SCALE, colorScheme: 'dark', locale: 'en-US' })
+        await context.addInitScript(initScript({ seed: SEEDS[name], storage }))
+        await context.addInitScript(filmStyle, 1)
+        const page = await context.newPage()
+        await STILLS[name](page)
+        const file = path.join(OUT, `${name}@${STILL_SCALE}x.png`)
+        await page.screenshot({ path: file, type: 'png' })
+        await context.close()
+        console.log(`${name}@${STILL_SCALE}x.png`)
+        continue
+      }
       const index = String(Object.keys(SCENES).indexOf(name) + 1).padStart(2, '0')
       const tmp = path.join(OUT, `.tmp-${name}`)
       await rm(tmp, { recursive: true, force: true })
@@ -472,26 +532,7 @@ async function main() {
         locale: 'en-US',
       })
       await context.addInitScript(initScript({ seed: SEEDS[name], storage }))
-      await context.addInitScript((zoom) => {
-        document.addEventListener('DOMContentLoaded', () => {
-          document.documentElement.style.zoom = String(zoom)
-          // Film on a flat ground. The app's canvas carries three faint
-          // gradients (a warm bloom, a tonal fall, a vignette), and the
-          // training screens lay a decorative layer over that: a gold glow,
-          // two oversized suit glyphs at 10 %, another vignette. On a screen
-          // all of it reads as depth; on tape it reads as dirt. An 8-bit
-          // gradient this shallow steps every few pixels, the encoder turns
-          // each step into a seam, and a ♠ at 10 % over near-black is a
-          // grey smear the viewer cannot name. On camera the surface is the
-          // product's near-black, and nothing else — the content is the
-          // panel, the cards and the count.
-          const style = document.createElement('style')
-          style.textContent =
-            '.app-canvas { background-image: none !important; }' +
-            'div[aria-hidden].-z-10.pointer-events-none { display: none !important; }'
-          document.head.appendChild(style)
-        })
-      }, ZOOM)
+      await context.addInitScript(filmStyle, zoomFor(name))
       const page = await context.newPage()
       const t0 = Date.now()
       try {
@@ -511,7 +552,7 @@ async function main() {
       let line = `${index}_${name}.webm  ${((Date.now() - t0) / 1000).toFixed(1)}s (lead ${lead.toFixed(1)}s cut)`
       if (ffmpeg) {
         const mp4 = webm.replace(/\.webm$/, '.mp4')
-        const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', lead.toFixed(2), '-i', webm, '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-r', '30', '-an', mp4], { stdio: 'inherit', shell: true })
+        const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', lead.toFixed(2), '-i', webm, '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-an', mp4], { stdio: 'inherit', shell: true })
         // Scene events, in seconds of the finished MP4 (lead already cut), so a
         // graphic in the film can be tied to the frame something happened on.
         if (page.__events) {
@@ -526,6 +567,31 @@ async function main() {
     await browser.close()
     stopServer(server)
   }
+}
+
+/**
+ * Runs in every filmed page: the zoom that makes the frame 4K, and a flat
+ * ground to film on.
+ */
+function filmStyle(zoom) {
+        document.addEventListener('DOMContentLoaded', () => {
+          document.documentElement.style.zoom = String(zoom)
+          // Film on a flat ground. The app's canvas carries three faint
+          // gradients (a warm bloom, a tonal fall, a vignette), and the
+          // training screens lay a decorative layer over that: a gold glow,
+          // two oversized suit glyphs at 10 %, another vignette. On a screen
+          // all of it reads as depth; on tape it reads as dirt. An 8-bit
+          // gradient this shallow steps every few pixels, the encoder turns
+          // each step into a seam, and a ♠ at 10 % over near-black is a
+          // grey smear the viewer cannot name. On camera the surface is the
+          // product's near-black, and nothing else — the content is the
+          // panel, the cards and the count.
+          const style = document.createElement('style')
+          style.textContent =
+            '.app-canvas { background-image: none !important; }' +
+            'div[aria-hidden].-z-10.pointer-events-none { display: none !important; }'
+          document.head.appendChild(style)
+        })
 }
 
 main().catch(e => { console.error(e); process.exit(1) })
