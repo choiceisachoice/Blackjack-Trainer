@@ -55,7 +55,7 @@ const ZOOM = 2
  * and the card is drawn at 750×1050 in the frame instead of 500×700. The film
  * then never scales the footage up: a 4K frame of the product, as rendered.
  */
-const ZOOM_FOR = { speed: 3, flashcards: 3, casino: 1 }
+const ZOOM_FOR = { speed: 3, flashcards: 3 }
 const zoomFor = name => ZOOM_FOR[name] ?? ZOOM
 /**
  * The casino table is laid out in vh, and under CSS zoom a vh is the
@@ -65,7 +65,7 @@ const zoomFor = name => ZOOM_FOR[name] ?? ZOOM
  * behind the close, scales it. A blur hides an upscale; it does not hide a
  * table with its seats out of frame.
  */
-const VIEWPORT_FOR = { casino: { width: 1920, height: 1080 } }
+const VIEWPORT_FOR = {}
 const viewportFor = name => VIEWPORT_FOR[name] ?? SIZE
 /**
  * Stills, for the film's lesson: a screenshot honours `deviceScaleFactor`
@@ -333,7 +333,8 @@ const SCENES = {
     let pending = null
 
     const started = Date.now()
-    const MAX_MS = 210_000
+    // Six hands at 4K take longer than at 1080p (the table repaints four times the pixels); the cap leaves room for the summary.
+    const MAX_MS = 330_000
     while (Date.now() - started < MAX_MS) {
       if (await page.locator('[data-testid="play-again"]').isVisible().catch(() => false)) break
       if (await page.locator('[data-testid="betting-controls"]').isVisible().catch(() => false)) {
@@ -585,6 +586,17 @@ async function main() {
  * ground to film on.
  */
 function filmStyle(zoom) {
+        // Under CSS zoom, getBoundingClientRect reports zoomed pixels, and the
+        // casino table — which fits itself to its box by measuring it — drew
+        // itself `zoom` times too large. The page gets its measurements back
+        // in layout pixels; Playwright's own clicks do not go through this.
+        if (zoom !== 1) {
+          const orig = Element.prototype.getBoundingClientRect
+          Element.prototype.getBoundingClientRect = function () {
+            const r = orig.call(this)
+            return DOMRectReadOnly.fromRect({ x: r.x / zoom, y: r.y / zoom, width: r.width / zoom, height: r.height / zoom })
+          }
+        }
         document.addEventListener('DOMContentLoaded', () => {
           document.documentElement.style.zoom = String(zoom)
           // Film on a flat ground. The app's canvas carries three faint
@@ -598,9 +610,17 @@ function filmStyle(zoom) {
           // product's near-black, and nothing else — the content is the
           // panel, the cards and the count.
           const style = document.createElement('style')
+          // Under CSS zoom a vh is the *unzoomed* viewport, so every
+          // 100vh box (the app shell, the landing hero) stood `zoom` times
+          // too tall and the tape showed the top of it. The shell and the
+          // hero get the viewport they would have on a real screen.
+          const vh = `calc(100vh / ${zoom})`
           style.textContent =
             '.app-canvas { background-image: none !important; }' +
-            'div[aria-hidden].-z-10.pointer-events-none { display: none !important; }'
+            'div[aria-hidden].-z-10.pointer-events-none { display: none !important; }' +
+            `.h-screen { height: ${vh} !important; }` +
+            `.min-h-screen, body, #root { min-height: ${vh} !important; }` +
+            String.raw`.min-h-\[calc\(100vh-62px\)\] { min-height: calc(${vh} - 62px) !important; }`
           document.head.appendChild(style)
         })
 }
