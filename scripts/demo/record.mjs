@@ -473,10 +473,24 @@ const STILLS = {
     await page.mouse.move(1919, 1079)
     await sleep(3200)
   },
+  /**
+   * The whole analytics dashboard in one frame, for a camera move over it
+   * in the film. Scrolling on tape is a screencast at five frames a second;
+   * a pan over a still is as smooth as the film's frame rate. The viewport
+   * is tall enough to hold the page, so nothing is scrolled.
+   */
+  async 'analytics-full'(page) {
+    await openMode(page, 'analytics')
+    await page.mouse.move(1919, 2599)
+    await sleep(2500)
+  },
 }
 
+/** Stills that need a viewport other than 1920×1080. */
+const STILL_VIEWPORT = { 'analytics-full': { width: 1920, height: 2600 } }
+
 /** Seeds per scene. The flashcards seed was searched for by `findSeed` (see below). */
-const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 90210, strategy: 3, landing: 5, 'landing-scroll': 5, 'speed-setup': 4242 }
+const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 90210, strategy: 3, landing: 5, 'landing-scroll': 5, 'speed-setup': 4242, 'analytics-full': 7 }
 
 /**
  * Find a seed that makes the flashcards open on a given hand.
@@ -522,15 +536,16 @@ async function main() {
 
     for (const name of names) {
       if (STILLS[name]) {
-        const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: STILL_SCALE, colorScheme: 'dark', locale: 'en-US' })
+        const context = await browser.newContext({ viewport: STILL_VIEWPORT[name] ?? { width: 1920, height: 1080 }, deviceScaleFactor: STILL_VIEWPORT[name] ? 2 : STILL_SCALE, colorScheme: 'dark', locale: 'en-US' })
         await context.addInitScript(initScript({ seed: SEEDS[name], storage }))
         await context.addInitScript(filmStyle, 1)
         const page = await context.newPage()
         await STILLS[name](page)
-        const file = path.join(OUT, `${name}@${STILL_SCALE}x.png`)
+        const scale = STILL_VIEWPORT[name] ? 2 : STILL_SCALE
+        const file = path.join(OUT, `${name}@${scale}x.png`)
         await page.screenshot({ path: file, type: 'png' })
         await context.close()
-        console.log(`${name}@${STILL_SCALE}x.png`)
+        console.log(`${name}@${scale}x.png`)
         continue
       }
       const index = String(Object.keys(SCENES).indexOf(name) + 1).padStart(2, '0')
