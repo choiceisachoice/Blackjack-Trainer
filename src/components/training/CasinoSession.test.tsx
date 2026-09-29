@@ -169,6 +169,15 @@ describe('CasinoSession', () => {
       expect(screen.getByText('Place your bet')).toBeTruthy()
     })
 
+    it('keeps the controls area at one fixed height, so the table never resizes between phases', () => {
+      startSession()
+
+      // The felt fits itself to the height the controls leave it. A controls
+      // area that grows and shrinks with each phase resized the table on
+      // every click; the fixed minimum height is the whole fix.
+      expect(screen.getByTestId('controls-area').className).toContain('min-h-[9.5rem]')
+    })
+
     it('shows bet amount buttons based on config min/max', () => {
       startSession()
 

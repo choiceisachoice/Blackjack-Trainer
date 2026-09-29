@@ -14,26 +14,32 @@ interface BettingControlsProps {
 export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetChange, onConfirm }: BettingControlsProps) {
   const { t } = useTranslation()
   return (
-    <div className="flex flex-col items-center gap-3" data-testid="betting-controls">
-      <span className="text-sm text-content/60">{t('casino.table.placeYourBet')}</span>
-      <span className="text-xs text-content/40" data-testid="bet-range">
-        {t('casino.hud.betRange', { min: formatDollar(minBet), max: formatDollar(maxBet) })}
-      </span>
-      {/* Current bet display */}
-      {currentBet > 0 && (
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-gold" data-testid="current-bet-display">
-            {formatDollar(currentBet)}
+    // Three rows, never four: the prompt, the range and the bet placed share
+    // one line, so placing a bet does not add a row. The controls area under
+    // the table has one fixed height for every phase, and this panel is the
+    // tallest of them — it has to fit, or the table resizes on every click.
+    <div className="flex flex-col items-center gap-2" data-testid="betting-controls">
+      <div className="flex items-center gap-3 flex-wrap justify-center">
+        <span className="text-sm text-content/60">{t('casino.table.placeYourBet')}</span>
+        <span className="text-xs text-content/40" data-testid="bet-range">
+          {t('casino.hud.betRange', { min: formatDollar(minBet), max: formatDollar(maxBet) })}
+        </span>
+        {/* Current bet display */}
+        {currentBet > 0 && (
+          <span className="flex items-center gap-2">
+            <span className="text-lg font-bold text-gold" data-testid="current-bet-display">
+              {formatDollar(currentBet)}
+            </span>
+            <button
+              onClick={() => onBetChange(0)}
+              data-testid="clear-bet"
+              className="text-xs text-content/50 hover:text-error px-2 py-0.5 rounded bg-contrast/10 hover:bg-contrast/20 cursor-pointer transition-colors"
+            >
+              {t('casino.table.clear')}
+            </button>
           </span>
-          <button
-            onClick={() => onBetChange(0)}
-            data-testid="clear-bet"
-            className="text-xs text-content/50 hover:text-error px-2 py-0.5 rounded bg-contrast/10 hover:bg-contrast/20 cursor-pointer transition-colors"
-          >
-            {t('casino.table.clear')}
-          </button>
-        </div>
-      )}
+        )}
+      </div>
       {/*
         Chips, drawn as chips.
 
@@ -74,8 +80,8 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
                   ' inset 0 -2px 5px rgba(0,0,0,0.35),' +
                   ' 0 2px 4px rgba(0,0,0,0.45)',
               }}
-              className={`w-16 h-16 rounded-full grid place-items-center cursor-pointer
-                text-[11px] font-bold tracking-tight ${face.ink}
+              className={`w-12 h-12 rounded-full grid place-items-center cursor-pointer
+                text-[10px] font-bold tracking-tight ${face.ink}
                 transition-[transform,filter,opacity] duration-150 ease-out
                 hover:-translate-y-0.5 hover:brightness-110
                 active:translate-y-0 active:brightness-95 active:scale-[0.96]
@@ -88,7 +94,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
       </div>
       <button onClick={onConfirm} data-testid="confirm-bet"
         disabled={currentBet < minBet && bankroll >= minBet}
-        className="px-8 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer
+        className="px-8 py-1.5 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer
           transition-[background-color,transform,box-shadow,opacity] duration-150 ease-out
           shadow-[0_1px_2px_rgba(0,0,0,0.35)] hover:shadow-[0_3px_12px_-3px_var(--color-gold)]
           active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100

@@ -382,8 +382,19 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         dealerHitsSoft17={config.dealerHitsSoft17}
       />
 
-      {/* Controls Area */}
-      <div className="shrink-0 bg-contrast/5 border-t border-contrast/10 px-4 py-3">
+      {/*
+        Controls Area — a fixed height on purpose.
+
+        The table above fits itself to whatever height is left, and the
+        controls change height with every phase: chips and a Deal button,
+        then four action buttons, then two inputs and a Submit. Each change
+        resized the table, so the whole felt shrank and grew on every click
+        — the one thing on this screen that should never move. The area is
+        as tall as its tallest state (the bet panel, laid out to fit it), and
+        the table has one size for the whole session. 9.5rem leaves the felt
+        a 455px scene at 1080p, above TABLE_MIN_HEIGHT.
+      */}
+      <div className="shrink-0 min-h-[9.5rem] flex flex-col justify-center bg-contrast/5 border-t border-contrast/10 px-4 py-3" data-testid="controls-area">
         {/* Betting */}
         {state.gameStep === 'betting' && (
           <BettingControls

@@ -55,7 +55,7 @@ const ZOOM = 2
  * and the card is drawn at 750×1050 in the frame instead of 500×700. The film
  * then never scales the footage up: a 4K frame of the product, as rendered.
  */
-const ZOOM_FOR = { speed: 3, flashcards: 3 }
+const ZOOM_FOR = { speed: 3, flashcards: 3, casino: 1 }
 const zoomFor = name => ZOOM_FOR[name] ?? ZOOM
 /**
  * The casino table is laid out in vh, and under CSS zoom a vh is the
@@ -65,7 +65,7 @@ const zoomFor = name => ZOOM_FOR[name] ?? ZOOM
  * behind the close, scales it. A blur hides an upscale; it does not hide a
  * table with its seats out of frame.
  */
-const VIEWPORT_FOR = {}
+const VIEWPORT_FOR = { casino: { width: 1920, height: 1080 } }
 const viewportFor = name => VIEWPORT_FOR[name] ?? SIZE
 /**
  * Stills, for the film's lesson: a screenshot honours `deviceScaleFactor`
