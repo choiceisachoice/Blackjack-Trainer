@@ -41,12 +41,41 @@ describe('flashcards engine', () => {
   })
 
   it('enabledActions offers split only for pairs and insurance only vs an Ace', () => {
-    const pair: FlashQuestion = { handKind: 'pair', hand: '8,8', dealer: '10', trueCount: null, correctAction: Action.Split, basicAction: Action.Split, isDeviation: false }
-    const hardVsAce: FlashQuestion = { handKind: 'hard', hand: '16', dealer: 'A', trueCount: null, correctAction: Action.Hit, basicAction: Action.Hit, isDeviation: false }
+    const pair: FlashQuestion = { handKind: 'pair', hand: '8,8', dealer: '10', trueCount: null, correctAction: Action.Split, basicAction: Action.Split, isDeviation: false, noSurrender: false }
+    const hardVsAce: FlashQuestion = { handKind: 'hard', hand: '16', dealer: 'A', trueCount: null, correctAction: Action.Hit, basicAction: Action.Hit, isDeviation: false, noSurrender: false }
     expect(enabledActions(pair)[Action.Split]).toBe(true)
     expect(enabledActions(pair)[Action.Insurance]).toBe(false)
     expect(enabledActions(hardVsAce)[Action.Split]).toBe(false)
     expect(enabledActions(hardVsAce)[Action.Insurance]).toBe(true)
+  })
+
+  it('enabledActions hides surrender at a no-surrender table', () => {
+    const q: FlashQuestion = { handKind: 'hard', hand: '16', dealer: '10', trueCount: 1, correctAction: Action.Stand, basicAction: Action.Hit, isDeviation: true, noSurrender: true }
+    expect(enabledActions(q)[Action.Surrender]).toBe(false)
+    expect(enabledActions({ ...q, noSurrender: false })[Action.Surrender]).toBe(true)
+  })
+
+  it('lookupBasicAction without surrender falls back to the second choice', () => {
+    expect(lookupBasicAction('16', '10', S17_STRATEGY, false)).toBe(Action.Hit) // Rh → H
+    expect(lookupBasicAction('15', '10', S17_STRATEGY, false)).toBe(Action.Hit)
+    expect(lookupBasicAction('16', '9', S17_STRATEGY, false)).toBe(Action.Hit)
+    expect(lookupBasicAction('13', '5', S17_STRATEGY, false)).toBe(Action.Stand) // untouched
+  })
+
+  it('sets the no-surrender stand indices at a no-surrender table, and only those', () => {
+    // 15 v 10, 16 v 10 and 16 v 9 are surrendered by basic strategy; their
+    // stand indices hold only where surrender is not offered.
+    const session = buildFlashSession('deviations', 400)
+    for (const q of session) {
+      const standIndex = ['16 vs 10', '15 vs 10', '16 vs 9'].includes(q.deviationName!)
+      expect(q.noSurrender).toBe(standIndex)
+      if (standIndex) {
+        expect(q.basicAction).toBe(Action.Hit)
+        expect(q.correctAction).not.toBe(Action.Surrender)
+      }
+    }
+    // The Fab 4 surrender plays stay at a table that offers surrender.
+    expect(session.some(q => q.deviationName === '15 vs 10 (surrender)' && q.correctAction === Action.Surrender)).toBe(true)
   })
 
   it('buildFlashSession (basic) has no True Count and no consecutive repeats', () => {
@@ -116,11 +145,13 @@ describe('flashcards engine', () => {
     })
 
     it('grades the hand against the real deviation index', () => {
-      // 16 vs 10: stand at TC >= 0, otherwise hit.
+      // 16 vs 10 without surrender: stand at TC >= 0, otherwise hit.
       const session = buildFocusFlashSession(['16 vs 10'], 30)
       for (const q of session) {
         const expected = q.trueCount! >= 0 ? Action.Stand : Action.Hit
         expect(q.correctAction).toBe(expected)
+        expect(q.basicAction).toBe(Action.Hit)
+        expect(q.noSurrender).toBe(true)
       }
     })
   })

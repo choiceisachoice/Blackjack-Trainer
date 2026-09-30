@@ -242,17 +242,36 @@ describe('CasinoSessionEngine', () => {
       engine = new CasinoSessionEngine(createTestConfig())
     })
 
-    it('basic strategy: hard 16 vs 10 → Hit (no counting, TC 0)', () => {
+    it('hard 16 vs 10 with surrender at TC 0 → Surrender (the stand index is a no-surrender play)', () => {
       const result = engine.getCorrectAction(
         [card(Rank.Ten), card(Rank.Six)],
         card(Rank.Ten),
-        0, // TC = 0 → I18 #2 says Stand at TC >= 0
+        0,
         false, true, true,
       )
-      // At TC = 0, I18 #2 (16 vs 10) fires: Stand
-      // This IS a deviation from BS (which says Hit)
+      expect(result.action).toBe(Action.Surrender)
+      expect(result.isDeviation).toBe(false)
+    })
+
+    it('hard 16 vs 10 without surrender at TC 0 → Stand (I18 #2)', () => {
+      const result = engine.getCorrectAction(
+        [card(Rank.Ten), card(Rank.Six)],
+        card(Rank.Ten),
+        0,
+        false, true, false,
+      )
       expect(result.action).toBe(Action.Stand)
       expect(result.isDeviation).toBe(true)
+      expect(result.deviationName).toBe('16 vs 10')
+    })
+
+    it('a split 16 vs 10 cannot surrender, so it is never graded Surrender', () => {
+      // The table allows surrender, but a split hand may not: basic strategy
+      // is then Hit, and the stand index applies from TC 0.
+      const below = engine.getCorrectAction([card(Rank.Ten), card(Rank.Six)], card(Rank.Ten), -1, false, true, false)
+      expect(below.action).toBe(Action.Hit)
+      const above = engine.getCorrectAction([card(Rank.Ten), card(Rank.Six)], card(Rank.Ten), 2, false, true, false)
+      expect(above.action).toBe(Action.Stand)
     })
 
     it('basic strategy: hard 12 vs 3 → Hit (at TC < +2)', () => {
@@ -317,12 +336,12 @@ describe('CasinoSessionEngine', () => {
     })
 
     // Deviation tests
-    it('deviation: 16 vs 10 at TC +1 → Stand (I18 #2, index 0)', () => {
+    it('deviation: 16 vs 10 at TC +1 without surrender → Stand (I18 #2, index 0)', () => {
       const result = engine.getCorrectAction(
         [card(Rank.Ten), card(Rank.Six)],
         card(Rank.Ten),
         1,
-        false, true, true,
+        false, true, false,
       )
       expect(result.action).toBe(Action.Stand)
       expect(result.isDeviation).toBe(true)
@@ -342,18 +361,38 @@ describe('CasinoSessionEngine', () => {
       expect(result.isDeviation).toBe(false)
     })
 
-    it('deviation: 15 vs 10 at TC +4 → Stand (I18 #3, index +4)', () => {
+    it('15 vs 10 at TC +4 with surrender → Surrender (Fab 4; the stand index is for no-surrender tables)', () => {
       const result = engine.getCorrectAction(
         [card(Rank.Ten), card(Rank.Five)],
         card(Rank.Ten),
         4,
         false, true, true,
       )
-      // At TC +4, both I18 #3 (15 vs 10 → Stand at TC >= +4) and
-      // Fab4 #2 (15 vs 10 → Surrender at TC >= 0) could match.
-      // I18 is checked first, so Stand wins.
+      expect(result.action).toBe(Action.Surrender)
+      expect(result.isDeviation).toBe(false)
+    })
+
+    it('15 vs 10 at TC +4 without surrender → Stand (I18 #3, index +4)', () => {
+      const result = engine.getCorrectAction(
+        [card(Rank.Ten), card(Rank.Five)],
+        card(Rank.Ten),
+        4,
+        false, true, false,
+      )
       expect(result.action).toBe(Action.Stand)
       expect(result.isDeviation).toBe(true)
+      expect(result.deviationName).toBe('15 vs 10')
+    })
+
+    it('14 vs 10 at TC +3 without surrender → Hit (a Fab 4 play needs surrender)', () => {
+      const result = engine.getCorrectAction(
+        [card(Rank.Ten), card(Rank.Four)],
+        card(Rank.Ten),
+        3,
+        false, true, false,
+      )
+      expect(result.action).toBe(Action.Hit)
+      expect(result.isDeviation).toBe(false)
     })
 
     it('deviation: 15 vs 10 at TC +3 → Surrender (Fab4 #2, TC >= 0)', () => {
@@ -1495,8 +1534,8 @@ describe('CasinoSessionEngine', () => {
   // ═══════════════════════════════════════════════════════
 
   describe('Deviation Detection', () => {
-    it('detects deviation situation: 16 vs 10 at TC +1', () => {
-      const engine = new CasinoSessionEngine(createTestConfig())
+    it('detects deviation situation: 16 vs 10 at TC +1 at a no-surrender table', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ surrenderAllowed: false }))
 
       const result = engine.checkDeviation(
         [card(Rank.Ten), card(Rank.Six)],
@@ -1507,6 +1546,11 @@ describe('CasinoSessionEngine', () => {
       expect(result).not.toBeNull()
       expect(result!.name).toBe('16 vs 10')
       expect(result!.correctAction).toBe(Action.Stand)
+    })
+
+    it('16 vs 10 at a surrender table is no deviation: surrender is the play', () => {
+      const engine = new CasinoSessionEngine(createTestConfig())
+      expect(engine.checkDeviation([card(Rank.Ten), card(Rank.Six)], card(Rank.Ten), 1)).toBeNull()
     })
 
     it('returns null for non-deviation situation: 18 vs 6', () => {

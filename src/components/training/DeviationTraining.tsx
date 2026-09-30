@@ -335,6 +335,9 @@ export function DeviationTraining() {
                 <span className="text-gold font-bold text-lg" data-testid="true-count">{formatTC(question.trueCount)}</span>
               </div>
             )}
+            {question.noSurrender && (
+              <p className="text-content/60 text-sm text-center pt-1" data-testid="no-surrender">{t('training.flash.noSurrender')}</p>
+            )}
           </div>
 
           <p className="text-content font-medium text-center mb-4">{t('training.flash.whatDoYouDo')}</p>

@@ -421,6 +421,7 @@
       "yourHand": "La tua mano",
       "dealerShows": "Il banco mostra",
       "trueCount": "True count",
+      "noSurrender": "Niente resa a questo tavolo",
       "whatDoYouDo": "Cosa fai?",
       "youChose": "Hai scelto <w>{{chosen}}</w>, la risposta giusta era <r>{{right}}</r>.",
       "basicIs": "Strategia di base: <h>{{action}}</h>.",

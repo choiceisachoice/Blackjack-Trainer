@@ -27,6 +27,12 @@ export interface FlashQuestion {
   basicAction: Action
   /** True when this is a count-based deviation question. */
   isDeviation: boolean
+  /**
+   * True when the question is set at a table without surrender. The stand
+   * indices for 15 v 10, 16 v 10 and 16 v 9 only exist there: where late
+   * surrender is offered, surrendering beats standing at every count.
+   */
+  noSurrender: boolean
   /** Internal name of the deviation (not shown to the user; used only for keys). */
   deviationName?: string
 }
@@ -68,12 +74,20 @@ export function handKindOf(hand: string): 'hard' | 'soft' | 'pair' {
   return 'hard'
 }
 
-/** Looks up the Basic-Strategy action for a hand vs a dealer upcard. */
-export function lookupBasicAction(hand: string, dealer: string, table: StrategyTable): Action {
+/**
+ * Looks up the Basic-Strategy action for a hand vs a dealer upcard.
+ *
+ * @param surrender - Whether the table offers late surrender; without it a
+ *   surrender cell falls back to its second choice (Rh → Hit, Rs → Stand)
+ */
+export function lookupBasicAction(hand: string, dealer: string, table: StrategyTable, surrender = true): Action {
   const kind = handKindOf(hand)
   const sub = kind === 'pair' ? table.pairs : kind === 'soft' ? table.softTotals : table.hardTotals
   const raw = sub[hand]?.[dealer]
-  return raw ? resolveStrategyAction(raw) : Action.Hit
+  if (!raw) return Action.Hit
+  if (!surrender && raw === 'Rh') return Action.Hit
+  if (!surrender && raw === 'Rs') return Action.Stand
+  return resolveStrategyAction(raw)
 }
 
 /** Which actions are offered as buttons for a given question. */
@@ -85,7 +99,7 @@ export function enabledActions(q: FlashQuestion): Record<Action, boolean> {
     [Action.Stand]: true,
     [Action.Double]: true,
     [Action.Split]: isPair,
-    [Action.Surrender]: true,
+    [Action.Surrender]: !q.noSurrender,
     [Action.Insurance]: dealerAce,
   }
 }
@@ -95,7 +109,7 @@ function makeBasicQuestion(table: StrategyTable): FlashQuestion {
   const hand = kind === 'hard' ? pick(HARD_HANDS) : kind === 'soft' ? pick(SOFT_HANDS) : pick(PAIR_HANDS)
   const dealer = pick(DEALERS)
   const action = lookupBasicAction(hand, dealer, table)
-  return { handKind: kind, hand, dealer, trueCount: null, correctAction: action, basicAction: action, isDeviation: false }
+  return { handKind: kind, hand, dealer, trueCount: null, correctAction: action, basicAction: action, isDeviation: false, noSurrender: false }
 }
 
 /** The deviation with this display name, if there is one. */
@@ -126,7 +140,11 @@ function makeDeviationQuestion(table: StrategyTable, dev = pick(ALL_DEVIATIONS))
 
   const isInsurance = dev.playerHand === '*'
   const hand = dev.playerHand
-  const basic = isInsurance ? Action.Hit : lookupBasicAction(dev.playerHand, dev.dealerUpcard, table)
+  // A play index on a hand that basic strategy surrenders is a no-surrender
+  // index (see `FlashQuestion.noSurrender`), so the question is set there.
+  const noSurrender = !isInsurance && dev.isIllustrious18
+    && lookupBasicAction(hand, dev.dealerUpcard, table) === Action.Surrender
+  const basic = isInsurance ? Action.Hit : lookupBasicAction(hand, dev.dealerUpcard, table, !noSurrender)
 
   return {
     handKind: isInsurance ? 'hard' : handKindOf(hand),
@@ -137,6 +155,7 @@ function makeDeviationQuestion(table: StrategyTable, dev = pick(ALL_DEVIATIONS))
     basicAction: basic,
     isDeviation: true,
     deviationName: dev.name,
+    noSurrender,
   }
 }
 

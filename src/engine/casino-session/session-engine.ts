@@ -317,9 +317,12 @@ export class CasinoSessionEngine {
     trueCount: number,
     canSplit: boolean,
     _canDouble: boolean,
-    _canSurrender: boolean,
+    canSurrender: boolean,
   ): { action: Action; isDeviation: boolean; deviationName?: string } {
-    const bsAction = getOptimalAction(playerCards, dealerUpCard, this.casinoRules)
+    // The table allowing surrender is not enough: a split hand or a third card
+    // takes it away, and grading against a button that is greyed out would mark
+    // every answer wrong.
+    const bsAction = getOptimalAction(playerCards, dealerUpCard, this.rulesFor(canSurrender))
 
     // Without a count the index plays do not exist. Grading against them would
     // mark a correct basic-strategy decision wrong every time a deviation
@@ -345,7 +348,7 @@ export class CasinoSessionEngine {
     }
 
     // Non-pair hands: check ALL matching deviations (I18 first, then Fab4)
-    const playDeviations = this.allDeviations.filter(d => d.playerHand !== '*')
+    const playDeviations = this.playDeviationsFor(bsAction, canSurrender)
 
     // Iterate through all deviations to find one that fires at this TC
     for (const dev of playDeviations) {
@@ -371,6 +374,27 @@ export class CasinoSessionEngine {
     }
 
     return { action: bsAction, isDeviation: false }
+  }
+
+  /** The table's rules with surrender switched off when this hand cannot surrender. */
+  private rulesFor(canSurrender: boolean): CasinoRules {
+    return canSurrender ? this.casinoRules : { ...this.casinoRules, surrenderAllowed: 'none' }
+  }
+
+  /**
+   * The play deviations that exist for this hand, given whether it may surrender.
+   *
+   * The Illustrious 18 stand indices for 15 v 10, 16 v 10 and 16 v 9 are for
+   * tables without surrender. Where the hand may surrender, basic strategy
+   * already surrenders it, and surrendering (half the bet) beats standing at
+   * every count, so those indices do not apply. The other way round, the Fab 4
+   * are surrender plays and need a hand that may surrender.
+   */
+  private playDeviationsFor(bsAction: Action, canSurrender: boolean): Deviation[] {
+    return this.allDeviations.filter(d =>
+      d.playerHand !== '*'
+      && !(d.isFab4 && !canSurrender)
+      && !(d.isIllustrious18 && bsAction === Action.Surrender))
   }
 
   /**
@@ -1047,8 +1071,9 @@ export class CasinoSessionEngine {
     trueCount: number,
   ): { name: string; correctAction: Action } | null {
     if (this.isBasicPlay()) return null
-    const bsAction = getOptimalAction(playerCards, dealerUpCard, this.casinoRules)
-    const playDeviations = this.allDeviations.filter(d => d.playerHand !== '*')
+    const canSurrender = this.config.surrenderAllowed && playerCards.length === 2
+    const bsAction = getOptimalAction(playerCards, dealerUpCard, this.rulesFor(canSurrender))
+    const playDeviations = this.playDeviationsFor(bsAction, canSurrender)
 
     // Check all matching deviations (I18 first, then Fab4)
     for (const dev of playDeviations) {

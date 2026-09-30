@@ -421,6 +421,7 @@
       "yourHand": "A sua mão",
       "dealerShows": "O dealer mostra",
       "trueCount": "True count",
+      "noSurrender": "Sem desistência nesta mesa",
       "whatDoYouDo": "O que faz?",
       "youChose": "Escolheu <w>{{chosen}}</w>; o correto era <r>{{right}}</r>.",
       "basicIs": "Estratégia básica: <h>{{action}}</h>.",

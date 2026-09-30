@@ -421,6 +421,7 @@
       "yourHand": "Your Hand",
       "dealerShows": "Dealer Shows",
       "trueCount": "True Count",
+      "noSurrender": "No surrender at this table",
       "whatDoYouDo": "What do you do?",
       "youChose": "You chose <w>{{chosen}}</w>, correct was <r>{{right}}</r>.",
       "basicIs": "Basic Strategy: <h>{{action}}</h>.",

@@ -421,6 +421,7 @@
       "yourHand": "Votre main",
       "dealerShows": "Le croupier montre",
       "trueCount": "True count",
+      "noSurrender": "Pas d'abandon à cette table",
       "whatDoYouDo": "Que faites-vous ?",
       "youChose": "Vous avez choisi <w>{{chosen}}</w>, la bonne réponse était <r>{{right}}</r>.",
       "basicIs": "Stratégie de base : <h>{{action}}</h>.",

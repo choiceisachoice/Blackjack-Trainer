@@ -155,6 +155,14 @@ describe('DeviationTraining (Flashcards)', () => {
       expect(screen.getByTestId('focus-again')).toBeInTheDocument()
     })
 
+    it('sets the 16 vs 10 stand index at a no-surrender table and says so', () => {
+      useAppStore.setState({ flashFocus: ['16 vs 10'] })
+      render(<DeviationTraining />)
+      fireEvent.click(screen.getByTestId('start-training'))
+      expect(screen.getByTestId('no-surrender')).toHaveTextContent('No surrender at this table')
+      expect(screen.getByTestId('action-surrender')).toBeDisabled()
+    })
+
     it('can be dropped for the ordinary drill', () => {
       useAppStore.setState({ flashFocus: FOCUS })
       render(<DeviationTraining />)

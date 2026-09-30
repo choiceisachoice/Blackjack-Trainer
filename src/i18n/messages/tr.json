@@ -421,6 +421,7 @@
       "yourHand": "Eliniz",
       "dealerShows": "Krupiye gösteriyor",
       "trueCount": "True count",
+      "noSurrender": "Bu masada teslim yok",
       "whatDoYouDo": "Ne yaparsınız?",
       "youChose": "<w>{{chosen}}</w> seçtiniz, doğrusu <r>{{right}}</r> idi.",
       "basicIs": "Temel strateji: <h>{{action}}</h>.",
