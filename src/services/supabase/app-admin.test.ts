@@ -29,4 +29,12 @@ describe('isAppAdmin', () => {
     state.client = null
     expect(await isAppAdmin()).toBe(false)
   })
+
+  it('is false, not a rejection, when the query throws', async () => {
+    // Callers fire this with `void …then()`; a rejection there is unhandled.
+    limit.mockRejectedValue(new TypeError('Failed to fetch'))
+    await expect(isAppAdmin()).resolves.toBe(false)
+    state.client = { from: () => { throw new TypeError('supabase.from is not a function') } }
+    await expect(isAppAdmin()).resolves.toBe(false)
+  })
 })

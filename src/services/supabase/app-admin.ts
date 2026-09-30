@@ -15,7 +15,13 @@ import { supabase } from './client'
  */
 export async function isAppAdmin(): Promise<boolean> {
   if (!supabase) return false
-  const { data, error } = await supabase.from('app_admins').select('user_id').limit(1)
-  if (error) return false
-  return Array.isArray(data) && data.length > 0
+  try {
+    const { data, error } = await supabase.from('app_admins').select('user_id').limit(1)
+    if (error) return false
+    return Array.isArray(data) && data.length > 0
+  } catch {
+    // A network failure throws rather than returning `error`; the callers
+    // fire this without a catch, so the answer has to be "no", not a rejection.
+    return false
+  }
 }
