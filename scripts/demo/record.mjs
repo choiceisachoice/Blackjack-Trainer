@@ -55,7 +55,7 @@ const ZOOM = 2
  * and the card is drawn at 750×1050 in the frame instead of 500×700. The film
  * then never scales the footage up: a 4K frame of the product, as rendered.
  */
-const ZOOM_FOR = { speed: 3, flashcards: 3, casino: 1 }
+const ZOOM_FOR = { speed: 3, flashcards: 3, casino: 1, 'deck-estimation': 2.4, 'bet-spread': 2.7 }
 const zoomFor = name => ZOOM_FOR[name] ?? ZOOM
 /**
  * The casino table is laid out in vh, and under CSS zoom a vh is the
@@ -435,6 +435,73 @@ const SCENES = {
     await sleep(1800)
   },
 
+  /**
+   * Deck Estimation: three trays, each answered right. The answer is read off
+   * the tray the way the drill draws it — the stack is `dealt × 1.4px` high in
+   * a container `total × 1.4px + 8` high — so the pick on tape is the nearest
+   * half deck to the truth, which is always inside the drill's ±0.5 tolerance.
+   */
+  async 'deck-estimation'(page) {
+    await openMode(page, 'deckEstimation')
+    await sleep(1200)
+    await glideClick(page, '[data-testid="start-training"]', { settle: 1400 })
+    for (let i = 0; i < 3; i++) {
+      // Let the stack finish growing (0.5 s animation) before measuring it.
+      await sleep(900)
+      const decks = await page.evaluate(() => {
+        const tray = document.querySelector('[data-testid="discard-visual"]')
+        const sized = Array.from(tray?.querySelectorAll('div') ?? []).filter(d => /px$/.test(d.style.height))
+        const box = sized.reduce((a, b) => (parseFloat(b.style.height) > parseFloat(a?.style.height ?? '0') ? b : a), null)
+        const stack = box ? Array.from(box.children).find(c => /px$/.test(c.style.height)) : null
+        const total = box ? (parseFloat(box.style.height) - 8) / 1.4 : 312
+        const dealt = stack ? parseFloat(stack.style.height) / 1.4 : 0
+        return (total - dealt) / 52
+      })
+      const pick = Math.min(6, Math.max(0.5, Math.round(decks * 2) / 2))
+      ;(page.__events ??= []).push({ atMs: Date.now(), kind: 'estimate', decks: Math.round(decks * 100) / 100, pick })
+      // A look at the tray, as a person would, before answering.
+      await sleep(1600)
+      await glideClick(page, `[data-testid="deck-${pick}"]`, { settle: 2600 })
+      await glideClick(page, '[data-testid="next-question"]', { settle: 900 })
+    }
+    await sleep(600)
+  },
+
+  /**
+   * Bet Spread, type C: running count and decks left are given, the true
+   * count is entered, then the bet. Both are computed the way the drill
+   * computes them (TC to the nearest half, the 1–16 ladder at the table
+   * minimum), so every answer on tape is graded correct.
+   */
+  async 'bet-spread'(page) {
+    await openMode(page, 'betSpread')
+    await sleep(1600)
+    await glideClick(page, 'button:has-text("Type C")')
+    await glideClick(page, 'button:has-text("10")')
+    await sleep(500)
+    await glideClick(page, '[data-testid="start-training"]', { settle: 1400 })
+    const ladder = [[-Infinity, 0, 1], [1, 1, 2], [2, 2, 4], [3, 3, 8], [4, 4, 12], [5, Infinity, 16]]
+    for (let i = 0; i < 3; i++) {
+      const num = async id => parseFloat(((await page.locator(`[data-testid="${id}"]`).textContent()) ?? '0').replace(/[^\d.+-]/g, '')) || 0
+      const rc = await num('running-count')
+      const decks = await num('remaining-decks')
+      const min = await num('table-min')
+      const tc = Math.round((rc / decks) * 2) / 2
+      const mult = ladder.find(([lo, hi]) => Math.floor(tc) >= lo && Math.floor(tc) <= hi)[2]
+      ;(page.__events ??= []).push({ atMs: Date.now(), kind: 'bet', rc, decks, tc, bet: mult * min })
+      await sleep(1800)
+      // Select what is in the field before typing: typed into its 0, the
+      // number read "02" on tape in the speed drill.
+      await glideClick(page, '[data-testid="tc-input"]', { settle: 200 })
+      await page.keyboard.press('Control+A')
+      await page.keyboard.type(String(tc), { delay: 160 })
+      await sleep(900)
+      await glideClick(page, `[data-testid="bet-${mult * min}"]`, { settle: 3200 })
+      await glideClick(page, '[data-testid="next-question"]', { settle: 900 })
+    }
+    await sleep(600)
+  },
+
   /** The landing page, scrolled — the clip; the film's close uses the still of the same name's hero. */
   async 'landing-scroll'(page) {
     await openApp(page, `${BASE}/`)
@@ -484,13 +551,19 @@ const STILLS = {
     await page.mouse.move(1919, 2599)
     await sleep(2500)
   },
+  /** The Bet Spread setup, with the 1–16 ladder — the film's betting lesson card. */
+  async 'bet-setup'(page) {
+    await openMode(page, 'betSpread')
+    await page.mouse.move(1919, 1079)
+    await sleep(1600)
+  },
 }
 
 /** Stills that need a viewport other than 1920×1080. */
 const STILL_VIEWPORT = { 'analytics-full': { width: 1920, height: 2600 } }
 
 /** Seeds per scene. The flashcards seed was searched for by `findSeed` (see below). */
-const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 90210, strategy: 3, landing: 5, 'landing-scroll': 5, 'speed-setup': 4242, 'analytics-full': 7 }
+const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 90210, strategy: 3, landing: 5, 'landing-scroll': 5, 'speed-setup': 4242, 'analytics-full': 7, 'deck-estimation': 21, 'bet-spread': 17, 'bet-setup': 17 }
 
 /**
  * Find a seed that makes the flashcards open on a given hand.
