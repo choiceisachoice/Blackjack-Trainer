@@ -55,7 +55,7 @@ const ZOOM = 2
  * and the card is drawn at 750×1050 in the frame instead of 500×700. The film
  * then never scales the footage up: a 4K frame of the product, as rendered.
  */
-const ZOOM_FOR = { speed: 3, flashcards: 3, casino: 1, 'deck-estimation': 2.4, 'bet-spread': 2.7 }
+const ZOOM_FOR = { speed: 3, flashcards: 3, 'flashcards-tens': 3, casino: 1, 'deck-estimation': 2.4, 'bet-spread': 2.7 }
 const zoomFor = name => ZOOM_FOR[name] ?? ZOOM
 /**
  * The casino table is laid out in vh, and under CSS zoom a vh is the
@@ -293,6 +293,36 @@ const SCENES = {
         : (tc >= 2 ? 'stand' : 'hit')
       await glideClick(page, `[data-testid="action-${action}"]`, { settle: 2600 })
       await glideClick(page, '[data-testid="next-question"]', { settle: 900 })
+    }
+    await sleep(600)
+  },
+
+  /**
+   * Flashcards opening on a pair of tens against a 6 at a high count — the
+   * Illustrious 18 split (10,10 v 6 from TC +4, v 5 from +5). Seed found by
+   * `findSeed` for that hand above its index. Answered right, so the tape
+   * shows the split graded as the correct play.
+   */
+  async 'flashcards-tens'(page) {
+    await openMode(page, 'deviationTraining')
+    await sleep(700)
+    await glideClick(page, 'button:has-text("Deviations")')
+    await glideClick(page, 'button:has-text("10")')
+    await sleep(400)
+    await glideClick(page, '[data-testid="start-training"]', { settle: 1200 })
+    for (let i = 0; i < 2; i++) {
+      const hand = ((await page.locator('[data-testid="player-hand"]').textContent()) ?? '').trim()
+      const dealer = ((await page.locator('[data-testid="dealer-card"]').textContent()) ?? '').trim()
+      const tcText = (await page.locator('[data-testid="true-count"]').textContent().catch(() => '0')) ?? '0'
+      const tc = parseFloat(tcText.replace(/[^\d.+-]/g, '')) || 0
+      await sleep(2400)
+      const tensIndex = dealer === '6' ? 4 : dealer === '5' ? 5 : Infinity
+      const action = /^10\s*,\s*10$/.test(hand) ? (tc >= tensIndex ? 'split' : 'stand')
+        : hand === '16' ? (tc >= 0 ? 'stand' : 'hit')
+        : hand === 'Any' ? (tc >= 3 ? 'insurance' : 'hit')
+        : (tc >= 2 ? 'stand' : 'hit')
+      await glideClick(page, `[data-testid="action-${action}"]`, { settle: 3200 })
+      if (i === 0) await glideClick(page, '[data-testid="next-question"]', { settle: 900 })
     }
     await sleep(600)
   },
@@ -563,7 +593,7 @@ const STILLS = {
 const STILL_VIEWPORT = { 'analytics-full': { width: 1920, height: 2600 } }
 
 /** Seeds per scene. The flashcards seed was searched for by `findSeed` (see below). */
-const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 90210, strategy: 3, landing: 5, 'landing-scroll': 5, 'speed-setup': 4242, 'analytics-full': 7, 'deck-estimation': 21, 'bet-spread': 17, 'bet-setup': 17 }
+const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 90210, strategy: 3, landing: 5, 'landing-scroll': 5, 'speed-setup': 4242, 'analytics-full': 7, 'deck-estimation': 21, 'bet-spread': 17, 'bet-setup': 17, 'flashcards-tens': 0 }
 
 /**
  * Find a seed that makes the flashcards open on a given hand.
@@ -573,7 +603,7 @@ const SEEDS = { home: 11, speed: 4242, flashcards: 0, analytics: 7, casino: 9021
  * the engine, and the result is written into `SEEDS` for the next run.
  */
 async function findSeed(browser, storage, want = { hand: '16', dealer: '10' }) {
-  for (let seed = 1; seed < 400; seed++) {
+  for (let seed = 1; seed < 2000; seed++) {
     const context = await browser.newContext({ viewport: { width: SIZE.width / zoomFor('flashcards'), height: SIZE.height / zoomFor('flashcards') } })
     await context.addInitScript(initScript({ seed, storage }))
     const page = await context.newPage()
@@ -583,8 +613,12 @@ async function findSeed(browser, storage, want = { hand: '16', dealer: '10' }) {
     await page.locator('[data-testid="start-training"]').click()
     const hand = (await page.locator('[data-testid="player-hand"]').textContent()) ?? ''
     const dealer = (await page.locator('[data-testid="dealer-card"]').textContent()) ?? ''
+    const tcText = (await page.locator('[data-testid="true-count"]').textContent().catch(() => '0')) ?? '0'
+    const tc = parseFloat(tcText.replace(/[^\d.+-]/g, '')) || 0
     await context.close()
-    if (hand.trim() === want.hand && dealer.trim() === want.dealer) return seed
+    if (process.env.SEED_TRACE) console.log(`seed ${seed}: ${hand.trim()} v ${dealer.trim()} @ ${tc}`)
+    const handOk = want.handRe ? want.handRe.test(hand.trim()) : hand.trim() === want.hand
+    if (handOk && dealer.trim() === want.dealer && (want.minTc === undefined || tc >= want.minTc)) return seed
   }
   throw new Error('no seed found for the wanted hand')
 }
@@ -604,6 +638,10 @@ async function main() {
     if (names.includes('flashcards') && SEEDS.flashcards === 0) {
       SEEDS.flashcards = await findSeed(browser, storage)
       console.log(`flashcards: seed ${SEEDS.flashcards} opens on 16 vs 10`)
+    }
+    if (names.includes('flashcards-tens') && SEEDS['flashcards-tens'] === 0) {
+      SEEDS['flashcards-tens'] = await findSeed(browser, storage, { handRe: /^10\s*,?\s*10$/, dealer: '6', minTc: 4 })
+      console.log(`flashcards-tens: seed ${SEEDS['flashcards-tens']} opens on 10,10 vs 6 above +4`)
     }
     const ffmpeg = spawnSync('ffmpeg', ['-version'], { stdio: 'ignore', shell: true }).status === 0
 
