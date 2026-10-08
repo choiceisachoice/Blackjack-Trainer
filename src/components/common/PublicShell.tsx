@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Spade } from 'lucide-react'
 import { LanguageSwitcher } from './LanguageSwitcher'
+import { SocialLinks } from './SocialLinks'
 
 interface PublicShellProps {
   children: ReactNode
@@ -77,6 +78,7 @@ export function PublicShell({ children, cta = true, testId = 'public-shell' }: P
             <Link to="/privacy" className="hover:text-content">{t('landing.footer.privacy')}</Link>
             <Link to="/contact" className="hover:text-content">{t('landing.footer.contact')}</Link>
           </nav>
+          <SocialLinks />
         </div>
       </footer>
     </div>

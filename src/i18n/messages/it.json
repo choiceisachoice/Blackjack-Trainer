@@ -210,7 +210,9 @@
       "privacy": "Privacy",
       "terms": "Termini",
       "contact": "Contatti",
-      "note": "Strumento di allenamento — non affiliato ad alcun casinò."
+      "note": "Strumento di allenamento — non affiliato ad alcun casinò.",
+      "social": "Seguici",
+      "socialLink": "Blackjack Trainer su {{network}} (si apre in una nuova scheda)"
     },
     "sections": {
       "featuresEyebrow": "Tutto in un solo allenatore",

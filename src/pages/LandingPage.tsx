@@ -9,6 +9,7 @@ import { PRO_BENEFITS, formatMoney, formatDecimal, yearlySaving, CH_VAT_PERCENT 
 import { usePlanPriceStore, selectPlan } from '../store/plan-price-store'
 import { logFailure } from '../services/failure-log'
 import { LEGAL_META } from './legal/legal-meta'
+import { SocialLinks } from '../components/common/SocialLinks'
 import { usePageMeta } from '../hooks/use-page-meta'
 import { JsonLd } from '../components/common/JsonLd'
 import { siteJsonLd } from '../services/structured-data'
@@ -366,6 +367,7 @@ export function LandingPage() {
             <Link to="/privacy" className="hover:text-content">{t('landing.footer.privacy')}</Link>
             <Link to="/contact" className="hover:text-content">{t('landing.footer.contact')}</Link>
           </div>
+          <SocialLinks />
           <div>{t('landing.footer.note')}</div>
         </div>
       </footer>

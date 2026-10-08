@@ -210,7 +210,9 @@
       "privacy": "Privacidad",
       "terms": "Términos",
       "contact": "Contacto",
-      "note": "Herramienta de práctica: sin relación con ningún casino."
+      "note": "Herramienta de práctica: sin relación con ningún casino.",
+      "social": "Síguenos",
+      "socialLink": "Blackjack Trainer en {{network}} (se abre en una pestaña nueva)"
     },
     "sections": {
       "featuresEyebrow": "Todo en un solo entrenador",

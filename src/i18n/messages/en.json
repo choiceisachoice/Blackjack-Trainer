@@ -210,7 +210,9 @@
       "privacy": "Privacy",
       "terms": "Terms",
       "contact": "Contact",
-      "note": "Practice tool — not affiliated with any casino."
+      "note": "Practice tool — not affiliated with any casino.",
+      "social": "Follow us",
+      "socialLink": "Blackjack Trainer on {{network}} (opens in a new tab)"
     },
     "sections": {
       "featuresEyebrow": "Everything in one trainer",

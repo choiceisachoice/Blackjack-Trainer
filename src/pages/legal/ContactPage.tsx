@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Spade, ArrowLeft, Mail, AlertTriangle } from 'lucide-react'
 import { LEGAL_META as M, hasUnsetPlaceholders } from './legal-meta'
 import { usePageMeta } from '../../hooks/use-page-meta'
+import { SocialLinks } from '../../components/common/SocialLinks'
 
 /**
  * Contact page. Deliberately a plain address, not a form: a form that posts
@@ -62,6 +63,8 @@ export function ContactPage() {
             />
           </p>
         </div>
+
+        <SocialLinks className="mt-8 justify-center text-sm" />
 
         <footer className="mt-12 pt-6 border-t border-white/8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-content/55">
           <Link to="/terms" className="hover:text-content">{t('contact.terms')}</Link>

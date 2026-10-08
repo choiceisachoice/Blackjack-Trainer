@@ -210,7 +210,9 @@
       "privacy": "Gizlilik",
       "terms": "Koşullar",
       "contact": "İletişim",
-      "note": "Alıştırma aracı — hiçbir kumarhaneyle bağlantılı değildir."
+      "note": "Alıştırma aracı — hiçbir kumarhaneyle bağlantılı değildir.",
+      "social": "Bizi takip edin",
+      "socialLink": "{{network}} üzerinde Blackjack Trainer (yeni sekmede açılır)"
     },
     "sections": {
       "featuresEyebrow": "Hepsi tek bir eğitmende",

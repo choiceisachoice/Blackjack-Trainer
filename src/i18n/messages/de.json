@@ -210,7 +210,9 @@
       "privacy": "Datenschutz",
       "terms": "AGB",
       "contact": "Kontakt",
-      "note": "Übungswerkzeug — mit keinem Casino verbunden."
+      "note": "Übungswerkzeug — mit keinem Casino verbunden.",
+      "social": "Folge uns",
+      "socialLink": "Blackjack Trainer auf {{network}} (öffnet in einem neuen Tab)"
     },
     "sections": {
       "featuresEyebrow": "Alles in einem Trainer",

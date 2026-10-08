@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Spade, ArrowLeft, AlertTriangle } from 'lucide-react'
 import type { LegalDoc } from './legal-types'
 import { LEGAL_META, hasUnsetPlaceholders } from './legal-meta'
+import { SocialLinks } from '../../components/common/SocialLinks'
 
 /**
  * Shared layout for the Terms and Privacy pages. Renders a {@link LegalDoc}
@@ -77,6 +78,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
           <Link to="/privacy" className="hover:text-content">{t('contact.privacy')}</Link>
           <Link to="/contact" className="hover:text-content">{t('contact.title')}</Link>
           <span className="ml-auto text-content/40">{t('legal.updated', { date: LEGAL_META.lastUpdated })}</span>
+          <SocialLinks className="basis-full mt-3" />
         </footer>
       </div>
     </div>
