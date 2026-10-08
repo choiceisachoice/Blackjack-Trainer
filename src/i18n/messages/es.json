@@ -580,6 +580,7 @@
       "placeBetToDeal": "Apuesta para que reparta",
       "placeYourBet": "Haz tu apuesta",
       "clear": "Borrar",
+      "betAmount": "Importe de la apuesta",
       "doubled": "Doblada",
       "surrendered": "Rendida",
       "handNo": "Mano {{n}}",

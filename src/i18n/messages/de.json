@@ -580,6 +580,7 @@
       "placeBetToDeal": "Setze, damit ausgeteilt wird",
       "placeYourBet": "Setze deinen Einsatz",
       "clear": "Zurücksetzen",
+      "betAmount": "Einsatz",
       "doubled": "Verdoppelt",
       "surrendered": "Aufgegeben",
       "handNo": "Hand {{n}}",

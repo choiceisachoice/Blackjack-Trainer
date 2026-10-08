@@ -580,6 +580,7 @@
       "placeBetToDeal": "Misez pour lancer la donne",
       "placeYourBet": "Placez votre mise",
       "clear": "Effacer",
+      "betAmount": "Montant de la mise",
       "doubled": "Doublé",
       "surrendered": "Abandonnée",
       "handNo": "Main {{n}}",
