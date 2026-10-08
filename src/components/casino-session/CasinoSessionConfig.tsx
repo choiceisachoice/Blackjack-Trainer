@@ -43,21 +43,44 @@ function Panel({ icon: Icon, title, children }: { icon: LucideIcon; title: strin
   )
 }
 
-/** Styled numeric input. */
+/**
+ * Styled numeric input that can be typed into as well as stepped.
+ *
+ * What is typed is held as a draft and only clamped when the field is left
+ * (or Enter is pressed). Clamping on every keystroke made typing impossible:
+ * clearing the field put `min` straight back, and so did the first digit of
+ * any number below it — "250" for a bankroll with a minimum of 100 could only
+ * be reached with the arrows. A draft that is already a valid amount is passed
+ * on at once, so the arrows and a click on Start both see it without a blur.
+ */
 function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
   value: number; min: number; max: number; step?: number; onChange: (v: number) => void; prefix?: string; label: string
 }) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const commit = (raw: string) => {
+    const n = parseInt(raw, 10)
+    onChange(Number.isNaN(n) ? value : Math.max(min, Math.min(max, n)))
+    setDraft(null)
+  }
   return (
     <div className="relative">
       {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-content/40">{prefix}</span>}
       <Input
         type="number"
+        inputMode="numeric"
         aria-label={label}
         min={min}
         max={max}
         step={step}
-        value={value}
-        onChange={e => onChange(Math.max(min, Math.min(max, parseInt(e.target.value) || min)))}
+        value={draft ?? value}
+        onChange={e => {
+          const raw = e.target.value
+          setDraft(raw)
+          const n = parseInt(raw, 10)
+          if (!Number.isNaN(n) && n >= min && n <= max) onChange(n)
+        }}
+        onBlur={e => commit(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') commit(e.currentTarget.value) }}
         className={`w-28 py-1.5 text-right ${prefix ? 'pl-7 pr-3' : 'px-3'}`}
       />
     </div>

@@ -351,35 +351,13 @@ issue and was dealt with".
    customer, and it is now open rather than blocked — but it is a person
    choosing to write in, not a signal, and it should not be mistaken for one.
 
-2. **The repository's Caddyfile has not been seen running yet** (13 Sep 2026).
-   `nixpacks.toml` points the start command at `./Caddyfile`, which serves the
-   prerendered pages (`try_files {path} {path}/index.html /shell.html`) and
-   sets `Cache-Control: immutable` on `/assets` — closing the cache-header gap
-   that `docs/traefik-cache-headers.yml` was written for. Nixpacks' own
-   Caddyfile cannot be read from the repo, so this is the only way to change
-   the server; it is the Nixpacks template with three lines changed.
-
-   **Verify after the first deploy**, from outside:
-
-   ```bash
-   curl -s https://black-jack-training.com/learn | grep -c "<h1"
-   ```
-
-   `1` means the Caddyfile is live (the prerendered page was served); `0`
-   means the request fell back to the shell and Nixpacks ignored the start
-   override. Also `curl -sI https://black-jack-training.com/assets/` on any
-   hashed file should show `cache-control: public, max-age=31536000, immutable`.
-   Rollback is deleting `nixpacks.toml`. If the override is ignored, `/`
-   is still prerendered — `dist/index.html` is the landing — but the other
-   34 pages are unreachable until the server learns `{path}/index.html`.
-
-3. **The business side is unproven.** Zero subscribers. The purchase path was
+2. **The business side is unproven.** Zero subscribers. The purchase path was
    exercised once, by hand, on 18 Aug 2026 — that is one data point, not a
    track record. Also untested: what a non-Swiss address does to the VAT line,
    which needs a deliberate test-mode run rather than a real address typed into
    a live checkout.
 
-4. **Signature verification is still untested.** Everything else on the payment
+3. **Signature verification is still untested.** Everything else on the payment
    path now has a test — the write check, the Stripe-mode check, the price
    validation, the customer rules, the webhook's routing and ledger, and as of
    19 Aug the CORS allowlist. What remains is `constructEventAsync`, which is
@@ -387,6 +365,22 @@ issue and was dealt with".
    which is its own risk and proves less than it looks. Left deliberately.
 
 ### Closed
+
+- **The repository's Caddyfile is running** (8 Oct 2026). `nixpacks.toml`
+  points the start command at `./Caddyfile` — the Nixpacks template with three
+  lines changed — which serves the prerendered pages
+  (`try_files {path} {path}/index.html /shell.html`) and sets
+  `Cache-Control: immutable` on `/assets`. Verified from outside after the
+  deploy of `287b1aa`: `/learn` answers with its own `<h1>` (the prerendered
+  page, not the shell), and a hashed file under `/assets` carries
+  `cache-control: public, max-age=31536000, immutable`. Rollback is still
+  deleting `nixpacks.toml`.
+
+  Worth knowing from the same day: **a push to `main` does not deploy.** The
+  live site served a build from 25 Sep until the deploy was started by hand in
+  Dokploy, so every commit in between had been sitting unseen. After pushing,
+  deploy in Dokploy (or switch its autodeploy on) and check the live HTML, not
+  the repository.
 
 - **Progress reaches the cloud again, and can no longer go backwards**
   (14 Sep 2026). Level, XP, the simulation counters and the paid curriculum
