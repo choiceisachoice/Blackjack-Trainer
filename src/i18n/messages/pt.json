@@ -102,7 +102,7 @@
     "sessions": "Sessões",
     "achievements": "Conquistas",
     "downloadData": "Transferir os meus dados",
-    "downloadDataHint": "Um ficheiro JSON com as tuas sessões, conquistas, nível e registo de bankroll — tudo o que esta app guarda sobre ti.",
+    "downloadDataHint": "Um resumo claro da sua conta em PDF, Word ou Excel — ou todos os dados em bruto em JSON.",
     "changePicture": "Alterar imagem",
     "pictureSaved": "Imagem guardada.",
     "pictureSaveFailed": "Não foi possível guardar a tua imagem. Nada foi alterado — tenta novamente.",
@@ -128,7 +128,15 @@
     "avatarGroupLevels": "Uma por nível",
     "avatarGroupAchievements": "Para as conquistas mais difíceis",
     "avatarUnlockedCount": "{{n}} de {{total}} desbloqueadas",
-    "adminAnalytics": "Estatísticas do site"
+    "adminAnalytics": "Estatísticas do site",
+    "downloadFormat": {
+      "pdf": "PDF",
+      "word": "Word",
+      "excel": "Excel",
+      "json": "JSON (dados em bruto)"
+    },
+    "downloadPreparing": "A preparar…",
+    "downloadError": "Não foi possível criar o ficheiro. Tente novamente."
   },
   "pricing": {
     "vatNote": "Preço final, IVA suíço de {{rate}}% incluído para clientes na Suíça",
@@ -2251,5 +2259,72 @@
     "errorTitle": "Não foi possível carregar o relatório.",
     "errorBody": "Só os administradores registados o podem ler. Se for um deles, tente novamente daqui a pouco.",
     "definitions": "Um visitante é um navegador com um identificador aleatório. Uma sessão termina após 30 minutos sem atividade; a sua duração vai da primeira visualização à última atividade. Os registos são as contas criadas no período. Os clientes pagantes são as subscrições ativas, contadas neste momento."
+  },
+  "report": {
+    "title": "A sua conta Blackjack Trainer",
+    "subtitle": "Resumo da conta",
+    "generated": "Criado em {{date}}",
+    "duration": "{{h}} h {{m}} min",
+    "levelValue": "Nível {{level}} — {{title}}",
+    "nextLevelValue": "Faltam {{xp}} XP para o nível {{level}}",
+    "maxLevel": "Nível máximo alcançado",
+    "ofTotal": "{{count}} de {{total}}",
+    "section": {
+      "profile": "Perfil",
+      "training": "O treino num relance",
+      "byMode": "Por modo de treino",
+      "casino": "Sessões de casino",
+      "recent": "Últimas {{count}} sessões",
+      "achievements": "Conquistas desbloqueadas",
+      "bankroll": "Registo de bankroll com dinheiro real",
+      "about": "Sobre este documento"
+    },
+    "label": {
+      "email": "E-mail",
+      "level": "Nível",
+      "xp": "XP total",
+      "nextLevel": "Próximo nível",
+      "achievements": "Conquistas",
+      "firstSession": "Primeira sessão",
+      "sessions": "Sessões",
+      "practiceTime": "Tempo de treino",
+      "accuracy": "Precisão total",
+      "bestStreak": "Melhor sequência",
+      "activeDays": "Dias de treino",
+      "casinoSessions": "Sessões de casino",
+      "hands": "Mãos jogadas",
+      "netResult": "Resultado líquido",
+      "avgScore": "Pontuação média",
+      "entries": "Entradas",
+      "hoursPlayed": "Horas jogadas"
+    },
+    "col": {
+      "date": "Data",
+      "mode": "Modo",
+      "sessions": "Sessões",
+      "accuracy": "Precisão",
+      "best": "Melhor",
+      "time": "Tempo",
+      "questions": "Perguntas",
+      "duration": "Duração",
+      "hands": "Mãos",
+      "start": "Início",
+      "end": "Fim",
+      "result": "Resultado",
+      "grade": "Nota",
+      "achievement": "Conquista",
+      "description": "Descrição",
+      "casino": "Casino",
+      "hours": "Horas",
+      "notes": "Notas"
+    },
+    "empty": {
+      "sessions": "Ainda não há sessões de treino.",
+      "casino": "Ainda não há sessões de casino.",
+      "achievements": "Ainda não desbloqueou conquistas.",
+      "bankroll": "Não há entradas no registo de bankroll."
+    },
+    "aboutText": "Este resumo mostra as informações mais importantes da sua conta. O registo completo e legível por máquina de tudo o que a app guarda sobre si está disponível como ficheiro JSON na página da sua conta.",
+    "durationMinutes": "{{m}} min"
   }
 }

@@ -102,7 +102,7 @@
     "sessions": "Sessions",
     "achievements": "Succès",
     "downloadData": "Télécharger mes données",
-    "downloadDataHint": "Un fichier JSON avec tes sessions, tes succès, ton niveau et ton journal de bankroll — tout ce que cette app conserve sur toi.",
+    "downloadDataHint": "Un aperçu clair de votre compte en PDF, Word ou Excel — ou toutes les données brutes en JSON.",
     "changePicture": "Changer l’image",
     "pictureSaved": "Image enregistrée.",
     "pictureSaveFailed": "Ton image n’a pas pu être enregistrée. Rien n’a été modifié — réessaie.",
@@ -128,7 +128,15 @@
     "avatarGroupLevels": "Une par niveau",
     "avatarGroupAchievements": "Pour les succès les plus durs",
     "avatarUnlockedCount": "{{n}} sur {{total}} débloquées",
-    "adminAnalytics": "Statistiques du site"
+    "adminAnalytics": "Statistiques du site",
+    "downloadFormat": {
+      "pdf": "PDF",
+      "word": "Word",
+      "excel": "Excel",
+      "json": "JSON (données brutes)"
+    },
+    "downloadPreparing": "Préparation…",
+    "downloadError": "Le fichier n’a pas pu être créé. Veuillez réessayer."
   },
   "pricing": {
     "vatNote": "Prix final, TVA suisse de {{rate}}% incluse pour les clients en Suisse",
@@ -2251,5 +2259,72 @@
     "errorTitle": "Le rapport n’a pas pu être chargé.",
     "errorBody": "Seuls les administrateurs inscrits peuvent le lire. Si vous en faites partie, réessayez dans un instant.",
     "definitions": "Un visiteur est un navigateur doté d’un identifiant aléatoire. Une session se termine après 30 minutes sans activité ; sa durée va de la première page vue à la dernière activité. Les inscriptions sont les comptes créés sur la période. Les clients payants sont les abonnements actifs, comptés à l’instant."
+  },
+  "report": {
+    "title": "Votre compte Blackjack Trainer",
+    "subtitle": "Aperçu du compte",
+    "generated": "Créé le {{date}}",
+    "duration": "{{h}} h {{m}} min",
+    "levelValue": "Niveau {{level}} — {{title}}",
+    "nextLevelValue": "Encore {{xp}} XP jusqu’au niveau {{level}}",
+    "maxLevel": "Niveau le plus élevé atteint",
+    "ofTotal": "{{count}} sur {{total}}",
+    "section": {
+      "profile": "Profil",
+      "training": "L’entraînement en bref",
+      "byMode": "Par mode d’entraînement",
+      "casino": "Sessions casino",
+      "recent": "Les {{count}} dernières sessions",
+      "achievements": "Succès débloqués",
+      "bankroll": "Journal de bankroll en argent réel",
+      "about": "À propos de ce document"
+    },
+    "label": {
+      "email": "E-mail",
+      "level": "Niveau",
+      "xp": "XP total",
+      "nextLevel": "Niveau suivant",
+      "achievements": "Succès",
+      "firstSession": "Première session",
+      "sessions": "Sessions",
+      "practiceTime": "Temps d’entraînement",
+      "accuracy": "Précision globale",
+      "bestStreak": "Meilleure série",
+      "activeDays": "Jours d’entraînement",
+      "casinoSessions": "Sessions casino",
+      "hands": "Mains jouées",
+      "netResult": "Résultat net",
+      "avgScore": "Score moyen",
+      "entries": "Entrées",
+      "hoursPlayed": "Heures jouées"
+    },
+    "col": {
+      "date": "Date",
+      "mode": "Mode",
+      "sessions": "Sessions",
+      "accuracy": "Précision",
+      "best": "Meilleure",
+      "time": "Temps",
+      "questions": "Questions",
+      "duration": "Durée",
+      "hands": "Mains",
+      "start": "Début",
+      "end": "Fin",
+      "result": "Résultat",
+      "grade": "Note",
+      "achievement": "Succès",
+      "description": "Description",
+      "casino": "Casino",
+      "hours": "Heures",
+      "notes": "Notes"
+    },
+    "empty": {
+      "sessions": "Aucune session d’entraînement pour l’instant.",
+      "casino": "Aucune session casino pour l’instant.",
+      "achievements": "Aucun succès débloqué pour l’instant.",
+      "bankroll": "Aucune entrée dans le journal de bankroll."
+    },
+    "aboutText": "Cet aperçu présente les informations essentielles de votre compte. L’ensemble complet et lisible par machine de tout ce que l’application enregistre sur vous est disponible en fichier JSON sur votre page de compte.",
+    "durationMinutes": "{{m}} min"
   }
 }

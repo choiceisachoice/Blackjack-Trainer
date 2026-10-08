@@ -42,9 +42,11 @@ vi.mock('../services/supabase/profile-avatar', async importOriginal => ({
 }))
 
 const downloadJson = vi.fn<(name: string, data: unknown) => void>()
+const downloadBlob = vi.fn<(name: string, blob: Blob) => void>()
 vi.mock('../services/data-export', async importOriginal => ({
   ...(await importOriginal<typeof import('../services/data-export')>()),
   downloadJson: (name: string, data: unknown) => downloadJson(name, data),
+  downloadBlob: (name: string, blob: Blob) => downloadBlob(name, blob),
 }))
 
 import { AccountPage } from './AccountPage'
@@ -250,13 +252,36 @@ describe('preferences', () => {
 })
 
 describe('your data', () => {
-  it('hands over a dated JSON file with the person’s data', () => {
+  beforeEach(() => {
+    downloadJson.mockClear()
+    downloadBlob.mockClear()
+  })
+
+  it('hands over a dated JSON file with the person’s data', async () => {
     renderPage()
-    fireEvent.click(screen.getByTestId('account-export-data'))
-    expect(downloadJson).toHaveBeenCalledOnce()
+    fireEvent.click(screen.getByTestId('account-export-json'))
+    await waitFor(() => expect(downloadJson).toHaveBeenCalledOnce())
     const [name, data] = downloadJson.mock.calls[0]
     expect(name).toMatch(/^blackjack-trainer-\d{4}-\d{2}-\d{2}\.json$/)
-    expect(data).toMatchObject({ app: 'blackjack-trainer', version: 1, email: 'ada@example.com' })
+    expect(data).toMatchObject({ app: 'blackjack-trainer', version: 2, email: 'ada@example.com' })
+  })
+
+  it('offers the account overview as PDF, Word and Excel next to the raw JSON', () => {
+    renderPage()
+    for (const f of ['pdf', 'docx', 'xlsx', 'json']) expect(screen.getByTestId(`account-export-${f}`)).toBeEnabled()
+  })
+
+  it('hands over a dated Word file and a dated workbook', async () => {
+    renderPage()
+    fireEvent.click(screen.getByTestId('account-export-docx'))
+    await waitFor(() => expect(downloadBlob).toHaveBeenCalledTimes(1), { timeout: 10_000 })
+    fireEvent.click(screen.getByTestId('account-export-xlsx'))
+    await waitFor(() => expect(downloadBlob).toHaveBeenCalledTimes(2), { timeout: 10_000 })
+    const [[docName, docBlob], [xlsName, xlsBlob]] = downloadBlob.mock.calls
+    expect(docName).toMatch(/^blackjack-trainer-account-\d{4}-\d{2}-\d{2}\.docx$/)
+    expect(xlsName).toMatch(/^blackjack-trainer-account-\d{4}-\d{2}-\d{2}\.xlsx$/)
+    expect(docBlob.size).toBeGreaterThan(1000)
+    expect(xlsBlob.size).toBeGreaterThan(1000)
   })
 
   it('asks before deleting the training history and does nothing on cancel', () => {

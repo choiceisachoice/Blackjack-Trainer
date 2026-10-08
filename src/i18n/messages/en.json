@@ -102,7 +102,7 @@
     "sessions": "Sessions",
     "achievements": "Achievements",
     "downloadData": "Download my data",
-    "downloadDataHint": "A JSON file with your sessions, achievements, level and bankroll log — everything this app holds about you.",
+    "downloadDataHint": "A clear overview of your account as PDF, Word or Excel — or the complete raw data as JSON.",
     "changePicture": "Change picture",
     "pictureSaved": "Picture saved.",
     "pictureSaveFailed": "Your picture could not be saved. Nothing was changed — please try again.",
@@ -128,7 +128,15 @@
     "avatarGroupLevels": "One per level",
     "avatarGroupAchievements": "For the hardest awards",
     "avatarUnlockedCount": "{{n}} of {{total}} unlocked",
-    "adminAnalytics": "Website analytics"
+    "adminAnalytics": "Website analytics",
+    "downloadFormat": {
+      "pdf": "PDF",
+      "word": "Word",
+      "excel": "Excel",
+      "json": "JSON (raw data)"
+    },
+    "downloadPreparing": "Preparing…",
+    "downloadError": "The file could not be created. Please try again."
   },
   "pricing": {
     "vatNote": "Final price, incl. {{rate}}% Swiss VAT for customers in Switzerland",
@@ -2251,5 +2259,72 @@
     "errorTitle": "The report could not be loaded.",
     "errorBody": "Only listed admins can read it. If you are one, try again in a moment.",
     "definitions": "A visitor is a browser with a random id. A session ends after 30 minutes without activity; its length runs from the first page view to the last activity. Registrations are accounts created in the range. Paying customers are active subscriptions, counted right now."
+  },
+  "report": {
+    "title": "Your Blackjack Trainer account",
+    "subtitle": "Account overview",
+    "generated": "Created on {{date}}",
+    "duration": "{{h}} h {{m}} min",
+    "levelValue": "Level {{level}} — {{title}}",
+    "nextLevelValue": "{{xp}} XP to level {{level}}",
+    "maxLevel": "Highest level reached",
+    "ofTotal": "{{count}} of {{total}}",
+    "section": {
+      "profile": "Profile",
+      "training": "Training at a glance",
+      "byMode": "By training mode",
+      "casino": "Casino sessions",
+      "recent": "Last {{count}} sessions",
+      "achievements": "Achievements unlocked",
+      "bankroll": "Real-money bankroll log",
+      "about": "About this document"
+    },
+    "label": {
+      "email": "E-mail",
+      "level": "Level",
+      "xp": "Total XP",
+      "nextLevel": "Next level",
+      "achievements": "Achievements",
+      "firstSession": "First session",
+      "sessions": "Sessions",
+      "practiceTime": "Practice time",
+      "accuracy": "Overall accuracy",
+      "bestStreak": "Best streak",
+      "activeDays": "Days trained",
+      "casinoSessions": "Casino sessions",
+      "hands": "Hands played",
+      "netResult": "Net result",
+      "avgScore": "Average score",
+      "entries": "Entries",
+      "hoursPlayed": "Hours played"
+    },
+    "col": {
+      "date": "Date",
+      "mode": "Mode",
+      "sessions": "Sessions",
+      "accuracy": "Accuracy",
+      "best": "Best",
+      "time": "Time",
+      "questions": "Questions",
+      "duration": "Duration",
+      "hands": "Hands",
+      "start": "Start",
+      "end": "End",
+      "result": "Result",
+      "grade": "Grade",
+      "achievement": "Achievement",
+      "description": "Description",
+      "casino": "Casino",
+      "hours": "Hours",
+      "notes": "Notes"
+    },
+    "empty": {
+      "sessions": "No training sessions yet.",
+      "casino": "No casino sessions yet.",
+      "achievements": "No achievements unlocked yet.",
+      "bankroll": "No entries in the bankroll log."
+    },
+    "aboutText": "This overview shows the most important information about your account. The complete, machine-readable record of everything the app stores about you is available as a JSON file on your account page.",
+    "durationMinutes": "{{m}} min"
   }
 }

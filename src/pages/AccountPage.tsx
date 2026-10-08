@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, BarChart3, Crown, LogOut, ExternalLink, Loader2, Download, Pencil, Lock, X } from 'lucide-react'
+import { ArrowLeft, BarChart3, Crown, LogOut, ExternalLink, Loader2, Download, Pencil, Lock, X, FileText, FileType2, FileSpreadsheet, FileBraces } from 'lucide-react'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { useEntitlementStore, useIsPro } from '../store/entitlement-store'
 import { useAppStore, DEALING_SPEED_LABEL } from '../store/app-store'
@@ -25,7 +25,7 @@ import {
 import { getAchievementById, achievementName } from '../services/achievements/achievement-list'
 import { Avatar } from '../components/common/Avatar'
 import { ModalBackdrop } from '../components/common/ModalBackdrop'
-import { collectDataExport, downloadJson, exportFileName } from '../services/data-export'
+import { downloadAccountData, type DataFormat } from '../services/report/download-report'
 import { ALL_ACHIEVEMENTS } from '../services/achievements/achievement-list'
 import { casinoAmbient } from '../services/casino-ambient'
 import { useUpgradePrompt } from '../store/upgrade-prompt-store'
@@ -710,15 +710,38 @@ function PreferencesSection() {
  * server-side call with the service role, and there is none yet — so the page
  * says how it is done rather than showing a button that cannot do it.
  */
+/**
+ * The four ways to take the data away. PDF, Word and Excel are the account
+ * overview a person reads — it used to be the raw JSON only, "code nobody
+ * wants to read"; JSON stays, as the complete machine-readable record the
+ * portability right is about.
+ */
+const DATA_FORMATS: { format: DataFormat; labelKey: string; icon: typeof FileText }[] = [
+  { format: 'pdf', labelKey: 'account.downloadFormat.pdf', icon: FileText },
+  { format: 'docx', labelKey: 'account.downloadFormat.word', icon: FileType2 },
+  { format: 'xlsx', labelKey: 'account.downloadFormat.excel', icon: FileSpreadsheet },
+  { format: 'json', labelKey: 'account.downloadFormat.json', icon: FileBraces },
+]
+
 function DataSection() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const email = useAuthStore(s => s.user?.email ?? null)
   const resetAllStats = useStatsStore(s => s.resetAllStats)
   const [resetError, setResetError] = useState<string | null>(null)
+  const [busy, setBusy] = useState<DataFormat | null>(null)
+  const [exportError, setExportError] = useState(false)
 
-  function exportData() {
-    const now = new Date()
-    downloadJson(exportFileName(now), collectDataExport(email))
+  async function exportData(format: DataFormat) {
+    setBusy(format)
+    setExportError(false)
+    try {
+      await downloadAccountData(format, email, i18n.language, (k, o) => t(k, o) as string)
+    } catch (e) {
+      logFailure('data-export', e)
+      setExportError(true)
+    } finally {
+      setBusy(null)
+    }
   }
 
   async function deleteHistory() {
@@ -735,15 +758,28 @@ function DataSection() {
 
   return (
     <Section label={t('account.sectionData')} testId="account-data">
-      <div>
-        <button
-          onClick={exportData}
-          data-testid="account-export-data"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-content hover:text-gold cursor-pointer transition-colors"
-        >
+      <div data-testid="account-export-data">
+        <div className="inline-flex items-center gap-2 text-sm font-semibold text-content">
           <Download size={15} /> {t('account.downloadData')}
-        </button>
+        </div>
         <p className="mt-1 text-sm text-content/50">{t('account.downloadDataHint')}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {DATA_FORMATS.map(({ format, labelKey, icon: Icon }) => (
+            <button
+              key={format}
+              onClick={() => exportData(format)}
+              disabled={busy !== null}
+              data-testid={`account-export-${format}`}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold border border-contrast/15
+                text-content hover:border-gold/55 hover:text-gold cursor-pointer transition-colors
+                disabled:opacity-50 disabled:cursor-wait"
+            >
+              {busy === format ? <Loader2 size={15} className="animate-spin" /> : <Icon size={15} />}
+              {busy === format ? t('account.downloadPreparing') : t(labelKey)}
+            </button>
+          ))}
+        </div>
+        {exportError && <p role="alert" className="mt-2 text-sm text-error">{t('account.downloadError')}</p>}
       </div>
       <div className="border-t border-contrast/10 pt-4">
         <button

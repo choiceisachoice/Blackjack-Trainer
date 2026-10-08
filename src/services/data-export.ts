@@ -1,9 +1,11 @@
 import type { TrainingSessionResult } from './stats-types'
 import type { TrackedSession } from '../store/bankroll-tracker-store'
+import type { TrackedCasinoSession } from '../store/casino-session-tracker-store'
 import { useStatsStore } from '../store/stats-store'
 import { useAchievementStore } from '../store/achievement-store'
 import { useLevelStore } from '../store/level-store'
 import { useBankrollTrackerStore } from '../store/bankroll-tracker-store'
+import { useCasinoSessionTrackerStore } from '../store/casino-session-tracker-store'
 
 /**
  * Everything the app holds about a person, as one file.
@@ -16,7 +18,8 @@ import { useBankrollTrackerStore } from '../store/bankroll-tracker-store'
  */
 export interface DataExport {
   app: 'blackjack-trainer'
-  version: 1
+  /** 2 added `casinoSessions`, which version 1 left out. */
+  version: 2
   /** ISO timestamp of the export. */
   exportedAt: string
   /** The signed-in address, or null when there is no backend. */
@@ -25,6 +28,8 @@ export interface DataExport {
   /** Ids of unlocked achievements. */
   achievements: string[]
   sessions: TrainingSessionResult[]
+  /** The Casino Session Tracker: every casino training session with its bankroll. */
+  casinoSessions: TrackedCasinoSession[]
   /** The real-money bankroll log. */
   bankroll: TrackedSession[]
 }
@@ -35,6 +40,7 @@ export interface DataExportInput {
   totalXP: number
   achievements: string[]
   sessions: TrainingSessionResult[]
+  casinoSessions: TrackedCasinoSession[]
   bankroll: TrackedSession[]
   now: Date
 }
@@ -48,12 +54,13 @@ export interface DataExportInput {
 export function buildDataExport(input: DataExportInput): DataExport {
   return {
     app: 'blackjack-trainer',
-    version: 1,
+    version: 2,
     exportedAt: input.now.toISOString(),
     email: input.email,
     level: { totalXP: input.totalXP },
     achievements: [...input.achievements],
     sessions: [...input.sessions],
+    casinoSessions: [...input.casinoSessions],
     bankroll: [...input.bankroll],
   }
 }
@@ -81,9 +88,28 @@ export function collectDataExport(email: string | null): DataExport {
     totalXP: useLevelStore.getState().totalXP,
     achievements: useAchievementStore.getState().unlockedIds,
     sessions: useStatsStore.getState().sessions,
+    casinoSessions: useCasinoSessionTrackerStore.getState().sessions,
     bankroll: useBankrollTrackerStore.getState().sessions,
     now: new Date(),
   })
+}
+
+/**
+ * Hand the browser a finished file to save (the PDF, Word and Excel reports).
+ *
+ * @param name - The file name to suggest
+ * @param blob - The file
+ */
+export function downloadBlob(name: string, blob: Blob): void {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  // Revoked on the next tick: some browsers start the download only after the click returns.
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 /**

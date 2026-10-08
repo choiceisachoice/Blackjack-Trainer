@@ -102,7 +102,7 @@
     "sessions": "Oturumlar",
     "achievements": "Başarılar",
     "downloadData": "Verilerimi indir",
-    "downloadDataHint": "Oturumların, başarıların, seviyen ve kasa kaydınla birlikte bir JSON dosyası — bu uygulamanın senin hakkında sakladığı her şey.",
+    "downloadDataHint": "Hesabının PDF, Word veya Excel olarak düzenli bir özeti — ya da tüm ham veriler JSON olarak.",
     "changePicture": "Resmi değiştir",
     "pictureSaved": "Resim kaydedildi.",
     "pictureSaveFailed": "Resmin kaydedilemedi. Hiçbir şey değişmedi — lütfen tekrar dene.",
@@ -128,7 +128,15 @@
     "avatarGroupLevels": "Her seviyeye bir tane",
     "avatarGroupAchievements": "En zor başarılar için",
     "avatarUnlockedCount": "{{total}} resimden {{n}} tanesi açık",
-    "adminAnalytics": "Site istatistikleri"
+    "adminAnalytics": "Site istatistikleri",
+    "downloadFormat": {
+      "pdf": "PDF",
+      "word": "Word",
+      "excel": "Excel",
+      "json": "JSON (ham veri)"
+    },
+    "downloadPreparing": "Hazırlanıyor…",
+    "downloadError": "Dosya oluşturulamadı. Lütfen tekrar dene."
   },
   "pricing": {
     "vatNote": "Nihai fiyat; İsviçre'deki müşteriler için %{{rate}} İsviçre KDV'si dâhildir",
@@ -2251,5 +2259,72 @@
     "errorTitle": "Rapor yüklenemedi.",
     "errorBody": "Yalnızca kayıtlı yöneticiler okuyabilir. Yöneticiyseniz biraz sonra tekrar deneyin.",
     "definitions": "Ziyaretçi, rastgele bir kimliğe sahip bir tarayıcıdır. Oturum, 30 dakika etkinlik olmayınca sona erer; süresi ilk sayfa görüntülemesinden son etkinliğe kadar sayılır. Kayıtlar, aralıkta oluşturulan hesaplardır. Ödeme yapan müşteriler, şu anda sayılan etkin aboneliklerdir."
+  },
+  "report": {
+    "title": "Blackjack Trainer hesabın",
+    "subtitle": "Hesap özeti",
+    "generated": "{{date}} tarihinde oluşturuldu",
+    "duration": "{{h}} sa {{m}} dk",
+    "levelValue": "Seviye {{level}} — {{title}}",
+    "nextLevelValue": "Seviye {{level}} için {{xp}} XP kaldı",
+    "maxLevel": "En yüksek seviyeye ulaşıldı",
+    "ofTotal": "{{total}} içinden {{count}}",
+    "section": {
+      "profile": "Profil",
+      "training": "Bir bakışta antrenman",
+      "byMode": "Antrenman moduna göre",
+      "casino": "Kumarhane oturumları",
+      "recent": "Son {{count}} oturum",
+      "achievements": "Açılan başarımlar",
+      "bankroll": "Gerçek para bankroll kaydı",
+      "about": "Bu belge hakkında"
+    },
+    "label": {
+      "email": "E-posta",
+      "level": "Seviye",
+      "xp": "Toplam XP",
+      "nextLevel": "Sonraki seviye",
+      "achievements": "Başarımlar",
+      "firstSession": "İlk oturum",
+      "sessions": "Oturumlar",
+      "practiceTime": "Antrenman süresi",
+      "accuracy": "Genel doğruluk",
+      "bestStreak": "En iyi seri",
+      "activeDays": "Antrenman günleri",
+      "casinoSessions": "Kumarhane oturumları",
+      "hands": "Oynanan eller",
+      "netResult": "Net sonuç",
+      "avgScore": "Ortalama puan",
+      "entries": "Kayıtlar",
+      "hoursPlayed": "Oynanan saat"
+    },
+    "col": {
+      "date": "Tarih",
+      "mode": "Mod",
+      "sessions": "Oturumlar",
+      "accuracy": "Doğruluk",
+      "best": "En iyi",
+      "time": "Süre",
+      "questions": "Sorular",
+      "duration": "Süre",
+      "hands": "Eller",
+      "start": "Başlangıç",
+      "end": "Bitiş",
+      "result": "Sonuç",
+      "grade": "Not",
+      "achievement": "Başarım",
+      "description": "Açıklama",
+      "casino": "Kumarhane",
+      "hours": "Saat",
+      "notes": "Notlar"
+    },
+    "empty": {
+      "sessions": "Henüz antrenman oturumu yok.",
+      "casino": "Henüz kumarhane oturumu yok.",
+      "achievements": "Henüz açılmış başarım yok.",
+      "bankroll": "Bankroll kaydında giriş yok."
+    },
+    "aboutText": "Bu özet, hesabınla ilgili en önemli bilgileri gösterir. Uygulamanın senin hakkında sakladığı her şeyin eksiksiz, makine tarafından okunabilir kaydı, hesap sayfanda JSON dosyası olarak mevcuttur.",
+    "durationMinutes": "{{m}} dk"
   }
 }

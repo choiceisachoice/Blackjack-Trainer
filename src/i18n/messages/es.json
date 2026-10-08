@@ -102,7 +102,7 @@
     "sessions": "Sesiones",
     "achievements": "Logros",
     "downloadData": "Descargar mis datos",
-    "downloadDataHint": "Un archivo JSON con tus sesiones, logros, nivel y registro de bankroll — todo lo que esta app guarda sobre ti.",
+    "downloadDataHint": "Un resumen claro de tu cuenta en PDF, Word o Excel, o todos los datos en bruto en JSON.",
     "changePicture": "Cambiar imagen",
     "pictureSaved": "Imagen guardada.",
     "pictureSaveFailed": "No se pudo guardar tu imagen. No se cambió nada — inténtalo de nuevo.",
@@ -128,7 +128,15 @@
     "avatarGroupLevels": "Una por nivel",
     "avatarGroupAchievements": "Para los logros más difíciles",
     "avatarUnlockedCount": "{{n}} de {{total}} desbloqueadas",
-    "adminAnalytics": "Estadísticas del sitio"
+    "adminAnalytics": "Estadísticas del sitio",
+    "downloadFormat": {
+      "pdf": "PDF",
+      "word": "Word",
+      "excel": "Excel",
+      "json": "JSON (datos en bruto)"
+    },
+    "downloadPreparing": "Preparando…",
+    "downloadError": "No se pudo crear el archivo. Inténtalo de nuevo."
   },
   "pricing": {
     "vatNote": "Precio final, IVA suizo del {{rate}}% incluido para clientes en Suiza",
@@ -2251,5 +2259,72 @@
     "errorTitle": "No se pudo cargar el informe.",
     "errorBody": "Solo los administradores registrados pueden leerlo. Si eres uno de ellos, inténtalo de nuevo en un momento.",
     "definitions": "Un visitante es un navegador con un identificador aleatorio. Una sesión termina tras 30 minutos sin actividad; su duración va desde la primera página vista hasta la última actividad. Los registros son las cuentas creadas en el periodo. Los clientes de pago son las suscripciones activas, contadas ahora mismo."
+  },
+  "report": {
+    "title": "Tu cuenta de Blackjack Trainer",
+    "subtitle": "Resumen de la cuenta",
+    "generated": "Creado el {{date}}",
+    "duration": "{{h}} h {{m}} min",
+    "levelValue": "Nivel {{level}} — {{title}}",
+    "nextLevelValue": "Faltan {{xp}} XP para el nivel {{level}}",
+    "maxLevel": "Nivel máximo alcanzado",
+    "ofTotal": "{{count}} de {{total}}",
+    "section": {
+      "profile": "Perfil",
+      "training": "El entrenamiento de un vistazo",
+      "byMode": "Por modo de entrenamiento",
+      "casino": "Sesiones de casino",
+      "recent": "Últimas {{count}} sesiones",
+      "achievements": "Logros desbloqueados",
+      "bankroll": "Registro de bankroll con dinero real",
+      "about": "Sobre este documento"
+    },
+    "label": {
+      "email": "Correo electrónico",
+      "level": "Nivel",
+      "xp": "XP total",
+      "nextLevel": "Siguiente nivel",
+      "achievements": "Logros",
+      "firstSession": "Primera sesión",
+      "sessions": "Sesiones",
+      "practiceTime": "Tiempo de práctica",
+      "accuracy": "Precisión total",
+      "bestStreak": "Mejor racha",
+      "activeDays": "Días de entrenamiento",
+      "casinoSessions": "Sesiones de casino",
+      "hands": "Manos jugadas",
+      "netResult": "Resultado neto",
+      "avgScore": "Puntuación media",
+      "entries": "Entradas",
+      "hoursPlayed": "Horas jugadas"
+    },
+    "col": {
+      "date": "Fecha",
+      "mode": "Modo",
+      "sessions": "Sesiones",
+      "accuracy": "Precisión",
+      "best": "Mejor",
+      "time": "Tiempo",
+      "questions": "Preguntas",
+      "duration": "Duración",
+      "hands": "Manos",
+      "start": "Inicio",
+      "end": "Fin",
+      "result": "Resultado",
+      "grade": "Nota",
+      "achievement": "Logro",
+      "description": "Descripción",
+      "casino": "Casino",
+      "hours": "Horas",
+      "notes": "Notas"
+    },
+    "empty": {
+      "sessions": "Aún no hay sesiones de entrenamiento.",
+      "casino": "Aún no hay sesiones de casino.",
+      "achievements": "Aún no has desbloqueado logros.",
+      "bankroll": "No hay entradas en el registro de bankroll."
+    },
+    "aboutText": "Este resumen muestra la información más importante de tu cuenta. El registro completo y legible por máquina de todo lo que la app guarda sobre ti está disponible como archivo JSON en tu página de cuenta.",
+    "durationMinutes": "{{m}} min"
   }
 }
