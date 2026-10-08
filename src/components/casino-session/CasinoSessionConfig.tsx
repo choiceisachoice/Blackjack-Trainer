@@ -81,7 +81,10 @@ function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
         }}
         onBlur={e => commit(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') commit(e.currentTarget.value) }}
-        className={`w-28 py-1.5 text-right ${prefix ? 'pl-7 pr-3' : 'px-3'}`}
+        // The digits are right-aligned against the spin arrows, which left the
+        // last digit touching them; the margin gives it room, the width keeps
+        // a five-digit bankroll on one line.
+        className={`w-32 py-1.5 text-right pr-2 [&::-webkit-inner-spin-button]:ml-2 ${prefix ? 'pl-7' : 'pl-3'}`}
       />
     </div>
   )
