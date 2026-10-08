@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { HandOutcome } from './useGameLoop'
 import type { Card } from '../../engine/shoe/types'
-import type { BotPlayer, BotRoundResult } from '../../engine/casino-session/types'
+import type { BotPlayer, BotRoundResult, BotTurnHandView } from '../../engine/casino-session/types'
 import { DealerView } from './DealerView'
 import { HumanSeat, BotSeat } from './SeatView'
 import { TableLegend } from './TableLegend'
@@ -76,7 +76,7 @@ interface CasinoTableProps {
   botResults: BotRoundResult[]
   botVisibleCards: Record<string, number>
   botActiveSplitHands: Record<string, number>
-  botSplitVisibleCards: Record<string, number[]>
+  botSplitHands: Record<string, BotTurnHandView[]>
   bankroll: number
   cardsRemaining: number
   cardsDealt: number
@@ -112,7 +112,7 @@ export function CasinoTable({
   botResults,
   botVisibleCards,
   botActiveSplitHands,
-  botSplitVisibleCards,
+  botSplitHands,
   bankroll,
   cardsRemaining,
   discardCount,
@@ -261,7 +261,7 @@ export function CasinoTable({
                     isActivePlayer={isActivePlayer}
                     isDimmed={isDimmed}
                     activeSplitHand={botActiveSplitHands[seat.bot!.id] ?? -1}
-                    splitVisibleCards={botSplitVisibleCards[seat.bot!.id]}
+                    splitHands={botSplitHands[seat.bot!.id]}
                   />
                 )}
               </div>

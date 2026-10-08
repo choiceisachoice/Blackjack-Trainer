@@ -16,7 +16,7 @@ const SETTLEMENT_KEY: Record<HandOutcome, string> = {
 }
 import { motion, useReducedMotion } from 'framer-motion'
 import type { Card } from '../../engine/shoe/types'
-import type { BotPlayer, BotRoundResult } from '../../engine/casino-session/types'
+import type { BotPlayer, BotRoundResult, BotTurnHandView } from '../../engine/casino-session/types'
 import { AnimatedTableCard, BotStatusBadge } from './CardComponents'
 import { formatDollar, handValueStr } from './helpers'
 import type { BotStatus, GameStep } from './helpers'
@@ -201,7 +201,8 @@ interface BotSeatProps {
   isActivePlayer: boolean
   isDimmed: boolean
   activeSplitHand: number
-  splitVisibleCards?: number[]
+  /** The split hands as they lie on the table now, from the replay of the bot's turn. */
+  splitHands?: BotTurnHandView[]
 }
 
 export function BotSeat({
@@ -213,12 +214,12 @@ export function BotSeat({
   isActivePlayer,
   isDimmed,
   activeSplitHand,
-  splitVisibleCards,
+  splitHands,
 }: BotSeatProps) {
   const { t } = useTranslation()
   const reducedBot = useReducedMotion()
   const hasSplit = bot.hands.length > 1
-  const showSplitHands = hasSplit && splitVisibleCards !== undefined
+  const showSplitHands = hasSplit && splitHands !== undefined
 
   return (
     <div
@@ -228,21 +229,29 @@ export function BotSeat({
     >
       <BetChip amount={bot.currentBet} active={isActivePlayer} />
 
-      {/* Split hands — per-hand visibility mode */}
+      {/* Split hands — exactly the hands on the table at this moment of the
+          replay. Keyed by the hand's id, not its position: a re-split inserts
+          a hand next to the one split, which slides in while the others make
+          room (`layout`), instead of every hand after it changing identity. */}
       {showSplitHands && gameStep !== 'betting' && (
         <div className="flex flex-wrap justify-center gap-3 max-w-[420px]">
-          {bot.hands.map((hand, hi) => {
-            const handVisible = splitVisibleCards[hi] ?? 0
-            const shownCards = hand.cards.slice(0, handVisible)
+          {splitHands.map((view, hi) => {
+            const shownCards = view.cards
             if (shownCards.length === 0) return null
 
-            const resultLabel = hand.result === 'win' ? t('casino.table.resultWin') : hand.result === 'push' ? t('casino.table.resultPush') : hand.result === 'loss' ? t('casino.table.resultLoss') : hand.result === 'blackjack' ? t('casino.table.resultBlackjack') : null
+            // Results exist only once the replay has caught up with the engine,
+            // which is when the settlement shows them.
+            const hand = bot.hands[hi]
+            const resultLabel = hand?.result === 'win' ? t('casino.table.resultWin') : hand?.result === 'push' ? t('casino.table.resultPush') : hand?.result === 'loss' ? t('casino.table.resultLoss') : hand?.result === 'blackjack' ? t('casino.table.resultBlackjack') : null
             const isHandActive = activeSplitHand === hi
             const hasActiveHand = activeSplitHand >= 0
 
             return (
-              <motion.div key={`${bot.id}-h${hi}`}
-                initial={reducedBot ? false : { x: hi === 0 ? 18 : -18, opacity: 0.6 }}
+              <motion.div key={`${bot.id}-h${view.id}`}
+                layout={reducedBot ? false : 'position'}
+                // The hand that was split slides right, the new one comes from
+                // where the pair lay — the pair being pulled apart.
+                initial={reducedBot ? false : { x: view.id === 0 ? 18 : -18, opacity: 0.6 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
                 className={`flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-lg ${
@@ -253,7 +262,7 @@ export function BotSeat({
                 <Hand cards={shownCards} animateFrom={1} totalClass="text-[0.6875rem]" />
                 {resultLabel && gameStep === 'settlement' && (
                   <span className={`text-[0.625rem] font-bold ${
-                    (hand.profit ?? 0) > 0 ? 'text-success' : (hand.profit ?? 0) < 0 ? 'text-error' : 'text-white/50'
+                    (hand?.profit ?? 0) > 0 ? 'text-success' : (hand?.profit ?? 0) < 0 ? 'text-error' : 'text-white/50'
                   }`}>{resultLabel}</span>
                 )}
               </motion.div>
@@ -266,9 +275,11 @@ export function BotSeat({
           started. Show ONLY the original two-card pair, and DON'T animate it —
           these cards are already on the table, so they must not re-fly when the
           seat switches into split mode (that caused the odd flick + a 3-card
-          flash on re-splits). */}
-      {hasSplit && !splitVisibleCards && gameStep !== 'betting' && (() => {
-        const pairCards = bot.hands.map(h => h.cards[0]).filter(Boolean).slice(0, 2)
+          flash on re-splits). The pair comes from the turn log: after a re-split
+          the first cards of the final hands are not the two cards that were dealt. */}
+      {hasSplit && !splitHands && gameStep !== 'betting' && (() => {
+        const pairCards = bot.turnLog?.[0]?.hands[0]?.cards
+          ?? bot.hands.map(h => h.cards[0]).filter(Boolean).slice(0, 2)
         return <Hand cards={pairCards} animateFrom={pairCards.length} totalClass="text-[0.6875rem]" />
       })()}
 

@@ -160,7 +160,7 @@ export function FeltTableVisual() {
           botResults={[]}
           botVisibleCards={SHOWCASE_BOT_VISIBLE}
           botActiveSplitHands={{}}
-          botSplitVisibleCards={{}}
+          botSplitHands={{}}
           bankroll={4900}
           cardsRemaining={187}
           cardsDealt={125}

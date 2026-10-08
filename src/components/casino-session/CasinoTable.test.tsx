@@ -52,7 +52,7 @@ const props = {
   botResults: [],
   botVisibleCards: {},
   botActiveSplitHands: {},
-  botSplitVisibleCards: {},
+  botSplitHands: {},
   bankroll: 5000,
   cardsRemaining: 200,
   cardsDealt: 112,

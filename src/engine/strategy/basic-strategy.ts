@@ -75,12 +75,16 @@ export function resolveStrategyAction(
  * @param playerCards - The player's current hand
  * @param dealerUpcard - The dealer's face-up card
  * @param rules - Casino rules (determines S17/H17 table and surrender availability)
+ * @param canSplit - False when a pair cannot be split here (hand limit reached,
+ *   no money for the second bet). The pair is then played as its total; two
+ *   aces are a soft 12, which is always a hit.
  * @returns The optimal Action
  */
 export function getOptimalAction(
   playerCards: Card[],
   dealerUpcard: Card,
-  rules: CasinoRules
+  rules: CasinoRules,
+  canSplit: boolean = true,
 ): Action {
   const table = rules.dealerHitsSoft17 ? H17_STRATEGY : S17_STRATEGY
   const dealerKey = rankToKey(dealerUpcard.rank)
@@ -88,8 +92,12 @@ export function getOptimalAction(
   const canSurrender =
     rules.surrenderAllowed !== 'none' && playerCards.length === 2
 
+  if (!canSplit && isPair(playerCards) && playerCards[0].rank === Rank.Ace) {
+    return Action.Hit
+  }
+
   // 1. Check pairs (exactly 2 cards of same rank)
-  if (isPair(playerCards)) {
+  if (canSplit && isPair(playerCards)) {
     const pairKey = `${rankToKey(playerCards[0].rank)},${rankToKey(playerCards[0].rank)}`
     const action = table.pairs[pairKey]?.[dealerKey]
     if (action) {

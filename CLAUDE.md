@@ -181,7 +181,7 @@ here, so this is what stands between a migration and `db push`.
 
 ## Dev-only screens
 
-Four routes that exist only under `import.meta.env.DEV` and never reach a production
+Routes that exist only under `import.meta.env.DEV` and never reach a production
 bundle. They exist because the most important moments in this product are the hardest to
 look at — the loading screen is over in a second, and the level-up popup sits behind the
 login. What you cannot look at, you cannot judge.
@@ -192,6 +192,8 @@ login. What you cannot look at, you cannot judge.
 | `/dev/loaders` | Spinner gallery, for picking one |
 | `/dev/levels` | **All 25 levels side by side.** Click a card to open the *real* `LevelUpPopup` through the *real* store — the only way to see level 17 without earning 120,000 XP. Also carries a “reset explainer” control, since the don’t-show-again button writes to localStorage. |
 | `/dev/motion` | **“Bloom” — a 12.8s title sequence on canvas.** One card becomes 52, which open into a rotating rosette, close into a dealer's fan, and give back the card they started from. Two earlier versions of this screen failed the same way and the lesson is worth keeping: the first animated the product's *vocabulary* (running count, true count, bet ramp) and meant nothing to anyone who did not already know those words; the second drew card **backs** — dark rectangles on a dark ground, monotone no matter how well lit. The colour in a deck is on the front. Faces up on green felt, suits stepping ♠♥♣♦ so red and black alternate around the ring. The model (`services/motion/deck-film.ts`) is a pure function of `(card, t)`, so the piece is seekable — which is what makes the scrubber a review tool rather than a toy. |
+
+| `/dev/split` | **A bot's re-split, replayed on the real seat.** 8♥8♠ vs 6, the first hand catching the 8♦ — the case Darius found on 8 Oct 2026, when the table showed three hands at once. A re-split comes up once in a few hundred live hands, so this is the only way to watch one: two hands slide apart, the 8♦ is dealt, *then* the third hand appears, and each hand is played out before the next gets its card. Same engine (`playBotTurn` + its turn log) and same replay (`split-replay.ts`) as the table. |
 
 They are excluded from `i18next/no-literal-string` on purpose: read by whoever is building
 the thing, never by a user. Guard new ones with the same ternary as the others — guarding

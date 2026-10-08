@@ -95,6 +95,38 @@ export interface BotPlayer {
   bettingPattern: BotBettingPattern
   /** The flat bet amount the bot uses every hand. */
   flatBetAmount: number
+  /**
+   * How the last turn unfolded, step by step — written by `playBotTurn`.
+   * The table replays a split from this rather than from the final hands,
+   * because the final hands cannot say *when* a re-split happened: a third
+   * hand must not be on the table before the card that caused it.
+   */
+  turnLog?: BotTurnStep[]
+}
+
+/** One hand as it lay on the table at a moment of a bot's turn. */
+export interface BotTurnHandView {
+  /** Stable for the whole turn, so a re-split inserts a hand rather than relabelling one. */
+  id: number
+  cards: Card[]
+}
+
+/**
+ * One moment of a bot's turn, with the table as it looked right after it.
+ *
+ * - `start` — the hand as dealt, before any decision
+ * - `split` — a pair was separated; `hand` keeps the first card, a new hand after it the second
+ * - `card` — a split hand received its second card (dealt, not a decision)
+ * - `hit` / `double` — a decision that drew a card
+ * - `stand` — `auto` when no decision was made (split aces)
+ * - `bust` / `twentyone` — the hand ended on its own
+ */
+export interface BotTurnStep {
+  kind: 'start' | 'split' | 'card' | 'hit' | 'double' | 'stand' | 'bust' | 'twentyone'
+  /** Index of the hand the step happened to, in `hands`. */
+  hand: number
+  auto?: boolean
+  hands: BotTurnHandView[]
 }
 
 /** A single hand belonging to a bot player. */

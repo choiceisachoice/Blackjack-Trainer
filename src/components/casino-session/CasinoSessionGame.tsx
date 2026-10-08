@@ -371,7 +371,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         botResults={state.botResults}
         botVisibleCards={state.botVisibleCards}
         botActiveSplitHands={state.botActiveSplitHands}
-        botSplitVisibleCards={state.botSplitVisibleCards}
+        botSplitHands={state.botSplitHands}
         bankroll={bankroll}
         cardsRemaining={cardsRemaining}
         cardsDealt={cardsDealt}

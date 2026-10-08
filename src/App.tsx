@@ -52,6 +52,9 @@ const ControlsPreview = import.meta.env.DEV
 const MotionFilm = import.meta.env.DEV
   ? lazy(() => import('./pages/MotionFilm').then(m => ({ default: m.MotionFilm })))
   : null
+const SplitPreview = import.meta.env.DEV
+  ? lazy(() => import('./pages/SplitPreview').then(m => ({ default: m.SplitPreview })))
+  : null
 
 function RouteLoader() {
   return <AppLoader />
@@ -200,6 +203,7 @@ function App() {
         {ControlsPreview && <Route path="/dev/controls" element={<ControlsPreview />} />}
         {LevelGallery && <Route path="/dev/levels" element={<LevelGallery />} />}
         {MotionFilm && <Route path="/dev/motion" element={<MotionFilm />} />}
+        {SplitPreview && <Route path="/dev/split" element={<SplitPreview />} />}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

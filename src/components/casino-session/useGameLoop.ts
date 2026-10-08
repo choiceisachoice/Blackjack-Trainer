@@ -30,11 +30,13 @@ import type {
   PlayerHandRecord,
   BotPlayer,
   BotRoundResult,
+  BotTurnHandView,
   DealResult,
 } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
 import type { GameStep, BotStatus } from './helpers'
 import { isNaturalBlackjack } from './helpers'
+import { buildSplitReplay } from './split-replay'
 import { useStepAnimation, type AnimStep } from './useStepAnimation'
 
 // ─── Visible State ───────────────────────────────────
@@ -78,7 +80,8 @@ export interface VisibleState {
   handReview: PlayerHandRecord | null
   showReshuffle: boolean
   botActiveSplitHands: Record<string, number>
-  botSplitVisibleCards: Record<string, number[]>
+  /** Per bot, the split hands as they lie on the table right now (see split-replay). */
+  botSplitHands: Record<string, BotTurnHandView[]>
 }
 
 // ─── Game Actions ────────────────────────────────────
@@ -188,7 +191,7 @@ export function useGameLoop(
   // shoe in real time), this only grows when a round is collected at settlement.
   const [discardCount, setDiscardCount] = useState(0)
   const [botActiveSplitHands, setBotActiveSplitHands] = useState<Record<string, number>>({})
-  const [botSplitVisibleCards, setBotSplitVisibleCards] = useState<Record<string, number[]>>({})
+  const [botSplitHands, setBotSplitHands] = useState<Record<string, BotTurnHandView[]>>({})
 
   // ─── Derived ───────────────────────────────────────
 
@@ -232,11 +235,12 @@ export function useGameLoop(
     }
     for (const seat of seats) {
       if (!seat || !seat.isActive) continue
-      const sv = botSplitVisibleCards[seat.id]
+      const sv = botSplitHands[seat.id]
       if (seat.hands.length > 1 && sv) {
-        for (let i = 0; i < seat.hands.length; i++) {
-          revealed += Math.min(seat.hands[i].cards.length, sv[i] ?? 0)
-        }
+        for (const h of sv) revealed += h.cards.length
+      } else if (seat.hands.length > 1) {
+        // Split by the engine, replay not started: the pair is what lies there.
+        revealed += 2
       } else {
         const lim = botVisibleCards[seat.id]
         const count = seat.hands[0]?.cards.length ?? 0
@@ -245,7 +249,7 @@ export function useGameLoop(
     }
     revealed += dealerCards.length
     return Math.max(0, totalCards - discardCount - revealed)
-  }, [humanHands, humanVisibleCards, seats, botVisibleCards, botSplitVisibleCards, dealerCards, discardCount, totalCards])
+  }, [humanHands, humanVisibleCards, seats, botVisibleCards, botSplitHands, dealerCards, discardCount, totalCards])
 
   const cardsDealt = useMemo(() => {
     const engine = engineRef.current
@@ -274,7 +278,7 @@ export function useGameLoop(
     setHumanVisibleCards(999)
     setActiveBotId(null)
     setBotActiveSplitHands({})
-    setBotSplitVisibleCards({})
+    setBotSplitHands({})
     setCurrentBet(0)
     currentBetRef.current = 0
     humanHandsRef.current = [[]]
@@ -543,213 +547,47 @@ export function useGameLoop(
       delayMs: 1500 + Math.random() * 1000,
     })
 
-    // ─── Split: casino-accurate per-hand sequential animation ───
-    // Engine already computed all split results. We animate them
-    // one hand at a time, with IDENTICAL timings to normal play.
+    // ─── Split: replayed from the engine's log, one dealt card at a time ───
+    // The final hands cannot say when a re-split happened, so the replay
+    // follows the turn as it was played: the pair slides apart, the first hand
+    // is dealt and played out, and only then does the next hand get its card.
+    // A third hand appears on the split that made it and not before.
     if (updatedBot.hands.length > 1) {
-      const numHands = updatedBot.hands.length
       const botId = updatedBot.id
+      const log = updatedBot.turnLog ?? []
+      const frames = buildSplitReplay(log, () => 1500 + Math.floor(Math.random() * 800))
 
-      // ═══ PHASE 1: "Split" announcement (1.5s) ═══
-      steps.push({
-        execute: () => {
-          setBotStatuses(prev => ({ ...prev, [botId]: 'split' }))
-          soundEngine.chipPlace()
-        },
-        delayMs: 1500,
-      })
-
-      // ═══ PHASE 2: Cards slide apart (1.0s) ═══
-      // Show exactly 2 hands with 1 card each. Hand 0 active, rest dimmed.
-      // For re-splits (3+ hands), extra hands revealed later during play.
-      // Reveal EVERY split hand's first card up front (all the split cards slide
-      // apart together) so a re-split never makes a new hand appear mid-play.
-      const visArr: number[] = new Array(numHands).fill(1)
-      steps.push({
-        execute: () => {
-          setBotSplitVisibleCards(prev => ({ ...prev, [botId]: [...visArr] }))
-          setBotActiveSplitHands(prev => ({ ...prev, [botId]: 0 }))
-        },
-        delayMs: 1000,
-      })
-
-      // ═══ PHASE 3: Play each hand sequentially ═══
-      for (let h = 0; h < numHands; h++) {
-        const hand = updatedBot.hands[h]
-        const hIdx = h
-        const isAcesSplit = hand.cards[0]?.rank === 'A' && hand.isSplit
-
-        // ─── Activate this hand (0.5s) ───
+      for (const f of frames) {
         steps.push({
           execute: () => {
-            setBotActiveSplitHands(prev => ({ ...prev, [botId]: hIdx }))
+            if (f.hands) {
+              const hands = f.hands
+              setBotSplitHands(prev => ({ ...prev, [botId]: hands }))
+            }
+            if (f.active !== undefined) {
+              const active = f.active
+              setBotActiveSplitHands(prev => ({ ...prev, [botId]: active }))
+            }
+            if (f.status) {
+              const status = f.status
+              setBotStatuses(prev => ({ ...prev, [botId]: status }))
+            }
+            if (f.sound === 'card') soundEngine.cardDeal()
+            else if (f.sound === 'chip') soundEngine.chipPlace()
+            else if (f.sound === 'click') soundEngine.buttonClick()
           },
-          delayMs: 500,
+          delayMs: f.delayMs,
         })
-
-        // ─── Deal second card to this hand (0.8s) ───
-        if (hand.cards.length >= 2) {
-          const revealH = hIdx
-          steps.push({
-            execute: () => {
-              setBotSplitVisibleCards(prev => {
-                const arr = [...(prev[botId] ?? visArr)]
-                arr[revealH] = 2
-                return { ...prev, [botId]: arr }
-              })
-              soundEngine.cardDeal()
-            },
-            delayMs: 800,
-          })
-        }
-
-        // ─── Check 21 after second card (e.g. split 10s + A) ───
-        let handComplete = false
-        if (hand.cards.length >= 2) {
-          const valAfterDeal = getHandValue(hand.cards.slice(0, 2)).best
-          if (valAfterDeal === 21) {
-            steps.push({
-              execute: () => setBotStatuses(prev => ({ ...prev, [botId]: 'twentyone' })),
-              delayMs: 600,
-            })
-            handComplete = true
-          }
-        }
-
-        // ─── Aces: auto-stand per casino rules (no decision) ───
-        if (!handComplete && isAcesSplit) {
-          steps.push({
-            execute: () => {
-              setBotStatuses(prev => ({ ...prev, [botId]: 'stand' }))
-              soundEngine.buttonClick()
-            },
-            delayMs: 600,
-          })
-        }
-        // ─── Double (Think 1.5-2.3s → "Double" 0.7s → Card 0.8s) ───
-        else if (!handComplete && hand.isDoubled) {
-          steps.push({
-            execute: () => setBotStatuses(prev => ({ ...prev, [botId]: 'thinking' })),
-            delayMs: 1500 + Math.floor(Math.random() * 800),
-          })
-          steps.push({
-            execute: () => {
-              setBotStatuses(prev => ({ ...prev, [botId]: 'double' }))
-              soundEngine.chipPlace()
-            },
-            delayMs: 700,
-          })
-          if (hand.cards.length >= 3) {
-            const revealH = hIdx
-            steps.push({
-              execute: () => {
-                setBotSplitVisibleCards(prev => {
-                  const arr = [...(prev[botId] ?? visArr)]
-                  arr[revealH] = 3
-                  return { ...prev, [botId]: arr }
-                })
-                soundEngine.cardDeal()
-              },
-              delayMs: 800,
-            })
-          }
-          if (hand.isBusted) {
-            steps.push({
-              execute: () => setBotStatuses(prev => ({ ...prev, [botId]: 'bust' })),
-              delayMs: 1000,
-            })
-          } else {
-            const valAfterDouble = getHandValue(hand.cards).best
-            if (valAfterDouble === 21) {
-              steps.push({
-                execute: () => setBotStatuses(prev => ({ ...prev, [botId]: 'twentyone' })),
-                delayMs: 600,
-              })
-            }
-          }
-        }
-        // ─── Regular play: hits + stand/bust ───
-        else if (!handComplete) {
-          // Each hit: Think (1.5-2.3s) → "Hit" (0.5s) → Card (0.8s)
-          let reached21 = false
-          for (let c = 2; c < hand.cards.length; c++) {
-            const visCount = c + 1
-            const revealH = hIdx
-            // Think
-            steps.push({
-              execute: () => setBotStatuses(prev => ({ ...prev, [botId]: 'thinking' })),
-              delayMs: 1500 + Math.floor(Math.random() * 800),
-            })
-            // "Hit" label FIRST
-            steps.push({
-              execute: () => setBotStatuses(prev => ({ ...prev, [botId]: 'hit' })),
-              delayMs: 500,
-            })
-            // Reveal card SECOND
-            steps.push({
-              execute: () => {
-                setBotSplitVisibleCards(prev => {
-                  const arr = [...(prev[botId] ?? visArr)]
-                  arr[revealH] = visCount
-                  return { ...prev, [botId]: arr }
-                })
-                soundEngine.cardDeal()
-              },
-              delayMs: 800,
-            })
-
-            // Check 21 after card
-            const valAfterHit = getHandValue(hand.cards.slice(0, visCount)).best
-            if (valAfterHit === 21) {
-              steps.push({
-                execute: () => setBotStatuses(prev => ({ ...prev, [botId]: 'twentyone' })),
-                delayMs: 600,
-              })
-              reached21 = true
-              break
-            }
-          }
-
-          // Final outcome
-          if (!reached21) {
-            if (hand.isBusted) {
-              // Bust (1.0s)
-              steps.push({
-                execute: () => setBotStatuses(prev => ({ ...prev, [botId]: 'bust' })),
-                delayMs: 1000,
-              })
-            } else {
-              // Stand: Think (1.5-2.3s) → "Stand" (0.7s)
-              steps.push({
-                execute: () => setBotStatuses(prev => ({ ...prev, [botId]: 'thinking' })),
-                delayMs: 1500 + Math.floor(Math.random() * 800),
-              })
-              steps.push({
-                execute: () => {
-                  setBotStatuses(prev => ({ ...prev, [botId]: 'stand' }))
-                  soundEngine.buttonClick()
-                },
-                delayMs: 700,
-              })
-            }
-          }
-        }
-
-        // ─── Pause between hands (0.8s) ───
-        if (h < numHands - 1) {
-          steps.push({ execute: () => {}, delayMs: 800 })
-        }
       }
 
-      // ═══ PHASE 4: Bot done — all hands visible, no active hand ═══
+      // Bot done — the hands as the engine settled them, no hand in play.
+      const settled = log.at(-1)?.hands
+        ?? updatedBot.hands.map((h, k) => ({ id: k, cards: h.cards }))
       steps.push({
         execute: () => {
           setActiveBotId(null)
           setBotActiveSplitHands(prev => ({ ...prev, [botId]: -1 }))
-          setBotSplitVisibleCards(prev => ({
-            ...prev,
-            [botId]: updatedBot.hands.map(hnd => hnd.cards.length),
-          }))
+          setBotSplitHands(prev => ({ ...prev, [botId]: settled }))
         },
         delayMs: 500,
       })
@@ -1629,7 +1467,7 @@ export function useGameLoop(
     handReview,
     showReshuffle,
     botActiveSplitHands,
-    botSplitVisibleCards,
+    botSplitHands,
   }
 
   const actions: GameActions = {

@@ -5,7 +5,7 @@ import { getHandValue } from '../rules/hand-utils'
 import type { CasinoRules } from '../rules/types'
 import { DEFAULT_RULES } from '../rules/types'
 import { BOT_NAMES, createBot, playBotTurn, refillBotBankroll } from './bot-player'
-import type { BotPlayer } from './types'
+import type { BotPlayer, BotTurnStep } from './types'
 
 /** Helper: create a card shorthand. */
 function card(rank: Rank, suit: Suit = Suit.Hearts): Card {
@@ -1104,6 +1104,141 @@ describe('Bot Player', () => {
       const rules3: CasinoRules = { ...testRules, maxSplitHands: 3 }
       const hands = playBotTurn(aceBot(), dealerUp, fromQueue(allAces), rules3)
       expect(hands).toHaveLength(3)
+    })
+  })
+
+  /**
+   * A split is dealt the way a dealer deals it: the first hand gets its second
+   * card and is played to the end, and only then does the next hand get its
+   * second card. The engine used to deal both second cards at the moment of
+   * the split, which put the cards in the wrong hands — and, on a re-split,
+   * meant the table could not know that the third hand came from a card the
+   * first hand drew (found by Darius on 8 Oct 2026: 8,8 became three hands at
+   * once, with no slide).
+   */
+  describe('Split order — one hand at a time', () => {
+    const r = (rank: Rank, suit: Suit = Suit.Hearts) => card(rank, suit)
+    function pairBot(a: Card, b: Card): BotPlayer {
+      return {
+        id: 'bot-order', name: 'Order', seatIndex: 0, bankroll: 10_000, currentBet: 25,
+        hands: [{ cards: [a, b], bet: 25, isDoubled: false, isSplit: false, isBusted: false, isStanding: false }],
+        isActive: true, skillLevel: 'basic_strategy', bettingPattern: 'flat', flatBetAmount: 25,
+      }
+    }
+    function queue(cards: Card[]): () => Card {
+      let i = 0
+      return () => {
+        if (i >= cards.length) throw new Error('Ran out of cards')
+        return cards[i++]
+      }
+    }
+    const six = r(Rank.Six, Suit.Clubs)
+
+    it('plays the first hand to the end before the second gets its card', () => {
+      // 8,8 vs 6: hand 1 draws 3 → 11 → doubles onto the 10; only then hand 2 draws the 9.
+      const hands = playBotTurn(pairBot(r(Rank.Eight), r(Rank.Eight, Suit.Spades)), six,
+        queue([r(Rank.Three), r(Rank.Ten), r(Rank.Nine)]), testRules)
+      expect(hands.map(h => h.cards.map(c => c.rank))).toEqual([
+        [Rank.Eight, Rank.Three, Rank.Ten],
+        [Rank.Eight, Rank.Nine],
+      ])
+      expect(hands[0].isDoubled).toBe(true)
+    })
+
+    it('re-splits from the card the first hand drew, and only then', () => {
+      // 8♥8♠ vs 6. Hand 1 draws 8♦ → re-split. 8♥ draws 10, 8♦ draws 9, 8♠ draws 7.
+      const hands = playBotTurn(pairBot(r(Rank.Eight), r(Rank.Eight, Suit.Spades)), six,
+        queue([r(Rank.Eight, Suit.Diamonds), r(Rank.Ten), r(Rank.Nine), r(Rank.Seven)]), testRules)
+      expect(hands.map(h => h.cards)).toEqual([
+        [r(Rank.Eight), r(Rank.Ten)],
+        [r(Rank.Eight, Suit.Diamonds), r(Rank.Nine)],
+        [r(Rank.Eight, Suit.Spades), r(Rank.Seven)],
+      ])
+    })
+
+    it('logs the turn so a third hand never exists before the card that made it', () => {
+      const log: BotTurnStep[] = []
+      playBotTurn(pairBot(r(Rank.Eight), r(Rank.Eight, Suit.Spades)), six,
+        queue([r(Rank.Eight, Suit.Diamonds), r(Rank.Ten), r(Rank.Nine), r(Rank.Seven)]), testRules, log)
+
+      expect(log.map(s => `${s.kind}:${s.hand}`)).toEqual([
+        'start:0', 'split:0', 'card:0', 'split:0', 'card:0', 'stand:0', 'card:1', 'stand:1', 'card:2', 'stand:2',
+      ])
+      const sizes = log.map(s => s.hands.map(h => h.cards.length))
+      expect(sizes[0]).toEqual([2])         // as dealt
+      expect(sizes[1]).toEqual([1, 1])      // split: two hands, one card each
+      expect(sizes[2]).toEqual([2, 1])      // hand 1 draws — the 8♦ — still two hands
+      expect(sizes[3]).toEqual([1, 1, 1])   // re-split: now three
+      // The table only ever grows a hand on a split.
+      for (let k = 1; k < log.length; k++) {
+        const grew = log[k].hands.length > log[k - 1].hands.length
+        expect(grew).toBe(log[k].kind === 'split')
+      }
+    })
+
+    it('keeps hand ids stable across a re-split, inserting the new hand after the one split', () => {
+      const log: BotTurnStep[] = []
+      playBotTurn(pairBot(r(Rank.Eight), r(Rank.Eight, Suit.Spades)), six,
+        queue([r(Rank.Eight, Suit.Diamonds), r(Rank.Ten), r(Rank.Nine), r(Rank.Seven)]), testRules, log)
+      const firstSplit = log[1].hands.map(h => h.id)
+      const reSplit = log[3].hands.map(h => h.id)
+      expect(reSplit[0]).toBe(firstSplit[0])
+      expect(reSplit[2]).toBe(firstSplit[1])
+      expect(new Set(reSplit).size).toBe(3)
+    })
+
+    it('deals split aces one at a time and stands each without a decision', () => {
+      const log: BotTurnStep[] = []
+      const hands = playBotTurn(pairBot(r(Rank.Ace), r(Rank.Ace, Suit.Spades)), six,
+        queue([r(Rank.Nine), r(Rank.Eight)]), testRules, log)
+      expect(hands.map(h => h.cards.map(c => c.rank))).toEqual([[Rank.Ace, Rank.Nine], [Rank.Ace, Rank.Eight]])
+      expect(log.map(s => `${s.kind}:${s.hand}${s.auto ? '*' : ''}`)).toEqual([
+        'start:0', 'split:0', 'card:0', 'stand:0*', 'card:1', 'stand:1*',
+      ])
+    })
+
+    it('ends a split hand that makes 21 on its second card as 21, not as a decision', () => {
+      // The only two-card 21 a split can make is an ace and a ten-value card.
+      const log: BotTurnStep[] = []
+      const hands = playBotTurn(pairBot(r(Rank.Ace), r(Rank.Ace, Suit.Spades)), six,
+        queue([r(Rank.King), r(Rank.Seven)]), testRules, log)
+      expect(hands[0].isStanding).toBe(true)
+      expect(log.map(s => `${s.kind}:${s.hand}${s.auto ? '*' : ''}`)).toEqual([
+        'start:0', 'split:0', 'card:0', 'twentyone:0', 'card:1', 'stand:1*',
+      ])
+    })
+
+    it('plays a pair it cannot split as its total, instead of standing on it', () => {
+      // 8,8 vs 10 with no money for a second bet: hard 16 vs 10 is a hit, not a stand.
+      const bot = pairBot(r(Rank.Eight), r(Rank.Eight, Suit.Spades))
+      bot.bankroll = 0
+      const hands = playBotTurn(bot, r(Rank.Ten, Suit.Clubs), queue([r(Rank.Two), r(Rank.Two)]),
+        { ...testRules, surrenderAllowed: 'none' })
+      expect(hands).toHaveLength(1)
+      expect(hands[0].cards.length).toBeGreaterThan(2)
+    })
+
+    it('plays a fourth 8 as hard 16 once the table holds the most hands allowed', () => {
+      // Three re-splits fill four hands; the last hand that pairs up again must play on.
+      const hands = playBotTurn(pairBot(r(Rank.Eight), r(Rank.Eight, Suit.Spades)), r(Rank.Ten, Suit.Clubs),
+        queue([
+          r(Rank.Eight, Suit.Diamonds), r(Rank.Eight, Suit.Clubs), // two re-splits on hand 1 → 4 hands
+          r(Rank.Eight, Suit.Hearts),                              // hand 1 pairs again: no room
+          r(Rank.Five), r(Rank.Ten), r(Rank.Ten), r(Rank.Ten), r(Rank.Ten), r(Rank.Ten),
+        ]), { ...testRules, surrenderAllowed: 'none' })
+      expect(hands).toHaveLength(4)
+      expect(hands[0].cards.map(c => c.rank)).toEqual([Rank.Eight, Rank.Eight, Rank.Five])
+    })
+
+    it('doubles a split hand after its second card when the table allows it', () => {
+      // 9,9 vs 6: hand 1 draws 10 = 19 and stands; hand 2 draws 2 = 11 and doubles onto the ace.
+      const log: BotTurnStep[] = []
+      const hands = playBotTurn(pairBot(r(Rank.Nine), r(Rank.Nine, Suit.Spades)), six,
+        queue([r(Rank.Ten), r(Rank.Two), r(Rank.Ace)]), testRules, log)
+      expect(hands[1].cards.map(c => c.rank)).toEqual([Rank.Nine, Rank.Two, Rank.Ace])
+      expect(log.map(s => `${s.kind}:${s.hand}`)).toEqual([
+        'start:0', 'split:0', 'card:0', 'stand:0', 'card:1', 'double:1',
+      ])
     })
   })
 })

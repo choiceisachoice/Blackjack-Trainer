@@ -4,7 +4,7 @@ import { Action } from '../rules/types'
 import { getHandValue, isBlackjack, isBust, isPair } from '../rules/hand-utils'
 import { getOptimalAction } from '../strategy/basic-strategy'
 import type { CasinoRules } from '../rules/types'
-import type { BotHand, BotPlayer } from './types'
+import type { BotHand, BotPlayer, BotTurnStep } from './types'
 
 /** Pool of realistic, internationally diverse bot names. */
 export const BOT_NAMES = [
@@ -98,10 +98,16 @@ export function refillBotBankroll(
  * running count is updated correctly (the human player must count all
  * visible cards).
  *
+ * A split is dealt the way a dealer deals it: the first hand gets its second
+ * card and is played to the end before the next hand gets its second card.
+ * Dealing both second cards at the moment of the split put cards in the wrong
+ * hands and hid when a re-split happened.
+ *
  * @param bot - The bot whose turn is being played
  * @param dealerUpCard - The dealer's face-up card
  * @param drawCard - Function that draws a card and updates the running count
  * @param rules - Casino rules (for strategy lookup)
+ * @param log - Optional: receives every step of the turn with a snapshot of the table, for the replay
  * @returns Array of settled BotHands (may be multiple after splits)
  */
 export function playBotTurn(
@@ -109,8 +115,20 @@ export function playBotTurn(
   dealerUpCard: Card,
   drawCard: () => Card,
   rules: CasinoRules,
+  log?: BotTurnStep[],
 ): BotHand[] {
   const hands: BotHand[] = [...bot.hands]
+  // Parallel to `hands`: a stable id per hand, so a re-split inserts a hand
+  // the table can slide in, instead of relabelling the ones beside it.
+  const ids: number[] = hands.map((_, k) => k)
+  let nextId = hands.length
+  const note = (kind: BotTurnStep['kind'], hand: number, auto?: boolean) => {
+    log?.push({
+      kind, hand, ...(auto ? { auto } : {}),
+      hands: hands.map((h, k) => ({ id: ids[k], cards: [...h.cards] })),
+    })
+  }
+  note('start', 0)
   let i = 0
 
   while (i < hands.length) {
@@ -122,6 +140,33 @@ export function playBotTurn(
       continue
     }
 
+    // A split hand waiting for its second card gets it now — not at the
+    // moment of the split, but when play reaches it.
+    if (hand.isSplit && hand.cards.length === 1) {
+      hand.cards = [...hand.cards, drawCard()]
+      note('card', i)
+      const isAces = hand.cards[0].rank === Rank.Ace
+      if (getHandValue(hand.cards).best === 21) {
+        hand.isStanding = true
+        note('twentyone', i)
+        i++
+        continue
+      }
+      if (isAces && !rules.hitSplitAces) {
+        // One card to a split ace, then it stands — unless another ace
+        // arrives and there is room to split again.
+        const canReSplit = rules.resplitAllowed && hands.length < rules.maxSplitHands && bot.bankroll >= hand.bet
+        if (!(canReSplit && hand.cards[1].rank === Rank.Ace)) {
+          hand.isStanding = true
+          note('stand', i, true)
+          i++
+        }
+        continue
+      }
+      // Play this hand from here like any other.
+      continue
+    }
+
     // Check for blackjack on initial 2-card hand (not from split)
     if (hand.cards.length === 2 && !hand.isSplit && isBlackjack(hand.cards)) {
       hand.isStanding = true
@@ -129,48 +174,62 @@ export function playBotTurn(
       continue
     }
 
-    const action = getOptimalAction(hand.cards, dealerUpCard, rules)
+    // A pair that cannot be split (hand limit, no money for the second bet)
+    // is played as its total — not stood on.
+    const canSplitNow =
+      hand.cards.length === 2 && isPair(hand.cards) &&
+      hands.length < rules.maxSplitHands && bot.bankroll >= hand.bet
+    const action = getOptimalAction(hand.cards, dealerUpCard, rules, canSplitNow)
 
     if (action === Action.Stand) {
       hand.isStanding = true
+      note('stand', i)
       i++
       continue
     }
 
-    if (action === Action.Hit) {
-      const card = drawCard()
-      hand.cards = [...hand.cards, card]
+    // A hit: the card, then the hand either goes on, busts or lands on 21.
+    const hit = () => {
+      hand.cards = [...hand.cards, drawCard()]
+      note('hit', i)
       if (isBust(hand.cards)) {
         hand.isBusted = true
         hand.isStanding = true
+        note('bust', i)
+        i++
+      } else if (getHandValue(hand.cards).best === 21) {
+        hand.isStanding = true
+        note('twentyone', i)
         i++
       }
+    }
+
+    if (action === Action.Hit) {
+      hit()
       // Don't advance i — check this hand again
       continue
     }
 
     if (action === Action.Double) {
-      if (hand.cards.length === 2 && bot.bankroll >= hand.bet) {
+      if (hand.cards.length === 2 && bot.bankroll >= hand.bet && (!hand.isSplit || rules.doubleAfterSplit)) {
         const card = drawCard()
         hand.cards = [...hand.cards, card]
         bot.bankroll -= hand.bet
         hand.bet *= 2
         hand.isDoubled = true
         hand.isStanding = true
+        note('double', i)
         if (isBust(hand.cards)) {
           hand.isBusted = true
+          note('bust', i)
+        } else if (getHandValue(hand.cards).best === 21) {
+          note('twentyone', i)
         }
         i++
         continue
       }
       // Can't double — fall through to hit behavior
-      const card = drawCard()
-      hand.cards = [...hand.cards, card]
-      if (isBust(hand.cards)) {
-        hand.isBusted = true
-        hand.isStanding = true
-        i++
-      }
+      hit()
       continue
     }
 
@@ -181,9 +240,9 @@ export function playBotTurn(
         hands.length < rules.maxSplitHands &&
         bot.bankroll >= hand.bet
       ) {
-        const isAces = hand.cards[0].rank === Rank.Ace
-
-        // Create second hand from the split
+        // The second card becomes a hand of its own, right after this one.
+        // Neither hand gets its second card here: each gets it when play
+        // reaches it (the branch at the top of the loop).
         const secondHand: BotHand = {
           cards: [hand.cards[1]],
           bet: hand.bet,
@@ -192,49 +251,19 @@ export function playBotTurn(
           isBusted: false,
           isStanding: false,
         }
-
-        // Update first hand
         hand.cards = [hand.cards[0]]
         hand.isSplit = true
         bot.bankroll -= hand.bet
-
-        // Deal one card to each hand
-        const card1 = drawCard()
-        hand.cards = [...hand.cards, card1]
-
-        const card2 = drawCard()
-        secondHand.cards = [...secondHand.cards, card2]
-
-        // Aces: one card each, then stand — unless re-split is possible
-        if (isAces && !rules.hitSplitAces) {
-          const canReSplit =
-            rules.resplitAllowed &&
-            hands.length + 1 < rules.maxSplitHands
-          if (!(canReSplit && hand.cards[1].rank === Rank.Ace)) {
-            hand.isStanding = true
-          }
-          if (!(canReSplit && secondHand.cards[1].rank === Rank.Ace)) {
-            secondHand.isStanding = true
-          }
-        }
-
-        // Insert the second hand right after the current one
         hands.splice(i + 1, 0, secondHand)
+        ids.splice(i + 1, 0, nextId++)
+        note('split', i)
 
-        // Check if first hand is 21 or bust
-        if (getHandValue(hand.cards).best === 21) {
-          hand.isStanding = true
-        }
-        if (isBust(hand.cards)) {
-          hand.isBusted = true
-          hand.isStanding = true
-        }
-
-        // Don't advance i — re-evaluate current hand
+        // Don't advance i — this hand takes its second card next
         continue
       }
       // Can't split — fall through to stand
       hand.isStanding = true
+      note('stand', i)
       i++
       continue
     }

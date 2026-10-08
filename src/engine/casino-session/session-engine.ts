@@ -11,6 +11,7 @@ import { createBot, playBotTurn, refillBotBankroll } from './bot-player'
 import type {
   BotPlayer,
   BotRoundResult,
+  BotTurnStep,
   CasinoSessionConfig,
   CasinoSessionResult,
   DealResult,
@@ -617,6 +618,7 @@ export class CasinoSessionEngine {
     // Skip if bot has blackjack
     if (bot.hands[0].cards.length === 2 && isBlackjack(bot.hands[0].cards)) {
       bot.hands[0].isStanding = true
+      bot.turnLog = undefined
       this.recorder?.recordPlayerAction(
         `bot:${bot.name}`, 'blackjack', 21, this.fmtCard(dealerUpCard),
         'blackjack', true, true, hn,
@@ -630,12 +632,16 @@ export class CasinoSessionEngine {
 
     // Bots never surrender — use rules with surrender disabled
     const botRules: CasinoRules = { ...this.casinoRules, surrenderAllowed: 'none' }
+    // The table replays a split from this log — see BotPlayer.turnLog.
+    const turnLog: BotTurnStep[] = []
     bot.hands = playBotTurn(
       bot,
       dealerUpCard,
       () => this.drawCard(),
       botRules,
+      turnLog,
     )
+    bot.turnLog = turnLog
 
     // Record bot's first action (not outcome like bust — bust is bad luck, not a decision)
     const mainHand = bot.hands[0]

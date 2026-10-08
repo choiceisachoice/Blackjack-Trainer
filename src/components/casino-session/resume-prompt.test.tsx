@@ -44,7 +44,7 @@ vi.mock('./useGameLoop', () => ({
       handReview: null,
       botStatuses: {},
       botActiveSplitHands: {},
-      botSplitVisibleCards: {},
+      botSplitHands: {},
       elapsedSeconds: 0,
     },
     actions: {
