@@ -572,7 +572,9 @@
       "playStyle": "Spielstil",
       "styleCounting": "Kartenzählen",
       "styleBasic": "Nur Blackjack",
-      "styleBasicHint": "Kein Running Count, kein True Count – einfach spielen. Bewertet wird nur die Basisstrategie, XP gibt es trotzdem."
+      "styleBasicHint": "Kein Running Count, kein True Count – einfach spielen. Bewertet wird nur die Basisstrategie, XP gibt es trotzdem.",
+      "unlimited": "Unbegrenzt",
+      "unlimitedHint": "Spiel so lange du willst und mach Cash-out, wann du möchtest. Die Session wird im Tracker gespeichert."
     },
     "table": {
       "you": "DU",
@@ -619,7 +621,11 @@
       "no": "Nein (N)",
       "speedRelaxed": "Gemächlich",
       "speedStandard": "Standard",
-      "betRange": "Min.: {{min}} – Max.: {{max}}"
+      "betRange": "Min.: {{min}} – Max.: {{max}}",
+      "cashOut": "Cash-out",
+      "cashOutWait": "Erst die Hand fertig spielen",
+      "timeUp_one": "1 Minute gespielt — spiel diese Hand fertig",
+      "timeUp_other": "{{count}} Minuten gespielt — spiel diese Hand fertig"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -672,6 +678,14 @@
       "win": "Gewinn",
       "loss": "Verlust",
       "push": "Unentschieden"
+    },
+    "end": {
+      "handsTitle": "{{hands}} Hände gespielt",
+      "body": "Mach Cash-out, um dein Ergebnis zu sehen und die Session zu speichern — oder spiel weiter. Der Schuh bleibt genau, wie er ist.",
+      "keepPlaying": "Weiterspielen",
+      "keepNote": "Ab jetzt ohne Limit — Cash-out, wann du willst.",
+      "timeTitle_one": "Deine Minute ist um",
+      "timeTitle_other": "Deine {{count}} Minuten sind um"
     }
   },
   "tracker": {

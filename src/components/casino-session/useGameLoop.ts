@@ -37,6 +37,7 @@ import type { SessionRecorder } from '../../services/session-recorder'
 import type { GameStep, BotStatus } from './helpers'
 import { isNaturalBlackjack } from './helpers'
 import { buildSplitReplay } from './split-replay'
+import { sessionLimitReached, type SessionLimit } from './session-limit'
 import { useStepAnimation, type AnimStep } from './useStepAnimation'
 
 // ─── Visible State ───────────────────────────────────
@@ -82,6 +83,12 @@ export interface VisibleState {
   botActiveSplitHands: Record<string, number>
   /** Per bot, the split hands as they lie on the table right now (see split-replay). */
   botSplitHands: Record<string, BotTurnHandView[]>
+  /**
+   * The target the player set has been reached (see session-limit). During a
+   * hand that only shows a notice; before the next bet it asks: cash out or
+   * keep playing.
+   */
+  limitReached: SessionLimit
 }
 
 // ─── Game Actions ────────────────────────────────────
@@ -96,7 +103,10 @@ export interface GameActions {
   setRcInput: (v: string) => void
   setTcInput: (v: string) => void
   setPaused: (v: boolean) => void
+  /** End the session and show the result: the cash-out, from the HUD, the pause panel or the end prompt. */
   quitSession: () => void
+  /** Play on past the reached target; no target applies for the rest of the session. */
+  keepPlaying: () => void
 }
 
 // ─── Seat Layout ─────────────────────────────────────
@@ -162,9 +172,28 @@ export function useGameLoop(
   const [gameStep, setGameStep] = useState<GameStep>('betting')
   const [isPaused, setIsPaused] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
+  /** The player chose to play on past the target: no target for the rest of the session. */
+  const [keptPlaying, setKeptPlaying] = useState(false)
 
   const [humanHands, setHumanHands] = useState<Card[][]>([[]])
   const [activeHandIndex, setActiveHandIndex] = useState(0)
+  /**
+   * The hand in play, readable from a scheduled callback. Moving on from a hand
+   * is scheduled (after a bust, after a double) and also triggered by the
+   * auto-stand at 21; reading the index from a render's closure let both fire
+   * for the same hand, so the next hand was dealt twice and — on the last hand —
+   * the bots and the dealer were played a second time, their cards appearing
+   * all at once. Every move goes through `setActive` so this stays true.
+   */
+  const activeHandRef = useRef(0)
+  /** Hands already moved on from this round: a second move from one is a duplicate. */
+  const advancedFromRef = useRef<Set<number>>(new Set())
+  /** The bots after the player and the dealer play once per round, never twice. */
+  const postHumanRanRef = useRef(false)
+  const setActive = useCallback((i: number) => {
+    activeHandRef.current = i
+    setActiveHandIndex(i)
+  }, [])
   const [dealerCards, setDealerCards] = useState<Card[]>([])
   const [dealerHoleRevealed, setDealerHoleRevealed] = useState(false)
   const [seats, setSeats] = useState<(BotPlayer | null)[]>([])
@@ -263,7 +292,9 @@ export function useGameLoop(
   const resetRoundState = useCallback(() => {
     animation.clear()
     setHumanHands([[]])
-    setActiveHandIndex(0)
+    setActive(0)
+    advancedFromRef.current = new Set()
+    postHumanRanRef.current = false
     setDealerCards([])
     setDealerHoleRevealed(false)
     setBotResults([])
@@ -298,7 +329,7 @@ export function useGameLoop(
       }
       setBotStatuses(newStatuses)
     }
-  }, [animation])
+  }, [animation, setActive])
 
   const updateHandCards = useCallback((idx: number, newCards: Card[]) => {
     setHumanHands(prev => {
@@ -317,6 +348,7 @@ export function useGameLoop(
     startTimeRef.current = Date.now()
     setElapsedSeconds(0)
     setGameStep('betting')
+    setKeptPlaying(false)
     setSeats(engine.getSeats())
     setBotStatuses({})
     resetRoundState()
@@ -825,7 +857,8 @@ export function useGameLoop(
 
   const runPostHumanFlow = useCallback(() => {
     const dr = dealResultRef.current
-    if (!dr) return
+    if (!dr || postHumanRanRef.current) return
+    postHumanRanRef.current = true
 
     const steps: AnimStep[] = []
 
@@ -840,18 +873,25 @@ export function useGameLoop(
 
   // ─── Advance To Next Hand ──────────────────────────
 
-  const advanceToNextHand = useCallback(() => {
+  const advanceToNextHand = useCallback((scheduledFrom?: number) => {
     const engine = engineRef.current
-    const currentActiveHandIndex = activeHandIndex
-    const currentHumanHands = humanHands
+    // From refs, not from this render: the call may come from a scheduled
+    // callback holding an older render (see activeHandRef). A scheduled call
+    // names the hand it was scheduled for; if play is no longer on that hand,
+    // it is late and must not move on from the hand that is.
+    const from = activeHandRef.current
+    if (scheduledFrom !== undefined && scheduledFrom !== from) return
+    if (advancedFromRef.current.has(from)) return
+    advancedFromRef.current.add(from)
+    const currentHumanHands = humanHandsRef.current
 
-    if (currentActiveHandIndex < currentHumanHands.length - 1 && engine) {
-      const nextIdx = currentActiveHandIndex + 1
+    if (from < currentHumanHands.length - 1 && engine) {
+      const nextIdx = from + 1
       const nextHand = currentHumanHands[nextIdx]
 
       if (nextHand && nextHand.length === 1) {
         // 1. Switch focus FIRST: dim the finished hand, un-dim the next one.
-        setActiveHandIndex(nextIdx)
+        setActive(nextIdx)
         // 2. Only THEN — once the switch is visible — deal the next card to
         //    the now-active hand (so the card never arrives on a dimmed hand).
         schedule(() => {
@@ -860,18 +900,21 @@ export function useGameLoop(
           updateHandCards(nextIdx, [...nextHand, newCard])
         }, scaledDelay(500))
       } else {
-        schedule(() => setActiveHandIndex(nextIdx), scaledDelay(400))
+        schedule(() => setActive(nextIdx), scaledDelay(400))
       }
     } else {
       runPostHumanFlow()
     }
-  }, [activeHandIndex, humanHands, updateHandCards, runPostHumanFlow, schedule])
+  }, [updateHandCards, runPostHumanFlow, schedule, setActive])
 
   // ─── Betting Phase ─────────────────────────────────
 
   const confirmBet = useCallback(() => {
     const engine = engineRef.current
     if (!engine) return
+    // The target is reached: the end prompt is up, and the next hand waits for
+    // the player's answer (Enter must not deal past it).
+    if (sessionLimitReached(config, engine.getCurrentHandNumber(), elapsedSeconds, keptPlaying)) return
 
     const bet = currentBet || config.minBet
     const clampedBet = Math.min(bet, config.maxBet, engine.getHumanBankroll())
@@ -916,7 +959,9 @@ export function useGameLoop(
 
     setHumanHands([dealResult.humanCards])
     humanHandsRef.current = [dealResult.humanCards]
-    setActiveHandIndex(0)
+    setActive(0)
+    advancedFromRef.current = new Set()
+    postHumanRanRef.current = false
     setDealerCards([])
     setSeats([...engine.getSeats()])
     setHandDoubled(new Set())
@@ -1083,7 +1128,7 @@ export function useGameLoop(
         setGameStep('human_playing')
       }
     })
-  }, [currentBet, config, seatLayout, animation, computeBotsAndBuildSteps, buildDealerSteps, settleDealerRound, recorder])
+  }, [currentBet, config, seatLayout, elapsedSeconds, keptPlaying, animation, computeBotsAndBuildSteps, buildDealerSteps, settleDealerRound, recorder, setActive])
 
   // ─── Insurance ─────────────────────────────────────
 
@@ -1159,6 +1204,45 @@ export function useGameLoop(
 
   // ─── Human Play ────────────────────────────────────
 
+  /**
+   * Deal the remaining split aces their one card each, in order, and stand
+   * them — stopping only where a second ace offers a re-split. Also the way on
+   * after a declined re-split, so those hands can never be hit or doubled.
+   * Each ace hand is marked as moved-on-from as soon as it stands, which is
+   * what keeps clicks and keys off it during the pause before the next.
+   */
+  const advanceAceHands = useCallback((from: number) => {
+    const engine = engineRef.current
+    if (!engine) return
+    const step = (idx: number) => {
+      const hands = humanHandsRef.current
+      if (idx >= hands.length) {
+        runPostHumanFlow()
+        return
+      }
+      const hand = hands[idx]
+      if (!hand || hand.length !== 1) {
+        step(idx + 1)
+        return
+      }
+      // Switch focus to this hand first (un-dim), then deal its card.
+      setActive(idx)
+      schedule(() => {
+        const nc = engine.drawCard()
+        soundEngine.cardDeal()
+        updateHandCards(idx, [...hand, nc])
+        // A second ace and room for another hand: the player decides.
+        if (canReSplitAces([hand[0], nc], humanHandsRef.current.length, config.maxSplitHands) &&
+            engine.getHumanBankroll() >= currentBetRef.current) {
+          return
+        }
+        advancedFromRef.current.add(idx)
+        schedule(() => step(idx + 1), scaledDelay(600))
+      }, scaledDelay(500))
+    }
+    step(from)
+  }, [runPostHumanFlow, schedule, setActive, updateHandCards, config.maxSplitHands])
+
   const handleAction = useCallback((action: Action) => {
     const engine = engineRef.current
     const dr = dealResultRef.current
@@ -1166,9 +1250,30 @@ export function useGameLoop(
 
     const cards = humanHands[activeHandIndex] ?? []
     if (cards.length < 2) return
+    const idx = activeHandIndex
     const canSplitHand = cards.length === 2 && isPair(cards) && humanHands.length < config.maxSplitHands && engine.getHumanBankroll() >= currentBet
     const isFirstAction = cards.length === 2
     const canSurrenderNow = isFirstAction && !isSurrendered && config.surrenderAllowed && humanHands.length === 1
+    const canDoubleHand = isFirstAction && engine.getHumanBankroll() >= currentBet && (humanHands.length === 1 || config.doubleAfterSplit)
+    const splitAce = humanHands.length > 1 && cards[0].rank === 'A'
+
+    // Does this hand accept input at all? Clicks and keys arrive during the
+    // short transitions too — 600 ms after a bust or a double, while a split
+    // ace waits to stand — and each one used to be acted on: a Hit after a
+    // double, a Stand that moved on from the *next* hand, a card dealt to a
+    // hand twice (one of them counted but never shown). Checked before anything
+    // is recorded, so a refused key leaves no trace in the history either.
+    if (idx !== activeHandRef.current) return
+    if (advancedFromRef.current.has(idx) || isBust(cards) || handDoubledRef.current.has(idx)) return
+    // A split ace takes one card and stands. The only choice it can offer is
+    // a second ace: split again, or decline (Stand).
+    if (splitAce && !(cards.length === 2 && cards[1].rank === 'A' && (action === Action.Split || action === Action.Stand))) return
+    // A move the table does not allow here is refused, not turned into another
+    // move (keyboard `d` used to become a Hit, or double a split hand at a
+    // no-DAS table).
+    if (action === Action.Double && !canDoubleHand) return
+    if (action === Action.Split && !canSplitHand) return
+    if (action === Action.Surrender && !canSurrenderNow) return
 
     const tc = engine.getTrueCount()
     const { action: correctAction, isDeviation, deviationName } = engine.getCorrectAction(
@@ -1176,7 +1281,7 @@ export function useGameLoop(
       dr.dealerUpCard,
       tc,
       canSplitHand,
-      isFirstAction,
+      canDoubleHand,
       canSurrenderNow,
     )
 
@@ -1213,7 +1318,13 @@ export function useGameLoop(
       decision.handValueAfter = getHandValue(cards).best
       decisionsRef.current.push(decision)
       soundEngine.buttonClick()
-      advanceToNextHand()
+      if (splitAce) {
+        // A declined re-split: the remaining aces follow the ace rules.
+        advancedFromRef.current.add(idx)
+        advanceAceHands(idx + 1)
+      } else {
+        advanceToNextHand()
+      }
       return
     }
 
@@ -1227,16 +1338,12 @@ export function useGameLoop(
       soundEngine.cardDeal()
 
       if (isBust(newCards)) {
-        schedule(() => advanceToNextHand(), 600)
+        schedule(() => advanceToNextHand(idx), 600)
       }
       return
     }
 
     if (action === Action.Double) {
-      if (!isFirstAction || engine.getHumanBankroll() < currentBet) {
-        handleAction(Action.Hit)
-        return
-      }
       engine.deductHumanBet(currentBet)
       const newDoubled = new Set(handDoubled).add(activeHandIndex)
       setHandDoubled(newDoubled)
@@ -1249,7 +1356,7 @@ export function useGameLoop(
       updateHandCards(activeHandIndex, newCards)
       soundEngine.cardDeal()
       soundEngine.chipPlace()
-      schedule(() => advanceToNextHand(), 600)
+      schedule(() => advanceToNextHand(idx), 600)
       return
     }
 
@@ -1288,7 +1395,7 @@ export function useGameLoop(
         const newCard1 = engine.drawCard()
         soundEngine.cardDeal()
         updateHandCards(hi, [card1, newCard1])
-        setActiveHandIndex(hi)
+        setActive(hi)
 
         if (isAces) {
           // Check if re-split is possible on this hand
@@ -1298,46 +1405,15 @@ export function useGameLoop(
             return
           }
 
-          // Auto-stand this hand. Advance through remaining ace-split hands.
-          const advanceAceHands = (idx: number) => {
-            const hands = humanHandsRef.current
-            if (idx >= hands.length) {
-              runPostHumanFlow()
-              return
-            }
-
-            const hand = hands[idx]
-            if (!hand || hand.length !== 1) {
-              advanceAceHands(idx + 1)
-              return
-            }
-
-            // Switch focus to this hand first (un-dim), then deal its card.
-            setActiveHandIndex(idx)
-            schedule(() => {
-              const nc = engine.drawCard()
-              soundEngine.cardDeal()
-              updateHandCards(idx, [...hand, nc])
-
-              // Check re-split for this hand
-              if (canReSplitAces([hand[0], nc], humanHandsRef.current.length, config.maxSplitHands) &&
-                  engine.getHumanBankroll() >= currentBetRef.current) {
-                // Player can re-split this hand
-                return
-              }
-
-              // Auto-stand, advance to next after delay (respects dealing speed)
-              schedule(() => advanceAceHands(idx + 1), scaledDelay(600))
-            }, scaledDelay(500))
-          }
-
+          // Auto-stand this hand, then deal the remaining aces in order.
+          advancedFromRef.current.add(hi)
           schedule(() => advanceAceHands(hi + 1), scaledDelay(600))
         }
       }, scaledDelay(600))
 
       return
     }
-  }, [humanHands, activeHandIndex, gameStep, currentBet, config, isSurrendered, handDoubled, updateHandCards, advanceToNextHand, runPostHumanFlow, recorder, schedule])
+  }, [humanHands, activeHandIndex, gameStep, currentBet, config, isSurrendered, handDoubled, updateHandCards, advanceToNextHand, advanceAceHands, runPostHumanFlow, recorder, schedule, setActive])
 
   // ─── Count Check ───────────────────────────────────
 
@@ -1398,12 +1474,9 @@ export function useGameLoop(
     const engine = engineRef.current
     if (!engine) return
 
-    const handNum = engine.getCurrentHandNumber()
-
-    if (config.sessionMode === 'hands' && handNum >= config.targetHands) {
-      endSession()
-      return
-    }
+    // A reached target does not end the session here: the table goes back to
+    // betting and asks there (cash out or keep playing). Only running out of
+    // money ends it on its own — there is no next bet to ask about.
     if (engine.getHumanBankroll() < config.minBet) {
       endSession()
       return
@@ -1468,6 +1541,7 @@ export function useGameLoop(
     showReshuffle,
     botActiveSplitHands,
     botSplitHands,
+    limitReached: sessionLimitReached(config, engineRef.current?.getCurrentHandNumber() ?? 0, elapsedSeconds, keptPlaying),
   }
 
   const actions: GameActions = {
@@ -1481,6 +1555,7 @@ export function useGameLoop(
     setTcInput,
     setPaused: setIsPaused,
     quitSession: endSession,
+    keepPlaying: () => setKeptPlaying(true),
   }
 
   return {

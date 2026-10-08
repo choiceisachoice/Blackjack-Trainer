@@ -129,17 +129,25 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
                 ariaLabel={t('casino.setup.sessionLength')}
                 value={config.sessionMode}
                 onChange={v => update('sessionMode', v)}
-                options={[{ label: t('casino.setup.hands'), value: 'hands' }, { label: t('casino.setup.time'), value: 'time' }]}
+                options={[
+                  { label: t('casino.setup.hands'), value: 'hands' },
+                  { label: t('casino.setup.time'), value: 'time' },
+                  { label: t('casino.setup.unlimited'), value: 'unlimited' },
+                ]}
               />
             </Field>
-            {config.sessionMode === 'hands' ? (
+            {config.sessionMode === 'hands' && (
               <Field label={t('casino.setup.numberOfHands')}>
                 <NumberField label={t('casino.setup.numberOfHands')} value={config.targetHands} min={5} max={200} onChange={v => update('targetHands', v)} />
               </Field>
-            ) : (
+            )}
+            {config.sessionMode === 'time' && (
               <Field label={t('casino.setup.minutes')}>
                 <NumberField label={t('casino.setup.minutes')} value={config.targetMinutes} min={1} max={120} onChange={v => update('targetMinutes', v)} />
               </Field>
+            )}
+            {config.sessionMode === 'unlimited' && (
+              <p className="text-xs text-content/50 leading-relaxed" data-testid="unlimited-hint">{t('casino.setup.unlimitedHint')}</p>
             )}
           </Panel>
 

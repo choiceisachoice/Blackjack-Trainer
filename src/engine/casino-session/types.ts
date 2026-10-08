@@ -5,8 +5,12 @@ import type { CountingSystemId } from '../counting/types'
 
 /** Configuration for a casino session training run. */
 export interface CasinoSessionConfig {
-  /** Whether the session ends after a hand count or a time limit. */
-  sessionMode: 'hands' | 'time'
+  /**
+   * The session's target: a hand count, a time, or none (`unlimited` — the
+   * player cashes out when they like). Reaching a target asks before the next
+   * bet; it never cuts a hand short.
+   */
+  sessionMode: 'hands' | 'time' | 'unlimited'
   /** Target number of hands to play (used when sessionMode = 'hands'). */
   targetHands: number
   /** Target session duration in minutes (used when sessionMode = 'time'). */

@@ -179,7 +179,11 @@ export function playBotTurn(
     const canSplitNow =
       hand.cards.length === 2 && isPair(hand.cards) &&
       hands.length < rules.maxSplitHands && bot.bankroll >= hand.bet
-    const action = getOptimalAction(hand.cards, dealerUpCard, rules, canSplitNow)
+    // Same for a double the table or the bankroll does not allow: "Ds" is then
+    // a stand and "D" a hit, as the chart means it — not a hit for both.
+    const canDoubleNow =
+      hand.cards.length === 2 && bot.bankroll >= hand.bet && (!hand.isSplit || rules.doubleAfterSplit)
+    const action = getOptimalAction(hand.cards, dealerUpCard, rules, canSplitNow, canDoubleNow)
 
     if (action === Action.Stand) {
       hand.isStanding = true

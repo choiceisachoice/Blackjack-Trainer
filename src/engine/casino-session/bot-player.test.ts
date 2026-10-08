@@ -1230,6 +1230,14 @@ describe('Bot Player', () => {
       expect(hands[0].cards.map(c => c.rank)).toEqual([Rank.Eight, Rank.Eight, Rank.Five])
     })
 
+    it('stands a split soft 18 vs 4 at a no-DAS table instead of hitting it', () => {
+      // A,A would auto-stand; use 7,7 vs 4 → hand 1 draws an ace = soft 18 ("Ds" → Stand without DAS).
+      const hands = playBotTurn(pairBot(r(Rank.Seven), r(Rank.Seven, Suit.Spades)), r(Rank.Four, Suit.Clubs),
+        queue([r(Rank.Ace), r(Rank.Ten), r(Rank.Ten)]), { ...testRules, doubleAfterSplit: false })
+      expect(hands[0].cards.map(x => x.rank)).toEqual([Rank.Seven, Rank.Ace])
+      expect(hands[0].isDoubled).toBe(false)
+    })
+
     it('doubles a split hand after its second card when the table allows it', () => {
       // 9,9 vs 6: hand 1 draws 10 = 19 and stands; hand 2 draws 2 = 11 and doubles onto the ace.
       const log: BotTurnStep[] = []

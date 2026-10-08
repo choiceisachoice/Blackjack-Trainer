@@ -242,6 +242,32 @@ describe('CasinoSessionEngine', () => {
       engine = new CasinoSessionEngine(createTestConfig())
     })
 
+    // Grading against moves the hand cannot make marked every answer wrong
+    // (independent audit, 8 Oct 2026).
+    it('grades a pair that cannot be split as its total, not as Split', () => {
+      // 8,8 vs 10 with four hands already on the table: hard 16 vs 10, no surrender after a split.
+      const result = engine.getCorrectAction([card(Rank.Eight), card(Rank.Eight)], card(Rank.Ten), 0, false, true, false)
+      expect(result.action).not.toBe(Action.Split)
+    })
+
+    it('grades a split hand at a no-DAS table without the double', () => {
+      const noDas = new CasinoSessionEngine(createTestConfig({ doubleAfterSplit: false }))
+      // Split 8 + 3 = 11 vs 6: the chart doubles, the table does not allow it → Hit.
+      expect(noDas.getCorrectAction([card(Rank.Eight), card(Rank.Three)], card(Rank.Six), 0, false, false, false).action).toBe(Action.Hit)
+      // Soft 18 vs 4 ("Ds") → Stand, not Double.
+      expect(noDas.getCorrectAction([card(Rank.Ace), card(Rank.Seven)], card(Rank.Four), 0, false, false, false).action).toBe(Action.Stand)
+    })
+
+    it('does not split the small pairs a no-DAS table makes worthless', () => {
+      const noDas = new CasinoSessionEngine(createTestConfig({ doubleAfterSplit: false }))
+      expect(noDas.getCorrectAction([card(Rank.Four), card(Rank.Four)], card(Rank.Five), 0, true, true, false).action).toBe(Action.Hit)
+      expect(noDas.getCorrectAction([card(Rank.Two), card(Rank.Two)], card(Rank.Three), 0, true, true, false).action).toBe(Action.Hit)
+      expect(noDas.getCorrectAction([card(Rank.Six), card(Rank.Six)], card(Rank.Two), 0, true, true, false).action).toBe(Action.Hit)
+      // …and still splits where the split pays on its own.
+      expect(noDas.getCorrectAction([card(Rank.Two), card(Rank.Two)], card(Rank.Five), 0, true, true, false).action).toBe(Action.Split)
+      expect(noDas.getCorrectAction([card(Rank.Six), card(Rank.Six)], card(Rank.Four), 0, true, true, false).action).toBe(Action.Split)
+    })
+
     it('hard 16 vs 10 with surrender at TC 0 → Surrender (the stand index is a no-surrender play)', () => {
       const result = engine.getCorrectAction(
         [card(Rank.Ten), card(Rank.Six)],

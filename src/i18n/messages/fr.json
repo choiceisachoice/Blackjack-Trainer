@@ -572,7 +572,9 @@
       "playStyle": "Style de jeu",
       "styleCounting": "Comptage des cartes",
       "styleBasic": "Blackjack seul",
-      "styleBasicHint": "Pas de running count ni de true count — jouez simplement. Seule la stratégie de base est notée, et vous gagnez quand même des XP."
+      "styleBasicHint": "Pas de running count ni de true count — jouez simplement. Seule la stratégie de base est notée, et vous gagnez quand même des XP.",
+      "unlimited": "Illimité",
+      "unlimitedHint": "Jouez aussi longtemps que vous voulez et encaissez quand vous le souhaitez. La session est enregistrée dans votre suivi."
     },
     "table": {
       "you": "VOUS",
@@ -619,7 +621,11 @@
       "no": "Non (N)",
       "speedRelaxed": "Détendu",
       "speedStandard": "Standard",
-      "betRange": "Min. : {{min}} – Max. : {{max}}"
+      "betRange": "Min. : {{min}} – Max. : {{max}}",
+      "cashOut": "Encaisser",
+      "cashOutWait": "Terminez d’abord la main",
+      "timeUp_one": "1 minute jouée — terminez cette main",
+      "timeUp_other": "{{count}} minutes jouées — terminez cette main"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -672,6 +678,14 @@
       "win": "Gagné",
       "loss": "Perdu",
       "push": "Égalité"
+    },
+    "end": {
+      "handsTitle": "{{hands}} mains jouées",
+      "body": "Encaissez pour voir votre résultat et enregistrer la session — ou continuez. Le sabot reste exactement tel quel.",
+      "keepPlaying": "Continuer",
+      "keepNote": "Plus de limite — encaissez quand vous voulez.",
+      "timeTitle_one": "Votre minute est écoulée",
+      "timeTitle_other": "Vos {{count}} minutes sont écoulées"
     }
   },
   "tracker": {

@@ -7,6 +7,10 @@ interface ActionButtonsProps {
   canSplit: boolean
   canSurrender: boolean
   humanBusted: boolean
+  /** False for a hand that takes no more cards by choice: doubled, or a split ace. */
+  canHit?: boolean
+  /** False while a split ace or a doubled hand finishes by itself. */
+  canStand?: boolean
 }
 
 /**
@@ -44,11 +48,13 @@ const ACTIONS: readonly ActionDef[] = [
   { action: Action.Surrender, testId: 'action-surrender', labelKey: 'casino.act.surrender', fill: 'bg-contrast/10 hover:bg-contrast/20 text-content' },
 ]
 
-export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, humanBusted }: ActionButtonsProps) {
+export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, humanBusted, canHit = true, canStand = true }: ActionButtonsProps) {
   const { t } = useTranslation()
 
   const isDisabled = (action: Action) => {
     if (humanBusted) return true
+    if (action === Action.Hit) return !canHit
+    if (action === Action.Stand) return !canStand
     if (action === Action.Double) return !canDouble
     if (action === Action.Split) return !canSplit
     if (action === Action.Surrender) return !canSurrender

@@ -572,7 +572,9 @@
       "playStyle": "Stile di gioco",
       "styleCounting": "Conteggio delle carte",
       "styleBasic": "Solo Blackjack",
-      "styleBasicHint": "Niente running count né true count: gioca e basta. Viene valutata solo la strategia di base e guadagni comunque XP."
+      "styleBasicHint": "Niente running count né true count: gioca e basta. Viene valutata solo la strategia di base e guadagni comunque XP.",
+      "unlimited": "Illimitato",
+      "unlimitedHint": "Gioca quanto vuoi e incassa quando vuoi. La sessione viene salvata nel tuo registro."
     },
     "table": {
       "you": "TU",
@@ -619,7 +621,11 @@
       "no": "No (N)",
       "speedRelaxed": "Rilassato",
       "speedStandard": "Standard",
-      "betRange": "Min: {{min}} – Max: {{max}}"
+      "betRange": "Min: {{min}} – Max: {{max}}",
+      "cashOut": "Incassa",
+      "cashOutWait": "Prima finisci la mano",
+      "timeUp_one": "1 minuto giocato — finisci questa mano",
+      "timeUp_other": "{{count}} minuti giocati — finisci questa mano"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -672,6 +678,14 @@
       "win": "Vince",
       "loss": "Perde",
       "push": "Pareggio"
+    },
+    "end": {
+      "handsTitle": "{{hands}} mani giocate",
+      "body": "Incassa per vedere il risultato e salvare la sessione — oppure continua. Lo shoe resta esattamente com’è.",
+      "keepPlaying": "Continua a giocare",
+      "keepNote": "Da qui nessun limite: incassa quando vuoi.",
+      "timeTitle_one": "Il tuo minuto è finito",
+      "timeTitle_other": "I tuoi {{count}} minuti sono finiti"
     }
   },
   "tracker": {

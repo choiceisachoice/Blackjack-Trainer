@@ -317,13 +317,29 @@ export class CasinoSessionEngine {
     dealerUpCard: Card,
     trueCount: number,
     canSplit: boolean,
-    _canDouble: boolean,
+    canDouble: boolean,
+    canSurrender: boolean,
+  ): { action: Action; isDeviation: boolean; deviationName?: string } {
+    const graded = this.correctActionRaw(playerCards, dealerUpCard, trueCount, canSplit, canDouble, canSurrender)
+    // An index play that says "double" on a hand that cannot double (split at
+    // a no-DAS table, no money for it) is a hit — the move the player can make.
+    if (graded.action === Action.Double && !canDouble) return { ...graded, action: Action.Hit }
+    return graded
+  }
+
+  private correctActionRaw(
+    playerCards: Card[],
+    dealerUpCard: Card,
+    trueCount: number,
+    canSplit: boolean,
+    canDouble: boolean,
     canSurrender: boolean,
   ): { action: Action; isDeviation: boolean; deviationName?: string } {
     // The table allowing surrender is not enough: a split hand or a third card
     // takes it away, and grading against a button that is greyed out would mark
-    // every answer wrong.
-    const bsAction = getOptimalAction(playerCards, dealerUpCard, this.rulesFor(canSurrender))
+    // every answer wrong. The same holds for a split the hand cannot make (hand
+    // limit, bankroll) and a double it cannot make (no DAS, bankroll).
+    const bsAction = getOptimalAction(playerCards, dealerUpCard, this.rulesFor(canSurrender), canSplit, canDouble)
 
     // Without a count the index plays do not exist. Grading against them would
     // mark a correct basic-strategy decision wrong every time a deviation

@@ -94,9 +94,12 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
     */
     if (!isRecordableSession(hands.length)) return
     const hadBlackjack = hands.some(h => h.result === 'blackjack')
+    // After a split the record holds hand 1 only ([A, x]), so "both cards are
+    // aces" was almost never true and the achievement rarely fired. A first
+    // action of Split on a hand that starts with an ace *is* a pair of aces.
     const splitAces = hands.some(h =>
-      h.playerCards.length >= 2 &&
-      h.playerCards[0].rank === 'A' && h.playerCards[1].rank === 'A' &&
+      h.playerCards.length >= 1 &&
+      h.playerCards[0].rank === 'A' &&
       h.firstAction === 'Split'
     )
     let longestWinStreak = 0
@@ -163,33 +166,37 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
       countingSystem: sessionResult.config.countingSystem,
     })
 
-    // Auto-track in Casino Session Tracker
+    // Every cashed-out session lands in the Casino Session Tracker. It used to
+    // land there only if the tracker had been set up by hand first, so a
+    // player who never opened it lost every session. A tracker nobody set up
+    // starts from this session's own bankroll.
     const trackerStore = useCasinoSessionTrackerStore.getState()
-    if (trackerStore.startingBankroll > 0 || trackerStore.sessions.length > 0) {
-      const now = new Date()
-      const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-      trackerStore.addSession({
-        id: `cs-${Date.now()}`,
-        date: dateStr,
-        timestamp: Date.now(),
-        handsPlayed: hands.length,
-        duration: sessionResult.durationSeconds,
-        startingBankroll: sessionResult.startingBankroll,
-        finalBankroll: sessionResult.finalBankroll,
-        profit: sessionResult.netProfit,
-        betAccuracy: sessionResult.betAccuracy,
-        playAccuracy: sessionResult.playAccuracy,
-        countAccuracy: sessionResult.countAccuracy,
-        overallScore: sessionResult.overallScore,
-        grade: sessionResult.grade,
-        numBots: sessionResult.config.numBots,
-        config: {
-          numDecks: sessionResult.config.numDecks,
-          minBet: sessionResult.config.minBet,
-          blackjackPays: sessionResult.config.blackjackPays,
-        },
-      })
+    if (trackerStore.startingBankroll === 0 && trackerStore.sessions.length === 0) {
+      trackerStore.setStartingBankroll(sessionResult.startingBankroll)
     }
+    const now = new Date()
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    trackerStore.addSession({
+      id: `cs-${Date.now()}`,
+      date: dateStr,
+      timestamp: Date.now(),
+      handsPlayed: hands.length,
+      duration: sessionResult.durationSeconds,
+      startingBankroll: sessionResult.startingBankroll,
+      finalBankroll: sessionResult.finalBankroll,
+      profit: sessionResult.netProfit,
+      betAccuracy: sessionResult.betAccuracy,
+      playAccuracy: sessionResult.playAccuracy,
+      countAccuracy: sessionResult.countAccuracy,
+      overallScore: sessionResult.overallScore,
+      grade: sessionResult.grade,
+      numBots: sessionResult.config.numBots,
+      config: {
+        numDecks: sessionResult.config.numDecks,
+        minBet: sessionResult.config.minBet,
+        blackjackPays: sessionResult.config.blackjackPays,
+      },
+    })
   }, [])
 
   if (phase === 'config') {

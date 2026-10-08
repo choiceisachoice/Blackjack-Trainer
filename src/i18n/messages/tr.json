@@ -572,7 +572,9 @@
       "playStyle": "Oyun tarzı",
       "styleCounting": "Kart sayma",
       "styleBasic": "Sadece Blackjack",
-      "styleBasicHint": "Running count yok, true count yok — sadece oyna. Yalnızca temel strateji değerlendirilir ve yine de XP kazanırsın."
+      "styleBasicHint": "Running count yok, true count yok — sadece oyna. Yalnızca temel strateji değerlendirilir ve yine de XP kazanırsın.",
+      "unlimited": "Sınırsız",
+      "unlimitedHint": "İstediğin kadar oyna, istediğin zaman kasadan çık. Oturum takipçine kaydedilir."
     },
     "table": {
       "you": "SİZ",
@@ -619,7 +621,11 @@
       "no": "Hayır (N)",
       "speedRelaxed": "Sakin",
       "speedStandard": "Standart",
-      "betRange": "Min: {{min}} – Maks: {{max}}"
+      "betRange": "Min: {{min}} – Maks: {{max}}",
+      "cashOut": "Kasadan çık",
+      "cashOutWait": "Önce eli bitir",
+      "timeUp_one": "1 dakika oynandı — bu eli bitir",
+      "timeUp_other": "{{count}} dakika oynandı — bu eli bitir"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -672,6 +678,14 @@
       "win": "Kazandı",
       "loss": "Kaybetti",
       "push": "Berabere"
+    },
+    "end": {
+      "handsTitle": "{{hands}} el oynandı",
+      "body": "Sonucunu görmek ve oturumu kaydetmek için kasadan çık — ya da oynamaya devam et. Ayakkabı olduğu gibi kalır.",
+      "keepPlaying": "Oynamaya devam et",
+      "keepNote": "Bundan sonra sınır yok — istediğin zaman kasadan çık.",
+      "timeTitle_one": "1 dakikan doldu",
+      "timeTitle_other": "{{count}} dakikan doldu"
     }
   },
   "tracker": {

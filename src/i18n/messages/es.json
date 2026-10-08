@@ -572,7 +572,9 @@
       "playStyle": "Estilo de juego",
       "styleCounting": "Conteo de cartas",
       "styleBasic": "Solo Blackjack",
-      "styleBasicHint": "Sin running count ni true count: solo juega. Solo se evalúa la estrategia básica y aun así ganas XP."
+      "styleBasicHint": "Sin running count ni true count: solo juega. Solo se evalúa la estrategia básica y aun así ganas XP.",
+      "unlimited": "Ilimitado",
+      "unlimitedHint": "Juega todo lo que quieras y cobra cuando quieras. La sesión se guarda en tu registro."
     },
     "table": {
       "you": "TÚ",
@@ -619,7 +621,11 @@
       "no": "No (N)",
       "speedRelaxed": "Tranquilo",
       "speedStandard": "Estándar",
-      "betRange": "Mín.: {{min}} – Máx.: {{max}}"
+      "betRange": "Mín.: {{min}} – Máx.: {{max}}",
+      "cashOut": "Cobrar",
+      "cashOutWait": "Termina primero la mano",
+      "timeUp_one": "1 minuto jugado — termina esta mano",
+      "timeUp_other": "{{count}} minutos jugados — termina esta mano"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -672,6 +678,14 @@
       "win": "Gana",
       "loss": "Pierde",
       "push": "Empate"
+    },
+    "end": {
+      "handsTitle": "{{hands}} manos jugadas",
+      "body": "Cobra para ver tu resultado y guardar la sesión, o sigue jugando. El zapato queda exactamente como está.",
+      "keepPlaying": "Seguir jugando",
+      "keepNote": "Sin límite a partir de aquí: cobra cuando quieras.",
+      "timeTitle_one": "Se acabó tu minuto",
+      "timeTitle_other": "Se acabaron tus {{count}} minutos"
     }
   },
   "tracker": {

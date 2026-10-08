@@ -572,7 +572,9 @@
       "playStyle": "Play style",
       "styleCounting": "Card counting",
       "styleBasic": "Just Blackjack",
-      "styleBasicHint": "No running count, no true count — just play. Only basic strategy is graded, and you still earn XP."
+      "styleBasicHint": "No running count, no true count — just play. Only basic strategy is graded, and you still earn XP.",
+      "unlimited": "Unlimited",
+      "unlimitedHint": "Play as long as you like and cash out whenever you want. The session is saved to your tracker."
     },
     "table": {
       "you": "YOU",
@@ -619,7 +621,11 @@
       "no": "No (N)",
       "speedRelaxed": "Relaxed",
       "speedStandard": "Standard",
-      "betRange": "Min: {{min}} – Max: {{max}}"
+      "betRange": "Min: {{min}} – Max: {{max}}",
+      "cashOut": "Cash out",
+      "cashOutWait": "Finish the hand first",
+      "timeUp_one": "1 minute played — finish this hand",
+      "timeUp_other": "{{count}} minutes played — finish this hand"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -672,6 +678,14 @@
       "win": "Win",
       "loss": "Loss",
       "push": "Push"
+    },
+    "end": {
+      "handsTitle": "{{hands}} hands played",
+      "body": "Cash out to see your result and save the session — or keep playing. The shoe stays exactly as it is.",
+      "keepPlaying": "Keep playing",
+      "keepNote": "No limit from here — cash out whenever you like.",
+      "timeTitle_one": "Your minute is up",
+      "timeTitle_other": "Your {{count}} minutes are up"
     }
   },
   "tracker": {

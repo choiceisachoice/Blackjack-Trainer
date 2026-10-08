@@ -112,6 +112,9 @@ export function HumanSeat({
   const reduced = useReducedMotion()
   const isSplit = humanHands.length > 1
   const humanCards = humanHands[activeHandIndex] ?? []
+  // What lies on the table: one bet per hand, two on a doubled one. The chip
+  // used to show the opening bet only, so doubling $20 still read $20.
+  const stake = currentBet * humanHands.reduce((n, _, i) => n + (handDoubled.has(i) ? 2 : 1), 0)
 
   return (
     <div
@@ -119,7 +122,7 @@ export function HumanSeat({
       style={{ flex: '0 0 auto', minWidth: '140px' }}
       data-testid="human-seat"
     >
-      <BetChip amount={currentBet} active={isActivePlayer} />
+      <BetChip amount={stake} active={isActivePlayer} />
 
       {/* Cards */}
       {isSplit ? (

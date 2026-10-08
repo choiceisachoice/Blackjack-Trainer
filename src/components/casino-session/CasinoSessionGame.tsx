@@ -126,24 +126,31 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     return () => { casinoAmbient.stop() }
   }, [soundEnabled, config.casinoAmbience, state.isPaused, ambientVolume])
 
-  // Time limit check
-  useEffect(() => {
-    if (config.sessionMode === 'time' && state.elapsedSeconds >= config.targetMinutes * 60) {
-      actions.quitSession()
-    }
-  }, [state.elapsedSeconds, config.sessionMode, config.targetMinutes, actions])
+  // No time-limit effect any more. Reaching the minutes used to quit right
+  // there — mid-hand, count up, shoe young — and drop the player on the
+  // summary. Now the target only asks (see `state.limitReached` below): a notice
+  // while the hand is played out, then cash out or keep playing.
+  const endPromptOpen = state.limitReached !== null && state.gameStep === 'betting' && !state.isPaused
+  // Cash-out between hands only: a hand in play has money on it that is not
+  // settled yet, and the summary would book it as lost or ignore it.
+  const canCashOut = state.gameStep === 'betting'
 
-  // Auto-stand at 21
+  // Auto-stand at 21 — only for a hand that would otherwise wait for a click.
+  // A doubled hand already moves on by itself, and split aces are dealt and
+  // stood by their own sequence; standing those a second time used to move on
+  // twice, dealing the next hand twice or playing the bots and the dealer again.
   useEffect(() => {
     if (state.gameStep !== 'human_playing') return
     const cards = state.humanHands[state.activeHandIndex] ?? []
     if (cards.length < 2) return
     if (isBust(cards)) return
+    if (state.handDoubled.has(state.activeHandIndex)) return
+    if (state.humanHands.length > 1 && cards[0].rank === 'A') return
     if (getHandValue(cards).best === 21) {
       const t = setTimeout(() => actions.handleAction(Action.Stand), 500)
       return () => clearTimeout(t)
     }
-  }, [state.gameStep, state.humanHands, state.activeHandIndex, actions])
+  }, [state.gameStep, state.humanHands, state.activeHandIndex, state.handDoubled, actions])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -195,6 +202,12 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   const canDoubleNow = isFirstAction && bankroll >= state.currentBet && (state.humanHands.length === 1 || config.doubleAfterSplit)
   const canSurrenderNow = isFirstAction && config.surrenderAllowed && state.humanHands.length === 1 && !state.isSurrendered
   const humanBusted = humanCards.length > 0 && isBust(humanCards)
+  // The buttons mirror the rules `handleAction` enforces: a doubled hand is
+  // done, and a split ace takes one card — its only choice is a second ace
+  // (split again or stand).
+  const handDone = state.handDoubled.has(state.activeHandIndex)
+  const splitAce = state.humanHands.length > 1 && humanCards[0]?.rank === 'A'
+  const aceReSplitOffer = splitAce && humanCards.length === 2 && humanCards[1].rank === 'A'
   const isDealPhase = state.gameStep === 'dealing'
 
   // The ground under the table follows the theme. It used to be a hard
@@ -284,11 +297,39 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         )}
       </AnimatePresence>
 
+      {/*
+        The target is reached and the next bet waits for an answer. Arrives
+        instantly, like the pause panel: it holds the only way on.
+      */}
+      {endPromptOpen && (
+        <div className="absolute inset-0 bg-black/75 z-40 flex items-center justify-center px-6" data-testid="session-end-prompt">
+          <div className="surface rounded-2xl p-7 md:p-8 max-w-md w-full text-center">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">
+              {state.limitReached === 'time'
+                ? t('casino.end.timeTitle', { count: config.targetMinutes })
+                : t('casino.end.handsTitle', { hands: config.targetHands })}
+            </h2>
+            <p className="mt-3 text-sm text-content/60">{t('casino.end.body')}</p>
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <button onClick={actions.quitSession} data-testid="end-cash-out"
+                className="px-7 py-3 rounded-xl font-bold bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer">
+                {t('casino.hud.cashOut')}
+              </button>
+              <button onClick={actions.keepPlaying} data-testid="end-keep-playing"
+                className="px-7 py-3 rounded-xl font-bold border border-contrast/20 text-content hover:border-gold/55 cursor-pointer">
+                {t('casino.end.keepPlaying')}
+              </button>
+            </div>
+            <p className="mt-4 text-xs text-content/40">{t('casino.end.keepNote')}</p>
+          </div>
+        </div>
+      )}
+
       {/* Status Bar */}
       <div className="flex items-center justify-between px-4 py-2 bg-contrast/5 border-b border-contrast/10 text-xs shrink-0">
         <div className="flex items-center gap-4">
           <span className="text-content/60">
-            {t('casino.hud.hand')} <span className="text-content font-semibold">{handNum}{targetHands ? `/${targetHands}` : ''}</span>
+            {t('casino.hud.hand')} <span className="text-content font-semibold">{handNum}{targetHands && handNum <= targetHands ? `/${targetHands}` : ''}</span>
           </span>
           <span className="text-content/60">
             {t('casino.hud.bankroll')} <span className={`font-semibold ${bankroll >= config.startingBankroll ? 'text-success' : 'text-error'}`}>
@@ -344,13 +385,31 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
               />
             </div>
           )}
-          <span className="text-content/60">{formatTime(state.elapsedSeconds)}</span>
+          <span className="text-content/60 tabular-nums" data-testid="session-clock">
+            {formatTime(state.elapsedSeconds)}
+            {config.sessionMode === 'time' && state.elapsedSeconds < config.targetMinutes * 60 && (
+              <span className="text-content/35"> / {formatTime(config.targetMinutes * 60)}</span>
+            )}
+          </span>
           <button onClick={() => actions.setPaused(true)} data-testid="pause-button"
             className="text-content/50 hover:text-content cursor-pointer">
             {t('casino.hud.pause')}
           </button>
+          <button onClick={actions.quitSession} disabled={!canCashOut} data-testid="cash-out"
+            title={canCashOut ? undefined : t('casino.hud.cashOutWait')}
+            className="px-2.5 py-1 rounded-md font-semibold text-on-gold bg-gold hover:bg-gold/90 cursor-pointer
+              disabled:opacity-40 disabled:cursor-not-allowed">
+            {t('casino.hud.cashOut')}
+          </button>
         </div>
       </div>
+
+      {/* The minutes are up while a hand is in play: it is finished first. */}
+      {state.limitReached === 'time' && state.gameStep !== 'betting' && (
+        <div className="shrink-0 px-4 py-1.5 text-center text-xs font-semibold text-gold bg-gold/10 border-b border-gold/25" data-testid="time-up-notice">
+          {t('casino.hud.timeUp', { count: config.targetMinutes })}
+        </div>
+      )}
 
       {/* Casino Table */}
       <CasinoTable
@@ -428,10 +487,12 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         {state.gameStep === 'human_playing' && (
           <ActionButtons
             onAction={actions.handleAction}
-            canDouble={canDoubleNow}
+            canDouble={canDoubleNow && !splitAce && !handDone}
             canSplit={canSplitNow}
             canSurrender={canSurrenderNow}
             humanBusted={humanBusted}
+            canHit={!splitAce && !handDone}
+            canStand={!handDone && (!splitAce || aceReSplitOffer)}
           />
         )}
 

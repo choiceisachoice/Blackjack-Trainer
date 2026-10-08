@@ -61,6 +61,19 @@ export function resolveStrategyAction(
 }
 
 /**
+ * The pair splits that are only right because the split hands may double:
+ * 2,2 and 3,3 against 2–3, every 4,4 split, and 6,6 against 2. Without double
+ * after split these are hits.
+ */
+function splitNeedsDas(rank: Rank, dealerKey: string): boolean {
+  const r = rankToKey(rank)
+  if (r === '4') return true
+  if ((r === '2' || r === '3') && (dealerKey === '2' || dealerKey === '3')) return true
+  if (r === '6' && dealerKey === '2') return true
+  return false
+}
+
+/**
  * Returns the mathematically optimal action for a given player hand
  * and dealer upcard according to Basic Strategy.
  *
@@ -78,6 +91,10 @@ export function resolveStrategyAction(
  * @param canSplit - False when a pair cannot be split here (hand limit reached,
  *   no money for the second bet). The pair is then played as its total; two
  *   aces are a soft 12, which is always a hit.
+ * @param canDouble - Whether doubling is possible on this hand. Defaults to
+ *   "two cards"; pass false for a split hand at a table without double after
+ *   split, or when the bankroll cannot cover it — "D" then reads as a hit and
+ *   "Ds" as a stand, instead of grading a move the player cannot make.
  * @returns The optimal Action
  */
 export function getOptimalAction(
@@ -85,10 +102,10 @@ export function getOptimalAction(
   dealerUpcard: Card,
   rules: CasinoRules,
   canSplit: boolean = true,
+  canDouble: boolean = playerCards.length === 2,
 ): Action {
   const table = rules.dealerHitsSoft17 ? H17_STRATEGY : S17_STRATEGY
   const dealerKey = rankToKey(dealerUpcard.rank)
-  const canDouble = playerCards.length === 2
   const canSurrender =
     rules.surrenderAllowed !== 'none' && playerCards.length === 2
 
@@ -96,8 +113,10 @@ export function getOptimalAction(
     return Action.Hit
   }
 
-  // 1. Check pairs (exactly 2 cards of same rank)
-  if (canSplit && isPair(playerCards)) {
+  // 1. Check pairs (exactly 2 cards of same rank). The pair table assumes
+  //    double after split; without it, the small pairs that split *in order
+  //    to double* are hit instead (standard no-DAS chart).
+  if (canSplit && isPair(playerCards) && !(rules.doubleAfterSplit === false && splitNeedsDas(playerCards[0].rank, dealerKey))) {
     const pairKey = `${rankToKey(playerCards[0].rank)},${rankToKey(playerCards[0].rank)}`
     const action = table.pairs[pairKey]?.[dealerKey]
     if (action) {
@@ -123,6 +142,8 @@ export function getOptimalAction(
     return resolveStrategyAction(action, canDouble, canSurrender)
   }
 
-  // Default: Stand (covers 21, blackjack, or any unmapped total)
-  return Action.Stand
+  // Unmapped totals. Below the table (a hard 4 is a 2,2 that is not split)
+  // nothing can bust — always a hit; it used to fall through to Stand. Above
+  // it (21, blackjack) — stand.
+  return best <= 11 ? Action.Hit : Action.Stand
 }
