@@ -16,7 +16,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "demo:record": "node scripts/demo/record.mjs"
+    "demo:record": "node scripts/demo/record.mjs",
+    "demo:film": "node scripts/demo/film.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.96.0",
