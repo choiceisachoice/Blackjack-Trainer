@@ -36,10 +36,12 @@ const SIZE = { width: 1920, height: 1080 }
 
 // ── The browser side: seed, cursor, storage (as in record.mjs) ───────────
 
-function initScript({ seed, storage }) {
+function initScript({ seed, storage, ripple = false, cursorScale = 1 }) {
   return `
     (() => {
-      let a = ${seed} >>> 0;
+      // A seed in the URL hash (#seed=123) wins: the seed search reloads one page instead of opening contexts.
+      const hs = /seed=(\\d+)/.exec(location.hash);
+      let a = (hs ? +hs[1] : ${seed}) >>> 0;
       Math.random = () => {
         a = (a + 0x6d2b79f5) >>> 0;
         let t = a;
@@ -56,11 +58,21 @@ function initScript({ seed, storage }) {
         const c = document.createElement('div');
         c.id = '__demo-cursor';
         c.innerHTML = '<svg width="26" height="30" viewBox="0 0 26 30"><path d="M2 2 L2 24 L8 18 L12 28 L16 26 L12 17 L20 17 Z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg>';
-        Object.assign(c.style, { position: 'fixed', left: '0px', top: '0px', zIndex: '2147483647', pointerEvents: 'none', transform: 'translate(-2px,-2px)', transition: 'transform 80ms ease-out', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,.6))' });
+        const k = ${cursorScale};
+        Object.assign(c.style, { position: 'fixed', left: '0px', top: '0px', zIndex: '2147483647', pointerEvents: 'none', transformOrigin: '2px 2px', transform: 'translate(-2px,-2px) scale(' + k + ')', transition: 'transform 80ms ease-out', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,.6))' });
         document.body.appendChild(c);
         window.addEventListener('mousemove', e => { c.style.left = e.clientX + 'px'; c.style.top = e.clientY + 'px'; }, { passive: true });
-        window.addEventListener('mousedown', () => { c.style.transform = 'translate(-2px,-2px) scale(0.82)'; }, true);
-        window.addEventListener('mouseup', () => { c.style.transform = 'translate(-2px,-2px) scale(1)'; }, true);
+        window.addEventListener('mousedown', e => {
+          c.style.transform = 'translate(-2px,-2px) scale(' + (0.82 * k) + ')';
+          // A click you can see: a gold ring opening from the tip (Web Animations, so the film's clock drives it).
+          if (${ripple}) {
+            const r = document.createElement('div');
+            Object.assign(r.style, { position: 'fixed', left: (e.clientX - 18) + 'px', top: (e.clientY - 18) + 'px', width: '36px', height: '36px', borderRadius: '50%', border: '3px solid rgba(240,205,130,0.95)', boxShadow: '0 0 12px rgba(240,205,130,0.6)', pointerEvents: 'none', zIndex: '2147483646', boxSizing: 'border-box' });
+            document.body.appendChild(r);
+            r.animate([{ transform: 'scale(0.4)', opacity: 1 }, { transform: 'scale(2.1)', opacity: 0 }], { duration: 520, easing: 'cubic-bezier(0.2,0.8,0.25,1)', fill: 'forwards' }).onfinish = () => r.remove();
+          }
+        }, true);
+        window.addEventListener('mouseup', () => { c.style.transform = 'translate(-2px,-2px) scale(' + k + ')'; }, true);
       };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', draw); else draw();
     })();
@@ -257,6 +269,94 @@ class Film {
 
   note(s) { this.notes.push(`${this.seconds.toFixed(2)}s ${s}`) }
 }
+
+/**
+ * The portrait camera, for the shorts. The page is laid out in a phone-shaped
+ * viewport and the camera is a proper one: a focus point of the page held at
+ * the frame's centre and a zoom, both eased, applied as translate + scale on
+ * #root. The pointer lives in page coordinates and is mapped through the
+ * camera every frame, so a glide that runs while the camera zooms still ends
+ * exactly on the button it was sent to.
+ */
+class PortraitFilm extends Film {
+  constructor(page, cdp, dir, view) {
+    super(page, cdp, dir)
+    this.view = view
+    this.cam = { z: 1, fx: view.width / 2, fy: view.height / 2 }
+    this.pc = { x: view.width * 0.82, y: view.height * 0.9 }
+  }
+
+  screen(p) {
+    return { x: this.view.width / 2 + (p.x - this.cam.fx) * this.cam.z, y: this.view.height / 2 + (p.y - this.cam.fy) * this.cam.z }
+  }
+
+  async frame() {
+    const t0 = Date.now()
+    await this.cdp.send('Animation.setPlaybackRate', { playbackRate: Math.min(1, (1000 / FPS) / this.realMs) })
+    const s = this.screen(this.pc)
+    await this.page.mouse.move(s.x, s.y)
+    const { z, fx, fy } = this.cam
+    await this.page.evaluate(c => {
+      const sc = document.querySelector('[data-film-scroller]')
+      if (sc) sc.scrollTop = c.y
+      const root = document.getElementById('root')
+      if (root) {
+        root.style.transformOrigin = '0 0'
+        root.style.transform = `translate(${c.tx}px, ${c.ty}px) scale(${c.z})`
+      }
+    }, { y: this.scroll, z, tx: this.view.width / 2 - fx * z, ty: this.view.height / 2 - fy * z })
+    await this.page.clock.runFor(Math.round(1000 / FPS))
+    await this.page.screenshot({ path: path.join(this.dir, `f${String(this.n).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 92, caret: 'hide' })
+    this.n++
+    this.realMs = Math.max(20, Date.now() - t0)
+  }
+
+  /** The page point of an element (its box mapped back through the camera), at a fraction of its box. */
+  async pt(selector, at = [0.5, 0.5]) {
+    const b = await this.box(selector)
+    const sx = b.x + b.width * at[0], sy = b.y + b.height * at[1]
+    return { x: this.cam.fx + (sx - this.view.width / 2) / this.cam.z, y: this.cam.fy + (sy - this.view.height / 2) / this.cam.z }
+  }
+
+  /**
+   * Everything at once, eased together: the pointer to a page point (in a
+   * slight arc), the camera to a zoom and a focus point, the inner scroller
+   * to a position. Any of them may be left out.
+   */
+  async move(seconds, { to, z, fx, fy, scroll, ease = easeInOut } = {}) {
+    const p0 = { ...this.pc }, c0 = { ...this.cam }, s0 = this.scroll
+    const lift = to ? Math.min(40, Math.hypot(to.x - p0.x, to.y - p0.y) * 0.1) : 0
+    await this.run(seconds, p => {
+      const k = ease(p)
+      if (to) this.pc = { x: p0.x + (to.x - p0.x) * k, y: p0.y + (to.y - p0.y) * k - Math.sin(p * Math.PI) * lift }
+      this.cam = { z: z === undefined ? c0.z : c0.z + (z - c0.z) * k, fx: fx === undefined ? c0.fx : c0.fx + (fx - c0.fx) * k, fy: fy === undefined ? c0.fy : c0.fy + (fy - c0.fy) * k }
+      if (scroll !== undefined) this.scroll = Math.round(s0 + (scroll - s0) * k)
+    })
+  }
+
+  /** A slow push while nothing else happens: the frame never stands still. */
+  drift(seconds, dz = 0.03) { return this.move(seconds, { z: this.cam.z + dz, ease: p => p }) }
+
+  /** Press where the pointer is. */
+  async press(settle = 0.3) {
+    const s = this.screen(this.pc)
+    await this.page.mouse.move(s.x, s.y)
+    await this.page.mouse.down()
+    await this.hold(2 / FPS)
+    await this.page.mouse.up()
+    await this.hold(settle)
+  }
+}
+
+/**
+ * Portrait viewports: CSS size and device scale, both giving a 1080×1920 frame —
+ * or, with `--4k`, twice the device scale and a 2160×3840 frame (the shorts are
+ * rendered in 4K; a 1080 take scaled up reads soft).
+ */
+const K4 = process.argv.includes('--4k')
+const PHONE = { width: 540, height: 960, dsf: K4 ? 4 : 2 }
+/** The strategy chart needs 600 CSS px across (it scrolls sideways below that). */
+const PHONE_WIDE = { width: 600, height: 1067, dsf: K4 ? 3.6 : 1.8 }
 
 // ── Loading (real time, before the clock is stopped) ───────────────────
 
@@ -478,7 +578,245 @@ const SCENES = {
 }
 
 /** Seeds per scene; 0 means "search" (the flashcards must open on 16 against a 10 — the hand the film is about). */
-const SEEDS = { chart: 3, home: 11, flashcards: 0, speed: 4242, casino: 90210 }
+/**
+ * A flashcard answered on camera, portrait: the question fills the frame, the
+ * pointer glides onto the right button while the camera leans toward the
+ * buttons, a visible click, then the camera pushes into the verdict.
+ */
+/** The widest zoom that still shows the whole of an element across the frame (with a margin). */
+async function fitZoom(page, selector, view, margin = 28) {
+  const w = await page.evaluate(sel => {
+    const el = document.querySelector(sel)
+    const box = (el?.closest('.surface') ?? el)?.getBoundingClientRect()
+    return box ? box.width : 0
+  }, selector)
+  return w > 0 ? Math.min(1.5, (view.width - 2 * margin) / w) : 1
+}
+
+/** Open the casino with six hands and wait at the betting controls (real time, before the clock stops). */
+async function openCasinoBetting(page) {
+  await openMode(page, 'casinoSession')
+  await page.locator('input[aria-label="Number of hands"]').first().fill('6')
+  await page.locator('[data-testid="start-session"]').first().scrollIntoViewIfNeeded()
+  await page.locator('[data-testid="start-session"]').first().click()
+  await page.locator('[data-testid="betting-controls"]').first().waitFor({ timeout: 10_000 })
+  await sleep(600)
+  await freeze(page)
+}
+
+/** The bet on camera: in on the chips, the 25 chip, Deal. */
+async function betOnCamera(film, page) {
+  const chip = await film.pt('[data-testid="chip-25"]')
+  const deal = await film.pt('[data-testid="confirm-bet"]')
+  film.cam = { z: 1.7, fx: (chip.x + deal.x) / 2, fy: (chip.y + deal.y) / 2 }
+  await film.move(0.8, { to: chip, z: 1.75 })
+  await film.press(0.2)
+  await film.move(0.55, { to: deal })
+  await film.press(0.1)
+}
+
+/**
+ * Where to hold the camera on the table: between the dealer's cards (the top
+ * fifth of the felt) and the player's own seat, leaning toward the seat.
+ */
+async function tableFocus(film, page) {
+  const felt = await film.box('[data-testid="felt-table"]')
+  const seat = await film.pt('[data-testid="human-seat"]')
+  const top = await film.pt('[data-testid="felt-table"]', [0.5, 0.06])
+  const W = film.view.width
+  // From just above the dealer's cards to just below the seat, with a margin: the zoom that fits it.
+  const y0 = top.y, y1 = seat.y + 70
+  const z = Math.min(1.95, (film.view.height * 0.9) / (y1 - y0))
+  return { fx: (W / 2 + seat.x) / 2, fy: (y0 + y1) / 2, z, dealerY: top.y + 40, felt }
+}
+
+async function flashOnCamera(film, page, action) {
+  const W = film.view.width
+  // The question panel exactly fills the frame's width; the camera never cuts a line of it.
+  const z = await fitZoom(page, '[data-testid="player-hand"]', film.view)
+  const panel = await film.pt('[data-testid="player-hand"]')
+  film.cam = { z, fx: W / 2, fy: panel.y + 90 }
+  await film.drift(0.9, 0.02)
+  const btn = await film.pt(`[data-testid="action-${action}"]`)
+  await film.move(1.0, { to: btn, z: z + 0.05, fy: btn.y - 60 })
+  await film.hold(0.2)
+  await film.press(0.25)
+  const verdict = ((await page.locator('[data-testid="feedback-result"]').textContent().catch(() => '')) ?? '').trim()
+  film.note(`answered ${action}: ${verdict} (zoom ${z.toFixed(2)})`)
+  const zv = await fitZoom(page, '[data-testid="feedback-result"]', film.view)
+  const res = await film.pt('[data-testid="feedback-result"]')
+  await film.move(0.8, { to: { x: W * 0.84, y: res.y + 330 }, z: zv, fx: W / 2, fy: res.y + 110, ease: easeOut })
+  await film.drift(2.6, 0.04)
+}
+
+/** Open the flashcards at basic level and start; the seed decides the first hand. */
+async function openFlashBasic(page) {
+  await openMode(page, 'deviationTraining')
+  await page.locator('[data-testid="start-training"]').first().click()
+  await page.locator('[data-testid="player-hand"]').first().waitFor({ timeout: 10_000 })
+  await sleep(500)
+}
+
+const PORTRAIT = {
+  /** 16 against a 10 (the weakest-hands drill opens on it), answered Hit. */
+  async 'p-sixteen'(film, page) {
+    await openMode(page, 'analytics')
+    await page.locator('[data-testid="drill-weakest-hands"]').first().click()
+    await page.locator('[data-testid="start-training"]').first().click()
+    await page.locator('[data-testid="player-hand"]').first().waitFor({ timeout: 10_000 })
+    await sleep(500)
+    await freeze(page)
+    await flashOnCamera(film, page, 'hit')
+  },
+  /** 11 against a 6, answered Double. */
+  async 'p-double'(film, page) {
+    await openFlashBasic(page)
+    await freeze(page)
+    await flashOnCamera(film, page, 'double')
+  },
+  /** A,7 against a 9, answered Hit. */
+  async 'p-soft'(film, page) {
+    await openFlashBasic(page)
+    await freeze(page)
+    await flashOnCamera(film, page, 'hit')
+  },
+  /** The chart, close: hard totals, a glide down to the soft hands and pairs, one cell tapped. */
+  async 'p-chart'(film, page) {
+    await openMode(page, 'strategyChart')
+    await sleep(400)
+    await freeze(page)
+    const sc = await film.scroller('[data-testid="chart-cell"]')
+    const W = film.view.width
+    const hard = await film.pt('[data-testid="chart-cell"]')
+    film.cam = { z: 1.0, fx: W / 2, fy: hard.y + 60 }
+    await film.drift(0.7, 0.03)
+    await page.evaluate(() => {
+      for (const h of document.querySelectorAll('h3')) if (/soft/i.test(h.textContent ?? '')) { h.setAttribute('data-film-soft', '1'); break }
+    })
+    const softTop = await film.topOf('[data-film-soft]')
+    await film.move(1.6, { scroll: Math.min(sc.max, Math.max(0, Math.round(softTop - 120))), z: 1.04, fx: W / 2 })
+    // A,7 against a 9: the soft hand the short is about, if this is the soft short — any cell reads as "every hand".
+    const cell = await page.evaluate(() => {
+      const rows = Array.from(document.querySelectorAll('div.grid'))
+      const row = rows.find(r => r.firstElementChild?.textContent?.trim() === 'A,7')
+      const b = row?.querySelectorAll('button')[7]
+      if (!b) return null
+      b.setAttribute('data-film-cell', '1')
+      return true
+    })
+    if (cell) {
+      const p = await film.pt('[data-film-cell]')
+      await film.move(0.9, { to: p, z: 1.55, fx: W / 2 + (p.x - W / 2) * 0.4, fy: p.y })
+      await film.hold(0.15)
+      await film.press(0.3)
+    }
+    await film.move(0.7, { to: { x: W * 0.88, y: film.pc.y + 220 }, z: 1.08, fx: W / 2, ease: easeOut })
+    await film.drift(1.6, 0.04)
+  },
+  /** A casino hand, close: the chip, the deal, the dealer's card and your seat filling the frame. */
+  async 'p-casino'(film, page) {
+    await openCasinoBetting(page)
+    const W = film.view.width
+    await betOnCamera(film, page)
+    await film.hold(0.2)
+    const f = await tableFocus(film, page)
+    await film.move(1.0, { to: { x: W * 0.9, y: f.fy + 260 }, z: f.z, fx: f.fx, fy: f.fy })
+    await film.drift(2.4, 0.04)
+  },
+  /** The dealer shows an ace: the insurance question at a real table, answered No. */
+  async 'p-insurance'(film, page) {
+    await openCasinoBetting(page)
+    const W = film.view.width
+    await betOnCamera(film, page)
+    await film.hold(0.2)
+    const f = await tableFocus(film, page)
+    await film.move(1.0, { to: { x: W * 0.9, y: f.fy + 260 }, z: f.z, fx: f.fx, fy: f.fy })
+    if (!(await film.until('[data-testid="insurance-controls"]', 6))) film.note('no insurance question - wrong seed?')
+    await film.hold(0.5)
+    const no = await film.pt('[data-testid="insurance-no"]')
+    await film.move(1.0, { to: no, z: 1.45, fx: W / 2, fy: (f.dealerY + no.y) / 2 })
+    await film.hold(0.2)
+    await film.press(0.35)
+    await film.drift(1.8, 0.03)
+  },
+  /** The rules a trainer should teach on: Blackjack pays switched from 6:5 to 3:2, close. */
+  async 'p-rules'(film, page) {
+    await openMode(page, 'casinoSession')
+    const pays = '[role="group"][aria-label="Blackjack pays"]'
+    await page.locator(`${pays} button:has-text("6:5")`).first().click()
+    await sleep(400)
+    await freeze(page)
+    const W = film.view.width
+    const sc = await film.scroller(pays)
+    const top = await film.topOf(pays)
+    film.scroll = Math.min(sc.max, Math.max(0, Math.round(top - film.view.height * 0.45)))
+    await film.hold(0.05)
+    // The label and the two buttons in one frame, then in on the buttons.
+    const g = await film.pt(pays)
+    film.cam = { z: 1.12, fx: W / 2, fy: g.y }
+    await film.drift(0.8, 0.02)
+    const three = await film.pt(`${pays} button:has-text("3:2")`)
+    await film.move(1.1, { to: three, z: 1.9, fx: g.x - 10, fy: g.y })
+    await film.hold(0.2)
+    await film.press(0.5)
+    await film.move(0.8, { to: { x: three.x + 70, y: three.y + 120 }, z: 2.0, ease: easeOut })
+    await film.drift(1.6, 0.03)
+  },
+}
+
+/**
+ * Find a seed under which the basic flashcards open on the wanted hand: one
+ * page, reloaded with the seed in the hash, so a try costs a page load.
+ */
+async function findBasicSeed(browser, storage, view, want) {
+  const context = await browser.newContext({ viewport: { width: view.width, height: view.height }, deviceScaleFactor: 1, colorScheme: 'dark', locale: 'en-US' })
+  await context.addInitScript(initScript({ seed: 1, storage }))
+  const page = await context.newPage()
+  try {
+    for (let seed = 1; seed < 3000; seed++) {
+      await page.goto(`${BASE}/app?s=${seed}#seed=${seed}`, { waitUntil: 'domcontentloaded' })
+      await page.locator('[data-testid="nav-deviationTraining"]').first().click()
+      await page.locator('[data-testid="start-training"]').first().click()
+      const hand = ((await page.locator('[data-testid="player-hand"]').first().textContent({ timeout: 5000 }).catch(() => '')) ?? '').trim()
+      const dealer = ((await page.locator('[data-testid="dealer-card"]').first().textContent().catch(() => '')) ?? '').trim()
+      if (hand === want.hand && dealer === want.dealer) return seed
+    }
+  } finally {
+    await context.close()
+  }
+  throw new Error(`no seed opens the basic flashcards on ${want.hand} vs ${want.dealer}`)
+}
+
+const SEEDS = { chart: 3, home: 11, flashcards: 0, speed: 4242, casino: 90210, 'p-sixteen': 20, 'p-double': 57, 'p-soft': 186, 'p-chart': 3, 'p-casino': 90210, 'p-insurance': 20, 'p-rules': 90210 }
+const PORTRAIT_VIEW = { 'p-sixteen': PHONE, 'p-double': PHONE, 'p-soft': PHONE, 'p-chart': PHONE_WIDE, 'p-casino': PHONE, 'p-insurance': PHONE, 'p-rules': PHONE }
+const BASIC_WANT = { 'p-double': { hand: '11', dealer: '6' }, 'p-soft': { hand: 'A,7', dealer: '9' } }
+
+/**
+ * Find a seed under which the first casino hand shows a dealer ace (the
+ * insurance question): one page, reloaded with the seed in the hash.
+ */
+async function findInsuranceSeed(browser, storage, view) {
+  const context = await browser.newContext({ viewport: { width: view.width, height: view.height }, deviceScaleFactor: 1, colorScheme: 'dark', locale: 'en-US' })
+  await context.addInitScript(initScript({ seed: 1, storage }))
+  const page = await context.newPage()
+  try {
+    for (let seed = 1; seed < 400; seed++) {
+      await page.goto(`${BASE}/app?s=${seed}#seed=${seed}`, { waitUntil: 'domcontentloaded' })
+      await page.locator('[data-testid="nav-casinoSession"]').first().click()
+      await page.locator('input[aria-label="Number of hands"]').first().fill('6')
+      await page.locator('[data-testid="start-session"]').first().click()
+      await page.locator('[data-testid="chip-25"]').first().click({ timeout: 8000 })
+      await page.locator('[data-testid="confirm-bet"]').first().click()
+      const ins = page.locator('[data-testid="insurance-controls"]').first()
+      const act = page.locator('[data-testid="action-controls"], [data-testid="next-hand"]').first()
+      await Promise.race([ins.waitFor({ timeout: 6000 }), act.waitFor({ timeout: 6000 })]).catch(() => {})
+      if (await ins.isVisible().catch(() => false)) return seed
+    }
+  } finally {
+    await context.close()
+  }
+  throw new Error('no seed opens the casino on a dealer ace')
+}
 
 /**
  * Find a seed under which the weakest-hands drill opens on the wanted hand.
@@ -512,7 +850,7 @@ async function findFlashcardsSeed(browser, storage, want = { hand: '16', dealer:
 async function main() {
   const names = process.argv.slice(2).filter(a => !a.startsWith('-'))
   const wanted = names.length ? names : Object.keys(SCENES)
-  for (const n of wanted) if (!SCENES[n]) throw new Error(`unknown scene "${n}" — have: ${Object.keys(SCENES).join(', ')}`)
+  for (const n of wanted) if (!SCENES[n] && !PORTRAIT[n]) throw new Error(`unknown scene "${n}" — have: ${[...Object.keys(SCENES), ...Object.keys(PORTRAIT)].join(', ')}`)
   await mkdir(OUT, { recursive: true })
   const storage = buildDemoStorage()
   const server = await startServer()
@@ -523,26 +861,40 @@ async function main() {
       console.log(`flashcards: seed ${SEEDS.flashcards} opens on 16 vs 10`)
     }
     for (const name of wanted) {
+      if (name === 'p-insurance' && !SEEDS[name]) {
+        SEEDS[name] = await findInsuranceSeed(browser, storage, PORTRAIT_VIEW[name])
+        console.log(`${name}: seed ${SEEDS[name]} opens on a dealer ace`)
+      }
+      if (BASIC_WANT[name] && !SEEDS[name]) {
+        SEEDS[name] = await findBasicSeed(browser, storage, PORTRAIT_VIEW[name], BASIC_WANT[name])
+        console.log(`${name}: seed ${SEEDS[name]} opens on ${BASIC_WANT[name].hand} vs ${BASIC_WANT[name].dealer}`)
+      }
+      const portrait = PORTRAIT_VIEW[name]
       const dir = path.join(OUT, `.frames-${name}`)
       await rm(dir, { recursive: true, force: true })
       await mkdir(dir, { recursive: true })
-      const context = await browser.newContext({ viewport: SIZE, deviceScaleFactor: 1, colorScheme: 'dark', locale: 'en-US' })
-      await context.addInitScript(initScript({ seed: SEEDS[name], storage }))
+      const context = await browser.newContext({
+        viewport: portrait ? { width: portrait.width, height: portrait.height } : SIZE,
+        deviceScaleFactor: portrait ? portrait.dsf : 1, colorScheme: 'dark', locale: 'en-US',
+      })
+      await context.addInitScript(initScript({ seed: SEEDS[name], storage, ripple: !!portrait, cursorScale: portrait ? 1.25 : 1 }))
       await context.addInitScript(filmStyle)
       const page = await context.newPage()
       await page.clock.install()
       const cdp = await context.newCDPSession(page)
       await cdp.send('Animation.enable')
-      const film = new Film(page, cdp, dir)
+      const film = portrait ? new PortraitFilm(page, cdp, dir, portrait) : new Film(page, cdp, dir)
       const t0 = Date.now()
       try {
-        await SCENES[name](film, page)
+        await (portrait ? PORTRAIT : SCENES)[name](film, page)
       } catch (e) {
         console.error(`scene ${name} failed after ${film.n} frames:`, e.message)
       }
       await context.close()
-      const mp4 = path.join(OUT, `${name}.mp4`)
-      const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', path.join(dir, 'f%05d.jpg'), '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', mp4], { stdio: 'inherit', shell: true })
+      const mp4 = path.join(OUT, `${name}${portrait && K4 ? '-4k' : ''}.mp4`)
+      // A portrait frame is 1080×1920 (a 1.8× screenshot of 600×1067 comes out a pixel taller: cropped); 2160×3840 with --4k.
+      const vf = portrait ? ['-vf', K4 ? 'scale=2160:-2,crop=2160:3840:0:0' : 'scale=1080:-2,crop=1080:1920:0:0'] : []
+      const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-framerate', String(FPS), '-i', path.join(dir, 'f%05d.jpg'), ...vf, '-c:v', 'libx264', '-preset', 'slow', '-crf', '14', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', mp4], { stdio: 'inherit', shell: true })
       if (r.status === 0) await rm(dir, { recursive: true, force: true })
       console.log(`${name}.mp4  ${film.seconds.toFixed(1)} s of film, ${film.n} frames in ${((Date.now() - t0) / 1000).toFixed(0)} s real${r.status === 0 ? '' : '  (ffmpeg failed; frames kept)'}`)
       for (const n of film.notes) console.log('   ' + n)
