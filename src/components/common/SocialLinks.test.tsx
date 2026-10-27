@@ -25,6 +25,8 @@ describe('SocialLinks', () => {
       'https://x.com/BJ_Training',
       'https://www.instagram.com/blackjacktrainer_official/',
       'https://www.facebook.com/profile.php?id=61594609505224',
+      'https://www.reddit.com/user/Blackjack-Trainer/',
+      'https://www.producthunt.com/@blackjack_trainer',
     ])
   })
 

@@ -15,5 +15,7 @@ describe('SOCIAL_LINKS', () => {
     expect(host('X')).toBe('x.com')
     expect(host('Instagram')).toBe('www.instagram.com')
     expect(host('Facebook')).toBe('www.facebook.com')
+    expect(host('Reddit')).toBe('www.reddit.com')
+    expect(host('Product Hunt')).toBe('www.producthunt.com')
   })
 })
