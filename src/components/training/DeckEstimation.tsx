@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Layers, Check, X } from 'lucide-react'
 import { Panel, Segmented, Button } from '../common/ui'
@@ -25,6 +25,10 @@ const TOLERANCE = 0.5
 const ROUND_COUNTS = [10, 20, 30, 50]
 const DEFAULT_ROUNDS = 20
 const QUICK_FIRE_SECONDS = 3
+/** The large tray's scale on a wide screen, where there is room for it. */
+const LARGE_PX_PER_CARD = 1.4
+/** What `DiscardTray` draws under the tray: its base, the gap and the label. */
+const DISCARD_FOOT_PX = 34
 
 /** Returns button options for deck selection. */
 function getDeckOptions(maxDecks: number, mode: AccuracyMode): number[] {
@@ -83,9 +87,11 @@ function DiscardScene({ remainingCards, totalCards, size }: {
   return (
     <div
       data-testid="discard-visual"
-      className="relative rounded-2xl"
+      className={`relative rounded-2xl ${isLarge
+        ? 'flex-1 min-h-0 max-h-[580px] flex flex-col px-6 pt-3 pb-3.5 md:flex-none md:max-h-none md:block md:px-10 md:pt-5 md:pb-7'
+        : ''}`}
       style={{
-        padding: isLarge ? '20px 40px 28px' : '12px 24px 16px',
+        padding: isLarge ? undefined : '12px 24px 16px',
         // Same felt and wood as the casino table, read from the theme. The hex
         // here was `#12613a` and `#4a2f18` — the exact token values, retyped —
         // so this swap changes nothing on screen and removes the second copy
@@ -100,16 +106,25 @@ function DiscardScene({ remainingCards, totalCards, size }: {
         boxShadow: 'inset 0 0 60px rgba(0,0,0,0.35), 0 10px 40px rgba(0,0,0,0.5)',
       }}
     >
-      <div className={`text-center mb-3 ${isLarge ? 'text-xs' : 'text-[0.6875rem]'} tracking-widest uppercase text-white/45 font-semibold`}>
+      <div className={`text-center ${isLarge ? 'mb-2 md:mb-3 text-xs' : 'mb-3 text-[0.6875rem]'} tracking-widest uppercase text-white/45 font-semibold`}>
         {t('training.deckShoeTray', { n: numDecks })}
       </div>
-      <div className="flex justify-center">
+      {/*
+        Large: the height comes from the phone's free space, up to what a wide
+        screen shows at its fixed scale. Both 6 and 8 decks fill the same space
+        on a phone; the share of the tray that holds cards is what is trained.
+      */}
+      <div
+        className={isLarge ? 'flex-1 min-h-0 flex justify-center md:h-[var(--tray-height)] md:flex-none' : 'flex justify-center'}
+        style={isLarge ? { '--tray-height': `${Math.round(totalCards * LARGE_PX_PER_CARD) + 8 + DISCARD_FOOT_PX}px` } as CSSProperties : undefined}
+      >
         <DiscardTray
           cardCount={dealt}
           totalCards={totalCards}
           showTicks={false}
-          pxPerCard={isLarge ? 1.4 : 0.5}
+          pxPerCard={0.5}
           width={isLarge ? 200 : 90}
+          fill={isLarge}
         />
       </div>
     </div>
@@ -403,7 +418,7 @@ export function DeckEstimation() {
   // ── Question Phase ──
   if (phase === 'question') {
     return (
-      <div className="flex-1 overflow-y-auto flex flex-col items-center gap-6 px-4 py-6">
+      <div className="flex-1 overflow-y-auto flex flex-col items-center gap-3 px-4 py-3 md:gap-6 md:py-6">
         {/* Stats bar */}
         <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
           <span>{t('training.common.correctOf', { n: stats.correct, total: stats.total, pct: accuracy })}</span>
@@ -433,28 +448,33 @@ export function DeckEstimation() {
           there are three seconds to answer, and the buttons used to sit below
           the fold — the player looked at the tray, scrolled, and lost the round
           to the scrollbar. On a wide screen the two sit side by side; on a
-          narrow one the answer row sticks to the bottom of the scroll box, so
-          it stays in reach while the tray is in view above it.
+          narrow one the tray takes the height the answers leave. Only below
+          its floor (a phone on its side) does the page scroll, and the answer
+          row then sticks to the bottom of the scroll box to stay in reach.
         */}
-        <div className="w-full max-w-4xl flex flex-col items-center gap-6 md:grid md:grid-cols-[auto_minmax(0,1fr)] md:items-center md:gap-10">
-          <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="large" />
+        <div className="w-full flex-1 max-w-4xl flex flex-col items-center gap-3 md:flex-none md:grid md:grid-cols-[auto_minmax(0,1fr)] md:items-center md:gap-10">
+          <div className="w-full flex-1 min-h-[220px] flex flex-col items-center justify-center md:contents">
+            <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="large" />
+          </div>
 
           <div
-            className="w-full flex flex-col items-center gap-4
-              sticky bottom-0 z-10 py-3 -mb-6 bg-casino-bg/90 backdrop-blur-sm
+            className="w-full flex flex-col items-center gap-2 md:gap-4
+              sticky bottom-0 z-10 py-2 -mb-3 bg-casino-bg/90 backdrop-blur-sm
               md:static md:py-0 md:mb-0 md:bg-transparent md:backdrop-blur-none"
           >
             <p className="text-content font-medium text-center">{t('training.deck.howMany')}</p>
 
             {/* Deck option buttons */}
-            <div className="flex flex-wrap gap-2 justify-center max-w-lg">
+            {/* Six to a row on a phone, so half decks of a 6-deck shoe take two rows. */}
+            <div className="w-full flex flex-wrap gap-1.5 justify-center max-w-lg md:w-auto md:gap-2">
               {deckOptions.map(d => (
                 <button
                   key={d}
                   onClick={() => handleAnswer(d)}
                   data-testid={`deck-${d}`}
-                  className="px-4 py-2.5 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
-                    rounded-xl transition-colors cursor-pointer text-sm min-w-[56px]"
+                  className="basis-[calc((100%-1.875rem)/6)] py-2.5 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
+                    rounded-xl transition-colors cursor-pointer text-sm
+                    md:basis-auto md:px-4 md:min-w-[56px]"
                 >
                   {d}
                 </button>

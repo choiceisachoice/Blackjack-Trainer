@@ -92,8 +92,12 @@ export function TrainerApp() {
   // remainder via `flex-1 min-h-0`, scrolling inside itself. `min-h-0` is
   // load-bearing: a flex child defaults to `min-height:auto`, which refuses to
   // shrink below its content and would push the overflow back onto the shell.
+  //
+  // `h-dvh` after `h-screen`: on a phone 100vh is taller than the visible page
+  // while the browser's address bar shows, and the bottom of every screen sits
+  // behind it. Browsers without dvh keep `h-screen`.
   return (
-    <div className="app-canvas h-screen flex flex-col overflow-hidden transition-colors duration-200">
+    <div className="app-canvas h-screen h-dvh flex flex-col overflow-hidden transition-colors duration-200">
       <NavBar />
       {/* Reset key on the mode so switching screens clears a crashed one. A render
           error shows a recoverable fallback instead of blanking the whole app. */}

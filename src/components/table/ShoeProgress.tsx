@@ -151,6 +151,7 @@ export function DiscardTray({
   showTicks = true,
   pxPerCard = PIXELS_PER_CARD,
   width = DISCARD_CONTAINER_WIDTH,
+  fill = false,
 }: {
   cardCount: number
   totalCards?: number
@@ -160,9 +161,17 @@ export function DiscardTray({
   pxPerCard?: number
   /** Container width in px. */
   width?: number
+  /**
+   * Take the height the parent gives instead of `pxPerCard`'s: a phone has less
+   * room than a full shoe at drill scale. The stack is then a share of the tray,
+   * so what it shows, how much of the shoe is gone, stays exact at any height.
+   */
+  fill?: boolean
 }) {
   const { t } = useTranslation()
-  const stackHeight = Math.max(0, Math.round(cardCount * pxPerCard))
+  const stackHeight = fill
+    ? `${(Math.max(0, cardCount) / Math.max(1, totalCards)) * 100}%`
+    : Math.max(0, Math.round(cardCount * pxPerCard))
   const hasCards = cardCount > 0
 
   // The tray is a fixed physical size = the whole shoe. The stack rises within it.
@@ -171,8 +180,9 @@ export function DiscardTray({
   const trayHeight = Math.round(totalCards * pxPerCard)
 
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <div className={`flex flex-col items-center gap-1.5 ${fill ? 'min-h-0' : ''}`}>
       <div
+        className={fill ? 'flex-1 min-h-0' : undefined}
         style={{
           width: `${width}px`,
           display: 'flex',
@@ -182,9 +192,10 @@ export function DiscardTray({
       >
         {/* Acrylic container — fixed height = full shoe */}
         <div
+          className={fill ? 'flex-1 min-h-0 pt-2' : undefined}
           style={{
             width: '100%',
-            height: `${trayHeight + 8}px`,
+            ...(fill ? {} : { height: `${trayHeight + 8}px` }),
             background: 'rgba(255, 255, 255, 0.05)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             borderBottom: 'none',
@@ -219,6 +230,7 @@ export function DiscardTray({
               squash the card edges rather than reveal fewer of them. */}
           {hasCards && (
             <motion.div
+              data-testid="discard-stack"
               animate={{ height: stackHeight }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
               style={{
