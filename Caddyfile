@@ -47,6 +47,15 @@
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 
+	# Everything else is asked about again on every visit. Without this line a
+	# page carried only Last-Modified, and a browser may then keep it fresh on
+	# its own guess (10 % of its age): Safari served the page from before a
+	# deploy, with the old script names, and the QR welcome never ran, while a
+	# private window showed the new one (10 Nov 2026). The ETag makes the
+	# question cheap: an unchanged page answers 304 with no body.
+	@pages not path /assets/*
+	header @pages Cache-Control "no-cache"
+
 	file_server
 
 	# A file, then a prerendered page in a directory, then the empty app
