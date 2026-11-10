@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 /**
  * The landing page's checkout button.
@@ -58,6 +58,7 @@ vi.mock('framer-motion', () => {
 import { LandingPage } from './LandingPage'
 import { useEntitlementStore } from '../store/entitlement-store'
 import { LEGAL_META } from './legal/legal-meta'
+import { resetArrivalRefForTest } from '../services/qr-reward'
 
 /** Supabase is unconfigured under test, so the page treats the visitor as signed in. */
 function renderPage() {
@@ -218,5 +219,70 @@ describe('a visitor who already subscribes', () => {
 
     await waitFor(() => expect(navigate).toHaveBeenCalledWith('/account'), T)
     expect(startCheckout).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * The QR code at the end of the casino-games video opens `/?ref=qr`.
+ *
+ * The welcome has to open for those visitors and nobody else, claim the yearly
+ * plan whatever the toggle says, and leave the address clean so a reload or a
+ * shared link does not replay it.
+ */
+describe('a visitor who scanned the QR code', () => {
+  beforeEach(() => {
+    resetArrivalRefForTest()
+    localStorage.clear()
+  })
+  afterEach(() => {
+    window.history.replaceState({}, '', '/')
+    resetArrivalRefForTest()
+  })
+
+  it('is welcomed, and the code leaves the address bar', async () => {
+    window.history.replaceState({}, '', '/?ref=qr&utm_source=yt')
+    renderPage()
+    expect(await screen.findByTestId('qr-reward', {}, T)).toBeInTheDocument()
+    expect(window.location.search).toBe('?utm_source=yt')
+  })
+
+  it('claims the yearly plan', async () => {
+    window.history.replaceState({}, '', '/?ref=qr')
+    startCheckout.mockResolvedValue('redirecting')
+    renderPage()
+    fireEvent.click(await screen.findByTestId('qr-reward-claim', {}, T))
+    await waitFor(() => expect(startCheckout).toHaveBeenCalledWith('yearly'), T)
+  })
+
+  it('keeps a badge on the Pro card after the dialog is closed', async () => {
+    window.history.replaceState({}, '', '/?ref=qr')
+    renderPage()
+    fireEvent.click(await screen.findByText(/look around first/i, {}, T))
+    expect(screen.queryByTestId('qr-reward')).toBeNull()
+    expect(screen.getByTestId('pricing-qr-badge')).toBeInTheDocument()
+  })
+
+  it('is not shown to anyone who did not scan', () => {
+    window.history.replaceState({}, '', '/')
+    renderPage()
+    expect(screen.queryByTestId('qr-reward')).toBeNull()
+    expect(screen.queryByTestId('pricing-qr-badge')).toBeNull()
+  })
+})
+
+describe('coming back to the landing page in the same visit', () => {
+  afterEach(() => {
+    window.history.replaceState({}, '', '/')
+    resetArrivalRefForTest()
+  })
+
+  it('does not open the welcome a second time', async () => {
+    resetArrivalRefForTest()
+    window.history.replaceState({}, '', '/?ref=qr')
+    const first = renderPage()
+    expect(await screen.findByTestId('qr-reward', {}, T)).toBeInTheDocument()
+    first.unmount()
+    renderPage()
+    expect(screen.queryByTestId('qr-reward')).toBeNull()
   })
 })

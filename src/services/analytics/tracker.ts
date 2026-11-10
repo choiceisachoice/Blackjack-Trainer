@@ -2,6 +2,7 @@ import { supabase } from '../supabase/client'
 import { analyticsAllowed } from './consent'
 import { getVisitorId } from './visitor'
 import { deviceCategory } from './device'
+import { isQrArrival, QR_SOURCE } from '../qr-reward'
 
 /**
  * The page-view tracker.
@@ -70,7 +71,9 @@ export async function trackPageView(pathname: string): Promise<void> {
     const { error } = await supabase.rpc('analytics_track', {
       p_visitor_id: visitorId,
       p_pathname: pathname,
-      p_referrer_host: referrerHost(document.referrer, window.location.origin),
+      // A scanned QR code opens the page with no referrer; without its own
+      // source every scan would be counted as "direct".
+      p_referrer_host: referrerHost(document.referrer, window.location.origin) ?? (isQrArrival() ? QR_SOURCE : null),
       p_device: deviceCategory(navigator.userAgent, navigator.maxTouchPoints),
     })
     if (error) noteFailure(error)

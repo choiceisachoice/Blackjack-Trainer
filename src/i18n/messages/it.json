@@ -2326,5 +2326,21 @@
     },
     "aboutText": "Questa panoramica mostra le informazioni più importanti del tuo account. Il registro completo e leggibile da macchina di tutto ciò che l’app salva su di te è disponibile come file JSON nella pagina del tuo account.",
     "durationMinutes": "{{m}} min"
+  },
+  "qrReward": {
+    "eyebrow": "Grazie per aver scansionato",
+    "title": "Ecco la tua ricompensa",
+    "percent": "{{percent}}%",
+    "noNumber": "Il tuo sconto",
+    "offPro": "su Pro, con il piano annuale",
+    "howMuch": "{{yearly}} all’anno invece di {{monthlyTotal}} pagando ogni mese.",
+    "howMuchPlain": "Il piano annuale, più conveniente che pagare mese per mese.",
+    "claim": "Riscatta la ricompensa",
+    "claimSignUp": "Crea un account gratuito e riscattala",
+    "noCode": "Nessun codice da inserire. Lo sconto è nel prezzo annuale alla cassa.",
+    "later": "Prima dai un’occhiata",
+    "close": "Chiudi",
+    "loading": "Caricamento del prezzo",
+    "badge": "La tua ricompensa QR"
   }
 }

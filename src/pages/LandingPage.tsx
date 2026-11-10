@@ -17,6 +17,8 @@ import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
 import { FeatureShowcase } from '../components/landing/FeatureShowcase'
+import { QrRewardWelcome } from '../components/landing/QrRewardWelcome'
+import { isQrArrival, rememberQrReward, hasQrReward, withoutRefParam, qrWelcomeShown, markQrWelcomeShown } from '../services/qr-reward'
 
 // The WebGL hero pulls in Three.js — load it as its own chunk after the hero
 // text has painted, so it never blocks the landing's first paint.
@@ -79,12 +81,39 @@ export function LandingPage() {
   const saving = monthly && yearly ? yearlySaving(monthly.amount, yearly.amount) : null
   const money = (minor: number, currency: string) => formatMoney(minor, currency, i18n.language)
 
+  /*
+    The QR code in the casino-games video opens `/?ref=qr`.
+
+    Read in the state initialisers: the prerender in Node has no `window`, so
+    the static HTML never ships an open dialog, and the client does not hydrate
+    that HTML but renders afresh, so there is no mismatch to avoid. The side
+    effects go in the effect: remember the reward, and take `ref` out of the
+    address bar so a reload or a copied link does not replay the welcome. The
+    page-view tracker has already read it as the session's source by then.
+
+    `qrWelcomeShown` is per page load: coming back to `/` inside the app must
+    not open the dialog a second time. The plan toggle already starts on yearly.
+  */
+  const [qrOpen, setQrOpen] = useState(() => isQrArrival() && !qrWelcomeShown())
+  const [qrRewarded] = useState(() => (typeof window !== 'undefined' && isQrArrival()) || hasQrReward())
+  useEffect(() => {
+    if (!isQrArrival()) return
+    markQrWelcomeShown()
+    rememberQrReward()
+    window.history.replaceState({}, '', withoutRefParam(window.location.pathname, window.location.search, window.location.hash))
+  }, [])
+
   function startFree() { void navigate(authed ? '/app' : '/login') }
-  async function goPro() {
+  /**
+   * Buy `chosen` (the toggle's plan by default). Takes the plan as an argument
+   * so the QR reward can claim the yearly plan without waiting for the toggle's
+   * state to settle.
+   */
+  async function goPro(chosen: BillingPlan = plan) {
     if (busy) return
     if (!authed) {
       // Remember the intent so checkout resumes automatically after sign-in.
-      setPendingCheckout(plan)
+      setPendingCheckout(chosen)
       void navigate('/login')
       return
     }
@@ -100,7 +129,7 @@ export function LandingPage() {
     setCheckoutError(null)
     setBusy(true)
     try {
-      const outcome = await startCheckout(plan) // redirects on success, so this normally never returns
+      const outcome = await startCheckout(chosen) // redirects on success, so this normally never returns
       // Deliberately no `setBusy(false)` on the redirect path: the browser is on
       // its way to Stripe. Re-enabling would offer a second checkout during it.
       if (outcome === 'already-subscribed') {
@@ -118,6 +147,19 @@ export function LandingPage() {
   return (
     <div className="app-canvas text-content overflow-x-hidden">
       <JsonLd data={siteJsonLd(t)} />
+      {qrOpen && (
+        <QrRewardWelcome
+          percent={saving ? saving.percent : null}
+          loading={priceStatus === 'idle' || priceStatus === 'loading'}
+          yearlyPrice={yearly ? money(yearly.amount, yearly.currency) : null}
+          monthlyTotal={saving && yearly ? money(saving.monthlyTotal, yearly.currency) : null}
+          signedIn={authed}
+          busy={busy}
+          error={checkoutError}
+          onClaim={() => void goPro('yearly')}
+          onClose={() => setQrOpen(false)}
+        />
+      )}
       {/* Nav */}
       {/* `--color-topbar`, not a pinned near-black. This bar was a fixed 60%
           black in both themes while its links used `text-content`, which flips
@@ -249,6 +291,11 @@ export function LandingPage() {
           <div className="rounded-2xl p-7 flex flex-col relative border border-gold/50 bg-[linear-gradient(180deg,rgba(24,20,10,.55),var(--color-surface))] shadow-[0_0_0_1px_rgba(212,168,71,.15),0_40px_80px_-46px_rgba(212,168,71,.4)]">
             <div className="absolute -top-2.5 right-6 text-xs font-extrabold text-on-gold bg-gradient-to-b from-gold-bright to-gold px-3 py-1 rounded-full">{t('pricing.mostPopular')}</div>
             <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">{t('pricing.pro')}</div>
+            {qrRewarded && plan === 'yearly' && (
+              <div className="mt-2 self-start text-xs font-bold text-gold border border-gold/50 rounded-full px-2.5 py-0.5" data-testid="pricing-qr-badge">
+                {t('qrReward.badge')}
+              </div>
+            )}
             {/* Fetched from Stripe, never asserted. The marketing page is the
                 place a wrong price does the most damage, so it shows a skeleton
                 until it has the real one and no figure at all if the fetch
@@ -306,7 +353,7 @@ export function LandingPage() {
               {PRO_BENEFITS.map(b => (<div key={b} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{t(`paywall.${b}`)}</div>))}
             </div>
             <button
-              onClick={goPro}
+              onClick={() => void goPro()}
               disabled={busy}
               className="mt-6 rounded-xl px-5 py-3 font-semibold bg-gradient-to-b from-gold-bright to-gold
                 text-casino-bg cursor-pointer w-full inline-flex items-center justify-center gap-2

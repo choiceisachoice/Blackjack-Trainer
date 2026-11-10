@@ -2326,5 +2326,21 @@
     },
     "aboutText": "Este resumen muestra la información más importante de tu cuenta. El registro completo y legible por máquina de todo lo que la app guarda sobre ti está disponible como archivo JSON en tu página de cuenta.",
     "durationMinutes": "{{m}} min"
+  },
+  "qrReward": {
+    "eyebrow": "Gracias por escanear",
+    "title": "Aquí tienes tu recompensa",
+    "percent": "{{percent}} %",
+    "noNumber": "Tu descuento",
+    "offPro": "en Pro, con el plan anual",
+    "howMuch": "{{yearly}} al año en vez de {{monthlyTotal}} pagando cada mes.",
+    "howMuchPlain": "El plan anual, más barato que pagar mes a mes.",
+    "claim": "Canjear mi recompensa",
+    "claimSignUp": "Crear una cuenta gratis y canjearla",
+    "noCode": "Sin código. El descuento está en el precio anual al pagar.",
+    "later": "Echar un vistazo primero",
+    "close": "Cerrar",
+    "loading": "Cargando el precio",
+    "badge": "Tu recompensa QR"
   }
 }

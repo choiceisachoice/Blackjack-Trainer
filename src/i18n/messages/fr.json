@@ -2326,5 +2326,21 @@
     },
     "aboutText": "Cet aperçu présente les informations essentielles de votre compte. L’ensemble complet et lisible par machine de tout ce que l’application enregistre sur vous est disponible en fichier JSON sur votre page de compte.",
     "durationMinutes": "{{m}} min"
+  },
+  "qrReward": {
+    "eyebrow": "Merci d’avoir scanné",
+    "title": "Voici ta récompense",
+    "percent": "{{percent}} %",
+    "noNumber": "Ta réduction",
+    "offPro": "sur Pro, avec le forfait annuel",
+    "howMuch": "{{yearly}} par an au lieu de {{monthlyTotal}} en payant au mois.",
+    "howMuchPlain": "Le forfait annuel, moins cher que de payer chaque mois.",
+    "claim": "Obtenir ma récompense",
+    "claimSignUp": "Créer un compte gratuit et l’obtenir",
+    "noCode": "Aucun code à saisir. La réduction est dans le prix annuel au paiement.",
+    "later": "D’abord jeter un œil",
+    "close": "Fermer",
+    "loading": "Chargement du prix",
+    "badge": "Ta récompense QR"
   }
 }

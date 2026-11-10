@@ -2326,5 +2326,21 @@
     },
     "aboutText": "Diese Übersicht zeigt die wichtigsten Informationen zu deinem Konto. Den vollständigen, maschinenlesbaren Datensatz mit allem, was die App über dich speichert, kannst du auf deiner Kontoseite als JSON-Datei herunterladen.",
     "durationMinutes": "{{m}} Min."
+  },
+  "qrReward": {
+    "eyebrow": "Danke fürs Scannen",
+    "title": "Hier ist deine Belohnung",
+    "percent": "{{percent}} %",
+    "noNumber": "Dein Rabatt",
+    "offPro": "auf Pro, mit dem Jahresplan",
+    "howMuch": "{{yearly}} im Jahr statt {{monthlyTotal}} bei monatlicher Zahlung.",
+    "howMuchPlain": "Der Jahresplan, günstiger als Monat für Monat.",
+    "claim": "Belohnung einlösen",
+    "claimSignUp": "Gratis-Konto erstellen und einlösen",
+    "noCode": "Kein Code nötig. Der Rabatt steckt im Jahrespreis an der Kasse.",
+    "later": "Erst umschauen",
+    "close": "Schliessen",
+    "loading": "Preis wird geladen",
+    "badge": "Deine QR-Belohnung"
   }
 }

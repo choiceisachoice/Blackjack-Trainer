@@ -9,6 +9,7 @@ vi.mock('../supabase/client', () => ({
 
 import { referrerHost, trackPageView, ping, startHeartbeat, HEARTBEAT_MS, resetTrackerForTests } from './tracker'
 import { VISITOR_ID_KEY } from './visitor'
+import { arrivalRef, resetArrivalRefForTest } from '../qr-reward'
 
 const ORIGIN = 'http://localhost:3000'
 
@@ -49,6 +50,26 @@ describe('trackPageView', () => {
     expect(args.p_pathname).toBe('/de/learn')
     expect(args.p_referrer_host).toBeNull()
     expect(['mobile', 'tablet', 'desktop']).toContain(args.p_device)
+  })
+
+  it('reports a visit through the QR code as its own source', async () => {
+    // A QR scan opens the page with no referrer at all, so without this it
+    // would count as "direct" and the video's code could never be measured.
+    resetArrivalRefForTest()
+    arrivalRef('?ref=qr')
+    await trackPageView('/')
+    expect(rpc.mock.calls[0][1].p_referrer_host).toBe('qr-code')
+    resetArrivalRefForTest()
+  })
+
+  it('keeps a real referrer over the QR source', async () => {
+    resetArrivalRefForTest()
+    arrivalRef('?ref=qr')
+    Object.defineProperty(document, 'referrer', { value: 'https://www.youtube.com/watch?v=x', configurable: true })
+    await trackPageView('/')
+    expect(rpc.mock.calls[0][1].p_referrer_host).toBe('www.youtube.com')
+    Object.defineProperty(document, 'referrer', { value: '', configurable: true })
+    resetArrivalRefForTest()
   })
 
   it('uses the same visitor id across page views', async () => {

@@ -2326,5 +2326,21 @@
     },
     "aboutText": "Bu özet, hesabınla ilgili en önemli bilgileri gösterir. Uygulamanın senin hakkında sakladığı her şeyin eksiksiz, makine tarafından okunabilir kaydı, hesap sayfanda JSON dosyası olarak mevcuttur.",
     "durationMinutes": "{{m}} dk"
+  },
+  "qrReward": {
+    "eyebrow": "Taradığın için teşekkürler",
+    "title": "İşte ödülün",
+    "percent": "%{{percent}}",
+    "noNumber": "İndirimin",
+    "offPro": "Pro'da, yıllık planla",
+    "howMuch": "Aylık ödemede {{monthlyTotal}} yerine yılda {{yearly}}.",
+    "howMuchPlain": "Yıllık plan, aylık ödemekten daha ucuz.",
+    "claim": "Ödülümü al",
+    "claimSignUp": "Ücretsiz hesap aç ve al",
+    "noCode": "Kod girmene gerek yok. İndirim, ödemede yıllık fiyatın içinde.",
+    "later": "Önce bir göz at",
+    "close": "Kapat",
+    "loading": "Fiyat yükleniyor",
+    "badge": "QR ödülün"
   }
 }

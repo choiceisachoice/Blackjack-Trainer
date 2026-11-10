@@ -2326,5 +2326,21 @@
     },
     "aboutText": "This overview shows the most important information about your account. The complete, machine-readable record of everything the app stores about you is available as a JSON file on your account page.",
     "durationMinutes": "{{m}} min"
+  },
+  "qrReward": {
+    "eyebrow": "Thanks for scanning",
+    "title": "Here's your reward",
+    "percent": "{{percent}}%",
+    "noNumber": "Your discount",
+    "offPro": "off Pro, with the yearly plan",
+    "howMuch": "{{yearly}} a year instead of {{monthlyTotal}} paid monthly.",
+    "howMuchPlain": "The yearly plan, cheaper than paying month by month.",
+    "claim": "Claim my reward",
+    "claimSignUp": "Create a free account and claim it",
+    "noCode": "No code to enter. The discount is in the yearly price at checkout.",
+    "later": "Look around first",
+    "close": "Close",
+    "loading": "Loading the price",
+    "badge": "Your QR reward"
   }
 }
