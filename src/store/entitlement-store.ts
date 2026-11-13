@@ -48,8 +48,71 @@ const DEFAULT: EntitlementState = {
   loaded: false,
 }
 
+/**
+ * The last entitlement the server confirmed, kept on the device.
+ *
+ * Without it every page load started at `free` and stayed there until the end
+ * of the sign-in sync — five to seven round trips, with this load last. A
+ * paying customer was drawn as a free user for that long on every reload:
+ * the "Go Pro" crown in the bar, locks on the modes they pay for, the full
+ * paywall if they opened one. Then everything changed and the bar shifted.
+ *
+ * What this is and is not. It is a hint for the seconds before the server
+ * answers, so the screen opens as the account was last seen. It is not an
+ * entitlement: the answer replaces it the moment it arrives, a failed load
+ * falls back to `free` exactly as before, and nothing that sells or refuses
+ * to sell reads it — `selectHasSubscription` only believes a loaded state.
+ * Gating here is presentation in any case; the code for every mode ships to
+ * every browser, and what a subscription buys is enforced by who the webhook
+ * wrote into `profiles`.
+ *
+ * Under the `bjt_` prefix on purpose: the sign-out wipe takes it with the
+ * rest of the account's data, so it never greets the next person on the
+ * device.
+ */
+const CACHE_KEY = 'bjt_entitlement'
+
+type CachedEntitlement = Pick<EntitlementState, 'status' | 'currentPeriodEnd' | 'cancelAtPeriodEnd'> & { userId: string }
+
+function readCache(): CachedEntitlement | null {
+  if (!isSupabaseConfigured) return null
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    if (!raw) return null
+    const v = JSON.parse(raw) as Partial<CachedEntitlement>
+    if (typeof v.userId !== 'string' || typeof v.status !== 'string') return null
+    return {
+      userId: v.userId,
+      status: v.status,
+      currentPeriodEnd: typeof v.currentPeriodEnd === 'number' ? v.currentPeriodEnd : null,
+      cancelAtPeriodEnd: v.cancelAtPeriodEnd === true,
+    }
+  } catch {
+    return null
+  }
+}
+
+function writeCache(value: CachedEntitlement | null): void {
+  try {
+    if (value) localStorage.setItem(CACHE_KEY, JSON.stringify(value))
+    else localStorage.removeItem(CACHE_KEY)
+  } catch { /* a missing hint costs one late repaint, nothing more */ }
+}
+
+/** The state a page load opens with: the device's last known answer, unconfirmed. */
+function initialState(): EntitlementState {
+  const cached = readCache()
+  if (!cached) return DEFAULT
+  return {
+    status: cached.status,
+    currentPeriodEnd: cached.currentPeriodEnd,
+    cancelAtPeriodEnd: cached.cancelAtPeriodEnd,
+    loaded: false,
+  }
+}
+
 export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
-  ...DEFAULT,
+  ...initialState(),
 
   async loadEntitlement() {
     if (!isSupabaseConfigured || !supabase) {
@@ -59,7 +122,7 @@ export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
     try {
       const { data: sessionData } = await supabase.auth.getSession()
       const userId = sessionData.session?.user.id
-      if (!userId) { set({ ...DEFAULT, loaded: true }); return }
+      if (!userId) { writeCache(null); set({ ...DEFAULT, loaded: true }); return }
 
       const { data, error } = await supabase
         .from('profiles')
@@ -68,16 +131,20 @@ export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
         .maybeSingle()
       if (error) throw error
 
-      set({
+      const fresh = {
         status: data?.subscription_status ?? 'free',
         currentPeriodEnd: data?.current_period_end
           ? new Date(data.current_period_end).getTime()
           : null,
         cancelAtPeriodEnd: data?.cancel_at_period_end === true,
-        loaded: true,
-      })
+      }
+      writeCache({ userId, ...fresh })
+      set({ ...fresh, loaded: true })
     } catch (e) {
       console.error('failed to load entitlement', e)
+      // Free, as before the cache existed: an unanswered question is not a
+      // yes. The cached hint is left in place for the next load — one failed
+      // request should not also cost the correct first paint afterwards.
       set({ ...DEFAULT, loaded: true })
     }
   },
@@ -91,6 +158,7 @@ export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
   },
 
   reset() {
+    writeCache(null)
     set({ ...DEFAULT })
   },
 }))
@@ -128,7 +196,9 @@ export function useIsPro(): boolean {
  * proof of payment.
  */
 export function selectHasSubscription(state: EntitlementState): boolean {
-  return PRO_STATUSES.has(state.status)
+  // `loaded` first: before the server has answered, `status` may be the
+  // device's cached hint, and a hint is not proof of payment.
+  return state.loaded && PRO_STATUSES.has(state.status)
 }
 
 /** Reactive hook: does this account have a billable subscription? */

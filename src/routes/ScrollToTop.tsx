@@ -1,5 +1,6 @@
 import { useLayoutEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { isPrerenderedBoot } from '../boot/prerendered-boot'
 
 /**
  * Start every new page at the top.
@@ -22,6 +23,11 @@ export function ScrollToTop() {
   const { pathname } = useLocation()
 
   useLayoutEffect(() => {
+    // Not when this mount is replacing a prerendered page: the visitor has
+    // been reading it since before the script ran and may have scrolled, or
+    // arrived on `/#pricing`. Taking them back to the top is the page
+    // visibly reloading, which is the thing the boot path exists to prevent.
+    if (isPrerenderedBoot()) return
     // `auto`, never `smooth`: this is arriving somewhere new, not travelling.
     // A smooth scroll would animate the reader away from content they can
     // already see, and it depends on frames that may not run.

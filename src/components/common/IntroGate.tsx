@@ -1,14 +1,25 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { IntroSequence } from './IntroSequence'
 import { isRepeatVisit } from './intro-session'
+import { unprefixedPath } from '../../i18n/locales'
+import { isSupabaseConfigured } from '../../services/supabase/client'
 
 /**
- * Routes that never get a loading screen, welcome or otherwise.
+ * The one route that gets a loading screen: the app itself.
  *
- * These are not entrances. Someone arriving at `/reset-password` clicked a link
- * in an email because they have just lost access to their account — the worst
- * possible moment to be shown five seconds of branding before the form appears.
- * A loading screen belongs on the way in, not in front of an emergency exit.
+ * It used to be every route but `/reset-password`, and the cost was measured
+ * on the live site on 13 Nov 2026: a chapter of the theory, already in the
+ * HTML and readable after 0.17 s, was covered at 0.4 s and given back at
+ * 5.5 s. The public pages arrive rendered — there is nothing behind them to
+ * wait for, so a loading screen there is not reporting a load, it is causing
+ * one. The same goes for `/login` and `/reset-password`: forms someone came to
+ * use, the second of them by someone who has just lost access to their account.
+ *
+ * `/app` is different in kind. It arrives as an empty shell, a session has to
+ * resolve and a 175 kB chunk has to come down, and it is where a person
+ * actually *arrives* at the product — the one place the welcome is a welcome.
+ * An allowlist rather than the old list of exceptions, so a route added later
+ * is quiet by default and has to ask for a loading screen.
  *
  * Read from `window.location` rather than from the router, and that is the
  * accurate signal rather than the convenient one: this gate is about the *page
@@ -20,7 +31,33 @@ import { isRepeatVisit } from './intro-session'
  * Reaching for `useLocation` coupled a page-load concern to router context and
  * broke every test that renders this component on its own.
  */
-const NO_INTRO_PATHS = ['/reset-password']
+const INTRO_PATHS = ['/app']
+
+/** Whether a page load at this pathname opens on the loading screen. */
+function introApplies(pathname: string): boolean {
+  const path = unprefixedPath(pathname)
+  if (!INTRO_PATHS.includes(path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path)) return false
+  return !isSupabaseConfigured || hasStoredSession()
+}
+
+/**
+ * Whether this device holds a sign-in at all.
+ *
+ * Someone who opens `/app` signed out is not arriving at the app: the guard
+ * sends them to `/login` within a frame, and the welcome then played for five
+ * seconds over the sign-in form. supabase-js keeps its session under
+ * `sb-<project>-auth-token`; no such key means there is nobody to welcome.
+ * A key that turns out to be expired costs one welcome in front of the form,
+ * which is the old behaviour and the rare case.
+ */
+function hasStoredSession(): boolean {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      if (/^sb-.+-auth-token/.test(localStorage.key(i) ?? '')) return true
+    }
+  } catch { /* storage unavailable: nobody is signed in on this device */ }
+  return false
+}
 
 /**
  * How long the overlay lingers after the sequence hands over.
@@ -106,9 +143,12 @@ export function IntroGate({
 }) {
   const [suppressed] = useState(() => {
     try {
-      return NO_INTRO_PATHS.includes(window.location.pathname)
+      return !introApplies(window.location.pathname)
     } catch {
-      return false
+      // No readable location means no way to know this is the app. Quiet is
+      // the safe side: an unwanted loading screen costs a visitor five
+      // seconds, a missing one costs nothing.
+      return true
     }
   })
 

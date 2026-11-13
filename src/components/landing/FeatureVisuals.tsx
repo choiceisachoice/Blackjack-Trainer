@@ -138,10 +138,14 @@ export function FeltTableVisual() {
   return (
     <div
       aria-hidden
-      className="relative w-full aspect-[1120/640] min-h-[168px] rounded-xl overflow-hidden
+      className="relative w-full aspect-[1120/640] rounded-xl overflow-hidden
         border border-gold/15 pointer-events-none select-none"
     >
-      <div className="absolute inset-0 flex">
+      {/* The table is drawn at its design width and scaled down, and a scaled
+          element keeps its unscaled layout size — so the table's own
+          `overflow-y-auto` wrapper grew scrollbars inside this picture. Nothing
+          here is meant to scroll. */}
+      <div className="absolute inset-0 flex [&_[data-testid=casino-table]]:overflow-hidden">
         <CasinoTable
           dealerCards={SHOWCASE_DEALER}
           dealerHoleRevealed={false}

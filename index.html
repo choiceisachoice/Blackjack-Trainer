@@ -6,6 +6,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#070809" />
 
+    <!-- The ground colour, before the stylesheet.
+         Without it the document is white until the CSS has arrived, and a
+         dark site opened on a white flash. The second rule belongs to
+         /boot.js below: it keeps a prerendered page invisible in the one case
+         where it is in the wrong language for this visitor. -->
+    <style>
+      html { background: #070809; color-scheme: dark; }
+      html[data-boot='hold'] #root { visibility: hidden; }
+    </style>
+    <script src="/boot.js"></script>
+
     <!-- The display face, preloaded.
          The loading screen is the first thing painted and its typography is
          half of what it is, so the font cannot arrive late. Same origin,

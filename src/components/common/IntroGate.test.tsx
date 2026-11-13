@@ -63,11 +63,15 @@ beforeEach(() => {
   // instead of the one it names. The memo is module-level precisely so it
   // survives a remount, which means a test has to clear it deliberately.
   resetIntroSession()
+  // The gate only ever opens on the app. Every test below is about what it
+  // does there; the ones about where it stays shut set their own path.
+  window.history.replaceState({}, '', '/app')
   vi.useFakeTimers()
 })
 
 afterEach(() => {
   cleanup()
+  window.history.replaceState({}, '', '/')
   vi.useRealTimers()
   vi.restoreAllMocks()
   // `restoreAllMocks` does not undo `stubGlobal`. Without this the reduced-motion
@@ -318,15 +322,32 @@ describe('IntroGate', () => {
     }
   })
 
-  it('still shows the welcome on every other route', async () => {
-    // The suppression is a named list, not a general retreat.
-    const path = window.location.pathname
-    window.history.replaceState({}, '', '/login')
-    try {
-      render(<IntroGate appReady><div /></IntroGate>)
-      expect(screen.getByTestId('intro-sequence')).toBeInTheDocument()
-    } finally {
-      window.history.replaceState({}, '', path)
+  it('shows nothing on any public page, or on the forms in front of the app', async () => {
+    // Measured on the live site, 13 Nov 2026: a chapter that was readable
+    // after 0.17 s was covered at 0.4 s and given back at 5.5 s. These pages
+    // arrive already rendered; a loading screen over them is not reporting a
+    // load, it is the load.
+    for (const route of ['/', '/learn', '/learn/true-count', '/strategy-chart', '/terms', '/de', '/de/learn', '/login', '/account']) {
+      window.history.replaceState({}, '', route)
+      resetIntroSession()
+      const { unmount } = render(<IntroGate appReady={false}><div>page</div></IntroGate>)
+      expect(screen.queryByTestId('intro-sequence'), route).toBeNull()
+      await advance(GRACE_MS + 200)
+      expect(screen.queryByTestId('intro-sequence'), route).toBeNull()
+      expect(document.documentElement.dataset.intro, route).toBeUndefined()
+      expect(document.body.style.overflow, route).not.toBe('hidden')
+      unmount()
+    }
+  })
+
+  it('shows the welcome on the app, in any language', async () => {
+    // `/de/app` is the app too: the router treats the prefix as its root.
+    for (const route of ['/app', '/app/', '/de/app']) {
+      window.history.replaceState({}, '', route)
+      resetIntroSession()
+      const { unmount } = render(<IntroGate appReady><div /></IntroGate>)
+      expect(screen.getByTestId('intro-sequence'), route).toBeInTheDocument()
+      unmount()
     }
   })
 

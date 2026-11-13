@@ -91,7 +91,10 @@ async function main() {
       const prefix = prefixOf(locale)
       const { html, meta, lang } = await entry.render(route, locale, prefix)
       const page = applyHead(template, { meta, lang, alternates })
-        .replace('<div id="root"></div>', `<div id="root">${html}</div>`)
+        // `data-prerendered` is how `main.tsx` tells this page from the empty
+        // shell: over a page the visitor can already read it waits until it
+        // can replace the markup in one commit, instead of clearing it first.
+        .replace('<div id="root"></div>', `<div id="root" data-prerendered="${lang}">${html}</div>`)
       const rel = route === '/' ? `${prefix}/index.html` : `${prefix}${route}/index.html`
       const file = path.join(root, 'dist', rel)
       await mkdir(path.dirname(file), { recursive: true })

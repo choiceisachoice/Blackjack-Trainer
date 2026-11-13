@@ -30,7 +30,7 @@ export function FeatureShowcase() {
           headline={t('landing.showcase.freeHead')}
           sub={t('landing.showcase.freeSub')}
         />
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Tile className="lg:col-span-2">
             <TileText
               title={t('landing.showcase.t1title')}
@@ -65,7 +65,7 @@ export function FeatureShowcase() {
             headline={t('landing.showcase.proHead')}
             sub={t('landing.showcase.proSub')}
           />
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <Tile className="lg:col-span-2 flex flex-col">
               <TileText
                 title={t('landing.showcase.t4title')}

@@ -1,6 +1,6 @@
 import i18next from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY, LOCALES, resolveLocale, type Locale } from './locales'
+import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY, LOCALES, localeFromPath, resolveLocale, type Locale } from './locales'
 import en from './messages/en.json'
 
 /** Locales already fetched, so a second switch back is instant. */
@@ -74,7 +74,25 @@ export async function setLocale(locale: Locale): Promise<void> {
   reflectLocale(locale)
 }
 
-const startingLocale = initialLocale()
+/**
+ * The language this page load starts in.
+ *
+ * A language in the URL wins. `/de/learn` is the German page — prerendered
+ * that way, linked that way from every search result and hreflang tag — so
+ * the app opens in German there whatever the browser or storage says. With
+ * no prefix, the stored or browser language applies.
+ *
+ * Decided here, in one place, rather than started from storage and then
+ * corrected by `main.tsx`: that version fired two `setLocale` calls that did
+ * not wait for each other, and on `/de/…` with French stored the page ended
+ * in whichever language's file arrived last.
+ */
+function startingLocaleOf(): Locale {
+  const fromUrl = typeof window === 'undefined' ? null : localeFromPath(window.location.pathname)
+  return fromUrl?.locale ?? initialLocale()
+}
+
+const startingLocale = startingLocaleOf()
 
 void i18next
   .use(initReactI18next)
@@ -93,10 +111,22 @@ void i18next
     returnNull: false,
   })
 
-// The chosen language may not be English, in which case its messages still have
-// to arrive. Deliberately not awaited: English renders immediately and the
-// translation swaps in a beat later, which beats holding the first paint.
-if (startingLocale !== DEFAULT_LOCALE) void setLocale(startingLocale)
+/**
+ * Resolves once the starting language's messages are registered.
+ *
+ * The chosen language may not be English, in which case its file still has to
+ * arrive. Nothing in this module waits for it — a component that renders
+ * meanwhile renders English — but `main.tsx` does, before the first render:
+ * the page under it is either already on screen (prerendered) or a dark shell,
+ * and in both cases waiting a few tens of milliseconds for the right words
+ * beats drawing the wrong ones and swapping them. That swap was visible on
+ * the live site as an English page, and an English loading screen, turning
+ * German.
+ *
+ * Never rejects: a language that fails to load leaves English up.
+ */
+export const localeReady: Promise<void> =
+  startingLocale !== DEFAULT_LOCALE ? setLocale(startingLocale) : Promise.resolve()
 reflectLocale(startingLocale)
 
 /**

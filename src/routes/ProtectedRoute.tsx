@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate } from 'react-router-dom'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
-import { AppLoader } from '../components/common/AppLoader'
+import { AppSkeleton } from '../components/common/AppSkeleton'
 
 /**
  * Gate for authenticated routes (`/app`, `/account`). When Supabase isn't
@@ -17,8 +17,9 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   if (!isSupabaseConfigured) return <>{children}</>
 
   // The signed-in wait: a returning subscriber resolving their session. This is
-  // the single most common load in the product, so it gets the real screen.
-  if (status === 'loading') return <AppLoader label={t('common.signingIn')} />
+  // the single most common load in the product, so it gets the outline of the
+  // screen they are about to see rather than a spinner in front of it.
+  if (status === 'loading') return <AppSkeleton label={t('common.signingIn')} />
   if (status === 'signedOut') return <Navigate to="/login" replace />
 
   return <>{children}</>

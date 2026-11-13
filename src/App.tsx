@@ -12,27 +12,13 @@ import { PageViewTracker } from './components/analytics-web/PageViewTracker'
 import { AppLoader } from './components/common/AppLoader'
 import { IntroGate } from './components/common/IntroGate'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
+import { AppSkeleton } from './components/common/AppSkeleton'
+import { unprefixedPath } from './i18n/locales'
+import {
+  LandingPage, LoginPage, TrainerApp, AccountPage, ResetPasswordPage, TermsPage, PrivacyPage, ContactPage,
+  LearnPublicPage, LearnTopicPage, StrategyChartPublicPage, AdminAnalyticsPage, isAppPath, routeFor,
+} from './routes/pages'
 
-// Route-level code splitting: the landing (with its Three.js hero) and the
-// trainer (recharts/framer/all modes) load as separate chunks, so visiting `/`
-// doesn't pull the whole app.
-const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })))
-const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })))
-const TrainerApp = lazy(() => import('./pages/TrainerApp').then(m => ({ default: m.TrainerApp })))
-const AccountPage = lazy(() => import('./pages/AccountPage').then(m => ({ default: m.AccountPage })))
-const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })))
-// Legal pages: static content, public, their own small chunk.
-const TermsPage = lazy(() => import('./pages/legal/TermsPage').then(m => ({ default: m.TermsPage })))
-const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage').then(m => ({ default: m.PrivacyPage })))
-const ContactPage = lazy(() => import('./pages/legal/ContactPage').then(m => ({ default: m.ContactPage })))
-// The theory, public: the one part of the product search engines can answer with.
-const LearnPublicPage = lazy(() => import('./pages/LearnPublicPage').then(m => ({ default: m.LearnPublicPage })))
-const LearnTopicPage = lazy(() => import('./pages/LearnTopicPage').then(m => ({ default: m.LearnTopicPage })))
-// The chart without a login: the one piece of the product that earns a link.
-const StrategyChartPublicPage = lazy(() => import('./pages/StrategyChartPublicPage').then(m => ({ default: m.StrategyChartPublicPage })))
-// The operator's numbers. Behind auth and the admin list; its own chunk, so
-// a visitor never downloads it.
-const AdminAnalyticsPage = lazy(() => import('./pages/AdminAnalyticsPage').then(m => ({ default: m.AdminAnalyticsPage })))
 // The ternary matters: guarding only the <Route> leaves the dynamic import in
 // place, and Rollup emits a DevPreview chunk into the production build that
 // nothing can ever reach. Branching on the statically-known DEV flag lets the
@@ -56,8 +42,21 @@ const SplitPreview = import.meta.env.DEV
   ? lazy(() => import('./pages/SplitPreview').then(m => ({ default: m.SplitPreview })))
   : null
 
+/**
+ * What a route shows while its chunk is on the way.
+ *
+ * Inside the app that is the app's own outline — the bar, the plan card, the
+ * list — so the screen that arrives lands on the screen that was waiting for
+ * it. It used to be an empty canvas followed 220 ms later by a full-screen
+ * spinner, which React then held for its 300 ms fallback throttle: every
+ * reload showed blank, a flash of spinner, and the page.
+ *
+ * Outside the app this is rarely reached at all: `main.tsx` has the first
+ * page's chunk before the first render, and the router keeps the old page up
+ * during a navigation.
+ */
 function RouteLoader() {
-  return <AppLoader />
+  return isAppPath(unprefixedPath(window.location.pathname)) ? <AppSkeleton /> : <AppLoader />
 }
 
 /**
@@ -105,29 +104,24 @@ function App() {
   /**
    * Whether the route behind the loading screen has actually finished arriving.
    *
-   * Auth resolving is not the same thing. The landing page's hero is a separate
-   * half-megabyte Three.js chunk behind its own `Suspense`, so handing over on
-   * auth alone drops the visitor onto a page whose centrepiece is still
-   * downloading — a black hero, or the card animation playing behind the overlay
-   * and being over by the time anyone looks. Both were reported; both are this.
+   * Auth resolving is not the same thing: the trainer is its own chunk, and
+   * handing over on auth alone ended the welcome on a screen that was still
+   * downloading. Waiting for the chunk makes the loading screen wait for the
+   * thing it is covering, which is the only honest meaning of "ready".
    *
-   * Pre-warming the chunks the current route needs makes the loading screen wait
-   * for the thing it is covering, which is the only honest meaning of "ready".
+   * Asked through the route table rather than by comparing the pathname, so
+   * `/de/app` is the app too. The public pages no longer have anything to
+   * wait for here: they get no loading screen (see `IntroGate`), and
+   * `main.tsx` has fetched their chunk before this component first rendered.
    */
   const [chunksReady, setChunksReady] = useState(false)
 
   useEffect(() => {
-    const path = window.location.pathname
-    const wanted =
-      path === '/'
-        ? [import('./pages/LandingPage'), import('./components/landing/HeroCanvas')]
-        : path.startsWith('/app')
-          ? [import('./pages/TrainerApp')]
-          : []
     let alive = true
-    // `allSettled`: a chunk that fails to load must not hold the screen hostage.
-    // The route's own Suspense boundary and error handling take it from there.
-    void Promise.allSettled(wanted).then(() => { if (alive) setChunksReady(true) })
+    const route = routeFor(unprefixedPath(window.location.pathname))
+    // `preload` never rejects: a chunk that fails to load must not hold the
+    // screen hostage. The route's own boundary reports it.
+    void (route ? route.preload() : Promise.resolve()).then(() => { if (alive) setChunksReady(true) })
     return () => { alive = false }
   }, [])
 

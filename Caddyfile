@@ -56,6 +56,43 @@
 	@pages not path /assets/*
 	header @pages Cache-Control "no-cache"
 
+	# Security headers, set here and not on the server.
+	#
+	# They were meant to come from a Traefik middleware pasted into Dokploy by
+	# hand (`docs/traefik-security-headers.yml`), because at the time nothing
+	# in this repository configured the web server. On 13 Nov 2026 the live
+	# site answered with none of them: no HSTS, no framing protection, no
+	# nosniff. A header configured on the server fails silently — no error, no
+	# failed deploy — which is exactly how it went missing. This file is in the
+	# image, so the headers are deployed with the code and reviewed with it.
+	#
+	# `frame-ancestors 'none'` and X-Frame-Options are the two that matter
+	# most here: the pages start Stripe checkouts, and a page that can be
+	# framed by another origin can be clicked through one.
+	#
+	# No `includeSubDomains` on HSTS: the DNS zone still has a wildcard record
+	# pointing at an older host, and forcing HTTPS onto machines outside this
+	# deployment would break something invisible from here.
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Content-Security-Policy "frame-ancestors 'none'"
+
+		# The full policy, reporting only for now. It was written and checked
+		# before the Turnstile captcha existed, and a policy that is wrong
+		# about one origin does not degrade — it blocks sign-in. Report-only
+		# lists every violation in the browser console and blocks nothing; once
+		# the live pages (landing, sign-in with the captcha, the app, account)
+		# load without a report, move this string into Content-Security-Policy
+		# above and delete this line.
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; media-src 'self'; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+
+		-Server
+	}
+
 	file_server
 
 	# A file, then a prerendered page in a directory, then the empty app

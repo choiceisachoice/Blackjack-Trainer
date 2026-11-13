@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, cleanup, fireEvent, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route, Link } from 'react-router-dom'
 import { ScrollToTop } from './ScrollToTop'
+import { beginPrerenderedBoot, endPrerenderedBoot } from '../boot/prerendered-boot'
 
 let scrolls: { top?: number; behavior?: string }[] = []
 
@@ -67,6 +68,22 @@ describe('ScrollToTop', () => {
     fireEvent.click(screen.getByText('Privacy'))
     expect(scrolls).toHaveLength(2)
     expect(scrolls.every(s => s.top === 0)).toBe(true)
+  })
+
+  it('leaves the reader where they are when it mounts over a prerendered page', () => {
+    // They have been reading since before the script ran, perhaps on
+    // `/#pricing`. Being taken to the top is the page visibly reloading.
+    beginPrerenderedBoot()
+    try {
+      render(<App />)
+    } finally {
+      endPrerenderedBoot()
+    }
+    expect(scrolls).toHaveLength(0)
+
+    // And from the next navigation on it is the ordinary component again.
+    fireEvent.click(screen.getByText('Terms'))
+    expect(scrolls).toHaveLength(1)
   })
 
   it('renders nothing of its own', () => {

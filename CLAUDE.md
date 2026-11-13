@@ -26,10 +26,16 @@ and a full Casino Session table.
 - **UI Language:** English
 - **UI Theme:** **Dark-luxury only** (near-black `#070809` + gold `#d4a847`), in the style of
   Linear/Resend/Raycast. The Casino Session uses a realistic green-felt table within that shell.
-- **First paint:** every visit opens on a **loading screen** tied to real load state — it holds at
-  89% while auth and the route chunk are outstanding and gives up after 9s rather than stranding
-  anyone. Two timelines: the first load of a session gets the welcome, every load after it gets
-  the bar alone (`src/components/common/intro-sequence.ts`).
+- **First paint:** the **public pages get no loading screen** (13 Nov 2026). They arrive
+  prerendered and stay on screen; `main.tsx` fetches the page's chunk and the language first and
+  then replaces the markup in one flagged commit (`src/boot/prerendered-boot.ts`,
+  `src/routes/lazy-route.tsx`), so nothing blanks, re-animates or scrolls. An English page opened
+  by a reader of another language is held invisible by `public/boot.js` until it is drawn in
+  theirs. The **welcome loading screen is for `/app` only**, on the first visit of a session and
+  only when the device holds a sign-in; it holds at 89% while auth and the chunk are outstanding
+  and gives up after 9s (`src/components/common/intro-sequence.ts`). Every other wait inside the
+  app is `AppSkeleton`, the trainer's own outline. Measured before the change: a chapter readable
+  at 0.17 s was covered until 5.5 s. See `docs/AUDIT-2026-11-13.md`.
 - **Gamification:** Achievements, levels/XP and daily/weekly challenges are implemented.
 
 ## Tech Stack
@@ -94,8 +100,9 @@ npx supabase migration new <name>  # Create new migration
 `dist` — `dist/learn/index.html`, `dist/de/learn/true-count/index.html` and
 so on — plus `sitemap.xml` with hreflang alternates. The client does
 **not** hydrate them; `main.tsx` reads the language prefix off the URL, opens
-the router at that basename (`/de`) and replaces the markup behind the
-loading screen. English lives at the root, the other six under a prefix.
+the router at that basename (`/de`) and replaces the markup in one commit,
+once the page's chunk and language are loaded (no loading screen — see
+*First paint* above). English lives at the root, the other six under a prefix.
 A stored or browser language never changes a URL; a URL always sets the
 language. `Reveal` renders plain on the server, or every landing section
 would ship at `opacity: 0`. `usePageMeta` gives each page its own title,
@@ -377,6 +384,9 @@ issue and was dealt with".
   page, not the shell), and a hashed file under `/assets` carries
   `cache-control: public, max-age=31536000, immutable`. Rollback is still
   deleting `nixpacks.toml`.
+
+  **Since 13 Nov 2026 a push to `main` deploys** — autodeploy was switched on in Dokploy —
+  so the paragraph below is history. Still check the live HTML after a push, not the repository.
 
   Worth knowing from the same day: **a push to `main` does not deploy.** The
   live site served a build from 25 Sep until the deploy was started by hand in

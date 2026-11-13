@@ -89,6 +89,23 @@ export function localeFromPath(pathname: string): { locale: Locale; basename: st
 }
 
 /**
+ * A pathname as the router sees it: without the language prefix.
+ *
+ * `/de/learn` → `/learn`, `/de` → `/`, `/app` → `/app`. For the few
+ * decisions that are made about the *page load* from `window.location`,
+ * before or outside the router — which chunk to fetch first, whether this is
+ * the app or a public page. Comparing the raw pathname there treated `/de`
+ * as an unknown route.
+ *
+ * @param pathname - `window.location.pathname` or equivalent
+ */
+export function unprefixedPath(pathname: string): string {
+  const prefix = localeFromPath(pathname)
+  const rest = prefix ? pathname.slice(prefix.basename.length) : pathname
+  return rest === '' ? '/' : rest
+}
+
+/**
  * The URL of a public page in a given language.
  *
  * @param path - One of {@link PUBLIC_PATHS}
