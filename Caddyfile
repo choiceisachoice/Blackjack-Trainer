@@ -87,8 +87,10 @@
 		# lists every violation in the browser console and blocks nothing; once
 		# the live pages (landing, sign-in with the captcha, the app, account)
 		# load without a report, move this string into Content-Security-Policy
-		# above and delete this line.
-		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; media-src 'self'; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+		# above and delete this line. `upgrade-insecure-requests` belongs to the
+		# enforced policy only — browsers ignore it in a report-only one and say
+		# so in the console of every page — so add it back when this moves up.
+		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; media-src 'self'; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 
 		-Server
 	}

@@ -48,9 +48,27 @@ vi.mock('./components/common/IntroGate', () => ({
   IntroGate: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }))
 
-vi.mock('./pages/LandingPage', () => ({
-  LandingPage: () => { throw new Error('the landing page fell over') },
-}))
+/*
+  The landing route itself is replaced, in the route table, not the page
+  module behind it.
+
+  This used to mock `./pages/LandingPage`. Since the routes moved into
+  `routes/pages.ts` that module is reached through a dynamic import one
+  directory away, and on the CI runner (Linux, Node 22) the mock no longer
+  applied: the real landing page rendered and the test waited five seconds for
+  an error that never came, while the same file passed on Windows. A mock that
+  depends on how a path two modules away resolves is testing the bundler. What
+  this file is about is the boundary above the routes, so the throwing page is
+  put exactly where the router takes its pages from.
+*/
+vi.mock('./routes/pages', async importOriginal => {
+  const real = await importOriginal<typeof import('./routes/pages')>()
+  const Broken = Object.assign(
+    (): never => { throw new Error('the landing page fell over') },
+    { preload: () => Promise.resolve() },
+  )
+  return { ...real, LandingPage: Broken, routeFor: () => null }
+})
 
 import App from './App'
 
