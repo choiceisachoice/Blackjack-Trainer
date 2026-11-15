@@ -6,7 +6,7 @@ import { Action } from '../../engine/rules/types'
 import { casinoAmbient } from '../../services/casino-ambient'
 import type { CasinoSessionConfig, CasinoSessionResult } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
-import { useAppStore, DEALING_SPEED_LABEL, type DealingSpeed } from '../../store/app-store'
+import { useAppStore, DEALING_SPEED_LABEL, DEALING_SPEEDS } from '../../store/app-store'
 import { useGameLoop } from './useGameLoop'
 import { CasinoTable } from './CasinoTable'
 import { ActionButtons } from './ActionButtons'
@@ -390,7 +390,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
           <div className="flex items-center gap-1" data-testid="speed-control">
             <span className="text-content/40 text-[0.6875rem]">{t('casino.hud.speed')}</span>
             <div className="inline-flex p-0.5 rounded-md bg-contrast/10 border border-contrast/10">
-              {(['slow', 'normal'] as DealingSpeed[]).map(s => (
+              {DEALING_SPEEDS.map(s => (
                 <button
                   key={s}
                   onClick={() => setDealingSpeed(s)}

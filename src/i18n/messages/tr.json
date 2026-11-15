@@ -640,7 +640,8 @@
       "cashOut": "Kasadan çık",
       "cashOutWait": "Önce eli bitir",
       "timeUp_one": "1 dakika oynandı — bu eli bitir",
-      "timeUp_other": "{{count}} dakika oynandı — bu eli bitir"
+      "timeUp_other": "{{count}} dakika oynandı — bu eli bitir",
+      "speedFast": "Hızlı"
     },
     "summary": {
       "bankroll": "Bankroll",

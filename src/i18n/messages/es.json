@@ -640,7 +640,8 @@
       "cashOut": "Cobrar",
       "cashOutWait": "Termina primero la mano",
       "timeUp_one": "1 minuto jugado — termina esta mano",
-      "timeUp_other": "{{count}} minutos jugados — termina esta mano"
+      "timeUp_other": "{{count}} minutos jugados — termina esta mano",
+      "speedFast": "Rápido"
     },
     "summary": {
       "bankroll": "Bankroll",

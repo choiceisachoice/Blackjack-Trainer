@@ -169,6 +169,10 @@ export function HumanSeat({
         it used to enter from `opacity: 0` and a stalled animation left the
         player looking at a settled table with no result on it.
       */}
+      {/* Its height is there from the deal on. The label used to be inserted
+          at settlement, between the cards and the name: every seat's cards and
+          chip jumped up by its height in the same frame, the whole row at once. */}
+      <div className="h-7 flex items-center justify-center">
       {humanSettlement && gameStep === 'settlement' && (
         <motion.div
           initial={reduced ? false : { scale: 0.8 }}
@@ -185,6 +189,7 @@ export function HumanSeat({
           {t(SETTLEMENT_KEY[humanSettlement.result])} {humanSettlement.profit > 0 ? '+' : ''}{formatDollar(humanSettlement.profit)}
         </motion.div>
       )}
+      </div>
 
       {isSurrendered && <span className="text-[0.65rem] text-warning font-semibold">{t('casino.table.surrendered')}</span>}
 
@@ -306,7 +311,8 @@ export function BotSeat({
         return <Hand cards={visibleCards} totalClass="text-[0.6875rem]" />
       })()}
 
-      {/* Per-bot settlement result label */}
+      {/* Per-bot settlement result label, in a slot that is always there. */}
+      <div className="h-4 flex items-center justify-center">
       {botSettlement && gameStep === 'settlement' && (
         <span className={`text-[0.65rem] md:text-[0.6875rem] font-bold ${
           botSettlement.profit > 0 ? 'text-success' : botSettlement.profit < 0 ? 'text-error' : 'text-white/50'
@@ -315,6 +321,7 @@ export function BotSeat({
           {botSettlement.profit > 0 ? '+' : ''}{formatDollar(botSettlement.profit)}
         </span>
       )}
+      </div>
 
       <NamePlate name={bot.name} bankroll={bot.bankroll} />
       <BotStatusBadge status={botStatus} />

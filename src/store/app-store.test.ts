@@ -90,3 +90,20 @@ describe('app-store', () => {
     expect(useAppStore.getState().flashFocus).toBeNull()
   })
 })
+
+describe('dealing speeds', () => {
+  it('offers three, slowest first, each with a label and a multiplier', async () => {
+    const { DEALING_SPEEDS, DEALING_SPEED_LABEL, DEALING_SPEED_MULTIPLIER } = await import('./app-store')
+    expect([...DEALING_SPEEDS]).toEqual(['slow', 'normal', 'fast'])
+    const m = DEALING_SPEEDS.map(s => DEALING_SPEED_MULTIPLIER[s])
+    expect(m).toEqual([...m].sort((a, b) => b - a))
+    for (const s of DEALING_SPEEDS) expect(DEALING_SPEED_LABEL[s]).toMatch(/^casino\.hud\.speed/)
+  })
+
+  it('remembers the fast setting', async () => {
+    const { useAppStore } = await import('./app-store')
+    useAppStore.getState().setDealingSpeed('fast')
+    expect(localStorage.getItem('bjt_dealing_speed')).toBe('fast')
+    expect(useAppStore.getState().dealingSpeed).toBe('fast')
+  })
+})

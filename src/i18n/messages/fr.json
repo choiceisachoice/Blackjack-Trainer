@@ -640,7 +640,8 @@
       "cashOut": "Encaisser",
       "cashOutWait": "Terminez d’abord la main",
       "timeUp_one": "1 minute jouée — terminez cette main",
-      "timeUp_other": "{{count}} minutes jouées — terminez cette main"
+      "timeUp_other": "{{count}} minutes jouées — terminez cette main",
+      "speedFast": "Rapide"
     },
     "summary": {
       "bankroll": "Bankroll",

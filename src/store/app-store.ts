@@ -11,28 +11,39 @@ const DEALING_SPEED_KEY = 'bjt_dealing_speed'
  * Card-dealing speed presets for the casino table. Only two realistic paces are
  * offered — a "fast" mode was removed as unrealistic.
  */
-export type DealingSpeed = 'slow' | 'normal'
+export type DealingSpeed = 'slow' | 'normal' | 'fast'
+
+/** Every speed, slowest first — the order the controls show them in. */
+export const DEALING_SPEEDS: readonly DealingSpeed[] = ['slow', 'normal', 'fast']
 
 /**
  * Multiplier applied to every animation delay. Higher = slower dealing.
  * `normal` (1.0) is the real casino baseline; `slow` gives more time to count.
+ *
+ * `fast` exists because the table had no way to hurry. Measured on 13 Nov
+ * 2026: a round with two bots and an instant Stand took 13 s at the default,
+ * seven of them before the player could act, and about 50 s with five bots.
+ * Someone drilling bet sizing or deviations is waiting for most of that. At
+ * 0.5 the bots still visibly think and every card is still seen to land.
  */
 export const DEALING_SPEED_MULTIPLIER: Record<DealingSpeed, number> = {
   slow: 1.5,
   normal: 1.0,
+  fast: 0.5,
 }
 
-/** Player-facing labels — a complete pair that reads well without a "Fast". */
+/** Player-facing labels. */
 export const DEALING_SPEED_LABEL: Record<DealingSpeed, string> = {
   slow: 'casino.hud.speedRelaxed',
   normal: 'casino.hud.speedStandard',
+  fast: 'casino.hud.speedFast',
 }
 
 /** Load persisted dealing speed. Defaults to slow (more time to count). */
 function loadDealingSpeed(): DealingSpeed {
   try {
     const s = localStorage.getItem(DEALING_SPEED_KEY)
-    if (s === 'slow' || s === 'normal') return s
+    if (s === 'slow' || s === 'normal' || s === 'fast') return s
   } catch { /* ignore */ }
   return 'slow'
 }

@@ -6,7 +6,7 @@ import { ArrowLeft, BarChart3, Crown, LogOut, ExternalLink, Loader2, Download, P
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { useEntitlementStore, useIsPro } from '../store/entitlement-store'
 import { useAppStore, DEALING_SPEED_LABEL } from '../store/app-store'
-import type { DealingSpeed } from '../store/app-store'
+import { DEALING_SPEEDS } from '../store/app-store'
 import { useStatsStore } from '../store/stats-store'
 import { useLevelStore } from '../store/level-store'
 import { useAchievementStore } from '../store/achievement-store'
@@ -659,7 +659,7 @@ function PreferencesSection() {
   // moves; the singleton stays the owner and does the persisting.
   const [ambientVolume, setAmbientVolume] = useState(() => casinoAmbient.volume)
 
-  const speeds: DealingSpeed[] = ['slow', 'normal']
+  const speeds = DEALING_SPEEDS
 
   return (
     <Section label={t('account.sectionPreferences')} testId="account-preferences">

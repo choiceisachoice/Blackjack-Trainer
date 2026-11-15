@@ -257,3 +257,53 @@ describe('the count check', () => {
     expect(hit).not.toHaveBeenCalled()
   })
 })
+
+/**
+ * The bet stays on the spot between hands. It used to return to $0 with the
+ * Deal button disabled, so flat betting took a chip click and a Deal click
+ * for every hand.
+ */
+describe('the bet between hands', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    useAppStore.getState().setMode('casinoSession')
+    useAppStore.setState({ dealingSpeed: 'normal' })
+    useCasinoSessionTrackerStore.setState({ sessions: [], startingBankroll: 0 })
+    stackHands()
+  })
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  it('offers the last bet again, so the next hand is one click', () => {
+    setUp('Unlimited')
+    playHandToStand()
+    leaveHand()
+
+    const deal = screen.getByTestId('confirm-bet')
+    expect(deal).toBeEnabled()
+    fireEvent.click(deal)
+    tick(8000)
+    // A hand is in play without a chip having been touched.
+    expect(screen.getByTestId('action-stand')).toBeInTheDocument()
+  })
+
+  it('reserves the result line from the deal on, so settling moves nothing', () => {
+    setUp('Unlimited')
+    fireEvent.click(screen.getByText('+$25'))
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(8000)
+    const seat = screen.getByTestId('human-seat')
+    const slot = seat.querySelector('.h-7')
+    expect(slot).not.toBeNull()
+    expect(slot!.textContent).toBe('')
+
+    fireEvent.click(screen.getByTestId('action-stand'))
+    tick(8000)
+    // Same element, now holding the result.
+    expect(seat.querySelector('.h-7')).toBe(slot)
+    expect(slot!.textContent).not.toBe('')
+  })
+})

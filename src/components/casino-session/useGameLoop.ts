@@ -136,6 +136,8 @@ export function useGameLoop(
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   /** True once the session has been recorded, so it can never be recorded twice. */
   const endedRef = useRef(false)
+  /** The bet of the hand just played, offered again for the next one. */
+  const lastBetRef = useRef(0)
   /** All pending gameplay timeouts, cleared together on unmount. */
   const pendingTimeouts = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
   /** Pause bookkeeping so the session clock excludes paused time. */
@@ -312,8 +314,16 @@ export function useGameLoop(
     setActiveBotId(null)
     setBotActiveSplitHands({})
     setBotSplitHands({})
-    setCurrentBet(0)
-    currentBetRef.current = 0
+    // The last bet stays on the spot, as chips do at a table. It used to go
+    // back to $0, with the Deal button disabled until a chip was clicked —
+    // under a label that read "Deal $25". Flat betting cost two clicks a
+    // hand, and nothing on screen said why the button was dead. Whatever the
+    // bankroll and the table limits no longer allow is cleared instead.
+    const engineNow = engineRef.current
+    const carried = Math.min(lastBetRef.current, config.maxBet, engineNow ? engineNow.getHumanBankroll() : 0)
+    const nextBet = carried >= config.minBet ? carried : 0
+    setCurrentBet(nextBet)
+    currentBetRef.current = nextBet
     humanHandsRef.current = [[]]
     handDoubledRef.current = new Set()
     isSurrenderedRef.current = false
@@ -331,7 +341,7 @@ export function useGameLoop(
       }
       setBotStatuses(newStatuses)
     }
-  }, [animation, setActive])
+  }, [animation, setActive, config.maxBet, config.minBet])
 
   const updateHandCards = useCallback((idx: number, newCards: Card[]) => {
     setHumanHands(prev => {
@@ -932,6 +942,7 @@ export function useGameLoop(
     const bet = currentBet || config.minBet
     const clampedBet = Math.min(bet, config.maxBet, engine.getHumanBankroll())
     if (clampedBet < config.minBet) return
+    lastBetRef.current = clampedBet
 
     const tc = engine.getTrueCount()
     const rc = engine.getRunningCount()
@@ -1351,7 +1362,7 @@ export function useGameLoop(
       soundEngine.cardDeal()
 
       if (isBust(newCards)) {
-        schedule(() => advanceToNextHand(idx), 600)
+        schedule(() => advanceToNextHand(idx), scaledDelay(600))
       }
       return
     }
@@ -1369,7 +1380,7 @@ export function useGameLoop(
       updateHandCards(activeHandIndex, newCards)
       soundEngine.cardDeal()
       soundEngine.chipPlace()
-      schedule(() => advanceToNextHand(idx), 600)
+      schedule(() => advanceToNextHand(idx), scaledDelay(600))
       return
     }
 

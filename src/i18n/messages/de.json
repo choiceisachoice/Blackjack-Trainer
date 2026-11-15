@@ -640,7 +640,8 @@
       "cashOut": "Cash-out",
       "cashOutWait": "Erst die Hand fertig spielen",
       "timeUp_one": "1 Minute gespielt — spiel diese Hand fertig",
-      "timeUp_other": "{{count}} Minuten gespielt — spiel diese Hand fertig"
+      "timeUp_other": "{{count}} Minuten gespielt — spiel diese Hand fertig",
+      "speedFast": "Schnell"
     },
     "summary": {
       "bankroll": "Bankroll",
