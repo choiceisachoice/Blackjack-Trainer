@@ -248,7 +248,7 @@
       "t5title": "Os desvios na tabela",
       "t5body": "Illustrious 18 e Fab 4 sobrepostos à tabela de estratégia, com o limiar de true count para cada jogada.",
       "t6title": "Ferramentas de bankroll",
-      "t6body": "Registe sessões a dinheiro real e simule o risco de ruína, para o seu spread de apostas bater certo com a sua vantagem real."
+      "t6body": "Registe as suas sessões com dinheiro real e veja quanto o seu jogo realmente ganha ou perde ao longo do tempo."
     },
     "manifesto": {
       "eyebrow": "Porque é que os contadores ganham",
@@ -346,7 +346,7 @@
     "r5": "Tabela de estratégia",
     "r6": "Desvios Illustrious 18 & Fab 4",
     "r7": "Análises — tendência, mapa de calor, radar, mãos mais fracas",
-    "r8": "Registo de bankroll & simulador de risco de ruína",
+    "r8": "Registo de bankroll",
     "r9": "Conquistas, níveis & o guia",
     "basics": "bases",
     "goProHeading": "Obter Pro",
@@ -1059,7 +1059,7 @@
         "more": {
           "p1": "Quase todo o lucro de um contador vem de uma só coisa: ter mais dinheiro na mesa quando o true count está alto do que quando está baixo. A relação entre a tua aposta mais pequena e a maior é o teu <c>spread de apostas</c>. Um spread de <g>1–8</g> numa mesa de 25 significa 25 com contagem neutra e 200 no topo.",
           "p2": "Uma rampa comum para seis baralhos: uma unidade a true count <g>+1 ou menos</g>, duas unidades a <g>+2</g>, quatro a <g>+3</g>, oito a <g>+4</g>, e aí parar ou subir para doze ou dezasseis a +5. A regra prática por trás é Kelly: aposta cerca da tua vantagem em percentagem do bankroll — com um por cento de vantagem, um por cento do que tens.",
-          "p3": "O bankroll é o que torna o spread suportável. As oscilações são brutais mesmo com vantagem; uma orientação comum é ter pelo menos <g>100 a 200</g> apostas máximas, e quanto mais pequeno o bankroll, maior o risco de perder tudo antes de a vantagem aparecer. As ferramentas de <c>Bankroll</c> do treinador mostram-te esse risco como número e não como sensação.",
+          "p3": "O bankroll é o que torna o spread suportável. As oscilações são brutais mesmo com vantagem; uma orientação comum é ter pelo menos <g>100 a 200</g> apostas máximas, e quanto mais pequeno o bankroll, maior o risco de perder tudo antes de a vantagem aparecer.",
           "p4": "Há ainda a questão da cobertura: saltar de uma unidade para dezasseis assim que a contagem sobe é a coisa mais visível que um contador pode fazer. Subir por degraus, e não cair para o mínimo no instante em que a contagem desce, custa um pouco de vantagem e compra muito tempo à mesa. O modo <c>Spread de apostas</c> treina a rampa; a sessão de casino avalia cada aposta que fazes contra ela."
         }
       },
@@ -1196,10 +1196,6 @@
     "card_sharp": {
       "name": "Ás das cartas",
       "desc": "Jogue 5 modos de treino diferentes"
-    },
-    "data_driven": {
-      "name": "Mente analítica",
-      "desc": "Corra a sua primeira simulação de bankroll"
     },
     "on_fire": {
       "name": "Em brasa",
@@ -1425,14 +1421,6 @@
       "name": "Falcão dos baralhos",
       "desc": "Alcance uma média de 90%+ nas suas últimas 10 estimativas de baralhos"
     },
-    "risk_analyst": {
-      "name": "Analista de risco",
-      "desc": "Corra 5 simulações de bankroll diferentes"
-    },
-    "edge_hunter": {
-      "name": "Caçador de vantagem",
-      "desc": "Encontre uma configuração com mais de 1% de vantagem ponderada"
-    },
     "triple_perfect": {
       "name": "Triplo perfeito",
       "desc": "Faça 100% em 3 sessões (mín. 10 perguntas cada)"
@@ -1618,7 +1606,7 @@
       "speed": "Velocidade",
       "counting": "Contagem",
       "deviations": "Desvios",
-      "simulation": "Bet spread, estimativa e simulação",
+      "simulation": "Bet spread e estimativa",
       "casino_session": "Sessão de casino",
       "challenges": "Desafios diários e semanais",
       "level_system": "Sistema de níveis",

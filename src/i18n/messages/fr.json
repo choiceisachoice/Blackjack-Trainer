@@ -248,7 +248,7 @@
       "t5title": "Les déviations sur le tableau",
       "t5body": "Illustrious 18 et Fab 4 superposés au tableau de stratégie, avec le seuil de true count pour chaque coup.",
       "t6title": "Outils de bankroll",
-      "t6body": "Suivez vos sessions en argent réel et simulez le risque de ruine, pour que votre écart de mises colle à votre avantage réel."
+      "t6body": "Enregistrez vos sessions en argent réel et voyez ce que votre jeu gagne ou perd réellement au fil du temps."
     },
     "manifesto": {
       "eyebrow": "Pourquoi les compteurs gagnent",
@@ -346,7 +346,7 @@
     "r5": "Tableau de stratégie",
     "r6": "Déviations Illustrious 18 & Fab 4",
     "r7": "Analyse — tendance, carte de chaleur, radar, mains les plus faibles",
-    "r8": "Suivi de bankroll & simulateur de risque de ruine",
+    "r8": "Suivi de bankroll",
     "r9": "Trophées, niveaux & le guide",
     "basics": "bases",
     "goProHeading": "Passer à Pro",
@@ -1059,7 +1059,7 @@
         "more": {
           "p1": "Presque tout le profit d’un compteur vient d’une seule chose : avoir plus d’argent sur la table quand le true count est haut que quand il est bas. Le rapport entre ta plus petite et ta plus grande mise est ton <c>écart de mise</c>. Un écart de <g>1–8</g> à une table à 25 signifie 25 quand le compte est neutre et 200 au sommet.",
           "p2": "Une rampe courante pour six jeux : une unité à un true count de <g>+1 ou moins</g>, deux unités à <g>+2</g>, quatre à <g>+3</g>, huit à <g>+4</g>, et soit s’arrêter là, soit passer à douze ou seize à +5. La règle empirique derrière est Kelly : mise environ ton avantage en pour cent de ta bankroll — à un pour cent d’avantage, un pour cent de ce que tu as.",
-          "p3": "La bankroll est ce qui rend l’écart survivable. Les fluctuations sont brutales même avec un avantage ; une règle courante est d’avoir au moins <g>100 à 200</g> mises maximales, et plus la bankroll est petite, plus le risque de tout perdre avant que l’avantage se manifeste est élevé. Les outils <c>Bankroll</c> de l’entraîneur te montrent ce risque comme un nombre plutôt qu’une impression.",
+          "p3": "La bankroll est ce qui rend l’écart survivable. Les fluctuations sont brutales même avec un avantage ; une règle courante est d’avoir au moins <g>100 à 200</g> mises maximales, et plus la bankroll est petite, plus le risque de tout perdre avant que l’avantage se manifeste est élevé.",
           "p4": "Il y a aussi la question de la couverture : sauter d’une unité à seize dès que le compte monte est la chose la plus visible qu’un compteur puisse faire. Monter par paliers, et ne pas retomber au minimum dès que le compte baisse, coûte un peu d’avantage et achète beaucoup de temps à la table. Le mode <c>Écart de mise</c> entraîne la rampe ; la session casino note chaque mise que tu fais par rapport à elle."
         }
       },
@@ -1196,10 +1196,6 @@
     "card_sharp": {
       "name": "As des cartes",
       "desc": "Jouez 5 modes d’entraînement différents"
-    },
-    "data_driven": {
-      "name": "Adepte des chiffres",
-      "desc": "Lancez votre première simulation de bankroll"
     },
     "on_fire": {
       "name": "En feu",
@@ -1425,14 +1421,6 @@
       "name": "Faucon des jeux",
       "desc": "Atteignez 90 % ou plus de moyenne sur vos 10 dernières estimations des jeux"
     },
-    "risk_analyst": {
-      "name": "Analyste du risque",
-      "desc": "Lancez 5 simulations de bankroll différentes"
-    },
-    "edge_hunter": {
-      "name": "Chasseur d’avantage",
-      "desc": "Trouvez une configuration à plus de 1 % d’avantage pondéré"
-    },
     "triple_perfect": {
       "name": "Triple sans faute",
       "desc": "Faites 100 % sur 3 sessions (10 questions minimum chacune)"
@@ -1618,7 +1606,7 @@
       "speed": "Vitesse",
       "counting": "Comptage",
       "deviations": "Déviations",
-      "simulation": "Bet spread, estimation et simulation",
+      "simulation": "Bet spread et estimation",
       "casino_session": "Session de casino",
       "challenges": "Défis quotidiens et hebdomadaires",
       "level_system": "Système de niveaux",

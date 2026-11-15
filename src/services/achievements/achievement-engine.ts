@@ -1,7 +1,6 @@
 import { provesAccuracy } from '../accuracy-sample'
 import type { Achievement, UnlockedAchievement } from './achievement-types'
 import type { TrainingSessionResult, LifetimeStats, TrainingMode, CasinoSessionDetails } from '../stats-types'
-import type { SimulationResult } from '../../engine/simulation/types'
 import { ALL_ACHIEVEMENTS } from './achievement-list'
 import { LEVELS } from '../level-system'
 import { todayKey, dayKeyOffset, daysBetweenKeys } from '../date-utils'
@@ -51,7 +50,7 @@ const CORE_MODES: TrainingMode[] = [
  * Achievement engine that tracks and awards achievements.
  *
  * Stores unlock state in localStorage. Exposes methods to check
- * session-based and simulation-based achievements.
+ * session-based achievements.
  */
 export class AchievementEngine {
   private unlocked: UnlockedAchievement[] = []
@@ -81,51 +80,6 @@ export class AchievementEngine {
     }
 
     // Check meta achievements after potentially unlocking others
-    this.checkMetaAchievements(newlyUnlocked)
-
-    return newlyUnlocked
-  }
-
-  /**
-   * Check simulation-related achievements after a bankroll simulation.
-   * Returns newly unlocked achievements.
-   */
-  checkAfterSimulation(result: SimulationResult): Achievement[] {
-    const newlyUnlocked: Achievement[] = []
-
-    // Increment sim count
-    const simCount = this.getSimCount() + 1
-    this.setSimCount(simCount)
-
-    // Track best edge (in basis points)
-    const edgeBps = Math.round(result.weightedPlayerEdge * 10000)
-    const bestEdge = this.getBestSimEdge()
-    if (edgeBps > bestEdge) {
-      this.setBestSimEdge(edgeBps)
-    }
-
-    // Check "Data Driven" — first sim
-    const dataDriven = ALL_ACHIEVEMENTS.find(a => a.id === 'data_driven')
-    if (dataDriven && !this.isUnlocked('data_driven') && simCount >= 1) {
-      this.unlock('data_driven')
-      newlyUnlocked.push(dataDriven)
-    }
-
-    // Check "Risk Analyst" — 5 sims
-    const riskAnalyst = ALL_ACHIEVEMENTS.find(a => a.id === 'risk_analyst')
-    if (riskAnalyst && !this.isUnlocked('risk_analyst') && simCount >= 5) {
-      this.unlock('risk_analyst')
-      newlyUnlocked.push(riskAnalyst)
-    }
-
-    // Check "Edge Hunter" — >1% weighted edge (100 bps)
-    const edgeHunter = ALL_ACHIEVEMENTS.find(a => a.id === 'edge_hunter')
-    if (edgeHunter && !this.isUnlocked('edge_hunter') && edgeBps >= 100) {
-      this.unlock('edge_hunter')
-      newlyUnlocked.push(edgeHunter)
-    }
-
-    // Check meta achievements
     this.checkMetaAchievements(newlyUnlocked)
 
     return newlyUnlocked
@@ -270,15 +224,6 @@ export class AchievementEngine {
           m => (stats.byMode[m as TrainingMode]?.totalSessions ?? 0) > 0
         )
         return Math.min(100, (uniqueModes.length / req.value) * 100)
-      }
-
-      case 'bankroll_sim': {
-        if (achievement.id === 'edge_hunter') {
-          const bestEdge = this.getBestSimEdge()
-          return Math.min(100, (bestEdge / 100) * 100)
-        }
-        const simCount = this.getSimCount()
-        return Math.min(100, (simCount / req.value) * 100)
       }
 
       // Casino session achievements: binary (0 or 100) based on best session
@@ -475,9 +420,6 @@ export class AchievementEngine {
         )
         return uniqueModes.length >= req.value
       }
-
-      case 'bankroll_sim':
-        return false // Handled in checkAfterSimulation
 
       // Casino session achievements — check the current session's details
       case 'casino_bots':

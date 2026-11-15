@@ -2,16 +2,16 @@ import type { Achievement } from './achievement-types'
 import type { Translate } from '../../i18n/translate'
 
 /**
- * All 102 achievements in the game.
+ * All 99 achievements in the game.
  *
  * The name and the description are not stored here: each achievement's `id` is
  * the stem of its two message keys (`ach.<id>.name`, `ach.<id>.desc`), read
  * through {@link achievementName} and {@link achievementDescription}. Keeping
- * 204 strings out of this file also keeps it what it is — a table of
+ * 198 strings out of this file also keeps it what it is — a table of
  * requirements — rather than half data and half copy.
  */
 export const ALL_ACHIEVEMENTS: Achievement[] = [
-  // ── Getting Started (3) ──────────────────────────────
+  // ── Getting Started (2) ──────────────────────────────
   {
     id: 'first_hand',
     icon: '\uD83C\uDFB0',
@@ -24,13 +24,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     icon: '\uD83C\uDCCF',
     category: 'getting_started',
     requirement: { type: 'mode_complete', value: 5 },
-    tier: 'bronze',
-  },
-  {
-    id: 'data_driven',
-    icon: '\uD83D\uDCCA',
-    category: 'getting_started',
-    requirement: { type: 'bankroll_sim', value: 1 },
     tier: 'bronze',
   },
 
@@ -203,22 +196,6 @@ export const ALL_ACHIEVEMENTS: Achievement[] = [
     icon: '\uD83D\uDC41',
     category: 'simulation',
     requirement: { type: 'sustained_accuracy', value: 90, mode: 'deckEstimation', window: 10 },
-    tier: 'gold',
-  },
-
-  // ── Simulation (3) ───────────────────────────────────
-  {
-    id: 'risk_analyst',
-    icon: '\uD83C\uDFE6',
-    category: 'simulation',
-    requirement: { type: 'bankroll_sim', value: 5 },
-    tier: 'silver',
-  },
-  {
-    id: 'edge_hunter',
-    icon: '\uD83D\uDC8E',
-    category: 'simulation',
-    requirement: { type: 'bankroll_sim', value: 100 },
     tier: 'gold',
   },
 

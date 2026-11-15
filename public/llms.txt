@@ -31,7 +31,7 @@ to turn that from knowledge into reflex.
 ## Access
 
 - Free tier: Speed Drill, Flashcards, basic strategy chart, personal analytics, levels and achievements. No payment details required.
-- Pro subscription: the full casino session, deviations overlaid on the strategy chart, and bankroll / risk-of-ruin tools.
+- Pro subscription: the full casino session, deviations overlaid on the strategy chart, and the bankroll tracker for real sessions.
 
 ## Notes
 

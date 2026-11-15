@@ -30,7 +30,6 @@ export type AchievementRequirementType =
   | 'mode_complete'
   | 'time'
   | 'perfect'
-  | 'bankroll_sim'
   | 'casino_bots'
   | 'casino_hands'
   | 'casino_grade'
@@ -104,7 +103,7 @@ export interface Achievement {
   /**
    * Unique identifier — and the stem of this achievement's two message keys,
    * `ach.<id>.name` and `ach.<id>.desc`. The text itself lives in the message
-   * files, so the 102 entries stay a table of requirements.
+   * files, so the 99 entries stay a table of requirements.
    */
   id: string
   /** Emoji icon for display. */

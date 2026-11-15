@@ -248,7 +248,7 @@
       "t5title": "Deviations on the chart",
       "t5body": "Illustrious 18 & Fab 4 overlaid on the strategy chart, with the true-count threshold for every play.",
       "t6title": "Bankroll tools",
-      "t6body": "Track real-money sessions and simulate risk of ruin, so your bet spread matches your actual edge."
+      "t6body": "Log your real-money sessions and see what your play actually wins or loses over time."
     },
     "manifesto": {
       "eyebrow": "Why counters win",
@@ -346,7 +346,7 @@
     "r5": "Strategy Chart",
     "r6": "Illustrious 18 & Fab 4 deviations",
     "r7": "Analytics — trend, heatmap, skill radar, weakest hands",
-    "r8": "Bankroll Tracker & risk-of-ruin simulator",
+    "r8": "Bankroll Tracker",
     "r9": "Awards, levels & the Learn guide",
     "basics": "basics",
     "goProHeading": "Go Pro",
@@ -1059,7 +1059,7 @@
         "more": {
           "p1": "Nearly all of a counter's profit comes from one thing: having more money on the table when the true count is high than when it is low. The ratio between your smallest and largest bet is your <c>bet spread</c>. A <g>1–8</g> spread at a 25 table means 25 when the count is neutral and 200 at the top.",
           "p2": "A common ramp for six decks: one unit at a true count of <g>+1 or below</g>, two units at <g>+2</g>, four at <g>+3</g>, eight at <g>+4</g>, and either stop there or go to twelve or sixteen at +5. The rule of thumb behind it is Kelly: bet about your edge in percent of your bankroll — at a one-percent edge, one percent of what you have.",
-          "p3": "The bankroll is what makes the spread survivable. Swings are brutal even with an edge; a common guideline is at least <g>100 to 200</g> maximum bets, and the smaller the bankroll the higher the risk of losing it all before the edge shows. The <c>Bankroll</c> tools in the trainer let you see that risk as a number instead of a feeling.",
+          "p3": "The bankroll is what makes the spread survivable. Swings are brutal even with an edge; a common guideline is at least <g>100 to 200</g> maximum bets, and the smaller the bankroll the higher the risk of losing it all before the edge shows.",
           "p4": "There is also the question of cover: jumping from one unit to sixteen the moment the count rises is the most visible thing a counter can do. Ramping up in steps, and not dropping to the minimum the instant the count falls, costs a little edge and buys a lot of time at the table. The <c>Bet Spread</c> mode trains the ramp; the casino session grades every bet you make against it."
         }
       },
@@ -1196,10 +1196,6 @@
     "card_sharp": {
       "name": "Card Sharp",
       "desc": "Play 5 different training modes"
-    },
-    "data_driven": {
-      "name": "Data Driven",
-      "desc": "Run your first bankroll simulation"
     },
     "on_fire": {
       "name": "On Fire",
@@ -1425,14 +1421,6 @@
       "name": "Deck Hawk",
       "desc": "Average 90%+ accuracy across your last 10 Deck Estimation sessions"
     },
-    "risk_analyst": {
-      "name": "Risk Analyst",
-      "desc": "Run 5 different bankroll simulations"
-    },
-    "edge_hunter": {
-      "name": "Edge Hunter",
-      "desc": "Find a configuration with >1% weighted edge"
-    },
     "triple_perfect": {
       "name": "Triple Perfect",
       "desc": "Achieve 100% accuracy in 3 sessions (min 10 questions each)"
@@ -1618,7 +1606,7 @@
       "speed": "Speed",
       "counting": "Counting",
       "deviations": "Deviations",
-      "simulation": "Bet Spread, Estimation & Simulation",
+      "simulation": "Bet Spread & Estimation",
       "casino_session": "Casino Session",
       "challenges": "Daily & Weekly Challenges",
       "level_system": "Level System",

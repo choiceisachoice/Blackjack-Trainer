@@ -1,11 +1,9 @@
 import { create } from 'zustand'
 import type { Achievement } from '../services/achievements/achievement-types'
 import type { TrainingSessionResult, LifetimeStats } from '../services/stats-types'
-import type { SimulationResult } from '../engine/simulation/types'
 import { achievementEngine } from '../services/achievements/achievement-engine'
 import { ALL_ACHIEVEMENTS } from '../services/achievements/achievement-list'
 import { pushNewUnlocks, clearCloudAchievements } from '../services/supabase/achievements-sync'
-import { pushProfileScalars } from '../services/supabase/profiles-sync'
 import { useLevelStore } from './level-store'
 
 /** State shape for the achievement store. */
@@ -30,11 +28,6 @@ export interface AchievementStoreActions {
     dayStreak: number,
     allSessions: TrainingSessionResult[],
   ): void
-
-  /**
-   * Check for simulation-related achievements after a bankroll simulation.
-   */
-  checkSimulationAchievements(result: SimulationResult): void
 
   /**
    * Check for bankroll-tracker achievements after a session is added/edited/deleted.
@@ -76,21 +69,6 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
       useLevelStore.getState().addAchievementsXP(newAchievements.map(a => a.tier))
       pushNewUnlocks(newAchievements)
     }
-  },
-
-  checkSimulationAchievements(result) {
-    const newAchievements = achievementEngine.checkAfterSimulation(result)
-    if (newAchievements.length > 0) {
-      set(state => ({
-        unlockedIds: achievementEngine.getUnlocked().map(u => u.achievementId),
-        newlyUnlocked: [...state.newlyUnlocked, ...newAchievements],
-        totalUnlocked: achievementEngine.getUnlockedCount(),
-      }))
-      useLevelStore.getState().addAchievementsXP(newAchievements.map(a => a.tier))
-      pushNewUnlocks(newAchievements)
-    }
-    // A simulation always bumps the sim counters, even with no new unlock.
-    pushProfileScalars()
   },
 
   checkBankrollTrackerAchievements() {

@@ -4,7 +4,7 @@ import { ALL_ACHIEVEMENTS, achievementName, achievementDescription } from './ach
 import en from '../../i18n/messages/en.json'
 
 /**
- * The 102 achievements carry only an id; their name and description live in
+ * The 99 achievements carry only an id; their name and description live in
  * the message files under `ach.<id>`.
  *
  * That split is convenient and silent when it breaks. A new achievement added

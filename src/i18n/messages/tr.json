@@ -248,7 +248,7 @@
       "t5title": "Tabloda sapmalar",
       "t5body": "Illustrious 18 ve Fab 4, strateji tablosunun üzerine bindirilmiş; her oyun için gerçek sayım eşiğiyle.",
       "t6title": "Kasa araçları",
-      "t6body": "Gerçek parayla oynanan oturumları kaydedin ve iflas riskini simüle edin; böylece bahis aralığınız gerçek avantajınıza uysun."
+      "t6body": "Gerçek parayla oynadığınız oturumları kaydedin ve oyununuzun zaman içinde gerçekte ne kazandırıp kaybettirdiğini görün."
     },
     "manifesto": {
       "eyebrow": "Sayıcılar neden kazanır",
@@ -346,7 +346,7 @@
     "r5": "Strateji tablosu",
     "r6": "Illustrious 18 & Fab 4 sapmaları",
     "r7": "Analiz — eğri, ısı haritası, beceri radarı, en zayıf eller",
-    "r8": "Kasa takibi & iflas riski simülatörü",
+    "r8": "Bankroll takibi",
     "r9": "Başarımlar, seviyeler & rehber",
     "basics": "temel",
     "goProHeading": "Pro'ya geç",
@@ -1059,7 +1059,7 @@
         "more": {
           "p1": "Bir sayıcının kârının neredeyse tamamı tek bir şeyden gelir: true count yüksekken masada düşükken olduğundan daha fazla para olması. En küçük ve en büyük bahsin arasındaki oran senin <c>bahis aralığındır</c>. 25’lik bir masada <g>1–8</g> aralığı, nötr sayımda 25 ve tepede 200 demektir.",
           "p2": "Altı deste için yaygın bir rampa: <g>+1 veya altı</g> true count’ta bir birim, <g>+2</g>’de iki birim, <g>+3</g>’te dört, <g>+4</g>’te sekiz ve orada durmak ya da +5’te on iki veya on altıya çıkmak. Arkasındaki pratik kural Kelly’dir: kasanın yüzdesi olarak yaklaşık avantajın kadar bahis yap — yüzde bir avantajda sahip olduğunun yüzde biri.",
-          "p3": "Aralığı hayatta kalınabilir yapan kasadır. Avantajla bile dalgalanmalar acımasızdır; yaygın bir kılavuz en az <g>100 ila 200</g> maksimum bahistir ve kasa küçüldükçe avantaj kendini göstermeden her şeyi kaybetme riski artar. Antrenördeki <c>Kasa</c> araçları bu riski bir his olarak değil, bir sayı olarak gösterir.",
+          "p3": "Aralığı hayatta kalınabilir yapan kasadır. Avantajla bile dalgalanmalar acımasızdır; yaygın bir kılavuz en az <g>100 ila 200</g> maksimum bahistir ve kasa küçüldükçe avantaj kendini göstermeden her şeyi kaybetme riski artar.",
           "p4": "Bir de kamuflaj meselesi var: sayım yükselir yükselmez bir birimden on altıya sıçramak bir sayıcının yapabileceği en görünür şeydir. Kademeli yükselmek ve sayım düştüğü an minimuma inmemek biraz avantaja mal olur ve masada çok zaman kazandırır. <c>Bahis aralığı</c> modu rampayı çalıştırır; casino oturumu yaptığın her bahsi ona göre puanlar."
         }
       },
@@ -1196,10 +1196,6 @@
     "card_sharp": {
       "name": "Kart ustası",
       "desc": "5 farklı antrenman modu oynayın"
-    },
-    "data_driven": {
-      "name": "Veriyle hareket",
-      "desc": "İlk bankroll simülasyonunuzu çalıştırın"
     },
     "on_fire": {
       "name": "Alev almış",
@@ -1425,14 +1421,6 @@
       "name": "Deste şahini",
       "desc": "Son 10 deste tahmini turunda ortalama %90+ tutturun"
     },
-    "risk_analyst": {
-      "name": "Risk analisti",
-      "desc": "5 farklı bankroll simülasyonu çalıştırın"
-    },
-    "edge_hunter": {
-      "name": "Avantaj avcısı",
-      "desc": "Ağırlıklı avantajı %1’i aşan bir yapılandırma bulun"
-    },
     "triple_perfect": {
       "name": "Üçlü kusursuz",
       "desc": "3 turda %100 yapın (her birinde en az 10 soru)"
@@ -1618,7 +1606,7 @@
       "speed": "Hız",
       "counting": "Sayım",
       "deviations": "Sapmalar",
-      "simulation": "Bet spread, tahmin ve simülasyon",
+      "simulation": "Bet spread ve tahmin",
       "casino_session": "Casino oturumu",
       "challenges": "Günlük ve haftalık görevler",
       "level_system": "Seviye sistemi",

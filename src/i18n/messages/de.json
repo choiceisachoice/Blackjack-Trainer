@@ -248,7 +248,7 @@
       "t5title": "Abweichungen in der Tabelle",
       "t5body": "Illustrious 18 & Fab 4 über die Strategietabelle gelegt, mit dem True-Count-Schwellenwert für jeden Zug.",
       "t6title": "Bankroll-Werkzeuge",
-      "t6body": "Erfasse Echtgeld-Sessions und simuliere das Ruinrisiko, damit deine Einsatzspreizung zu deinem tatsächlichen Vorteil passt."
+      "t6body": "Erfasse deine Echtgeld-Sessions und sieh, was dein Spiel über die Zeit wirklich gewinnt oder verliert."
     },
     "manifesto": {
       "eyebrow": "Warum Zähler gewinnen",
@@ -346,7 +346,7 @@
     "r5": "Strategietabelle",
     "r6": "Illustrious 18 & Fab 4 Abweichungen",
     "r7": "Auswertung — Verlauf, Heatmap, Skill-Radar, schwächste Hände",
-    "r8": "Bankroll-Tracker & Ruinrisiko-Simulator",
+    "r8": "Bankroll-Tracker",
     "r9": "Erfolge, Level & der Lern-Guide",
     "basics": "Grundlagen",
     "goProHeading": "Pro holen",
@@ -1059,7 +1059,7 @@
         "more": {
           "p1": "Fast der gesamte Gewinn eines Zählers kommt aus einer Sache: mehr Geld auf dem Tisch zu haben, wenn der True Count hoch ist, als wenn er niedrig ist. Das Verhältnis zwischen deinem kleinsten und größten Einsatz ist deine <c>Einsatzspreizung</c>. Eine Spreizung von <g>1–8</g> an einem 25er-Tisch heißt 25 bei neutralem Count und 200 an der Spitze.",
           "p2": "Eine übliche Rampe für sechs Decks: eine Einheit bei True Count <g>+1 oder darunter</g>, zwei Einheiten bei <g>+2</g>, vier bei <g>+3</g>, acht bei <g>+4</g>, und dort entweder aufhören oder bei +5 auf zwölf oder sechzehn gehen. Die Faustregel dahinter ist Kelly: Setze etwa deinen Vorteil in Prozent deiner Bankroll — bei einem Prozent Vorteil ein Prozent dessen, was du hast.",
-          "p3": "Die Bankroll ist das, was die Spreizung überlebbar macht. Die Schwankungen sind selbst mit Vorteil brutal; eine gängige Richtlinie sind mindestens <g>100 bis 200</g> Höchsteinsätze, und je kleiner die Bankroll, desto höher das Risiko, alles zu verlieren, bevor sich der Vorteil zeigt. Die <c>Bankroll</c>-Werkzeuge im Trainer zeigen dir dieses Risiko als Zahl statt als Gefühl.",
+          "p3": "Die Bankroll ist das, was die Spreizung überlebbar macht. Die Schwankungen sind selbst mit Vorteil brutal; eine gängige Richtlinie sind mindestens <g>100 bis 200</g> Höchsteinsätze, und je kleiner die Bankroll, desto höher das Risiko, alles zu verlieren, bevor sich der Vorteil zeigt.",
           "p4": "Dann ist da noch die Frage der Tarnung: Von einer Einheit auf sechzehn zu springen, sobald der Count steigt, ist das Sichtbarste, was ein Zähler tun kann. In Stufen hochzugehen und nicht sofort aufs Minimum zu fallen, wenn der Count sinkt, kostet ein wenig Vorteil und kauft viel Zeit am Tisch. Der Modus <c>Einsatzspreizung</c> trainiert die Rampe; die Casino-Session bewertet jeden Einsatz, den du machst, daran."
         }
       },
@@ -1196,10 +1196,6 @@
     "card_sharp": {
       "name": "Kartenprofi",
       "desc": "Spiele 5 verschiedene Trainingsmodi"
-    },
-    "data_driven": {
-      "name": "Zahlenmensch",
-      "desc": "Führe deine erste Bankroll-Simulation durch"
     },
     "on_fire": {
       "name": "In Fahrt",
@@ -1425,14 +1421,6 @@
       "name": "Deck-Falke",
       "desc": "Erreiche im Schnitt 90 %+ über deine letzten 10 Deck-Schätzungen"
     },
-    "risk_analyst": {
-      "name": "Risikoanalyst",
-      "desc": "Führe 5 verschiedene Bankroll-Simulationen durch"
-    },
-    "edge_hunter": {
-      "name": "Vorteilsjäger",
-      "desc": "Finde eine Konfiguration mit über 1 % gewichtetem Vorteil"
-    },
     "triple_perfect": {
       "name": "Dreimal makellos",
       "desc": "Erreiche 100 % in 3 Durchgängen (je mind. 10 Fragen)"
@@ -1618,7 +1606,7 @@
       "speed": "Tempo",
       "counting": "Zählen",
       "deviations": "Abweichungen",
-      "simulation": "Bet Spread, Schätzung & Simulation",
+      "simulation": "Bet Spread & Schätzung",
       "casino_session": "Casino-Session",
       "challenges": "Tages- und Wochenaufgaben",
       "level_system": "Levelsystem",

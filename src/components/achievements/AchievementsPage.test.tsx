@@ -15,7 +15,6 @@ vi.mock('../../services/achievements/achievement-engine', () => ({
     getBestSimEdge: vi.fn(() => 0),
     isUnlocked: vi.fn(() => false),
     checkAfterSession: vi.fn(() => []),
-    checkAfterSimulation: vi.fn(() => []),
     resetAll: vi.fn(),
   },
 }))

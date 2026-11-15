@@ -45,8 +45,8 @@ describe('AchievementEngine', () => {
     engine = new AchievementEngine()
   })
 
-  it('has 102 achievements defined', () => {
-    expect(ALL_ACHIEVEMENTS).toHaveLength(102)
+  it('has 99 achievements defined', () => {
+    expect(ALL_ACHIEVEMENTS).toHaveLength(99)
   })
 
   it('all achievements have unique ids', () => {
@@ -308,26 +308,6 @@ describe('AchievementEngine', () => {
 
     // Check achievements - many should unlock from the high stats
     engine.checkAfterSession(session, stats, 30, allSessions)
-
-    // Manually simulate sim achievements to pad count
-    engine.checkAfterSimulation({
-      totalHands: 1000,
-      finalBankroll: 11000,
-      peakBankroll: 12000,
-      minBankroll: 9000,
-      netProfit: 1000,
-      hourlyEV: 50,
-      riskOfRuin: 0.01,
-      n0: 5000,
-      houseEdge: -0.005,
-      weightedPlayerEdge: 0.012,
-      bankrollHistory: [{ hand: 0, bankroll: 10000 }],
-      outcomeDistribution: [],
-      percentWinningSessions: 55,
-      worstDrawdown: 2000,
-      averageBet: 75,
-      kellyOptimalBet: 100,
-    })
 
     // After all checks, card_counter may be unlocked if 20+ others are
     const unlockedCount = engine.getUnlockedCount()
@@ -677,60 +657,6 @@ describe('AchievementEngine', () => {
     })
   })
 
-  describe('simulation achievements', () => {
-    const mockSimResult = {
-      totalHands: 5000,
-      finalBankroll: 105000,
-      peakBankroll: 110000,
-      minBankroll: 95000,
-      netProfit: 5000,
-      hourlyEV: 50,
-      riskOfRuin: 0.01,
-      n0: 3000,
-      houseEdge: -0.005,
-      weightedPlayerEdge: 0.008,
-      bankrollHistory: [{ hand: 0, bankroll: 100000 }],
-      outcomeDistribution: [],
-      percentWinningSessions: 55,
-      worstDrawdown: 5000,
-      averageBet: 100,
-      kellyOptimalBet: 150,
-    }
-
-    it('unlocks data_driven on first simulation', () => {
-      const unlocked = engine.checkAfterSimulation(mockSimResult)
-      expect(unlocked.some(a => a.id === 'data_driven')).toBe(true)
-    })
-
-    it('unlocks risk_analyst after 5 simulations', () => {
-      for (let i = 0; i < 4; i++) {
-        engine.checkAfterSimulation(mockSimResult)
-      }
-      const unlocked = engine.checkAfterSimulation(mockSimResult)
-      expect(unlocked.some(a => a.id === 'risk_analyst')).toBe(true)
-    })
-
-    it('unlocks edge_hunter with >1% weighted edge', () => {
-      const highEdgeResult = { ...mockSimResult, weightedPlayerEdge: 0.0105 }
-      const unlocked = engine.checkAfterSimulation(highEdgeResult)
-      expect(unlocked.some(a => a.id === 'edge_hunter')).toBe(true)
-    })
-
-    it('does not unlock edge_hunter with <1% edge', () => {
-      const lowEdgeResult = { ...mockSimResult, weightedPlayerEdge: 0.005 }
-      const unlocked = engine.checkAfterSimulation(lowEdgeResult)
-      expect(unlocked.some(a => a.id === 'edge_hunter')).toBe(false)
-    })
-
-    it('persists sim count across instances', () => {
-      engine.checkAfterSimulation(mockSimResult)
-      engine.checkAfterSimulation(mockSimResult)
-      expect(engine.getSimCount()).toBe(2)
-
-      const engine2 = new AchievementEngine()
-      expect(engine2.getSimCount()).toBe(2)
-    })
-  })
 })
 
 // ── Balance-pass requirement types (2026-07) ─────────────────────────────

@@ -248,7 +248,7 @@
       "t5title": "Le deviazioni sulla tabella",
       "t5body": "Illustrious 18 e Fab 4 sovrapposti alla tabella di strategia, con la soglia di true count per ogni giocata.",
       "t6title": "Strumenti di bankroll",
-      "t6body": "Registra le sessioni in denaro reale e simula il rischio di rovina, così lo spread delle puntate corrisponde al tuo vantaggio effettivo."
+      "t6body": "Registra le tue sessioni con denaro reale e vedi quanto il tuo gioco vince o perde davvero nel tempo."
     },
     "manifesto": {
       "eyebrow": "Perché i contatori vincono",
@@ -346,7 +346,7 @@
     "r5": "Tabella di strategia",
     "r6": "Deviazioni Illustrious 18 & Fab 4",
     "r7": "Analisi — andamento, mappa di calore, radar, mani più deboli",
-    "r8": "Tracker bankroll & simulatore del rischio di rovina",
+    "r8": "Registro della bankroll",
     "r9": "Premi, livelli & la guida",
     "basics": "basi",
     "goProHeading": "Passa a Pro",
@@ -1059,7 +1059,7 @@
         "more": {
           "p1": "Quasi tutto il profitto di un contatore viene da una cosa sola: avere più denaro sul tavolo quando il true count è alto rispetto a quando è basso. Il rapporto tra la tua puntata più piccola e quella più grande è il tuo <c>spread delle puntate</c>. Uno spread <g>1–8</g> a un tavolo da 25 significa 25 a conteggio neutro e 200 al massimo.",
           "p2": "Una rampa comune per sei mazzi: un’unità a true count <g>+1 o inferiore</g>, due unità a <g>+2</g>, quattro a <g>+3</g>, otto a <g>+4</g>, e lì fermarsi oppure salire a dodici o sedici a +5. La regola pratica dietro è Kelly: punta circa il tuo vantaggio in percentuale del bankroll — con un vantaggio dell’uno per cento, l’uno per cento di ciò che hai.",
-          "p3": "Il bankroll è ciò che rende lo spread sopportabile. Le oscillazioni sono brutali anche con un vantaggio; una linea guida comune è almeno <g>100–200</g> puntate massime, e più piccolo è il bankroll più alto è il rischio di perdere tutto prima che il vantaggio si manifesti. Gli strumenti <c>Bankroll</c> del trainer ti mostrano quel rischio come numero invece che come sensazione.",
+          "p3": "Il bankroll è ciò che rende lo spread sopportabile. Le oscillazioni sono brutali anche con un vantaggio; una linea guida comune è almeno <g>100–200</g> puntate massime, e più piccolo è il bankroll più alto è il rischio di perdere tutto prima che il vantaggio si manifesti.",
           "p4": "C’è poi la questione della copertura: saltare da un’unità a sedici appena il conteggio sale è la cosa più visibile che un contatore possa fare. Salire a gradini, e non scendere al minimo nell’istante in cui il conteggio cala, costa un po’ di vantaggio e compra molto tempo al tavolo. La modalità <c>Spread delle puntate</c> allena la rampa; la sessione casinò valuta ogni tua puntata rispetto a essa."
         }
       },
@@ -1196,10 +1196,6 @@
     "card_sharp": {
       "name": "Asso di carte",
       "desc": "Gioca 5 modalità di allenamento diverse"
-    },
-    "data_driven": {
-      "name": "Uomo dei numeri",
-      "desc": "Esegui la tua prima simulazione di bankroll"
     },
     "on_fire": {
       "name": "In fiamme",
@@ -1425,14 +1421,6 @@
       "name": "Falco dei mazzi",
       "desc": "Ottieni una media del 90%+ sulle tue ultime 10 sessioni di stima dei mazzi"
     },
-    "risk_analyst": {
-      "name": "Analista del rischio",
-      "desc": "Esegui 5 simulazioni di bankroll diverse"
-    },
-    "edge_hunter": {
-      "name": "Cacciatore di vantaggio",
-      "desc": "Trova una configurazione con oltre l’1% di vantaggio ponderato"
-    },
     "triple_perfect": {
       "name": "Tripletta perfetta",
       "desc": "Ottieni il 100% in 3 sessioni (min. 10 domande ciascuna)"
@@ -1618,7 +1606,7 @@
       "speed": "Velocità",
       "counting": "Conteggio",
       "deviations": "Deviazioni",
-      "simulation": "Bet spread, stima e simulazione",
+      "simulation": "Bet spread e stima",
       "casino_session": "Sessione al casinò",
       "challenges": "Sfide giornaliere e settimanali",
       "level_system": "Sistema di livelli",
