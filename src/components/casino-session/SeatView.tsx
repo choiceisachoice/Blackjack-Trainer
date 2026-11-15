@@ -30,7 +30,20 @@ import type { BotStatus, GameStep } from './helpers'
 function Hand({ cards, animateFrom = 0, totalClass = 'text-sm' }: {
   cards: Card[]; animateFrom?: number; totalClass?: string
 }) {
-  if (cards.length === 0) return null
+  // An empty hand keeps the room its cards will take. It used to render
+  // nothing, and the seat row is bottom-aligned: when a seat's first card
+  // landed, its chip jumped up by a card's height in one frame — 153px on
+  // screen at 1536x730, seat by seat down the table — and the legend above
+  // was squeezed with it. Same heights as a dealt hand: the card, the gap,
+  // the line the total sits on.
+  if (cards.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-0.5" aria-hidden data-testid="hand-placeholder">
+        <div className="h-[74px] md:h-[80px]" />
+        <span className={`${totalClass} font-bold invisible`}>0</span>
+      </div>
+    )
+  }
   const overlap = cards.length <= 4 ? 22 : cards.length <= 6 ? 30 : 36
   return (
     <div className="flex flex-col items-center gap-0.5">

@@ -80,57 +80,140 @@ export interface Size {
   height: number
 }
 
-/** The shortest the scene may get before the seats start fighting the dealer. */
-export const TABLE_MIN_HEIGHT = 420
+/**
+ * The shortest the scene is ever drawn.
+ *
+ * Top rail (the shoe, about 171px) plus a settled seat row (about 222px) plus
+ * the felt's own border and padding (50px) leave the legend some 75px at this
+ * height — enough that it sits between the dealer and the chips instead of on
+ * top of both. It was 420, where that band was zero: the legend ran through
+ * the dealer's total and the middle seats' chips.
+ */
+export const TABLE_MIN_HEIGHT = 520
+
+/**
+ * The narrowest the scene is drawn for a table of one seat.
+ *
+ * Discard tray, dealer and shoe side by side need about this much. A caller
+ * with more seats passes its own floor (see `tableMinWidth`).
+ */
+export const TABLE_MIN_WIDTH = 640
+
+/** How far past the design width the felt may be drawn to use up a wide, short box. */
+const TABLE_MAX_WIDTH_FACTOR = 1.3
+
+/**
+ * The narrowest scene that still holds a given number of seats in one row.
+ *
+ * A seat is 140px at rest and the row's gaps are 20–32px; the allowance on
+ * top is the arc's rim and the felt's border.
+ *
+ * @param seats - Seats at the table, the player's included
+ */
+export function tableMinWidth(seats: number): number {
+  return Math.min(TABLE_DESIGN.width, Math.max(TABLE_MIN_WIDTH, seats * 150 + 60))
+}
 
 export interface TableFit {
   /** Factor to apply to the whole scene. */
   scale: number
+  /** Width to draw the scene at, *before* scaling. */
+  sceneWidth: number
   /** Height to draw the scene at, *before* scaling. */
   sceneHeight: number
 }
 
 /**
- * Fit the table to its box.
+ * Fit the table to its box — all of it, at every size.
  *
- * ## Why the scale comes from the width alone
+ * ## What this replaced, and why
  *
- * The obvious version takes `min(w/dw, h/dh)` — fit both axes. Tried, and it
- * traded one screen for another: an ultrawide gained 70%, but a 1280x720 laptop
- * *lost* 19%, because a short box forced the whole scene down. Shrinking the
- * one size that was never the problem is not a fix.
+ * The scale used to come from the width alone, with the scene's height
+ * following and a 420px floor under it. The reasoning was sound as far as it
+ * went: fitting both axes with `min(w/dw, h/dh)` made a 1280x720 laptop 19%
+ * smaller, and shrinking the one size that was never the problem is not a fix.
  *
- * So the width sets the scale, and the height follows: the scene is drawn
- * taller or shorter so that, once scaled, it exactly fills the box. That is
- * what the old flexible layout did with its `flex-1` middle band, kept intact —
- * the difference is that now the whole scene grows with the screen instead of
- * stopping at 1120px while its contents stay pinned to hard-coded pixels.
+ * But below the floor the scene was simply taller than its box, and the box
+ * centred it — so the overflow was cut off at *both* ends, and the top half
+ * could not even be scrolled to. Measured on 13 Nov 2026 in a 1536x730 window,
+ * an ordinary 15" laptop with the browser's bars: 93px gone from the top (the
+ * dealer's cards), 97px from the bottom (the player's own total). It only ever
+ * fitted at 1080px of viewport height, which is the size the demo recorder
+ * films at and the reason nobody saw it.
+ *
+ * ## The rule now
+ *
+ * 1. The width still leads. A box that is tall enough gets exactly the scale
+ *    it had before — nothing that worked got smaller.
+ * 2. The height is a ceiling on that scale, not a second axis to fit: the
+ *    scene is never scaled so far that its floor no longer fits the box. A
+ *    smaller table that is all there beats a larger one with the dealer cut
+ *    off.
+ * 3. When the height is what limits it, the scene is drawn *wider* to use the
+ *    width that would otherwise sit empty beside it — up to a cap, so a very
+ *    wide, very short box does not stretch the felt into a ribbon.
+ * 4. A box narrower than the design is first met by drawing a narrower scene
+ *    at full size (down to `minWidth`), and only then by scaling. On a 390px
+ *    phone a three-seat table used to be scaled to 0.35 — an 18px-wide card;
+ *    drawn at 640 it is scaled to 0.58.
  *
  * Returns a scale of **1** for an unmeasured box. Zero would paint nothing, and
  * a first frame of nothing is the failure mode this codebase keeps meeting.
+ *
+ * @param available - The box the table may fill
+ * @param design - The scene's design size
+ * @param maxScale - Ceiling on the scale
+ * @param minWidth - The narrowest the scene may be drawn before it is scaled
+ *   down instead; defaults to the design width (never reflow)
  */
 export function fitTable(
   available: Size,
   design: Size = TABLE_DESIGN,
   maxScale = TABLE_MAX_SCALE,
+  minWidth = design.width,
 ): TableFit {
-  const fallback = { scale: 1, sceneHeight: design.height }
+  const fallback = { scale: 1, sceneWidth: design.width, sceneHeight: design.height }
   if (design.width <= 0 || design.height <= 0) return fallback
+  if (!Number.isFinite(available.width) || available.width <= 0) return fallback
 
-  const raw = available.width / design.width
-  if (!Number.isFinite(raw) || raw <= 0) return fallback
+  const floorWidth = Math.min(Math.max(minWidth, 1), design.width)
+  const drawnWidth = Math.min(Math.max(available.width, floorWidth), design.width)
+  const widthScale = Math.min(available.width / drawnWidth, maxScale)
 
-  const scale = Math.min(raw, maxScale)
+  // No usable height (unmeasured, or nonsense): the width alone decides, at
+  // the design height, as before.
+  if (!Number.isFinite(available.height) || available.height <= 0) {
+    return { scale: widthScale, sceneWidth: drawnWidth, sceneHeight: design.height }
+  }
 
-  // The height the scene must be drawn at so that scaling lands exactly on the
-  // box. Floored, so a very short window compresses the felt rather than
-  // clipping the seats off the bottom.
-  const wanted = available.height / scale
-  const sceneHeight = Number.isFinite(wanted)
-    ? Math.max(TABLE_MIN_HEIGHT, wanted)
-    : design.height
+  const heightScale = available.height / TABLE_MIN_HEIGHT
+  const scale = Math.min(widthScale, heightScale)
+  const sceneHeight = Math.max(TABLE_MIN_HEIGHT, available.height / scale)
+  const sceneWidth = scale < widthScale
+    ? Math.min(available.width / scale, design.width * TABLE_MAX_WIDTH_FACTOR)
+    : drawnWidth
 
-  return { scale, sceneHeight }
+  return { scale, sceneWidth, sceneHeight }
+}
+
+/**
+ * Table limits a hand can actually be dealt under.
+ *
+ * The setup accepted any three numbers. A minimum above the maximum made every
+ * bet illegal — the table sat at "place your bet" for good — and a bankroll
+ * below the minimum showed a Deal button that did nothing. The minimum is the
+ * figure the player chose first, so it stands; the maximum and the bankroll
+ * are raised to meet it.
+ *
+ * @param limits - The three amounts from the setup screen
+ * @returns The same amounts, with `maxBet` and `startingBankroll` no lower than `minBet`
+ */
+export function playableLimits<L extends { minBet: number; maxBet: number; startingBankroll: number }>(limits: L): L {
+  return {
+    ...limits,
+    maxBet: Math.max(limits.maxBet, limits.minBet),
+    startingBankroll: Math.max(limits.startingBankroll, limits.minBet),
+  }
 }
 
 export function formatDollar(n: number): string {

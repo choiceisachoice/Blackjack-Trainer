@@ -5,6 +5,7 @@ import { CasinoSession } from './CasinoSession'
 import { useAppStore } from '../../store/app-store'
 import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker-store'
 import { Shoe } from '../../engine/shoe/shoe'
+import { CasinoSessionEngine } from '../../engine/casino-session/session-engine'
 import { Rank, Suit, type Card } from '../../engine/shoe/types'
 
 /**
@@ -48,13 +49,15 @@ const tick = (ms: number) => act(() => { vi.advanceTimersByTime(ms) })
 
 /** Every hand: the player holds 16 against a 9, so the hand waits for a decision. */
 function stackHands() {
-  const real = Shoe.prototype.deal
   let n = 0
   const hand = [c(Rank.Ten), c(Rank.Nine, Suit.Clubs), c(Rank.Six, Suit.Spades), c(Rank.Eight, Suit.Diamonds)]
-  vi.spyOn(Shoe.prototype, 'deal').mockImplementation(function (this: Shoe) {
-    const i = n++ % 6
-    return i < 4 ? hand[i] : real.call(this)
-  })
+  // Every card, not four in six. A round here is exactly these four — the
+  // dealer's 17 stands — but the stack used to repeat every *six* draws and
+  // hand the two in between to the real shoe, so from the second hand on the
+  // deal was offset and partly random. Now and then that dealt a blackjack,
+  // the Stand button never appeared, and the test failed — in CI on 13 Nov
+  // 2026, and about one local run in fifteen.
+  vi.spyOn(Shoe.prototype, 'deal').mockImplementation(() => hand[n++ % hand.length])
 }
 
 function setUp(mode: 'Time' | 'Unlimited', minutes?: number) {
@@ -185,5 +188,72 @@ describe('an unlimited session', () => {
     fireEvent.click(screen.getByTestId('confirm-bet'))
     tick(8000)
     expect(screen.getByTestId('cash-out')).toBeDisabled()
+  })
+})
+
+/**
+ * Enter at the count check. Found by reading, 13 Nov 2026: a second Enter —
+ * the natural way to get past the feedback — submitted the count again and
+ * scheduled a second "next hand" two seconds behind the first. By then the
+ * next hand was bet and dealt, and the late callback wiped it.
+ */
+describe('the count check', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    useAppStore.getState().setMode('casinoSession')
+    useAppStore.setState({ dealingSpeed: 'normal' })
+    useCasinoSessionTrackerStore.setState({ sessions: [], startingBankroll: 0 })
+    stackHands()
+    vi.spyOn(CasinoSessionEngine.prototype, 'shouldCheckCount').mockReturnValue(true)
+  })
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  function start() {
+    render(<CasinoSession />)
+    fireEvent.click(within(screen.getByRole('group', { name: 'Bots at the table' })).getByRole('button', { name: '0' }))
+    fireEvent.click(screen.getByTestId('start-session'))
+    tick(100)
+  }
+
+  it('is submitted once, however often Enter is pressed', () => {
+    start()
+    playHandToStand()
+    fireEvent.click(screen.getByTestId('next-hand'))
+    tick(100)
+    expect(screen.getByTestId('count-check')).toBeInTheDocument()
+
+    const record = vi.spyOn(CasinoSessionEngine.prototype, 'validateCountInput')
+    fireEvent.keyDown(window, { key: 'Enter' })
+    tick(1000)
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(record).toHaveBeenCalledTimes(1)
+
+    // The first submission moves on after its two seconds...
+    tick(1100)
+    leaveHand()
+    // ...and the next hand, bet and dealt, is still there after the moment a
+    // second submission would have come back for it.
+    fireEvent.click(screen.getByText('+$25'))
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(8000)
+    expect(screen.getByTestId('action-stand')).toBeInTheDocument()
+  })
+
+  it('takes a held key as one press', () => {
+    start()
+    fireEvent.click(screen.getByText('+$25'))
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(8000)
+    // Auto-repeat on H used to draw card after card onto a 16.
+    const hit = vi.spyOn(Shoe.prototype, 'deal')
+    hit.mockClear()
+    fireEvent.keyDown(window, { key: 'h', repeat: true })
+    fireEvent.keyDown(window, { key: 'h', repeat: true })
+    tick(200)
+    expect(hit).not.toHaveBeenCalled()
   })
 })

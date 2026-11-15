@@ -25,7 +25,11 @@ beforeAll(async () => {
     get length() { return store.size },
   } as Storage
   entry = await import('./entry-prerender')
-})
+  // Its own limit. This import is the whole app's module graph, transformed
+  // cold for Node, and it had crept to 9.6 s against the 10 s default — one
+  // more component in the landing page and the suite failed without a single
+  // assertion running (14 Nov 2026). A minute is not a target, it is room.
+}, 60_000)
 
 describe('prerender entry', () => {
   it('renders the landing with its content in the HTML, not at opacity zero', async () => {

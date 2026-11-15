@@ -101,7 +101,10 @@ export function TrainerApp() {
       <NavBar />
       {/* Reset key on the mode so switching screens clears a crashed one. A render
           error shows a recoverable fallback instead of blanking the whole app. */}
-      <div className={`flex-1 min-h-0 flex flex-col ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+      {/* The `:has` rule: while a casino table is running its own status bar
+          carries the way back (see `CasinoSessionGame`), and the 44px row for it
+          is given to the felt instead. */}
+      <div className={`flex-1 min-h-0 flex flex-col [&:has([data-testid=session-hud])>[data-testid=back-to-menu-bar]]:hidden ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
         {/* Every screen but the menu gets the arrow back to it — the Casino
             Session included, above the felt. It was left out at first because
             its HUD has an exit of its own; the first person to use the app

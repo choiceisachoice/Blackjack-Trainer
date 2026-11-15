@@ -91,14 +91,39 @@ describe('the table fits its box', () => {
     expect(appliedScale()).toBeCloseTo(TABLE_MAX_SCALE, 2)
   })
 
-  it('does not shrink a short laptop window', () => {
+  it('does not shrink a laptop window that has the height', () => {
     // The regression guard: fitting both axes made this case 19% smaller.
-    withBox(1250, 520)
+    withBox(1250, 620)
     render(<CasinoTable {...props} />)
     expect(appliedScale()).toBeGreaterThanOrEqual(1)
   })
 
-  it('draws the scene at the design width, whatever the box', () => {
+  it('shows the whole table in a short window instead of cutting both ends off', () => {
+    // 1536x730 viewport, 13 Nov 2026: the felt was 576px in a 386px box, with
+    // 93px of dealer gone above and 97px of the player's seat below.
+    withBox(1536, 386)
+    render(<CasinoTable {...props} />)
+    const box = screen.getByTestId('felt-box')
+    expect(parseFloat(box.style.height)).toBeLessThanOrEqual(386)
+    expect(parseFloat(box.style.width)).toBeLessThanOrEqual(1536)
+    expect(appliedScale()).toBeLessThan(1)
+    // And nothing scrolls: there is nothing outside the box to scroll to.
+    expect(screen.getByTestId('casino-table').className).toContain('overflow-hidden')
+  })
+
+  it('gives the scaled scene a box of the size it is drawn at', () => {
+    // A transformed element keeps its unscaled layout size; left in the flow
+    // it made the wrapper scroll sideways on a phone.
+    withBox(390, 532)
+    render(<CasinoTable {...props} />)
+    const box = screen.getByTestId('felt-box')
+    const felt = screen.getByTestId('felt-table')
+    expect(parseFloat(box.style.width)).toBeCloseTo(parseFloat(felt.style.width) * appliedScale(), 0)
+    expect(parseFloat(box.style.width)).toBeLessThanOrEqual(390)
+    expect(felt.className).toContain('absolute')
+  })
+
+  it('draws the scene at the design width when the box is wide and tall enough', () => {
     withBox(3400, 1240)
     render(<CasinoTable {...props} />)
     const felt = screen.getByTestId('felt-table')

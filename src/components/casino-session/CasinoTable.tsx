@@ -7,7 +7,10 @@ import { DealerView } from './DealerView'
 import { HumanSeat, BotSeat } from './SeatView'
 import { TableLegend } from './TableLegend'
 import { ShoeHousing, DiscardTray } from '../table/ShoeProgress'
-import { fitTable, TABLE_DESIGN, type TableFit, type BotStatus, type GameStep } from './helpers'
+import { fitTable, tableMinWidth, TABLE_DESIGN, TABLE_MAX_SCALE, type TableFit, type BotStatus, type GameStep } from './helpers'
+
+/** Space kept between the felt's rim and the edge of its box, on every side. */
+const TABLE_GUTTER = 8
 
 /**
  * Fit the table to whatever room it has been given.
@@ -15,10 +18,12 @@ import { fitTable, TABLE_DESIGN, type TableFit, type BotStatus, type GameStep } 
  * Returns the wrapper ref to attach and the fit to apply. Kept here rather than
  * in a shared hooks folder because nothing else needs it: the table is the only
  * screen drawn at a fixed design size.
+ *
+ * @param seats - Seats at the table; more seats need a wider scene
  */
-function useTableFit(): { ref: React.RefObject<HTMLDivElement | null>; fit: TableFit } {
+function useTableFit(seats: number): { ref: React.RefObject<HTMLDivElement | null>; fit: TableFit } {
   const ref = useRef<HTMLDivElement>(null)
-  const [fit, setFit] = useState<TableFit>(() => ({ scale: 1, sceneHeight: TABLE_DESIGN.height }))
+  const [fit, setFit] = useState<TableFit>(() => ({ scale: 1, sceneWidth: TABLE_DESIGN.width, sceneHeight: TABLE_DESIGN.height }))
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -26,12 +31,19 @@ function useTableFit(): { ref: React.RefObject<HTMLDivElement | null>; fit: Tabl
 
     const measure = () => {
       const r = el.getBoundingClientRect()
-      const next = fitTable({ width: r.width, height: r.height })
+      // The gutter keeps the rim and its shadow off the box's edge. It used to
+      // be padding on the box, which the measurement included — so the felt was
+      // fitted to the padded size and the padding did nothing.
+      const next = fitTable(
+        { width: r.width - TABLE_GUTTER * 2, height: r.height - TABLE_GUTTER * 2 },
+        TABLE_DESIGN, TABLE_MAX_SCALE, tableMinWidth(seats),
+      )
       // Only write when something actually moved. A ResizeObserver that feeds
       // state which resizes the observed box is a loop waiting to happen; this
       // is the exit condition.
       setFit(prev =>
         Math.abs(prev.scale - next.scale) < 0.001 &&
+        Math.abs(prev.sceneWidth - next.sceneWidth) < 0.5 &&
         Math.abs(prev.sceneHeight - next.sceneHeight) < 0.5
           ? prev
           : next,
@@ -47,7 +59,7 @@ function useTableFit(): { ref: React.RefObject<HTMLDivElement | null>; fit: Tabl
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [])
+  }, [seats])
 
   return { ref, fit }
 }
@@ -130,18 +142,34 @@ export function CasinoTable({
     gameStep === 'dealer_playing' ? t('casino.table.dealerPlaying') :
     gameStep === 'insurance' ? t('casino.table.insuranceShort') : null
 
-  const { ref: fitRef, fit } = useTableFit()
+  const { ref: fitRef, fit } = useTableFit(seatLayout.length)
 
-  // The wrapper keeps `overflow-y-auto`, as it had before. A scaled element
-  // keeps its *unscaled* layout size, so growing the table never produces a
-  // scrollbar — but in the one pathological case (a box shorter than the
-  // scene's floor) the seats have to stay reachable rather than be cut off.
+  // Nothing here scrolls, and nothing needs to: `fitTable` never returns a
+  // scene larger than the box. The wrapper used to keep `overflow-y-auto` for
+  // the case of a box shorter than the scene's floor — which turned out to be
+  // every ordinary laptop window, where it showed a scrollbar inside the table
+  // and cut the dealer off above a scroll position that could not be reached.
   return (
     <div
       ref={fitRef}
-      className="flex-1 relative min-h-0 flex flex-col items-center justify-center px-2 md:px-6 pt-3 pb-2 overflow-y-auto"
+      className="flex-1 relative min-h-0 flex items-center justify-center overflow-hidden"
       data-testid="casino-table"
     >
+      {/*
+        A box of the *scaled* size, with the scene pinned to its corner.
+
+        A transformed element keeps its unscaled layout size. Left in the flow,
+        a scene scaled to 0.35 still asked for 1120px of width: the wrapper
+        scrolled 373px sideways on a phone, and as a flex item the scene was
+        shrunk by the browser to whatever its contents happened to need, so the
+        felt changed height while the cards were dealt. This box has the size
+        the eye sees, and the scene inside it is out of flow.
+      */}
+      <div
+        className="relative shrink-0"
+        data-testid="felt-box"
+        style={{ width: fit.sceneWidth * fit.scale, height: fit.sceneHeight * fit.scale }}
+      >
       {/*
         Drawn once at `TABLE_DESIGN` and scaled to fit, rather than reflowed.
 
@@ -159,15 +187,15 @@ export function CasinoTable({
         labels grow with it instead of staying pinned to hard-coded pixels.
       */}
       <div
-        className="relative flex flex-col"
+        className="absolute left-0 top-0 flex flex-col"
         data-testid="felt-table"
         style={{
-          width: TABLE_DESIGN.width,
+          width: fit.sceneWidth,
           height: fit.sceneHeight,
           transform: `scale(${fit.scale})`,
-          // Scaling from the centre keeps the table optically centred in its
-          // box at every size without a second layout pass.
-          transformOrigin: 'center center',
+          // From the corner of the sized box around it, which is what centres
+          // the table; see the note on that box.
+          transformOrigin: 'top left',
           borderRadius: '14px 14px 46% 46% / 14px 14px 32% 32%',
           // The felt reads from the theme now. `--color-felt` and `--color-wood` were
           // declared with the rest of the palette and referenced by nothing, while the
@@ -268,6 +296,7 @@ export function CasinoTable({
             )
           })}
         </div>
+      </div>
       </div>
     </div>
   )

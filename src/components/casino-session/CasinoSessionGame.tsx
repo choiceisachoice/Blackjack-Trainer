@@ -13,6 +13,8 @@ import { ActionButtons } from './ActionButtons'
 import { BettingControls } from './BettingControls'
 import { formatDollar, formatTime } from './helpers'
 import { ProgressBar, Input } from '../common/ui'
+import { ArrowLeft } from 'lucide-react'
+import { useLiveSessionStore } from '../../store/live-session-store'
 
 interface CasinoSessionGameProps {
   config: CasinoSessionConfig
@@ -105,6 +107,8 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   // Dealing speed (live, persisted)
   const dealingSpeed = useAppStore(s => s.dealingSpeed)
   const setDealingSpeed = useAppStore(s => s.setDealingSpeed)
+  const setMode = useAppStore(s => s.setMode)
+  const requestLeave = useLiveSessionStore(s => s.requestLeave)
 
   // Volume slider state (synced from singleton)
   const [ambientVolume, setAmbientVolume] = useState(() => casinoAmbient.volume)
@@ -155,6 +159,10 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // A held key is one decision, not thirty. Auto-repeat on Enter walked
+      // settlement → review → betting → deal at the minimum bet on its own,
+      // and on H it drew card after card.
+      if (e.repeat) return
       if (state.isPaused) {
         if (e.key === 'Escape') actions.setPaused(false)
         return
@@ -325,9 +333,35 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         </div>
       )}
 
-      {/* Status Bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-contrast/5 border-b border-contrast/10 text-xs shrink-0">
-        <div className="flex items-center gap-4">
+      {/*
+        Status bar.
+
+        It wraps. As one unbreakable row it needed about 700px, and on anything
+        narrower the right end — Pause and Cash out, the only two ways out of a
+        hand — was simply off the screen with nothing to scroll (measured on a
+        390px phone, 13 Nov 2026).
+
+        It also carries the way back to the menu while a table is running. The
+        full-width row that holds that arrow on every other screen cost 44px
+        above the felt, on a screen where an ordinary laptop window leaves the
+        table under 400px in all; `TrainerApp` hides that row whenever this
+        bar is on screen, and the arrow lives here instead, same action.
+      */}
+      <div
+        className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 px-3 sm:px-4 py-2 bg-contrast/5 border-b border-contrast/10 text-xs shrink-0"
+        data-testid="session-hud"
+      >
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <button
+            onClick={() => { if (requestLeave('home')) setMode('home') }}
+            data-testid="hud-back-to-menu"
+            aria-label={t('nav.backToMenu')}
+            title={t('nav.backToMenu')}
+            className="grid place-items-center w-8 h-8 -my-1 rounded-lg border border-contrast/15 bg-contrast/5 text-gold
+              hover:border-gold/40 hover:bg-gold/10 transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+          </button>
           <span className="text-content/60">
             {t('casino.hud.hand')} <span className="text-content font-semibold">{handNum}{targetHands && handNum <= targetHands ? `/${targetHands}` : ''}</span>
           </span>
@@ -342,7 +376,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             </span>
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1.5 ml-auto">
           <div className="flex items-center gap-1.5" data-testid="shoe-progress">
             <span className="text-content/40 text-[0.6875rem]">{t('casino.hud.shoe')}</span>
             <ProgressBar
@@ -392,7 +426,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             )}
           </span>
           <button onClick={() => actions.setPaused(true)} data-testid="pause-button"
-            className="text-content/50 hover:text-content cursor-pointer">
+            className="px-2.5 py-1 rounded-md border border-contrast/15 text-content/70 hover:text-content hover:border-contrast/30 cursor-pointer">
             {t('casino.hud.pause')}
           </button>
           <button onClick={actions.quitSession} disabled={!canCashOut} data-testid="cash-out"

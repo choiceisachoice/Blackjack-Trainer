@@ -1417,9 +1417,19 @@ export function useGameLoop(
 
   // ─── Count Check ───────────────────────────────────
 
+  /** Whether the count check on screen has already been answered. */
+  const countSubmittedRef = useRef(false)
+
   const submitCount = useCallback(() => {
     const engine = engineRef.current
     if (!engine) return
+    // Once per check. Enter submits, and a second Enter — pressed to get past
+    // the feedback — submitted again and scheduled a second `proceedAfterHand`
+    // two seconds behind the first. By then the next hand had been bet and
+    // dealt; the second callback wiped it, kept the bet, and left its unseen
+    // cards in the engine's count, so every later check was wrong.
+    if (countSubmittedRef.current) return
+    countSubmittedRef.current = true
 
     const rc = parseInt(rcInput) || 0
     const tc = parseFloat(tcInput) || 0
@@ -1501,6 +1511,7 @@ export function useGameLoop(
         setCountFeedback(null)
         setRcInput('')
         setTcInput('')
+        countSubmittedRef.current = false
         setGameStep('count_check')
         return
       }

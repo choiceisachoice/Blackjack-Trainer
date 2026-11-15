@@ -1900,3 +1900,48 @@ describe('CasinoSessionEngine — split-ace 21 payout', () => {
     expect(res.profit).toBe(0)
   })
 })
+
+describe('the shoe never runs dry', () => {
+  it('shuffles before a round it may not have the cards for, cut card or not', () => {
+    // 2 decks at 85%: the cut card is at 88, so at 80 dealt the old rule said
+    // "play on" with 24 cards left for six players and a dealer.
+    const engine = new CasinoSessionEngine(createTestConfig({ numBots: 5, numDecks: 2, penetration: 0.85 }))
+    for (let i = 0; i < 80; i++) engine.drawCard()
+    expect(engine.shouldReshuffle()).toBe(true)
+  })
+
+  it('does not shuffle early at a table that has plenty', () => {
+    const engine = new CasinoSessionEngine(createTestConfig({ numBots: 5, numDecks: 6, penetration: 0.75 }))
+    for (let i = 0; i < 200; i++) engine.drawCard()
+    expect(engine.shouldReshuffle()).toBe(false)
+  })
+
+  it('asks for fewer cards at an emptier table', () => {
+    const alone = new CasinoSessionEngine(createTestConfig({ numBots: 0, numDecks: 2, penetration: 0.85 }))
+    for (let i = 0; i < 80; i++) alone.drawCard()
+    // 24 left, and one player plus the dealer cannot plausibly use them.
+    expect(alone.shouldReshuffle()).toBe(false)
+  })
+
+  it('deals from a fresh shoe instead of throwing when the last card is gone', () => {
+    // The last resort. An empty shoe used to throw out of whatever was
+    // drawing, and the table stayed in "dealing" with nothing to click.
+    const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0, numDecks: 1, penetration: 0.85 }))
+    for (let i = 0; i < 52; i++) engine.drawCard()
+    expect(() => engine.drawCard()).not.toThrow()
+    // One card into a new shoe: the count starts over with it.
+    expect(engine.getRemainingDecks()).toBeCloseTo(51 / 52, 5)
+  })
+
+  it('plays thousands of rounds at the tightest table without one error', () => {
+    // 2 decks, 85%, five bots — the configuration that froze 8.8% of shoes.
+    const engine = new CasinoSessionEngine(createTestConfig({ numBots: 5, numDecks: 2, penetration: 0.85 }))
+    expect(() => {
+      for (let round = 0; round < 3000; round++) {
+        engine.reshuffleIfNeeded()
+        // Far more than a round's deal: every seat and the dealer, six cards each.
+        for (let i = 0; i < 7 * 6; i++) engine.drawCard()
+      }
+    }).not.toThrow()
+  })
+})

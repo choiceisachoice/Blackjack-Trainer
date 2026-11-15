@@ -6,6 +6,7 @@ import { TrainingBackdrop } from '../training/TrainingBackdrop'
 import { Field, Segmented, Toggle, Input, Slider } from '../common/ui'
 import { useAppStore } from '../../store/app-store'
 import { casinoAmbient } from '../../services/casino-ambient'
+import { playableLimits } from './helpers'
 
 interface CasinoSessionConfigProps {
   initialConfig: CasinoSessionConfig
@@ -104,8 +105,11 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
   const [ambientVolume, setAmbientVolume] = useState(() => casinoAmbient.volume)
   const basicPlay = config.playStyle === 'basic'
 
+  // Through `playableLimits` on every change, so the three amounts on screen
+  // are always ones a hand can be dealt under and the fields show the
+  // correction as it happens rather than at Start.
   const update = <K extends keyof CasinoSessionConfig>(key: K, val: CasinoSessionConfig[K]) =>
-    setConfig(prev => ({ ...prev, [key]: val }))
+    setConfig(prev => playableLimits({ ...prev, [key]: val }))
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -293,7 +297,7 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
 
         {/* Start */}
         <button
-          onClick={() => onStart(config)}
+          onClick={() => onStart(playableLimits(config))}
           data-testid="start-session"
           className="lift-glow mt-8 w-full py-3.5 rounded-xl font-semibold text-black
             bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer

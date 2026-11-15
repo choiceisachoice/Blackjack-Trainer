@@ -7,6 +7,9 @@ import {
   TABLE_DESIGN,
   TABLE_MAX_SCALE,
   TABLE_MIN_HEIGHT,
+  TABLE_MIN_WIDTH,
+  tableMinWidth,
+  playableLimits,
 } from './helpers'
 import type { Card } from '../../engine/shoe/types'
 import { Rank, Suit } from '../../engine/shoe/types'
@@ -18,7 +21,7 @@ describe('fitTable — sizing the table to the screen', () => {
   const ULTRAWIDE = { width: 3400, height: 1240 }
   const FULL_HD = { width: 1860, height: 880 }
   const LAPTOP = { width: 1400, height: 700 }
-  const LAPTOP_SHORT = { width: 1250, height: 520 }
+  const LAPTOP_TALL_ENOUGH = { width: 1250, height: 600 }
   const DESIGN_BOX = { width: TABLE_DESIGN.width, height: TABLE_DESIGN.height }
 
   it('leaves a design-sized box exactly as it is', () => {
@@ -32,9 +35,10 @@ describe('fitTable — sizing the table to the screen', () => {
   })
 
   it('never shrinks a screen that was not the problem', () => {
-    // The regression this design exists to avoid. Fitting *both* axes made a
-    // short laptop 19% smaller than before; the width-led fit must not.
-    for (const box of [LAPTOP, LAPTOP_SHORT, FULL_HD]) {
+    // The regression the width-led design exists to avoid: fitting *both* axes
+    // made a short laptop 19% smaller. A box tall enough for the scene's floor
+    // at the width's scale still gets exactly that scale.
+    for (const box of [LAPTOP, LAPTOP_TALL_ENOUGH, FULL_HD]) {
       expect(fitTable(box).scale, `${box.width}x${box.height}`).toBeGreaterThanOrEqual(1)
     }
   })
@@ -51,12 +55,61 @@ describe('fitTable — sizing the table to the screen', () => {
     }
   })
 
-  it('compresses rather than clipping the seats on a very short window', () => {
+  it('scales down rather than clipping when the box is shorter than the scene’s floor', () => {
+    // The old rule drew the scene taller than the box here and let the box cut
+    // it — on both ends, since it was centred. This is the case that put the
+    // dealer's cards and the player's total off screen on every laptop.
     const { scale, sceneHeight } = fitTable({ width: 1400, height: 200 })
     expect(sceneHeight).toBe(TABLE_MIN_HEIGHT)
-    // Below the floor the scene is taller than the box on purpose: the middle
-    // band absorbs it. Losing the seats off the bottom would be worse.
-    expect(sceneHeight * scale).toBeGreaterThan(200)
+    expect(sceneHeight * scale).toBeCloseTo(200, 5)
+  })
+
+  it('never returns a scene larger than its box, at any real window size', () => {
+    // Measured boxes: what is left of the viewport under the app's bars.
+    const boxes = [
+      { width: 1536, height: 446 }, { width: 1536, height: 386 }, { width: 1366, height: 375 },
+      { width: 1280, height: 320 }, { width: 1920, height: 595 }, { width: 820, height: 858 },
+      { width: 390, height: 532 }, { width: 844, height: 68 }, { width: 3400, height: 1240 },
+    ]
+    for (const box of boxes) {
+      for (const minWidth of [undefined, tableMinWidth(1), tableMinWidth(3), tableMinWidth(6)]) {
+        const fit = fitTable(box, TABLE_DESIGN, TABLE_MAX_SCALE, minWidth)
+        const tag = `${box.width}x${box.height} min ${minWidth}`
+        expect(fit.sceneWidth * fit.scale, tag).toBeLessThanOrEqual(box.width + 0.5)
+        expect(fit.sceneHeight * fit.scale, tag).toBeLessThanOrEqual(box.height + 0.5)
+        expect(fit.sceneHeight, tag).toBeGreaterThanOrEqual(TABLE_MIN_HEIGHT)
+      }
+    }
+  })
+
+  it('uses the spare width when the height is what limits it', () => {
+    // A 1536x446 box: the height allows 0.86, and at that scale 1120px of felt
+    // would leave a third of the width empty. The scene is drawn wider instead.
+    const { scale, sceneWidth } = fitTable({ width: 1536, height: 446 })
+    expect(scale).toBeCloseTo(446 / TABLE_MIN_HEIGHT, 5)
+    expect(sceneWidth).toBeGreaterThan(TABLE_DESIGN.width)
+    // But not into a ribbon, however wide the box.
+    expect(fitTable({ width: 5000, height: 300 }).sceneWidth).toBeLessThanOrEqual(TABLE_DESIGN.width * 1.3)
+  })
+
+  it('draws a narrower scene before it makes the cards smaller', () => {
+    // 390px phone, three seats. Scaled from the 1120px design this was 0.35 —
+    // an 18px-wide card. Drawn at the three-seat floor it is 0.61.
+    const old = fitTable({ width: 390, height: 900 })
+    const now = fitTable({ width: 390, height: 900 }, TABLE_DESIGN, TABLE_MAX_SCALE, tableMinWidth(3))
+    expect(old.scale).toBeCloseTo(390 / 1120, 3)
+    expect(now.sceneWidth).toBe(TABLE_MIN_WIDTH)
+    expect(now.scale).toBeCloseTo(390 / TABLE_MIN_WIDTH, 3)
+    // Between the floor and the design width nothing is scaled at all.
+    const tablet = fitTable({ width: 804, height: 900 }, TABLE_DESIGN, TABLE_MAX_SCALE, tableMinWidth(3))
+    expect(tablet.scale).toBe(1)
+    expect(tablet.sceneWidth).toBe(804)
+  })
+
+  it('asks for more width the more seats there are, up to the design width', () => {
+    expect(tableMinWidth(1)).toBe(TABLE_MIN_WIDTH)
+    expect(tableMinWidth(6)).toBeGreaterThan(tableMinWidth(3))
+    expect(tableMinWidth(12)).toBe(TABLE_DESIGN.width)
   })
 
   it('shrinks to fit a narrow screen rather than cropping', () => {
@@ -67,7 +120,7 @@ describe('fitTable — sizing the table to the screen', () => {
 
   it('returns a usable fit for an unmeasured box rather than collapsing', () => {
     // Before the first measurement the box is 0x0. A scale of 0 paints nothing.
-    expect(fitTable({ width: 0, height: 0 })).toEqual({ scale: 1, sceneHeight: TABLE_DESIGN.height })
+    expect(fitTable({ width: 0, height: 0 })).toEqual({ scale: 1, sceneWidth: TABLE_DESIGN.width, sceneHeight: TABLE_DESIGN.height })
     expect(fitTable({ width: 0, height: 800 }).scale).toBe(1)
   })
 
@@ -161,5 +214,26 @@ describe('chipFace', () => {
     for (const v of [1, 5, 10, 25, 100, 500, 2500]) {
       expect(chipFace(v).fill).toMatch(/^var\(--color-[a-z-]+\)$/)
     }
+  })
+})
+
+describe('playableLimits — table limits a hand can be dealt under', () => {
+  const ok = { minBet: 25, maxBet: 500, startingBankroll: 5000 }
+
+  it('leaves sensible limits alone', () => {
+    expect(playableLimits(ok)).toEqual(ok)
+  })
+
+  it('raises the maximum to the minimum — a table where every bet is illegal never deals', () => {
+    expect(playableLimits({ ...ok, minBet: 500, maxBet: 50 }).maxBet).toBe(500)
+  })
+
+  it('raises the bankroll to the minimum — otherwise Deal is enabled and does nothing', () => {
+    expect(playableLimits({ ...ok, minBet: 500, startingBankroll: 100 }).startingBankroll).toBe(500)
+  })
+
+  it('keeps every other setting it is handed', () => {
+    const config = { ...ok, numDecks: 6, penetration: 0.75 }
+    expect(playableLimits(config)).toEqual(config)
   })
 })
