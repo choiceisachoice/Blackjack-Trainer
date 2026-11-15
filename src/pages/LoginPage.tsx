@@ -20,9 +20,15 @@ export function LoginPage() {
    */
   const { state } = useLocation()
   const notice = (state as { notice?: string } | null)?.notice
+  // Where the visitor was going. Since every screen has its own address, a
+  // link from a video to `/app/casino` meets this page first when signed out;
+  // after signing in it should arrive at the casino, not at the home screen.
+  // Only ever a path inside the app — never a URL someone could hand us.
+  const from = (state as { from?: unknown } | null)?.from
+  const target = typeof from === 'string' && /^\/app(\/[a-z-]*)?$/.test(from) ? from : '/app'
 
   if (!isSupabaseConfigured || status === 'signedIn') {
-    return <Navigate to="/app" replace />
+    return <Navigate to={target} replace />
   }
 
   return (

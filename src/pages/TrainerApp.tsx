@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useAppStore } from '../store/app-store'
 import { usePageMeta } from '../hooks/use-page-meta'
 import { useLiveSessionStore } from '../store/live-session-store'
@@ -27,6 +27,7 @@ import { UpgradeModalHost } from '../components/pro/UpgradeModalHost'
 import { useIsPro } from '../store/entitlement-store'
 import { useLearnerSync } from '../hooks/use-learner-sync'
 import { isProMode } from '../services/pro-features'
+import { useModeUrl } from '../hooks/use-mode-url'
 
 // Modes whose page relies on the app shell for scrolling. Analytics, Achievements
 // and the Casino Session Tracker are excluded: their pages scroll themselves
@@ -77,6 +78,10 @@ export function TrainerApp() {
   // agree on where this learner is.
   useLearnerSync()
 
+  // Every screen has an address: Back, Forward, refresh and links work.
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  useModeUrl(scrollerRef)
+
   // No redirect here any more: `home` *is* the plan, so an unplaced learner
   // already lands on the questionnaire without navigation being hijacked.
 
@@ -104,7 +109,7 @@ export function TrainerApp() {
       {/* The `:has` rule: while a casino table is running its own status bar
           carries the way back (see `CasinoSessionGame`), and the 44px row for it
           is given to the felt instead. */}
-      <div className={`flex-1 min-h-0 flex flex-col [&:has([data-testid=session-hud])>[data-testid=back-to-menu-bar]]:hidden ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+      <div ref={scrollerRef} className={`flex-1 min-h-0 flex flex-col [&:has([data-testid=session-hud])>[data-testid=back-to-menu-bar]]:hidden ${scrollable ? 'overflow-y-auto' : 'overflow-hidden'}`}>
         {/* Every screen but the menu gets the arrow back to it — the Casino
             Session included, above the felt. It was left out at first because
             its HUD has an exit of its own; the first person to use the app

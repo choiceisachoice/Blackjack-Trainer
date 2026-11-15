@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore, isSupabaseConfigured } from '../store/auth-store'
 import { AppSkeleton } from '../components/common/AppSkeleton'
 
@@ -13,6 +13,7 @@ import { AppSkeleton } from '../components/common/AppSkeleton'
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { t } = useTranslation()
   const status = useAuthStore(s => s.status)
+  const location = useLocation()
 
   if (!isSupabaseConfigured) return <>{children}</>
 
@@ -20,7 +21,8 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   // the single most common load in the product, so it gets the outline of the
   // screen they are about to see rather than a spinner in front of it.
   if (status === 'loading') return <AppSkeleton label={t('common.signingIn')} />
-  if (status === 'signedOut') return <Navigate to="/login" replace />
+  // The address comes along, so signing in lands on the screen that was asked for.
+  if (status === 'signedOut') return <Navigate to="/login" replace state={{ from: location.pathname }} />
 
   return <>{children}</>
 }

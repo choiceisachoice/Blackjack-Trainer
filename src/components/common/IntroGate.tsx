@@ -36,7 +36,8 @@ const INTRO_PATHS = ['/app']
 /** Whether a page load at this pathname opens on the loading screen. */
 function introApplies(pathname: string): boolean {
   const path = unprefixedPath(pathname)
-  if (!INTRO_PATHS.includes(path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path)) return false
+  // `/app/speed` is the app too: every screen has its own address since 15 Nov.
+  if (!INTRO_PATHS.some(p => path === p || path.startsWith(`${p}/`))) return false
   return !isSupabaseConfigured || hasStoredSession()
 }
 

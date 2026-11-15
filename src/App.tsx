@@ -180,7 +180,7 @@ function App() {
             unable to sign in, and the page checks for a valid recovery
             session itself rather than leaning on a route guard. */}
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/app" element={<ProtectedRoute><TrainerApp /></ProtectedRoute>} />
+        <Route path="/app/*" element={<ProtectedRoute><TrainerApp /></ProtectedRoute>} />
         <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
         <Route path="/admin/analytics" element={<ProtectedRoute><AdminRoute><AdminAnalyticsPage /></AdminRoute></ProtectedRoute>} />
         <Route path="/learn" element={<LearnPublicPage />} />

@@ -42,7 +42,8 @@ export function routeFor(path: string): PreloadableRoute | null {
   if (p === '/') return LandingPage
   if (p === '/login') return LoginPage
   if (p === '/reset-password') return ResetPasswordPage
-  if (p === '/app') return TrainerApp
+  // Every screen of the trainer has its own address (`/app/speed`, …).
+  if (/^\/app(\/|$)/.test(p)) return TrainerApp
   if (p === '/account') return AccountPage
   if (p === '/admin/analytics') return AdminAnalyticsPage
   if (p === '/learn') return LearnPublicPage
