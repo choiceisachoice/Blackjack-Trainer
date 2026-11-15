@@ -64,7 +64,23 @@ export const DEFAULT_CONFIG: CasinoSessionConfig = {
  * would have made the table shrink on a short window — a regression on the one
  * size that was never the problem.
  */
-export const TABLE_DESIGN = { width: 1120, height: 640 } as const
+export const TABLE_DESIGN = { width: 1120, height: 700 } as const
+
+/**
+ * The size of a card on the table, in table units.
+ *
+ * One place, in numbers: the seat layout computes with these, and a card that
+ * is sized by a CSS class cannot be computed with. The classes it replaces
+ * also switched size at the *viewport's* `md` breakpoint, inside a scene that
+ * is scaled as a whole — so the cards changed proportion to their own table.
+ *
+ * 76 wide, up from 56: on a 1536 × 730 laptop a card was 46 × 66px on screen,
+ * which is a thumbnail of a card. `step` is how far each fanned card is moved
+ * from the one under it — the width of a "10" index, so no rank is ever hidden.
+ */
+export const TABLE_CARD = { width: 76, height: 106, step: 36 } as const
+/** The dealer's cards, a size up so the hand everyone plays against leads. */
+export const DEALER_CARD = { width: 84, height: 118, step: 42 } as const
 
 /**
  * The largest the table is allowed to grow.
@@ -83,13 +99,14 @@ export interface Size {
 /**
  * The shortest the scene is ever drawn.
  *
- * Top rail (the shoe, about 171px) plus a settled seat row (about 222px) plus
- * the felt's own border and padding (50px) leave the legend some 75px at this
- * height — enough that it sits between the dealer and the chips instead of on
- * top of both. It was 420, where that band was zero: the legend ran through
- * the dealer's total and the middle seats' chips.
+ * Top rail (the dealer's hand, about 190px) plus a settled seat row (about
+ * 292px with its chip stack) plus the felt's own border and padding (50px) leave the legend some
+ * 70px at this height — enough that it sits between the dealer and the chips
+ * instead of on top of both. It was 520 with 56px cards, and 420 before that,
+ * where the band was zero: the legend ran through the dealer's total and the
+ * middle seats' chips.
  */
-export const TABLE_MIN_HEIGHT = 520
+export const TABLE_MIN_HEIGHT = 604
 
 /**
  * The narrowest the scene is drawn for a table of one seat.
@@ -105,13 +122,13 @@ const TABLE_MAX_WIDTH_FACTOR = 1.3
 /**
  * The narrowest scene that still holds a given number of seats in one row.
  *
- * A seat is 140px at rest and the row's gaps are 20–32px; the allowance on
- * top is the arc's rim and the felt's border.
+ * A seat needs two cards side by side and a little air; the allowance on top
+ * is the felt's border.
  *
  * @param seats - Seats at the table, the player's included
  */
 export function tableMinWidth(seats: number): number {
-  return Math.min(TABLE_DESIGN.width, Math.max(TABLE_MIN_WIDTH, seats * 150 + 60))
+  return Math.min(TABLE_DESIGN.width, Math.max(TABLE_MIN_WIDTH, seats * (TABLE_CARD.width + TABLE_CARD.step + 44) + 60))
 }
 
 export interface TableFit {
@@ -233,44 +250,53 @@ export function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-/** The body colour of a chip and the ink that stays legible on it. */
-export interface ChipFace {
-  /** CSS colour for the chip body, always a token reference. */
+/** The colours of a drawn chip. Plain values: an SVG attribute cannot read a CSS variable. */
+export interface ChipColor {
+  /** The body. */
   readonly fill: string
-  /** Tailwind text-colour class for the value printed on the chip. */
+  /** The rim, a shade darker, so a stack reads as separate chips. */
+  readonly edge: string
+  /** The inlays on the rim and the ring on the face. */
+  readonly inlay: string
+  /** The amount printed on the face. */
   readonly ink: string
 }
 
 /**
- * Map a bet denomination to a chip colour, following casino convention.
+ * The colour of a chip of this value, by the convention every casino uses:
+ * white 1, red 5, blue 10, green 25, black 100, purple 500, and gold from
+ * 1,000 — the only place on the table gold is a denomination.
  *
- * The four `--color-chip-*` tokens have existed in `index.css` since the theme
- * was written and were referenced by nothing — `bg-chip-red`, `bg-chip-green`
- * and `bg-chip-black` had zero occurrences in the whole app, while the betting
- * controls rendered every denomination as the same grey rectangle. This is what
- * they were declared for.
- *
- * The thresholds are the real table convention rather than an arbitrary ramp,
- * so a player who has sat at a table reads the value before reading the number:
- * red fives, blue tens, green twenty-fives, black hundreds. Above five hundred
- * the house colour takes over, because the palette has no purple and inventing
- * one for a single denomination would put a fifth colour outside the theme.
- *
- * Ink is chosen by the fill and never by the theme — the rule the light-theme
- * work in `CLAUDE.md` left behind — which is why the gold chip gets
- * `text-on-gold` and not `text-white`.
- *
- * @param value Denomination in whole currency units. Values below five, which
- *   `getChipDenominations` can produce from a low table minimum, take the red
- *   face rather than a colour of their own.
- * @returns The chip's fill colour and the text colour to print on it.
+ * @param value - The chip's denomination; in-between values take the colour
+ *   of the denomination below them
  */
-export function chipFace(value: number): ChipFace {
-  if (value >= 500) return { fill: 'var(--color-gold)', ink: 'text-on-gold' }
-  if (value >= 100) return { fill: 'var(--color-chip-black)', ink: 'text-white' }
-  if (value >= 25) return { fill: 'var(--color-chip-green)', ink: 'text-white' }
-  if (value >= 10) return { fill: 'var(--color-chip-blue)', ink: 'text-white' }
-  return { fill: 'var(--color-chip-red)', ink: 'text-white' }
+export function chipColor(value: number): ChipColor {
+  if (value >= 1000) return { fill: '#d4a847', edge: '#8a6a1f', inlay: '#fff6dc', ink: '#1a1405' }
+  if (value >= 500) return { fill: '#6d28d9', edge: '#3f1487', inlay: '#f3ecff', ink: '#ffffff' }
+  if (value >= 100) return { fill: '#1c1917', edge: '#000000', inlay: '#f2f1ee', ink: '#ffffff' }
+  if (value >= 25) return { fill: '#15803d', edge: '#0b4a23', inlay: '#eafff1', ink: '#ffffff' }
+  if (value >= 10) return { fill: '#1e3a8a', edge: '#12234f', inlay: '#e8efff', ink: '#ffffff' }
+  if (value >= 5) return { fill: '#c41e3a', edge: '#7a1022', inlay: '#fff0f2', ink: '#ffffff' }
+  return { fill: '#e8eaed', edge: '#9aa0a8', inlay: '#3b4048', ink: '#14161a' }
+}
+
+/** Denominations a bet is cut into, largest first. */
+const STACK_DENOMINATIONS = [1000, 500, 100, 25, 5, 1] as const
+
+/**
+ * A bet as the chips that make it up, largest first: 175 → 100, 25, 25, 25.
+ * Cents are not chips; the amount is taken down to whole dollars.
+ *
+ * @param amount - The bet in dollars
+ * @returns One entry per chip; empty for no bet
+ */
+export function chipBreakdown(amount: number): number[] {
+  const chips: number[] = []
+  let left = Math.max(0, Math.floor(amount))
+  for (const d of STACK_DENOMINATIONS) {
+    while (left >= d && chips.length < 40) { chips.push(d); left -= d }
+  }
+  return chips
 }
 
 export function getChipDenominations(minBet: number, maxBet: number): number[] {

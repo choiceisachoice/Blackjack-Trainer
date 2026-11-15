@@ -13,7 +13,7 @@ import { ActionButtons } from './ActionButtons'
 import { BettingControls } from './BettingControls'
 import { formatDollar, formatTime } from './helpers'
 import { ProgressBar, Input } from '../common/ui'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Volume2, VolumeX } from 'lucide-react'
 import { useLiveSessionStore } from '../../store/live-session-store'
 
 interface CasinoSessionGameProps {
@@ -108,6 +108,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   const dealingSpeed = useAppStore(s => s.dealingSpeed)
   const setDealingSpeed = useAppStore(s => s.setDealingSpeed)
   const setMode = useAppStore(s => s.setMode)
+  const toggleSound = useAppStore(s => s.toggleSound)
   const requestLeave = useLiveSessionStore(s => s.requestLeave)
 
   // Volume slider state (synced from singleton)
@@ -425,6 +426,17 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
               <span className="text-content/35"> / {formatTime(config.targetMinutes * 60)}</span>
             )}
           </span>
+          {/* The app's navigation is hidden at the table, and it held the only
+              sound switch. */}
+          <button
+            onClick={toggleSound}
+            data-testid="hud-sound-toggle"
+            aria-label={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
+            title={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
+            className="grid place-items-center w-8 h-8 -my-1 rounded-lg border border-contrast/15 text-content/70 hover:text-gold hover:border-gold/40 cursor-pointer"
+          >
+            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </button>
           <button onClick={() => actions.setPaused(true)} data-testid="pause-button"
             className="px-2.5 py-1 rounded-md border border-contrast/15 text-content/70 hover:text-content hover:border-contrast/30 cursor-pointer">
             {t('casino.hud.pause')}

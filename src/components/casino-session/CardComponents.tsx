@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import type { Card } from '../../engine/shoe/types'
 import { CardFace, CardBack } from '../cards/CardFace'
+import { TABLE_CARD, DEALER_CARD } from './helpers'
 
 // ─── Mini Card Component (for table) ─────────────────
 
@@ -20,16 +21,18 @@ export type CardSize = 'dealer' | 'player' | 'bot'
 /**
  * Uniform, readable card sizes. Players and bots share ONE size so no seat's
  * cards are harder to read than another's — essential for a counting trainer.
+ * In table units, from `helpers.ts`.
  */
-const CARD_SIZE_CLASS: Record<CardSize, string> = {
-  dealer: 'w-[58px] h-[82px] md:w-[64px] md:h-[90px]',
-  player: 'w-[52px] h-[74px] md:w-[56px] md:h-[80px]',
-  bot: 'w-[52px] h-[74px] md:w-[56px] md:h-[80px]',
+const CARD_BOX: Record<CardSize, { width: number; height: number }> = {
+  dealer: DEALER_CARD,
+  player: TABLE_CARD,
+  bot: TABLE_CARD,
 }
+const boxOf = (size: CardSize) => ({ width: CARD_BOX[size].width, height: CARD_BOX[size].height })
 
 export function TableCard({ card, faceDown, size = 'player' }: { card: Card; faceDown?: boolean; size?: CardSize }) {
   return (
-    <div className={`${CARD_SIZE_CLASS[size]} flex-shrink-0 rounded-[5px] shadow-[0_2px_5px_rgba(0,0,0,.45)]`}>
+    <div className="flex-shrink-0 rounded-[6px] shadow-[0_2px_6px_rgba(0,0,0,.45)]" style={boxOf(size)}>
       {faceDown ? <CardBack /> : <CardFace rank={card.rank} suit={card.suit} />}
     </div>
   )
@@ -106,8 +109,8 @@ export function FlipCard({ card, revealed, size = 'dealer' }: { card: Card; reve
     >
       <div style={{ perspective: '900px' }}>
         <motion.div
-          className={`${CARD_SIZE_CLASS[size]} relative`}
-          style={{ transformStyle: 'preserve-3d' }}
+          className="relative"
+          style={{ ...boxOf(size), transformStyle: 'preserve-3d' }}
           initial={false}
           animate={{ rotateY: revealed ? 0 : 180 }}
           transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}

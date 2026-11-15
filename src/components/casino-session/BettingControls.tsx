@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { soundEngine } from '../../services/sound-engine'
-import { chipFace, formatDollar, getChipDenominations } from './helpers'
+import { formatDollar, getChipDenominations } from './helpers'
+import { Chip } from './Chip'
 
 interface BettingControlsProps {
   currentBet: number
@@ -87,57 +88,34 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
         </span>
       </div>
       {/*
-        Chips, drawn as chips.
+        The chips to bet with — the same drawn chip that lands on the betting
+        spot, in its denomination's colour.
 
-        These were grey rectangles reading "+$25" while four `--color-chip-*`
-        tokens sat unused in `index.css` and `soundEngine.chipPlace()` fired on
-        every click with nothing to look at. The sound was describing something
-        that was not on screen.
-
-        The whole face is painted with two background layers and a box-shadow,
-        so the button has **no child elements**: a radial gradient holds the
-        centre disc in the chip colour and goes transparent past 64%, letting a
-        repeating conic gradient show through as the edge notches only at the
-        rim. That matters beyond tidiness — `getByText('+$25')` in
-        `CasinoSession.test.tsx` resolves against direct text children, so
-        wrapping the label in a span would make the button and the span both
-        candidates. Keeping the value a direct text node keeps that test
-        matching exactly one node.
+        The amount a click adds is the button's text for a screen reader and
+        for the tests (`getByText('+$25')`): one node, visually hidden, while
+        the face of the chip shows the plain value.
       */}
       <div className="flex gap-2.5 flex-wrap justify-center">
-        {getChipDenominations(minBet, maxBet).map(b => {
-          const face = chipFace(b)
-          return (
-            <button key={b}
-              onClick={() => {
-                const newBet = Math.min(currentBet + b, maxBet, bankroll)
-                setDraft(null)
-                onBetChange(newBet)
-                soundEngine.chipPlace()
-              }}
-              disabled={b > bankroll || currentBet >= Math.min(maxBet, bankroll)}
-              data-testid={`chip-${b}`}
-              style={{
-                backgroundColor: face.fill,
-                backgroundImage:
-                  `radial-gradient(circle, ${face.fill} 0 64%, transparent 64%),` +
-                  ' repeating-conic-gradient(rgba(255,255,255,0.34) 0deg 9deg, transparent 9deg 45deg)',
-                boxShadow:
-                  'inset 0 0 0 1px rgba(255,255,255,0.22),' +
-                  ' inset 0 -2px 5px rgba(0,0,0,0.35),' +
-                  ' 0 2px 4px rgba(0,0,0,0.45)',
-              }}
-              className={`w-12 h-12 rounded-full grid place-items-center cursor-pointer
-                text-[10px] font-bold tracking-tight ${face.ink}
-                transition-[transform,filter,opacity] duration-150 ease-out
-                hover:-translate-y-0.5 hover:brightness-110
-                active:translate-y-0 active:brightness-95 active:scale-[0.96]
-                disabled:opacity-30 disabled:cursor-not-allowed
-                disabled:hover:translate-y-0 disabled:hover:brightness-100`}>
-              +${b}
-            </button>
-          )
-        })}
+        {getChipDenominations(minBet, maxBet).map(b => (
+          <button key={b}
+            onClick={() => {
+              const newBet = Math.min(currentBet + b, maxBet, bankroll)
+              setDraft(null)
+              onBetChange(newBet)
+              soundEngine.chipPlace()
+            }}
+            disabled={b > bankroll || currentBet >= Math.min(maxBet, bankroll)}
+            data-testid={`chip-${b}`}
+            className="relative rounded-full cursor-pointer shadow-[0_3px_0_rgba(0,0,0,.5),0_5px_10px_rgba(0,0,0,.4)]
+              transition-[transform,filter,opacity] duration-150 ease-out
+              hover:-translate-y-1 hover:brightness-110
+              active:translate-y-0 active:brightness-95 active:scale-[0.96]
+              disabled:opacity-30 disabled:cursor-not-allowed
+              disabled:hover:translate-y-0 disabled:hover:brightness-100">
+            <Chip value={b} size={54} label={formatDollar(b)} />
+            <span className="sr-only">+${b}</span>
+          </button>
+        ))}
       </div>
       <button onClick={onConfirm} data-testid="confirm-bet"
         disabled={currentBet < minBet && bankroll >= minBet}

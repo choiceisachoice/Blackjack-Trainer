@@ -18,12 +18,12 @@ import { motion, useReducedMotion } from 'framer-motion'
 import type { Card } from '../../engine/shoe/types'
 import type { BotPlayer, BotRoundResult, BotTurnHandView } from '../../engine/casino-session/types'
 import { AnimatedTableCard, BotStatusBadge } from './CardComponents'
-import { formatDollar, handValueStr } from './helpers'
+import { ChipStack, type ChipOutcome } from './Chip'
+import { formatDollar, handValueStr, TABLE_CARD } from './helpers'
 import type { BotStatus, GameStep } from './helpers'
 
-/** Width of a table card and the step between fanned cards, in table units. */
-const CARD_W = 56
-const CARD_STEP = 28
+const CARD_W = TABLE_CARD.width
+const CARD_STEP = TABLE_CARD.step
 /** Two cards side by side: what a seat is centred on. */
 const HAND_BASE = CARD_W + CARD_STEP
 const SPLIT_GAP = 10
@@ -60,7 +60,7 @@ function Hand({ cards, animateFrom = 0, totalClass = 'text-sm', width = HAND_BAS
       {/* The room is there before the first card: the seat row is bottom-aligned,
           and a hand that appeared with its first card pushed its chip up by a
           card's height in one frame. */}
-      <div className="relative h-[74px] md:h-[80px] self-start" style={{ width: width / scale, transform: scale < 1 ? `scale(${scale})` : undefined, transformOrigin: 'top left' }}>
+      <div className="relative self-start" style={{ height: TABLE_CARD.height, width: width / scale, transform: scale < 1 ? `scale(${scale})` : undefined, transformOrigin: 'top left' }}>
         {cards.map((c, ci) => (
           <div key={ci} className="absolute top-0" style={{ zIndex: ci, left: ci * step }}>
             <AnimatedTableCard card={c} animateIn={ci >= animateFrom} size="player" />
@@ -88,25 +88,6 @@ function handBoxes(slotWidth: number, hands: number): { width: number; reach: nu
   const share = Math.floor((slotWidth - SPLIT_GAP * (hands - 1)) / hands)
   const width = Math.max(HAND_BASE, Math.min(HAND_BASE + CARD_STEP, share))
   return { width, reach: width }
-}
-
-/** Bet chip shown above a seat's cards. */
-function BetChip({ amount, active }: { amount: number; active?: boolean }) {
-  return (
-    <div
-      className="grid place-items-center rounded-full shrink-0"
-      style={{
-        width: 34, height: 34,
-        fontSize: 10, fontWeight: 700, color: 'var(--color-casino-bg)',
-        background: 'radial-gradient(circle at 50% 35%, var(--color-gold-bright), var(--color-gold))',
-        border: `2px dashed rgba(0,0,0,0.25)`,
-        boxShadow: active ? '0 0 16px -2px var(--color-gold)' : '0 3px 8px rgba(0,0,0,0.4)',
-        opacity: amount > 0 ? 1 : 0.25,
-      }}
-    >
-      {amount > 0 ? formatDollar(amount) : ''}
-    </div>
-  )
 }
 
 /** Name + bankroll plate at the bottom of a seat block. */
@@ -163,6 +144,10 @@ export function HumanSeat({
   // used to show the opening bet only, so doubling $20 still read $20.
   const stake = currentBet * humanHands.reduce((n, _, i) => n + (handDoubled.has(i) ? 2 : 1), 0)
   const box = handBoxes(slotWidth, humanHands.length)
+  // Where the chips go once the hand is settled. A surrender loses (half) the bet.
+  const humanOutcome: ChipOutcome = gameStep !== 'settlement' || !humanSettlement ? null
+    : humanSettlement.result === 'surrender' ? 'loss'
+    : humanSettlement.result
 
   return (
     <div
@@ -170,7 +155,7 @@ export function HumanSeat({
       style={{ width: slotWidth }}
       data-testid="human-seat"
     >
-      <BetChip amount={stake} active={isActivePlayer} />
+      <ChipStack amount={stake} outcome={humanOutcome} />
 
       {/* Cards */}
       {isSplit ? (
@@ -288,7 +273,10 @@ export function BotSeat({
       style={{ width: slotWidth }}
       data-testid="bot-seat"
     >
-      <BetChip amount={bot.currentBet} active={isActivePlayer} />
+      <ChipStack
+        amount={bot.currentBet}
+        outcome={gameStep !== 'settlement' || !botSettlement ? null : botSettlement.profit > 0 ? 'win' : botSettlement.profit < 0 ? 'loss' : 'push'}
+      />
 
       {/* Split hands — exactly the hands on the table at this moment of the
           replay. Keyed by the hand's id, not its position: a re-split inserts

@@ -103,7 +103,11 @@ export function TrainerApp() {
   // behind it. Browsers without dvh keep `h-screen`.
   return (
     <div className="app-canvas h-screen h-dvh flex flex-col overflow-hidden transition-colors duration-200">
-      <NavBar />
+      {/* At the table, the table has the screen. The app's navigation took 62px
+          of a 730px laptop window from a felt that is fitted to the height
+          left over — every pixel of it is card size. The session's own bar
+          carries the way back, the sound switch, pause and cash out. */}
+      {!(casinoVisible && casinoLive) && <NavBar />}
       {/* Reset key on the mode so switching screens clears a crashed one. A render
           error shows a recoverable fallback instead of blanking the whole app. */}
       {/* The `:has` rule: while a casino table is running its own status bar

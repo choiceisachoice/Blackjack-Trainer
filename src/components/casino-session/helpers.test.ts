@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import {
-  chipFace,
   isNaturalBlackjack,
   isRecordableSession,
   fitTable,
   TABLE_DESIGN,
+  TABLE_CARD,
   TABLE_MAX_SCALE,
   TABLE_MIN_HEIGHT,
   TABLE_MIN_WIDTH,
@@ -38,8 +38,13 @@ describe('fitTable — sizing the table to the screen', () => {
     // The regression the width-led design exists to avoid: fitting *both* axes
     // made a short laptop 19% smaller. A box tall enough for the scene's floor
     // at the width's scale still gets exactly that scale.
+    //
+    // What must not shrink is what is on the table, not the factor: since the
+    // cards went from 56 to 76 units the scene's floor is higher, so a 600px
+    // box is scaled to 0.99 — and shows a card 75px wide where it was 56.
     for (const box of [LAPTOP, LAPTOP_TALL_ENOUGH, FULL_HD]) {
-      expect(fitTable(box).scale, `${box.width}x${box.height}`).toBeGreaterThanOrEqual(1)
+      expect(TABLE_CARD.width * fitTable(box).scale, `${box.width}x${box.height}`).toBeGreaterThanOrEqual(56)
+      expect(fitTable(box).scale, `${box.width}x${box.height}`).toBeGreaterThan(0.95)
     }
   })
 
@@ -176,44 +181,6 @@ describe('isRecordableSession', () => {
   it('accepts a session with a single real hand', () => {
     expect(isRecordableSession(1)).toBe(true)
     expect(isRecordableSession(42)).toBe(true)
-  })
-})
-
-describe('chipFace', () => {
-  it('follows table convention: red fives, blue tens, green quarters, black hundreds', () => {
-    expect(chipFace(5).fill).toBe('var(--color-chip-red)')
-    expect(chipFace(10).fill).toBe('var(--color-chip-blue)')
-    expect(chipFace(25).fill).toBe('var(--color-chip-green)')
-    expect(chipFace(100).fill).toBe('var(--color-chip-black)')
-  })
-
-  it('gives the house colour to five hundred and above', () => {
-    expect(chipFace(500).fill).toBe('var(--color-gold)')
-    expect(chipFace(5000).fill).toBe('var(--color-gold)')
-  })
-
-  it('holds each colour across its whole band, not just at the threshold', () => {
-    expect(chipFace(24).fill).toBe('var(--color-chip-blue)')
-    expect(chipFace(99).fill).toBe('var(--color-chip-green)')
-    expect(chipFace(499).fill).toBe('var(--color-chip-black)')
-  })
-
-  it('gives a face to denominations below five, which a low table minimum produces', () => {
-    // getChipDenominations seeds the list with minBet itself, so 1 and 2 are reachable.
-    expect(chipFace(1).fill).toBe('var(--color-chip-red)')
-    expect(chipFace(2).ink).toBe('text-white')
-  })
-
-  it('picks the ink from the fill, never from the theme', () => {
-    // The gold chip is the one that breaks if ink follows the theme instead.
-    expect(chipFace(500).ink).toBe('text-on-gold')
-    expect(chipFace(100).ink).toBe('text-white')
-  })
-
-  it('only ever references tokens, so the theme stays the single source of colour', () => {
-    for (const v of [1, 5, 10, 25, 100, 500, 2500]) {
-      expect(chipFace(v).fill).toMatch(/^var\(--color-[a-z-]+\)$/)
-    }
   })
 })
 
