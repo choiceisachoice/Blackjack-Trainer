@@ -522,7 +522,7 @@
         "s1": "A true count is shown.",
         "s2": "Choose the optimal bet size.",
         "s3": "Closer to optimal = more points.",
-        "tip": "Rule of thumb: bet ≈ (true count − 1) × unit. It usually turns profitable from TC +2."
+        "tip": "One unit up to a true count of +1, then double with each point: 2, 4, 8, 16."
       },
       "deckEstimation": {
         "s1": "Watch the thickness of the discard tray.",

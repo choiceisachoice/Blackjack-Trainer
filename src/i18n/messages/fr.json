@@ -522,7 +522,7 @@
         "s1": "Un true count s’affiche.",
         "s2": "Choisissez la mise optimale.",
         "s3": "Plus vous êtes proche de l’optimum, plus vous marquez.",
-        "tip": "Règle empirique : mise ≈ (true count − 1) × unité. Cela devient généralement rentable à partir de TC +2."
+        "tip": "Une unité jusqu’à un true count de +1, puis doublez à chaque point : 2, 4, 8, 16."
       },
       "deckEstimation": {
         "s1": "Observez l’épaisseur du sabot de défausse.",

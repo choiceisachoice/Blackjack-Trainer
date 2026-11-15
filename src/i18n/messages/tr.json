@@ -522,7 +522,7 @@
         "s1": "Bir true count gösterilir.",
         "s2": "En uygun bahis tutarını seçin.",
         "s3": "Optimuma ne kadar yakınsanız o kadar çok puan.",
-        "tip": "Pratik kural: bahis ≈ (true count − 1) × birim. Genelde TC +2’den itibaren kârlı olur."
+        "tip": "True count +1’e kadar bir birim, sonra her puanda ikiye katlayın: 2, 4, 8, 16."
       },
       "deckEstimation": {
         "s1": "Atık tepsisinin kalınlığına bakın.",

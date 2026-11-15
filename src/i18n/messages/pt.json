@@ -522,7 +522,7 @@
         "s1": "É mostrado um true count.",
         "s2": "Escolha o valor ótimo.",
         "s3": "Quanto mais perto do ótimo, mais pontos.",
-        "tip": "Regra prática: aposta ≈ (true count − 1) × unidade. Costuma ser rentável a partir de TC +2."
+        "tip": "Uma unidade até um true count de +1; depois dobre a cada ponto: 2, 4, 8, 16."
       },
       "deckEstimation": {
         "s1": "Repare na espessura do tabuleiro de descartes.",

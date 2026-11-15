@@ -13,8 +13,8 @@ type QuestionType = 'A' | 'B' | 'C'
 type QuestionMode = 'A' | 'B' | 'C' | 'random'
 type Phase = 'settings' | 'question' | 'feedback' | 'summary'
 
-/** Bet multipliers shown as options (1–16 spread). */
-const MULTIPLIERS = [1, 2, 4, 8, 12, 16]
+/** Bet multipliers shown as options: the ramp's own steps (1–16 spread). */
+const MULTIPLIERS = BET_SPREAD.map(row => row.multiplier)
 
 /** Realistic table minimums (the "unit"). Varies per question for realism. */
 const TABLE_MINIMUMS = [5, 10, 15, 25, 50, 100]
@@ -38,13 +38,17 @@ interface Question {
   correctBet: number
 }
 
-/** Picks a representative integer TC inside a bracket (adds variety). */
+/**
+ * Picks a representative integer TC inside a bracket (adds variety).
+ *
+ * The bottom bracket includes +1 on purpose: "the count is positive, so I
+ * raise" is the mistake this ramp exists to train out.
+ */
 function pickTargetTC(bracketIdx: number): number {
-  switch (bracketIdx) {
-    case 0: return pick([-1, 0])
-    case 5: return pick([5, 6, 7])
-    default: return bracketIdx // brackets 1..4 map to TC 1..4
-  }
+  const step = BET_SPREAD[bracketIdx]
+  if (step.minTC === -Infinity) return pick([-1, 0, 1])
+  if (step.maxTC === Infinity) return pick([step.minTC, step.minTC + 1, step.minTC + 2])
+  return step.minTC
 }
 
 /** Builds one concrete question in the target bracket, avoiding a repeat of prev. */

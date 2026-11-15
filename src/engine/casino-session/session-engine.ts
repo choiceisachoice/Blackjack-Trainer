@@ -1,3 +1,4 @@
+import { rampUnits } from '../betting/bet-ramp'
 import { Shoe } from '../shoe/shoe'
 import type { Card } from '../shoe/types'
 import { getHandValue, isBlackjack, isBust, isSoft } from '../rules/hand-utils'
@@ -22,15 +23,6 @@ import type { SessionEventRecorder } from '../../services/session-recorder'
 /** Maximum number of seats at the table. */
 const MAX_SEATS = 6
 
-/** Bet spread multipliers indexed by true count. */
-const BET_SPREAD: Record<number, number> = {
-  0: 1,    // TC ≤ 0
-  1: 2,    // TC +1
-  2: 4,    // TC +2
-  3: 8,    // TC +3
-  4: 12,   // TC +4
-  5: 16,   // TC +5+
-}
 
 /**
  * Checks if re-splitting aces is allowed for a given hand.
@@ -304,15 +296,8 @@ export class CasinoSessionEngine {
    * @returns The correct bet amount
    */
   getCorrectBet(trueCount: number): number {
-    let multiplier = 1
-    if (trueCount >= 5) multiplier = BET_SPREAD[5]
-    else if (trueCount >= 4) multiplier = BET_SPREAD[4]
-    else if (trueCount >= 3) multiplier = BET_SPREAD[3]
-    else if (trueCount >= 2) multiplier = BET_SPREAD[2]
-    else if (trueCount >= 1) multiplier = BET_SPREAD[1]
-    else multiplier = BET_SPREAD[0]
-
-    const bet = this.config.minBet * multiplier
+    // The one ramp, shared with the Bet Spread drill (`engine/betting/bet-ramp.ts`).
+    const bet = this.config.minBet * rampUnits(trueCount)
     return Math.min(bet, this.config.maxBet, this.humanBankroll)
   }
 

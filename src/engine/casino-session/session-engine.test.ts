@@ -605,16 +605,22 @@ describe('CasinoSessionEngine', () => {
       expect(engine.getCorrectBet(-3)).toBe(25)
     })
 
-    it('correct bet at TC +1 is 2x minBet', () => {
-      expect(engine.getCorrectBet(1)).toBe(50)
+    it('correct bet at TC +1 is still minBet — the game is about even there', () => {
+      // Two units until 15 Nov 2026, against the ramp the Learn chapter teaches.
+      expect(engine.getCorrectBet(1)).toBe(25)
+      expect(engine.getCorrectBet(1.5)).toBe(25)
     })
 
-    it('correct bet at TC +2 is 4x minBet', () => {
-      expect(engine.getCorrectBet(2)).toBe(100)
+    it('correct bet at TC +2 is 2x minBet', () => {
+      expect(engine.getCorrectBet(2)).toBe(50)
     })
 
-    it('correct bet at TC +3 is 8x minBet', () => {
-      expect(engine.getCorrectBet(3)).toBe(200)
+    it('correct bet at TC +3 is 4x minBet', () => {
+      expect(engine.getCorrectBet(3)).toBe(100)
+    })
+
+    it('correct bet at TC +4 is 8x minBet', () => {
+      expect(engine.getCorrectBet(4)).toBe(200)
     })
 
     it('correct bet at TC +5 is 16x minBet', () => {
@@ -630,8 +636,8 @@ describe('CasinoSessionEngine', () => {
         minBet: 50,
         maxBet: 200,
       }))
-      // TC +3 → 8x × $50 = $400, clamped to $200
-      expect(engine2.getCorrectBet(3)).toBe(200)
+      // TC +4 → 8x × $50 = $400, clamped to $200
+      expect(engine2.getCorrectBet(4)).toBe(200)
     })
 
     it('correct bet clamped to remaining bankroll', () => {

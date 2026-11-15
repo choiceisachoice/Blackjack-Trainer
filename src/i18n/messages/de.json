@@ -522,7 +522,7 @@
         "s1": "Ein True Count wird gezeigt.",
         "s2": "Wähle die optimale Einsatzhöhe.",
         "s3": "Je näher am Optimum, desto mehr Punkte.",
-        "tip": "Faustregel: Einsatz ≈ (True Count − 1) × Einheit. Ab TC +2 wird es meist profitabel."
+        "tip": "Eine Einheit bis True Count +1, danach mit jedem Punkt verdoppeln: 2, 4, 8, 16."
       },
       "deckEstimation": {
         "s1": "Achte auf die Dicke im Ablagefach.",

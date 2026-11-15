@@ -6,11 +6,11 @@ import { getMultiplier, getCorrectBet, buildBracketSequence } from './bet-spread
 /** Expected 1–16 bet multiplier for a given TC (mirrors the component). */
 function expectedMultiplier(tc: number): number {
   const t = Math.floor(tc)
-  if (t <= 0) return 1
-  if (t === 1) return 2
-  if (t === 2) return 4
-  if (t === 3) return 8
-  if (t === 4) return 12
+  // The ramp the Learn chapter teaches: one unit until the edge exists.
+  if (t <= 1) return 1
+  if (t === 2) return 2
+  if (t === 3) return 4
+  if (t === 4) return 8
   return 16
 }
 
@@ -23,17 +23,19 @@ describe('BetSpread — pure helpers', () => {
   it('getMultiplier follows the 1–16 ladder', () => {
     expect(getMultiplier(-1)).toBe(1)
     expect(getMultiplier(0)).toBe(1)
-    expect(getMultiplier(1)).toBe(2)
-    expect(getMultiplier(2)).toBe(4)
-    expect(getMultiplier(3)).toBe(8)
-    expect(getMultiplier(4)).toBe(12)
+    // +1 is about even: no raise yet. It was two units until 15 Nov 2026,
+    // against what the Learn chapter teaches.
+    expect(getMultiplier(1)).toBe(1)
+    expect(getMultiplier(2)).toBe(2)
+    expect(getMultiplier(3)).toBe(4)
+    expect(getMultiplier(4)).toBe(8)
     expect(getMultiplier(5)).toBe(16)
     expect(getMultiplier(9)).toBe(16)
   })
 
   it('getCorrectBet scales the multiplier by the table minimum', () => {
     expect(getCorrectBet(0, 25)).toBe(25)   // 1× $25
-    expect(getCorrectBet(3, 25)).toBe(200)  // 8× $25
+    expect(getCorrectBet(3, 25)).toBe(100)  // 4× $25
     expect(getCorrectBet(5, 100)).toBe(1600) // 16× $100
   })
 
@@ -44,8 +46,8 @@ describe('BetSpread — pure helpers', () => {
       for (let i = 1; i < seq.length; i++) {
         expect(seq[i]).not.toBe(seq[i - 1]) // no two identical questions in a row
       }
-      // Every one of the six bet levels appears (good coverage)
-      expect(new Set(seq).size).toBe(6)
+      // Every one of the five bet levels appears (good coverage)
+      expect(new Set(seq).size).toBe(5)
     }
   })
 })
@@ -74,8 +76,8 @@ describe('BetSpread — UI', () => {
     expect(screen.queryByTestId('running-count')).not.toBeInTheDocument()
 
     const tableMin = num('table-min')
-    // All six ramp options are present and scale by the table minimum
-    for (const m of [1, 2, 4, 8, 12, 16]) {
+    // All five ramp options are present and scale by the table minimum
+    for (const m of [1, 2, 4, 8, 16]) {
       expect(screen.getByTestId(`bet-${m * tableMin}`)).toBeInTheDocument()
     }
   })

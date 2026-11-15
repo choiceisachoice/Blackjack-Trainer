@@ -522,7 +522,7 @@
         "s1": "Se muestra un true count.",
         "s2": "Elige el importe óptimo.",
         "s3": "Cuanto más cerca del óptimo, más puntos.",
-        "tip": "Regla práctica: apuesta ≈ (true count − 1) × unidad. Suele ser rentable a partir de TC +2."
+        "tip": "Una unidad hasta un true count de +1; después dobla con cada punto: 2, 4, 8, 16."
       },
       "deckEstimation": {
         "s1": "Fíjate en el grosor de la bandeja de descartes.",

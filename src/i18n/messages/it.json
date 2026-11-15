@@ -522,7 +522,7 @@
         "s1": "Viene mostrato un true count.",
         "s2": "Scegli la puntata ottimale.",
         "s3": "Più sei vicino all’ottimo, più punti prendi.",
-        "tip": "Regola pratica: puntata ≈ (true count − 1) × unità. Di solito diventa redditizio da TC +2."
+        "tip": "Un’unità fino a true count +1, poi raddoppia a ogni punto: 2, 4, 8, 16."
       },
       "deckEstimation": {
         "s1": "Osserva lo spessore nel vassoio degli scarti.",
