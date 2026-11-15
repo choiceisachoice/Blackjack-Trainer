@@ -476,11 +476,13 @@ export function useGameLoop(
     const engine = engineRef.current
     if (!engine) return
 
+    // What a table sounds like when a hand is settled is chips: paid, or
+    // taken. The two tones that used to play here ("correct" / "wrong") are
+    // the trainer's verdict on an answer, and losing a hand is not a mistake.
     if (profit > 0) {
       soundEngine.chipCollect()
-      soundEngine.correct()
     } else if (profit < 0) {
-      soundEngine.wrong()
+      soundEngine.chipsTaken()
     }
 
     const playerValue = playerCards.length > 0 ? getHandValue(playerCards).best : 0
@@ -1055,7 +1057,7 @@ export function useGameLoop(
 
     // Reshuffle overlay before deal (Fix 5)
     if (dealResult.reshuffled) {
-      steps.push({ execute: () => setShowReshuffle(true), delayMs: 2000 })
+      steps.push({ execute: () => { setShowReshuffle(true); soundEngine.shuffle() }, delayMs: 2000 })
       steps.push({ execute: () => setShowReshuffle(false), delayMs: 400 })
     }
 

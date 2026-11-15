@@ -1,3 +1,4 @@
+import { tableSamples, type TableSound } from './table-samples'
 /**
  * Sound engine for the Blackjack Card Counting Trainer.
  *
@@ -87,6 +88,9 @@ class SoundEngine {
     if (this.ctx) return this.ctx
     try {
       this.ctx = new AudioContext()
+      // The table's recordings are fetched with the first sound, not with the
+      // page: nobody who never opens the table should pay for them.
+      tableSamples.load(this.ctx)
       return this.ctx
     } catch {
       return null
@@ -121,6 +125,18 @@ class SoundEngine {
     this._volume = Math.max(0, Math.min(1, v))
   }
 
+  /**
+   * Play the recording of a table event, if it is loaded.
+   * @returns false when it is not — the caller then plays its synthesised cue
+   */
+  private sample(ctx: AudioContext, sound: TableSound): boolean {
+    try {
+      return tableSamples.play(ctx, sound, this._volume)
+    } catch {
+      return false
+    }
+  }
+
   // ── Card Sounds ─────────────────────────────────────
 
   /** Soft "fft" — card sliding across felt. Filtered white noise, 0.04s. */
@@ -128,6 +144,7 @@ class SoundEngine {
     if (!this.shouldPlay('cardDeal')) return
     const ctx = this.getContext()
     if (!ctx) return
+    if (this.sample(ctx, 'deal')) return
     playNoise(ctx, 0.04, 'bandpass', 2000, 0.3, 0.08 * this._volume, ctx.currentTime)
   }
 
@@ -136,6 +153,7 @@ class SoundEngine {
     if (!this.shouldPlay('cardFlip')) return
     const ctx = this.getContext()
     if (!ctx) return
+    if (this.sample(ctx, 'flip')) return
     playNoise(ctx, 0.03, 'highpass', 3000, 0.5, 0.10 * this._volume, ctx.currentTime, 12)
   }
 
@@ -146,6 +164,7 @@ class SoundEngine {
     if (!this.shouldPlay('chipPlace')) return
     const ctx = this.getContext()
     if (!ctx) return
+    if (this.sample(ctx, 'chip')) return
     playNoise(ctx, 0.03, 'lowpass', 800, 0.5, 0.10 * this._volume, ctx.currentTime, 10)
   }
 
@@ -154,11 +173,28 @@ class SoundEngine {
     if (!this.shouldPlay('chipCollect')) return
     const ctx = this.getContext()
     if (!ctx) return
+    if (this.sample(ctx, 'payout')) return
     const t = ctx.currentTime
     const vol = 0.12 * this._volume
     playNoise(ctx, 0.02, 'lowpass', 600, 0.5, vol, t, 10)
     playNoise(ctx, 0.02, 'lowpass', 800, 0.5, vol, t + 0.05, 10)
     playNoise(ctx, 0.02, 'lowpass', 1000, 0.5, vol, t + 0.10, 10)
+  }
+
+  /** Chips of a lost bet being taken by the dealer. Silent without the recording. */
+  chipsTaken(): void {
+    if (!this.shouldPlay('chipsTaken')) return
+    const ctx = this.getContext()
+    if (!ctx) return
+    this.sample(ctx, 'take')
+  }
+
+  /** A new shoe being shuffled. Silent without the recording. */
+  shuffle(): void {
+    if (!this.shouldPlay('shuffle')) return
+    const ctx = this.getContext()
+    if (!ctx) return
+    this.sample(ctx, 'shuffle')
   }
 
   // ── Feedback Sounds ─────────────────────────────────
