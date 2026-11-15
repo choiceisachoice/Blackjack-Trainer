@@ -41,8 +41,10 @@ const SPLIT_GAP = 10
  * over its box into the free part of its seat). Only a hand too long for its
  * reach tightens its step, and a box narrower than one card scales the hand.
  */
-function Hand({ cards, animateFrom = 0, totalClass = 'text-sm', width = HAND_BASE, reach = width }: {
+function Hand({ cards, animateFrom = 0, totalClass = 'text-sm', width = HAND_BASE, reach = width, moment = null }: {
   cards: Card[]; animateFrom?: number; totalClass?: string
+  /** A blackjack or a win, from the seat; a bust the hand sees for itself. */
+  moment?: HandMoment | null
   /** Width of the box the hand is laid out in. */
   width?: number
   /** How far from the box's left edge the last card may end. */
@@ -51,6 +53,11 @@ function Hand({ cards, animateFrom = 0, totalClass = 'text-sm', width = HAND_BAS
   const scale = Math.min(1, width / (CARD_W + 10))
   const room = Math.max(CARD_W, reach / scale)
   const step = cards.length > 1 ? Math.min(CARD_STEP, (room - CARD_W) / (cards.length - 1)) : CARD_STEP
+  // A bust is on the table the moment the card that causes it is: no seat has
+  // to tell the hand. It outranks anything the seat says.
+  const bust = cards.length > 2 && Number(handValueStr(cards)) > 21
+  const shown: HandMoment | null = bust ? 'bust' : moment
+  const fan = CARD_W + step * Math.max(0, cards.length - 1)
   return (
     <div
       className="flex flex-col items-center gap-0.5"
@@ -62,13 +69,74 @@ function Hand({ cards, animateFrom = 0, totalClass = 'text-sm', width = HAND_BAS
           card's height in one frame. */}
       <div className="relative self-start" style={{ height: TABLE_CARD.height, width: width / scale, transform: scale < 1 ? `scale(${scale})` : undefined, transformOrigin: 'top left' }}>
         {cards.map((c, ci) => (
-          <div key={ci} className="absolute top-0" style={{ zIndex: ci, left: ci * step }}>
+          <div
+            key={ci}
+            className="absolute top-0 transition-[filter] duration-500"
+            style={{ zIndex: ci, left: ci * step, filter: bust ? 'grayscale(0.7) brightness(0.62)' : undefined }}
+          >
             <AnimatedTableCard card={c} animateIn={ci >= animateFrom} size="player" />
           </div>
         ))}
+        {shown && <HandBanner key={shown} moment={shown} left={fan / 2} />}
       </div>
       <span className={`${totalClass} text-white/90 font-bold ${cards.length === 0 ? 'invisible' : ''}`}>{cards.length === 0 ? '0' : handValueStr(cards)}</span>
     </div>
+  )
+}
+
+/** Two cards making 21 on a hand that was not split: a blackjack. */
+function isNatural(cards: Card[], split: boolean): boolean {
+  return !split && cards.length === 2 && handValueStr(cards) === '21'
+}
+
+/** The moments a hand can have: the two that end it, and being paid. */
+export type HandMoment = 'blackjack' | 'bust' | 'win'
+
+const MOMENT_STYLE: Record<HandMoment, { key: string; className: string }> = {
+  blackjack: { key: 'casino.bot.blackjack', className: 'bg-gold-bright text-on-gold' },
+  bust: { key: 'casino.bot.bust', className: 'bg-[#c8102e] text-white' },
+  win: { key: 'casino.table.resultWin', className: 'bg-[#15803d] text-white' },
+}
+
+/**
+ * What happened to a hand, said on the hand.
+ *
+ * A blackjack, a bust and a win used to be a word in small type under the
+ * cards, the same size as the name. At a table they are the three things
+ * everybody looks up for — so each is a plate across the cards the moment it
+ * happens, and a blackjack gets one sweep of light.
+ *
+ * It enters by scale, never by opacity: a result must be readable even if an
+ * animation frame is dropped (the rule this table follows for every result).
+ */
+function HandBanner({ moment, left }: { moment: HandMoment; left: number }) {
+  const { t } = useTranslation()
+  const reduced = useReducedMotion()
+  const style = MOMENT_STYLE[moment]
+  return (
+    <motion.div
+      className="absolute z-20 pointer-events-none"
+      style={{ left, bottom: 14, x: '-50%' }}
+      initial={reduced ? false : { scale: 0.3, rotate: -14 }}
+      animate={{ scale: 1, rotate: -5 }}
+      transition={{ type: 'spring', stiffness: 520, damping: 17 }}
+      data-testid="hand-banner"
+      data-moment={moment}
+    >
+      <div className={`relative overflow-hidden rounded-md px-2.5 py-1 text-[0.8125rem] font-black uppercase tracking-[0.08em] whitespace-nowrap
+        shadow-[0_3px_0_rgba(0,0,0,.35),0_6px_14px_rgba(0,0,0,.45)] ${style.className}`}>
+        {t(style.key).replace(/!$/, '')}
+        {moment === 'blackjack' && !reduced && (
+          <motion.span
+            aria-hidden
+            className="absolute inset-y-0 w-1/3 bg-white/70 skew-x-[-20deg]"
+            initial={{ left: '-40%' }}
+            animate={{ left: '120%' }}
+            transition={{ duration: 0.7, delay: 0.25, ease: 'easeInOut' }}
+          />
+        )}
+      </div>
+    </motion.div>
   )
 }
 
@@ -148,6 +216,10 @@ export function HumanSeat({
   const humanOutcome: ChipOutcome = gameStep !== 'settlement' || !humanSettlement ? null
     : humanSettlement.result === 'surrender' ? 'loss'
     : humanSettlement.result
+  // A natural shows as soon as both cards are down, not at settlement.
+  const shownCards = humanCards.slice(0, humanVisibleCards)
+  const humanMoment: HandMoment | null = isNatural(shownCards, isSplit) ? 'blackjack'
+    : humanOutcome === 'win' ? 'win' : null
 
   return (
     <div
@@ -178,7 +250,7 @@ export function HumanSeat({
           ))}
         </div>
       ) : (
-        <Hand cards={humanCards.slice(0, humanVisibleCards)} totalClass="text-sm" width={box.width} reach={box.reach} />
+        <Hand cards={shownCards} totalClass="text-sm" width={box.width} reach={box.reach} moment={humanMoment} />
       )}
 
       {/*
@@ -309,7 +381,8 @@ export function BotSeat({
                 }`}
                 style={{ transition: 'opacity 0.4s ease' }}>
                 <span className={`text-[0.625rem] font-semibold uppercase ${hasActiveHand && isHandActive ? 'text-gold' : 'text-white/40'}`}>{t('casino.table.handShort', { n: hi + 1 })}</span>
-                <Hand cards={shownCards} animateFrom={1} totalClass="text-[0.6875rem]" width={split.width} reach={split.reach} />
+                <Hand cards={shownCards} animateFrom={1} totalClass="text-[0.6875rem]" width={split.width} reach={split.reach}
+                  moment={gameStep === 'settlement' && hand?.result === 'win' ? 'win' : null} />
                 {resultLabel && gameStep === 'settlement' && (
                   <span className={`text-[0.625rem] font-bold ${
                     (hand?.profit ?? 0) > 0 ? 'text-success' : (hand?.profit ?? 0) < 0 ? 'text-error' : 'text-white/50'
@@ -337,7 +410,9 @@ export function BotSeat({
       {!hasSplit && gameStep !== 'betting' && (() => {
         const hand = bot.hands[0]
         const visibleCards = hand && visibleLimit !== undefined ? hand.cards.slice(0, visibleLimit) : hand?.cards ?? []
-        return <Hand cards={visibleCards} totalClass="text-[0.6875rem]" width={single.width} reach={single.reach} />
+        const moment: HandMoment | null = isNatural(visibleCards, false) ? 'blackjack'
+          : gameStep === 'settlement' && (botSettlement?.profit ?? 0) > 0 ? 'win' : null
+        return <Hand cards={visibleCards} totalClass="text-[0.6875rem]" width={single.width} reach={single.reach} moment={moment} />
       })()}
 
       {/* Per-bot settlement result label, in a slot that is always there. */}

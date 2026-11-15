@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { CasinoTable } from './CasinoTable'
-import { TABLE_DESIGN, TABLE_MAX_SCALE } from './helpers'
+import { TABLE_CARD, TABLE_DESIGN, TABLE_MAX_SCALE } from './helpers'
 import { Rank, Suit } from '../../engine/shoe/types'
 import type { Card } from '../../engine/shoe/types'
 
@@ -93,9 +93,12 @@ describe('the table fits its box', () => {
 
   it('does not shrink a laptop window that has the height', () => {
     // The regression guard: fitting both axes made this case 19% smaller.
+    // Measured in what the player sees — a card — since the cards grew from
+    // 56 to 76 units and the scene's floor with them.
     withBox(1250, 620)
     render(<CasinoTable {...props} />)
-    expect(appliedScale()).toBeGreaterThanOrEqual(1)
+    expect(appliedScale()).toBeGreaterThan(0.95)
+    expect(TABLE_CARD.width * appliedScale()).toBeGreaterThan(56)
   })
 
   it('shows the whole table in a short window instead of cutting both ends off', () => {

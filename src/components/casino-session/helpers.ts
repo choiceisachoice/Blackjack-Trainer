@@ -106,7 +106,7 @@ export interface Size {
  * where the band was zero: the legend ran through the dealer's total and the
  * middle seats' chips.
  */
-export const TABLE_MIN_HEIGHT = 604
+export const TABLE_MIN_HEIGHT = 624
 
 /**
  * The narrowest the scene is drawn for a table of one seat.

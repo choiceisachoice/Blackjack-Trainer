@@ -237,7 +237,7 @@ export function CasinoTable({
           the message comes and goes.
         */}
         <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5">
-          <div className="w-[min(80%,620px)]">
+          <div className="w-[min(72%,520px)]">
             <TableLegend blackjackPays={blackjackPays} dealerHitsSoft17={dealerHitsSoft17} />
           </div>
           <div className="h-5 flex items-center justify-center pointer-events-none" aria-live="polite">
