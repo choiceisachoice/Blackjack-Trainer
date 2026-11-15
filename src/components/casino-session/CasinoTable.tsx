@@ -249,8 +249,11 @@ export function CasinoTable({
           </div>
         </div>
 
-        {/* Seats row — self-sizing blocks following the table's arc (outer seats sit higher) */}
-        <div className="shrink-0 flex items-end justify-center gap-x-5 md:gap-x-8">
+        {/* Seats row — equal slots across the felt, following the table's arc
+            (outer seats sit higher). A slot has one width for the whole
+            session: seats used to size themselves to their cards, so a hit or
+            a split in one seat moved every other seat along the row. */}
+        <div className="shrink-0 flex items-end justify-center">
           {seatLayout.map((seat, i) => {
             const isHuman = seat.type === 'human'
             const isActivePlayer = isHuman
@@ -261,6 +264,8 @@ export function CasinoTable({
             // Arc offset: outer seats lift up so the row follows the crescent rim.
             const center = (seatLayout.length - 1) / 2
             const lift = Math.round(Math.abs(i - center) * 16)
+            // 60 = the felt's border and padding on both sides.
+            const slotWidth = Math.min(260, Math.floor((fit.sceneWidth - 60) / seatLayout.length))
 
             return (
               <div key={isHuman ? 'human-seat-wrap' : seat.bot!.id} style={{ transform: `translateY(${-lift}px)` }}>
@@ -278,6 +283,7 @@ export function CasinoTable({
                     isActivePlayer={isActivePlayer}
                     isDimmed={isDimmed}
                     isDealPhase={isDealPhase}
+                    slotWidth={slotWidth}
                   />
                 ) : (
                   <BotSeat
@@ -290,6 +296,7 @@ export function CasinoTable({
                     isDimmed={isDimmed}
                     activeSplitHand={botActiveSplitHands[seat.bot!.id] ?? -1}
                     splitHands={botSplitHands[seat.bot!.id]}
+                    slotWidth={slotWidth}
                   />
                 )}
               </div>

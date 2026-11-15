@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Check, Loader2 } from 'lucide-react'
@@ -22,16 +22,7 @@ import { isQrArrival, rememberQrReward, hasQrReward, withoutRefParam, qrWelcomeS
 
 // The WebGL hero pulls in Three.js — load it as its own chunk after the hero
 // text has painted, so it never blocks the landing's first paint.
-const HeroCanvas = lazy(() => import('../components/landing/HeroCanvas').then(m => ({ default: m.HeroCanvas })))
-
-/*
- * The hero used to carry an ambient gold wash over the canvas. It read as a
- * pale haze rather than as atmosphere and sat oddly against the cards coming out
- * of focus, so it is gone: the ground behind the hero is the ground colour and
- * nothing else. The scrim below stays — that one is not decoration, it is what
- * keeps the headline legible over a moving canvas.
- */
-const SCRIM = 'radial-gradient(46% 50% at 33% 55%, rgba(7,8,9,.9) 26%, rgba(7,8,9,.5) 52%, transparent 76%), linear-gradient(180deg, transparent 58%, var(--color-casino-bg) 97%)'
+import { HeroHand } from '../components/landing/HeroHand'
 
 export function LandingPage() {
   const { t, i18n } = useTranslation()
@@ -198,10 +189,10 @@ export function LandingPage() {
         </nav>
       </header>
 
-      <section className="relative min-h-[calc(100vh-62px)] flex items-center overflow-hidden">
-        <HeroLayer />
-        <div className="relative z-[5] w-full intro-enter">
-          <div className="max-w-6xl mx-auto px-6">
+      <section className="relative min-h-[calc(100vh-62px)] flex items-center overflow-hidden py-12">
+        <div className="relative w-full intro-enter">
+          <div className="max-w-6xl mx-auto px-6 grid items-center gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)]">
+          <div>
             <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.hero.eyebrow')}</div>
             <h1 className="mt-4 text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.02] text-balance max-w-[15ch]">
               {/* Trans, not three concatenated keys: the accented word sits in
@@ -221,6 +212,8 @@ export function LandingPage() {
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-content/40">
               <span>{t('landing.hero.noCard')}</span><Dot /><span>{t('landing.hero.shoe')}</span><Dot /><span>{t('landing.hero.tags')}</span><Dot /><span>{t('landing.hero.cancel')}</span>
             </div>
+          </div>
+          <HeroHand className="w-full max-w-[27rem] justify-self-center lg:justify-self-end" />
           </div>
         </div>
       </section>
@@ -389,7 +382,7 @@ export function LandingPage() {
 
       {/* Final CTA */}
       <section className="max-w-6xl mx-auto px-6 pb-20">
-        <Reveal className="rounded-3xl border border-white/8 py-14 px-6 text-center bg-[radial-gradient(80%_120%_at_50%_0%,rgba(212,168,71,.12),transparent_60%),var(--color-surface)]">
+        <Reveal className="rounded-3xl border border-white/8 py-14 px-6 text-center bg-surface">
           <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.closing.eyebrow')}</div>
           <h2 className="mt-3.5 text-3xl md:text-4xl font-extrabold tracking-tight max-w-[16em] mx-auto text-balance">{t('landing.closing.title')}</h2>
           <div className="mt-7 flex justify-center gap-3.5 flex-wrap">
@@ -419,18 +412,6 @@ export function LandingPage() {
         </div>
       </footer>
     </div>
-  )
-}
-
-function HeroLayer() {
-  return (
-    <>
-      <Suspense fallback={null}>
-        <HeroCanvas className="absolute inset-0 w-full h-full z-[1]" />
-      </Suspense>
-      <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: SCRIM }} />
-      <div className="absolute inset-0 z-[4] pointer-events-none shadow-[inset_0_0_190px_30px_rgba(0,0,0,.55)]" />
-    </>
   )
 }
 

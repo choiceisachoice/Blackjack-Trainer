@@ -117,7 +117,7 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
           all of it — suit watermark reaches the real bottom, rails centre on
           the whole form rather than just the visible fold */}
       <div className="relative isolate min-h-full px-4 py-8">
-      <TrainingBackdrop mode="casinoSession" showRails showGlow={false} railBreakpoint="2xl" />
+      <TrainingBackdrop mode="casinoSession" showRails railBreakpoint="2xl" />
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">

@@ -27,8 +27,7 @@ export function ManifestoSection() {
   const longest = phrases.reduce((a, b) => (b.length > a.length ? b : a), '')
 
   return (
-    <section className="relative border-y border-white/8 py-24 overflow-hidden
-      bg-[radial-gradient(58%_70%_at_50%_50%,rgba(212,168,71,.07),transparent_72%)]">
+    <section className="relative border-y border-white/8 py-24 overflow-hidden bg-surface">
       <div className="max-w-4xl mx-auto px-6 text-center">
         <Reveal>
           <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">

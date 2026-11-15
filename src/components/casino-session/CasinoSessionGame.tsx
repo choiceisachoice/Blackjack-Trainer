@@ -484,10 +484,12 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         resized the table, so the whole felt shrank and grew on every click
         — the one thing on this screen that should never move. The area is
         as tall as its tallest state (the bet panel, laid out to fit it), and
-        the table has one size for the whole session. 9.5rem leaves the felt
+        the table has one size for the whole session. The bet panel measures 183px
+        (root font 18px), so 10.25rem; 9.5rem was shorter than it and the felt
+        still resized on every deal. That leaves the felt
         a 455px scene at 1080p, above TABLE_MIN_HEIGHT.
       */}
-      <div className="shrink-0 min-h-[9.5rem] flex flex-col justify-center bg-contrast/5 border-t border-contrast/10 px-4 py-3" data-testid="controls-area">
+      <div className="shrink-0 min-h-[10.25rem] flex flex-col justify-center bg-contrast/5 border-t border-contrast/10 px-4 py-3" data-testid="controls-area">
         {/* Betting */}
         {state.gameStep === 'betting' && (
           <BettingControls

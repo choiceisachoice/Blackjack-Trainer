@@ -62,7 +62,6 @@ export function HomeScreen() {
   // shell now hands down the remaining height; this only has to fill it.
   return (
     <div className="relative w-full flex flex-col items-center px-4 pb-4">
-      <div className="hero-glow" />
 
       {touring && <GuidedTour onClose={() => setTouring(false)} />}
 

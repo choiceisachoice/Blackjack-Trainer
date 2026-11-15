@@ -78,7 +78,7 @@ export const TERMS_DOC: LegalDoc = {
     {
       heading: '8. No financial or gambling advice',
       blocks: [
-        'Anything the Service shows — including strategy charts, bet-spread suggestions, bankroll figures and risk-of-ruin estimates — is for education only. It is not financial, investment or gambling advice, and it does not guarantee any result. Any decision you make about real gambling is entirely your own.',
+        'Anything the Service shows — including strategy charts, bet-spread suggestions and bankroll figures — is for education only. It is not financial, investment or gambling advice, and it does not guarantee any result. Any decision you make about real gambling is entirely your own.',
         'Gamble only if it is legal where you are, only with money you can afford to lose, and responsibly.',
       ],
     },

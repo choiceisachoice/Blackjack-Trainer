@@ -7,25 +7,20 @@ import { RAIL_CONTENT, RAIL_VARIANTS } from './training-rail-content'
 /**
  * Ambient, dark-luxury backdrop for the training-mode settings screens.
  *
- * Layers a soft gold/felt glow, a faint oversized suit watermark, fine grain
- * and a vignette behind the centred config panel so the screen reads as
- * finished and atmospheric rather than an empty black field. Purely decorative
- * (aria-hidden) and non-interactive.
+ * A faint oversized suit watermark behind the centred config panel. It used to
+ * carry a gold glow and a vignette as well; both were large, faint gradients on
+ * near-black, which band and shimmer (see `.app-canvas` in index.css), so they
+ * are gone. Purely decorative (aria-hidden) and non-interactive.
  *
  * When `showRails` is set and the mode has rail content, it also floats two
  * context rails into the flanks on wide screens: a "how it works" sequence and
  * the mode's real last-run figures + a pro-tip. The rails never cover the
  * centred content — they appear from `railBreakpoint` up (use `2xl` for wider
  * hosts like the Casino Session setup).
- *
- * `showGlow` can be turned off for hosts that carry their own top/bottom
- * headings (e.g. Casino Session), keeping only the suit watermark + vignette so
- * the glow doesn't fight the titles.
  */
 export function TrainingBackdrop({
   mode,
   showRails = false,
-  showGlow = true,
   railBreakpoint = 'xl',
   railVariant,
 }: {
@@ -33,37 +28,17 @@ export function TrainingBackdrop({
   /** A key of `RAIL_VARIANTS`, for a sub-mode with steps of its own. */
   railVariant?: string
   showRails?: boolean
-  showGlow?: boolean
   railBreakpoint?: 'xl' | '2xl'
 }) {
   return (
     <>
       {/* ── ambient atmosphere (decorative) ── */}
       <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        {/* gold glow (top) + felt glow (bottom) — tuned for full-screen scale */}
-        {showGlow && (
-          <div
-            data-testid="backdrop-glow"
-            className="absolute inset-0"
-            style={{
-              // Gold only. The felt-green wash that used to sit at the bottom
-              // belongs on the casino table, not behind a settings panel — it
-              // read as a second, unrelated theme.
-              // Sized in px rather than percent: a percentage radial keeps
-              // stretching on an ultrawide monitor until it flattens out.
-              background:
-                'radial-gradient(900px 420px at 50% -40px, color-mix(in srgb, var(--color-gold) 26%, transparent), transparent 70%),' +
-                'radial-gradient(1600px 700px at 50% 0%, color-mix(in srgb, var(--color-gold) 10%, transparent), transparent 65%)',
-            }}
-          />
-        )}
         {/* oversized suit watermark */}
         <div className="absolute inset-0" style={{ color: 'var(--color-gold)' }}>
           <span className="absolute -top-16 -left-16 leading-none rotate-[-15deg]" style={{ fontSize: '340px', opacity: 0.1 }}>♠</span>
           <span className="absolute -bottom-28 -right-14 leading-none rotate-[12deg]" style={{ fontSize: '420px', opacity: 0.1 }}>♦</span>
         </div>
-        {/* vignette */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(115% 80% at 50% 42%, transparent 40%, rgba(0,0,0,.55) 100%)', opacity: 0.85 }} />
       </div>
 
       {/* ── context rails (settings screen, wide viewports) ── */}

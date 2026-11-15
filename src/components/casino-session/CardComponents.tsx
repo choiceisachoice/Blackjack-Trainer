@@ -1,25 +1,14 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import type { Card } from '../../engine/shoe/types'
-import { SUIT_MAP } from './helpers'
+import { CardFace, CardBack } from '../cards/CardFace'
 
 // ─── Mini Card Component (for table) ─────────────────
 
 export function MiniCard({ card, faceDown }: { card: Card; faceDown?: boolean }) {
-  const isRed = card.suit === 'Hearts' || card.suit === 'Diamonds'
-  if (faceDown) {
-    return (
-      <div className="w-8 h-11 md:w-10 md:h-14 rounded bg-card-back border border-blue-300/30 flex items-center justify-center flex-shrink-0">
-        <div className="w-6 h-9 md:w-8 md:h-11 rounded border border-blue-300/20 opacity-40"
-          style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.05) 3px, rgba(255,255,255,0.05) 6px)' }} />
-      </div>
-    )
-  }
   return (
-    <div className={`w-8 h-11 md:w-10 md:h-14 rounded bg-white border border-gray-300 shadow flex flex-col items-center justify-center leading-none flex-shrink-0
-      ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-      <span className="text-[0.65rem] md:text-xs font-bold">{card.rank}</span>
-      <span className="text-[0.625rem] md:text-[0.6875rem]">{SUIT_MAP[card.suit]}</span>
+    <div className="w-8 h-11 md:w-10 md:h-14 flex-shrink-0 rounded-[3px] shadow">
+      {faceDown ? <CardBack /> : <CardFace rank={card.rank} suit={card.suit} />}
     </div>
   )
 }
@@ -38,43 +27,10 @@ const CARD_SIZE_CLASS: Record<CardSize, string> = {
   bot: 'w-[52px] h-[74px] md:w-[56px] md:h-[80px]',
 }
 
-/** Corner index (rank over suit) — stays visible when cards are fanned. */
-const CARD_CORNER_CLASS: Record<CardSize, string> = {
-  dealer: 'text-[0.85rem] md:text-[0.95rem]',
-  player: 'text-[0.8125rem] md:text-[0.85rem]',
-  bot: 'text-[0.8125rem] md:text-[0.85rem]',
-}
-
-/** Large centre suit pip. */
-const CARD_PIP_CLASS: Record<CardSize, string> = {
-  dealer: 'text-[1.625rem] md:text-[1.875rem]',
-  player: 'text-[1.375rem] md:text-[1.5rem]',
-  bot: 'text-[1.375rem] md:text-[1.5rem]',
-}
-
 export function TableCard({ card, faceDown, size = 'player' }: { card: Card; faceDown?: boolean; size?: CardSize }) {
-  const isRed = card.suit === 'Hearts' || card.suit === 'Diamonds'
-
-  if (faceDown) {
-    return (
-      <div className={`${CARD_SIZE_CLASS[size]} rounded-md flex items-center justify-center flex-shrink-0 shadow-lg`}
-        style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #172554 100%)', border: '2px solid rgba(96,165,250,0.3)' }}>
-        <div className="w-[80%] h-[80%] rounded border border-blue-300/20"
-          style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.04) 4px, rgba(255,255,255,0.04) 8px)' }} />
-      </div>
-    )
-  }
-
   return (
-    <div className={`${CARD_SIZE_CLASS[size]} relative rounded-md bg-white border border-gray-300 shadow-lg leading-none flex-shrink-0
-      ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-      {/* Top-left corner index — remains readable when the card is overlapped */}
-      <span className={`absolute top-[3px] left-[4px] flex flex-col items-center font-bold ${CARD_CORNER_CLASS[size]}`}>
-        <span>{card.rank}</span>
-        <span className="text-[0.82em] -mt-[1px]">{SUIT_MAP[card.suit]}</span>
-      </span>
-      {/* Centre pip */}
-      <span className={`absolute inset-0 grid place-items-center opacity-90 ${CARD_PIP_CLASS[size]}`}>{SUIT_MAP[card.suit]}</span>
+    <div className={`${CARD_SIZE_CLASS[size]} flex-shrink-0 rounded-[5px] shadow-[0_2px_5px_rgba(0,0,0,.45)]`}>
+      {faceDown ? <CardBack /> : <CardFace rank={card.rank} suit={card.suit} />}
     </div>
   )
 }

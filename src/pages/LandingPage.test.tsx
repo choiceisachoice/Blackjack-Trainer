@@ -28,7 +28,6 @@ vi.mock('react-router-dom', async importOriginal => ({
 }))
 
 // Three.js behind a lazy import — irrelevant here and enormous.
-vi.mock('../components/landing/HeroCanvas', () => ({ HeroCanvas: () => null }))
 
 // A passthrough for every `motion.*` tag, matching App.test.tsx: listing them
 // by hand means a component reaching for an unlisted one fails with an

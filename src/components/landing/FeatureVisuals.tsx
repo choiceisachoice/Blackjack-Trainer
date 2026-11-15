@@ -277,7 +277,7 @@ export function DeviationChartVisual() {
   )
 }
 
-/** Bankroll: a risk-of-ruin style curve trending up with variance. */
+/** Bankroll: a logged-sessions curve trending up with variance. */
 export function BankrollVisual() {
   const pts = [30, 26, 34, 28, 38, 33, 44, 40, 52, 48, 60]
   const w = 150

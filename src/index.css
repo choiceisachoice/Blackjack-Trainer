@@ -259,32 +259,23 @@ body {
 /* ─────────────────────────────────────────────────────────────
    App canvas — the surface everything sits on.
 
-   Flat near-black reads as unfinished at this size; a faint warm bloom from
-   the top edge plus a barely-there lift gives the dark depth without adding
-   decoration. Deliberately below the noise floor: no pattern, no second hue,
-   nothing that competes with the gold. Fixed attachment so it stays put while
-   inner panels scroll.
+   One flat colour. Nothing else.
+
+   This used to be three stacked gradients: a gold bloom at 10 % over the top
+   edge, a white fall at 5 % from top to bottom and a vignette, all fixed to
+   the viewport. Each was tuned to be "barely there", and that is the defect:
+   between #070809 and the brightest point there are about a dozen 8-bit
+   steps, spread over a whole screen. The steps are visible as rings, and a
+   laptop panel that dithers to hide them shimmers instead — the page looked
+   grainy, as if it had noise on it (reported 15 Nov 2026, and visible in a
+   lossless screenshot). No gradient this faint can be drawn cleanly on a
+   near-black ground, so the ground has none.
+
+   Depth comes from the things on the ground instead: surfaces one step
+   lighter with a hairline border, the felt, white cards, gold.
    ───────────────────────────────────────────────────────────── */
 .app-canvas {
   background-color: var(--color-casino-bg);
-  background-image:
-    /* 1. Warm bloom over the top edge. Sized in viewport units so it stays a
-          proportional pool of light on a 13" laptop and on a 34" ultrawide —
-          a fixed 1200px glow covered barely a third of the width at 3440px,
-          which is why earlier attempts read as "no change at all". */
-    radial-gradient(90vw 55vh at 50% -8vh, rgba(212, 168, 71, 0.10), transparent 70%),
-    /* 2. Full-height tonal fall from top to bottom. This is the part that
-          actually removes the flatness: it covers the whole surface rather
-          than one corner of it. */
-    linear-gradient(180deg,
-      rgba(255, 255, 255, 0.055) 0%,
-      rgba(255, 255, 255, 0.022) 28%,
-      rgba(255, 255, 255, 0.006) 60%,
-      transparent 100%),
-    /* 3. Soft vignette so the field has a shape instead of a hard edge. */
-    radial-gradient(130vw 110vh at 50% 38%, transparent 45%, rgba(0, 0, 0, 0.5) 100%);
-  background-attachment: fixed;
-  background-repeat: no-repeat;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -444,18 +435,6 @@ body {
 /* Hide scrollbar (used by the horizontal nav) while keeping scroll */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
-
-/* Ambient radial glow behind the hero */
-.hero-glow {
-  position: absolute;
-  inset: -20% 0 auto 0;
-  height: 340px;
-  pointer-events: none;
-  background: radial-gradient(60% 100% at 50% 0%,
-    color-mix(in srgb, var(--color-gold) 18%, transparent) 0%,
-    transparent 70%);
-  z-index: 0;
-}
 
 /* Diagonal stripes travelling along an active progress bar. The idea is the
    classic striped loader; the colours are ours. One 24px cycle, so the speed

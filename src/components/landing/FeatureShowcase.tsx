@@ -57,8 +57,7 @@ export function FeatureShowcase() {
 
       {/* ── Pro ──────────────────────────────────────────────── */}
       <Reveal delay={0.06}>
-        <div className="rounded-3xl border border-gold/25 p-5 md:p-6
-          bg-[radial-gradient(90%_130%_at_50%_-10%,rgba(212,168,71,.08),transparent_65%),rgba(255,255,255,.012)]">
+        <div className="rounded-3xl border border-gold/25 p-5 md:p-6 bg-surface">
           <BandHead
             label={t('landing.showcase.proLabel')}
             gold

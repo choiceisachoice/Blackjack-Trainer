@@ -175,7 +175,7 @@ describe('CasinoSession', () => {
       // The felt fits itself to the height the controls leave it. A controls
       // area that grows and shrinks with each phase resized the table on
       // every click; the fixed minimum height is the whole fix.
-      expect(screen.getByTestId('controls-area').className).toContain('min-h-[9.5rem]')
+      expect(screen.getByTestId('controls-area').className).toContain('min-h-[10.25rem]')
     })
 
     it('shows bet amount buttons based on config min/max', () => {
@@ -771,19 +771,22 @@ describe('CasinoSession', () => {
     })
   })
 
-  describe('Seat Flex Positioning', () => {
-    it('human seat uses flex layout', () => {
+  // A seat is a slot of one width for the whole session. It used to size
+  // itself to its cards (`flex: 0 0 auto; min-width: 140px`), so a hit or a
+  // split in one seat moved every other seat along the row.
+  describe('Seat slots', () => {
+    it('the human seat has a fixed width', () => {
       render(<CasinoSession />)
       fireEvent.click(screen.getByTestId('start-session'))
       act(() => { vi.advanceTimersByTime(100) })
 
       const humanSeat = screen.getByTestId('human-seat')
       const style = humanSeat.getAttribute('style') || ''
-      expect(style).toContain('flex:')
-      expect(style).toContain('140px')
+      expect(style).toMatch(/width: \d+px/)
+      expect(style).not.toContain('min-width')
     })
 
-    it('bot seats use flex layout in seat row', () => {
+    it('every bot seat has the same fixed width as the human seat', () => {
       render(<CasinoSession />)
       fireEvent.click(screen.getByTestId('start-session'))
       act(() => { vi.advanceTimersByTime(100) })
@@ -796,11 +799,9 @@ describe('CasinoSession', () => {
       const botSeats = screen.queryAllByTestId('bot-seat')
       expect(botSeats.length).toBeGreaterThan(0)
 
-      // Bot seats should use flex layout with bounded width
+      const human = screen.getByTestId('human-seat').getAttribute('style')
       for (const seat of botSeats) {
-        const style = seat.getAttribute('style') || ''
-        expect(style).toContain('flex:')
-        expect(style).toContain('140px')
+        expect(seat.getAttribute('style')).toBe(human)
       }
     })
   })

@@ -45,16 +45,13 @@ describe('TrainingBackdrop', () => {
     expect(screen.queryByText('How it works')).not.toBeInTheDocument()
   })
 
-  it('shows the glow layer by default and hides it when showGlow is false', () => {
-    const { rerender } = render(<TrainingBackdrop />)
-    expect(screen.getByTestId('backdrop-glow')).toBeInTheDocument()
-    rerender(<TrainingBackdrop showGlow={false} />)
+  it('draws no glow layer: a faint gradient on near-black bands', () => {
+    render(<TrainingBackdrop />)
     expect(screen.queryByTestId('backdrop-glow')).not.toBeInTheDocument()
   })
 
-  it('renders Casino Session rails (glow off, wide breakpoint)', () => {
-    render(<TrainingBackdrop mode="casinoSession" showRails showGlow={false} railBreakpoint="2xl" />)
-    expect(screen.queryByTestId('backdrop-glow')).not.toBeInTheDocument()
+  it('renders Casino Session rails (wide breakpoint)', () => {
+    render(<TrainingBackdrop mode="casinoSession" showRails railBreakpoint="2xl" />)
     expect(screen.getByText('How it works')).toBeInTheDocument()
     expect(screen.getByText(rail(RAIL_CONTENT.casinoSession!.steps[0]))).toBeInTheDocument()
     expect(screen.getByText(rail(RAIL_CONTENT.casinoSession!.tip))).toBeInTheDocument()

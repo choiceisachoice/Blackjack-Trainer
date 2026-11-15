@@ -1,14 +1,7 @@
 import { motion } from 'framer-motion'
 import { memo, useState, useEffect, useRef } from 'react'
 import type { Card } from '../../types'
-import { Suit } from '../../types'
-
-const SUIT_SYMBOL: Record<string, string> = {
-  [Suit.Hearts]: '\u2665',
-  [Suit.Diamonds]: '\u2666',
-  [Suit.Clubs]: '\u2663',
-  [Suit.Spades]: '\u2660',
-}
+import { CardFace, CardBack } from './CardFace'
 
 /** Props for the PlayingCard component. */
 interface PlayingCardProps {
@@ -38,10 +31,6 @@ export const PlayingCard = memo(function PlayingCard({
   delay = 0,
   isDealer = false,
 }: PlayingCardProps) {
-  const isRed = card.suit === Suit.Hearts || card.suit === Suit.Diamonds
-  const suitSymbol = SUIT_SYMBOL[card.suit]
-  const textColor = isRed ? 'text-red-600' : 'text-gray-900'
-
   // canFlip: false while the card is sliding in, true after slide completes
   const [canFlip, setCanFlip] = useState(!animateIn)
 
@@ -87,43 +76,17 @@ export const PlayingCard = memo(function PlayingCard({
           ease: 'easeInOut',
         }}
       >
-        {/* Card Face (front) */}
-        <div
-          className={`absolute inset-0 rounded-lg bg-white border border-gray-300 shadow-lg
-            flex flex-col justify-between p-1 md:p-1.5 ${textColor}`}
-          style={{ backfaceVisibility: 'hidden' }}
-        >
-          {/* Top-left corner */}
-          <div className="flex flex-col items-start leading-none">
-            <span className="text-sm md:text-base font-bold">{card.rank}</span>
-            <span className="text-sm md:text-base">{suitSymbol}</span>
-          </div>
-
-          {/* Center suit */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-2xl md:text-3xl opacity-20">{suitSymbol}</span>
-          </div>
-
-          {/* Bottom-right corner (rotated) */}
-          <div className="flex flex-col items-end leading-none rotate-180">
-            <span className="text-sm md:text-base font-bold">{card.rank}</span>
-            <span className="text-sm md:text-base">{suitSymbol}</span>
-          </div>
+        {/* Face */}
+        <div className="absolute inset-0 rounded-lg shadow-lg" style={{ backfaceVisibility: 'hidden' }}>
+          <CardFace rank={card.rank} suit={card.suit} variant="full" />
         </div>
 
-        {/* Card Back */}
+        {/* Back */}
         <div
-          className="absolute inset-0 rounded-lg bg-card-back border-2 border-blue-300/30
-            flex items-center justify-center overflow-hidden shadow-lg"
+          className="absolute inset-0 rounded-lg shadow-lg"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
-          <div
-            className="w-[85%] h-[85%] rounded border border-blue-300/20"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(255,255,255,0.05) 5px, rgba(255,255,255,0.05) 10px)',
-            }}
-          />
+          <CardBack />
         </div>
       </motion.div>
 

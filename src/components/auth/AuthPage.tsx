@@ -100,11 +100,6 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
   return (
     <div className="relative flex-1 flex items-center justify-center p-4 overflow-hidden">
       {/* ambient glow */}
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 pointer-events-none"
-        style={{ background: 'radial-gradient(50% 40% at 50% 0%, color-mix(in srgb, var(--color-gold) 14%, transparent), transparent 70%)' }}
-      />
 
       <div className="surface w-full max-w-sm p-7">
         {/* brand */}

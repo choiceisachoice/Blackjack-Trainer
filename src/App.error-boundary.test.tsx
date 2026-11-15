@@ -40,7 +40,6 @@ vi.mock('framer-motion', () => {
   }
 })
 
-vi.mock('./components/landing/HeroCanvas', () => ({ HeroCanvas: () => null }))
 
 // The loading screen holds a frame loop open for its whole run and would only
 // delay what this file is checking. Covered in `IntroGate.test.tsx`.

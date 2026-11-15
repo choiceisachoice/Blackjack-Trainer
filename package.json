@@ -33,7 +33,6 @@
     "react-i18next": "^17.0.11",
     "react-router-dom": "^7.18.1",
     "recharts": "^3.7.0",
-    "three": "^0.185.1",
     "write-excel-file": "^4.1.1",
     "zustand": "^5.0.11"
   },
@@ -47,7 +46,6 @@
     "@types/pdfmake": "^0.3.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@types/three": "^0.185.1",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
     "eslint-plugin-i18next": "^6.1.5",
