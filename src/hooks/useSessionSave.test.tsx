@@ -95,4 +95,66 @@ describe('useSessionSave', () => {
     unmount()
     expect(recordSpy).toHaveBeenCalledTimes(1)
   })
+
+  /**
+   * The replay that recorded a session twice. The modes only write the stats
+   * when an answer is given, so Start followed by leaving re-armed the guard
+   * over the previous session's figures.
+   */
+  it('does not record the previous session again when a new one is started and left unanswered', () => {
+    function FinishedThenRestarted() {
+      const { statsRef, finish, begin } = useSessionSave('speedDrill', details)
+      useEffect(() => {
+        statsRef.current = { totalQuestions: 20, correctAnswers: 20, bestStreak: 20 }
+        finish()
+        begin() // "Start" on the settings screen — and then no answer at all
+      }, [statsRef, finish, begin])
+      return null
+    }
+    const { unmount } = render(<FinishedThenRestarted />)
+    unmount()
+    expect(recordSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('measures a sitting of several rounds from its first round, not its last', () => {
+    // The Speed Drill calls begin() for every shoe. Restamping each time
+    // recorded a ten-minute sitting as its final seconds.
+    const clock = vi.spyOn(Date, 'now')
+    function ThreeShoes() {
+      const { statsRef, finish, begin } = useSessionSave('speedDrill', details)
+      useEffect(() => {
+        clock.mockReturnValue(1_000_000)
+        begin()
+        statsRef.current = { totalQuestions: 1, correctAnswers: 1, bestStreak: 1 }
+        clock.mockReturnValue(1_300_000)
+        begin() // try again
+        statsRef.current = { totalQuestions: 3, correctAnswers: 3, bestStreak: 3 }
+        clock.mockReturnValue(1_600_000)
+        finish()
+      }, [statsRef, finish, begin])
+      return null
+    }
+    render(<ThreeShoes />)
+    expect(recordSpy.mock.calls[0][0]).toMatchObject({ startTime: 1_000_000, totalQuestions: 3 })
+  })
+
+  it('starts the clock again for the session after a recorded one', () => {
+    const clock = vi.spyOn(Date, 'now')
+    function TwoSittings() {
+      const { statsRef, finish, begin } = useSessionSave('speedDrill', details)
+      useEffect(() => {
+        clock.mockReturnValue(1_000_000)
+        begin()
+        statsRef.current = { totalQuestions: 5, correctAnswers: 5, bestStreak: 5 }
+        finish()
+        clock.mockReturnValue(2_000_000)
+        begin()
+        statsRef.current = { totalQuestions: 4, correctAnswers: 4, bestStreak: 4 }
+        finish()
+      }, [statsRef, finish, begin])
+      return null
+    }
+    render(<TwoSittings />)
+    expect(recordSpy.mock.calls[1][0]).toMatchObject({ startTime: 2_000_000, totalQuestions: 4 })
+  })
 })

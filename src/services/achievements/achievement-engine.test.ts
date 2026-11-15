@@ -88,6 +88,21 @@ describe('AchievementEngine', () => {
     expect(unlocked.some(a => a.id === 'on_fire')).toBe(true)
   })
 
+  it('does not hand out an accuracy award for three right answers', () => {
+    // 13 Nov 2026: a new account answered three basic-strategy flashcards and
+    // left — six accuracy awards, 475 XP, level 4, no deviation ever seen.
+    const three = makeSession({
+      mode: 'deviationFlashCards', totalQuestions: 3, correctAnswers: 3, accuracy: 1,
+      details: { type: 'deviationFlashCards', deviationSet: 'all', perDeviation: {} },
+    })
+    const unlocked = engine.checkAfterSession(three, makeStats(), 0, [three])
+    expect(unlocked.some(a => a.id === 'sharp_eye')).toBe(false)
+
+    // The same accuracy over a full run earns it.
+    const full = makeSession({ ...three, id: crypto.randomUUID(), totalQuestions: 10, correctAnswers: 10 })
+    expect(engine.checkAfterSession(full, makeStats(), 0, [full]).some(a => a.id === 'sharp_eye')).toBe(true)
+  })
+
   it('accuracy achievement checks session accuracy', () => {
     // 75% accuracy — not enough for "sharp_eye" (80%)
     const lowSession = makeSession({ accuracy: 0.75 })

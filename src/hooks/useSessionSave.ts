@@ -105,6 +105,12 @@ export function useSessionSave(
       details: buildDetailsRef.current(),
       countingSystem: useAppStore.getState().selectedSystem,
     })
+    // What was just recorded is spent. The figures stayed in the ref, and the
+    // modes only write it when an answer is given — so finishing a session,
+    // pressing Start and leaving before the first answer re-armed the guard
+    // (`begin`) over the *previous* session's numbers and recorded it a
+    // second time: a new timestamp, full XP, one more session towards a stage.
+    statsRef.current = { totalQuestions: 0, correctAnswers: 0, bestStreak: 0 }
   }, [mode])
 
   useEffect(() => {
@@ -132,7 +138,11 @@ export function useSessionSave(
   // whenever the mode was first opened.
   const begin = useCallback(() => {
     savedRef.current = false
-    startTimeRef.current = Date.now()
+    // The clock restarts only for a session that has no answers yet. The Speed
+    // Drill calls this for every shoe of one sitting ("try again"), and
+    // restamping each time measured the session from its last shoe: a ten
+    // minute sitting was recorded as the final twenty seconds.
+    if (statsRef.current.totalQuestions === 0) startTimeRef.current = Date.now()
   }, [])
 
   return { statsRef, startTimeRef, finish: save, begin }

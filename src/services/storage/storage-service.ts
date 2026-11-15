@@ -1,3 +1,4 @@
+import { provesAccuracy } from '../accuracy-sample'
 import type {
   TrainingSessionResult,
   TrainingMode,
@@ -171,7 +172,8 @@ export function computeLifetimeStats(
     mode.totalQuestions += session.totalQuestions
     mode.totalCorrect += session.correctAnswers
     mode.totalPracticeSeconds += session.durationSeconds
-    mode.bestAccuracy = Math.max(mode.bestAccuracy, session.accuracy)
+    // A best needs a sample: three right answers are not "100%".
+    if (provesAccuracy(session)) mode.bestAccuracy = Math.max(mode.bestAccuracy, session.accuracy)
     mode.bestStreak = Math.max(mode.bestStreak, session.bestStreak)
 
     // Daily accumulation

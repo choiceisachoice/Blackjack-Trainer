@@ -1,3 +1,4 @@
+import { provesAccuracy } from './accuracy-sample'
 import type { AppMode } from '../store/app-store'
 import type { TrainingSessionResult } from './stats-types'
 import { isProMode } from './pro-features'
@@ -281,7 +282,9 @@ export function deriveStageProgress(
 
   const { minSessions, minAccuracy, counts } = stage.drill
   const attempted = sessions.filter(counts)
-  const qualifying = attempted.filter(s => s.accuracy >= minAccuracy).length
+  // A qualifying session is one whose accuracy was demonstrated: three
+  // aborted three-question runs used to finish a stage.
+  const qualifying = attempted.filter(s => provesAccuracy(s) && s.accuracy >= minAccuracy).length
 
   return {
     stage,
@@ -385,7 +388,7 @@ export function stageTrend(
 
   return {
     points: matching.map(s => Math.round(s.accuracy * 100)),
-    cleared: matching.filter(s => s.accuracy >= minAccuracy).length,
+    cleared: matching.filter(s => provesAccuracy(s) && s.accuracy >= minAccuracy).length,
     floor: Math.round(minAccuracy * 100),
   }
 }

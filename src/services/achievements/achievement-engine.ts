@@ -1,3 +1,4 @@
+import { provesAccuracy } from '../accuracy-sample'
 import type { Achievement, UnlockedAchievement } from './achievement-types'
 import type { TrainingSessionResult, LifetimeStats, TrainingMode, CasinoSessionDetails } from '../stats-types'
 import type { SimulationResult } from '../../engine/simulation/types'
@@ -446,8 +447,9 @@ export class AchievementEngine {
           const modeStats = stats.byMode[req.mode]
           return modeStats ? modeStats.bestAccuracy * 100 >= req.value : false
         }
-        // Generic: check current session accuracy
-        return session.accuracy * 100 >= req.value
+        // Generic: this session's accuracy — if the session is large enough
+        // for the figure to mean something (see `accuracy-sample.ts`).
+        return provesAccuracy(session) && session.accuracy * 100 >= req.value
       }
 
       case 'streak':

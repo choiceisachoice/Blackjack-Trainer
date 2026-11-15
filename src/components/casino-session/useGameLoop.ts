@@ -105,6 +105,8 @@ export interface GameActions {
   setPaused: (v: boolean) => void
   /** End the session and show the result: the cash-out, from the HUD, the pause panel or the end prompt. */
   quitSession: () => void
+  /** Drop the session without recording it — for "start fresh". */
+  discardSession: () => void
   /** Play on past the reached target; no target applies for the rest of the session. */
   keepPlaying: () => void
 }
@@ -384,6 +386,17 @@ export function useGameLoop(
     const sessionResult = engine.calculateSessionResult(startTimeRef.current, Date.now())
     onSessionEnd(sessionResult)
   }, [onSessionEnd])
+
+  /**
+   * Mark the session as over without recording it.
+   *
+   * "Start fresh" on the resume panel unmounts the game, and the cleanup below
+   * flushes any un-ended session with a hand in it — so the choice that says
+   * "discard this" wrote it to the statistics, paid its XP and showed the
+   * summary instead of the setup. Closing it here is what makes the cleanup
+   * skip it.
+   */
+  const discardSession = useCallback(() => { endedRef.current = true }, [])
 
   // On unmount (navigate away, quit): stop the clock, cancel every pending
   // gameplay timeout so none fire against a dead component, and flush a session
@@ -1566,6 +1579,7 @@ export function useGameLoop(
     setTcInput,
     setPaused: setIsPaused,
     quitSession: endSession,
+    discardSession,
     keepPlaying: () => setKeptPlaying(true),
   }
 

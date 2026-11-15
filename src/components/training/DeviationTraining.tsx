@@ -17,6 +17,9 @@ import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { DeviationDetails } from '../../services/stats-types'
 import { TrainingBackdrop } from './TrainingBackdrop'
+import { activeStage, stageIndex } from '../../services/curriculum'
+import { useStatsStore } from '../../store/stats-store'
+import { selectIsPro, useEntitlementStore } from '../../store/entitlement-store'
 
 type Phase = 'settings' | 'question' | 'feedback' | 'summary'
 
@@ -59,11 +62,26 @@ function focusFromHandoff(names: string[] | null): string[] | null {
  * Analytics shows whether the drilling worked. The hand-off is cleared when
  * this screen unmounts: it belongs to the click that made it, not to the mode.
  */
+/**
+ * The level the setup opens on: the one the learner's plan is asking for.
+ *
+ * It always opened on Basic Strategy. A learner on the Deviations stage
+ * pressed "Start drilling" in the plan, pressed Start here, scored 100% three
+ * times — and the plan still said 0 of 3, because those were basic-strategy
+ * sessions and the stage counts only sessions with deviation questions.
+ * Nothing told them why. From the Deviations stage on, deviations are the
+ * default; before it, basic strategy still is. The choice stays theirs.
+ */
+function startingLevel(): FlashLevel {
+  const stage = activeStage(useStatsStore.getState().sessions, selectIsPro(useEntitlementStore.getState()))
+  return stage && stageIndex(stage) >= stageIndex('deviations') ? 'deviations' : 'basic'
+}
+
 export function DeviationTraining() {
   const { t } = useTranslation()
   const dealerHitsSoft17 = useAppStore(s => s.selectedRules.dealerHitsSoft17)
 
-  const [level, setLevel] = useState<FlashLevel>('basic')
+  const [level, setLevel] = useState<FlashLevel>(startingLevel)
   const [numQuestions, setNumQuestions] = useState(20)
   const [phase, setPhase] = useState<Phase>('settings')
 

@@ -102,7 +102,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   }, [backgrounded])
 
   const continueSession = () => { setJustReturned(false); actions.setPaused(false) }
-  const restartSession = () => { setJustReturned(false); onRestart?.() }
+  const restartSession = () => { setJustReturned(false); actions.discardSession(); onRestart?.() }
 
   // Dealing speed (live, persisted)
   const dealingSpeed = useAppStore(s => s.dealingSpeed)

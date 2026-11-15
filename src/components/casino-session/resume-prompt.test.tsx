@@ -18,6 +18,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const setPaused = vi.fn<(v: boolean) => void>()
 const quitSession = vi.fn()
+const discardSession = vi.fn()
 
 let paused = true
 let handNum = 7
@@ -48,7 +49,7 @@ vi.mock('./useGameLoop', () => ({
       elapsedSeconds: 0,
     },
     actions: {
-      setPaused, quitSession,
+      setPaused, quitSession, discardSession,
       confirmBet: vi.fn(), handleAction: vi.fn(), handleInsurance: vi.fn(),
       submitCount: vi.fn(), nextHand: vi.fn(), setBet: vi.fn(),
       setRcInput: vi.fn(), setTcInput: vi.fn(),
@@ -96,6 +97,7 @@ beforeEach(() => {
   handNum = 7
   setPaused.mockClear()
   quitSession.mockClear()
+  discardSession.mockClear()
   onRestart.mockClear()
 })
 afterEach(cleanup)
@@ -143,6 +145,9 @@ describe('coming back from another mode', () => {
     expect(onRestart).toHaveBeenCalledOnce()
     // Quitting would have recorded an unfinished session in the statistics.
     expect(quitSession).not.toHaveBeenCalled()
+    // And the unmount that follows must not record it either: the session is
+    // closed as discarded before the game is torn down.
+    expect(discardSession).toHaveBeenCalledOnce()
   })
 
   it('asks once, not on every later pause', () => {

@@ -451,3 +451,26 @@ describe('stageEffort', () => {
     }
   })
 })
+
+describe('a stage needs sessions large enough to prove something', () => {
+  const short = (mode: TrainingMode, accuracy: number): TrainingSessionResult =>
+    ({ ...session(mode, accuracy), totalQuestions: 3, correctAnswers: Math.round(3 * accuracy) })
+
+  it('does not finish a stage on three aborted three-question runs', () => {
+    // 13 Nov 2026: three flashcards right, leave, three times — stage done.
+    const stage = CURRICULUM.find(s => s.id === 'basic-strategy')!
+    const runs = repeat(3, () => short('deviationFlashCards', 1)).filter(stage.drill!.counts)
+    expect(runs).toHaveLength(3)
+    const p = deriveStageProgress(stage, runs, [], true)
+    expect(p.done).toBe(false)
+    expect(p.current).toBe(0)
+    // They still count as practice: the learner tried.
+    expect(p.attempts).toBe(runs.length)
+  })
+
+  it('keeps the Speed Drill at three runs — one answer there is a whole shoe counted', () => {
+    const stage = CURRICULUM.find(s => s.drill?.mode === 'speedDrill')!
+    const p = deriveStageProgress(stage, repeat(3, () => short('speedDrill', 1)), [], true)
+    expect(p.done).toBe(true)
+  })
+})

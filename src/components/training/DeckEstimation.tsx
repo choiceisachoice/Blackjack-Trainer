@@ -259,6 +259,9 @@ export function DeckEstimation() {
 
   const startTraining = useCallback(() => {
     begin()
+    // Not the previous session's: the list was never cleared, so every later
+    // session's record contained all the estimates made before it.
+    estimationsRef.current = []
     setStats(INITIAL_STATS)
     setRound(1)
     generateQuestion()

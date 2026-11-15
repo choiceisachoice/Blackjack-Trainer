@@ -282,11 +282,21 @@ export function SpeedDrill() {
    * the player may run another, so the attempts accumulate until they step out.
    * That step is the session boundary, and it is where the payout belongs.
    */
-  const handleAbort = useCallback(() => {
+  const endSession = useCallback(() => {
     stopTimer()
     finish()
+    // The totals belong to the session that just ended. They used to carry
+    // over: three shoes, back, one shoe, back, one shoe, back recorded 3/3,
+    // then 4/4, then 5/5 — three "sessions" from five shoes, a curriculum
+    // stage closed and its XP paid on work that was counted three times.
+    setTotalAttempts(0)
+    setTotalCorrect(0)
+    setStreak(0)
+    setBestStreak(0)
+    rcErrorsRef.current = []
     setPhase('settings')
   }, [stopTimer, finish])
+  const handleAbort = endSession
 
   // Keyboard: Enter submits in input phase, Escape aborts drill
   useEffect(() => {
@@ -547,7 +557,7 @@ export function SpeedDrill() {
             {t('training.common.tryAgain')}
           </button>
           <button
-            onClick={() => { finish(); setPhase('settings') }}
+            onClick={endSession}
             className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-medium
               hover:bg-contrast/15 transition-colors cursor-pointer"
           >

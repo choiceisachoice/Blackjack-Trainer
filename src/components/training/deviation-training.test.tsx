@@ -185,3 +185,43 @@ describe('DeviationTraining (Flashcards)', () => {
     })
   })
 })
+
+/**
+ * The level the setup opens on follows the plan. A learner on the Deviations
+ * stage used to be dropped on Basic Strategy, score 100% three times and see
+ * the plan still at 0 of 3 — basic sessions do not count for that stage.
+ */
+describe('the level Flashcards opens on', () => {
+  const pressed = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-pressed')
+
+  beforeEach(() => {
+    localStorage.clear()
+    useStatsStore.setState({ sessions: [] })
+    useAppStore.setState({ selectedRules: { ...DEFAULT_RULES, dealerHitsSoft17: false }, flashFocus: null })
+  })
+
+  it('is Basic Strategy for a learner who is still on it', () => {
+    localStorage.setItem('bjt_placement', 'basic-strategy')
+    render(<DeviationTraining />)
+    expect(pressed('Basic Strategy')).toBe('true')
+  })
+
+  it('is Basic Strategy when there is no plan yet', () => {
+    render(<DeviationTraining />)
+    expect(pressed('Basic Strategy')).toBe('true')
+  })
+
+  it('is Deviations once the plan has reached the Deviations stage', () => {
+    localStorage.setItem('bjt_placement', 'deviations')
+    render(<DeviationTraining />)
+    expect(pressed('Deviations')).toBe('true')
+    expect(pressed('Basic Strategy')).toBe('false')
+  })
+
+  it('stays the learner’s to change', () => {
+    localStorage.setItem('bjt_placement', 'deviations')
+    render(<DeviationTraining />)
+    fireEvent.click(screen.getByRole('button', { name: 'Basic Strategy' }))
+    expect(pressed('Basic Strategy')).toBe('true')
+  })
+})
