@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { Action } from '../rules/types'
-import { S17_STRATEGY } from './basic-strategy-tables'
+import { S17_STRATEGY, H17_STRATEGY } from './basic-strategy-tables'
 import {
   resolveStrategyAction,
   handKindOf,
@@ -154,5 +154,24 @@ describe('flashcards engine', () => {
         expect(q.noSurrender).toBe(true)
       }
     })
+  })
+})
+
+describe('8,8 against an Ace when the dealer hits soft 17', () => {
+  it('is a surrender where the table offers it', () => {
+    expect(lookupBasicAction('8,8', 'A', H17_STRATEGY)).toBe(Action.Surrender)
+  })
+
+  it('falls back to the split, not to a hit or a stand, where it does not', () => {
+    expect(lookupBasicAction('8,8', 'A', H17_STRATEGY, false)).toBe(Action.Split)
+  })
+
+  it('stays a split when the dealer stands on soft 17', () => {
+    expect(lookupBasicAction('8,8', 'A', S17_STRATEGY)).toBe(Action.Split)
+  })
+
+  it('leaves soft 17 against a 2 a hit under both rule sets', () => {
+    expect(lookupBasicAction('A,6', '2', S17_STRATEGY)).toBe(Action.Hit)
+    expect(lookupBasicAction('A,6', '2', H17_STRATEGY)).toBe(Action.Hit)
   })
 })

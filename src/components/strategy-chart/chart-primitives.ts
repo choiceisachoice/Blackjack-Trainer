@@ -52,6 +52,7 @@ export function resolveAction(action: StrategyAction): ChartAction {
     case 'P': return 'SP'
     case 'Rh': return 'SU'
     case 'Rs': return 'SU'
+    case 'Rp': return 'SU'
   }
 }
 

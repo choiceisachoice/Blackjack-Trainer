@@ -507,6 +507,11 @@
         "s3": "Gib am Ende deinen Endstand ein.",
         "tip": "Zähle in Paaren (+2 / 0 / −2) statt Karte für Karte — bei Casinotempo deutlich schneller."
       },
+      "flashBasic": {
+        "s1": "Eine Hand + Dealerkarte.",
+        "s3": "Noch ohne Zählen — nur der richtige Zug.",
+        "tip": "Lerne zuerst die harten Hände; sie sind der grösste Teil dessen, was du bekommst."
+      },
       "deviationFlashCards": {
         "s1": "Eine Hand + Dealerkarte + True Count.",
         "s2": "Wähle die richtige Aktion.",
@@ -2067,6 +2072,7 @@
     "yourHand": "Deine Hand:",
     "vsDealer": "gegen Dealer:",
     "deviationRule": "Ab True Count <b>{{tc}}</b> → <b>{{action}}</b>",
+    "withoutSurrender": "Ohne Late Surrender:",
     "belowThat": "(darunter: {{action}})",
     "action": {
       "H": "Karte",

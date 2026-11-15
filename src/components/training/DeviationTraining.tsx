@@ -199,7 +199,7 @@ export function DeviationTraining() {
   if (phase === 'settings') {
     return (
       <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
-        <TrainingBackdrop mode="deviationFlashCards" showRails />
+        <TrainingBackdrop mode="deviationFlashCards" showRails railVariant={level === 'basic' ? 'flashBasic' : undefined} />
         <Panel
           icon={focus ? Target : GraduationCap}
           title={focus ? t('training.flash.focusTitle') : t('training.flash.title')}

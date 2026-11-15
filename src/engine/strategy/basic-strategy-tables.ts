@@ -71,14 +71,20 @@ export const S17_STRATEGY: StrategyTable = {
  *
  * **6 cells differ from S17 → H17.** H17 makes the dealer bust more often on the
  * small upcards and reach 18 more often on an Ace, so the player doubles more
- * aggressively against 2 and 6 and surrenders more against an Ace:
+ * aggressively against 2 and 6 and surrenders more against an Ace.
+ *
+ * Checked on 15 Nov 2026 against the standard 4–8 deck H17 chart (double
+ * after split, late surrender) and an infinite-deck EV run. Two cells were
+ * wrong until then: soft 17 against a 2 was a double — it is a hit in six
+ * decks, as under S17 (hit −0.0017, double −0.0084) — and 8,8 against an Ace
+ * stayed a split, where surrender loses less (−0.500 against −0.527).
  *
  * | Hand          | Dealer | S17 | H17 | Reason                                     |
  * |---------------|--------|-----|-----|--------------------------------------------|
  * | Hard 11       | A      | H   | D   | Dealer busts more often → double is +EV     |
  * | Hard 15       | A      | H   | Rh  | Dealer Ace stronger → surrender better      |
  * | Hard 17       | A      | S   | Rs  | Dealer Ace stronger → surrender better      |
- * | Soft 17 (A,6) | 2      | H   | D   | Dealer 2 bustier with H17 → double up       |
+ * | 8,8           | A      | P   | Rp  | Surrender loses less than splitting into an Ace |
  * | Soft 18 (A,7) | 2      | S   | Ds  | Dealer 2 bustier with H17 → double is +EV   |
  * | Soft 19 (A,8) | 6      | S   | Ds  | Dealer 6 bustier with H17 → the classic H17 double |
  */
@@ -91,11 +97,11 @@ export const H17_STRATEGY: StrategyTable = {
   },
   softTotals: {
     ...S17_STRATEGY.softTotals,
-    'A,6': row('D',  'D',  'D',  'D',  'D',  'H', 'H', 'H', 'H', 'H'),
     'A,7': row('Ds', 'Ds', 'Ds', 'Ds', 'Ds', 'S', 'S', 'H', 'H', 'H'),
     'A,8': row('S',  'S',  'S',  'S',  'Ds', 'S', 'S', 'S', 'S', 'S'),
   },
   pairs: {
     ...S17_STRATEGY.pairs,
+    '8,8': row('P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'Rp'),
   },
 }

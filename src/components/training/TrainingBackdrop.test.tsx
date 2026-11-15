@@ -92,3 +92,23 @@ describe('TrainingBackdrop', () => {
     expect(screen.getByText(/No runs yet/)).toBeInTheDocument()
   })
 })
+
+describe('a rail for a sub-mode', () => {
+  it('describes Basic Strategy flashcards without a true count', () => {
+    // The default level is "no counting yet"; the rail beside it used to
+    // explain a true count and ask whether you deviate correctly.
+    render(<TrainingBackdrop mode="deviationFlashCards" showRails railVariant="flashBasic" />)
+    expect(screen.getByText(en.training.rail.flashBasic.s1)).toBeInTheDocument()
+    expect(screen.getByText(en.training.rail.flashBasic.s3)).toBeInTheDocument()
+    expect(screen.queryByText(en.training.rail.deviationFlashCards.s1)).toBeNull()
+    expect(screen.queryByText(en.training.rail.deviationFlashCards.s3)).toBeNull()
+  })
+
+  it('keeps the mode’s own rail when no variant is asked for, or an unknown one', () => {
+    const { unmount } = render(<TrainingBackdrop mode="deviationFlashCards" showRails />)
+    expect(screen.getByText(en.training.rail.deviationFlashCards.s1)).toBeInTheDocument()
+    unmount()
+    render(<TrainingBackdrop mode="deviationFlashCards" showRails railVariant="nope" />)
+    expect(screen.getByText(en.training.rail.deviationFlashCards.s1)).toBeInTheDocument()
+  })
+})

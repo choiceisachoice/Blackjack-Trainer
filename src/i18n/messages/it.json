@@ -507,6 +507,11 @@
         "s3": "Alla fine inserisci il totale.",
         "tip": "Conta a coppie (+2 / 0 / −2) invece che carta per carta — molto più rapido al ritmo del casinò."
       },
+      "flashBasic": {
+        "s1": "Una mano + carta del banco.",
+        "s3": "Ancora senza conteggio — solo la mossa giusta.",
+        "tip": "Impara prima i totali hard: sono la maggior parte delle mani che riceverai."
+      },
       "deviationFlashCards": {
         "s1": "Una mano + carta del banco + true count.",
         "s2": "Scegli l’azione giusta.",
@@ -2067,6 +2072,7 @@
     "yourHand": "La tua mano:",
     "vsDealer": "contro il banco:",
     "deviationRule": "Da True Count <b>{{tc}}</b> in su → <b>{{action}}</b>",
+    "withoutSurrender": "Senza Late Surrender:",
     "belowThat": "(sotto: {{action}})",
     "action": {
       "H": "Carta",

@@ -186,6 +186,22 @@ describe('Edge Cases', () => {
       .toBe(Action.Hit)
   })
 
+  /**
+   * Soft 17 against a 2 is a hit in six decks under BOTH rule sets. The H17
+   * table doubled it until 15 Nov 2026 (and this file asserted the double):
+   * that play belongs to the single- and double-deck charts. Infinite-deck EV
+   * under H17: hit −0.0017, double −0.0084.
+   */
+  it('hits soft 17 against a 2 whether the dealer hits soft 17 or not', () => {
+    for (const rules of [S17_RULES, H17_RULES]) {
+      expect(getOptimalAction([c(Rank.Ace), c(Rank.Six)], c(Rank.Two), rules)).toBe(Action.Hit)
+    }
+    // The doubles against 3 to 6 are untouched.
+    for (const up of [Rank.Three, Rank.Four, Rank.Five, Rank.Six]) {
+      expect(getOptimalAction([c(Rank.Ace), c(Rank.Six)], c(up), H17_RULES)).toBe(Action.Double)
+    }
+  })
+
   it('S17 vs H17 differ on specific hands (all 6 cells)', () => {
     // 1. Hard 11 vs A:  S17=Hit, H17=Double
     expect(getOptimalAction([c(Rank.Six), c(Rank.Five)], c(Rank.Ace), S17_RULES))
@@ -205,11 +221,13 @@ describe('Edge Cases', () => {
     expect(getOptimalAction([c(Rank.Ten), c(Rank.Seven)], c(Rank.Ace), H17_RULES))
       .toBe(Action.Surrender)
 
-    // 4. Soft 17 (A,6) vs 2:  S17=Hit, H17=Double
-    expect(getOptimalAction([c(Rank.Ace), c(Rank.Six)], c(Rank.Two), S17_RULES))
-      .toBe(Action.Hit)
-    expect(getOptimalAction([c(Rank.Ace), c(Rank.Six)], c(Rank.Two), H17_RULES))
-      .toBe(Action.Double)
+    // 4. 8,8 vs A:  S17=Split, H17=Surrender (split where surrender is not offered)
+    expect(getOptimalAction([c(Rank.Eight), c(Rank.Eight)], c(Rank.Ace), S17_RULES))
+      .toBe(Action.Split)
+    expect(getOptimalAction([c(Rank.Eight), c(Rank.Eight)], c(Rank.Ace), H17_RULES))
+      .toBe(Action.Surrender)
+    expect(getOptimalAction([c(Rank.Eight), c(Rank.Eight)], c(Rank.Ace), { ...H17_RULES, surrenderAllowed: 'none' }))
+      .toBe(Action.Split)
 
     // 5. Soft 18 (A,7) vs 2:  S17=Stand, H17=Double  (H17 adds this double)
     expect(getOptimalAction([c(Rank.Ace), c(Rank.Seven)], c(Rank.Two), S17_RULES))

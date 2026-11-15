@@ -507,6 +507,11 @@
         "s3": "No fim, introduza o seu total.",
         "tip": "Conte aos pares (+2 / 0 / −2) em vez de carta a carta — bem mais rápido ao ritmo do casino."
       },
+      "flashBasic": {
+        "s1": "Uma mão + carta do dealer.",
+        "s3": "Ainda sem contagem — apenas a jogada certa.",
+        "tip": "Aprenda primeiro os totais duros: são a maioria das mãos que vai receber."
+      },
       "deviationFlashCards": {
         "s1": "Uma mão + carta do dealer + true count.",
         "s2": "Escolha a ação correta.",
@@ -2067,6 +2072,7 @@
     "yourHand": "A sua mão:",
     "vsDealer": "contra o dealer:",
     "deviationRule": "A partir de um True Count de <b>{{tc}}</b> → <b>{{action}}</b>",
+    "withoutSurrender": "Sem Late Surrender:",
     "belowThat": "(abaixo: {{action}})",
     "action": {
       "H": "Pedir",

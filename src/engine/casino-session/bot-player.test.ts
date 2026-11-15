@@ -957,10 +957,29 @@ describe('Bot Player', () => {
     })
 
     // H17: Soft 17 (A,6) vs dealer 2 → Double (S17: Hit)
-    it('doubles soft 17 vs dealer 2 under H17', () => {
+    it('hits, not doubles, soft 17 vs dealer 2 under H17', () => {
+      // This asserted a double until 15 Nov 2026. In six decks soft 17 against
+      // a 2 is a hit under both rule sets; the double belongs to single and
+      // double deck. The bot draws to 20 here and stands.
       const bot = createBotWithHand([card(Rank.Ace), card(Rank.Six)])
       const hands = playBotTurn(bot, card(Rank.Two), setupDrawCard([card(Rank.Three)]), h17Rules)
-      expect(hands[0].isDoubled).toBe(true)
+      expect(hands[0].isDoubled).toBe(false)
+      expect(hands[0].cards.length).toBe(3)
+    })
+
+    it('surrenders 8,8 vs an Ace under H17 where the table offers it', () => {
+      const bot = createBotWithHand([card(Rank.Eight), card(Rank.Eight)])
+      const hands = playBotTurn(bot, card(Rank.Ace), setupDrawCard([]), h17Rules)
+      expect(hands.length).toBe(1)
+      expect(hands[0].result).toBe('surrender')
+    })
+
+    it('splits 8,8 vs an Ace under H17 where surrender is not offered', () => {
+      // The fallback of that cell is the split, not a hit or a stand on 16.
+      const noSurrender: CasinoRules = { ...h17Rules, surrenderAllowed: 'none' }
+      const bot = createBotWithHand([card(Rank.Eight), card(Rank.Eight)])
+      const hands = playBotTurn(bot, card(Rank.Ace), setupDrawCard([card(Rank.Ten), card(Rank.Ten)]), noSurrender)
+      expect(hands.length).toBe(2)
     })
 
     // Blackjack detection

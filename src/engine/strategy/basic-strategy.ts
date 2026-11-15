@@ -30,6 +30,7 @@ function rankToKey(rank: Rank): string {
  * - "Ds" → Double if `canDouble`, otherwise Stand
  * - "Rh" → Surrender if `canSurrender`, otherwise Hit
  * - "Rs" → Surrender if `canSurrender`, otherwise Stand
+ * - "Rp" → Surrender if `canSurrender`, otherwise Split
  * - "H", "S", "P" → returned directly
  *
  * @param action - The conditional strategy action from the table
@@ -57,6 +58,8 @@ export function resolveStrategyAction(
       return canSurrender ? Action.Surrender : Action.Hit
     case 'Rs':
       return canSurrender ? Action.Surrender : Action.Stand
+    case 'Rp':
+      return canSurrender ? Action.Surrender : Action.Split
   }
 }
 

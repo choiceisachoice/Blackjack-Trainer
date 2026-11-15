@@ -507,6 +507,11 @@
         "s3": "Sonunda toplamınızı girin.",
         "tip": "Kart kart yerine çiftler hâlinde sayın (+2 / 0 / −2) — kumarhane hızında çok daha çabuk."
       },
+      "flashBasic": {
+        "s1": "Bir el + krupiye kartı.",
+        "s3": "Henüz sayım yok — yalnızca doğru hamle.",
+        "tip": "Önce sert toplamları öğrenin; alacağınız ellerin çoğu onlardır."
+      },
       "deviationFlashCards": {
         "s1": "Bir el + krupiye kartı + true count.",
         "s2": "Doğru hamleyi seçin.",
@@ -2067,6 +2072,7 @@
     "yourHand": "Eliniz:",
     "vsDealer": "krupiyeye karşı:",
     "deviationRule": "True Count <b>{{tc}}</b> ve üzerinde → <b>{{action}}</b>",
+    "withoutSurrender": "Late Surrender yoksa:",
     "belowThat": "(altında: {{action}})",
     "action": {
       "H": "Kart",

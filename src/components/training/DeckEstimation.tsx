@@ -394,7 +394,7 @@ export function DeckEstimation() {
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
         <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
           <h3 className="text-xl font-bold text-gold text-center mb-4" data-testid="summary-title">
-            {t('training.deck.quickFireComplete')}
+            {t(quickFire ? 'training.deck.quickFireComplete' : 'training.common.sessionComplete')}
           </h3>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between">

@@ -61,7 +61,8 @@ export function resolveStrategyAction(a: StrategyAction): Action {
     case 'Ds': return Action.Double
     case 'P': return Action.Split
     case 'Rh':
-    case 'Rs': return Action.Surrender
+    case 'Rs':
+    case 'Rp': return Action.Surrender
   }
 }
 
@@ -87,6 +88,7 @@ export function lookupBasicAction(hand: string, dealer: string, table: StrategyT
   if (!raw) return Action.Hit
   if (!surrender && raw === 'Rh') return Action.Hit
   if (!surrender && raw === 'Rs') return Action.Stand
+  if (!surrender && raw === 'Rp') return Action.Split
   return resolveStrategyAction(raw)
 }
 

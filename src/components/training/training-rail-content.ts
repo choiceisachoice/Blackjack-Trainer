@@ -9,6 +9,19 @@ import type { TrainingMode } from '../../services/stats-types'
  * on a mode they have not tried, which is exactly when being in the wrong
  * language costs the most.
  */
+/**
+ * Rails for a sub-mode whose steps differ from its mode's.
+ *
+ * Flashcards opens on Basic Strategy — "no counting yet" — while the rail
+ * beside it explained a true count and asked whether you deviate correctly.
+ */
+export const RAIL_VARIANTS: Record<string, { steps: string[]; tip: string }> = {
+  flashBasic: {
+    steps: ['training.rail.flashBasic.s1', 'training.rail.deviationFlashCards.s2', 'training.rail.flashBasic.s3'],
+    tip: 'training.rail.flashBasic.tip',
+  },
+}
+
 export const RAIL_CONTENT: Partial<Record<TrainingMode, { steps: string[]; tip: string }>> = {
   speedDrill: {
     steps: ['training.rail.speedDrill.s1', 'training.rail.speedDrill.s2', 'training.rail.speedDrill.s3'],

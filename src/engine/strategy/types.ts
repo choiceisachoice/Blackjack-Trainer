@@ -8,8 +8,9 @@
  * - "P"  = Split
  * - "Rh" = Surrender if allowed, otherwise Hit
  * - "Rs" = Surrender if allowed, otherwise Stand
+ * - "Rp" = Surrender if allowed, otherwise Split
  */
-export type StrategyAction = 'H' | 'S' | 'D' | 'P' | 'Rh' | 'Rs' | 'Ds'
+export type StrategyAction = 'H' | 'S' | 'D' | 'P' | 'Rh' | 'Rs' | 'Rp' | 'Ds'
 
 /**
  * Complete Basic Strategy lookup table.

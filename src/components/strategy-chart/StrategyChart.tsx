@@ -313,6 +313,13 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
                 {t('chart.countDeviation')}
               </p>
               <p className="text-content/70 text-xs mt-1">
+                {/* The cell says Surrender and the index says Stand or Hit:
+                    both are right, for different tables. 16 v 10, 15 v 10 and
+                    16 v 9 are no-surrender indices — they replace the *hit*
+                    a player falls back on where surrender is not offered. */}
+                {selected.action === 'SU' && (
+                  <span className="text-content/50">{t('chart.withoutSurrender')} </span>
+                )}
                 <Trans
                   i18nKey="chart.deviationRule"
                   values={{ tc: formatTC(selectedDev.threshold), action: t(actionLabelKey(selectedDev.above)) }}

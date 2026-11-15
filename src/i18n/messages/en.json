@@ -507,6 +507,11 @@
         "s3": "Enter your final count at the end.",
         "tip": "Count in pairs (+2 / 0 / −2) rather than card by card — much faster at casino speed."
       },
+      "flashBasic": {
+        "s1": "A hand and the dealer’s card.",
+        "s3": "No count yet — just the right move.",
+        "tip": "Learn the hard totals first; they are most of the hands you will be dealt."
+      },
       "deviationFlashCards": {
         "s1": "A hand + dealer card + true count.",
         "s2": "Pick the correct action.",
@@ -2067,6 +2072,7 @@
     "yourHand": "Your Hand:",
     "vsDealer": "vs Dealer:",
     "deviationRule": "At True Count <b>{{tc}}</b> or higher → <b>{{action}}</b>",
+    "withoutSurrender": "Without late surrender:",
     "belowThat": "(below: {{action}})",
     "action": {
       "H": "Hit",

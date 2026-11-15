@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStatsStore } from '../../store/stats-store'
 import type { TrainingMode } from '../../services/stats-types'
-import { RAIL_CONTENT } from './training-rail-content'
+import { RAIL_CONTENT, RAIL_VARIANTS } from './training-rail-content'
 
 /**
  * Ambient, dark-luxury backdrop for the training-mode settings screens.
@@ -27,8 +27,11 @@ export function TrainingBackdrop({
   showRails = false,
   showGlow = true,
   railBreakpoint = 'xl',
+  railVariant,
 }: {
   mode?: TrainingMode
+  /** A key of `RAIL_VARIANTS`, for a sub-mode with steps of its own. */
+  railVariant?: string
   showRails?: boolean
   showGlow?: boolean
   railBreakpoint?: 'xl' | '2xl'
@@ -64,15 +67,15 @@ export function TrainingBackdrop({
       </div>
 
       {/* ── context rails (settings screen, wide viewports) ── */}
-      {showRails && mode && RAIL_CONTENT[mode] && <ContextRails mode={mode} breakpoint={railBreakpoint} />}
+      {showRails && mode && RAIL_CONTENT[mode] && <ContextRails mode={mode} breakpoint={railBreakpoint} variant={railVariant} />}
     </>
   )
 }
 
 /** The two flanking rails: how-it-works (left) and last-run + tip (right). */
-function ContextRails({ mode, breakpoint }: { mode: TrainingMode; breakpoint: 'xl' | '2xl' }) {
+function ContextRails({ mode, breakpoint, variant }: { mode: TrainingMode; breakpoint: 'xl' | '2xl'; variant?: string }) {
   const { t } = useTranslation()
-  const content = RAIL_CONTENT[mode]!
+  const content = (variant && RAIL_VARIANTS[variant]) || RAIL_CONTENT[mode]!
   // Literal class strings so Tailwind's JIT keeps both variants.
   const bpClass = breakpoint === '2xl' ? 'hidden 2xl:block' : 'hidden xl:block'
   const sessions = useStatsStore(s => s.sessions)
