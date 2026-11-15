@@ -1833,11 +1833,61 @@ describe('CasinoSessionEngine — insurance settlement', () => {
     expect(engine.settleInsurance(100, false, false)).toBe(0)
   })
 
-  it('uses floor(bet / 2) as the stake for odd bets', () => {
+  it('insures exactly half the bet, odd bets included', () => {
+    // It was floor(bet / 2): $12 on a $25 bet, while surrendering the same
+    // hand returned $12.50. Half is half.
     const engine = new CasinoSessionEngine(createTestConfig())
-    // stake = floor(25/2) = 12 → win +24, loss -12
-    expect(engine.settleInsurance(25, true, true)).toBe(24)
-    expect(engine.settleInsurance(25, true, false)).toBe(-12)
+    expect(engine.settleInsurance(25, true, true)).toBe(25)
+    expect(engine.settleInsurance(25, true, false)).toBe(-12.5)
+  })
+
+  it('insures for less when the bankroll does not hold half the bet — never on credit', () => {
+    // Everything on the hand: $100 bankroll, $100 bet, nothing left to insure with.
+    const broke = new CasinoSessionEngine(createTestConfig({ startingBankroll: 100, minBet: 25, maxBet: 500 }))
+    broke.deductHumanBet(100)
+    expect(broke.insuranceStake(100)).toBe(0)
+    expect(broke.settleInsurance(100, true, false)).toBe(-0)
+
+    const short = new CasinoSessionEngine(createTestConfig({ startingBankroll: 130, minBet: 25, maxBet: 500 }))
+    short.deductHumanBet(100)
+    expect(short.insuranceStake(100)).toBe(30)
+    expect(short.settleInsurance(100, true, true)).toBe(60)
+  })
+})
+
+describe('CasinoSessionEngine — bookkeeping', () => {
+  it('grades a bet at the count it will be played at: a fresh shoe once the cut card is out', () => {
+    const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0, numDecks: 2, penetration: 0.65 }))
+    for (let i = 0; i < 70; i++) engine.drawCard()
+    expect(engine.shouldReshuffle()).toBe(true)
+    // Whatever the visible count is, the next hand comes off the top.
+    expect(engine.getCountForNextRound()).toEqual({ runningCount: 0, trueCount: 0 })
+  })
+
+  it('uses the live count while the shoe continues', () => {
+    const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0, numDecks: 6, penetration: 0.75 }))
+    for (let i = 0; i < 20; i++) engine.drawCard()
+    expect(engine.getCountForNextRound()).toEqual({
+      runningCount: engine.getRunningCount(), trueCount: engine.getTrueCount(),
+    })
+  })
+
+  it('hands an open wager back without touching peak or drawdown', () => {
+    const engine = new CasinoSessionEngine(createTestConfig({ startingBankroll: 1000 }))
+    engine.deductHumanBet(200)
+    engine.returnHumanWager(200)
+    expect(engine.getHumanBankroll()).toBe(1000)
+    const result = engine.calculateSessionResult(0, 1000)
+    expect(result.netProfit).toBe(0)
+    expect(result.worstDrawdown).toBe(0)
+  })
+
+  it('pays a blackjack to the cent', () => {
+    // $33 at 6:5 is 39.599999999999994 in floating point.
+    const engine = new CasinoSessionEngine(createTestConfig({ blackjackPays: 1.2 }))
+    const ace = { rank: Rank.Ace, suit: Suit.Spades }, king = { rank: Rank.King, suit: Suit.Hearts }
+    const nine = { rank: Rank.Nine, suit: Suit.Clubs }, eight = { rank: Rank.Eight, suit: Suit.Clubs }
+    expect(engine.settleHand([ace, king], [nine, eight], 33, false, false).profit).toBe(39.6)
   })
 })
 

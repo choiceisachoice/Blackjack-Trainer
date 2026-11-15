@@ -20,6 +20,11 @@ import type {
 } from './types'
 import type { SessionEventRecorder } from '../../services/session-recorder'
 
+/** Money to the cent, so a payout never carries floating-point dust. */
+function toCents(amount: number): number {
+  return Math.round(amount * 100) / 100
+}
+
 /** Maximum number of seats at the table. */
 const MAX_SEATS = 6
 
@@ -443,8 +448,38 @@ export class CasinoSessionEngine {
    */
   settleInsurance(mainBet: number, taken: boolean, dealerHasBlackjack: boolean): number {
     if (!taken) return 0
-    const stake = Math.floor(mainBet / 2)
+    const stake = this.insuranceStake(mainBet)
     return dealerHasBlackjack ? stake * 2 : -stake
+  }
+
+  /**
+   * What insuring a bet costs: half the bet, or what the player has left.
+   *
+   * It was `floor(bet / 2)` with no look at the bankroll. A $25 bet insured
+   * $12 while surrendering the same hand returned $12.50, and a player who
+   * had put everything on the hand could still "take" insurance — the stake
+   * came out of money that was not there and the bankroll went negative. A
+   * table lets you insure for less than half; it does not lend.
+   *
+   * @param mainBet - The player's main wager for the hand
+   */
+  insuranceStake(mainBet: number): number {
+    return toCents(Math.max(0, Math.min(mainBet / 2, this.humanBankroll)))
+  }
+
+  /**
+   * The count a bet placed now will be played at.
+   *
+   * Past the cut card the next round starts with a shuffle, so the count the
+   * player can see is not the count their bet rides on. Grading the bet
+   * against the old count marked the right play wrong — the minimum, because
+   * a shuffle is coming — and a big bet right, though the hand is then dealt
+   * off the top of a fresh shoe.
+   */
+  getCountForNextRound(): { runningCount: number; trueCount: number } {
+    if (!this.shouldReshuffle()) return { runningCount: this.runningCount, trueCount: this.getTrueCount() }
+    const runningCount = getInitialRunningCount(this.countingSystem, this.config.numDecks)
+    return { runningCount, trueCount: Math.round((runningCount / this.config.numDecks) * 2) / 2 }
   }
 
   // ─── Bet Correctness ─────────────────────────────────
@@ -796,7 +831,7 @@ export class CasinoSessionEngine {
     isSplitHand: boolean = false,
   ): { result: 'win' | 'loss' | 'push' | 'blackjack' | 'surrender'; profit: number } {
     if (isSurrendered) {
-      return { result: 'surrender', profit: -bet / 2 }
+      return { result: 'surrender', profit: toCents(-bet / 2) }
     }
 
     const playerValue = getHandValue(playerCards).best
@@ -813,7 +848,9 @@ export class CasinoSessionEngine {
     }
 
     if (playerHasBJ) {
-      return { result: 'blackjack', profit: bet * this.config.blackjackPays }
+      // To the cent: $33 at 6:5 is 39.599999999999994 in floating point, and
+      // that is what the bankroll showed.
+      return { result: 'blackjack', profit: toCents(bet * this.config.blackjackPays) }
     }
 
     if (dealerHasBJ) {
@@ -920,6 +957,21 @@ export class CasinoSessionEngine {
    */
   deductHumanBet(bet: number): void {
     this.humanBankroll -= bet
+  }
+
+  /**
+   * Hands a wager back unplayed.
+   *
+   * For a session that ends with a hand still open: the bets on it were taken
+   * out of the bankroll when they were placed and nothing has been decided,
+   * so the honest final figure is the one from before the hand. Not routed
+   * through `updateHumanBankroll` — this is not a result, and must not move
+   * the peak or the drawdown.
+   *
+   * @param amount - The total of the bets on the open hand
+   */
+  returnHumanWager(amount: number): void {
+    this.humanBankroll += amount
   }
 
   // ─── Hand Record ─────────────────────────────────────

@@ -138,6 +138,14 @@ export function useGameLoop(
   const endedRef = useRef(false)
   /** The bet of the hand just played, offered again for the next one. */
   const lastBetRef = useRef(0)
+  /**
+   * What is on the table and not yet decided: the bet, plus every double and
+   * split since. Zero between hands. It is what a session that ends mid-hand
+   * has to hand back — see `closeOpenHand`.
+   */
+  const openWagerRef = useRef(0)
+  /** The insurance side bet's result for the hand in play, for the hand's total. */
+  const insuranceNetRef = useRef(0)
   /** All pending gameplay timeouts, cleared together on unmount. */
   const pendingTimeouts = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
   /** Pause bookkeeping so the session clock excludes paused time. */
@@ -393,9 +401,36 @@ export function useGameLoop(
     if (!engine || endedRef.current) return // idempotent: a double-quit records once
     endedRef.current = true
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
-    const sessionResult = engine.calculateSessionResult(startTimeRef.current, Date.now())
+    closeOpenHand(engine)
+    const sessionResult = engine.calculateSessionResult(startTimeRef.current, sessionEndTime())
     onSessionEnd(sessionResult)
   }, [onSessionEnd])
+
+  /**
+   * Give back the bets of a hand that will never be settled.
+   *
+   * Cash out in the status bar is disabled mid-hand for exactly this reason,
+   * but "Quit" in the pause overlay, a navigation away and a closed tab all
+   * end the session at any moment. The bets had left the bankroll when they
+   * were placed, so a doubled $100 hand quit before the dealer played was
+   * booked $200 down — into the statistics and the real-money-style bankroll
+   * log — whatever the cards were. An unfinished hand is void: the money goes
+   * back and the hand is not counted.
+   */
+  function closeOpenHand(engine: CasinoSessionEngine) {
+    if (openWagerRef.current > 0) engine.returnHumanWager(openWagerRef.current)
+    openWagerRef.current = 0
+  }
+
+  /**
+   * When the session ended, for its duration.
+   *
+   * A pause is only subtracted on resume. Quitting *from* the pause overlay —
+   * the usual way to quit — therefore counted the whole pause as play.
+   */
+  function sessionEndTime(): number {
+    return pauseStartRef.current || Date.now()
+  }
 
   /**
    * Mark the session as over without recording it.
@@ -419,7 +454,8 @@ export function useGameLoop(
       timeouts.clear()
       const engine = engineRef.current
       if (engine && !endedRef.current) {
-        const result = engine.calculateSessionResult(startTimeRef.current, Date.now())
+        closeOpenHand(engine)
+        const result = engine.calculateSessionResult(startTimeRef.current, sessionEndTime())
         if (result.hands.length > 0) {
           endedRef.current = true
           onSessionEnd(result)
@@ -551,6 +587,8 @@ export function useGameLoop(
       return sum + (isD ? bet * 2 : bet)
     }, 0)
     engine.updateHumanBankroll(totalBet + totalProfit)
+    // Decided: nothing of this hand is open any more.
+    openWagerRef.current = 0
 
     const bResults = engine.settleBotHands(finalDealerCards)
     setBotResults(bResults)
@@ -564,7 +602,10 @@ export function useGameLoop(
     }
     setBotStatuses(prev => ({ ...prev, ...settledStatuses }))
 
-    settleRoundCore(lastResult, totalProfit, hands[0] ?? [], finalDealerCards, bResults)
+    // The hand's figure includes its insurance. The side bet is settled the
+    // moment the dealer checks, and was then left out of the total: insure,
+    // win the hand, and the label read "Win +$25" over a bankroll up $12.50.
+    settleRoundCore(lastResult, totalProfit + insuranceNetRef.current, hands[0] ?? [], finalDealerCards, bResults)
   }, [recorder, settleRoundCore])
 
   // ─── Animation Step Builders ───────────────────────
@@ -944,8 +985,8 @@ export function useGameLoop(
     if (clampedBet < config.minBet) return
     lastBetRef.current = clampedBet
 
-    const tc = engine.getTrueCount()
-    const rc = engine.getRunningCount()
+    // The count this bet will be played at — a fresh shoe's, if the cut card is out.
+    const { trueCount: tc, runningCount: rc } = engine.getCountForNextRound()
     // Without a count there is no bet to size from, so the bet the player
     // chose *is* the correct bet — flat betting is the whole strategy.
     const basic = engine.isBasicPlay()
@@ -969,6 +1010,8 @@ export function useGameLoop(
     recorder?.recordBetPlaced('human', clampedBet, correctBet, tc, hn)
 
     engine.deductHumanBet(clampedBet)
+    openWagerRef.current = clampedBet
+    insuranceNetRef.current = 0
     setCurrentBet(clampedBet)
     currentBetRef.current = clampedBet
 
@@ -1178,7 +1221,9 @@ export function useGameLoop(
     // Settle the insurance side bet in every case: it pays 2:1 on a dealer
     // blackjack, otherwise the half-bet stake is lost. (Previously a losing
     // insurance bet was never deducted — insurance was effectively free.)
-    engine.updateHumanBankroll(engine.settleInsurance(currentBetRef.current, take, dealerHasBJ))
+    const insuranceNet = engine.settleInsurance(currentBetRef.current, take, dealerHasBJ)
+    insuranceNetRef.current = insuranceNet
+    engine.updateHumanBankroll(insuranceNet)
 
     if (dealerHasBJ) {
       setDealerHoleRevealed(true)
@@ -1310,6 +1355,10 @@ export function useGameLoop(
     )
 
     const isCorrect = action === correctAction
+    // Standing on 21 is not a decision. The table does it for the player
+    // after half a second, and it was stored as a graded, correct play —
+    // every 21 raised the play accuracy and the decision count a little.
+    const forced = action === Action.Stand && getHandValue(cards).best === 21
     const decision = {
       action: action.toString(),
       correctAction: correctAction.toString(),
@@ -1319,7 +1368,7 @@ export function useGameLoop(
       handIndex: activeHandIndex,
     }
 
-    if (decisionsRef.current.length === 0) {
+    if (!forced && decisionsRef.current.length === 0) {
       handRecordRef.current.firstAction = action.toString()
       handRecordRef.current.correctFirstAction = correctAction.toString()
       handRecordRef.current.firstActionCorrect = isCorrect
@@ -1332,7 +1381,7 @@ export function useGameLoop(
       }
     }
 
-    recorder?.recordPlayerAction(
+    if (!forced) recorder?.recordPlayerAction(
       'human', action.toString(), getHandValue(cards).best,
       formatCard(dr.dealerUpCard), correctAction.toString(),
       isCorrect, false, engine.getCurrentHandNumber(),
@@ -1340,7 +1389,7 @@ export function useGameLoop(
 
     if (action === Action.Stand) {
       decision.handValueAfter = getHandValue(cards).best
-      decisionsRef.current.push(decision)
+      if (!forced) decisionsRef.current.push(decision)
       soundEngine.buttonClick()
       if (splitAce) {
         // A declined re-split: the remaining aces follow the ace rules.
@@ -1369,6 +1418,7 @@ export function useGameLoop(
 
     if (action === Action.Double) {
       engine.deductHumanBet(currentBet)
+      openWagerRef.current += currentBet
       const newDoubled = new Set(handDoubled).add(activeHandIndex)
       setHandDoubled(newDoubled)
       handDoubledRef.current = newDoubled
@@ -1398,6 +1448,7 @@ export function useGameLoop(
     if (action === Action.Split) {
       if (!canSplitHand) return
       engine.deductHumanBet(currentBet)
+      openWagerRef.current += currentBet
       soundEngine.chipPlace()
 
       const card1 = cards[0]

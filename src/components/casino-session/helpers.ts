@@ -218,7 +218,13 @@ export function playableLimits<L extends { minBet: number; maxBet: number; start
 
 export function formatDollar(n: number): string {
   const sign = n < 0 ? '-' : ''
-  return `${sign}$${Math.abs(n).toLocaleString()}`
+  const abs = Math.abs(n)
+  // Whole dollars as they always were; anything else to the cent. A surrender
+  // on $25 used to read "$4,987.5".
+  const text = Number.isInteger(abs)
+    ? abs.toLocaleString()
+    : abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return `${sign}$${text}`
 }
 
 export function formatTime(seconds: number): string {

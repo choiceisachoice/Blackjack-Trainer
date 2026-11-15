@@ -307,3 +307,54 @@ describe('the bet between hands', () => {
     expect(slot!.textContent).not.toBe('')
   })
 })
+
+/**
+ * Ending a session while a hand is open. Cash out is disabled mid-hand, but
+ * Quit in the pause overlay is not, and neither is navigating away. The bets
+ * of the open hand had already left the bankroll, so they were booked as lost.
+ */
+describe('a session that ends mid-hand', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    useAppStore.getState().setMode('casinoSession')
+    useAppStore.setState({ dealingSpeed: 'normal' })
+    useCasinoSessionTrackerStore.setState({ sessions: [], startingBankroll: 0 })
+    stackHands()
+  })
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  it('hands the open bet back instead of booking it as a loss', () => {
+    setUp('Unlimited')
+    // One finished hand: 16 against the dealer's 17, stood on — minus $25.
+    playHandToStand()
+    leaveHand()
+
+    // A second hand, bet placed and dealt, then quit before it is played.
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(8000)
+    expect(screen.getByTestId('action-stand')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('pause-button'))
+    fireEvent.click(screen.getByTestId('quit-session'))
+
+    const [session] = useCasinoSessionTrackerStore.getState().sessions
+    expect(session.handsPlayed).toBe(1)
+    // The one hand that was played, and nothing for the one that was not.
+    expect(session.finalBankroll - useCasinoSessionTrackerStore.getState().startingBankroll).toBe(-25)
+  })
+
+  it('does the same when the player simply walks away from the table', () => {
+    const { unmount } = (() => { setUp('Unlimited'); return { unmount: cleanup } })()
+    playHandToStand()
+    leaveHand()
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(8000)
+    unmount()
+
+    const [session] = useCasinoSessionTrackerStore.getState().sessions
+    expect(session.finalBankroll - useCasinoSessionTrackerStore.getState().startingBankroll).toBe(-25)
+  })
+})
