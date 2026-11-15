@@ -40,7 +40,9 @@
     "enableSounds": "Sesi aç",
     "signOut": "Çıkış yap",
     "proFeature": "Pro özelliği",
-    "backToMenu": "Ana menüye dön"
+    "backToMenu": "Ana menüye dön",
+    "more": "Daha fazla",
+    "menu": "Menü"
   },
   "session": {
     "leave": {
@@ -1668,7 +1670,11 @@
       "achievements": "İlerlemenizi izleyin ve ödüller açın"
     },
     "nothingTracked": "Henüz kayıt yok. Bir tur ya da alıştırma yapın — sonrasında seriniz, isabetiniz ve avantajınızın nerede sızdığı burada görünür.",
-    "tagline": "Hi-Lo — sayım kendiliğinden gelene kadar çalışılmış."
+    "tagline": "Hi-Lo — sayım kendiliğinden gelene kadar çalışılmış.",
+    "stat": {
+      "streak": "{{count}} günlük seri",
+      "accuracy": "%{{pct}} isabet"
+    }
   },
   "startLevel": {
     "never": {
@@ -1750,7 +1756,8 @@
     "hideExplainer": "Anladım — bir daha gösterme",
     "newPicture": "Yeni profil resmi açıldı",
     "newPictures": "{{n}} yeni profil resmi açıldı",
-    "choosePicture": "Profil resmi olarak kullan"
+    "choosePicture": "Profil resmi olarak kullan",
+    "maxReached": "{{xp}} XP — en yüksek seviyeye ulaşıldı"
   },
   "chal": {
     "warm_up": {

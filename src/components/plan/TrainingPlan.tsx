@@ -435,7 +435,10 @@ export function TrainingPlan({
 
         {/* Today's challenge, chosen to fit this stage — the daily loop and the
             plan are the same journey, so the plan says so. */}
-        {active && (
+        {/* Not on the home screen: the full daily and weekly cards follow a
+            few hundred pixels further down there, and the same task was shown
+            twice on one page under two different headings. */}
+        {active && !embedded && (
           <button
             onClick={() => setMode(
               (challenge.requiredMode && screenForMode(challenge.requiredMode))

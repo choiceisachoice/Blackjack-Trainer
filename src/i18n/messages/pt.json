@@ -40,7 +40,9 @@
     "enableSounds": "Ligar o som",
     "signOut": "Terminar sessão",
     "proFeature": "Funcionalidade Pro",
-    "backToMenu": "Voltar ao menu principal"
+    "backToMenu": "Voltar ao menu principal",
+    "more": "Mais",
+    "menu": "Menu"
   },
   "session": {
     "leave": {
@@ -1668,7 +1670,11 @@
       "achievements": "Acompanhe o progresso e desbloqueie recompensas"
     },
     "nothingTracked": "Ainda sem registos. Jogue uma sessão ou um exercício — a partir daí verá aqui a sua sequência, a precisão e onde a sua vantagem se perde.",
-    "tagline": "Hi-Lo, treinado até a contagem sair sozinha."
+    "tagline": "Hi-Lo, treinado até a contagem sair sozinha.",
+    "stat": {
+      "streak": "Sequência de {{count}} d",
+      "accuracy": "{{pct}}% de acerto"
+    }
   },
   "startLevel": {
     "never": {
@@ -1750,7 +1756,8 @@
     "hideExplainer": "Percebi — não mostrar mais",
     "newPicture": "Nova imagem de perfil desbloqueada",
     "newPictures": "{{n}} novas imagens de perfil desbloqueadas",
-    "choosePicture": "Usar como imagem"
+    "choosePicture": "Usar como imagem",
+    "maxReached": "{{xp}} XP — nível máximo atingido"
   },
   "chal": {
     "warm_up": {

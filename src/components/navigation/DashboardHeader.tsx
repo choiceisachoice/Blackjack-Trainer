@@ -8,9 +8,6 @@ import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
 import { LEVELS } from '../../services/level-system'
 import { resumeTargetFor } from '../../services/resume-mode'
-import { activeStage, CURRICULUM, stageIndex } from '../../services/curriculum'
-import { useIsPro } from '../../store/entitlement-store'
-import type { AppMode } from '../../store/app-store'
 import { formatDuration } from '../analytics/analytics-derive'
 
 /**
@@ -53,7 +50,6 @@ export function DashboardHeader() {
   const totalXP = useLevelStore(s => s.totalXP)
   const lifetimeStats = useStatsStore(s => s.lifetimeStats)
   const sessions = useStatsStore(s => s.sessions)
-  const isPro = useIsPro()
   const loadStats = useStatsStore(s => s.loadStats)
   const getTrainingStreak = useStatsStore(s => s.getTrainingStreak)
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
@@ -72,13 +68,6 @@ export function DashboardHeader() {
   // sessions are sorted newest-first by the store. A retired mode resolves to
   // null, so old history falls back to the generic call to action.
   const resume = sessions[0] ? resumeTargetFor(sessions[0].mode) : null
-
-  // The drill the plan is actually asking for. `activeStage` is null before the
-  // placement test and for a finished path; `learn` is the honest fallback,
-  // since reading is where someone with no plan should start.
-  const stageId = activeStage(sessions, isPro)
-  const planTarget: AppMode =
-    (stageId && CURRICULUM[stageIndex(stageId)]?.drill?.mode) || 'learn'
 
   return (
     <section className="relative z-10 w-full max-w-5xl mb-8">
@@ -113,7 +102,7 @@ export function DashboardHeader() {
               <div className="mt-1.5 text-xs text-content/45 tabular-nums">
                 {nextLevel
                   ? t('levels.xpTo', { current: progress.current.toLocaleString(), required: progress.required.toLocaleString(), name: t(nextLevel.titleKey) })
-                  : `${totalXP.toLocaleString()} XP — max level reached`}
+                  : t('levels.maxReached', { xp: totalXP.toLocaleString() })}
               </div>
             </div>
           </div>
@@ -130,30 +119,30 @@ export function DashboardHeader() {
             into a drill demanding a number whose rule it had never been shown.
             Never point a beginner past their own plan.
           */}
-          <button
-            onClick={() => setMode(resume?.mode ?? planTarget)}
+          {/* Only as "continue where you left off". Without a last mode this
+              button said "Start: <the current stage>" — the fourth place on
+              the home screen to name that stage, under a plan whose own
+              button does exactly that. */}
+          {resume && <button
+            onClick={() => setMode(resume.mode)}
             className="lift-glow inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold
               text-on-gold bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
               shadow-[0_10px_30px_-12px_var(--color-gold)]"
           >
             <Club size={18} className="fill-current" />
-            {resume
-              ? t('common.continueMode', { mode: t(resume.labelKey) })
-              : stageId
-                ? t('plan.startStage', { stage: t(CURRICULUM[stageIndex(stageId)].titleKey) })
-                : t('common.startLearning')}
+            {t('common.continueMode', { mode: t(resume.labelKey) })}
             <ArrowRight size={17} />
-          </button>
+          </button>}
         </div>
 
         {played && lifetimeStats ? (
           <div className="mt-6 pt-5 border-t border-contrast/8 flex flex-wrap gap-x-7 gap-y-3 text-sm">
             {streak > 0 && (
-              <Stat icon={Flame} label={`${streak}-day streak`} />
+              <Stat icon={Flame} label={t('home.stat.streak', { count: streak })} />
             )}
-            <Stat icon={Target} label={`${Math.round(lifetimeStats.overallAccuracy * 100)}% accuracy`} />
+            <Stat icon={Target} label={t('home.stat.accuracy', { pct: Math.round(lifetimeStats.overallAccuracy * 100) })} />
             <Stat icon={Clock} label={formatDuration(lifetimeStats.totalPracticeSeconds)} />
-            <Stat icon={Trophy} label={`${totalUnlocked}/${ALL_ACHIEVEMENTS.length} awards`} />
+            <Stat icon={Trophy} label={`${totalUnlocked}/${ALL_ACHIEVEMENTS.length} ${t('nav.modes.achievements')}`} />
           </div>
         ) : (
           <p className="mt-6 pt-5 border-t border-contrast/8 text-sm text-content/50 max-w-lg">

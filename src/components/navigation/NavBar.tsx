@@ -2,9 +2,9 @@ import {
   Zap, Spade, GraduationCap, Coins, Layers, Club,
   BarChart3, Grid3x3, Trophy, BookOpen, Route, Volume2, VolumeX, LogOut,
   Lock, Crown, Settings, Loader2,
-  type LucideIcon,
+  type LucideIcon, Menu, ChevronDown,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../store/app-store'
@@ -99,6 +99,60 @@ export function NavBar() {
    */
   const [signingOut, setSigningOut] = useState(false)
 
+  /**
+   * The menu that holds what the bar cannot label.
+   *
+   * The five secondary destinations — Plan, Learn, Analytics, Strategy,
+   * Awards — were icons with a tooltip at every width below 2100px, which is
+   * every screen anyone uses. A tooltip does not exist on a touch screen, and
+   * on a desktop it is something you find by accident: five features that a
+   * newcomer could only identify by trying them. They are a menu now, under
+   * a button that says so, each with its name beside its icon.
+   *
+   * On a phone the same menu also lists the five training modes: the strip
+   * that holds them scrolls sideways there with nothing to show that it does,
+   * and two of the five sat off screen.
+   *
+   * The button reads the name of the current screen when that screen is one
+   * of its own, so the bar always shows where you are.
+   */
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!menuOpen) return
+    const onDown = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
+  const activeTool = TOOL_ITEMS.find(item => item.mode === currentMode)
+
+  /** One row of the menu: icon, name, lock. 44px tall — it is the touch target. */
+  const renderMenuRow = ({ mode, icon: Icon }: NavItem, testId: string) => {
+    const active = currentMode === mode
+    const proLocked = !isPro && isProMode(mode)
+    return (
+      <button
+        key={mode}
+        role="menuitem"
+        onClick={() => { setMenuOpen(false); setMode(mode) }}
+        data-testid={testId}
+        className={`flex items-center gap-3 w-full h-11 px-3 rounded-lg text-sm text-left cursor-pointer
+          ${active ? 'text-gold bg-gold/10' : 'text-content/80 hover:text-content hover:bg-contrast/5'}`}
+      >
+        <Icon size={17} className={active ? 'text-gold' : 'text-content/50'} />
+        <span className="font-medium flex-1">{t(`nav.modes.${mode}`)}</span>
+        {proLocked && <Lock size={12} className="text-gold/70" aria-label={t('nav.proFeature')} />}
+      </button>
+    )
+  }
+
   const signOut = async () => {
     if (signingOut) return
     // Signing out leaves the app, which unmounts the session for good. The
@@ -147,7 +201,7 @@ export function NavBar() {
    * and it is the honest reading of a bar carrying more than it can hold — the
    * real fix is fewer top-level destinations, which is a product decision.
    */
-  const renderItem = ({ mode, icon: Icon }: NavItem, compact = false) => {
+  const renderItem = ({ mode, icon: Icon }: NavItem) => {
     const label = t(`nav.modes.${mode}`)
     const active = currentMode === mode
     const proLocked = !isPro && isProMode(mode)
@@ -160,7 +214,7 @@ export function NavBar() {
         // not drawn is otherwise a button that only its author can identify.
         title={label}
         aria-label={label}
-        className={`glow-hover group relative flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm whitespace-nowrap cursor-pointer
+        className={`glow-hover group relative flex items-center gap-2 px-2.5 h-10 md:h-9 rounded-lg text-sm whitespace-nowrap cursor-pointer
           ${active
             ? 'text-gold bg-gold/10 border border-gold/30'
             : 'text-content/60 hover:text-content border border-transparent hover:bg-contrast/5'}`}
@@ -168,7 +222,7 @@ export function NavBar() {
         <Icon size={16} className={active ? 'text-gold' : 'text-content/50 group-hover:text-gold'} />
         {/* Hidden with `display`, so it leaves the layout *and* keeps no stray
             flex gap behind — but stays in the document for assistive tech. */}
-        <span className={`font-medium ${compact ? 'hidden min-[2100px]:inline' : ''}`}>{label}</span>
+        <span className="font-medium">{label}</span>
         {proLocked && <Lock size={11} className="text-gold/70" aria-label={t('nav.proFeature')} />}
       </button>
     )
@@ -184,6 +238,8 @@ export function NavBar() {
         <button
           onClick={() => setMode('home')}
           data-testid="nav-home"
+          aria-label={t('nav.home')}
+          title={t('nav.home')}
           className="group flex items-center gap-2.5 shrink-0 cursor-pointer"
         >
           <span className="grid place-items-center w-8 h-8 rounded-lg bg-gold/15 border border-gold/30 text-gold
@@ -202,14 +258,47 @@ export function NavBar() {
         {/* Nav links (scrollable on small screens) */}
         {/* The training modes keep their labels — they are what the product is
             for. The tools group is the one that collapses. */}
-        <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 min-w-0">
+        <nav className="order-3 md:order-2 hidden md:flex items-center gap-1 overflow-x-auto no-scrollbar min-w-0">
           {TRAIN_ITEMS.map(item => renderItem(item))}
-          <span className="mx-1 h-5 w-px bg-contrast/10 shrink-0" aria-hidden />
-          {TOOL_ITEMS.map(item => renderItem(item, true))}
         </nav>
 
+        <div ref={menuRef} className="order-2 md:order-3 relative shrink-0">
+          <button
+            onClick={() => setMenuOpen(open => !open)}
+            data-testid="nav-more"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            className={`glow-hover flex items-center gap-1.5 h-10 md:h-9 px-3 rounded-lg text-sm font-medium whitespace-nowrap cursor-pointer
+              ${activeTool || menuOpen
+                ? 'text-gold bg-gold/10 border border-gold/30'
+                : 'text-content/70 hover:text-content border border-contrast/10 hover:bg-contrast/5'}`}
+          >
+            <Menu size={16} className="md:hidden" />
+            <span className="md:hidden">{t('nav.menu')}</span>
+            <span className="hidden md:inline">{activeTool ? t(`nav.modes.${activeTool.mode}`) : t('nav.more')}</span>
+            <ChevronDown size={14} className={`hidden md:block transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {menuOpen && (
+            <div
+              role="menu"
+              data-testid="nav-menu"
+              className="absolute left-0 top-full mt-2 w-64 p-1.5 rounded-xl border border-contrast/12 shadow-[0_18px_50px_-12px_rgba(0,0,0,.8)] z-50"
+              style={{ backgroundColor: 'var(--color-surface-2)' }}
+            >
+              {/* The training modes, for the width at which the strip beside
+                  this button cannot show all five. */}
+              <div className="md:hidden pb-1.5 mb-1.5 border-b border-contrast/10">
+                {TRAIN_ITEMS.map(item => renderMenuRow(item, `menu-${item.mode}`))}
+              </div>
+              {TOOL_ITEMS.map(item => renderMenuRow(item, `nav-${item.mode}`))}
+            </div>
+          )}
+        </div>
+
+        <div className="order-4 flex-1 min-w-0" aria-hidden />
+
         {/* Right cluster */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="order-5 flex items-center gap-2 shrink-0">
           {signedIn && !isPro && (
             <button
               onClick={() => showUpgradeModal()}

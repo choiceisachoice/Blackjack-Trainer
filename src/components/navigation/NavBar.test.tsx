@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { NavBar } from './NavBar'
 import { useAppStore } from '../../store/app-store'
@@ -34,31 +34,79 @@ beforeEach(() => {
   useAppStore.setState({ currentMode: 'home' })
 })
 
-describe('the nav bar', () => {
-  it('shows every mode, including the two that used to fall off the end', () => {
-    renderNav()
-    for (const id of ITEM_TESTIDS) {
-      expect(screen.getByTestId(id)).toBeInTheDocument()
-    }
-  })
+const TRAIN_IDS = ITEM_TESTIDS.slice(0, 5)
+const TOOL_IDS = ITEM_TESTIDS.slice(5)
 
-  it('names every item even when its label is not drawn', () => {
-    // At most widths the secondary items are icons. An icon with no accessible
-    // name is a button that only its author can identify — and these are the
-    // two that were invisible in the first place.
+describe('the nav bar', () => {
+  it('shows the five training modes in the bar, by name', () => {
     renderNav()
-    for (const id of ITEM_TESTIDS) {
+    for (const id of TRAIN_IDS) {
       const button = screen.getByTestId(id)
-      expect(button.getAttribute('title')).toBeTruthy()
+      expect(button).toBeInTheDocument()
+      expect(button.textContent?.trim()).toBeTruthy()
       expect(button.getAttribute('aria-label')).toBeTruthy()
     }
   })
 
-  it('keeps the label text in the accessibility tree', () => {
-    // Hidden visually, not removed: a screen reader and a test should both
-    // still be able to ask for "Analytics" by name.
+  it('keeps the other five behind a button that says so, not behind bare icons', () => {
+    // They were icons with a tooltip at every width below 2100px: five
+    // features a newcomer could only identify by trying them, and on a touch
+    // screen there is no tooltip at all.
     renderNav()
-    expect(screen.getByRole('button', { name: /Analytics/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Awards/i })).toBeInTheDocument()
+    for (const id of TOOL_IDS) expect(screen.queryByTestId(id)).toBeNull()
+
+    const more = screen.getByTestId('nav-more')
+    expect(more).toHaveAttribute('aria-haspopup', 'menu')
+    expect(more).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(more)
+    expect(more).toHaveAttribute('aria-expanded', 'true')
+
+    for (const id of TOOL_IDS) {
+      const row = screen.getByTestId(id)
+      expect(row).toHaveAttribute('role', 'menuitem')
+      // The name is drawn, not only announced.
+      expect(row.textContent?.trim()).toBeTruthy()
+    }
+    expect(within(screen.getByTestId('nav-menu')).getByText('Analytics')).toBeInTheDocument()
+    expect(within(screen.getByTestId('nav-menu')).getByText('Awards')).toBeInTheDocument()
+  })
+
+  it('lists the training modes in the menu too, for the width where the bar cannot', () => {
+    renderNav()
+    fireEvent.click(screen.getByTestId('nav-more'))
+    for (const id of TRAIN_IDS) {
+      expect(screen.getByTestId(id.replace('nav-', 'menu-'))).toBeInTheDocument()
+    }
+  })
+
+  it('opens the chosen screen and closes behind it', () => {
+    renderNav()
+    fireEvent.click(screen.getByTestId('nav-more'))
+    fireEvent.click(screen.getByTestId('nav-analytics'))
+    expect(useAppStore.getState().currentMode).toBe('analytics')
+    expect(screen.queryByTestId('nav-menu')).toBeNull()
+  })
+
+  it('names the current screen on the button when that screen is one of its own', () => {
+    // So the bar always shows where you are, menu closed.
+    useAppStore.setState({ currentMode: 'strategyChart' })
+    renderNav()
+    expect(screen.getByTestId('nav-more')).toHaveTextContent('Strategy')
+  })
+
+  it('closes on Escape and on a press outside it', () => {
+    renderNav()
+    fireEvent.click(screen.getByTestId('nav-more'))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByTestId('nav-menu')).toBeNull()
+
+    fireEvent.click(screen.getByTestId('nav-more'))
+    fireEvent.pointerDown(document.body)
+    expect(screen.queryByTestId('nav-menu')).toBeNull()
+  })
+
+  it('gives the way home a name', () => {
+    renderNav()
+    expect(screen.getByTestId('nav-home').getAttribute('aria-label')).toBeTruthy()
   })
 })

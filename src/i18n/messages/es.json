@@ -40,7 +40,9 @@
     "enableSounds": "Activar sonido",
     "signOut": "Cerrar sesión",
     "proFeature": "Función Pro",
-    "backToMenu": "Volver al menú principal"
+    "backToMenu": "Volver al menú principal",
+    "more": "Más",
+    "menu": "Menú"
   },
   "session": {
     "leave": {
@@ -1668,7 +1670,11 @@
       "achievements": "Sigue tu progreso y desbloquea recompensas"
     },
     "nothingTracked": "Todavía no hay nada registrado. Juega una sesión o un ejercicio: a partir de ahí verás aquí tu racha, tu precisión y por dónde se te escapa la ventaja.",
-    "tagline": "Hi-Lo, practicado hasta que el conteo sale solo."
+    "tagline": "Hi-Lo, practicado hasta que el conteo sale solo.",
+    "stat": {
+      "streak": "Racha de {{count}} d",
+      "accuracy": "{{pct}} % de acierto"
+    }
   },
   "startLevel": {
     "never": {
@@ -1750,7 +1756,8 @@
     "hideExplainer": "Entendido — no mostrar más",
     "newPicture": "Nueva imagen de perfil desbloqueada",
     "newPictures": "{{n}} imágenes de perfil nuevas desbloqueadas",
-    "choosePicture": "Usarla como imagen"
+    "choosePicture": "Usarla como imagen",
+    "maxReached": "{{xp}} XP — nivel máximo alcanzado"
   },
   "chal": {
     "warm_up": {

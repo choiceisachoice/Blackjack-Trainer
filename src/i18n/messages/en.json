@@ -40,7 +40,9 @@
     "enableSounds": "Enable sounds",
     "signOut": "Sign out",
     "proFeature": "Pro feature",
-    "backToMenu": "Back to main menu"
+    "backToMenu": "Back to main menu",
+    "more": "More",
+    "menu": "Menu"
   },
   "session": {
     "leave": {
@@ -1668,7 +1670,11 @@
       "achievements": "Track your progress and unlock rewards"
     },
     "nothingTracked": "Nothing tracked yet. Play a session or run a drill — from there this shows your streak, accuracy and where your edge is leaking.",
-    "tagline": "Hi-Lo, drilled until the count comes without thinking."
+    "tagline": "Hi-Lo, drilled until the count comes without thinking.",
+    "stat": {
+      "streak": "{{count}}-day streak",
+      "accuracy": "{{pct}}% accuracy"
+    }
   },
   "startLevel": {
     "never": {
@@ -1750,7 +1756,8 @@
     "hideExplainer": "Got it — don’t show this again",
     "newPicture": "New profile picture unlocked",
     "newPictures": "{{n}} new profile pictures unlocked",
-    "choosePicture": "Use it as your picture"
+    "choosePicture": "Use it as your picture",
+    "maxReached": "{{xp}} XP — max level reached"
   },
   "chal": {
     "warm_up": {

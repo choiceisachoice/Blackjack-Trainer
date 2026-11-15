@@ -40,7 +40,9 @@
     "enableSounds": "Attiva l'audio",
     "signOut": "Esci",
     "proFeature": "Funzione Pro",
-    "backToMenu": "Torna al menu principale"
+    "backToMenu": "Torna al menu principale",
+    "more": "Altro",
+    "menu": "Menu"
   },
   "session": {
     "leave": {
@@ -1668,7 +1670,11 @@
       "achievements": "Segui i progressi e sblocca ricompense"
     },
     "nothingTracked": "Ancora niente registrato. Gioca una sessione o un esercizio: da lì qui compariranno la tua serie, la precisione e il punto in cui perdi vantaggio.",
-    "tagline": "Hi-Lo, allenato finché il conteggio viene da sé."
+    "tagline": "Hi-Lo, allenato finché il conteggio viene da sé.",
+    "stat": {
+      "streak": "Serie di {{count}} gg",
+      "accuracy": "{{pct}}% di precisione"
+    }
   },
   "startLevel": {
     "never": {
@@ -1750,7 +1756,8 @@
     "hideExplainer": "Ho capito — non mostrare più",
     "newPicture": "Nuova immagine del profilo sbloccata",
     "newPictures": "{{n}} nuove immagini del profilo sbloccate",
-    "choosePicture": "Usala come immagine"
+    "choosePicture": "Usala come immagine",
+    "maxReached": "{{xp}} XP — livello massimo raggiunto"
   },
   "chal": {
     "warm_up": {

@@ -40,7 +40,9 @@
     "enableSounds": "Activer le son",
     "signOut": "Se déconnecter",
     "proFeature": "Fonction Pro",
-    "backToMenu": "Retour au menu principal"
+    "backToMenu": "Retour au menu principal",
+    "more": "Plus",
+    "menu": "Menu"
   },
   "session": {
     "leave": {
@@ -1668,7 +1670,11 @@
       "achievements": "Suivez vos progrès et débloquez des récompenses"
     },
     "nothingTracked": "Rien d’enregistré pour l’instant. Faites une session ou un exercice — ensuite, vous verrez ici votre série, votre précision et l’endroit où votre avantage fuit.",
-    "tagline": "Le Hi-Lo, travaillé jusqu’à ce que le compte vienne tout seul."
+    "tagline": "Le Hi-Lo, travaillé jusqu’à ce que le compte vienne tout seul.",
+    "stat": {
+      "streak": "Série de {{count}} j",
+      "accuracy": "{{pct}} % de précision"
+    }
   },
   "startLevel": {
     "never": {
@@ -1750,7 +1756,8 @@
     "hideExplainer": "Compris — ne plus afficher",
     "newPicture": "Nouvelle image de profil débloquée",
     "newPictures": "{{n}} nouvelles images de profil débloquées",
-    "choosePicture": "L’utiliser comme image"
+    "choosePicture": "L’utiliser comme image",
+    "maxReached": "{{xp}} XP — niveau maximum atteint"
   },
   "chal": {
     "warm_up": {

@@ -40,7 +40,9 @@
     "enableSounds": "Ton an",
     "signOut": "Abmelden",
     "proFeature": "Pro-Funktion",
-    "backToMenu": "Zurück zum Hauptmenü"
+    "backToMenu": "Zurück zum Hauptmenü",
+    "more": "Mehr",
+    "menu": "Menü"
   },
   "session": {
     "leave": {
@@ -1668,7 +1670,11 @@
       "achievements": "Verfolge deinen Fortschritt und schalte Belohnungen frei"
     },
     "nothingTracked": "Noch nichts erfasst. Spiel eine Session oder eine Übung — danach stehen hier deine Serie, deine Trefferquote und die Stelle, an der dein Vorteil verloren geht.",
-    "tagline": "Hi-Lo, geübt bis der Count von allein kommt."
+    "tagline": "Hi-Lo, geübt bis der Count von allein kommt.",
+    "stat": {
+      "streak": "{{count}}-Tage-Serie",
+      "accuracy": "{{pct}} % Trefferquote"
+    }
   },
   "startLevel": {
     "never": {
@@ -1750,7 +1756,8 @@
     "hideExplainer": "Verstanden — nicht mehr anzeigen",
     "newPicture": "Neues Profilbild freigeschaltet",
     "newPictures": "{{n}} neue Profilbilder freigeschaltet",
-    "choosePicture": "Als Profilbild nehmen"
+    "choosePicture": "Als Profilbild nehmen",
+    "maxReached": "{{xp}} XP — höchstes Level erreicht"
   },
   "chal": {
     "warm_up": {
