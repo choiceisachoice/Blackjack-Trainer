@@ -8,7 +8,7 @@ import { Action, DEFAULT_RULES } from '../rules/types'
 import { getCountValue, getInitialRunningCount, getSystemById } from '../counting/counting-systems'
 import { findMatchingDeviation, getDeviationAction, ILLUSTRIOUS_18, FAB_4 } from '../counting/deviations'
 import type { CountingSystemConfig, Deviation } from '../counting/types'
-import { createBot, playBotTurn, refillBotBankroll } from './bot-player'
+import { createBot, nextBotBet, pickBotProfiles, playBotTurn, refillBotBankroll } from './bot-player'
 import type {
   BotPlayer,
   BotRoundResult,
@@ -171,7 +171,8 @@ export class CasinoSessionEngine {
       [availableSeats[i], availableSeats[j]] = [availableSeats[j], availableSeats[i]]
     }
 
-    // Place bots at random seats
+    // Place bots at random seats, each with a temperament of its own.
+    const profiles = pickBotProfiles(this.config.numBots)
     for (let i = 0; i < this.config.numBots && i < availableSeats.length; i++) {
       const seatIdx = availableSeats[i]
       seats[seatIdx] = createBot(
@@ -179,6 +180,7 @@ export class CasinoSessionEngine {
         this.config.minBet,
         this.usedBotNames,
         `bot-${i}`,
+        profiles[i],
       )
     }
 
@@ -574,7 +576,7 @@ export class CasinoSessionEngine {
         if (seat.bankroll < this.config.minBet) {
           refillBotBankroll(seat, this.config.minBet, this.usedBotNames)
         }
-        seat.currentBet = Math.min(seat.flatBetAmount, seat.bankroll)
+        seat.currentBet = nextBotBet(seat, this.config.minBet, this.config.maxBet)
         seat.bankroll -= seat.currentBet
         seat.hands = [{
           cards: [],
@@ -958,6 +960,9 @@ export class CasinoSessionEngine {
           playerHasBJ, dealerValue, dealerHasBJ, hand.bet, hn,
         )
       }
+
+      // What the round made, for a bot that presses its bet after a win.
+      seat.lastRoundNet = totalProfit
 
       // Use the first hand for display
       const mainHand = seat.hands[0]

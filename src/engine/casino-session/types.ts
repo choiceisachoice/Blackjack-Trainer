@@ -71,10 +71,10 @@ export interface CasinoSessionConfig {
 // ─── Bot Player ────────────────────────────────────────
 
 /** Skill level for a bot player. */
-export type BotSkillLevel = 'basic_strategy'
+export type BotSkillLevel = 'basic_strategy' | 'timid' | 'gambler' | 'never_bust'
 
 /** Betting pattern for a bot player. */
-export type BotBettingPattern = 'flat'
+export type BotBettingPattern = 'flat' | 'minimum' | 'press'
 
 /** A computer-controlled player at the table. */
 export interface BotPlayer {
@@ -93,10 +93,17 @@ export interface BotPlayer {
   /** Whether the bot is actively playing. */
   isActive: boolean
 
-  /** Bot always plays perfect basic strategy. */
+  /**
+   * How the bot plays its hands: by the book, or with the habits of a kind of
+   * player every table has (see `temperedAction`).
+   */
   skillLevel: BotSkillLevel
-  /** Bot always bets the same amount. */
+  /** How the bot sizes its bets from round to round (see `nextBotBet`). */
   bettingPattern: BotBettingPattern
+  /** What the last round made or cost, for a bot that presses after a win. */
+  lastRoundNet?: number
+  /** How many wins in a row a pressing bot has let ride (0–3). */
+  pressLevel?: number
   /** The flat bet amount the bot uses every hand. */
   flatBetAmount: number
   /**
