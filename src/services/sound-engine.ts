@@ -189,14 +189,6 @@ class SoundEngine {
     this.sample(ctx, 'take')
   }
 
-  /** A new shoe being shuffled. Silent without the recording. */
-  shuffle(): void {
-    if (!this.shouldPlay('shuffle')) return
-    const ctx = this.getContext()
-    if (!ctx) return
-    this.sample(ctx, 'shuffle')
-  }
-
   // ── Feedback Sounds ─────────────────────────────────
 
   /** Gentle "ding-ding" — correct answer. Two soft sine tones (G4 → C5). */

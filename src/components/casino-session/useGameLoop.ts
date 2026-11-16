@@ -1057,7 +1057,7 @@ export function useGameLoop(
 
     // Reshuffle overlay before deal (Fix 5)
     if (dealResult.reshuffled) {
-      steps.push({ execute: () => { setShowReshuffle(true); soundEngine.shuffle() }, delayMs: 2000 })
+      steps.push({ execute: () => setShowReshuffle(true), delayMs: 2000 })
       steps.push({ execute: () => setShowReshuffle(false), delayMs: 400 })
     }
 
@@ -1575,6 +1575,14 @@ export function useGameLoop(
     setDiscardCount(engine.getCardsDealt())
 
     resetRoundState()
+    // The cut card came out during that round: the shoe is shuffled now,
+    // before the next bet, as at a table. The count the player sees while
+    // betting is then the count the bet is played at.
+    if (engine.reshuffleAfterRound()) {
+      setDiscardCount(0)
+      setShowReshuffle(true)
+      window.setTimeout(() => setShowReshuffle(false), 1800)
+    }
     setSeats([...engine.getSeats()])
     setGameStep('betting')
   }, [config, endSession, resetRoundState])

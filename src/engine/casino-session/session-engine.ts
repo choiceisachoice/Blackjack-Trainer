@@ -229,6 +229,25 @@ export class CasinoSessionEngine {
   }
 
   /**
+   * Shuffle at the end of a round, if the cut card came out during it.
+   *
+   * This is when a casino shuffles: the round in play is finished, and the
+   * shoe is changed before anybody bets on the next one. The table used to
+   * shuffle inside the next deal instead — after the bet. A counter at a
+   * running count of +6 put out a big bet on a shoe that no longer existed,
+   * and saw the count they were betting on until the cards were already
+   * coming out of a fresh one.
+   *
+   * @returns true if the shoe was shuffled
+   */
+  reshuffleAfterRound(): boolean {
+    if (!this.shouldReshuffle()) return false
+    this.reshuffle()
+    this.recorder?.recordShuffle(this.currentHandNumber + 1)
+    return true
+  }
+
+  /**
    * Reshuffles the shoe if the penetration threshold has been reached.
    * @returns true if a reshuffle occurred
    */

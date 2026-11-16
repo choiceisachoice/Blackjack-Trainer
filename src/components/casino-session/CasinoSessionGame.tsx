@@ -11,7 +11,7 @@ import { useGameLoop } from './useGameLoop'
 import { CasinoTable } from './CasinoTable'
 import { ActionButtons } from './ActionButtons'
 import { BettingControls } from './BettingControls'
-import { formatDollar, formatTime } from './helpers'
+import { formatDollar, formatTime, BET_SECONDS } from './helpers'
 import { ProgressBar, Input } from '../common/ui'
 import { ArrowLeft, Volume2, VolumeX } from 'lucide-react'
 import { useLiveSessionStore } from '../../store/live-session-store'
@@ -156,6 +156,33 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
       return () => clearTimeout(t)
     }
   }, [state.gameStep, state.humanHands, state.activeHandIndex, state.handDoubled, actions])
+
+  /*
+   * The betting clock. It runs while the table is waiting for a bet and
+   * nothing is in the way — not while paused, not behind the end-of-session
+   * question, not during the shuffle notice. At zero the table deals with
+   * whatever is placed (or the last bet, or the minimum): the same thing
+   * Enter does. It only ever deals one round on its own — the player's turn
+   * waits for the player.
+   */
+  const clockRuns = state.gameStep === 'betting' && !state.isPaused && !endPromptOpen && !state.showReshuffle
+  const [betSeconds, setBetSeconds] = useState(BET_SECONDS)
+  const roundKey = state.gameStep === 'betting' ? handNum : -1
+  const [clockRound, setClockRound] = useState(roundKey)
+  if (clockRound !== roundKey) {
+    // A new betting round: the clock starts over (reset during render, the
+    // documented alternative to an effect that would run a frame late).
+    setClockRound(roundKey)
+    setBetSeconds(BET_SECONDS)
+  }
+  useEffect(() => {
+    if (!clockRuns) return
+    const id = window.setInterval(() => setBetSeconds(s => Math.max(0, s - 1)), 1000)
+    return () => window.clearInterval(id)
+  }, [clockRuns])
+  useEffect(() => {
+    if (clockRuns && betSeconds === 0) actions.confirmBet()
+  }, [clockRuns, betSeconds, actions])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -511,6 +538,8 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             bankroll={bankroll}
             onBetChange={actions.setBet}
             onConfirm={actions.confirmBet}
+            secondsLeft={clockRuns || state.gameStep === 'betting' ? betSeconds : undefined}
+            secondsTotal={BET_SECONDS}
           />
         )}
 

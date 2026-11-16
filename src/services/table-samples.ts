@@ -16,10 +16,14 @@
  * onset within 40ms of the file's start, and close to each other in level and
  * brightness so a rotation does not jump. Leading silence is trimmed and every
  * file is brought to the same peak.
+ *
+ * There is no shuffle. The pack's recording was tried and rejected on the
+ * first listen (Darius, 16 Nov 2026): a new shoe is announced on the table
+ * and is silent.
  */
 
 /** The events at the table that have a recording. */
-export type TableSound = 'deal' | 'flip' | 'chip' | 'payout' | 'take' | 'shuffle'
+export type TableSound = 'deal' | 'flip' | 'chip' | 'payout' | 'take'
 
 /** How many takes there are of each sound, and its level relative to the others. */
 export const TABLE_SOUNDS: Record<TableSound, { takes: number; gain: number }> = {
@@ -28,7 +32,6 @@ export const TABLE_SOUNDS: Record<TableSound, { takes: number; gain: number }> =
   chip: { takes: 3, gain: 0.8 },
   payout: { takes: 3, gain: 0.7 },
   take: { takes: 3, gain: 0.6 },
-  shuffle: { takes: 1, gain: 0.5 },
 }
 
 /** Where a take is served from. */

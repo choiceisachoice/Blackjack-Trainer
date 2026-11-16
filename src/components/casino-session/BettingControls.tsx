@@ -11,6 +11,10 @@ interface BettingControlsProps {
   bankroll: number
   onBetChange: (newBet: number) => void
   onConfirm: () => void
+  /** Seconds until the table deals on its own; omitted when no clock runs. */
+  secondsLeft?: number
+  /** The length of the betting window, for the bar. */
+  secondsTotal?: number
 }
 
 /**
@@ -22,7 +26,7 @@ interface BettingControlsProps {
  * the field is left; a draft that is already a legal bet is passed on at once,
  * so Deal and the Enter shortcut both see it.
  */
-export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetChange, onConfirm }: BettingControlsProps) {
+export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetChange, onConfirm, secondsLeft, secondsTotal = 30 }: BettingControlsProps) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<string | null>(null)
   const cap = Math.min(maxBet, bankroll)
@@ -117,6 +121,28 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
           </button>
         ))}
       </div>
+      {/* The Deal button and the betting clock share a row; the clock is laid
+          out beside the button, not under it, so it adds no height to a panel
+          the table's size depends on. */}
+      <div className="relative">
+      {secondsLeft !== undefined && (
+        <div
+          className="absolute right-full top-1/2 -translate-y-1/2 mr-3 flex items-center gap-2 whitespace-nowrap"
+          data-testid="bet-clock"
+          role="timer"
+          aria-label={`${secondsLeft}`}
+        >
+          <span className="block w-20 h-1 rounded-full bg-contrast/15 overflow-hidden">
+            <span
+              className={`block h-full rounded-full transition-[width] duration-1000 ease-linear ${secondsLeft <= 5 ? 'bg-error' : 'bg-gold'}`}
+              style={{ width: `${Math.max(0, Math.min(100, (secondsLeft / secondsTotal) * 100))}%` }}
+            />
+          </span>
+          <span className={`text-sm font-bold tabular-nums ${secondsLeft <= 5 ? 'text-error' : 'text-content/70'}`}>
+            0:{String(Math.max(0, secondsLeft)).padStart(2, '0')}
+          </span>
+        </div>
+      )}
       <button onClick={onConfirm} data-testid="confirm-bet"
         disabled={currentBet < minBet && bankroll >= minBet}
         className="px-8 py-1.5 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer
@@ -126,6 +152,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
           disabled:hover:shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
         {t('casino.table.deal', { amount: formatDollar(currentBet > 0 ? currentBet : minBet) })}
       </button>
+      </div>
     </div>
   )
 }

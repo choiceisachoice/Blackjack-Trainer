@@ -251,6 +251,16 @@ export function formatTime(seconds: number): string {
 }
 
 /** The colours of a drawn chip. Plain values: an SVG attribute cannot read a CSS variable. */
+/**
+ * How long the table waits for bets, in seconds.
+ *
+ * An online table gives a fixed window and then deals; an open-ended wait is
+ * what a trainer does, and it lets the pace of a session fall apart. Thirty
+ * seconds is enough to read the count, size the bet and place it — and Enter
+ * deals at once for anyone who is ready sooner.
+ */
+export const BET_SECONDS = 30
+
 export interface ChipColor {
   /** The body. */
   readonly fill: string

@@ -903,6 +903,26 @@ describe('CasinoSessionEngine', () => {
       expect(engine.shouldReshuffle()).toBe(true)
     })
 
+    it('shuffles at the end of the round the cut card came out in, before the next bet', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0, numDecks: 2, penetration: 0.65 }))
+
+      // Short of the cut card: the round is over and nothing happens.
+      for (let i = 0; i < 60; i++) engine.drawCard()
+      expect(engine.reshuffleAfterRound()).toBe(false)
+      expect(engine.getCardsDealt()).toBe(60)
+
+      // Past it: the shoe is changed now, and the count the player bets on
+      // is a fresh shoe's — not the one the last round ended on.
+      for (let i = 0; i < 10; i++) engine.drawCard()
+      expect(engine.reshuffleAfterRound()).toBe(true)
+      expect(engine.getCardsDealt()).toBe(0)
+      expect(engine.getRunningCount()).toBe(0)
+      expect(engine.getCountForNextRound()).toEqual({ runningCount: 0, trueCount: 0 })
+
+      // The deal that follows has nothing left to shuffle.
+      expect(engine.dealNewRound().reshuffled).toBe(false)
+    })
+
     it('count check frequency logic is correct', () => {
       const engine = new CasinoSessionEngine(createTestConfig({
         countCheckFrequency: 'every5',

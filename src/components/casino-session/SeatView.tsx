@@ -227,7 +227,7 @@ export function HumanSeat({
       style={{ width: slotWidth }}
       data-testid="human-seat"
     >
-      <ChipStack amount={stake} outcome={humanOutcome} />
+      <ChipStack amount={stake} outcome={humanOutcome} payout={humanSettlement?.profit} />
 
       {/* Cards */}
       {isSplit ? (
@@ -336,6 +336,13 @@ export function BotSeat({
   const reducedBot = useReducedMotion()
   const hasSplit = bot.hands.length > 1
   const showSplitHands = hasSplit && splitHands !== undefined
+  // The chips on the spot are every bet the bot has out: a doubled hand is two
+  // bets, a split is one per hand. It used to show the opening bet for the
+  // whole round, so a bot that doubled $25 kept one chip and was then paid
+  // $50 — right money, wrong picture. The engine plays a bot's turn in one go
+  // and the table replays it, so the extra chips appear once the bot has acted.
+  const acted = gameStep === 'settlement' || gameStep === 'dealer_playing' || (botStatus !== 'wait' && botStatus !== 'thinking')
+  const botStake = acted && bot.hands.length > 0 ? bot.hands.reduce((sum, h) => sum + h.bet, 0) : bot.currentBet
   const single = handBoxes(slotWidth, 1)
   const split = handBoxes(slotWidth, showSplitHands ? splitHands.filter(v => v.cards.length > 0).length : 1)
 
@@ -346,8 +353,9 @@ export function BotSeat({
       data-testid="bot-seat"
     >
       <ChipStack
-        amount={bot.currentBet}
+        amount={botStake}
         outcome={gameStep !== 'settlement' || !botSettlement ? null : botSettlement.profit > 0 ? 'win' : botSettlement.profit < 0 ? 'loss' : 'push'}
+        payout={botSettlement?.profit}
       />
 
       {/* Split hands — exactly the hands on the table at this moment of the

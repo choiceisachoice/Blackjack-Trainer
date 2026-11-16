@@ -56,19 +56,25 @@ export type ChipOutcome = 'win' | 'blackjack' | 'loss' | 'push' | null
  * to the dealer, a won one is paid — a second stack arrives beside it from the
  * dealer's side — and a push stays where it is.
  */
-export function ChipStack({ amount, outcome = null, size = 46 }: {
+export function ChipStack({ amount, outcome = null, payout, size = 46 }: {
   amount: number
   outcome?: ChipOutcome
+  /** What a won bet pays — the amount on the second stack. Defaults to the bet. */
+  payout?: number
   size?: number
 }) {
   const reduced = useReducedMotion()
   const rise = Math.round(size * 0.13)
-  const chips = chipBreakdown(amount).slice(0, 6)
   // Largest at the bottom, like a stack a dealer would cut.
   const height = size + rise * 5
 
-  const stack = (label: string) => (
-    <div className="relative" style={{ width: size, height: size + rise * (chips.length - 1) }}>
+  // The payout is its own stack with its own amount: a blackjack on $500 pays
+  // $750, and a blank chip beside the bet said nothing about that.
+  const stack = (value: number) => {
+    const chips = chipBreakdown(value).slice(0, 6)
+    const label = formatDollar(value)
+    return (
+    <div className="relative" style={{ width: size, height: size + rise * Math.max(0, chips.length - 1) }}>
       {chips.map((v, i) => (
         <div
           key={i}
@@ -79,7 +85,8 @@ export function ChipStack({ amount, outcome = null, size = 46 }: {
         </div>
       ))}
     </div>
-  )
+    )
+  }
 
   return (
     <div className="relative flex items-end justify-center" style={{ height, minWidth: size }} data-testid="bet-stack" data-outcome={outcome ?? undefined}>
@@ -91,18 +98,18 @@ export function ChipStack({ amount, outcome = null, size = 46 }: {
             animate={outcome === 'loss' && !reduced ? { y: -150, opacity: 0, scale: 0.85 } : { y: 0, opacity: outcome === 'loss' ? 0 : 1, scale: 1 }}
             transition={outcome === 'loss' ? { duration: 0.55, ease: [0.4, 0, 0.9, 0.6], delay: 0.25 } : { duration: 0.28, ease: [0.2, 0.8, 0.25, 1] }}
           >
-            {stack(formatDollar(amount))}
+            {stack(amount)}
           </motion.div>
           {(outcome === 'win' || outcome === 'blackjack') && (
             <motion.div
               className="absolute bottom-0"
-              style={{ left: '50%', marginLeft: size * 0.62 }}
+              style={{ left: '50%', marginLeft: size * 0.6 }}
               initial={reduced ? false : { y: -150, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.45, ease: [0.2, 0.8, 0.25, 1], delay: 0.2 }}
               data-testid="payout-stack"
             >
-              {stack('')}
+              {stack(payout && payout > 0 ? payout : amount)}
             </motion.div>
           )}
         </>

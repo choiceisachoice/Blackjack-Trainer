@@ -33,6 +33,10 @@ vi.mock('framer-motion', () => {
     useAnimationControls: () => ({ set: () => {}, start: () => {} }),
   }
 })
+// These tests sit at the betting screen for minutes on purpose — the session's
+// own clock is what they are about. The betting clock would deal a hand after
+// thirty seconds; it has tests of its own (betting-clock.test.tsx).
+vi.mock('./helpers', async importOriginal => ({ ...(await importOriginal<typeof import('./helpers')>()), BET_SECONDS: 1_000_000 }))
 vi.mock('../../services/casino-ambient', () => ({
   casinoAmbient: { start: vi.fn(), stop: vi.fn(), playing: false, volume: 0.15 },
 }))
