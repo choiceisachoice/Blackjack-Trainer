@@ -214,6 +214,85 @@ export function fitTable(
 }
 
 /**
+ * The phone layout: two rows instead of one.
+ *
+ * In a narrow, upright box the one-row table has no good answer. Measured on
+ * a 390 × 844 phone, 16 Nov 2026: three seats gave a 44px card, five bots and
+ * the player a 25px one — a thumbnail of a table, with half the felt empty
+ * above it. An upright box has height to spare and no width, so the seats are
+ * stacked: the other players in a row of their own, drawn smaller
+ * (`STACKED_BOT_ZOOM`), and the player's hands below them at full size. That
+ * is how a table reads on a phone anywhere: your hand large, the others small.
+ */
+export const STACKED_BOT_ZOOM = 0.62
+/** The bots' row is drawn no larger than this, however few they are. */
+const STACKED_BOT_ZOOM_MAX = 0.85
+/** The narrowest stacked scene: the dealer's rail needs it. */
+const STACKED_MIN_WIDTH = 560
+/** The tray and the shoe, drawn smaller so the dealer's hand has the rail. */
+export const STACKED_RAIL_ZOOM = 0.55
+/** One seat's room in table units: two cards side by side and some air. */
+const SEAT_ROOM = TABLE_CARD.width + TABLE_CARD.step + 44
+
+/**
+ * Whether a box calls for the stacked layout: narrower than a small tablet
+ * and taller than it is wide.
+ *
+ * @param available - The box the table may fill
+ */
+export function isStackedBox(available: Size): boolean {
+  return Number.isFinite(available.width) && Number.isFinite(available.height)
+    && available.width > 0 && available.width < 600 && available.height > available.width
+}
+
+/**
+ * How large the bots' row is drawn in the stacked layout: as large as the row
+ * allows for that many bots, between `STACKED_BOT_ZOOM` (a full table) and
+ * 0.85 (one to three bots). At the small end a name is hardly legible; the
+ * cards and the chips still are, and those are what is counted.
+ *
+ * @param bots - Other players at the table
+ */
+export function stackedBotZoom(bots: number): number {
+  if (bots <= 0) return STACKED_BOT_ZOOM_MAX
+  const fits = (STACKED_MIN_WIDTH - 60) / (bots * SEAT_ROOM)
+  return Math.max(STACKED_BOT_ZOOM, Math.min(STACKED_BOT_ZOOM_MAX, Math.floor(fits * 100) / 100))
+}
+
+/**
+ * The smallest scene the stacked table can be drawn in.
+ *
+ * Wide enough for the dealer's rail (five dealer cards between the tray and
+ * the shoe), for the player's hands side by side, and for the bots' row at
+ * its smaller size; tall enough for the extra row when there are bots.
+ *
+ * @param bots - Other players at the table
+ * @param boxes - Hands the player holds
+ */
+export function stackedTableSize(bots: number, boxes: number): Size {
+  return {
+    width: Math.max(STACKED_MIN_WIDTH, boxes * SEAT_ROOM + 60, Math.ceil(bots * SEAT_ROOM * stackedBotZoom(bots)) + 60),
+    // Rail, legend, the player's row and the felt's own edge come to about
+    // 600; a bot's seat is about 300 tall before it is drawn smaller.
+    height: bots > 0 ? 602 + Math.ceil(300 * stackedBotZoom(bots)) : TABLE_MIN_HEIGHT,
+  }
+}
+
+/**
+ * Fit the stacked table to its box: as large as both axes allow, and then the
+ * scene is drawn to fill the box exactly, so the felt has no margin.
+ *
+ * @param available - The box the table may fill
+ * @param bots - Other players at the table
+ * @param boxes - Hands the player holds
+ */
+export function fitStackedTable(available: Size, bots: number, boxes: number): TableFit {
+  const need = stackedTableSize(bots, boxes)
+  const scale = Math.min(available.width / need.width, available.height / need.height, TABLE_MAX_SCALE)
+  return { scale, sceneWidth: available.width / scale, sceneHeight: available.height / scale }
+}
+
+/**
  * Table limits a hand can actually be dealt under.
  *
  * The setup accepted any three numbers. A minimum above the maximum made every

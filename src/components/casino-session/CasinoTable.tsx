@@ -7,7 +7,7 @@ import { DealerView } from './DealerView'
 import { HumanSeat, BotSeat } from './SeatView'
 import { TableLegend } from './TableLegend'
 import { ShoeHousing, DiscardTray } from '../table/ShoeProgress'
-import { fitTable, tableMinWidth, visibleForBox, TABLE_DESIGN, TABLE_MAX_SCALE, type TableFit, type BotStatus, type GameStep, type HandInfo } from './helpers'
+import { fitTable, fitStackedTable, isStackedBox, tableMinWidth, visibleForBox, stackedBotZoom, STACKED_RAIL_ZOOM, TABLE_DESIGN, TABLE_MAX_SCALE, type TableFit, type BotStatus, type GameStep, type HandInfo } from './helpers'
 
 /** Space kept between the felt's rim and the edge of its box, on every side. */
 const TABLE_GUTTER = 8
@@ -21,9 +21,11 @@ const TABLE_GUTTER = 8
  *
  * @param seats - Seats at the table; more seats need a wider scene
  */
-function useTableFit(seats: number): { ref: React.RefObject<HTMLDivElement | null>; fit: TableFit } {
+function useTableFit(seats: number, bots: number, boxes: number): { ref: React.RefObject<HTMLDivElement | null>; fit: TableFit; stacked: boolean } {
   const ref = useRef<HTMLDivElement>(null)
   const [fit, setFit] = useState<TableFit>(() => ({ scale: 1, sceneWidth: TABLE_DESIGN.width, sceneHeight: TABLE_DESIGN.height }))
+  // An upright phone gets two rows of seats instead of one (see `isStackedBox`).
+  const [stacked, setStacked] = useState(false)
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -34,10 +36,12 @@ function useTableFit(seats: number): { ref: React.RefObject<HTMLDivElement | nul
       // The gutter keeps the rim and its shadow off the box's edge. It used to
       // be padding on the box, which the measurement included — so the felt was
       // fitted to the padded size and the padding did nothing.
-      const next = fitTable(
-        { width: r.width - TABLE_GUTTER * 2, height: r.height - TABLE_GUTTER * 2 },
-        TABLE_DESIGN, TABLE_MAX_SCALE, tableMinWidth(seats),
-      )
+      const box = { width: r.width - TABLE_GUTTER * 2, height: r.height - TABLE_GUTTER * 2 }
+      const upright = isStackedBox(box)
+      setStacked(upright)
+      const next = upright
+        ? fitStackedTable(box, bots, boxes)
+        : fitTable(box, TABLE_DESIGN, TABLE_MAX_SCALE, tableMinWidth(seats))
       // Only write when something actually moved. A ResizeObserver that feeds
       // state which resizes the observed box is a loop waiting to happen; this
       // is the exit condition.
@@ -59,9 +63,9 @@ function useTableFit(seats: number): { ref: React.RefObject<HTMLDivElement | nul
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [seats])
+  }, [seats, bots, boxes])
 
-  return { ref, fit }
+  return { ref, fit, stacked }
 }
 
 interface SeatLayoutEntry {
@@ -179,7 +183,8 @@ export function CasinoTable({
     ? Math.max(1, boxes)
     : Math.max(1, ...info.map(h => h.box + 1))
   const slots = seatLayout.length - 1 + boxCount
-  const { ref: fitRef, fit } = useTableFit(slots)
+  const botCount = seatLayout.length - 1
+  const { ref: fitRef, fit, stacked } = useTableFit(slots, botCount, boxCount)
 
   // Nothing here scrolls, and nothing needs to: `fitTable` never returns a
   // scene larger than the box. The wrapper used to keep `overflow-y-auto` for
@@ -233,7 +238,9 @@ export function CasinoTable({
           // From the corner of the sized box around it, which is what centres
           // the table; see the note on that box.
           transformOrigin: 'top left',
-          borderRadius: '14px 14px 46% 46% / 14px 14px 32% 32%',
+          // Upright, the deep curve of the wide table would cut into the
+          // player's own hands at the bottom corners; the arc is shallower.
+          borderRadius: stacked ? '14px 14px 50% 50% / 14px 14px 9% 9%' : '14px 14px 46% 46% / 14px 14px 32% 32%',
           // The felt reads from the theme now. `--color-felt` and `--color-wood` were
           // declared with the rest of the palette and referenced by nothing, while the
           // table painted its own copy of the same greens in hex — the same defect as
@@ -247,16 +254,16 @@ export function CasinoTable({
             ' color-mix(in srgb, var(--color-felt) 62%, black) 92%)',
           border: '12px solid var(--color-wood)',
           boxShadow: '0 0 0 2px #3d2510, 0 0 0 5px #6b4423, 0 12px 40px rgba(0,0,0,0.5), inset 0 0 80px rgba(0,0,0,0.22)',
-          padding: '14px 18px 12px',
+          padding: stacked ? '14px 18px 30px' : '14px 18px 12px',
         }}
       >
         {/* Top rail: discard tray (outer-left) · dealer (center) · shoe (outer-right) */}
         <div className="grid items-start gap-2" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
-          <div className="justify-self-start">
+          <div className="justify-self-start" style={stacked ? { zoom: STACKED_RAIL_ZOOM } : undefined}>
             <DiscardTray cardCount={discardCount} totalCards={totalCards} pxPerCard={0.42} width={108} />
           </div>
           <DealerView dealerCards={dealerCards} dealerHoleRevealed={dealerHoleRevealed} />
-          <div className="justify-self-end">
+          <div className="justify-self-end" style={stacked ? { zoom: STACKED_RAIL_ZOOM } : undefined}>
             <ShoeHousing cardCount={cardsRemaining} totalCards={totalCards} penetration={penetration} />
           </div>
         </div>
@@ -290,10 +297,14 @@ export function CasinoTable({
             (outer seats sit higher). A slot has one width for the whole
             session: seats used to size themselves to their cards, so a hit or
             a split in one seat moved every other seat along the row. */}
-        <div className="shrink-0 flex items-end justify-center">
-          {seatLayout.flatMap(seat => seat.type === 'human'
+        {(() => {
+          type Entry = { seat: SeatLayoutEntry; box: number }
+          const entries: Entry[] = seatLayout.flatMap(seat => seat.type === 'human'
             ? Array.from({ length: boxCount }, (_, box) => ({ seat, box }))
-            : [{ seat, box: 0 }]).map(({ seat, box }, i) => {
+            : [{ seat, box: 0 }])
+          // 60 = the felt's border and padding on both sides.
+          const inner = fit.sceneWidth - 60
+          const renderSeat = ({ seat, box }: Entry, i: number, rowSlots: number, slotWidth: number, arc: boolean) => {
             const isHuman = seat.type === 'human'
             // This box's hands, as indices into the player's hands.
             const own = isHuman ? info.flatMap((h, k) => (h.box === box ? [k] : [])) : []
@@ -308,10 +319,8 @@ export function CasinoTable({
               || (insuring && box !== insuranceBox)
 
             // Arc offset: outer seats lift up so the row follows the crescent rim.
-            const center = (slots - 1) / 2
-            const lift = Math.round(Math.abs(i - center) * 16)
-            // 60 = the felt's border and padding on both sides.
-            const slotWidth = Math.min(260, Math.floor((fit.sceneWidth - 60) / slots))
+            const center = (rowSlots - 1) / 2
+            const lift = arc ? Math.round(Math.abs(i - center) * 16) : 0
             const boxHands = own.length > 0 ? own.map(k => humanHands[k] ?? []) : [[]]
 
             return (
@@ -356,8 +365,36 @@ export function CasinoTable({
                 )}
               </div>
             )
-          })}
-        </div>
+          }
+
+          if (!stacked) {
+            const slotWidth = Math.min(260, Math.floor(inner / slots))
+            return (
+              <div className="shrink-0 flex items-end justify-center">
+                {entries.map((e, i) => renderSeat(e, i, slots, slotWidth, true))}
+              </div>
+            )
+          }
+          // An upright phone: the other players in a smaller row of their own,
+          // the player's hands below at full size. Seat order is kept in each row.
+          const others = entries.filter(e => e.seat.type === 'bot')
+          const mine = entries.filter(e => e.seat.type === 'human')
+          const botZoom = stackedBotZoom(others.length)
+          const botSlot = Math.min(220, Math.floor(inner / botZoom / Math.max(1, others.length)))
+          const mySlot = Math.min(260, Math.floor(inner / mine.length))
+          return (
+            <>
+              {others.length > 0 && (
+                <div className="shrink-0 flex items-end justify-center mb-4" data-testid="bot-row" style={{ zoom: botZoom }}>
+                  {others.map((e, i) => renderSeat(e, i, others.length, botSlot, false))}
+                </div>
+              )}
+              <div className="shrink-0 flex items-end justify-center" data-testid="player-row">
+                {mine.map((e, i) => renderSeat(e, i, mine.length, mySlot, false))}
+              </div>
+            </>
+          )
+        })()}
       </div>
       </div>
     </div>

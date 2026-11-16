@@ -337,8 +337,8 @@ export function HumanSeat({
               onClick={pick.onClose}
               aria-label={t('casino.table.removeHand', { n: pick.index + 1 })}
               data-testid={`box-close-${pick.index + 1}`}
-              className="absolute -top-4 right-2 z-10 w-7 h-7 rounded-full bg-black/70 border border-white/30 text-white/85
-                text-base leading-none font-bold cursor-pointer hover:bg-[#c8102e] hover:border-transparent transition-colors"
+              className="absolute top-0 right-0 z-10 w-9 h-9 rounded-full bg-black/70 border border-white/30 text-white/85
+                text-xl leading-none font-bold cursor-pointer hover:bg-[#c8102e] hover:border-transparent transition-colors"
             >×</button>
           )}
           {pick.onOpen && (
@@ -347,7 +347,7 @@ export function HumanSeat({
               onClick={pick.onOpen}
               aria-label={t('casino.table.addHand')}
               data-testid="box-open"
-              className="absolute top-12 -right-6 z-10 w-10 h-10 rounded-full border-2 border-dashed border-gold/70 bg-black/30 text-gold-bright
+              className="absolute top-14 -right-6 z-10 w-12 h-12 rounded-full border-2 border-dashed border-gold/70 bg-black/30 text-gold-bright
                 text-2xl leading-none font-bold cursor-pointer hover:bg-gold hover:text-on-gold hover:border-solid transition-colors"
             >+</button>
           )}

@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "./styles/glow-effects.css";
 
+/* A phone held sideways: a wide box with almost no height. The casino table
+   puts its controls beside the felt there instead of under it — under it they
+   left the felt a 131px strip (measured at 844 × 390, 16 Nov 2026). */
+@custom-variant short (@media (max-height: 520px) and (orientation: landscape));
+
 @theme {
   /* ── Static colors (same in both themes) ── */
   --color-wood: #4a2f18;

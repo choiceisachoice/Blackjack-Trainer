@@ -3,6 +3,10 @@ import {
   isNaturalBlackjack,
   isRecordableSession,
   fitTable,
+  fitStackedTable,
+  isStackedBox,
+  stackedBotZoom,
+  stackedTableSize,
   TABLE_DESIGN,
   TABLE_CARD,
   TABLE_MAX_SCALE,
@@ -202,5 +206,62 @@ describe('playableLimits — table limits a hand can be dealt under', () => {
   it('keeps every other setting it is handed', () => {
     const config = { ...ok, numDecks: 6, penetration: 0.75 }
     expect(playableLimits(config)).toEqual(config)
+  })
+})
+
+/**
+ * The phone layout (16 Nov 2026). Measured before it: on a 390 x 844 phone a
+ * three-seat table gave a 44px card, a full one a 25px card, and sideways the
+ * felt was a 131px strip.
+ */
+describe('the stacked table — an upright phone', () => {
+  const PHONE = { width: 374, height: 551 }
+
+  it('is for a narrow, upright box only', () => {
+    expect(isStackedBox(PHONE)).toBe(true)
+    expect(isStackedBox({ width: 530, height: 327 })).toBe(false)   // a phone held sideways
+    expect(isStackedBox({ width: 804, height: 900 })).toBe(false)   // a tablet
+    expect(isStackedBox({ width: 1520, height: 480 })).toBe(false)  // a laptop
+    expect(isStackedBox({ width: 0, height: 0 })).toBe(false)       // not measured yet
+    expect(isStackedBox({ width: NaN, height: 500 })).toBe(false)
+  })
+
+  it('draws the bots as large as their row allows, never larger than 0.85', () => {
+    expect(stackedBotZoom(1)).toBe(0.85)
+    expect(stackedBotZoom(3)).toBe(0.85)
+    expect(stackedBotZoom(4)).toBe(0.8)
+    expect(stackedBotZoom(5)).toBe(0.64)
+    expect(stackedBotZoom(9)).toBe(0.62)
+  })
+
+  it('fills the box exactly, so the felt has no margin', () => {
+    for (const [bots, boxes] of [[0, 1], [2, 1], [5, 3]] as const) {
+      const fit = fitStackedTable(PHONE, bots, boxes)
+      expect(fit.sceneWidth * fit.scale).toBeCloseTo(PHONE.width, 5)
+      expect(fit.sceneHeight * fit.scale).toBeCloseTo(PHONE.height, 5)
+    }
+  })
+
+  it('never draws the scene smaller than it needs, on either axis', () => {
+    for (const [bots, boxes] of [[0, 1], [2, 2], [5, 3]] as const) {
+      const need = stackedTableSize(bots, boxes)
+      const fit = fitStackedTable(PHONE, bots, boxes)
+      expect(fit.sceneWidth).toBeGreaterThanOrEqual(need.width - 0.001)
+      expect(fit.sceneHeight).toBeGreaterThanOrEqual(need.height - 0.001)
+    }
+  })
+
+  it('gives the player a larger card than the one-row table did', () => {
+    // One row: the scene was 640 wide for three seats, 1120 for eight.
+    const stacked = fitStackedTable(PHONE, 5, 3).scale
+    expect(stacked).toBeGreaterThan(fitTable(PHONE, undefined, undefined, 640).scale)
+    expect(stacked).toBeGreaterThan(2 * fitTable(PHONE, undefined, undefined, 1120).scale * 0.95)
+    // A 76-unit card is about 50px wide on screen.
+    expect(76 * stacked).toBeGreaterThan(48)
+  })
+
+  it('makes room for the second row only when there are bots', () => {
+    expect(stackedTableSize(0, 1).height).toBeLessThan(stackedTableSize(1, 1).height)
+    expect(stackedTableSize(5, 3).width).toBeGreaterThanOrEqual(3 * 156 + 60)
   })
 })

@@ -23,6 +23,12 @@ interface BettingControlsProps {
   focusLabel?: string
   /** What Deal will put out, when the hands carry different bets ("$25 + $50"). */
   dealAmount?: string
+  /**
+   * A phone: the panel has to fit the same height as on a desk, in a third of
+   * the width. The prompt and the range are left out, the chips are smaller
+   * so six make one row, and the clock sits in the row instead of beside it.
+   */
+  compact?: boolean
   /** Seconds until the table deals on its own; omitted when no clock runs. */
   secondsLeft?: number
   /** The length of the betting window, for the bar. */
@@ -38,7 +44,7 @@ interface BettingControlsProps {
  * the field is left; a draft that is already a legal bet is passed on at once,
  * so Deal and the Enter shortcut both see it.
  */
-export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetChange, onConfirm, secondsLeft, secondsTotal = 30, hands = 1, maxHands = 1, onHandsChange, focusLabel, dealAmount }: BettingControlsProps) {
+export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetChange, onConfirm, secondsLeft, secondsTotal = 30, hands = 1, maxHands = 1, onHandsChange, focusLabel, dealAmount, compact = false }: BettingControlsProps) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<string | null>(null)
   const cap = Math.min(maxBet, bankroll)
@@ -54,17 +60,17 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
     // the table has one fixed height for every phase, and this panel is the
     // tallest of them — it has to fit, or the table resizes on every click.
     <div className="flex flex-col items-center gap-2" data-testid="betting-controls">
-      <div className="flex items-center gap-3 flex-wrap justify-center">
+      <div className={`flex items-center flex-wrap justify-center ${compact ? 'gap-2' : 'gap-3'}`}>
         {/* With several hands the line says whose bet this is — in the prompt's
             place, so the row is no wider and never wraps into a fourth. */}
         {focusLabel
           ? <span className="text-sm font-semibold text-gold" data-testid="bet-focus">{focusLabel}</span>
-          : <span className="text-sm text-content/60">{t('casino.table.placeYourBet')}</span>}
+          : !compact && <span className="text-sm text-content/60">{t('casino.table.placeYourBet')}</span>}
         {/* Several hands, as at an online table: each is a box of its own
             with this bet on it. In the prompt's row, so it adds no height. */}
         {onHandsChange && maxHands > 1 && (
           <span className="flex items-center gap-1.5" role="group" aria-label={t('casino.table.hands')} data-testid="hands-select">
-            <span className="text-xs text-content/50">{t('casino.table.hands')}</span>
+            {!compact && <span className="text-xs text-content/50">{t('casino.table.hands')}</span>}
             <span className="flex rounded-lg border border-contrast/15 overflow-hidden">
               {Array.from({ length: maxHands }, (_, i) => i + 1).map(n => (
                 <button
@@ -73,16 +79,18 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
                   onClick={() => onHandsChange(n)}
                   aria-pressed={hands === n}
                   data-testid={`hands-${n}`}
-                  className={`w-8 h-7 text-sm font-bold tabular-nums cursor-pointer transition-colors
+                  className={`${compact ? 'w-10 h-10 text-base' : 'w-8 h-7 text-sm'} font-bold tabular-nums cursor-pointer transition-colors
                     ${hands === n ? 'bg-gold text-on-gold' : 'text-content/70 hover:bg-contrast/10'}`}
                 >{n}</button>
               ))}
             </span>
           </span>
         )}
-        <span className="text-xs text-content/40" data-testid="bet-range">
-          {t('casino.hud.betRange', { min: formatDollar(minBet), max: formatDollar(maxBet) })}
-        </span>
+        {!compact && (
+          <span className="text-xs text-content/40" data-testid="bet-range">
+            {t('casino.hud.betRange', { min: formatDollar(minBet), max: formatDollar(maxBet) })}
+          </span>
+        )}
         {/* The bet placed, typeable — it is the display as well as the input,
             so placing a bet still adds no row. */}
         <span className="flex items-center gap-2">
@@ -112,17 +120,19 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
                 e.stopPropagation()
                 commit(draft)
               }}
-              className="w-24 pl-6 pr-1.5 py-1 rounded-lg bg-contrast/5 border border-contrast/15 text-right text-lg font-bold text-gold
-                placeholder:text-content/25 focus:outline-none focus:border-gold/60 [&::-webkit-inner-spin-button]:ml-1.5"
+              className={`${compact ? 'w-20' : 'w-24'} pl-6 pr-1.5 py-1 rounded-lg bg-contrast/5 border border-contrast/15 text-right text-lg font-bold text-gold
+                placeholder:text-content/25 focus:outline-none focus:border-gold/60 [&::-webkit-inner-spin-button]:ml-1.5`}
             />
           </span>
           {currentBet > 0 && (
             <button
               onClick={() => { setDraft(null); onBetChange(0) }}
               data-testid="clear-bet"
-              className="text-xs text-content/50 hover:text-error px-2 py-0.5 rounded bg-contrast/10 hover:bg-contrast/20 cursor-pointer transition-colors"
+              aria-label={t('casino.table.clear')}
+              className={`text-content/50 hover:text-error rounded bg-contrast/10 hover:bg-contrast/20 cursor-pointer transition-colors
+                ${compact ? 'w-9 h-10 text-lg leading-none' : 'text-xs px-2 py-0.5'}`}
             >
-              {t('casino.table.clear')}
+              {compact ? '×' : t('casino.table.clear')}
             </button>
           )}
         </span>
@@ -135,7 +145,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
         for the tests (`getByText('+$25')`): one node, visually hidden, while
         the face of the chip shows the plain value.
       */}
-      <div className="flex gap-2.5 flex-wrap justify-center">
+      <div className={`flex flex-wrap justify-center ${compact ? 'gap-2' : 'gap-2.5'}`}>
         {getChipDenominations(minBet, maxBet).map(b => (
           <button key={b}
             onClick={() => {
@@ -152,7 +162,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
               active:translate-y-0 active:brightness-95 active:scale-[0.96]
               disabled:opacity-30 disabled:cursor-not-allowed
               disabled:hover:translate-y-0 disabled:hover:brightness-100">
-            <Chip value={b} size={54} label={formatDollar(b)} />
+            <Chip value={b} size={compact ? 46 : 54} label={formatDollar(b)} />
             <span className="sr-only">+${b}</span>
           </button>
         ))}
@@ -160,15 +170,15 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
       {/* The Deal button and the betting clock share a row; the clock is laid
           out beside the button, not under it, so it adds no height to a panel
           the table's size depends on. */}
-      <div className="relative">
+      <div className={compact ? 'flex items-center gap-3' : 'relative'}>
       {secondsLeft !== undefined && (
         <div
-          className="absolute right-full top-1/2 -translate-y-1/2 mr-3 flex items-center gap-2 whitespace-nowrap"
+          className={compact ? 'flex items-center whitespace-nowrap' : 'absolute right-full top-1/2 -translate-y-1/2 mr-3 flex items-center gap-2 whitespace-nowrap'}
           data-testid="bet-clock"
           role="timer"
           aria-label={`${secondsLeft}`}
         >
-          <span className="block w-20 h-1 rounded-full bg-contrast/15 overflow-hidden">
+          <span className={`${compact ? 'hidden' : 'block'} w-20 h-1 rounded-full bg-contrast/15 overflow-hidden`}>
             <span
               className={`block h-full rounded-full transition-[width] duration-1000 ease-linear ${secondsLeft <= 5 ? 'bg-error' : 'bg-gold'}`}
               style={{ width: `${Math.max(0, Math.min(100, (secondsLeft / secondsTotal) * 100))}%` }}
@@ -181,11 +191,11 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
       )}
       <button onClick={onConfirm} data-testid="confirm-bet"
         disabled={currentBet < minBet && bankroll >= minBet}
-        className="px-8 py-1.5 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer
+        className={`px-8 ${compact ? 'py-2.5' : 'py-1.5'} bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer
           transition-[background-color,transform,box-shadow,opacity] duration-150 ease-out
           shadow-[0_1px_2px_rgba(0,0,0,0.35)] hover:shadow-[0_3px_12px_-3px_var(--color-gold)]
           active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100
-          disabled:hover:shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+          disabled:hover:shadow-[0_1px_2px_rgba(0,0,0,0.35)]`}>
         {t('casino.table.deal', { amount: dealAmount ?? formatDollar(currentBet > 0 ? currentBet : minBet) + (hands > 1 ? ` × ${hands}` : '') })}
       </button>
       </div>

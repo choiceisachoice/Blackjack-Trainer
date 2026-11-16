@@ -15,6 +15,7 @@ import { BettingControls } from './BettingControls'
 import { formatDollar, formatTime, BET_SECONDS } from './helpers'
 import { ProgressBar, Input } from '../common/ui'
 import { ArrowLeft, Volume2, VolumeX } from 'lucide-react'
+import { useCompactTable } from '../../hooks/useCompactTable'
 import { useLiveSessionStore } from '../../store/live-session-store'
 
 interface CasinoSessionGameProps {
@@ -106,6 +107,8 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   const restartSession = () => { setJustReturned(false); actions.discardSession(); onRestart?.() }
 
   // Dealing speed (live, persisted)
+  // A phone, either way up: smaller chips, and less in the status bar.
+  const compact = useCompactTable()
   const dealingSpeed = useAppStore(s => s.dealingSpeed)
   const setDealingSpeed = useAppStore(s => s.setDealingSpeed)
   const setMode = useAppStore(s => s.setMode)
@@ -307,6 +310,22 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             ) : (
               <>
                 <h2 className="text-3xl font-bold text-gold">{t('session.paused')}</h2>
+                <div className="hidden max-sm:flex short:flex items-center gap-2" data-testid="speed-control-paused">
+                  <span className="text-white/50 text-sm">{t('casino.hud.speed')}</span>
+                  <div className="inline-flex p-0.5 rounded-lg bg-white/10 border border-white/15">
+                    {DEALING_SPEEDS.map(s => (
+                      <button
+                        key={s}
+                        onClick={() => setDealingSpeed(s)}
+                        aria-pressed={dealingSpeed === s}
+                        className={`px-3.5 py-2 rounded-md text-sm transition-colors cursor-pointer
+                          ${dealingSpeed === s ? 'bg-gold text-on-gold font-semibold' : 'text-white/60 hover:text-white'}`}
+                      >
+                        {t(DEALING_SPEED_LABEL[s])}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <button onClick={() => actions.setPaused(false)}
                   className="px-8 py-3 bg-gold text-on-gold rounded-xl font-bold text-lg hover:bg-gold/90 cursor-pointer">
                   {t('session.resumeButton')}
@@ -394,7 +413,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             data-testid="hud-back-to-menu"
             aria-label={t('nav.backToMenu')}
             title={t('nav.backToMenu')}
-            className="grid place-items-center w-8 h-8 -my-1 rounded-lg border border-contrast/15 bg-contrast/5 text-gold
+            className="grid place-items-center w-8 h-8 max-sm:w-10 max-sm:h-10 short:w-10 short:h-10 -my-1 rounded-lg border border-contrast/15 bg-contrast/5 text-gold
               hover:border-gold/40 hover:bg-gold/10 transition-colors cursor-pointer"
           >
             <ArrowLeft size={16} />
@@ -413,8 +432,11 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             </span>
           </span>
         </div>
+        {/* On a phone the bar holds what a hand needs — the money, the clock,
+            sound, pause, cash out — in two rows instead of three. The shoe is
+            on the felt anyway; the dealing speed moves into the pause panel. */}
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1.5 ml-auto">
-          <div className="flex items-center gap-1.5" data-testid="shoe-progress">
+          <div className="flex items-center gap-1.5 max-sm:hidden short:hidden" data-testid="shoe-progress">
             <span className="text-content/40 text-[0.6875rem]">{t('casino.hud.shoe')}</span>
             <ProgressBar
               value={shoeProgress * 100}
@@ -424,7 +446,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
               label={t('casino.hud.shoe')}
             />
           </div>
-          <div className="flex items-center gap-1" data-testid="speed-control">
+          <div className="flex items-center gap-1 max-sm:hidden short:hidden" data-testid="speed-control">
             <span className="text-content/40 text-[0.6875rem]">{t('casino.hud.speed')}</span>
             <div className="inline-flex p-0.5 rounded-md bg-contrast/10 border border-contrast/10">
               {DEALING_SPEEDS.map(s => (
@@ -441,7 +463,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             </div>
           </div>
           {soundEnabled && config.casinoAmbience && (
-            <div className="flex items-center gap-1" data-testid="volume-slider">
+            <div className="flex items-center gap-1 max-sm:hidden short:hidden" data-testid="volume-slider">
               <span className="text-content/40 text-[0.6875rem]">{Math.round(ambientVolume * 100)}%</span>
               <input
                 type="range" min="0" max="1" step="0.01"
@@ -469,17 +491,17 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             data-testid="hud-sound-toggle"
             aria-label={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
             title={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
-            className="grid place-items-center w-8 h-8 -my-1 rounded-lg border border-contrast/15 text-content/70 hover:text-gold hover:border-gold/40 cursor-pointer"
+            className="grid place-items-center w-8 h-8 max-sm:w-10 max-sm:h-10 short:w-10 short:h-10 -my-1 rounded-lg border border-contrast/15 text-content/70 hover:text-gold hover:border-gold/40 cursor-pointer"
           >
             {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </button>
           <button onClick={() => actions.setPaused(true)} data-testid="pause-button"
-            className="px-2.5 py-1 rounded-md border border-contrast/15 text-content/70 hover:text-content hover:border-contrast/30 cursor-pointer">
+            className="px-2.5 py-1 max-sm:px-3.5 max-sm:py-2.5 short:px-3.5 short:py-2.5 rounded-md border border-contrast/15 text-content/70 hover:text-content hover:border-contrast/30 cursor-pointer">
             {t('casino.hud.pause')}
           </button>
           <button onClick={actions.quitSession} disabled={!canCashOut} data-testid="cash-out"
             title={canCashOut ? undefined : t('casino.hud.cashOutWait')}
-            className="px-2.5 py-1 rounded-md font-semibold text-on-gold bg-gold hover:bg-gold/90 cursor-pointer
+            className="px-2.5 py-1 max-sm:px-3.5 max-sm:py-2.5 short:px-3.5 short:py-2.5 rounded-md font-semibold text-on-gold bg-gold hover:bg-gold/90 cursor-pointer
               disabled:opacity-40 disabled:cursor-not-allowed">
             {t('casino.hud.cashOut')}
           </button>
@@ -493,6 +515,9 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         </div>
       )}
 
+      {/* The table and its controls: one under the other, and side by side on
+          a phone held sideways, where the height is what is scarce. */}
+      <div className="flex-1 min-h-0 flex flex-col short:flex-row" data-testid="table-and-controls">
       {/* Casino Table */}
       <CasinoTable
         dealerCards={state.dealerCards}
@@ -548,7 +573,8 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         still resized on every deal. That leaves the felt
         a 455px scene at 1080p, above TABLE_MIN_HEIGHT.
       */}
-      <div className="shrink-0 min-h-[10.25rem] flex flex-col justify-center bg-contrast/5 border-t border-contrast/10 px-4 py-3" data-testid="controls-area">
+      <div className="shrink-0 min-h-[10.25rem] max-sm:min-h-[11.5rem] flex flex-col justify-center bg-contrast/5 border-t border-contrast/10 px-4 py-3
+        short:w-[17rem] short:min-h-0 short:border-t-0 short:border-l short:px-2 short:py-2 short:overflow-y-auto" data-testid="controls-area">
         {/* Betting */}
         {state.gameStep === 'betting' && (
           <BettingControls
@@ -569,6 +595,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             onHandsChange={actions.setBoxes}
             onBetChange={actions.setBet}
             onConfirm={actions.confirmBet}
+            compact={compact}
             secondsLeft={clockRuns || state.gameStep === 'betting' ? betSeconds : undefined}
             secondsTotal={BET_SECONDS}
           />
@@ -709,6 +736,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         {(state.gameStep === 'dealing' || state.gameStep === 'bot_playing' || state.gameStep === 'dealer_playing') && (
           <div className="h-10" />
         )}
+      </div>
       </div>
     </div>
   )
