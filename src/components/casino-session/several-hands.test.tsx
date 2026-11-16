@@ -156,6 +156,128 @@ describe('several hands for one player', () => {
   })
 })
 
+/**
+ * Second step (Darius, 16 Nov 2026): a bet of its own on each hand, a hand
+ * opened by clicking the felt, and insurance decided hand by hand.
+ */
+describe('each hand is a bet of its own', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    useAppStore.getState().setMode('casinoSession')
+    useAppStore.setState({ dealingSpeed: 'normal' })
+    useCasinoSessionTrackerStore.setState({ sessions: [], startingBankroll: 0 })
+  })
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  const net = () => {
+    const [session] = useCasinoSessionTrackerStore.getState().sessions
+    return session.finalBankroll - useCasinoSessionTrackerStore.getState().startingBankroll
+  }
+
+  it('chips go on every hand until one is picked, then on that hand alone', () => {
+    // 19 and 20 against a dealer 17.
+    stack([
+      c(Rank.Ten), c(Rank.Ten, Suit.Spades), c(Rank.Nine, Suit.Clubs),
+      c(Rank.Nine), c(Rank.King, Suit.Spades), c(Rank.Eight, Suit.Diamonds),
+    ])
+    sitDown(2)
+    expect(screen.getByTestId('bet-focus')).toHaveTextContent('All hands')
+    expect(screen.getByTestId('confirm-bet')).toHaveTextContent('$25 × 2')
+
+    fireEvent.click(screen.getByTestId('box-2'))
+    expect(screen.getByTestId('bet-focus')).toHaveTextContent('Hand 2')
+    fireEvent.click(screen.getByText('+$25'))
+    expect(screen.getByTestId('confirm-bet')).toHaveTextContent('$25 + $50')
+
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(10_000)
+    fireEvent.click(screen.getByTestId('action-stand'))
+    tick(1000)
+    fireEvent.click(screen.getByTestId('action-stand'))
+    tick(10_000)
+    expect(settlements()).toEqual([expect.stringContaining('+$25'), expect.stringContaining('+$50')])
+
+    // The bets stay where they were for the next round, each on its hand.
+    leaveRound()
+    expect(screen.getByTestId('confirm-bet')).toHaveTextContent('$25 + $50')
+    fireEvent.click(screen.getByTestId('cash-out'))
+    expect(net()).toBe(75)
+  })
+
+  it('a double costs the bet of the hand that is doubled', () => {
+    // Hand 1: 19 on $25. Hand 2: 11 on $50, doubled into 21 (the shoe starts over with a ten).
+    stack([
+      c(Rank.Ten), c(Rank.Six, Suit.Spades), c(Rank.Nine, Suit.Clubs),
+      c(Rank.Nine), c(Rank.Five, Suit.Spades), c(Rank.Eight, Suit.Diamonds),
+    ])
+    sitDown(2)
+    fireEvent.click(screen.getByTestId('box-2'))
+    fireEvent.click(screen.getByText('+$25'))
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(10_000)
+    fireEvent.click(screen.getByTestId('action-stand'))
+    tick(1000)
+    fireEvent.click(screen.getByTestId('action-double'))
+    tick(12_000)
+    expect(settlements()).toEqual([expect.stringContaining('+$25'), expect.stringContaining('+$100')])
+    leaveRound()
+    fireEvent.click(screen.getByTestId('cash-out'))
+    expect(net()).toBe(125)
+  })
+
+  it('a hand is opened and taken away again on the felt', () => {
+    stack([c(Rank.Ten), c(Rank.Nine), c(Rank.Eight), c(Rank.Seven)])
+    sitDown(1)
+    expect(screen.getAllByTestId('human-seat')).toHaveLength(1)
+    expect(screen.queryByTestId('box-close-1')).toBeNull()
+
+    fireEvent.click(screen.getByTestId('box-open'))
+    expect(screen.getAllByTestId('human-seat')).toHaveLength(2)
+    // The new hand starts with the bet beside it.
+    expect(screen.getByTestId('confirm-bet')).toHaveTextContent('$25 × 2')
+
+    fireEvent.click(screen.getByTestId('box-open'))
+    expect(screen.getAllByTestId('human-seat')).toHaveLength(3)
+    // Three is the table's limit.
+    expect(screen.queryByTestId('box-open')).toBeNull()
+
+    fireEvent.click(screen.getByTestId('box-close-2'))
+    fireEvent.click(screen.getByTestId('box-close-1'))
+    expect(screen.getAllByTestId('human-seat')).toHaveLength(1)
+    expect(screen.getByTestId('confirm-bet')).toHaveTextContent('$25')
+    expect(screen.getByTestId('confirm-bet')).not.toHaveTextContent('×')
+  })
+
+  it('insurance is asked hand by hand, and each hand carries its own', () => {
+    // Two 19s against an ace with a king under it.
+    stack([
+      c(Rank.Ten), c(Rank.Ten, Suit.Spades), c(Rank.Ace, Suit.Clubs),
+      c(Rank.Nine), c(Rank.Nine, Suit.Spades), c(Rank.King, Suit.Diamonds),
+    ])
+    sitDown(2)
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(10_000)
+
+    expect(screen.getByTestId('insurance-ask')).toHaveTextContent('Insure hand 1?')
+    fireEvent.click(screen.getByTestId('insurance-yes'))
+    expect(screen.getByTestId('insurance-ask')).toHaveTextContent('Insure hand 2?')
+    fireEvent.click(screen.getByTestId('insurance-no'))
+    tick(10_000)
+
+    // The insured hand loses $25 and wins $25 on the side bet; the other loses $25.
+    const [first, second] = settlements()
+    expect(first).toContain('$0')
+    expect(second).toContain('-$25')
+    leaveRound()
+    fireEvent.click(screen.getByTestId('cash-out'))
+    expect(net()).toBe(-25)
+  })
+})
+
 describe('visibleForBox — the deal goes round the table twice', () => {
   it('one hand: the first card, then the second', () => {
     expect([0, 1, 2].map(n => visibleForBox(n, 0, 1))).toEqual([0, 1, 2])

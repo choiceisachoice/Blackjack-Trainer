@@ -612,7 +612,10 @@
       "resultSurrender": "Desist.",
       "total": "Total",
       "deal": "Distribuir — {{amount}}",
-      "hands": "Mãos"
+      "hands": "Mãos",
+      "allHands": "Todas as mãos",
+      "addHand": "Adicionar uma mão",
+      "removeHand": "Remover a mão {{n}}"
     },
     "act": {
       "hit": "Pedir (H)",
@@ -642,7 +645,8 @@
       "cashOutWait": "Termine primeiro a mão",
       "timeUp_one": "1 minuto jogado — termine esta mão",
       "timeUp_other": "{{count}} minutos jogados — termine esta mão",
-      "speedFast": "Rápido"
+      "speedFast": "Rápido",
+      "insuranceAskHand": "Segurar a mão {{n}}? (O dealer mostra um ás)"
     },
     "summary": {
       "bankroll": "Bankroll",

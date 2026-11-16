@@ -88,6 +88,18 @@ interface CasinoTableProps {
   humanVisibleCards: number
   activeHandIndex: number
   currentBet: number
+  /** The bet on each of the player's boxes; `currentBet` on every box when omitted. */
+  boxBets?: number[]
+  /** While betting: the box the chips go on, or null for all. */
+  selectedBox?: number | null
+  /** The box insurance is being asked for, or -1. */
+  insuranceBox?: number
+  /** While betting: pick a box, open one more, take one away. */
+  onSelectBox?: (box: number) => void
+  onOpenBox?: () => void
+  onCloseBox?: (box: number) => void
+  /** Whether the bankroll and the table allow one more hand. */
+  canOpenBox?: boolean
   handDoubled: Set<number>
   isSurrendered: boolean
   humanSettlement: { result: HandOutcome; profit: number } | null
@@ -128,6 +140,13 @@ export function CasinoTable({
   humanVisibleCards,
   activeHandIndex,
   currentBet,
+  boxBets,
+  selectedBox = null,
+  insuranceBox = -1,
+  onSelectBox,
+  onOpenBox,
+  onCloseBox,
+  canOpenBox = false,
   handDoubled,
   isSurrendered,
   humanSettlement,
@@ -279,11 +298,14 @@ export function CasinoTable({
             // This box's hands, as indices into the player's hands.
             const own = isHuman ? info.flatMap((h, k) => (h.box === box ? [k] : [])) : []
             const activeHere = own.indexOf(activeHandIndex)
+            // Insurance is asked hand by hand: the hand in question is lit.
+            const insuring = isHuman && gameStep === 'insurance' && boxCount > 1 && insuranceBox >= 0
             const isActivePlayer = isHuman
-              ? gameStep === 'human_playing' && (boxCount === 1 || activeHere >= 0)
+              ? (gameStep === 'human_playing' && (boxCount === 1 || activeHere >= 0)) || (insuring && box === insuranceBox)
               : seat.bot!.id === activeBotId
             const isDimmed = (gameStep === 'bot_playing' && !isActivePlayer)
               || (isHuman && gameStep === 'human_playing' && boxCount > 1 && activeHere < 0)
+              || (insuring && box !== insuranceBox)
 
             // Arc offset: outer seats lift up so the row follows the crescent rim.
             const center = (slots - 1) / 2
@@ -299,7 +321,15 @@ export function CasinoTable({
                     humanHands={boxHands}
                     humanVisibleCards={humanVisibleCards >= 999 ? 999 : visibleForBox(humanVisibleCards, box, boxCount)}
                     activeHandIndex={boxHands.length > 1 ? activeHere : 0}
-                    currentBet={currentBet}
+                    currentBet={boxBets?.[box] ?? currentBet}
+                    pick={gameStep === 'betting' && onSelectBox ? {
+                      index: box,
+                      selected: selectedBox === box,
+                      numbered: boxCount > 1,
+                      onSelect: () => onSelectBox(box),
+                      onClose: boxCount > 1 && onCloseBox ? () => onCloseBox(box) : undefined,
+                      onOpen: box === boxCount - 1 && canOpenBox && onOpenBox ? onOpenBox : undefined,
+                    } : undefined}
                     bankroll={bankroll}
                     handDoubled={new Set(own.flatMap((k, local) => (handDoubled.has(k) ? [local] : [])))}
                     isSurrendered={surrenderedHands ? own.some(k => surrenderedHands.has(k)) : box === 0 && isSurrendered}

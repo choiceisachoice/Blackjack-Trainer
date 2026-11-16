@@ -612,7 +612,10 @@
       "resultSurrender": "Aufg.",
       "total": "Gesamt",
       "deal": "Geben — {{amount}}",
-      "hands": "Hände"
+      "hands": "Hände",
+      "allHands": "Alle Hände",
+      "addHand": "Hand hinzufügen",
+      "removeHand": "Hand {{n}} entfernen"
     },
     "act": {
       "hit": "Ziehen (H)",
@@ -642,7 +645,8 @@
       "cashOutWait": "Erst die Hand fertig spielen",
       "timeUp_one": "1 Minute gespielt — spiel diese Hand fertig",
       "timeUp_other": "{{count}} Minuten gespielt — spiel diese Hand fertig",
-      "speedFast": "Schnell"
+      "speedFast": "Schnell",
+      "insuranceAskHand": "Hand {{n}} versichern? (Dealer zeigt ein Ass)"
     },
     "summary": {
       "bankroll": "Bankroll",

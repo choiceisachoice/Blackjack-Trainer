@@ -612,7 +612,10 @@
       "resultSurrender": "Çekil.",
       "total": "Toplam",
       "deal": "Dağıt — {{amount}}",
-      "hands": "El"
+      "hands": "El",
+      "allHands": "Tüm eller",
+      "addHand": "El ekle",
+      "removeHand": "{{n}}. eli kaldır"
     },
     "act": {
       "hit": "Kart Al (H)",
@@ -642,7 +645,8 @@
       "cashOutWait": "Önce eli bitir",
       "timeUp_one": "1 dakika oynandı — bu eli bitir",
       "timeUp_other": "{{count}} dakika oynandı — bu eli bitir",
-      "speedFast": "Hızlı"
+      "speedFast": "Hızlı",
+      "insuranceAskHand": "{{n}}. el sigortalansın mı? (Krupiye as gösteriyor)"
     },
     "summary": {
       "bankroll": "Bankroll",

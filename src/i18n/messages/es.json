@@ -612,7 +612,10 @@
       "resultSurrender": "Rend.",
       "total": "Total",
       "deal": "Repartir — {{amount}}",
-      "hands": "Manos"
+      "hands": "Manos",
+      "allHands": "Todas las manos",
+      "addHand": "Añadir una mano",
+      "removeHand": "Quitar la mano {{n}}"
     },
     "act": {
       "hit": "Pedir (H)",
@@ -642,7 +645,8 @@
       "cashOutWait": "Termina primero la mano",
       "timeUp_one": "1 minuto jugado — termina esta mano",
       "timeUp_other": "{{count}} minutos jugados — termina esta mano",
-      "speedFast": "Rápido"
+      "speedFast": "Rápido",
+      "insuranceAskHand": "¿Asegurar la mano {{n}}? (El crupier muestra un as)"
     },
     "summary": {
       "bankroll": "Bankroll",

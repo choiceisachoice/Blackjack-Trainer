@@ -701,19 +701,21 @@ describe('CasinoSessionEngine', () => {
       }
     })
 
-    it('bot bets flat amount every hand', () => {
-      const engine = new CasinoSessionEngine(createTestConfig({
-        numBots: 1,
-        playerSeatIndex: 0,
-      }))
-      engine.dealNewRound()
-      const seats = engine.getSeats()
-      const bot = seats.find(s => s !== null)!
-      const firstBet = bot.currentBet
-
-      // Bet should be the flat amount
-      expect(firstBet).toBeGreaterThanOrEqual(25)
-      expect(firstBet).toBe(bot.flatBetAmount)
+    it('a bot opens with its own amount — a timid one with the table minimum', () => {
+      // Which kind of bot sits down is drawn at random, so every kind is
+      // checked. This test used to assert the flat amount for whichever bot
+      // came up, and failed one run in five: whenever it was the timid one.
+      const seen = new Set<string>()
+      for (let run = 0; run < 60; run++) {
+        const config = createTestConfig({ numBots: 1, playerSeatIndex: 0 })
+        const engine = new CasinoSessionEngine(config)
+        engine.dealNewRound()
+        const bot = engine.getSeats().find(s => s !== null)!
+        seen.add(bot.bettingPattern)
+        expect(bot.currentBet).toBeGreaterThanOrEqual(config.minBet)
+        expect(bot.currentBet).toBe(bot.bettingPattern === 'minimum' ? config.minBet : bot.flatBetAmount)
+      }
+      expect(seen).toEqual(new Set(['flat', 'minimum', 'press']))
     })
 
     it('bot bankroll refill when needed', () => {

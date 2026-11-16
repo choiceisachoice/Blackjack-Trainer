@@ -71,7 +71,20 @@ export interface VisibleState {
   botVisibleCards: Record<string, number>
   humanVisibleCards: number
 
+  /**
+   * The bet in focus: while betting, the selected hand's (the first hand's
+   * when all are selected); during play, the bet of the hand being played.
+   */
   currentBet: number
+  /** The bet on each of the player's hands, by box. Same length as `boxes`. */
+  boxBets: number[]
+  /**
+   * The hand the chips go on while betting, or null for all of them at once.
+   * A click on a hand at the table selects it; a second click lets go.
+   */
+  selectedBox: number | null
+  /** The hand insurance is being offered on, or -1 when it is not. */
+  insuranceBox: number
   /**
    * How the player's own hand ended, and what it paid.
    *
@@ -115,6 +128,10 @@ export interface GameActions {
   setBet: (bet: number) => void
   /** Take this many hands from the next round on (1–3, as far as the bankroll reaches). */
   setBoxes: (boxes: number) => void
+  /** Put the chips on this hand only; the same hand again, or null, is all hands. */
+  selectBox: (box: number | null) => void
+  /** Take this hand off the table for the next round (never the last one). */
+  closeBox: (box: number) => void
   setRcInput: (v: string) => void
   setTcInput: (v: string) => void
   setPaused: (v: boolean) => void
@@ -151,16 +168,19 @@ export function useGameLoop(
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   /** True once the session has been recorded, so it can never be recorded twice. */
   const endedRef = useRef(false)
-  /** The bet of the hand just played, offered again for the next one. */
-  const lastBetRef = useRef(0)
+  /** The bets of the round just played, by box, offered again for the next one. */
+  const lastBetsRef = useRef<number[]>([])
   /**
    * What is on the table and not yet decided: the bet, plus every double and
    * split since. Zero between hands. It is what a session that ends mid-hand
    * has to hand back — see `closeOpenHand`.
    */
   const openWagerRef = useRef(0)
-  /** The insurance side bet's result for the hand in play, for the hand's total. */
-  const insuranceNetRef = useRef(0)
+  /** Each box's insurance result this round, for the box's total. Empty when none was offered. */
+  const insuranceNetsRef = useRef<number[]>([])
+  /** The answers given so far while insurance is asked hand by hand. */
+  const insuranceTakenRef = useRef<boolean[]>([])
+  const insuranceBoxRef = useRef(-1)
   /** All pending gameplay timeouts, cleared together on unmount. */
   const pendingTimeouts = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
   /** Pause bookkeeping so the session clock excludes paused time. */
@@ -172,7 +192,8 @@ export function useGameLoop(
   const postHumanBotsRef = useRef<number[]>([])
 
   // Shadow refs for stale closure avoidance
-  const currentBetRef = useRef(0)
+  const boxBetsRef = useRef<number[]>([0])
+  const selectedBoxRef = useRef<number | null>(null)
   const humanHandsRef = useRef<Card[][]>([[]])
   const handDoubledRef = useRef<Set<number>>(new Set())
   const handInfoRef = useRef<HandInfo[]>([{ box: 0, split: false }])
@@ -232,7 +253,25 @@ export function useGameLoop(
   const [botVisibleCards, setBotVisibleCards] = useState<Record<string, number>>({})
   const [humanVisibleCards, setHumanVisibleCards] = useState(999)
 
-  const [currentBet, setCurrentBet] = useState(0)
+  const [boxBets, setBoxBetsState] = useState<number[]>([0])
+  const [selectedBox, setSelectedBoxState] = useState<number | null>(null)
+  const [insuranceBox, setInsuranceBoxState] = useState(-1)
+  /** The bets and the ref the game logic reads them from, always together. */
+  const applyBets = useCallback((bets: number[]) => {
+    boxBetsRef.current = bets
+    setBoxBetsState(bets)
+  }, [])
+  const applySelected = useCallback((box: number | null) => {
+    selectedBoxRef.current = box
+    setSelectedBoxState(box)
+  }, [])
+  const applyInsuranceBox = useCallback((box: number) => {
+    insuranceBoxRef.current = box
+    setInsuranceBoxState(box)
+  }, [])
+  /** The opening bet of the box a hand belongs to: what a double or a split costs. */
+  const betOfHand = useCallback((idx: number): number =>
+    boxBetsRef.current[handInfoRef.current[idx]?.box ?? 0] ?? 0, [])
   const [humanSettlement, setHumanSettlement] = useState<{ result: HandOutcome; profit: number } | null>(null)
 
   const [showInsurance, setShowInsurance] = useState(false)
@@ -357,10 +396,24 @@ export function useGameLoop(
     while (hands > 1 && Math.floor(funds / hands) < config.minBet) hands--
     if (hands !== boxesRef.current) { boxesRef.current = hands; setBoxesState(hands) }
     engineNow?.setHumanBoxes(hands)
-    const carried = Math.min(lastBetRef.current, config.maxBet, Math.floor(funds / hands))
-    const nextBet = carried >= config.minBet ? carried : 0
-    setCurrentBet(nextBet)
-    currentBetRef.current = nextBet
+    // Each hand keeps its own bet. If together they are more than is left,
+    // what is left is shared out evenly.
+    const last = lastBetsRef.current
+    let nextBets = Array.from({ length: hands }, (_, i) => {
+      const carried = Math.min(last[i] ?? last[0] ?? 0, config.maxBet)
+      return carried >= config.minBet ? carried : 0
+    })
+    if (nextBets.reduce((a, b) => a + b, 0) > funds) {
+      const each = Math.min(config.maxBet, Math.floor(funds / hands))
+      nextBets = nextBets.map(() => (each >= config.minBet ? each : 0))
+    }
+    applyBets(nextBets)
+    // Chips go on every hand unless the hands carry different bets — then on
+    // the hand that was selected, so the amount shown is that hand's.
+    const even = nextBets.every(b => b === nextBets[0])
+    applySelected(even ? null : Math.min(selectedBoxRef.current ?? 0, hands - 1))
+    applyInsuranceBox(-1)
+    insuranceTakenRef.current = []
     humanHandsRef.current = [[]]
     handDoubledRef.current = new Set()
     setRcInput('')
@@ -377,7 +430,7 @@ export function useGameLoop(
       }
       setBotStatuses(newStatuses)
     }
-  }, [animation, setActive, config.maxBet, config.minBet])
+  }, [animation, setActive, config.maxBet, config.minBet, applyBets, applySelected, applyInsuranceBox])
 
   const updateHandCards = useCallback((idx: number, newCards: Card[]) => {
     setHumanHands(prev => {
@@ -519,7 +572,7 @@ export function useGameLoop(
     const dealerHasBJ = isBlackjack(finalDealerCards)
     recorder?.recordSettlement(
       'human', handResult, profit, playerValue, playerHasBJ,
-      dealerValue, dealerHasBJ, currentBetRef.current,
+      dealerValue, dealerHasBJ, boxBetsRef.current.reduce((a, b) => a + b, 0),
       engine.getCurrentHandNumber(),
     )
 
@@ -572,7 +625,6 @@ export function useGameLoop(
     if (!engine) return
 
     const hands = humanHandsRef.current
-    const bet = currentBetRef.current
     const doubled = handDoubledRef.current
     const surrendered = surrenderedRef.current
     const info = handInfoRef.current
@@ -588,7 +640,7 @@ export function useGameLoop(
     for (let i = 0; i < hands.length; i++) {
       const hCards = hands[i]
       const isD = doubled.has(i)
-      const handBet = isD ? bet * 2 : bet
+      const handBet = betOfHand(i) * (isD ? 2 : 1)
       // A hand out of a split cannot be a blackjack; a second or third box can.
       const fromSplit = info[i]?.split ?? false
       const { result: handResult, profit } = engine.settleHand(
@@ -623,10 +675,7 @@ export function useGameLoop(
       else lastResult = 'push'
     }
 
-    const totalBet = hands.reduce((sum, _, i) => {
-      const isD = doubled.has(i)
-      return sum + (isD ? bet * 2 : bet)
-    }, 0)
+    const totalBet = hands.reduce((sum, _, i) => sum + betOfHand(i) * (doubled.has(i) ? 2 : 1), 0)
     engine.updateHumanBankroll(totalBet + totalProfit)
     // Decided: nothing of this hand is open any more.
     openWagerRef.current = 0
@@ -646,16 +695,18 @@ export function useGameLoop(
     // The hand's figure includes its insurance. The side bet is settled the
     // moment the dealer checks, and was then left out of the total: insure,
     // win the hand, and the label read "Win +$25" over a bankroll up $12.50.
-    // What each box shows. The insurance side bet covers the whole round and
-    // is booked on the first box, so one hand with insurance reads as before.
+    // What each box shows. Insurance is decided hand by hand, so each box
+    // carries its own side bet.
+    const insuranceNets = insuranceNetsRef.current
     setBoxSettlements(perBox.map((b, k) => {
-      const profit = b.profit + (k === 0 ? insuranceNetRef.current : 0)
+      const profit = b.profit + (insuranceNets[k] ?? 0)
       const result = b.hands === 1 ? asOutcome(b.result) : profit > 0 ? 'win' : profit < 0 ? 'loss' : 'push'
       return { result, profit }
     }))
 
-    settleRoundCore(lastResult, totalProfit + insuranceNetRef.current, hands[0] ?? [], finalDealerCards, bResults)
-  }, [recorder, settleRoundCore])
+    const insuranceTotal = insuranceNets.reduce((a, b) => a + b, 0)
+    settleRoundCore(lastResult, totalProfit + insuranceTotal, hands[0] ?? [], finalDealerCards, bResults)
+  }, [recorder, settleRoundCore, betOfHand])
 
   // ─── Animation Step Builders ───────────────────────
 
@@ -1065,16 +1116,27 @@ export function useGameLoop(
     // the player's answer (Enter must not deal past it).
     if (sessionLimitReached(config, engine.getCurrentHandNumber(), elapsedSeconds, keptPlaying)) return
 
-    // Every hand the player takes carries the same bet, so the bankroll has to
-    // cover it that many times; with too little, fewer hands are dealt.
+    // Every hand the player takes needs at least the minimum; with too little
+    // money for that, fewer hands are dealt.
+    const funds = engine.getHumanBankroll()
     let handCount = boxesRef.current
-    while (handCount > 1 && Math.floor(engine.getHumanBankroll() / handCount) < config.minBet) handCount--
+    while (handCount > 1 && Math.floor(funds / handCount) < config.minBet) handCount--
     if (handCount !== boxesRef.current) { boxesRef.current = handCount; setBoxesState(handCount) }
 
-    const bet = currentBet || config.minBet
-    const clampedBet = Math.min(bet, config.maxBet, Math.floor(engine.getHumanBankroll() / handCount))
-    if (clampedBet < config.minBet) return
-    lastBetRef.current = clampedBet
+    // Each hand's own bet; a hand left empty plays the minimum. If together
+    // they are more than the bankroll, it is shared out evenly instead.
+    let bets = Array.from({ length: handCount }, (_, i) =>
+      Math.min(boxBetsRef.current[i] || config.minBet, config.maxBet))
+    if (bets.reduce((a, b) => a + b, 0) > funds) {
+      const each = Math.min(config.maxBet, Math.floor(funds / handCount))
+      bets = bets.map(() => each)
+    }
+    if (bets.some(b => b < config.minBet)) return
+    lastBetsRef.current = bets
+    const totalBet = bets.reduce((a, b) => a + b, 0)
+    // What the round is graded on: the bet per hand (the same number as before
+    // when every hand carries the same).
+    const clampedBet = Math.round(totalBet / handCount)
 
     // The count this bet will be played at — a fresh shoe's, if the cut card is out.
     const { trueCount: tc, runningCount: rc } = engine.getCountForNextRound()
@@ -1082,7 +1144,7 @@ export function useGameLoop(
     // chose *is* the correct bet — flat betting is the whole strategy.
     const basic = engine.isBasicPlay()
     const correctBet = basic ? clampedBet : engine.getCorrectBet(tc)
-    const betCorrect = basic ? true : engine.isBetCorrect(clampedBet, correctBet)
+    const betCorrect = basic ? true : bets.every(b => engine.isBetCorrect(b, correctBet))
 
     soundEngine.chipPlace()
 
@@ -1100,11 +1162,12 @@ export function useGameLoop(
 
     recorder?.recordBetPlaced('human', clampedBet, correctBet, tc, hn)
 
-    engine.deductHumanBet(clampedBet * handCount)
-    openWagerRef.current = clampedBet * handCount
-    insuranceNetRef.current = 0
-    setCurrentBet(clampedBet)
-    currentBetRef.current = clampedBet
+    engine.deductHumanBet(totalBet)
+    openWagerRef.current = totalBet
+    insuranceNetsRef.current = []
+    insuranceTakenRef.current = []
+    applyInsuranceBox(-1)
+    applyBets(bets)
 
     const dealResult = engine.dealNewRound(handCount)
     dealResultRef.current = dealResult
@@ -1263,6 +1326,9 @@ export function useGameLoop(
 
       // ─── Insurance (Ace up card) ───────────────────────────
       if (dealResult.dealerUpCard.rank === 'A') {
+        // Asked hand by hand, first hand first.
+        insuranceTakenRef.current = []
+        applyInsuranceBox(0)
         setShowInsurance(true)
         setGameStep('insurance')
         return
@@ -1297,7 +1363,7 @@ export function useGameLoop(
         beginHumanTurn()
       }
     })
-  }, [currentBet, config, seatLayout, elapsedSeconds, keptPlaying, animation, computeBotsAndBuildSteps, buildDealerSteps, settleDealerRound, recorder, setActive, beginHumanTurn])
+  }, [config, seatLayout, elapsedSeconds, keptPlaying, animation, computeBotsAndBuildSteps, buildDealerSteps, settleDealerRound, recorder, setActive, beginHumanTurn, applyBets, applyInsuranceBox])
 
   // ─── Insurance ─────────────────────────────────────
 
@@ -1306,27 +1372,46 @@ export function useGameLoop(
     const dr = dealResultRef.current
     if (!engine || !dr) return
 
+    // Not being asked (a key pressed after the last answer): nothing to do.
+    const asked = insuranceBoxRef.current
+    if (asked < 0) return
+
     const tc = engine.getTrueCount()
     const correctInsurance = engine.getCorrectInsurance(tc)
+    recorder?.recordInsurance(take, tc, take === correctInsurance, engine.getCurrentHandNumber())
+
+    // Insurance is a side bet on one hand, so it is asked hand by hand: each
+    // box insures half of its own bet, or does not.
+    const taken = [...insuranceTakenRef.current]
+    taken[asked] = take
+    insuranceTakenRef.current = taken
+    const boxCount = humanHandsRef.current.length
+    if (asked + 1 < boxCount) {
+      applyInsuranceBox(asked + 1)
+      return
+    }
+    applyInsuranceBox(-1)
 
     handRecordRef.current.insuranceOffered = true
-    handRecordRef.current.playerTookInsurance = take
-    handRecordRef.current.correctInsuranceDecision = take === correctInsurance
+    handRecordRef.current.playerTookInsurance = taken.some(Boolean)
+    handRecordRef.current.correctInsuranceDecision = taken.every(x => x === correctInsurance)
     handRecordRef.current.trueCountAtInsurance = tc
-
-    recorder?.recordInsurance(take, tc, take === correctInsurance, engine.getCurrentHandNumber())
 
     setShowInsurance(false)
 
     const dealerHasBJ = isBlackjack([dr.dealerUpCard, dr.dealerHoleCard])
 
-    // Settle the insurance side bet in every case: it pays 2:1 on a dealer
+    // Settle the insurance side bets in every case: each pays 2:1 on a dealer
     // blackjack, otherwise the half-bet stake is lost. (Previously a losing
     // insurance bet was never deducted — insurance was effectively free.)
-    // One decision for the round: the side bet is half of everything bet.
-    const insuranceNet = engine.settleInsurance(currentBetRef.current * humanHandsRef.current.length, take, dealerHasBJ)
-    insuranceNetRef.current = insuranceNet
-    engine.updateHumanBankroll(insuranceNet)
+    // Booked one after the other, so a stake never exceeds what is left.
+    const nets: number[] = []
+    for (let b = 0; b < boxCount; b++) {
+      const net = engine.settleInsurance(boxBetsRef.current[b] ?? 0, taken[b] ?? false, dealerHasBJ)
+      nets.push(net)
+      engine.updateHumanBankroll(net)
+    }
+    insuranceNetsRef.current = nets
 
     if (dealerHasBJ) {
       setDealerHoleRevealed(true)
@@ -1367,12 +1452,7 @@ export function useGameLoop(
         beginHumanTurn()
       }
     }
-    // `currentBet` is a deliberate trigger: the body reads `currentBetRef.current`,
-    // which the linter cannot follow. Dropping it would change when this callback
-    // is recreated, and with it when anything holding it re-runs — not a trade
-    // worth making inside the game loop for a lint line.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- trigger for a ref read
-  }, [currentBet, seatLayout, config.playerSeatIndex, animation, computeBotsAndBuildSteps, buildDealerSteps, recorder, settleDealerRound, beginHumanTurn])
+  }, [applyInsuranceBox, seatLayout, config.playerSeatIndex, animation, computeBotsAndBuildSteps, buildDealerSteps, recorder, settleDealerRound, beginHumanTurn])
 
   // ─── Human Play ────────────────────────────────────
 
@@ -1411,7 +1491,7 @@ export function useGameLoop(
         updateHandCards(idx, [...hand, nc])
         // A second ace and room for another hand: the player decides.
         if (canReSplitAces([hand[0], nc], handsInBoxOf(idx), config.maxSplitHands) &&
-            engine.getHumanBankroll() >= currentBetRef.current) {
+            engine.getHumanBankroll() >= betOfHand(idx)) {
           return
         }
         advancedFromRef.current.add(idx)
@@ -1419,7 +1499,7 @@ export function useGameLoop(
       }, scaledDelay(500))
     }
     step(from)
-  }, [runPostHumanFlow, schedule, setActive, updateHandCards, config.maxSplitHands])
+  }, [runPostHumanFlow, schedule, setActive, updateHandCards, config.maxSplitHands, betOfHand])
 
   const handleAction = useCallback((action: Action) => {
     const engine = engineRef.current
@@ -1429,6 +1509,8 @@ export function useGameLoop(
     const cards = humanHands[activeHandIndex] ?? []
     if (cards.length < 2) return
     const idx = activeHandIndex
+    // A double or a split costs this hand's own bet, not another hand's.
+    const currentBet = betOfHand(idx)
     // What this hand may do depends on the hand, not on how many the player
     // holds: a second box is an ordinary hand, a hand out of a split is not.
     const fromSplit = handInfoRef.current[idx]?.split ?? false
@@ -1595,7 +1677,7 @@ export function useGameLoop(
         if (isAces) {
           // Check if re-split is possible on this hand
           if (canReSplitAces([card1, newCard1], handsInBoxOf(hi), config.maxSplitHands) &&
-              engine.getHumanBankroll() >= currentBetRef.current) {
+              engine.getHumanBankroll() >= betOfHand(hi)) {
             // Player can re-split — hand shows [A, A], split button enabled
             return
           }
@@ -1608,7 +1690,7 @@ export function useGameLoop(
 
       return
     }
-  }, [humanHands, activeHandIndex, gameStep, currentBet, config, handDoubled, updateHandCards, advanceToNextHand, advanceAceHands, recorder, schedule, setActive])
+  }, [humanHands, activeHandIndex, gameStep, betOfHand, config, handDoubled, updateHandCards, advanceToNextHand, advanceAceHands, recorder, schedule, setActive])
 
   // ─── Count Check ───────────────────────────────────
 
@@ -1727,6 +1809,31 @@ export function useGameLoop(
     proceedAfterHand()
   }, [gameStep, config, proceedAfterHand])
 
+  /**
+   * Take this many hands. A hand that is opened starts with the bet of the
+   * selected hand (or the last one); `bets` replaces them outright, for a hand
+   * taken out of the middle.
+   */
+  const setBoxes = (wanted: number, bets?: number[]) => {
+    const engine = engineRef.current
+    const funds = engine ? engine.getHumanBankroll() : 0
+    let hands = Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(wanted) || 1))
+    while (hands > 1 && Math.floor(funds / hands) < config.minBet) hands--
+    boxesRef.current = hands
+    setBoxesState(hands)
+    engine?.setHumanBoxes(hands)
+    const current = bets ?? boxBetsRef.current
+    const seed = current[selectedBoxRef.current ?? current.length - 1] ?? 0
+    let next = Array.from({ length: hands }, (_, i) => current[i] ?? seed)
+    // More hands may leave less for each: then what there is, shared evenly.
+    if (next.reduce((a, b) => a + b, 0) > funds) {
+      const each = Math.min(config.maxBet, Math.floor(funds / hands))
+      next = next.map(() => (each >= config.minBet ? each : 0))
+    }
+    applyBets(next)
+    if (bets || (selectedBoxRef.current ?? 0) >= hands) applySelected(null)
+  }
+
   // ─── Build Visible State ───────────────────────────
 
   const state: VisibleState = {
@@ -1747,7 +1854,10 @@ export function useGameLoop(
     activeBotId,
     botVisibleCards,
     humanVisibleCards,
-    currentBet,
+    currentBet: boxBets[gameStep === 'betting' ? (selectedBox ?? 0) : (handInfo[activeHandIndex]?.box ?? 0)] ?? 0,
+    boxBets,
+    selectedBox,
+    insuranceBox,
     humanSettlement,
     showInsurance,
     isSurrendered: surrenderedHands.size > 0,
@@ -1768,22 +1878,20 @@ export function useGameLoop(
     handleInsurance,
     submitCount,
     nextHand,
-    setBet: (bet: number) => { setCurrentBet(bet); currentBetRef.current = bet },
-    setBoxes: (wanted: number) => {
-      const engine = engineRef.current
-      const funds = engine ? engine.getHumanBankroll() : 0
-      let hands = Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(wanted) || 1))
-      while (hands > 1 && Math.floor(funds / hands) < config.minBet) hands--
-      boxesRef.current = hands
-      setBoxesState(hands)
-      engine?.setHumanBoxes(hands)
-      // The bet is per hand: more hands may leave less for each.
-      const perHand = Math.floor(funds / hands)
-      if (currentBetRef.current > perHand) {
-        const fitted = perHand >= config.minBet ? perHand : 0
-        setCurrentBet(fitted)
-        currentBetRef.current = fitted
-      }
+    setBet: (bet: number) => {
+      // On the selected hand, or on every hand when none is singled out.
+      const sel = selectedBoxRef.current
+      applyBets(boxBetsRef.current.map((b, i) => (sel === null || sel === i ? bet : b)))
+    },
+    setBoxes,
+    selectBox: (box: number | null) => {
+      if (box === null || box < 0 || box >= boxesRef.current || box === selectedBoxRef.current) applySelected(null)
+      else applySelected(box)
+    },
+    closeBox: (box: number) => {
+      if (boxesRef.current <= 1 || box < 0 || box >= boxesRef.current) return
+      const kept = boxBetsRef.current.filter((_, i) => i !== box)
+      setBoxes(kept.length, kept)
     },
     setRcInput,
     setTcInput,

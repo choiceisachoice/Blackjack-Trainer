@@ -612,7 +612,10 @@
       "resultSurrender": "Surr",
       "total": "Total",
       "deal": "Deal — {{amount}}",
-      "hands": "Hands"
+      "hands": "Hands",
+      "allHands": "All hands",
+      "addHand": "Add a hand",
+      "removeHand": "Remove hand {{n}}"
     },
     "act": {
       "hit": "Hit (H)",
@@ -642,7 +645,8 @@
       "cashOutWait": "Finish the hand first",
       "timeUp_one": "1 minute played — finish this hand",
       "timeUp_other": "{{count}} minutes played — finish this hand",
-      "speedFast": "Fast"
+      "speedFast": "Fast",
+      "insuranceAskHand": "Insure hand {{n}}? (Dealer shows Ace)"
     },
     "summary": {
       "bankroll": "Bankroll",

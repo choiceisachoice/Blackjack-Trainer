@@ -188,6 +188,26 @@ interface HumanSeatProps {
   isDealPhase: boolean
   /** Width of this seat's slot on the table, in table units. */
   slotWidth?: number
+  /**
+   * While betting: this hand can be picked (the chips then go on it alone),
+   * taken off the table, and — on the player's last hand — joined by another.
+   */
+  pick?: SeatPick
+}
+
+/** What a hand on the felt offers while bets are placed. */
+export interface SeatPick {
+  /** Which of the player's hands this is, from 0. */
+  index: number
+  /** Chips go on this hand only. */
+  selected: boolean
+  /** Show "Hand n" — the player holds more than one. */
+  numbered: boolean
+  onSelect: () => void
+  /** Present when the hand may be removed. */
+  onClose?: () => void
+  /** Present on the last hand when one more may be opened. */
+  onOpen?: () => void
 }
 
 export function HumanSeat({
@@ -203,6 +223,7 @@ export function HumanSeat({
   isActivePlayer,
   isDimmed,
   slotWidth = 200,
+  pick,
 }: HumanSeatProps) {
   const { t } = useTranslation()
   const reduced = useReducedMotion()
@@ -265,6 +286,11 @@ export function HumanSeat({
           at settlement, between the cards and the name: every seat's cards and
           chip jumped up by its height in the same frame, the whole row at once. */}
       <div className="h-7 flex items-center justify-center">
+      {pick?.numbered && (
+        <span className={`text-[0.75rem] font-semibold uppercase tracking-wide ${pick.selected ? 'text-gold-bright' : 'text-white/55'}`}>
+          {t('casino.table.handNo', { n: pick.index + 1 })}
+        </span>
+      )}
       {humanSettlement && gameStep === 'settlement' && (
         <motion.div
           initial={reduced ? false : { scale: 0.8 }}
@@ -286,6 +312,47 @@ export function HumanSeat({
       {isSurrendered && <span className="text-[0.65rem] text-warning font-semibold">{t('casino.table.surrendered')}</span>}
 
       <NamePlate name={t('casino.table.you')} bankroll={bankroll} you />
+
+      {/*
+        While betting, the hand is something to click, as at an online table:
+        a click puts the chips on this hand alone, a second click lets go.
+        The whole seat is the target — the chip alone would be a 46px circle
+        in a scene that is scaled down on a small screen.
+      */}
+      {pick && (
+        <>
+          <button
+            type="button"
+            onClick={pick.onSelect}
+            aria-pressed={pick.selected}
+            aria-label={t('casino.table.handNo', { n: pick.index + 1 })}
+            data-testid={`box-${pick.index + 1}`}
+            className={`absolute -inset-x-1 -top-2 -bottom-1 rounded-xl cursor-pointer transition-[box-shadow,background-color] duration-150
+              ${pick.selected ? 'ring-2 ring-gold bg-gold/[0.07]'
+                : pick.numbered ? 'ring-1 ring-white/15 hover:ring-white/45' : 'hover:ring-1 hover:ring-white/35'}`}
+          />
+          {pick.onClose && (
+            <button
+              type="button"
+              onClick={pick.onClose}
+              aria-label={t('casino.table.removeHand', { n: pick.index + 1 })}
+              data-testid={`box-close-${pick.index + 1}`}
+              className="absolute -top-4 right-2 z-10 w-7 h-7 rounded-full bg-black/70 border border-white/30 text-white/85
+                text-base leading-none font-bold cursor-pointer hover:bg-[#c8102e] hover:border-transparent transition-colors"
+            >×</button>
+          )}
+          {pick.onOpen && (
+            <button
+              type="button"
+              onClick={pick.onOpen}
+              aria-label={t('casino.table.addHand')}
+              data-testid="box-open"
+              className="absolute top-12 -right-6 z-10 w-10 h-10 rounded-full border-2 border-dashed border-gold/70 bg-black/30 text-gold-bright
+                text-2xl leading-none font-bold cursor-pointer hover:bg-gold hover:text-on-gold hover:border-solid transition-colors"
+            >+</button>
+          )}
+        </>
+      )}
 
       {/* Active glow */}
       {isActivePlayer && (

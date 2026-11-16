@@ -612,7 +612,10 @@
       "resultSurrender": "Res.",
       "total": "Totale",
       "deal": "Distribuisci — {{amount}}",
-      "hands": "Mani"
+      "hands": "Mani",
+      "allHands": "Tutte le mani",
+      "addHand": "Aggiungi una mano",
+      "removeHand": "Togli la mano {{n}}"
     },
     "act": {
       "hit": "Carta (H)",
@@ -642,7 +645,8 @@
       "cashOutWait": "Prima finisci la mano",
       "timeUp_one": "1 minuto giocato — finisci questa mano",
       "timeUp_other": "{{count}} minuti giocati — finisci questa mano",
-      "speedFast": "Veloce"
+      "speedFast": "Veloce",
+      "insuranceAskHand": "Assicurare la mano {{n}}? (Il banco mostra un asso)"
     },
     "summary": {
       "bankroll": "Bankroll",

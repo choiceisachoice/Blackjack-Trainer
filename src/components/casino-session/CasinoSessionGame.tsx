@@ -250,6 +250,10 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   const splitAce = activeInfo.split && humanCards[0]?.rank === 'A'
   const aceReSplitOffer = splitAce && humanCards.length === 2 && humanCards[1].rank === 'A'
   const isDealPhase = state.gameStep === 'dealing'
+  // How many hands the bankroll and the table allow, and whether they carry
+  // different bets (then Deal names each of them).
+  const maxHands = Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(bankroll / config.minBet)))
+  const betsDiffer = state.boxBets.some(b => b !== state.boxBets[0])
 
   // The ground under the table follows the theme. It used to be a hard
   // `#0c0c0c` while every label inside uses `text-content`, which does flip —
@@ -504,6 +508,13 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         humanVisibleCards={state.humanVisibleCards}
         activeHandIndex={state.activeHandIndex}
         currentBet={state.currentBet}
+        boxBets={state.boxBets}
+        selectedBox={state.selectedBox}
+        insuranceBox={state.insuranceBox}
+        onSelectBox={actions.selectBox}
+        onOpenBox={() => actions.setBoxes(state.boxes + 1)}
+        onCloseBox={actions.closeBox}
+        canOpenBox={state.boxes < maxHands}
         handDoubled={state.handDoubled}
         isSurrendered={state.isSurrendered}
         humanSettlement={state.humanSettlement}
@@ -544,10 +555,17 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             currentBet={state.currentBet}
             minBet={config.minBet}
             maxBet={config.maxBet}
-            // The bet is per hand, so what each may carry is the bankroll shared out.
-            bankroll={Math.floor(bankroll / state.boxes)}
+            // What this bet may be: with all hands selected, the bankroll shared
+            // out; on one hand, what the other hands leave of it.
+            bankroll={state.selectedBox === null
+              ? Math.floor(bankroll / state.boxes)
+              : bankroll - state.boxBets.reduce((sum, b, i) => sum + (i === state.selectedBox ? 0 : b), 0)}
             hands={state.boxes}
-            maxHands={Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(bankroll / config.minBet)))}
+            maxHands={maxHands}
+            focusLabel={state.boxes > 1
+              ? (state.selectedBox === null ? t('casino.table.allHands') : t('casino.table.handNo', { n: state.selectedBox + 1 }))
+              : undefined}
+            dealAmount={betsDiffer ? state.boxBets.map(b => formatDollar(b || config.minBet)).join(' + ') : undefined}
             onHandsChange={actions.setBoxes}
             onBetChange={actions.setBet}
             onConfirm={actions.confirmBet}
@@ -559,7 +577,11 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         {/* Insurance */}
         {state.gameStep === 'insurance' && (
           <div className="flex flex-col items-center gap-3" data-testid="insurance-controls">
-            <span className="text-sm text-content">{t('casino.hud.insuranceAsk')}</span>
+            <span className="text-sm text-content" data-testid="insurance-ask">
+              {state.humanHands.length > 1 && state.insuranceBox >= 0
+                ? t('casino.hud.insuranceAskHand', { n: state.insuranceBox + 1 })
+                : t('casino.hud.insuranceAsk')}
+            </span>
             <div className="flex gap-3">
               <button onClick={() => actions.handleInsurance(true)} data-testid="insurance-yes"
                 className="px-6 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer">

@@ -16,6 +16,13 @@ interface BettingControlsProps {
   /** The most hands the bankroll allows; the selector is hidden at 1. */
   maxHands?: number
   onHandsChange?: (hands: number) => void
+  /**
+   * Which hand the amount belongs to ("Hand 2", "All hands"), said in place
+   * of the prompt when the player holds more than one.
+   */
+  focusLabel?: string
+  /** What Deal will put out, when the hands carry different bets ("$25 + $50"). */
+  dealAmount?: string
   /** Seconds until the table deals on its own; omitted when no clock runs. */
   secondsLeft?: number
   /** The length of the betting window, for the bar. */
@@ -31,7 +38,7 @@ interface BettingControlsProps {
  * the field is left; a draft that is already a legal bet is passed on at once,
  * so Deal and the Enter shortcut both see it.
  */
-export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetChange, onConfirm, secondsLeft, secondsTotal = 30, hands = 1, maxHands = 1, onHandsChange }: BettingControlsProps) {
+export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetChange, onConfirm, secondsLeft, secondsTotal = 30, hands = 1, maxHands = 1, onHandsChange, focusLabel, dealAmount }: BettingControlsProps) {
   const { t } = useTranslation()
   const [draft, setDraft] = useState<string | null>(null)
   const cap = Math.min(maxBet, bankroll)
@@ -48,7 +55,11 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
     // tallest of them — it has to fit, or the table resizes on every click.
     <div className="flex flex-col items-center gap-2" data-testid="betting-controls">
       <div className="flex items-center gap-3 flex-wrap justify-center">
-        <span className="text-sm text-content/60">{t('casino.table.placeYourBet')}</span>
+        {/* With several hands the line says whose bet this is — in the prompt's
+            place, so the row is no wider and never wraps into a fourth. */}
+        {focusLabel
+          ? <span className="text-sm font-semibold text-gold" data-testid="bet-focus">{focusLabel}</span>
+          : <span className="text-sm text-content/60">{t('casino.table.placeYourBet')}</span>}
         {/* Several hands, as at an online table: each is a box of its own
             with this bet on it. In the prompt's row, so it adds no height. */}
         {onHandsChange && maxHands > 1 && (
@@ -175,7 +186,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
           shadow-[0_1px_2px_rgba(0,0,0,0.35)] hover:shadow-[0_3px_12px_-3px_var(--color-gold)]
           active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100
           disabled:hover:shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
-        {t('casino.table.deal', { amount: formatDollar(currentBet > 0 ? currentBet : minBet) + (hands > 1 ? ` × ${hands}` : '') })}
+        {t('casino.table.deal', { amount: dealAmount ?? formatDollar(currentBet > 0 ? currentBet : minBet) + (hands > 1 ? ` × ${hands}` : '') })}
       </button>
       </div>
     </div>
