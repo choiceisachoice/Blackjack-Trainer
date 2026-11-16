@@ -7,7 +7,7 @@ import { DealerView } from './DealerView'
 import { HumanSeat, BotSeat } from './SeatView'
 import { TableLegend } from './TableLegend'
 import { ShoeHousing, DiscardTray } from '../table/ShoeProgress'
-import { fitTable, tableMinWidth, TABLE_DESIGN, TABLE_MAX_SCALE, type TableFit, type BotStatus, type GameStep } from './helpers'
+import { fitTable, tableMinWidth, visibleForBox, TABLE_DESIGN, TABLE_MAX_SCALE, type TableFit, type BotStatus, type GameStep, type HandInfo } from './helpers'
 
 /** Space kept between the felt's rim and the edge of its box, on every side. */
 const TABLE_GUTTER = 8
@@ -77,6 +77,14 @@ interface CasinoTableProps {
   isDealPhase: boolean
   seatLayout: SeatLayoutEntry[]
   humanHands: Card[][]
+  /** Box and split flag for each of `humanHands`; one unsplit box when omitted. */
+  humanHandInfo?: HandInfo[]
+  /** How many hands the player takes — what the table shows while betting. */
+  boxes?: number
+  /** Surrendered hands, by index into `humanHands`. */
+  surrenderedHands?: Set<number>
+  /** One settlement per box, once the round is settled. */
+  humanBoxSettlements?: { result: HandOutcome; profit: number }[]
   humanVisibleCards: number
   activeHandIndex: number
   currentBet: number
@@ -113,6 +121,10 @@ export function CasinoTable({
   isDealPhase,
   seatLayout,
   humanHands,
+  humanHandInfo,
+  boxes = 1,
+  surrenderedHands,
+  humanBoxSettlements,
   humanVisibleCards,
   activeHandIndex,
   currentBet,
@@ -142,7 +154,13 @@ export function CasinoTable({
     gameStep === 'dealer_playing' ? t('casino.table.dealerPlaying') :
     gameStep === 'insurance' ? t('casino.table.insuranceShort') : null
 
-  const { ref: fitRef, fit } = useTableFit(seatLayout.length)
+  // The player may hold several boxes; each takes a seat's room on the felt.
+  const info: HandInfo[] = humanHandInfo ?? humanHands.map(() => ({ box: 0, split: humanHands.length > 1 }))
+  const boxCount = gameStep === 'betting'
+    ? Math.max(1, boxes)
+    : Math.max(1, ...info.map(h => h.box + 1))
+  const slots = seatLayout.length - 1 + boxCount
+  const { ref: fitRef, fit } = useTableFit(slots)
 
   // Nothing here scrolls, and nothing needs to: `fitTable` never returns a
   // scene larger than the box. The wrapper used to keep `overflow-y-auto` for
@@ -254,31 +272,38 @@ export function CasinoTable({
             session: seats used to size themselves to their cards, so a hit or
             a split in one seat moved every other seat along the row. */}
         <div className="shrink-0 flex items-end justify-center">
-          {seatLayout.map((seat, i) => {
+          {seatLayout.flatMap(seat => seat.type === 'human'
+            ? Array.from({ length: boxCount }, (_, box) => ({ seat, box }))
+            : [{ seat, box: 0 }]).map(({ seat, box }, i) => {
             const isHuman = seat.type === 'human'
+            // This box's hands, as indices into the player's hands.
+            const own = isHuman ? info.flatMap((h, k) => (h.box === box ? [k] : [])) : []
+            const activeHere = own.indexOf(activeHandIndex)
             const isActivePlayer = isHuman
-              ? gameStep === 'human_playing'
+              ? gameStep === 'human_playing' && (boxCount === 1 || activeHere >= 0)
               : seat.bot!.id === activeBotId
-            const isDimmed = gameStep === 'bot_playing' && !isActivePlayer
+            const isDimmed = (gameStep === 'bot_playing' && !isActivePlayer)
+              || (isHuman && gameStep === 'human_playing' && boxCount > 1 && activeHere < 0)
 
             // Arc offset: outer seats lift up so the row follows the crescent rim.
-            const center = (seatLayout.length - 1) / 2
+            const center = (slots - 1) / 2
             const lift = Math.round(Math.abs(i - center) * 16)
             // 60 = the felt's border and padding on both sides.
-            const slotWidth = Math.min(260, Math.floor((fit.sceneWidth - 60) / seatLayout.length))
+            const slotWidth = Math.min(260, Math.floor((fit.sceneWidth - 60) / slots))
+            const boxHands = own.length > 0 ? own.map(k => humanHands[k] ?? []) : [[]]
 
             return (
-              <div key={isHuman ? 'human-seat-wrap' : seat.bot!.id} style={{ transform: `translateY(${-lift}px)` }}>
+              <div key={isHuman ? `human-seat-wrap-${box}` : seat.bot!.id} style={{ transform: `translateY(${-lift}px)` }}>
                 {isHuman ? (
                   <HumanSeat
-                    humanHands={humanHands}
-                    humanVisibleCards={humanVisibleCards}
-                    activeHandIndex={activeHandIndex}
+                    humanHands={boxHands}
+                    humanVisibleCards={humanVisibleCards >= 999 ? 999 : visibleForBox(humanVisibleCards, box, boxCount)}
+                    activeHandIndex={boxHands.length > 1 ? activeHere : 0}
                     currentBet={currentBet}
                     bankroll={bankroll}
-                    handDoubled={handDoubled}
-                    isSurrendered={isSurrendered}
-                    humanSettlement={humanSettlement}
+                    handDoubled={new Set(own.flatMap((k, local) => (handDoubled.has(k) ? [local] : [])))}
+                    isSurrendered={surrenderedHands ? own.some(k => surrenderedHands.has(k)) : box === 0 && isSurrendered}
+                    humanSettlement={humanBoxSettlements?.[box] ?? (box === 0 ? humanSettlement : null)}
                     gameStep={gameStep}
                     isActivePlayer={isActivePlayer}
                     isDimmed={isDimmed}

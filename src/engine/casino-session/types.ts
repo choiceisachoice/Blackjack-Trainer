@@ -171,6 +171,9 @@ export interface PlayDecision {
 
 // ─── Human Player Hand Record ──────────────────────────
 
+/** The most hands one player may take at the table. */
+export const MAX_PLAYER_HANDS = 3
+
 /** Complete record of a single hand played by the human player. */
 export interface PlayerHandRecord {
   /** Sequential hand number within the session. */
@@ -380,8 +383,10 @@ export interface CasinoSessionResult {
 
 /** Result of dealing a new round to all players. */
 export interface DealResult {
-  /** The human player's two cards. */
+  /** The human player's two cards — the first hand, when they play several. */
   humanCards: Card[]
+  /** Every hand the human was dealt this round, in deal order; one entry per hand. */
+  humanBoxCards: Card[][]
   /** The dealer's face-up card. */
   dealerUpCard: Card
   /** The dealer's face-down (hole) card. */

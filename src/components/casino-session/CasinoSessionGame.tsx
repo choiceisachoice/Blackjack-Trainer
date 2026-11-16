@@ -8,6 +8,7 @@ import type { CasinoSessionConfig, CasinoSessionResult } from '../../engine/casi
 import type { SessionRecorder } from '../../services/session-recorder'
 import { useAppStore, DEALING_SPEED_LABEL, DEALING_SPEEDS } from '../../store/app-store'
 import { useGameLoop } from './useGameLoop'
+import { MAX_PLAYER_HANDS } from '../../engine/casino-session/types'
 import { CasinoTable } from './CasinoTable'
 import { ActionButtons } from './ActionButtons'
 import { BettingControls } from './BettingControls'
@@ -150,12 +151,12 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     if (cards.length < 2) return
     if (isBust(cards)) return
     if (state.handDoubled.has(state.activeHandIndex)) return
-    if (state.humanHands.length > 1 && cards[0].rank === 'A') return
+    if ((state.humanHandInfo[state.activeHandIndex]?.split ?? false) && cards[0].rank === 'A') return
     if (getHandValue(cards).best === 21) {
       const t = setTimeout(() => actions.handleAction(Action.Stand), 500)
       return () => clearTimeout(t)
     }
-  }, [state.gameStep, state.humanHands, state.activeHandIndex, state.handDoubled, actions])
+  }, [state.gameStep, state.humanHands, state.humanHandInfo, state.activeHandIndex, state.handDoubled, actions])
 
   /*
    * The betting clock. It runs while the table is waiting for a bet and
@@ -234,15 +235,19 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   // Derived play state
   const humanCards = state.humanHands[state.activeHandIndex] ?? []
   const isFirstAction = humanCards.length === 2
-  const canSplitNow = isFirstAction && isPair(humanCards) && state.humanHands.length < config.maxSplitHands && bankroll >= state.currentBet
-  const canDoubleNow = isFirstAction && bankroll >= state.currentBet && (state.humanHands.length === 1 || config.doubleAfterSplit)
-  const canSurrenderNow = isFirstAction && config.surrenderAllowed && state.humanHands.length === 1 && !state.isSurrendered
+  // The rules follow the hand in play, not how many the player holds: a
+  // second box is an ordinary hand; one out of a split is not.
+  const activeInfo = state.humanHandInfo[state.activeHandIndex] ?? { box: 0, split: false }
+  const handsInBox = state.humanHandInfo.filter(h => h.box === activeInfo.box).length
+  const canSplitNow = isFirstAction && isPair(humanCards) && handsInBox < config.maxSplitHands && bankroll >= state.currentBet
+  const canDoubleNow = isFirstAction && bankroll >= state.currentBet && (!activeInfo.split || config.doubleAfterSplit)
+  const canSurrenderNow = isFirstAction && config.surrenderAllowed && !activeInfo.split && !state.surrenderedHands.has(state.activeHandIndex)
   const humanBusted = humanCards.length > 0 && isBust(humanCards)
   // The buttons mirror the rules `handleAction` enforces: a doubled hand is
   // done, and a split ace takes one card — its only choice is a second ace
   // (split again or stand).
   const handDone = state.handDoubled.has(state.activeHandIndex)
-  const splitAce = state.humanHands.length > 1 && humanCards[0]?.rank === 'A'
+  const splitAce = activeInfo.split && humanCards[0]?.rank === 'A'
   const aceReSplitOffer = splitAce && humanCards.length === 2 && humanCards[1].rank === 'A'
   const isDealPhase = state.gameStep === 'dealing'
 
@@ -492,6 +497,10 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         isDealPhase={isDealPhase}
         seatLayout={seatLayout}
         humanHands={state.humanHands}
+        humanHandInfo={state.humanHandInfo}
+        boxes={state.boxes}
+        surrenderedHands={state.surrenderedHands}
+        humanBoxSettlements={state.humanBoxSettlements}
         humanVisibleCards={state.humanVisibleCards}
         activeHandIndex={state.activeHandIndex}
         currentBet={state.currentBet}
@@ -535,7 +544,11 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             currentBet={state.currentBet}
             minBet={config.minBet}
             maxBet={config.maxBet}
-            bankroll={bankroll}
+            // The bet is per hand, so what each may carry is the bankroll shared out.
+            bankroll={Math.floor(bankroll / state.boxes)}
+            hands={state.boxes}
+            maxHands={Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(bankroll / config.minBet)))}
+            onHandsChange={actions.setBoxes}
             onBetChange={actions.setBet}
             onConfirm={actions.confirmBet}
             secondsLeft={clockRuns || state.gameStep === 'betting' ? betSeconds : undefined}

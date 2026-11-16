@@ -923,6 +923,32 @@ describe('CasinoSessionEngine', () => {
       expect(engine.dealNewRound().reshuffled).toBe(false)
     })
 
+    it('deals as many hands to the player as they take, two cards each', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0 }))
+
+      const one = engine.dealNewRound()
+      expect(one.humanBoxCards).toHaveLength(1)
+      expect(one.humanBoxCards[0]).toBe(one.humanCards)
+
+      const before = engine.getCardsDealt()
+      const three = engine.dealNewRound(3)
+      expect(three.humanBoxCards.map(h => h.length)).toEqual([2, 2, 2])
+      expect(three.humanCards).toBe(three.humanBoxCards[0])
+      // three hands and the dealer
+      expect(engine.getCardsDealt() - before).toBe(8)
+      // dealt round the boxes in turn: first cards, dealer, second cards, hole
+      expect(three.allDealtCards.slice(0, 3)).toEqual(three.humanBoxCards.map(h => h[0]))
+      expect(three.allDealtCards.slice(4, 7)).toEqual(three.humanBoxCards.map(h => h[1]))
+    })
+
+    it('never deals fewer than one hand or more than three', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0 }))
+      engine.setHumanBoxes(0)
+      expect(engine.getHumanBoxes()).toBe(1)
+      engine.setHumanBoxes(9)
+      expect(engine.getHumanBoxes()).toBe(3)
+    })
+
     it('count check frequency logic is correct', () => {
       const engine = new CasinoSessionEngine(createTestConfig({
         countCheckFrequency: 'every5',

@@ -611,7 +611,8 @@
       "resultBlackjack": "BJ !",
       "resultSurrender": "Aband.",
       "total": "Total",
-      "deal": "Distribuer — {{amount}}"
+      "deal": "Distribuer — {{amount}}",
+      "hands": "Mains"
     },
     "act": {
       "hit": "Tirer (H)",

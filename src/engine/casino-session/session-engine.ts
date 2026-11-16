@@ -19,6 +19,7 @@ import type {
   PlayerHandRecord,
 } from './types'
 import type { SessionEventRecorder } from '../../services/session-recorder'
+import { MAX_PLAYER_HANDS } from './types'
 
 /** Money to the cent, so a payout never carries floating-point dust. */
 function toCents(amount: number): number {
@@ -80,6 +81,8 @@ export class CasinoSessionEngine {
   private handHistory: PlayerHandRecord[] = []
   private currentHandNumber: number = 0
 
+  /** How many hands the human is dealt per round (1–3). */
+  private humanBoxes: number = 1
   private humanBankroll: number
   private peakBankroll: number
   private worstDrawdown: number = 0
@@ -224,8 +227,26 @@ export class CasinoSessionEngine {
    * frozen table.
    */
   private cardsARoundMayNeed(): number {
-    const seated = this.seats.filter(seat => seat !== null).length + 1
+    const seated = this.seats.filter(seat => seat !== null).length + this.humanBoxes
     return (seated + 1) * 5
+  }
+
+  /**
+   * How many hands the human takes from the next round on.
+   *
+   * One player, several betting boxes: each is dealt, played and settled as a
+   * hand of its own. The number also counts towards how many cards a round
+   * may need, so a shoe is not started on too few.
+   *
+   * @param boxes - 1 to MAX_PLAYER_HANDS; anything else is clamped
+   */
+  setHumanBoxes(boxes: number): void {
+    this.humanBoxes = Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(boxes) || 1))
+  }
+
+  /** How many hands the human is dealt per round. */
+  getHumanBoxes(): number {
+    return this.humanBoxes
   }
 
   /**
@@ -530,7 +551,8 @@ export class CasinoSessionEngine {
    *
    * @returns DealResult with all dealt cards and positions
    */
-  dealNewRound(): DealResult {
+  dealNewRound(humanBoxes?: number): DealResult {
+    if (humanBoxes !== undefined) this.setHumanBoxes(humanBoxes)
     const reshuffled = this.reshuffleIfNeeded()
     this.currentHandNumber++
     const hn = this.currentHandNumber
@@ -538,7 +560,9 @@ export class CasinoSessionEngine {
     if (reshuffled) this.recorder?.recordShuffle(hn)
     this.recorder?.recordNewHand(hn)
 
-    const humanCards: Card[] = []
+    // One list per hand the human plays. The first is also `humanCards`.
+    const humanBoxCards: Card[][] = Array.from({ length: this.humanBoxes }, () => [])
+    const humanCards: Card[] = humanBoxCards[0]
     const dealerCards: Card[] = []
     const botHands = new Map<string, Card[]>()
     const allDealtCards: Card[] = []
@@ -568,10 +592,13 @@ export class CasinoSessionEngine {
     // Round 1: One card to each seat (left to right), then dealer
     for (let seatIdx = 0; seatIdx < MAX_SEATS; seatIdx++) {
       if (seatIdx === this.humanSeatIndex) {
-        const card = this.drawCard()
-        humanCards.push(card)
-        allDealtCards.push(card)
-        this.recorder?.recordCardDealt('human', this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
+        // The human's hands sit side by side and are dealt in turn, like seats.
+        for (let box = 0; box < humanBoxCards.length; box++) {
+          const card = this.drawCard()
+          humanBoxCards[box].push(card)
+          allDealtCards.push(card)
+          this.recorder?.recordCardDealt(box === 0 ? 'human' : `human_hand_${box + 1}`, this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
+        }
       } else {
         const bot = this.seats[seatIdx]
         if (bot && bot.isActive) {
@@ -593,10 +620,13 @@ export class CasinoSessionEngine {
     // Round 2: Second card to each seat (left to right), then dealer hole card
     for (let seatIdx = 0; seatIdx < MAX_SEATS; seatIdx++) {
       if (seatIdx === this.humanSeatIndex) {
-        const card = this.drawCard()
-        humanCards.push(card)
-        allDealtCards.push(card)
-        this.recorder?.recordCardDealt('human', this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
+        // The human's hands sit side by side and are dealt in turn, like seats.
+        for (let box = 0; box < humanBoxCards.length; box++) {
+          const card = this.drawCard()
+          humanBoxCards[box].push(card)
+          allDealtCards.push(card)
+          this.recorder?.recordCardDealt(box === 0 ? 'human' : `human_hand_${box + 1}`, this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
+        }
       } else {
         const bot = this.seats[seatIdx]
         if (bot && bot.isActive) {
@@ -631,6 +661,7 @@ export class CasinoSessionEngine {
 
     return {
       humanCards,
+      humanBoxCards,
       dealerUpCard,
       dealerHoleCard,
       botHands,

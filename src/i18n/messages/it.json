@@ -611,7 +611,8 @@
       "resultBlackjack": "BJ!",
       "resultSurrender": "Res.",
       "total": "Totale",
-      "deal": "Distribuisci — {{amount}}"
+      "deal": "Distribuisci — {{amount}}",
+      "hands": "Mani"
     },
     "act": {
       "hit": "Carta (H)",

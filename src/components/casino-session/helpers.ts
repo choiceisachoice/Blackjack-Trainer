@@ -251,6 +251,30 @@ export function formatTime(seconds: number): string {
 }
 
 /** The colours of a drawn chip. Plain values: an SVG attribute cannot read a CSS variable. */
+/** One of the player's hands: the box it was dealt to, and whether a split made it. */
+export interface HandInfo {
+  /** Which of the player's betting boxes this hand belongs to (0-based). */
+  box: number
+  /** True once it came out of a split: no blackjack, no surrender. */
+  split: boolean
+}
+
+/**
+ * How many cards of one hand are on the table while the round is being dealt.
+ *
+ * The deal goes round the table twice, one card each, so with several hands a
+ * single "cards shown" number cannot be per hand. `shown` counts the player's
+ * cards in the order they are dealt: with two hands, 1 is the first hand's
+ * first card, 2 the second hand's first, 3 the first hand's second.
+ *
+ * @param shown - Cards of the player dealt so far (999 = all)
+ * @param box - The hand asked about
+ * @param boxes - How many hands the player has
+ */
+export function visibleForBox(shown: number, box: number, boxes: number): number {
+  return (shown > box ? 1 : 0) + (shown > boxes + box ? 1 : 0)
+}
+
 /**
  * How long the table waits for bets, in seconds.
  *

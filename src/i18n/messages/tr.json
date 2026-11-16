@@ -611,7 +611,8 @@
       "resultBlackjack": "BJ!",
       "resultSurrender": "Çekil.",
       "total": "Toplam",
-      "deal": "Dağıt — {{amount}}"
+      "deal": "Dağıt — {{amount}}",
+      "hands": "El"
     },
     "act": {
       "hit": "Kart Al (H)",
