@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Check, Loader2 } from 'lucide-react'
@@ -22,7 +22,17 @@ import { isQrArrival, rememberQrReward, hasQrReward, withoutRefParam, qrWelcomeS
 
 // The WebGL hero pulls in Three.js — load it as its own chunk after the hero
 // text has painted, so it never blocks the landing's first paint.
-import { HeroHand } from '../components/landing/HeroHand'
+const HeroCanvas = lazy(() => import('../components/landing/HeroCanvas').then(m => ({ default: m.HeroCanvas })))
+
+/*
+ * What sits over the moving canvas: a patch of the ground colour behind the
+ * headline, so type stays legible when a card drifts under it, and a fade into
+ * the page at the bottom. Both are the ground's own colour going to
+ * transparent, so on the ground itself they draw nothing — they only ever dim
+ * a card. No glow, no vignette: a faint gradient on near-black is what made
+ * the page look grainy (see `.app-canvas`).
+ */
+const SCRIM = 'radial-gradient(58% 62% at 28% 54%, rgba(7,8,9,.97) 44%, rgba(7,8,9,.6) 66%, transparent 86%), linear-gradient(180deg, transparent 58%, var(--color-casino-bg) 97%)'
 
 export function LandingPage() {
   const { t, i18n } = useTranslation()
@@ -189,10 +199,10 @@ export function LandingPage() {
         </nav>
       </header>
 
-      <section className="relative min-h-[calc(100vh-62px)] flex items-center overflow-hidden py-12">
-        <div className="relative w-full intro-enter">
-          <div className="max-w-6xl mx-auto px-6 grid items-center gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)]">
-          <div>
+      <section className="relative min-h-[calc(100vh-62px)] flex items-center overflow-hidden">
+        <HeroLayer />
+        <div className="relative z-[5] w-full intro-enter">
+          <div className="max-w-6xl mx-auto px-6">
             <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.hero.eyebrow')}</div>
             <h1 className="mt-4 text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.02] text-balance max-w-[15ch]">
               {/* Trans, not three concatenated keys: the accented word sits in
@@ -212,8 +222,6 @@ export function LandingPage() {
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-content/40">
               <span>{t('landing.hero.noCard')}</span><Dot /><span>{t('landing.hero.shoe')}</span><Dot /><span>{t('landing.hero.tags')}</span><Dot /><span>{t('landing.hero.cancel')}</span>
             </div>
-          </div>
-          <HeroHand className="w-full max-w-[27rem] justify-self-center lg:justify-self-end" />
           </div>
         </div>
       </section>
@@ -412,6 +420,21 @@ export function LandingPage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+function HeroLayer() {
+  return (
+    <>
+      <Suspense fallback={null}>
+        <HeroCanvas className="absolute inset-0 w-full h-full z-[1]" />
+      </Suspense>
+      <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: SCRIM }} />
+      {/* On a phone the text runs the full width, so there is no side of the
+          hero a card can pass on: every card is held back to a shape in the
+          dark behind the words. One flat tone over the canvas, not a gradient. */}
+      <div className="absolute inset-0 z-[3] pointer-events-none bg-[rgba(7,8,9,.72)] md:hidden" />
+    </>
   )
 }
 

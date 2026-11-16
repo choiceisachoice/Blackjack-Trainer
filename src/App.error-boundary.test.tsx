@@ -1,4 +1,5 @@
 import React from 'react'
+vi.mock('./components/landing/HeroCanvas', () => ({ HeroCanvas: () => null }))
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'

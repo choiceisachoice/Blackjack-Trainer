@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { isRedSuit, type CardSuitName } from './card-suits'
+import { isRedSuit, SUIT_PATH, PIPS, PIP_CENTRE, type CardSuitName } from './card-suits'
 
 /**
  * The one drawing of a playing card.
@@ -26,17 +26,6 @@ import { isRedSuit, type CardSuitName } from './card-suits'
 const RED = '#c8102e'
 const BLACK = '#14161a'
 
-/** Each suit drawn in a 100 × 100 box. */
-const SUIT_PATH: Record<CardSuitName, string> = {
-  Hearts:
-    'M50 90C22 66 8 49 8 31 8 17 19 8 31 8c8 0 15 5 19 12 4-7 11-12 19-12 12 0 23 9 23 23 0 18-14 35-42 59z',
-  Diamonds: 'M50 4Q69 30 90 50 69 70 50 96 31 70 10 50 31 30 50 4z',
-  Spades:
-    'M50 5C62 27 92 42 92 63c0 12-9 20-20 20-8 0-14-4-18-10 1 9 5 16 13 22H33c8-6 12-13 13-22-4 6-10 10-18 10C17 83 8 75 8 63 8 42 38 27 50 5z',
-  Clubs:
-    'M50 6a21 21 0 0 1 17 33 21 21 0 1 1-13 34c1 9 5 17 13 23H33c8-6 12-14 13-23a21 21 0 1 1-13-34A21 21 0 0 1 50 6z',
-}
-
 /** One suit symbol, centred on (cx, cy), `size` units wide; `flip` turns it upside down. */
 function Pip({ suit, cx, cy, size, flip = false }: { suit: CardSuitName; cx: number; cy: number; size: number; flip?: boolean }) {
   const s = size / 100
@@ -46,23 +35,6 @@ function Pip({ suit, cx, cy, size, flip = false }: { suit: CardSuitName; cx: num
       transform={`translate(${cx} ${cy}) ${flip ? 'rotate(180) ' : ''}scale(${s}) translate(-50 -50)`}
     />
   )
-}
-
-/** Pip positions on a 250 × 350 card: [x, y, upside-down]. */
-const L = 82, C = 125, R = 168
-const T = 78, B = 272, M = 175
-const U = 142.7, D = 207.3
-type Spot = [number, number, boolean]
-const PIPS: Record<string, Spot[]> = {
-  '2': [[C, T, false], [C, B, true]],
-  '3': [[C, T, false], [C, M, false], [C, B, true]],
-  '4': [[L, T, false], [R, T, false], [L, B, true], [R, B, true]],
-  '5': [[L, T, false], [R, T, false], [C, M, false], [L, B, true], [R, B, true]],
-  '6': [[L, T, false], [R, T, false], [L, M, false], [R, M, false], [L, B, true], [R, B, true]],
-  '7': [[L, T, false], [R, T, false], [C, 126, false], [L, M, false], [R, M, false], [L, B, true], [R, B, true]],
-  '8': [[L, T, false], [R, T, false], [C, 126, false], [L, M, false], [R, M, false], [C, 224, true], [L, B, true], [R, B, true]],
-  '9': [[L, T, false], [R, T, false], [L, U, false], [R, U, false], [C, M, false], [L, D, true], [R, D, true], [L, B, true], [R, B, true]],
-  '10': [[L, T, false], [R, T, false], [C, 110, false], [L, U, false], [R, U, false], [L, D, true], [R, D, true], [C, 240, true], [L, B, true], [R, B, true]],
 }
 
 const FONT = "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif"
@@ -109,7 +81,7 @@ export const CardFace = memo(function CardFace({ rank, suit, variant = 'compact'
             {PIPS[rank]
               ? PIPS[rank].map(([x, y, flip], i) => <Pip key={i} suit={s} cx={x} cy={y} size={46} flip={flip} />)
               : rank === 'A'
-                ? <Pip suit={s} cx={C} cy={M} size={118} />
+                ? <Pip suit={s} cx={PIP_CENTRE.x} cy={PIP_CENTRE.y} size={118} />
                 : <Court rank={rank} suit={s} ink={ink} />}
           </>
         )}
