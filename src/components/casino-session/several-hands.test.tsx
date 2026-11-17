@@ -49,14 +49,22 @@ function stack(cards: Card[]) {
   vi.spyOn(Shoe.prototype, 'deal').mockImplementation(() => cards[n++ % cards.length])
 }
 
-function sitDown(hands: number) {
+/** The + on the free seats, left to right. */
+const openSeats = () => [...document.querySelectorAll<HTMLElement>('[data-testid^="seat-open-"]')]
+
+/**
+ * Sit down at a table where several hands are allowed, and open `hands` of
+ * them: a hand is opened on the felt, on a free seat.
+ */
+function sitDown(hands: number, { bots = '0', multiHand = true }: { bots?: string; multiHand?: boolean } = {}) {
   render(<CasinoSession />)
-  fireEvent.click(within(screen.getByRole('group', { name: 'Bots at the table' })).getByRole('button', { name: '0' }))
+  fireEvent.click(within(screen.getByRole('group', { name: 'Bots at the table' })).getByRole('button', { name: bots }))
   fireEvent.click(within(screen.getByRole('group', { name: 'Session Length' })).getByRole('button', { name: 'Unlimited' }))
   fireEvent.click(screen.getByRole('button', { name: 'Just Blackjack' }))
+  if (multiHand) fireEvent.click(screen.getByTestId('toggle-multi-hand'))
   fireEvent.click(screen.getByTestId('start-session'))
   tick(100)
-  if (hands > 1) fireEvent.click(screen.getByTestId(`hands-${hands}`))
+  for (let i = 1; i < hands; i++) fireEvent.click(openSeats()[0])
   fireEvent.click(screen.getByText('+$25'))
 }
 
@@ -234,16 +242,17 @@ describe('each hand is a bet of its own', () => {
     sitDown(1)
     expect(screen.getAllByTestId('human-seat')).toHaveLength(1)
     expect(screen.queryByTestId('box-close-1')).toBeNull()
+    // Alone at a table of six: five seats to take.
+    expect(openSeats()).toHaveLength(5)
 
-    fireEvent.click(screen.getByTestId('box-open'))
+    fireEvent.click(openSeats()[0])
     expect(screen.getAllByTestId('human-seat')).toHaveLength(2)
     // The new hand starts with the bet beside it.
     expect(screen.getByTestId('confirm-bet')).toHaveTextContent('$25 × 2')
 
-    fireEvent.click(screen.getByTestId('box-open'))
+    fireEvent.click(openSeats()[0])
     expect(screen.getAllByTestId('human-seat')).toHaveLength(3)
-    // Three is the table's limit.
-    expect(screen.queryByTestId('box-open')).toBeNull()
+    expect(openSeats()).toHaveLength(3)
 
     fireEvent.click(screen.getByTestId('box-close-2'))
     fireEvent.click(screen.getByTestId('box-close-1'))
@@ -286,5 +295,82 @@ describe('visibleForBox — the deal goes round the table twice', () => {
   it('two hands: each gets its first card before either gets its second', () => {
     const at = (shown: number) => [visibleForBox(shown, 0, 2), visibleForBox(shown, 1, 2)]
     expect([0, 1, 2, 3, 4].map(at)).toEqual([[0, 0], [1, 0], [1, 1], [2, 1], [2, 2]])
+  })
+})
+
+/**
+ * The table has six seats (Darius, 16 Nov 2026). All six are on the felt, a
+ * hand is a seat, and how many the player may open is what the bots leave.
+ */
+describe('six seats, and the ones that are free', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    useAppStore.getState().setMode('casinoSession')
+    useAppStore.setState({ dealingSpeed: 'normal' })
+    useCasinoSessionTrackerStore.setState({ sessions: [], startingBankroll: 0 })
+  })
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  const seatKinds = () =>
+    [...screen.getByTestId('seat-row').children].map(wrap => (wrap.firstElementChild as HTMLElement).dataset.testid)
+
+  it('shows all six seats, whoever sits at them', () => {
+    sitDown(1, { bots: '2' })
+    const kinds = seatKinds()
+    expect(kinds).toHaveLength(6)
+    expect(kinds.filter(k => k === 'bot-seat')).toHaveLength(2)
+    expect(kinds.filter(k => k === 'human-seat')).toHaveLength(1)
+    expect(kinds.filter(k => k === 'empty-seat')).toHaveLength(3)
+    // The player sits where the setup put them: the fourth seat.
+    expect(kinds[3]).toBe('human-seat')
+  })
+
+  it('offers no second hand unless the setup allows several', () => {
+    sitDown(1, { bots: '2', multiHand: false })
+    expect(openSeats()).toHaveLength(0)
+    expect(screen.queryByTestId('hands-select')).toBeNull()
+    // The free seats are still on the felt, as circles.
+    expect(seatKinds().filter(k => k === 'empty-seat')).toHaveLength(3)
+  })
+
+  it('with four bots there is room for one more hand, and then none', () => {
+    sitDown(1, { bots: '4' })
+    expect(openSeats()).toHaveLength(1)
+    fireEvent.click(openSeats()[0])
+    expect(screen.getAllByTestId('human-seat')).toHaveLength(2)
+    expect(openSeats()).toHaveLength(0)
+    expect(seatKinds().filter(k => k === 'empty-seat')).toHaveLength(0)
+  })
+
+  it('with five bots the table is full', () => {
+    sitDown(1, { bots: '5' })
+    expect(openSeats()).toHaveLength(0)
+    expect(seatKinds().filter(k => k === 'bot-seat')).toHaveLength(5)
+  })
+
+  it('a hand lies on the seat that was clicked, and the hands read left to right', () => {
+    sitDown(1)
+    // The player is on the fourth seat; the last free seat is the sixth.
+    const last = openSeats().at(-1)!
+    expect(last.dataset.testid).toBe('seat-open-6')
+    fireEvent.click(last)
+    const kinds = seatKinds()
+    expect(kinds[3]).toBe('human-seat')
+    expect(kinds[5]).toBe('human-seat')
+    // The seat to the left is opened next: it becomes hand 1.
+    fireEvent.click(screen.getByTestId('seat-open-1'))
+    expect(seatKinds()[0]).toBe('human-seat')
+    expect(screen.getAllByTestId('human-seat')).toHaveLength(3)
+  })
+
+  it('every betting circle is one of six on the felt', () => {
+    sitDown(1, { bots: '3' })
+    // One circle per seat: a bot's, the player's, and the free ones.
+    const row = screen.getByTestId('seat-row')
+    expect(row.querySelectorAll('[data-testid="bet-spot"], [data-testid^="seat-open-"]')).toHaveLength(6)
   })
 })

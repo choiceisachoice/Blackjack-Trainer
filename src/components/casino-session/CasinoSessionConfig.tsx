@@ -173,6 +173,12 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
                 options={[0, 1, 2, 3, 4, 5].map(n => ({ label: String(n + 1), value: n }))}
               />
             </Field>
+            <Toggle label={t('casino.setup.multiHand')} checked={config.multiHand ?? false} onChange={v => update('multiHand', v)} testId="toggle-multi-hand" />
+            {config.multiHand && (
+              <p className="text-xs text-content/50 leading-relaxed" data-testid="multi-hand-hint">
+                {t('casino.setup.multiHandHint', { count: 6 - config.numBots })}
+              </p>
+            )}
           </Panel>
 
           {/* Bankroll & betting */}

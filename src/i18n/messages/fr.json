@@ -589,7 +589,9 @@
       "styleBasic": "Blackjack seul",
       "styleBasicHint": "Pas de running count ni de true count — jouez simplement. Seule la stratégie de base est notée, et vous gagnez quand même des XP.",
       "unlimited": "Illimité",
-      "unlimitedHint": "Jouez aussi longtemps que vous voulez et encaissez quand vous le souhaitez. La session est enregistrée dans votre suivi."
+      "unlimitedHint": "Jouez aussi longtemps que vous voulez et encaissez quand vous le souhaitez. La session est enregistrée dans votre suivi.",
+      "multiHand": "Jouer plusieurs mains",
+      "multiHandHint": "Chaque place libre de la table affiche un +. Vous pouvez ouvrir jusqu’à {{count}} mains."
     },
     "table": {
       "you": "VOUS",
@@ -615,7 +617,8 @@
       "hands": "Mains",
       "allHands": "Toutes les mains",
       "addHand": "Ajouter une main",
-      "removeHand": "Retirer la main {{n}}"
+      "removeHand": "Retirer la main {{n}}",
+      "decisionClock": "Temps pour décider"
     },
     "act": {
       "hit": "Tirer (H)",

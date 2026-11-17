@@ -20,6 +20,12 @@ export interface CasinoSessionConfig {
   numBots: number
   /** Seat index (0-based) where the human player sits. Bots fill other seats. */
   playerSeatIndex: number
+  /**
+   * Whether the player may play several hands. With it on, every seat no bot
+   * sits in can be opened as a hand of the player's. Optional so a config
+   * saved before the field existed loads as one hand.
+   */
+  multiHand?: boolean
 
   /** Starting bankroll for the human player. */
   startingBankroll: number
@@ -178,8 +184,11 @@ export interface PlayDecision {
 
 // ─── Human Player Hand Record ──────────────────────────
 
-/** The most hands one player may take at the table. */
-export const MAX_PLAYER_HANDS = 3
+/**
+ * The most hands one player may take at the table: every seat of it. What a
+ * player can actually open is fewer — the seats no bot sits in.
+ */
+export const MAX_PLAYER_HANDS = 6
 
 /** Complete record of a single hand played by the human player. */
 export interface PlayerHandRecord {
@@ -394,6 +403,8 @@ export interface DealResult {
   humanCards: Card[]
   /** Every hand the human was dealt this round, in deal order; one entry per hand. */
   humanBoxCards: Card[][]
+  /** The seat each of those hands lies on, left to right — same order and length. */
+  humanBoxSeats: number[]
   /** The dealer's face-up card. */
   dealerUpCard: Card
   /** The dealer's face-down (hole) card. */

@@ -6,7 +6,7 @@ import { useAppStore } from '../../store/app-store'
 import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker-store'
 import { Shoe } from '../../engine/shoe/shoe'
 import { Rank, Suit, type Card } from '../../engine/shoe/types'
-import { BET_SECONDS } from './helpers'
+import { BET_SECONDS, DECISION_SECONDS } from './helpers'
 
 /**
  * The betting clock (Darius, 16 Nov 2026): between rounds the table waits a
@@ -86,10 +86,43 @@ describe('the betting clock', () => {
     tick(31_000)
     expect(screen.queryByTestId('betting-controls')).toBeNull()
     tick(8000)
-    // The hand is the player's to play — for as long as they take.
+    // The hand is the player's to play.
     expect(screen.getByTestId('action-stand')).toBeInTheDocument()
-    tick(10 * 60_000)
+  })
+
+  /**
+   * The decision clock (Darius, 16 Nov 2026): 30 seconds for a decision, as at
+   * an online table; a hand nobody decides on stands.
+   */
+  it('gives a decision 30 seconds, then the hand stands', () => {
+    sitDown()
+    fireEvent.click(screen.getByText('+$25'))
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(8000)
+    expect(DECISION_SECONDS).toBe(30)
+    if (!screen.queryByTestId('action-stand')) return   // a blackjack: nothing to decide
+    expect(screen.getByTestId('decision-clock')).toHaveTextContent('0:30')
+    tick(10_000)
+    expect(screen.getByTestId('decision-clock')).toHaveTextContent('0:20')
     expect(screen.getByTestId('action-stand')).toBeInTheDocument()
+    tick(21_000)
+    // Stood on its own: the round goes on without the player.
+    tick(20_000)
+    expect(screen.queryByTestId('action-controls')).toBeNull()
+  })
+
+  it('does not run down while the session is paused', () => {
+    sitDown()
+    fireEvent.click(screen.getByText('+$25'))
+    fireEvent.click(screen.getByTestId('confirm-bet'))
+    tick(8000)
+    if (!screen.queryByTestId('action-stand')) return
+    fireEvent.click(screen.getByTestId('pause-button'))
+    tick(5 * 60_000)
+    act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })) })
+    tick(100)
+    expect(screen.getByTestId('action-stand')).toBeInTheDocument()
+    expect(screen.getByTestId('decision-clock')).toHaveTextContent('0:30')
   })
 
   it('stops while the session is paused', () => {

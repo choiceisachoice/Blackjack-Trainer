@@ -589,7 +589,9 @@
       "styleBasic": "Sadece Blackjack",
       "styleBasicHint": "Running count yok, true count yok — sadece oyna. Yalnızca temel strateji değerlendirilir ve yine de XP kazanırsın.",
       "unlimited": "Sınırsız",
-      "unlimitedHint": "İstediğin kadar oyna, istediğin zaman kasadan çık. Oturum takipçine kaydedilir."
+      "unlimitedHint": "İstediğin kadar oyna, istediğin zaman kasadan çık. Oturum takipçine kaydedilir.",
+      "multiHand": "Birden fazla el oyna",
+      "multiHandHint": "Masadaki her boş yer bir + gösterir. En fazla {{count}} el açabilirsin."
     },
     "table": {
       "you": "SİZ",
@@ -615,7 +617,8 @@
       "hands": "El",
       "allHands": "Tüm eller",
       "addHand": "El ekle",
-      "removeHand": "{{n}}. eli kaldır"
+      "removeHand": "{{n}}. eli kaldır",
+      "decisionClock": "Karar süresi"
     },
     "act": {
       "hit": "Kart Al (H)",

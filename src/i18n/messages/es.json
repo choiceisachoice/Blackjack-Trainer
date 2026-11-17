@@ -589,7 +589,9 @@
       "styleBasic": "Solo Blackjack",
       "styleBasicHint": "Sin running count ni true count: solo juega. Solo se evalúa la estrategia básica y aun así ganas XP.",
       "unlimited": "Ilimitado",
-      "unlimitedHint": "Juega todo lo que quieras y cobra cuando quieras. La sesión se guarda en tu registro."
+      "unlimitedHint": "Juega todo lo que quieras y cobra cuando quieras. La sesión se guarda en tu registro.",
+      "multiHand": "Jugar varias manos",
+      "multiHandHint": "Cada asiento libre de la mesa muestra un +. Puedes abrir hasta {{count}} manos."
     },
     "table": {
       "you": "TÚ",
@@ -615,7 +617,8 @@
       "hands": "Manos",
       "allHands": "Todas las manos",
       "addHand": "Añadir una mano",
-      "removeHand": "Quitar la mano {{n}}"
+      "removeHand": "Quitar la mano {{n}}",
+      "decisionClock": "Tiempo para decidir"
     },
     "act": {
       "hit": "Pedir (H)",

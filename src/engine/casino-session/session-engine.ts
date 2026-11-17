@@ -83,6 +83,12 @@ export class CasinoSessionEngine {
 
   /** How many hands the human is dealt per round (1–3). */
   private humanBoxes: number = 1
+  /**
+   * The seats the human's hands lie on, left to right. A hand is a seat at the
+   * table like any other: it is dealt when the deal reaches it and played when
+   * the play does, with whatever bots sit between the player's hands.
+   */
+  private humanBoxSeats: number[] = []
   private humanBankroll: number
   private peakBankroll: number
   private worstDrawdown: number = 0
@@ -106,6 +112,7 @@ export class CasinoSessionEngine {
     this.countingSystem = getSystemById(config.countingSystem)
     this.allDeviations = [...ILLUSTRIOUS_18, ...FAB_4]
     this.humanSeatIndex = config.playerSeatIndex
+    this.humanBoxSeats = [config.playerSeatIndex]
     this.totalCards = config.numDecks * 52
 
     this.casinoRules = {
@@ -243,7 +250,39 @@ export class CasinoSessionEngine {
    * @param boxes - 1 to MAX_PLAYER_HANDS; anything else is clamped
    */
   setHumanBoxes(boxes: number): void {
-    this.humanBoxes = Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(boxes) || 1))
+    const wanted = Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(boxes) || 1))
+    // The player's own seat first, then the free seats nearest to it.
+    const free = this.getFreeSeats()
+      .filter(s => s !== this.humanSeatIndex)
+      .sort((a, b) => Math.abs(a - this.humanSeatIndex) - Math.abs(b - this.humanSeatIndex) || b - a)
+    this.setHumanBoxSeats([this.humanSeatIndex, ...free.slice(0, wanted - 1)])
+  }
+
+  /**
+   * Put the human's hands on these seats from the next round on.
+   *
+   * Seats a bot sits in, seats that do not exist and repeats are dropped; if
+   * nothing is left the player keeps their own seat.
+   *
+   * @param seats - Seat indices, in any order
+   */
+  setHumanBoxSeats(seats: number[]): void {
+    const free = new Set(this.getFreeSeats())
+    const valid = [...new Set(seats)].filter(s => free.has(s)).sort((a, b) => a - b)
+    this.humanBoxSeats = valid.length > 0 ? valid : [this.humanSeatIndex]
+    this.humanBoxes = this.humanBoxSeats.length
+  }
+
+  /** The seats the human's hands lie on, left to right. */
+  getHumanBoxSeats(): number[] {
+    return [...this.humanBoxSeats]
+  }
+
+  /** Seats no bot sits in — the player's own among them. */
+  getFreeSeats(): number[] {
+    const free: number[] = []
+    for (let i = 0; i < MAX_SEATS; i++) if (!this.seats[i]) free.push(i)
+    return free
   }
 
   /** How many hands the human is dealt per round. */
@@ -553,8 +592,9 @@ export class CasinoSessionEngine {
    *
    * @returns DealResult with all dealt cards and positions
    */
-  dealNewRound(humanBoxes?: number): DealResult {
-    if (humanBoxes !== undefined) this.setHumanBoxes(humanBoxes)
+  dealNewRound(humanBoxes?: number | number[]): DealResult {
+    if (Array.isArray(humanBoxes)) this.setHumanBoxSeats(humanBoxes)
+    else if (humanBoxes !== undefined) this.setHumanBoxes(humanBoxes)
     const reshuffled = this.reshuffleIfNeeded()
     this.currentHandNumber++
     const hn = this.currentHandNumber
@@ -593,14 +633,13 @@ export class CasinoSessionEngine {
 
     // Round 1: One card to each seat (left to right), then dealer
     for (let seatIdx = 0; seatIdx < MAX_SEATS; seatIdx++) {
-      if (seatIdx === this.humanSeatIndex) {
-        // The human's hands sit side by side and are dealt in turn, like seats.
-        for (let box = 0; box < humanBoxCards.length; box++) {
-          const card = this.drawCard()
-          humanBoxCards[box].push(card)
-          allDealtCards.push(card)
-          this.recorder?.recordCardDealt(box === 0 ? 'human' : `human_hand_${box + 1}`, this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
-        }
+      const box = this.humanBoxSeats.indexOf(seatIdx)
+      if (box >= 0) {
+        // One of the human's hands: dealt where it sits, like any seat.
+        const card = this.drawCard()
+        humanBoxCards[box].push(card)
+        allDealtCards.push(card)
+        this.recorder?.recordCardDealt(box === 0 ? 'human' : `human_hand_${box + 1}`, this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
       } else {
         const bot = this.seats[seatIdx]
         if (bot && bot.isActive) {
@@ -621,14 +660,13 @@ export class CasinoSessionEngine {
 
     // Round 2: Second card to each seat (left to right), then dealer hole card
     for (let seatIdx = 0; seatIdx < MAX_SEATS; seatIdx++) {
-      if (seatIdx === this.humanSeatIndex) {
-        // The human's hands sit side by side and are dealt in turn, like seats.
-        for (let box = 0; box < humanBoxCards.length; box++) {
-          const card = this.drawCard()
-          humanBoxCards[box].push(card)
-          allDealtCards.push(card)
-          this.recorder?.recordCardDealt(box === 0 ? 'human' : `human_hand_${box + 1}`, this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
-        }
+      const box = this.humanBoxSeats.indexOf(seatIdx)
+      if (box >= 0) {
+        // One of the human's hands: dealt where it sits, like any seat.
+        const card = this.drawCard()
+        humanBoxCards[box].push(card)
+        allDealtCards.push(card)
+        this.recorder?.recordCardDealt(box === 0 ? 'human' : `human_hand_${box + 1}`, this.fmtCard(card), hn, this.runningCount, this.getTrueCount())
       } else {
         const bot = this.seats[seatIdx]
         if (bot && bot.isActive) {
@@ -664,6 +702,7 @@ export class CasinoSessionEngine {
     return {
       humanCards,
       humanBoxCards,
+      humanBoxSeats: [...this.humanBoxSeats],
       dealerUpCard,
       dealerHoleCard,
       botHands,

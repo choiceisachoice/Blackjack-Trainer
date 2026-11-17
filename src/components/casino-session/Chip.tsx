@@ -56,12 +56,14 @@ export type ChipOutcome = 'win' | 'blackjack' | 'loss' | 'push' | null
  * to the dealer, a won one is paid — a second stack arrives beside it from the
  * dealer's side — and a push stays where it is.
  */
-export function ChipStack({ amount, outcome = null, payout, size = 46 }: {
+export function ChipStack({ amount, outcome = null, payout, size = 46, bare = false }: {
   amount: number
   outcome?: ChipOutcome
   /** What a won bet pays — the amount on the second stack. Defaults to the bet. */
   payout?: number
   size?: number
+  /** The seat draws the betting circle itself: nothing is shown for an empty bet. */
+  bare?: boolean
 }) {
   const reduced = useReducedMotion()
   const rise = Math.round(size * 0.13)
@@ -113,7 +115,7 @@ export function ChipStack({ amount, outcome = null, payout, size = 46 }: {
             </motion.div>
           )}
         </>
-      ) : (
+      ) : bare ? null : (
         // The empty spot: a ring on the felt where the bet goes.
         <div className="rounded-full border-2 border-white/20" style={{ width: size, height: size }} data-testid="bet-spot" />
       )}

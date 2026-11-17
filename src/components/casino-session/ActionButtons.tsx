@@ -11,6 +11,10 @@ interface ActionButtonsProps {
   canHit?: boolean
   /** False while a split ace or a doubled hand finishes by itself. */
   canStand?: boolean
+  /** Seconds left for this decision; when they run out the hand stands. Omitted: no clock. */
+  secondsLeft?: number
+  /** The length of the decision window, for the bar. */
+  secondsTotal?: number
 }
 
 /**
@@ -48,7 +52,7 @@ const ACTIONS: readonly ActionDef[] = [
   { action: Action.Surrender, testId: 'action-surrender', labelKey: 'casino.act.surrender', fill: 'bg-contrast/10 hover:bg-contrast/20 text-content' },
 ]
 
-export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, humanBusted, canHit = true, canStand = true }: ActionButtonsProps) {
+export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, humanBusted, canHit = true, canStand = true, secondsLeft, secondsTotal = 30 }: ActionButtonsProps) {
   const { t } = useTranslation()
 
   const isDisabled = (action: Action) => {
@@ -63,6 +67,26 @@ export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, hum
 
   return (
     <div className="flex flex-col items-center gap-2" data-testid="action-controls">
+      {/* The decision clock, as at an online table: a bar that runs down, red
+          for the last five seconds. It says how long the hand waits. */}
+      {secondsLeft !== undefined && (
+        <div
+          className="flex items-center gap-2"
+          data-testid="decision-clock"
+          role="timer"
+          aria-label={t('casino.table.decisionClock')}
+        >
+          <span className="block w-44 h-1.5 rounded-full bg-contrast/15 overflow-hidden">
+            <span
+              className={`block h-full rounded-full transition-[width] duration-1000 ease-linear ${secondsLeft <= 5 ? 'bg-error' : 'bg-gold'}`}
+              style={{ width: `${Math.max(0, Math.min(100, (secondsLeft / secondsTotal) * 100))}%` }}
+            />
+          </span>
+          <span className={`text-sm font-bold tabular-nums ${secondsLeft <= 5 ? 'text-error' : 'text-content/70'}`}>
+            0:{String(Math.max(0, secondsLeft)).padStart(2, '0')}
+          </span>
+        </div>
+      )}
       <div className="flex gap-2 flex-wrap justify-center">
         {ACTIONS.map(({ action, testId, labelKey, fill }) => (
           <button

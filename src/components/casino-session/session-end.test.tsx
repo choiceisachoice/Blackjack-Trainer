@@ -36,7 +36,7 @@ vi.mock('framer-motion', () => {
 // These tests sit at the betting screen for minutes on purpose — the session's
 // own clock is what they are about. The betting clock would deal a hand after
 // thirty seconds; it has tests of its own (betting-clock.test.tsx).
-vi.mock('./helpers', async importOriginal => ({ ...(await importOriginal<typeof import('./helpers')>()), BET_SECONDS: 1_000_000 }))
+vi.mock('./helpers', async importOriginal => ({ ...(await importOriginal<typeof import('./helpers')>()), BET_SECONDS: 1_000_000, DECISION_SECONDS: 1_000_000 }))
 vi.mock('../../services/casino-ambient', () => ({
   casinoAmbient: { start: vi.fn(), stop: vi.fn(), playing: false, volume: 0.15 },
 }))
@@ -300,14 +300,14 @@ describe('the bet between hands', () => {
     fireEvent.click(screen.getByTestId('confirm-bet'))
     tick(8000)
     const seat = screen.getByTestId('human-seat')
-    const slot = seat.querySelector('.h-7')
+    const slot = seat.querySelector('[data-testid="seat-result"]')
     expect(slot).not.toBeNull()
     expect(slot!.textContent).toBe('')
 
     fireEvent.click(screen.getByTestId('action-stand'))
     tick(8000)
     // Same element, now holding the result.
-    expect(seat.querySelector('.h-7')).toBe(slot)
+    expect(seat.querySelector('[data-testid="seat-result"]')).toBe(slot)
     expect(slot!.textContent).not.toBe('')
   })
 })

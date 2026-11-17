@@ -171,6 +171,167 @@ function NamePlate({ name, bankroll, you }: { name: string; bankroll: number; yo
   )
 }
 
+// ─── The seat every player shares ────────────────────
+
+/**
+ * Room for a seat's cards and their total. A split adds a label above and
+ * "doubled" below; those run over the top into the open felt, so the room
+ * — and with it every betting circle — stays where it is.
+ */
+const CARDS_ROOM = TABLE_CARD.height + 28
+/** The betting circle printed on the felt, and the room its chips stand in. */
+export const SPOT_SIZE = 66
+const SPOT_ROOM = SPOT_SIZE + 26
+
+/**
+ * One seat at the table, the same for everybody who sits at it.
+ *
+ * The parts have fixed heights, top to bottom: the cards, the betting circle,
+ * one line for what is happening (a bot's "Stand", then the result), the name.
+ * That is what puts every betting circle on the same curve. The player's seat and a bot's seat used to be two
+ * different stacks of parts — a bot had a status badge under its name, the
+ * player a taller result line — and the row was aligned at the bottom, so the
+ * player's chip stood higher than the chip of the bot beside it (Darius,
+ * 16 Nov 2026: "Es sollte alles symmetrisch an einer Rundung am Tisch
+ * platziert sein").
+ *
+ * The cards lie between the circle and the dealer and the chips are in front
+ * of the player, as on a table.
+ */
+function SeatShell({ testid, slotWidth, dimmed = false, active = false, cards, spot, result, name, status }: {
+  testid: string
+  slotWidth: number
+  dimmed?: boolean
+  active?: boolean
+  cards?: React.ReactNode
+  spot: React.ReactNode
+  result?: React.ReactNode
+  name?: React.ReactNode
+  status?: React.ReactNode
+}) {
+  const reduced = useReducedMotion()
+  return (
+    <div
+      className={`relative flex flex-col items-center transition-opacity ${dimmed ? 'opacity-40' : ''}`}
+      style={{ width: slotWidth }}
+      data-testid={testid}
+    >
+      <div className="flex items-end justify-center" style={{ height: CARDS_ROOM }}>{cards}</div>
+      <div className="relative flex items-end justify-center w-full" style={{ height: SPOT_ROOM }}>{spot}</div>
+      {/* One line, there from the deal on: what the seat is doing, and at
+          settlement what it won or lost. Inserted only when there was a result
+          it pushed every seat's cards up in the same frame. */}
+      <div className="flex items-center justify-center" style={{ height: 26 }} data-testid="seat-result">{result ?? status}</div>
+      <div className="flex items-center justify-center" style={{ height: 36 }}>{name}</div>
+
+      {active && (
+        <motion.div
+          className="absolute -inset-x-1 -top-1 bottom-0 rounded-xl pointer-events-none"
+          style={{ boxShadow: '0 0 20px rgba(212, 168, 67, 0.4), 0 0 40px rgba(212, 168, 67, 0.15)' }}
+          // Opacity loops survive `reducedMotion` — it only disables transform
+          // and layout — so this one has to be switched off by hand. A pulse is
+          // the kind of motion you cannot look away from.
+          animate={reduced ? { opacity: 0.8 } : { opacity: [0.5, 1, 0.5] }}
+          transition={reduced ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
+        />
+      )}
+    </div>
+  )
+}
+
+/**
+ * The betting circle and what stands in it.
+ *
+ * The circle is printed on the felt for every seat, taken or not. While bets
+ * are placed the player's own circles are buttons: a click puts the chips on
+ * that hand alone (the circle turns gold), a second click lets go, and the
+ * small × takes the hand off the table.
+ */
+function BetSpot({ amount, outcome = null, payout, pick }: {
+  amount: number
+  outcome?: ChipOutcome
+  payout?: number
+  pick?: SeatPick
+}) {
+  const { t } = useTranslation()
+  return (
+    <>
+      <span
+        aria-hidden
+        className={`absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full border-2 transition-[border-color,box-shadow,background-color] duration-150
+          ${pick?.selected ? 'border-gold bg-gold/10 shadow-[0_0_0_4px_rgba(212,168,71,.22)]' : 'border-white/25'}`}
+        style={{ width: SPOT_SIZE, height: SPOT_SIZE }}
+        data-testid="bet-spot"
+      />
+      <div className="relative" style={{ marginBottom: (SPOT_SIZE - 46) / 2 }}>
+        <ChipStack amount={amount} outcome={outcome} payout={payout} bare />
+      </div>
+      {pick && (
+        <>
+          <button
+            type="button"
+            onClick={pick.onSelect}
+            aria-pressed={pick.selected}
+            aria-label={t('casino.table.handNo', { n: pick.index + 1 })}
+            data-testid={`box-${pick.index + 1}`}
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full cursor-pointer hover:bg-white/10"
+            style={{ width: SPOT_SIZE, height: SPOT_SIZE }}
+          />
+          {pick.onClose && (
+            <button
+              type="button"
+              onClick={pick.onClose}
+              aria-label={t('casino.table.removeHand', { n: pick.index + 1 })}
+              data-testid={`box-close-${pick.index + 1}`}
+              className="absolute z-10 w-7 h-7 rounded-full bg-black/75 border border-white/30 text-white/85
+                text-base leading-none font-bold cursor-pointer hover:bg-[#c8102e] hover:border-transparent transition-colors"
+              style={{ bottom: SPOT_SIZE - 14, left: `calc(50% + ${SPOT_SIZE / 2 - 10}px)` }}
+            >×</button>
+          )}
+        </>
+      )}
+    </>
+  )
+}
+
+/**
+ * A seat nobody sits at: its betting circle, and — when the player may take
+ * another hand — a plus in it. One click and the seat is theirs.
+ */
+export function EmptySeat({ seat, slotWidth = 200, onOpen }: {
+  /** The seat's number at the table, from 0. */
+  seat: number
+  slotWidth?: number
+  /** Present when the player may open a hand here. */
+  onOpen?: () => void
+}) {
+  const { t } = useTranslation()
+  return (
+    <SeatShell
+      testid="empty-seat"
+      slotWidth={slotWidth}
+      spot={onOpen ? (
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={t('casino.table.addHand')}
+          data-testid={`seat-open-${seat + 1}`}
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 grid place-items-center rounded-full border-2 border-dashed border-gold/60 text-gold-bright
+            text-3xl leading-none font-semibold cursor-pointer transition-colors hover:bg-gold hover:text-on-gold hover:border-solid hover:border-gold"
+          style={{ width: SPOT_SIZE, height: SPOT_SIZE }}
+        >+</button>
+      ) : (
+        <span
+          aria-hidden
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full border-2 border-white/15"
+          style={{ width: SPOT_SIZE, height: SPOT_SIZE }}
+          data-testid="bet-spot"
+        />
+      )}
+    />
+  )
+}
+
 // ─── Human Seat ──────────────────────────────────────
 
 interface HumanSeatProps {
@@ -206,8 +367,6 @@ export interface SeatPick {
   onSelect: () => void
   /** Present when the hand may be removed. */
   onClose?: () => void
-  /** Present on the last hand when one more may be opened. */
-  onOpen?: () => void
 }
 
 export function HumanSeat({
@@ -243,15 +402,12 @@ export function HumanSeat({
     : humanOutcome === 'win' ? 'win' : null
 
   return (
-    <div
-      className={`relative flex flex-col items-center gap-1.5 transition-opacity ${isDimmed ? 'opacity-40' : ''}`}
-      style={{ width: slotWidth }}
-      data-testid="human-seat"
-    >
-      <ChipStack amount={stake} outcome={humanOutcome} payout={humanSettlement?.profit} />
-
-      {/* Cards */}
-      {isSplit ? (
+    <SeatShell
+      testid="human-seat"
+      slotWidth={slotWidth}
+      dimmed={isDimmed}
+      active={isActivePlayer}
+      cards={isSplit ? (
         <div className="flex justify-center" style={{ gap: SPLIT_GAP }}>
           {humanHands.map((hand, i) => (
             <motion.div
@@ -273,29 +429,18 @@ export function HumanSeat({
       ) : (
         <Hand cards={shownCards} totalClass="text-sm" width={box.width} reach={box.reach} moment={humanMoment} />
       )}
-
-      {/*
-        Per-player settlement result label.
-
-        Transform only. This is the answer to "what just happened to my hand",
-        so a frozen frame loop must leave it small-then-settling, never absent —
-        it used to enter from `opacity: 0` and a stalled animation left the
-        player looking at a settled table with no result on it.
-      */}
-      {/* Its height is there from the deal on. The label used to be inserted
-          at settlement, between the cards and the name: every seat's cards and
-          chip jumped up by its height in the same frame, the whole row at once. */}
-      <div className="h-7 flex items-center justify-center">
-      {pick?.numbered && (
-        <span className={`text-[0.75rem] font-semibold uppercase tracking-wide ${pick.selected ? 'text-gold-bright' : 'text-white/55'}`}>
-          {t('casino.table.handNo', { n: pick.index + 1 })}
-        </span>
-      )}
-      {humanSettlement && gameStep === 'settlement' && (
+      spot={<BetSpot amount={stake} outcome={humanOutcome} payout={humanSettlement?.profit} pick={pick} />}
+      /*
+        The result, in a line whose height is there from the deal on: inserted
+        at settlement it pushed every seat's cards up in the same frame.
+        Transform only — a frozen frame loop must leave it small-then-settling,
+        never absent.
+      */
+      result={humanSettlement && gameStep === 'settlement' ? (
         <motion.div
           initial={reduced ? false : { scale: 0.8 }}
           animate={{ scale: 1 }}
-          className={`text-sm md:text-base font-black whitespace-nowrap drop-shadow-lg px-2 py-0.5 rounded ${
+          className={`text-sm font-black whitespace-nowrap drop-shadow-lg px-2 rounded ${
             humanSettlement.result === 'blackjack'
               ? 'bg-gold text-on-gold'
               : humanSettlement.profit > 0 ? 'text-success'
@@ -306,67 +451,14 @@ export function HumanSeat({
         >
           {t(SETTLEMENT_KEY[humanSettlement.result])} {humanSettlement.profit > 0 ? '+' : ''}{formatDollar(humanSettlement.profit)}
         </motion.div>
-      )}
-      </div>
-
-      {isSurrendered && <span className="text-[0.65rem] text-warning font-semibold">{t('casino.table.surrendered')}</span>}
-
-      <NamePlate name={t('casino.table.you')} bankroll={bankroll} you />
-
-      {/*
-        While betting, the hand is something to click, as at an online table:
-        a click puts the chips on this hand alone, a second click lets go.
-        The whole seat is the target — the chip alone would be a 46px circle
-        in a scene that is scaled down on a small screen.
-      */}
-      {pick && (
-        <>
-          <button
-            type="button"
-            onClick={pick.onSelect}
-            aria-pressed={pick.selected}
-            aria-label={t('casino.table.handNo', { n: pick.index + 1 })}
-            data-testid={`box-${pick.index + 1}`}
-            className={`absolute -inset-x-1 -top-2 -bottom-1 rounded-xl cursor-pointer transition-[box-shadow,background-color] duration-150
-              ${pick.selected ? 'ring-2 ring-gold bg-gold/[0.07]'
-                : pick.numbered ? 'ring-1 ring-white/15 hover:ring-white/45' : 'hover:ring-1 hover:ring-white/35'}`}
-          />
-          {pick.onClose && (
-            <button
-              type="button"
-              onClick={pick.onClose}
-              aria-label={t('casino.table.removeHand', { n: pick.index + 1 })}
-              data-testid={`box-close-${pick.index + 1}`}
-              className="absolute top-0 right-0 z-10 w-9 h-9 rounded-full bg-black/70 border border-white/30 text-white/85
-                text-xl leading-none font-bold cursor-pointer hover:bg-[#c8102e] hover:border-transparent transition-colors"
-            >×</button>
-          )}
-          {pick.onOpen && (
-            <button
-              type="button"
-              onClick={pick.onOpen}
-              aria-label={t('casino.table.addHand')}
-              data-testid="box-open"
-              className="absolute top-14 -right-6 z-10 w-12 h-12 rounded-full border-2 border-dashed border-gold/70 bg-black/30 text-gold-bright
-                text-2xl leading-none font-bold cursor-pointer hover:bg-gold hover:text-on-gold hover:border-solid transition-colors"
-            >+</button>
-          )}
-        </>
-      )}
-
-      {/* Active glow */}
-      {isActivePlayer && (
-        <motion.div
-          className="absolute -inset-2 rounded-xl pointer-events-none"
-          style={{ boxShadow: '0 0 20px rgba(212, 168, 67, 0.4), 0 0 40px rgba(212, 168, 67, 0.15)' }}
-          // Opacity loops survive `reducedMotion` — it only disables transform
-          // and layout — so this one has to be switched off by hand. A pulse is
-          // the kind of motion you cannot look away from.
-          animate={reduced ? { opacity: 0.8 } : { opacity: [0.5, 1, 0.5] }}
-          transition={reduced ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
-        />
-      )}
-    </div>
+      ) : pick?.numbered ? (
+        <span className={`text-[0.75rem] font-semibold uppercase tracking-wide ${pick.selected ? 'text-gold-bright' : 'text-white/55'}`}>
+          {t('casino.table.handNo', { n: pick.index + 1 })}
+        </span>
+      ) : null}
+      name={<NamePlate name={t('casino.table.you')} bankroll={bankroll} you />}
+      status={isSurrendered ? <span className="text-[0.65rem] text-warning font-semibold">{t('casino.table.surrendered')}</span> : null}
+    />
   )
 }
 
@@ -413,23 +505,17 @@ export function BotSeat({
   const single = handBoxes(slotWidth, 1)
   const split = handBoxes(slotWidth, showSplitHands ? splitHands.filter(v => v.cards.length > 0).length : 1)
 
-  return (
-    <div
-      className={`relative flex flex-col items-center gap-1.5 transition-opacity ${isDimmed ? 'opacity-40' : ''}`}
-      style={{ width: slotWidth }}
-      data-testid="bot-seat"
-    >
-      <ChipStack
-        amount={botStake}
-        outcome={gameStep !== 'settlement' || !botSettlement ? null : botSettlement.profit > 0 ? 'win' : botSettlement.profit < 0 ? 'loss' : 'push'}
-        payout={botSettlement?.profit}
-      />
+  const botOutcome: ChipOutcome = gameStep !== 'settlement' || !botSettlement ? null
+    : botSettlement.profit > 0 ? 'win' : botSettlement.profit < 0 ? 'loss' : 'push'
 
-      {/* Split hands — exactly the hands on the table at this moment of the
-          replay. Keyed by the hand's id, not its position: a re-split inserts
-          a hand next to the one split, which slides in while the others make
-          room (`layout`), instead of every hand after it changing identity. */}
-      {showSplitHands && gameStep !== 'betting' && (
+  // What lies in front of the bot. Three cases: the split hands as the replay
+  // has them now; the pair the engine has already split while the replay has
+  // not started (shown still, from the turn log — after a re-split the first
+  // cards of the final hands are not the two that were dealt); one hand.
+  let cards: React.ReactNode = null
+  if (gameStep !== 'betting') {
+    if (showSplitHands) {
+      cards = (
         <div className="flex justify-center" style={{ gap: SPLIT_GAP }}>
           {splitHands.map((view, hi) => {
             const shownCards = view.cards
@@ -467,55 +553,38 @@ export function BotSeat({
             )
           })}
         </div>
-      )}
+      )
+    } else if (hasSplit) {
+      const pairCards = bot.turnLog?.[0]?.hands[0]?.cards
+        ?? bot.hands.map(h => h.cards[0]).filter(Boolean).slice(0, 2)
+      cards = <Hand cards={pairCards} animateFrom={pairCards.length} totalClass="text-[0.6875rem]" width={single.width} reach={single.reach} />
+    } else {
+      const hand = bot.hands[0]
+      const visibleCards = hand && visibleLimit !== undefined ? hand.cards.slice(0, visibleLimit) : hand?.cards ?? []
+      const moment: HandMoment | null = isNatural(visibleCards, false) ? 'blackjack'
+        : gameStep === 'settlement' && (botSettlement?.profit ?? 0) > 0 ? 'win' : null
+      cards = <Hand cards={visibleCards} totalClass="text-[0.6875rem]" width={single.width} reach={single.reach} moment={moment} />
+    }
+  }
 
-      {/* Pre-split mode: the engine has already split, but the animation hasn't
-          started. Show ONLY the original two-card pair, and DON'T animate it —
-          these cards are already on the table, so they must not re-fly when the
-          seat switches into split mode (that caused the odd flick + a 3-card
-          flash on re-splits). The pair comes from the turn log: after a re-split
-          the first cards of the final hands are not the two cards that were dealt. */}
-      {hasSplit && !splitHands && gameStep !== 'betting' && (() => {
-        const pairCards = bot.turnLog?.[0]?.hands[0]?.cards
-          ?? bot.hands.map(h => h.cards[0]).filter(Boolean).slice(0, 2)
-        return <Hand cards={pairCards} animateFrom={pairCards.length} totalClass="text-[0.6875rem]" width={single.width} reach={single.reach} />
-      })()}
-
-      {/* Single hand (no split) */}
-      {!hasSplit && gameStep !== 'betting' && (() => {
-        const hand = bot.hands[0]
-        const visibleCards = hand && visibleLimit !== undefined ? hand.cards.slice(0, visibleLimit) : hand?.cards ?? []
-        const moment: HandMoment | null = isNatural(visibleCards, false) ? 'blackjack'
-          : gameStep === 'settlement' && (botSettlement?.profit ?? 0) > 0 ? 'win' : null
-        return <Hand cards={visibleCards} totalClass="text-[0.6875rem]" width={single.width} reach={single.reach} moment={moment} />
-      })()}
-
-      {/* Per-bot settlement result label, in a slot that is always there. */}
-      <div className="h-4 flex items-center justify-center">
-      {botSettlement && gameStep === 'settlement' && (
-        <span className={`text-[0.65rem] md:text-[0.6875rem] font-bold ${
+  return (
+    <SeatShell
+      testid="bot-seat"
+      slotWidth={slotWidth}
+      dimmed={isDimmed}
+      active={isActivePlayer}
+      cards={cards}
+      spot={<BetSpot amount={botStake} outcome={botOutcome} payout={botSettlement?.profit} />}
+      result={botSettlement && gameStep === 'settlement' ? (
+        <span className={`text-[0.6875rem] font-bold ${
           botSettlement.profit > 0 ? 'text-success' : botSettlement.profit < 0 ? 'text-error' : 'text-white/50'
         }`} data-testid="bot-settlement">
           {hasSplit ? `${t('casino.table.total')}: ` : `${botSettlement.result === 'blackjack' ? t('casino.table.resultBlackjack') : botSettlement.result === 'win' ? t('casino.table.resultWin') : botSettlement.result === 'push' ? t('casino.table.resultPush') : botSettlement.result === 'surrender' ? t('casino.table.resultSurrender') : t('casino.table.resultLoss')} `}
           {botSettlement.profit > 0 ? '+' : ''}{formatDollar(botSettlement.profit)}
         </span>
-      )}
-      </div>
-
-      <NamePlate name={bot.name} bankroll={bot.bankroll} />
-      <BotStatusBadge status={botStatus} />
-
-      {/* Active glow for bots */}
-      {isActivePlayer && (
-        <motion.div
-          className="absolute -inset-2 rounded-xl pointer-events-none"
-          style={{ boxShadow: '0 0 15px rgba(234, 179, 8, 0.3)' }}
-          // Same as the human seat's glow: an opacity loop is invisible to
-          // `reducedMotion` and has to be stopped explicitly.
-          animate={reducedBot ? { opacity: 0.6 } : { opacity: [0.3, 0.8, 0.3] }}
-          transition={reducedBot ? { duration: 0 } : { duration: 1, repeat: Infinity }}
-        />
-      )}
-    </div>
+      ) : null}
+      name={<NamePlate name={bot.name} bankroll={bot.bankroll} />}
+      status={<BotStatusBadge status={botStatus} />}
+    />
   )
 }

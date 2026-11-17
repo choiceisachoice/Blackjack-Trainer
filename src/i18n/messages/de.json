@@ -589,7 +589,9 @@
       "styleBasic": "Nur Blackjack",
       "styleBasicHint": "Kein Running Count, kein True Count – einfach spielen. Bewertet wird nur die Basisstrategie, XP gibt es trotzdem.",
       "unlimited": "Unbegrenzt",
-      "unlimitedHint": "Spiel so lange du willst und mach Cash-out, wann du möchtest. Die Session wird im Tracker gespeichert."
+      "unlimitedHint": "Spiel so lange du willst und mach Cash-out, wann du möchtest. Die Session wird im Tracker gespeichert.",
+      "multiHand": "Mehrere Hände spielen",
+      "multiHandHint": "Jeder freie Platz am Tisch zeigt ein +. Du kannst bis zu {{count}} Hände öffnen."
     },
     "table": {
       "you": "DU",
@@ -615,7 +617,8 @@
       "hands": "Hände",
       "allHands": "Alle Hände",
       "addHand": "Hand hinzufügen",
-      "removeHand": "Hand {{n}} entfernen"
+      "removeHand": "Hand {{n}} entfernen",
+      "decisionClock": "Zeit für die Entscheidung"
     },
     "act": {
       "hit": "Ziehen (H)",

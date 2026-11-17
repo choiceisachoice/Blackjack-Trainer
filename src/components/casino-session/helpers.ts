@@ -29,6 +29,7 @@ export const DEFAULT_CONFIG: CasinoSessionConfig = {
   targetMinutes: 15,
   numBots: 2,
   playerSeatIndex: 3,
+  multiHand: false,
   startingBankroll: 5000,
   minBet: 25,
   maxBet: 500,
@@ -362,6 +363,8 @@ export function visibleForBox(shown: number, box: number, boxes: number): number
  * seconds is enough to read the count, size the bet and place it — and Enter
  * deals at once for anyone who is ready sooner.
  */
+/** How long the player has for a decision on a hand; then the hand stands. */
+export const DECISION_SECONDS = 30
 export const BET_SECONDS = 30
 
 export interface ChipColor {

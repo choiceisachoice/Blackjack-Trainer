@@ -41,6 +41,9 @@ import { buildSplitReplay } from './split-replay'
 import { sessionLimitReached, type SessionLimit } from './session-limit'
 import { useStepAnimation, type AnimStep } from './useStepAnimation'
 
+/** Seats at the table. */
+const TABLE_SEATS = 6
+
 // ─── Visible State ───────────────────────────────────
 
 export interface VisibleState {
@@ -78,6 +81,10 @@ export interface VisibleState {
   currentBet: number
   /** The bet on each of the player's hands, by box. Same length as `boxes`. */
   boxBets: number[]
+  /** The seat each of the player's hands lies on, left to right. Same length as `boxes`. */
+  boxSeats: number[]
+  /** Seats no bot sits in: where the player's hands are or could be. */
+  freeSeats: number[]
   /**
    * The hand the chips go on while betting, or null for all of them at once.
    * A click on a hand at the table selects it; a second click lets go.
@@ -132,6 +139,8 @@ export interface GameActions {
   selectBox: (box: number | null) => void
   /** Take this hand off the table for the next round (never the last one). */
   closeBox: (box: number) => void
+  /** Open a hand on this free seat for the next round. */
+  openBoxAt: (seat: number) => void
   setRcInput: (v: string) => void
   setTcInput: (v: string) => void
   setPaused: (v: boolean) => void
@@ -189,10 +198,17 @@ export function useGameLoop(
   const dealResultRef = useRef<DealResult | null>(null)
   const handRecordRef = useRef<Partial<PlayerHandRecord> & { _built?: unknown }>({})
   const decisionsRef = useRef<{ action: string; correctAction: string; isCorrect: boolean; cardReceived?: Card; handValueAfter: number; handIndex?: number }[]>([])
-  const postHumanBotsRef = useRef<number[]>([])
 
   // Shadow refs for stale closure avoidance
   const boxBetsRef = useRef<number[]>([0])
+  const boxSeatsRef = useRef<number[]>([config.playerSeatIndex])
+  /**
+   * The last seat whose bot has played this round. Play goes round the table
+   * seat by seat: before one of the player's hands is played, the bots sitting
+   * before it are, and whatever sits after the last hand plays before the
+   * dealer. -1 when nobody has.
+   */
+  const botsPlayedToRef = useRef(-1)
   const selectedBoxRef = useRef<number | null>(null)
   const humanHandsRef = useRef<Card[][]>([[]])
   const handDoubledRef = useRef<Set<number>>(new Set())
@@ -254,12 +270,21 @@ export function useGameLoop(
   const [humanVisibleCards, setHumanVisibleCards] = useState(999)
 
   const [boxBets, setBoxBetsState] = useState<number[]>([0])
+  const [boxSeats, setBoxSeatsState] = useState<number[]>([config.playerSeatIndex])
   const [selectedBox, setSelectedBoxState] = useState<number | null>(null)
   const [insuranceBox, setInsuranceBoxState] = useState(-1)
   /** The bets and the ref the game logic reads them from, always together. */
   const applyBets = useCallback((bets: number[]) => {
     boxBetsRef.current = bets
     setBoxBetsState(bets)
+  }, [])
+  /** The seats of the player's hands: ref, state, the count and the engine, always together. */
+  const applySeats = useCallback((seats: number[]) => {
+    boxSeatsRef.current = seats
+    setBoxSeatsState(seats)
+    boxesRef.current = seats.length
+    setBoxesState(seats.length)
+    engineRef.current?.setHumanBoxSeats(seats)
   }, [])
   const applySelected = useCallback((box: number | null) => {
     selectedBoxRef.current = box
@@ -394,8 +419,8 @@ export function useGameLoop(
     const funds = engineNow ? engineNow.getHumanBankroll() : 0
     let hands = boxesRef.current
     while (hands > 1 && Math.floor(funds / hands) < config.minBet) hands--
-    if (hands !== boxesRef.current) { boxesRef.current = hands; setBoxesState(hands) }
-    engineNow?.setHumanBoxes(hands)
+    if (hands !== boxesRef.current) applySeats(boxSeatsRef.current.slice(0, hands))
+    else engineNow?.setHumanBoxSeats(boxSeatsRef.current)
     // Each hand keeps its own bet. If together they are more than is left,
     // what is left is shared out evenly.
     const last = lastBetsRef.current
@@ -430,7 +455,7 @@ export function useGameLoop(
       }
       setBotStatuses(newStatuses)
     }
-  }, [animation, setActive, config.maxBet, config.minBet, applyBets, applySelected, applyInsuranceBox])
+  }, [animation, setActive, config.maxBet, config.minBet, applyBets, applySelected, applyInsuranceBox, applySeats])
 
   const updateHandCards = useCallback((idx: number, newCards: Card[]) => {
     setHumanHands(prev => {
@@ -1018,6 +1043,37 @@ export function useGameLoop(
     return steps
   }, [recorder, settleDealerRound])
 
+  // ─── Play goes round the table ─────────────────────
+
+  /**
+   * The steps that play every bot sitting before `seat` that has not played
+   * yet this round. The engine plays them now; the steps replay it.
+   */
+  const botStepsBefore = useCallback((seat: number): AnimStep[] => {
+    const engine = engineRef.current
+    const dr = dealResultRef.current
+    if (!engine || !dr) return []
+    const due: number[] = []
+    engine.getSeats().forEach((bot, i) => {
+      if (bot && bot.isActive && i > botsPlayedToRef.current && i < seat) due.push(i)
+    })
+    botsPlayedToRef.current = Math.max(botsPlayedToRef.current, seat - 1)
+    return due.length > 0 ? computeBotsAndBuildSteps(due, dr.dealerUpCard) : []
+  }, [computeBotsAndBuildSteps])
+
+  /**
+   * Give one of the player's hands the turn — after the bots that sit before
+   * it. With several hands at a table, a bot between two of them plays between
+   * them, as it would at a casino.
+   */
+  const enterHand = useCallback((idx: number) => {
+    const seat = boxSeatsRef.current[handInfoRef.current[idx]?.box ?? 0] ?? config.playerSeatIndex
+    const steps = botStepsBefore(seat)
+    const give = () => { setActive(idx); setGameStep('human_playing') }
+    if (steps.length > 0) animation.run(steps, give)
+    else give()
+  }, [animation, botStepsBefore, setActive, config.playerSeatIndex])
+
   // ─── Post-Human Flow ───────────────────────────────
 
   const runPostHumanFlow = useCallback(() => {
@@ -1025,16 +1081,9 @@ export function useGameLoop(
     if (!dr || postHumanRanRef.current) return
     postHumanRanRef.current = true
 
-    const steps: AnimStep[] = []
-
-    const postBots = postHumanBotsRef.current
-    if (postBots.length > 0) {
-      steps.push(...computeBotsAndBuildSteps(postBots, dr.dealerUpCard))
-    }
-    steps.push(...buildDealerSteps())
-
-    animation.run(steps)
-  }, [animation, computeBotsAndBuildSteps, buildDealerSteps])
+    // Whoever sits after the player's last hand, then the dealer.
+    animation.run([...botStepsBefore(Number.POSITIVE_INFINITY), ...buildDealerSteps()])
+  }, [animation, botStepsBefore, buildDealerSteps])
 
   // ─── Advance To Next Hand ──────────────────────────
 
@@ -1083,12 +1132,12 @@ export function useGameLoop(
           updateHandCards(nextIdx, [...nextHand, newCard])
         }, scaledDelay(500))
       } else {
-        schedule(() => setActive(nextIdx), scaledDelay(400))
+        schedule(() => enterHand(nextIdx), scaledDelay(400))
       }
     } else {
       runPostHumanFlow()
     }
-  }, [updateHandCards, runPostHumanFlow, schedule, setActive])
+  }, [updateHandCards, runPostHumanFlow, schedule, setActive, enterHand])
 
   /**
    * Hand the table to the player: the first hand that is theirs to play.
@@ -1103,9 +1152,8 @@ export function useGameLoop(
       first++
     }
     if (first >= hands.length) { runPostHumanFlow(); return }
-    setActive(first)
-    setGameStep('human_playing')
-  }, [runPostHumanFlow, setActive])
+    enterHand(first)
+  }, [runPostHumanFlow, enterHand])
 
   // ─── Betting Phase ─────────────────────────────────
 
@@ -1121,7 +1169,7 @@ export function useGameLoop(
     const funds = engine.getHumanBankroll()
     let handCount = boxesRef.current
     while (handCount > 1 && Math.floor(funds / handCount) < config.minBet) handCount--
-    if (handCount !== boxesRef.current) { boxesRef.current = handCount; setBoxesState(handCount) }
+    if (handCount !== boxesRef.current) applySeats(boxSeatsRef.current.slice(0, handCount))
 
     // Each hand's own bet; a hand left empty plays the minimum. If together
     // they are more than the bankroll, it is shared out evenly instead.
@@ -1169,7 +1217,8 @@ export function useGameLoop(
     applyInsuranceBox(-1)
     applyBets(bets)
 
-    const dealResult = engine.dealNewRound(handCount)
+    const dealResult = engine.dealNewRound(boxSeatsRef.current)
+    botsPlayedToRef.current = -1
     dealResultRef.current = dealResult
     // A fresh shoe empties the discard tray.
     if (dealResult.reshuffled) setDiscardCount(0)
@@ -1218,10 +1267,24 @@ export function useGameLoop(
       steps.push({ execute: () => setShowReshuffle(false), delayMs: 400 })
     }
 
-    // Round 1: first card to each seat, then dealer
-    for (const seat of currentSeatLayout) {
-      if (seat.type === 'bot' && seat.bot) {
-        const botId = seat.bot.id
+    // Round 1: first card to each seat in turn, then dealer
+    {
+      let shown = 0
+      for (let seatIdx = 0; seatIdx < TABLE_SEATS; seatIdx++) {
+        if (dealResult.humanBoxSeats.includes(seatIdx)) {
+          const upTo = ++shown
+          steps.push({
+            execute: () => {
+              setHumanVisibleCards(upTo)
+              soundEngine.cardDeal()
+            },
+            delayMs: 500,
+          })
+          continue
+        }
+        const bot = currentSeatLayout.find(e => e.type === 'bot' && e.seatIndex === seatIdx)?.bot
+        if (!bot) continue
+        const botId = bot.id
         steps.push({
           execute: () => {
             setBotVisibleCards(prev => ({ ...prev, [botId]: 1 }))
@@ -1229,17 +1292,6 @@ export function useGameLoop(
           },
           delayMs: 500,
         })
-      } else if (seat.type === 'human') {
-        for (let box = 0; box < handCount; box++) {
-          const shown = box + 1
-          steps.push({
-            execute: () => {
-              setHumanVisibleCards(shown)
-              soundEngine.cardDeal()
-            },
-            delayMs: 500,
-          })
-        }
       }
     }
     // Dealer up card
@@ -1251,10 +1303,24 @@ export function useGameLoop(
       delayMs: 500,
     })
 
-    // Round 2: second card to each seat, then dealer hole card
-    for (const seat of currentSeatLayout) {
-      if (seat.type === 'bot' && seat.bot) {
-        const botId = seat.bot.id
+    // Round 2: second card to each seat in turn, then dealer hole card
+    {
+      let shown = handCount
+      for (let seatIdx = 0; seatIdx < TABLE_SEATS; seatIdx++) {
+        if (dealResult.humanBoxSeats.includes(seatIdx)) {
+          const upTo = ++shown
+          steps.push({
+            execute: () => {
+              setHumanVisibleCards(upTo)
+              soundEngine.cardDeal()
+            },
+            delayMs: 500,
+          })
+          continue
+        }
+        const bot = currentSeatLayout.find(e => e.type === 'bot' && e.seatIndex === seatIdx)?.bot
+        if (!bot) continue
+        const botId = bot.id
         steps.push({
           execute: () => {
             setBotVisibleCards(prev => ({ ...prev, [botId]: 2 }))
@@ -1262,17 +1328,6 @@ export function useGameLoop(
           },
           delayMs: 500,
         })
-      } else if (seat.type === 'human') {
-        for (let box = 0; box < handCount; box++) {
-          const shown = handCount + box + 1
-          steps.push({
-            execute: () => {
-              setHumanVisibleCards(shown)
-              soundEngine.cardDeal()
-            },
-            delayMs: 500,
-          })
-        }
       }
     }
     // Dealer hole card (face down)
@@ -1339,6 +1394,7 @@ export function useGameLoop(
         const allBotSeats = currentSeatLayout
           .filter(s => s.type === 'bot')
           .map(s => s.seatIndex)
+        botsPlayedToRef.current = TABLE_SEATS
         const botSteps = allBotSeats.length > 0
           ? computeBotsAndBuildSteps(allBotSeats, dealResult.dealerUpCard)
           : []
@@ -1347,23 +1403,10 @@ export function useGameLoop(
         return
       }
 
-      // Normal — compute pre-human bots, then human_playing
-      const preHumanBots = currentSeatLayout
-        .filter(s => s.type === 'bot' && s.seatIndex < config.playerSeatIndex)
-        .map(s => s.seatIndex)
-      const postHumanBots = currentSeatLayout
-        .filter(s => s.type === 'bot' && s.seatIndex > config.playerSeatIndex)
-        .map(s => s.seatIndex)
-      postHumanBotsRef.current = postHumanBots
-
-      if (preHumanBots.length > 0) {
-        const preSteps = computeBotsAndBuildSteps(preHumanBots, dealResult.dealerUpCard)
-        animation.run(preSteps, () => beginHumanTurn())
-      } else {
-        beginHumanTurn()
-      }
+      // Normal — play goes round the table to the player's first hand.
+      beginHumanTurn()
     })
-  }, [config, seatLayout, elapsedSeconds, keptPlaying, animation, computeBotsAndBuildSteps, buildDealerSteps, settleDealerRound, recorder, setActive, beginHumanTurn, applyBets, applyInsuranceBox])
+  }, [config, seatLayout, elapsedSeconds, keptPlaying, animation, computeBotsAndBuildSteps, buildDealerSteps, settleDealerRound, recorder, setActive, beginHumanTurn, applyBets, applyInsuranceBox, applySeats])
 
   // ─── Insurance ─────────────────────────────────────
 
@@ -1431,28 +1474,16 @@ export function useGameLoop(
       const allBotSeats = currentSeatLayout
         .filter(s => s.type === 'bot')
         .map(s => s.seatIndex)
+      botsPlayedToRef.current = TABLE_SEATS
       const botSteps = allBotSeats.length > 0
         ? computeBotsAndBuildSteps(allBotSeats, dr.dealerUpCard)
         : []
       const dealerSteps = buildDealerSteps()
       animation.run([...botSteps, ...dealerSteps])
     } else {
-      const preHumanBots = currentSeatLayout
-        .filter(s => s.type === 'bot' && s.seatIndex < config.playerSeatIndex)
-        .map(s => s.seatIndex)
-      const postHumanBots = currentSeatLayout
-        .filter(s => s.type === 'bot' && s.seatIndex > config.playerSeatIndex)
-        .map(s => s.seatIndex)
-      postHumanBotsRef.current = postHumanBots
-
-      if (preHumanBots.length > 0) {
-        const preSteps = computeBotsAndBuildSteps(preHumanBots, dr.dealerUpCard)
-        animation.run(preSteps, () => beginHumanTurn())
-      } else {
-        beginHumanTurn()
-      }
+      beginHumanTurn()
     }
-  }, [applyInsuranceBox, seatLayout, config.playerSeatIndex, animation, computeBotsAndBuildSteps, buildDealerSteps, recorder, settleDealerRound, beginHumanTurn])
+  }, [applyInsuranceBox, seatLayout, animation, computeBotsAndBuildSteps, buildDealerSteps, recorder, settleDealerRound, beginHumanTurn])
 
   // ─── Human Play ────────────────────────────────────
 
@@ -1478,7 +1509,7 @@ export function useGameLoop(
         // Not an ace waiting for its card. A hand of the player's next box,
         // not yet played, is theirs to play in the ordinary way; anything
         // already moved on from, or a blackjack, is passed over.
-        if (!advancedFromRef.current.has(idx) && !isNaturalAt(idx)) { setActive(idx); return }
+        if (!advancedFromRef.current.has(idx) && !isNaturalAt(idx)) { enterHand(idx); return }
         advancedFromRef.current.add(idx)
         step(idx + 1)
         return
@@ -1499,7 +1530,7 @@ export function useGameLoop(
       }, scaledDelay(500))
     }
     step(from)
-  }, [runPostHumanFlow, schedule, setActive, updateHandCards, config.maxSplitHands, betOfHand])
+  }, [runPostHumanFlow, schedule, setActive, updateHandCards, config.maxSplitHands, betOfHand, enterHand])
 
   const handleAction = useCallback((action: Action) => {
     const engine = engineRef.current
@@ -1809,29 +1840,64 @@ export function useGameLoop(
     proceedAfterHand()
   }, [gameStep, config, proceedAfterHand])
 
-  /**
-   * Take this many hands. A hand that is opened starts with the bet of the
-   * selected hand (or the last one); `bets` replaces them outright, for a hand
-   * taken out of the middle.
-   */
-  const setBoxes = (wanted: number, bets?: number[]) => {
-    const engine = engineRef.current
-    const funds = engine ? engine.getHumanBankroll() : 0
-    let hands = Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(wanted) || 1))
-    while (hands > 1 && Math.floor(funds / hands) < config.minBet) hands--
-    boxesRef.current = hands
-    setBoxesState(hands)
-    engine?.setHumanBoxes(hands)
-    const current = bets ?? boxBetsRef.current
-    const seed = current[selectedBoxRef.current ?? current.length - 1] ?? 0
-    let next = Array.from({ length: hands }, (_, i) => current[i] ?? seed)
+  /** What the hands may carry together, and the bets fitted to it. */
+  const fitBets = (bets: number[]): number[] => {
+    const funds = engineRef.current ? engineRef.current.getHumanBankroll() : 0
+    if (bets.reduce((a, b) => a + b, 0) <= funds) return bets
     // More hands may leave less for each: then what there is, shared evenly.
-    if (next.reduce((a, b) => a + b, 0) > funds) {
-      const each = Math.min(config.maxBet, Math.floor(funds / hands))
-      next = next.map(() => (each >= config.minBet ? each : 0))
-    }
-    applyBets(next)
-    if (bets || (selectedBoxRef.current ?? 0) >= hands) applySelected(null)
+    const each = Math.min(config.maxBet, Math.floor(funds / bets.length))
+    return bets.map(() => (each >= config.minBet ? each : 0))
+  }
+  /** How many hands the bankroll and the free seats allow. */
+  const handsAllowed = (): number => {
+    const engine = engineRef.current
+    if (!engine) return 1
+    return Math.max(1, Math.min(MAX_PLAYER_HANDS, engine.getFreeSeats().length, Math.floor(engine.getHumanBankroll() / config.minBet)))
+  }
+
+  /**
+   * Take this many hands: the player's own seat and the free seats nearest to
+   * it. A hand that is opened starts with the bet of the selected hand (or the
+   * last one).
+   */
+  const setBoxes = (wanted: number) => {
+    const engine = engineRef.current
+    if (!engine) return
+    const hands = Math.max(1, Math.min(handsAllowed(), Math.floor(wanted) || 1))
+    engine.setHumanBoxes(hands)
+    const seats = engine.getHumanBoxSeats()
+    const current = boxBetsRef.current
+    const seed = current[selectedBoxRef.current ?? current.length - 1] ?? 0
+    applySeats(seats)
+    applyBets(fitBets(Array.from({ length: seats.length }, (_, i) => current[i] ?? seed)))
+    if ((selectedBoxRef.current ?? 0) >= seats.length) applySelected(null)
+  }
+
+  /** Open a hand on a free seat; it starts with the bet of the selected hand, or its neighbour's. */
+  const openBoxAt = (seat: number) => {
+    const engine = engineRef.current
+    if (!engine || gameStep !== 'betting') return
+    const seats = boxSeatsRef.current
+    if (seats.includes(seat) || !engine.getFreeSeats().includes(seat) || seats.length >= handsAllowed()) return
+    const next = [...seats, seat].sort((a, b) => a - b)
+    const at = next.indexOf(seat)
+    const current = boxBetsRef.current
+    const seed = current[selectedBoxRef.current ?? Math.max(0, at - 1)] ?? current[0] ?? 0
+    const bets = [...current]
+    bets.splice(at, 0, seed)
+    applySeats(next)
+    applyBets(fitBets(bets))
+    applySelected(null)
+    soundEngine.chipPlace()
+  }
+
+  /** Take a hand off the table (never the last one). */
+  const closeBox = (box: number) => {
+    const seats = boxSeatsRef.current
+    if (seats.length <= 1 || box < 0 || box >= seats.length || gameStep !== 'betting') return
+    applySeats(seats.filter((_, i) => i !== box))
+    applyBets(boxBetsRef.current.filter((_, i) => i !== box))
+    applySelected(null)
   }
 
   // ─── Build Visible State ───────────────────────────
@@ -1856,6 +1922,8 @@ export function useGameLoop(
     humanVisibleCards,
     currentBet: boxBets[gameStep === 'betting' ? (selectedBox ?? 0) : (handInfo[activeHandIndex]?.box ?? 0)] ?? 0,
     boxBets,
+    boxSeats,
+    freeSeats: engineRef.current?.getFreeSeats() ?? [config.playerSeatIndex],
     selectedBox,
     insuranceBox,
     humanSettlement,
@@ -1888,11 +1956,8 @@ export function useGameLoop(
       if (box === null || box < 0 || box >= boxesRef.current || box === selectedBoxRef.current) applySelected(null)
       else applySelected(box)
     },
-    closeBox: (box: number) => {
-      if (boxesRef.current <= 1 || box < 0 || box >= boxesRef.current) return
-      const kept = boxBetsRef.current.filter((_, i) => i !== box)
-      setBoxes(kept.length, kept)
-    },
+    closeBox,
+    openBoxAt,
     setRcInput,
     setTcInput,
     setPaused: setIsPaused,

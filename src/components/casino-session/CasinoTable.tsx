@@ -4,10 +4,19 @@ import type { HandOutcome } from './useGameLoop'
 import type { Card } from '../../engine/shoe/types'
 import type { BotPlayer, BotRoundResult, BotTurnHandView } from '../../engine/casino-session/types'
 import { DealerView } from './DealerView'
-import { HumanSeat, BotSeat } from './SeatView'
+import { HumanSeat, BotSeat, EmptySeat } from './SeatView'
 import { TableLegend } from './TableLegend'
 import { ShoeHousing, DiscardTray } from '../table/ShoeProgress'
 import { fitTable, fitStackedTable, isStackedBox, tableMinWidth, visibleForBox, stackedBotZoom, STACKED_RAIL_ZOOM, TABLE_DESIGN, TABLE_MAX_SCALE, type TableFit, type BotStatus, type GameStep, type HandInfo } from './helpers'
+
+/** Seats at the table: six, always all on the felt. */
+const TABLE_SEATS = 6
+/**
+ * How far each seat is lifted off the bottom line, in table units: the seats
+ * follow the curve of the table's rim, lowest in the middle. One curve for
+ * every seat — the betting circles lie on it.
+ */
+const SEAT_ARC = [44, 16, 0, 0, 16, 44] as const
 
 /** Space kept between the felt's rim and the edge of its box, on every side. */
 const TABLE_GUTTER = 8
@@ -98,11 +107,13 @@ interface CasinoTableProps {
   selectedBox?: number | null
   /** The box insurance is being asked for, or -1. */
   insuranceBox?: number
-  /** While betting: pick a box, open one more, take one away. */
+  /** The seat each of the player's boxes lies on; the player's seat and its neighbours when omitted. */
+  boxSeats?: number[]
+  /** While betting: pick a box, take one away, open one on a free seat. */
   onSelectBox?: (box: number) => void
-  onOpenBox?: () => void
   onCloseBox?: (box: number) => void
-  /** Whether the bankroll and the table allow one more hand. */
+  onOpenSeat?: (seat: number) => void
+  /** Whether the player may open one more hand (the setting, the bankroll, a free seat). */
   canOpenBox?: boolean
   handDoubled: Set<number>
   isSurrendered: boolean
@@ -147,9 +158,10 @@ export function CasinoTable({
   boxBets,
   selectedBox = null,
   insuranceBox = -1,
+  boxSeats,
   onSelectBox,
-  onOpenBox,
   onCloseBox,
+  onOpenSeat,
   canOpenBox = false,
   handDoubled,
   isSurrendered,
@@ -182,7 +194,8 @@ export function CasinoTable({
   const boxCount = gameStep === 'betting'
     ? Math.max(1, boxes)
     : Math.max(1, ...info.map(h => h.box + 1))
-  const slots = seatLayout.length - 1 + boxCount
+  // The table has six seats and shows all six, taken or not.
+  const slots = TABLE_SEATS
   const botCount = seatLayout.length - 1
   const { ref: fitRef, fit, stacked } = useTableFit(slots, botCount, boxCount)
 
@@ -293,19 +306,52 @@ export function CasinoTable({
           </div>
         </div>
 
-        {/* Seats row — equal slots across the felt, following the table's arc
-            (outer seats sit higher). A slot has one width for the whole
-            session: seats used to size themselves to their cards, so a hit or
-            a split in one seat moved every other seat along the row. */}
+        {/* The seats: six equal places along the curve of the table. A place
+            has one width and one height for the whole session — seats used to
+            size themselves to their cards, so a hit or a split in one seat
+            moved every other seat along the row — and a place nobody sits at
+            is still there, as a betting circle. */}
         {(() => {
-          type Entry = { seat: SeatLayoutEntry; box: number }
-          const entries: Entry[] = seatLayout.flatMap(seat => seat.type === 'human'
-            ? Array.from({ length: boxCount }, (_, box) => ({ seat, box }))
-            : [{ seat, box: 0 }])
+          type Entry =
+            | { kind: 'bot'; seat: number; bot: NonNullable<SeatLayoutEntry['bot']> }
+            | { kind: 'box'; seat: number; box: number }
+            | { kind: 'empty'; seat: number }
+
+          const bots = new Map<number, NonNullable<SeatLayoutEntry['bot']>>()
+          let playerSeat = 0
+          for (const e of seatLayout) {
+            if (e.type === 'bot' && e.bot) bots.set(e.seatIndex, e.bot)
+            else if (e.type === 'human') playerSeat = e.seatIndex
+          }
+          // Where the player's boxes lie. Without seats from the caller: the
+          // player's own seat, then the free seats nearest to it.
+          let seatsOfBoxes = (boxSeats ?? []).slice(0, boxCount)
+          if (seatsOfBoxes.length < boxCount) {
+            const free = Array.from({ length: TABLE_SEATS }, (_, i) => i)
+              .filter(i => !bots.has(i) && i !== playerSeat)
+              .sort((a, b) => Math.abs(a - playerSeat) - Math.abs(b - playerSeat) || b - a)
+            seatsOfBoxes = [playerSeat, ...free].slice(0, boxCount).sort((a, b) => a - b)
+          }
+          const entries: Entry[] = Array.from({ length: TABLE_SEATS }, (_, seat): Entry => {
+            const bot = bots.get(seat)
+            if (bot) return { kind: 'bot', seat, bot }
+            const box = seatsOfBoxes.indexOf(seat)
+            return box >= 0 ? { kind: 'box', seat, box } : { kind: 'empty', seat }
+          })
+          const mayOpen = gameStep === 'betting' && canOpenBox && !!onOpenSeat
+
           // 60 = the felt's border and padding on both sides.
           const inner = fit.sceneWidth - 60
-          const renderSeat = ({ seat, box }: Entry, i: number, rowSlots: number, slotWidth: number, arc: boolean) => {
-            const isHuman = seat.type === 'human'
+          const renderSeat = (entry: Entry, slotWidth: number, lift: number) => {
+            if (entry.kind === 'empty') {
+              return (
+                <div key={`seat-${entry.seat}`} style={{ transform: `translateY(${-lift}px)` }}>
+                  <EmptySeat seat={entry.seat} slotWidth={slotWidth} onOpen={mayOpen ? () => onOpenSeat!(entry.seat) : undefined} />
+                </div>
+              )
+            }
+            const isHuman = entry.kind === 'box'
+            const box = isHuman ? entry.box : 0
             // This box's hands, as indices into the player's hands.
             const own = isHuman ? info.flatMap((h, k) => (h.box === box ? [k] : [])) : []
             const activeHere = own.indexOf(activeHandIndex)
@@ -313,18 +359,14 @@ export function CasinoTable({
             const insuring = isHuman && gameStep === 'insurance' && boxCount > 1 && insuranceBox >= 0
             const isActivePlayer = isHuman
               ? (gameStep === 'human_playing' && (boxCount === 1 || activeHere >= 0)) || (insuring && box === insuranceBox)
-              : seat.bot!.id === activeBotId
+              : entry.bot.id === activeBotId
             const isDimmed = (gameStep === 'bot_playing' && !isActivePlayer)
               || (isHuman && gameStep === 'human_playing' && boxCount > 1 && activeHere < 0)
               || (insuring && box !== insuranceBox)
-
-            // Arc offset: outer seats lift up so the row follows the crescent rim.
-            const center = (rowSlots - 1) / 2
-            const lift = arc ? Math.round(Math.abs(i - center) * 16) : 0
             const boxHands = own.length > 0 ? own.map(k => humanHands[k] ?? []) : [[]]
 
             return (
-              <div key={isHuman ? `human-seat-wrap-${box}` : seat.bot!.id} style={{ transform: `translateY(${-lift}px)` }}>
+              <div key={isHuman ? `human-seat-wrap-${entry.seat}` : entry.bot.id} style={{ transform: `translateY(${-lift}px)` }}>
                 {isHuman ? (
                   <HumanSeat
                     humanHands={boxHands}
@@ -337,7 +379,6 @@ export function CasinoTable({
                       numbered: boxCount > 1,
                       onSelect: () => onSelectBox(box),
                       onClose: boxCount > 1 && onCloseBox ? () => onCloseBox(box) : undefined,
-                      onOpen: box === boxCount - 1 && canOpenBox && onOpenBox ? onOpenBox : undefined,
                     } : undefined}
                     bankroll={bankroll}
                     handDoubled={new Set(own.flatMap((k, local) => (handDoubled.has(k) ? [local] : [])))}
@@ -351,15 +392,15 @@ export function CasinoTable({
                   />
                 ) : (
                   <BotSeat
-                    bot={seat.bot!}
-                    botStatus={botStatuses[seat.bot!.id] ?? 'wait'}
-                    botSettlement={botResults.find(br => br.id === seat.bot!.id)}
-                    visibleLimit={botVisibleCards[seat.bot!.id]}
+                    bot={entry.bot}
+                    botStatus={botStatuses[entry.bot.id] ?? 'wait'}
+                    botSettlement={botResults.find(br => br.id === entry.bot.id)}
+                    visibleLimit={botVisibleCards[entry.bot.id]}
                     gameStep={gameStep}
                     isActivePlayer={isActivePlayer}
                     isDimmed={isDimmed}
-                    activeSplitHand={botActiveSplitHands[seat.bot!.id] ?? -1}
-                    splitHands={botSplitHands[seat.bot!.id]}
+                    activeSplitHand={botActiveSplitHands[entry.bot.id] ?? -1}
+                    splitHands={botSplitHands[entry.bot.id]}
                     slotWidth={slotWidth}
                   />
                 )}
@@ -368,29 +409,33 @@ export function CasinoTable({
           }
 
           if (!stacked) {
-            const slotWidth = Math.min(260, Math.floor(inner / slots))
+            const slotWidth = Math.min(232, Math.floor(inner / TABLE_SEATS))
             return (
-              <div className="shrink-0 flex items-end justify-center">
-                {entries.map((e, i) => renderSeat(e, i, slots, slotWidth, true))}
+              <div className="shrink-0 flex items-end justify-center" data-testid="seat-row">
+                {entries.map(e => renderSeat(e, slotWidth, SEAT_ARC[e.seat]))}
               </div>
             )
           }
-          // An upright phone: the other players in a smaller row of their own,
-          // the player's hands below at full size. Seat order is kept in each row.
-          const others = entries.filter(e => e.seat.type === 'bot')
-          const mine = entries.filter(e => e.seat.type === 'human')
+          // An upright phone has no room for six places side by side: the
+          // other players sit in a smaller row of their own, the player's
+          // hands below at full size, and one free place beside them stands
+          // for the seats that can still be taken.
+          const others = entries.filter(e => e.kind === 'bot')
+          const mine = entries.filter(e => e.kind === 'box')
+          const nextFree = mayOpen ? entries.find(e => e.kind === 'empty') : undefined
           const botZoom = stackedBotZoom(others.length)
           const botSlot = Math.min(220, Math.floor(inner / botZoom / Math.max(1, others.length)))
-          const mySlot = Math.min(260, Math.floor(inner / mine.length))
+          const mySlot = Math.min(260, Math.floor(inner / (mine.length + (nextFree ? 1 : 0))))
           return (
             <>
               {others.length > 0 && (
-                <div className="shrink-0 flex items-end justify-center mb-4" data-testid="bot-row" style={{ zoom: botZoom }}>
-                  {others.map((e, i) => renderSeat(e, i, others.length, botSlot, false))}
+                <div className="shrink-0 flex items-end justify-center mb-2" data-testid="bot-row" style={{ zoom: botZoom }}>
+                  {others.map(e => renderSeat(e, botSlot, 0))}
                 </div>
               )}
               <div className="shrink-0 flex items-end justify-center" data-testid="player-row">
-                {mine.map((e, i) => renderSeat(e, i, mine.length, mySlot, false))}
+                {mine.map(e => renderSeat(e, mySlot, 0))}
+                {nextFree && renderSeat(nextFree, mySlot, 0)}
               </div>
             </>
           )

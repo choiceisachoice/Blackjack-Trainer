@@ -943,12 +943,57 @@ describe('CasinoSessionEngine', () => {
       expect(three.allDealtCards.slice(4, 7)).toEqual(three.humanBoxCards.map(h => h[1]))
     })
 
-    it('never deals fewer than one hand or more than three', () => {
+    it('never deals fewer than one hand or more than there are free seats', () => {
       const engine = new CasinoSessionEngine(createTestConfig({ numBots: 0 }))
       engine.setHumanBoxes(0)
       expect(engine.getHumanBoxes()).toBe(1)
       engine.setHumanBoxes(9)
-      expect(engine.getHumanBoxes()).toBe(3)
+      expect(engine.getHumanBoxes()).toBe(6)
+
+      // Four bots leave two seats: the player's own and one more.
+      const crowded = new CasinoSessionEngine(createTestConfig({ numBots: 4, playerSeatIndex: 2 }))
+      crowded.setHumanBoxes(9)
+      expect(crowded.getHumanBoxes()).toBe(2)
+      expect(crowded.getHumanBoxSeats()).toContain(2)
+    })
+
+    /**
+     * A hand of the player's is a seat at the table (16 Nov 2026): it is dealt
+     * when the deal reaches it, with whatever bots sit between the player's hands.
+     */
+    it('puts the hands of the player on seats, left to right, and never on a seat a bot sits in', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numBots: 3, playerSeatIndex: 0 }))
+      const free = engine.getFreeSeats()
+      expect(free).toHaveLength(3)
+      expect(free).toContain(0)
+      const taken = [0, 1, 2, 3, 4, 5].filter(s => !free.includes(s))
+
+      engine.setHumanBoxSeats([...free].reverse())
+      expect(engine.getHumanBoxSeats()).toEqual(free)          // sorted
+      engine.setHumanBoxSeats([taken[0], free[1], free[1], 9, -1])
+      expect(engine.getHumanBoxSeats()).toEqual([free[1]])      // a bot's seat, a repeat and nonsense dropped
+      engine.setHumanBoxSeats([taken[0]])
+      expect(engine.getHumanBoxSeats()).toEqual([0])            // nothing left: the player's own seat
+    })
+
+    it('deals each hand of the player where it sits, seat by seat', () => {
+      const engine = new CasinoSessionEngine(createTestConfig({ numBots: 2, playerSeatIndex: 0 }))
+      const free = engine.getFreeSeats()
+      const mine = [free[0], free[free.length - 1]]
+      const deal = engine.dealNewRound(mine)
+      expect(deal.humanBoxSeats).toEqual(mine)
+      expect(deal.humanBoxCards).toHaveLength(2)
+
+      // The first round of the deal, in order: one card per occupied seat.
+      const bots = engine.getSeats()
+      const name = (c: { rank: string; suit: string }) => c.rank + c.suit
+      const order: string[] = []
+      for (let seat = 0; seat < 6; seat++) {
+        const box = mine.indexOf(seat)
+        if (box >= 0) order.push(name(deal.humanBoxCards[box][0]))
+        else if (bots[seat]) order.push(name(bots[seat]!.hands[0].cards[0]))
+      }
+      expect(deal.allDealtCards.slice(0, 4).map(name)).toEqual(order)
     })
 
     it('count check frequency logic is correct', () => {

@@ -12,7 +12,7 @@ import { MAX_PLAYER_HANDS } from '../../engine/casino-session/types'
 import { CasinoTable } from './CasinoTable'
 import { ActionButtons } from './ActionButtons'
 import { BettingControls } from './BettingControls'
-import { formatDollar, formatTime, BET_SECONDS } from './helpers'
+import { formatDollar, formatTime, BET_SECONDS, DECISION_SECONDS } from './helpers'
 import { ProgressBar, Input } from '../common/ui'
 import { ArrowLeft, Volume2, VolumeX } from 'lucide-react'
 import { useCompactTable } from '../../hooks/useCompactTable'
@@ -188,6 +188,31 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     if (clockRuns && betSeconds === 0) actions.confirmBet()
   }, [clockRuns, betSeconds, actions])
 
+  /*
+   * The decision clock. A hand that is the player's to play has 30 seconds;
+   * when they run out it stands, as at an online table. Every decision gets
+   * its own 30 seconds: the clock starts over when play moves to another hand
+   * and when the hand in play takes a card. It does not run while paused.
+   */
+  const deciding = state.gameStep === 'human_playing' && !state.isPaused
+  const decisionKey = state.gameStep === 'human_playing'
+    ? `${handNum}:${state.activeHandIndex}:${state.humanHands[state.activeHandIndex]?.length ?? 0}:${state.humanHands.length}`
+    : ''
+  const [decisionSeconds, setDecisionSeconds] = useState(DECISION_SECONDS)
+  const [decisionFor, setDecisionFor] = useState(decisionKey)
+  if (decisionFor !== decisionKey) {
+    setDecisionFor(decisionKey)
+    setDecisionSeconds(DECISION_SECONDS)
+  }
+  useEffect(() => {
+    if (!deciding) return
+    const id = window.setInterval(() => setDecisionSeconds(s => Math.max(0, s - 1)), 1000)
+    return () => window.clearInterval(id)
+  }, [deciding, decisionKey])
+  useEffect(() => {
+    if (deciding && decisionSeconds === 0) actions.handleAction(Action.Stand)
+  }, [deciding, decisionSeconds, actions])
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -255,7 +280,10 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   const isDealPhase = state.gameStep === 'dealing'
   // How many hands the bankroll and the table allow, and whether they carry
   // different bets (then Deal names each of them).
-  const maxHands = Math.max(1, Math.min(MAX_PLAYER_HANDS, Math.floor(bankroll / config.minBet)))
+  const multiHand = config.multiHand ?? false
+  const maxHands = multiHand
+    ? Math.max(1, Math.min(MAX_PLAYER_HANDS, state.freeSeats.length, Math.floor(bankroll / config.minBet)))
+    : 1
   const betsDiffer = state.boxBets.some(b => b !== state.boxBets[0])
 
   // The ground under the table follows the theme. It used to be a hard
@@ -536,10 +564,11 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         boxBets={state.boxBets}
         selectedBox={state.selectedBox}
         insuranceBox={state.insuranceBox}
-        onSelectBox={actions.selectBox}
-        onOpenBox={() => actions.setBoxes(state.boxes + 1)}
+        boxSeats={state.boxSeats}
+        onSelectBox={multiHand ? actions.selectBox : undefined}
         onCloseBox={actions.closeBox}
-        canOpenBox={state.boxes < maxHands}
+        onOpenSeat={actions.openBoxAt}
+        canOpenBox={multiHand && state.boxes < maxHands}
         handDoubled={state.handDoubled}
         isSurrendered={state.isSurrendered}
         humanSettlement={state.humanSettlement}
@@ -587,7 +616,9 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
               ? Math.floor(bankroll / state.boxes)
               : bankroll - state.boxBets.reduce((sum, b, i) => sum + (i === state.selectedBox ? 0 : b), 0)}
             hands={state.boxes}
-            maxHands={maxHands}
+            // The seats on the felt are how a hand is opened. On a phone the
+            // felt is small, so the count can be set here as well.
+            maxHands={compact ? maxHands : 1}
             focusLabel={state.boxes > 1
               ? (state.selectedBox === null ? t('casino.table.allHands') : t('casino.table.handNo', { n: state.selectedBox + 1 }))
               : undefined}
@@ -632,6 +663,8 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             humanBusted={humanBusted}
             canHit={!splitAce && !handDone}
             canStand={!handDone && (!splitAce || aceReSplitOffer)}
+            secondsLeft={decisionSeconds}
+            secondsTotal={DECISION_SECONDS}
           />
         )}
 
