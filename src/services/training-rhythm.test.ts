@@ -8,7 +8,7 @@ import {
   CURRENT_DAYS,
   RUSTY_DAYS,
 } from './training-rhythm'
-import { CURRICULUM, deriveCurriculum } from './curriculum'
+import { CURRICULUM, deriveCurriculum, type StageId } from './curriculum'
 import type { TrainingMode, TrainingSessionResult } from './stats-types'
 
 const NOW = new Date('2026-07-23T12:00:00.000Z')
@@ -24,6 +24,19 @@ function session(daysAgo: number, mode: TrainingMode = 'speedDrill', accuracy = 
     accuracy,
     bestStreak: 5,
   } as unknown as TrainingSessionResult
+}
+
+/**
+ * A stage's own requirement, finished `daysAgo` days back: its `minSessions`
+ * runs on its `minDays` different days, the newest of them `daysAgo` ago.
+ * Whole days apart at midday UTC, so every one is a different local day.
+ */
+function cleared(id: StageId, mode: TrainingMode, accuracy: number, daysAgo: number): TrainingSessionResult[] {
+  const drill = CURRICULUM.find(s => s.id === id)!.drill!
+  const sessions = Array.from({ length: drill.minSessions }, (_, i) =>
+    session(daysAgo + (i % drill.minDays), mode, accuracy))
+  if (!sessions.every(drill.counts)) throw new Error(`sessions do not count towards ${id}`)
+  return sessions
 }
 
 const progressWith = (sessions: TrainingSessionResult[]) => deriveCurriculum(sessions, [], true)
@@ -97,12 +110,21 @@ describe('deriveRhythm', () => {
     // Skill fades from the top down: the newest thing learned is the least
     // practised, so that is what is worth re-running.
     const sessions = [
-      ...Array.from({ length: 3 }, () => session(40, 'deviationFlashCards', 0.9)),
-      ...Array.from({ length: 3 }, () => session(40, 'speedDrill', 0.95)),
+      ...cleared('basic-strategy', 'deviationFlashCards', 0.9, 40),
+      ...cleared('hi-lo', 'speedDrill', 0.95, 40),
     ]
     const r = deriveRhythm(sessions, progressWith(sessions), NOW)
     expect(r.kind).toBe('rusty')
     if (r.kind === 'rusty') expect(r.refresh).toBe('hi-lo') // later than basic-strategy
+  })
+
+  it('does not call a stage cleared that was drilled in a single sitting', () => {
+    // Enough good runs, all on one day: the stage is still open, so it is the
+    // plan's business and not a warm-up.
+    const { minSessions } = CURRICULUM.find(s => s.id === 'hi-lo')!.drill!
+    const sessions = Array.from({ length: minSessions }, () => session(40, 'speedDrill', 0.95))
+    const r = deriveRhythm(sessions, progressWith(sessions), NOW)
+    expect(r).toEqual({ kind: 'rusty', days: 40, refresh: null })
   })
 
   it('offers no warm-up when nothing has been cleared', () => {
@@ -114,11 +136,13 @@ describe('deriveRhythm', () => {
 
   it('never offers a reading stage as a warm-up — there is nothing to re-run', () => {
     const readOnly = CURRICULUM.filter(s => !s.drill).map(s => s.id)
-    const sessions = Array.from({ length: 3 }, () => session(40, 'speedDrill', 0.95))
+    expect(readOnly.length).toBeGreaterThan(0)
+    const sessions = cleared('hi-lo', 'speedDrill', 0.95, 40)
     const r = deriveRhythm(sessions, deriveCurriculum(sessions, readOnly, true), NOW)
-    if (r.kind === 'rusty' && r.refresh) {
-      expect(readOnly).not.toContain(r.refresh)
-    }
+    // Unconditional: with a drill stage genuinely cleared there is a warm-up
+    // to offer, and it has to be that one and not the reading that is ticked.
+    expect(r).toMatchObject({ kind: 'rusty', refresh: 'hi-lo' })
+    if (r.kind === 'rusty') expect(readOnly).not.toContain(r.refresh)
   })
 
   it('measures from the newest session, not the oldest', () => {

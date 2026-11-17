@@ -2072,6 +2072,25 @@ describe('the shoe never runs dry', () => {
     expect(alone.shouldReshuffle()).toBe(false)
   })
 
+  it('counts the hands the player may still open, where several hands are allowed', () => {
+    // Found in review, 17 Nov 2026: the shuffle is decided when a round ends,
+    // with the hands held then. Alone at a two-deck table, 70 cards dealt, one
+    // hand: no shuffle. Opening five more hands during betting made the next
+    // round too big for the shoe — the bets were sized on the count on screen
+    // and the cards were shuffled with the money down.
+    const single = new CasinoSessionEngine(createTestConfig({ numBots: 0, numDecks: 2, penetration: 0.75 }))
+    for (let i = 0; i < 70; i++) single.drawCard()
+    expect(single.shouldReshuffle()).toBe(false)
+
+    const several = new CasinoSessionEngine(createTestConfig({ numBots: 0, numDecks: 2, penetration: 0.75, multiHand: true }))
+    for (let i = 0; i < 70; i++) several.drawCard()
+    // Decided before the bets: opening hands afterwards changes nothing.
+    expect(several.shouldReshuffle()).toBe(true)
+    const before = several.shouldReshuffle()
+    several.setHumanBoxSeats(several.getFreeSeats())
+    expect(several.shouldReshuffle()).toBe(before)
+  })
+
   it('deals from a fresh shoe instead of throwing when the last card is gone', () => {
     // The last resort. An empty shoe used to throw out of whatever was
     // drawing, and the table stayed in "dealing" with nothing to click.

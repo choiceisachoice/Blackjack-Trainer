@@ -229,6 +229,11 @@ export class CasinoSessionEngine {
     return this.totalCards - this.cardsDealt < this.cardsARoundMayNeed()
   }
 
+  /** The seat the human sat down at, from 0. Their first hand lies there. */
+  getHumanSeatIndex(): number {
+    return this.humanSeatIndex
+  }
+
   /**
    * A generous estimate of one round's draw: five cards a hand for every
    * seat and the dealer. Above the average (about 2.7) on purpose — the cost
@@ -236,8 +241,14 @@ export class CasinoSessionEngine {
    * frozen table.
    */
   private cardsARoundMayNeed(): number {
-    const seated = this.seats.filter(seat => seat !== null).length + this.humanBoxes
-    return (seated + 1) * 5
+    const bots = this.seats.filter(seat => seat !== null).length
+    // Where the player may open hands on the free seats, count every one of
+    // them. The shuffle is decided when a round ends, before the bets — and a
+    // player who then opened five more hands used to push the next round over
+    // the limit: the bets were sized on the count on screen, graded against a
+    // fresh shoe, and the cards were shuffled with the money already down.
+    const hands = this.config.multiHand ? Math.max(this.humanBoxes, MAX_SEATS - bots) : this.humanBoxes
+    return (bots + hands + 1) * 5
   }
 
   /**

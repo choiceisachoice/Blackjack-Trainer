@@ -3,7 +3,8 @@ import { clearLocalAppData, getLocalOwner, setLocalOwner } from '../storage/loca
 import { SupabaseStorageService } from './supabase-storage'
 import { useAuthStore } from '../../store/auth-store'
 import { syncAchievementsOnSignIn } from './achievements-sync'
-import { syncProfileOnSignIn } from './profiles-sync'
+import { syncProfileOnSignIn, resetProfileSync } from './profiles-sync'
+import { useCloudSyncStore } from '../../store/cloud-sync-store'
 import { fetchCloudSessions, upsertCloudSessions, normalizeId, mergeById } from './bankroll-sync'
 import { useStatsStore } from '../../store/stats-store'
 import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker-store'
@@ -65,6 +66,8 @@ export async function signOutAndClearLocal(): Promise<void> {
   //    skipped it entirely and left the previous user's data for `handleSignedIn`
   //    to push into whoever signed in next.
   clearLocalAppData()
+  resetProfileSync()
+  useCloudSyncStore.getState().set('idle')
 
   // 2. Ask the server to revoke, while the access token still exists to revoke
   //    with. Best effort: a failure here costs the remote session, not this one.
@@ -120,7 +123,11 @@ let signInSync: Promise<void> | null = null
 export function handleSignedIn(): Promise<void> {
   if (!isSupabaseConfigured) return Promise.resolve()
   if (signInSync) return signInSync
-  signInSync = runSignInSync().finally(() => { signInSync = null })
+  useCloudSyncStore.getState().set('syncing')
+  signInSync = runSignInSync().finally(() => {
+    signInSync = null
+    useCloudSyncStore.getState().set('done')
+  })
   return signInSync
 }
 
@@ -135,6 +142,7 @@ async function runSignInSync(): Promise<void> {
     const owner = getLocalOwner()
     if (owner && owner !== userId) {
       clearLocalAppData()
+      resetProfileSync()
     }
     setLocalOwner(userId)
 

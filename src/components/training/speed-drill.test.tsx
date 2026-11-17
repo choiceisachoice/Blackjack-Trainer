@@ -5,6 +5,7 @@ import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
 import { CountingSystemId } from '../../engine/counting/types'
 import { DEFAULT_RULES } from '../../engine/rules/types'
+import { CURRICULUM } from '../../services/curriculum'
 
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
@@ -162,15 +163,40 @@ describe('SpeedDrill', () => {
       expect(screen.getByTestId('hilo-primer').textContent).not.toContain('2 3 4 5 6')
     })
 
+    /** Good Speed Drills: `count` of them, over `days` different calendar days. */
+    const goodDrills = (count: number, days: number) =>
+      Array.from({ length: count }, (_, i) => ({
+        id: crypto.randomUUID(), mode: 'speedDrill', accuracy: 0.95,
+        // 10:00 UTC on consecutive dates: a different local day each.
+        timestamp: `2026-03-${String(1 + (i % days)).padStart(2, '0')}T10:00:00.000Z`,
+        durationSeconds: 60,
+        totalQuestions: 20, correctAnswers: 19, bestStreak: 5,
+      })) as never
+    const hiLo = CURRICULUM.find(s => s.id === 'hi-lo')!.drill!
+
+    afterEach(() => {
+      useStatsStore.setState({ sessions: [] })
+      localStorage.removeItem('bjt_claimed_stages')
+    })
+
     it('starts collapsed once the counting stage is complete', () => {
-      // By then it is clutter, not teaching.
-      useStatsStore.setState({
-        sessions: Array.from({ length: 3 }, () => ({
-          id: crypto.randomUUID(), mode: 'speedDrill', accuracy: 0.95,
-          timestamp: new Date().toISOString(), durationSeconds: 60,
-          totalQuestions: 20, correctAnswers: 19, bestStreak: 5,
-        })) as never,
-      })
+      // By then it is clutter, not teaching. Complete means the stage's own
+      // bar: its sessions, on its number of different days.
+      useStatsStore.setState({ sessions: goodDrills(hiLo.minSessions, hiLo.minDays) })
+      render(<SpeedDrill />)
+      expect(screen.getByTestId('hilo-primer').textContent).not.toContain('2 3 4 5 6')
+    })
+
+    it('stays open for someone who has only drilled it in one sitting', () => {
+      // Not learned yet by the plan's own rule, so the values stay in view.
+      useStatsStore.setState({ sessions: goodDrills(hiLo.minSessions * 2, 1) })
+      render(<SpeedDrill />)
+      expect(screen.getByTestId('hilo-primer').textContent).toContain('2 3 4 5 6')
+    })
+
+    it('starts collapsed for a learner whose counting stage was already paid', () => {
+      localStorage.setItem('bjt_claimed_stages', JSON.stringify(['hi-lo']))
+      useStatsStore.setState({ sessions: [] })
       render(<SpeedDrill />)
       expect(screen.getByTestId('hilo-primer').textContent).not.toContain('2 3 4 5 6')
     })

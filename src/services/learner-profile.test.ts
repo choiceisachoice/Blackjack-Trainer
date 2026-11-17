@@ -14,8 +14,17 @@ import {
   getProfile,
   setProfile,
   profileForLevel,
+  budgetOf,
+  commitmentFor,
+  MINUTE_OPTIONS,
+  DAY_OPTIONS,
+  BLOCK_MINUTES,
   type Goal,
+  type Commitment,
+  type LearnerProfile,
+  type TimeBudget,
 } from './learner-profile'
+import { onPlanStateChanged } from './plan-state-signal'
 import { CURRICULUM, stageIndex } from './curriculum'
 
 beforeEach(() => {
@@ -167,10 +176,36 @@ describe('estimateToGoal', () => {
   it('bottoms out at the spacing floor once time stops being the constraint', () => {
     // Above a certain pace the limit is spaced repetition, not hours — and the
     // estimate must say so rather than promising an ever-shorter path.
+    //
+    // "Stops being the constraint" is a fact about the curriculum, so it is
+    // read from there: a pace that fits the largest stage into one week.
     const floor = CURRICULUM.length * MIN_WEEKS_PER_STAGE
-    for (const c of ['casual', 'regular', 'heavy'] as const) {
-      expect(estimateToGoal('rules', 'serious', c).weeks, c).toBe(floor)
+    const largest = Math.max(...CURRICULUM.map(s => s.drill?.minSessions ?? 0))
+    const unconstrained = COMMITMENT_OPTIONS.filter(o => o.sessionsPerWeek >= largest)
+    const constrained = COMMITMENT_OPTIONS.filter(o => o.sessionsPerWeek < largest)
+    // Both sides have to exist, or one half of this test asserts nothing.
+    expect(unconstrained.length).toBeGreaterThan(0)
+    expect(constrained.length).toBeGreaterThan(0)
+    for (const o of unconstrained) {
+      expect(estimateToGoal('rules', 'serious', o.value).weeks, o.value).toBe(floor)
     }
+    for (const o of constrained) {
+      expect(estimateToGoal('rules', 'serious', o.value).weeks, o.value).toBeGreaterThan(floor)
+    }
+  })
+
+  it('charges each stage its own weeks at a pace too small for it', () => {
+    // Worked by hand for a single stage, from the stage's own number: the
+    // true count alone, at the lightest pace.
+    const trueCount = CURRICULUM.find(s => s.id === 'true-count')!.drill!
+    const perWeek = sessionsPerWeek('light')
+    // The premise: at this pace the stage does not fit into one week.
+    expect(trueCount.minSessions).toBeGreaterThan(perWeek)
+    expect(estimateToGoal('true-count', 'curious', 'light')).toEqual({
+      stages: 1,
+      sessions: trueCount.minSessions,
+      weeks: Math.ceil(trueCount.minSessions / perWeek),
+    })
   })
 })
 
@@ -346,5 +381,154 @@ describe('nextGoalUp', () => {
       const up = nextGoalUp(o.value)
       if (up) expect(stageIndex(goalStage(up))).toBeGreaterThan(stageIndex(goalStage(o.value)))
     }
+  })
+})
+
+describe('the time budget, as days and minutes', () => {
+  it('offers every number of days in a week, once each, in order', () => {
+    expect([...DAY_OPTIONS]).toEqual([1, 2, 3, 4, 5, 6, 7])
+  })
+
+  it('offers day lengths that are whole numbers of blocks, shortest first', () => {
+    expect([...MINUTE_OPTIONS]).toEqual([10, 20, 30, 60])
+    for (const m of MINUTE_OPTIONS) {
+      expect(m % BLOCK_MINUTES, String(m)).toBe(0)
+      // Shorter than two blocks is not a training day: there would be no room
+      // for a reading block and a first run.
+      expect(m / BLOCK_MINUTES, String(m)).toBeGreaterThanOrEqual(2)
+    }
+  })
+
+  describe('budgetOf', () => {
+    it('assumes a middling budget for a learner who was never asked', () => {
+      expect(budgetOf(null)).toEqual(budgetOf({ goal: 'serious', commitment: 'casual' }))
+    })
+
+    it('reads the two answers when they were given', () => {
+      expect(budgetOf({ goal: 'serious', commitment: 'light', daysPerWeek: 6, minutesPerDay: 60 }))
+        .toEqual({ daysPerWeek: 6, minutesPerDay: 60 })
+    })
+
+    it('fills a profile from before the question out of its old pace', () => {
+      // More pace must never mean less time, on either axis.
+      const order: Commitment[] = ['light', 'casual', 'regular', 'heavy']
+      const budgets = order.map(commitment => budgetOf({ goal: 'serious', commitment }))
+      for (const b of budgets) {
+        expect(DAY_OPTIONS).toContain(b.daysPerWeek)
+        expect(MINUTE_OPTIONS).toContain(b.minutesPerDay)
+      }
+      for (let i = 1; i < budgets.length; i++) {
+        expect(budgets[i].daysPerWeek, order[i]).toBeGreaterThan(budgets[i - 1].daysPerWeek)
+        expect(budgets[i].minutesPerDay, order[i]).toBeGreaterThan(budgets[i - 1].minutesPerDay)
+      }
+      expect(budgets[0]).toEqual({ daysPerWeek: 1, minutesPerDay: 10 })
+      expect(budgets[3]).toEqual({ daysPerWeek: 7, minutesPerDay: 60 })
+    })
+
+    it('fills each half on its own when only one was stored', () => {
+      const legacy = budgetOf({ goal: 'serious', commitment: 'regular' })
+      expect(budgetOf({ goal: 'serious', commitment: 'regular', daysPerWeek: 2 }))
+        .toEqual({ daysPerWeek: 2, minutesPerDay: legacy.minutesPerDay })
+      expect(budgetOf({ goal: 'serious', commitment: 'regular', minutesPerDay: 10 }))
+        .toEqual({ daysPerWeek: legacy.daysPerWeek, minutesPerDay: 10 })
+    })
+
+    it('does not trust numbers the picker could never have produced', () => {
+      const legacy = budgetOf({ goal: 'serious', commitment: 'casual' })
+      for (const daysPerWeek of [0, 8, -1, 2.5, Number.NaN]) {
+        expect(budgetOf({ goal: 'serious', commitment: 'casual', daysPerWeek }).daysPerWeek, String(daysPerWeek))
+          .toBe(legacy.daysPerWeek)
+      }
+      for (const minutesPerDay of [0, 15, 45, 600]) {
+        const profile = { goal: 'serious', commitment: 'casual', minutesPerDay } as unknown as LearnerProfile
+        expect(budgetOf(profile).minutesPerDay, String(minutesPerDay)).toBe(legacy.minutesPerDay)
+      }
+    })
+  })
+
+  describe('commitmentFor', () => {
+    const blocksAWeek = (b: TimeBudget) => (b.daysPerWeek * b.minutesPerDay) / BLOCK_MINUTES
+
+    it('calls the smallest budget light and the largest heavy', () => {
+      expect(commitmentFor({ daysPerWeek: 1, minutesPerDay: 10 })).toBe('light')
+      expect(commitmentFor({ daysPerWeek: 7, minutesPerDay: 60 })).toBe('heavy')
+    })
+
+    it('never ranks more time below less time', () => {
+      const rank: Record<Commitment, number> = { light: 0, casual: 1, regular: 2, heavy: 3 }
+      const all = DAY_OPTIONS.flatMap(daysPerWeek =>
+        MINUTE_OPTIONS.map(minutesPerDay => ({ daysPerWeek, minutesPerDay })))
+        .sort((a, b) => blocksAWeek(a) - blocksAWeek(b))
+      for (let i = 1; i < all.length; i++) {
+        expect(rank[commitmentFor(all[i])], JSON.stringify(all[i]))
+          .toBeGreaterThanOrEqual(rank[commitmentFor(all[i - 1])])
+      }
+      // And all four paces are reachable from the picker.
+      expect(new Set(all.map(commitmentFor)).size).toBe(4)
+    })
+
+    it('depends only on the minutes in a week, not on how they are cut', () => {
+      // 60 minutes a week either way.
+      expect(commitmentFor({ daysPerWeek: 6, minutesPerDay: 10 }))
+        .toBe(commitmentFor({ daysPerWeek: 2, minutesPerDay: 30 }))
+      expect(commitmentFor({ daysPerWeek: 3, minutesPerDay: 20 }))
+        .toBe(commitmentFor({ daysPerWeek: 1, minutesPerDay: 60 }))
+    })
+
+    it('changes pace at the edges it documents', () => {
+      // Blocks a week: up to 2 light, up to 12 casual, up to 30 regular.
+      expect(commitmentFor({ daysPerWeek: 1, minutesPerDay: 10 })).toBe('light') // 2
+      expect(commitmentFor({ daysPerWeek: 2, minutesPerDay: 10 })).toBe('casual') // 4
+      expect(commitmentFor({ daysPerWeek: 3, minutesPerDay: 20 })).toBe('casual') // 12
+      expect(commitmentFor({ daysPerWeek: 7, minutesPerDay: 10 })).toBe('regular') // 14
+      expect(commitmentFor({ daysPerWeek: 5, minutesPerDay: 30 })).toBe('regular') // 30
+      expect(commitmentFor({ daysPerWeek: 4, minutesPerDay: 60 })).toBe('heavy') // 48
+    })
+
+    it('maps each old pace back onto itself', () => {
+      // Confirming the suggested budget unchanged used to raise the stored
+      // pace a step — casual became regular, and the challenges with it.
+      for (const o of COMMITMENT_OPTIONS) {
+        expect(commitmentFor(budgetOf({ goal: 'serious', commitment: o.value })), o.value).toBe(o.value)
+      }
+    })
+  })
+
+  describe('stored with the profile', () => {
+    it('round-trips the days and minutes', () => {
+      const profile: LearnerProfile = { goal: 'profit', commitment: 'regular', daysPerWeek: 4, minutesPerDay: 30 }
+      setProfile(profile)
+      expect(getProfile()).toEqual(profile)
+    })
+
+    it('loads a profile from before the question, without inventing an answer', () => {
+      localStorage.setItem('bjt_learner_profile', JSON.stringify({ goal: 'profit', commitment: 'regular' }))
+      const profile = getProfile()
+      expect(profile).toEqual({ goal: 'profit', commitment: 'regular' })
+      // Absent, not defaulted: this is how the plan knows the question is
+      // still owed.
+      expect(profile?.daysPerWeek).toBeUndefined()
+      expect(profile?.minutesPerDay).toBeUndefined()
+    })
+
+    it('drops a stored budget it does not recognise and keeps the rest', () => {
+      localStorage.setItem('bjt_learner_profile', JSON.stringify({
+        goal: 'profit', commitment: 'regular', daysPerWeek: 9, minutesPerDay: 45,
+      }))
+      expect(getProfile()).toEqual({ goal: 'profit', commitment: 'regular' })
+
+      localStorage.setItem('bjt_learner_profile', JSON.stringify({
+        goal: 'profit', commitment: 'regular', daysPerWeek: '3', minutesPerDay: '20',
+      }))
+      expect(getProfile()).toEqual({ goal: 'profit', commitment: 'regular' })
+    })
+
+    it('tells the plan when the profile is written', () => {
+      const heard: string[] = []
+      const stop = onPlanStateChanged(origin => heard.push(origin))
+      setProfile({ goal: 'curious', commitment: 'light', daysPerWeek: 1, minutesPerDay: 10 })
+      stop()
+      expect(heard).toEqual(['local'])
+    })
   })
 })

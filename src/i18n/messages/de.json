@@ -870,12 +870,12 @@
       "why": "Jede Fähigkeit für sich ist leicht. Die Kunst ist, alle gleichzeitig zu können, während am Tisch geredet wird."
     },
     "drill": {
-      "flashcards": "{{n}} Lernkarten-Durchgänge mit mindestens {{pct}} %",
-      "speedDrill": "{{n}} Speed Drills mit mindestens {{pct}} %",
-      "deckEstimation": "{{n}} Deck-Schätzungen mit mindestens {{pct}} %",
-      "deviations": "{{n}} Lernkarten-Durchgänge zu Abweichungen mit mindestens {{pct}} %",
-      "betSpread": "{{n}} Bet-Spread-Durchgänge mit mindestens {{pct}} %",
-      "casino": "{{n}} gespielte Casino-Sessions"
+      "flashcards": "{{n}} Flashcards-Sitzungen mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "speedDrill": "{{n}} Speed Drills mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "deckEstimation": "{{n}} Deck-Estimation-Sitzungen mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "deviations": "{{n}} Flashcards-Sitzungen zu Deviations mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "betSpread": "{{n}} Bet-Spread-Sitzungen mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "casino": "{{n}} Casino Sessions gespielt, an {{days}} verschiedenen Tagen"
     }
   },
   "plan": {
@@ -923,7 +923,9 @@
       "close_one": "{{count}} Versuch bisher, bester {{best}} % — {{gap}} unter der Marke von {{bar}} %. Fast geschafft.",
       "close_other": "{{count}} Versuche bisher, bester {{best}} % — {{gap}} unter der Marke von {{bar}} %. Fast geschafft.",
       "far_one": "{{count}} Versuch bisher, bester {{best}} %. Die Marke liegt bei {{bar}} %, und das {{target}}-mal.",
-      "far_other": "{{count}} Versuche bisher, bester {{best}} %. Die Marke liegt bei {{bar}} %, und das {{target}}-mal."
+      "far_other": "{{count}} Versuche bisher, bester {{best}} %. Die Marke liegt bei {{bar}} %, und das {{target}}-mal.",
+      "spacing_one": "Genug gute Sitzungen. Es fehlt noch {{count}} weiterer Tag – ein Können muss eine Nacht überstehen, bevor es zählt.",
+      "spacing_other": "Genug gute Sitzungen. Es fehlen noch {{count}} weitere Tage – ein Können muss eine Nacht überstehen, bevor es zählt."
     },
     "effort": {
       "attempts_one": "{{count}} Versuch bisher · bester",
@@ -932,7 +934,67 @@
       "barIs": ", Marke liegt bei {{bar}} %"
     },
     "stagesComplete_one": "{{done}} von {{count}} Stufe geschafft",
-    "stagesComplete_other": "{{done}} von {{count}} Stufen geschafft"
+    "stagesComplete_other": "{{done}} von {{count}} Stufen geschafft",
+    "today": {
+      "title": "Dein Training heute",
+      "minutes": "{{n}} Min.",
+      "doneOf": "{{done}} von {{total}} Min.",
+      "kind": {
+        "read": "Lesen",
+        "warmup": "Aufwärmen",
+        "work": "Heute dran",
+        "table": "Am Tisch"
+      },
+      "start": "Starten: {{block}}",
+      "next": "Weiter: {{block}}",
+      "complete": "Das Training für heute ist erledigt.",
+      "completeSub": "Alles Weitere heute ist Zugabe. Die Stufe braucht auch andere Tage – komm für das nächste Training wieder.",
+      "again": "Weiter trainieren",
+      "lockedFocus": "{{stage}} gehört zu Pro. Der heutige Tag besteht aus dem, was dir offensteht.",
+      "empty": "Noch nichts zu üben – fang mit dem Lesen unten an."
+    },
+    "week": {
+      "label": "Diese Woche",
+      "days": "{{trained}} von {{target}} Tagen",
+      "met": "Woche geschafft",
+      "dayNames": [
+        "M",
+        "D",
+        "M",
+        "D",
+        "F",
+        "S",
+        "S"
+      ]
+    },
+    "forecast_one": "Etwa {{count}} Woche bis zu deinem Ziel in diesem Tempo",
+    "forecast_other": "Etwa {{count}} Wochen bis zu deinem Ziel in diesem Tempo",
+    "time": {
+      "label": "Deine Zeit",
+      "value_one": "{{count}} Tag pro Woche · {{minutes}} Min.",
+      "value_other": "{{count}} Tage pro Woche · {{minutes}} Min.",
+      "daysHeading": "Trainingstage pro Woche",
+      "minutesHeading": "Minuten an einem Trainingstag"
+    },
+    "timeQuestion": {
+      "heading": "Wie viel Zeit hast du?",
+      "sub": "Der Plan schneidet jeden Trainingstag darauf zu. Der Weg ist für alle derselbe und die XP auch – mit weniger Zeit dauert er einfach länger.",
+      "continue": "Plan erstellen"
+    },
+    "daysProgress": "{{days}}/{{target}} Tage",
+    "path": {
+      "title": "Dein Weg",
+      "open": "Ganzen Plan öffnen",
+      "stageOf": "Stufe {{n}} von {{total}}"
+    },
+    "how": {
+      "title": "So funktioniert es",
+      "s1": "Jeder Trainingstag hat ein kurzes Programm für dich: Aufwärmen, das, was heute dran ist, und der Tisch, sobald du zählen kannst.",
+      "s2": "Eine Stufe ist geschafft, wenn du an mehreren verschiedenen Tagen gute Sitzungen hattest. Niemand schafft sie an einem Abend.",
+      "s3": "Jede richtige Antwort bringt XP. Level, Auszeichnungen und Challenges ergeben sich aus dem Training selbst.",
+      "dismiss": "Verstanden"
+    },
+    "loading": "Dein Plan wird geladen"
   },
   "recommend": {
     "startTraining": "Training starten",

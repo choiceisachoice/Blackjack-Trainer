@@ -1,4 +1,5 @@
 import { CURRICULUM, stageIndex, stageNeedsPro, type StageId } from './curriculum'
+import { planStateChanged } from './plan-state-signal'
 
 /**
  * What the learner wants and what they can give — asked before anything is
@@ -241,6 +242,73 @@ const PROFILE_KEY = 'bjt_learner_profile'
 export interface LearnerProfile {
   goal: Goal
   commitment: Commitment
+  /**
+   * The time the learner said they have: training days a week and minutes on
+   * such a day. Absent on a profile written before the question existed —
+   * read them through `budgetOf`, which fills the gap from `commitment`.
+   */
+  daysPerWeek?: number
+  minutesPerDay?: TrainingMinutes
+}
+
+// ── Time budget, as days and minutes ─────────────────────────────────
+
+/** The lengths of a training day the plan can be cut to. */
+export const MINUTE_OPTIONS = [10, 20, 30, 60] as const
+export type TrainingMinutes = (typeof MINUTE_OPTIONS)[number]
+
+/** Training days a week on offer: once a week up to every day. */
+export const DAY_OPTIONS = [1, 2, 3, 4, 5, 6, 7] as const
+
+/** What a learner can give: how often, and for how long. */
+export interface TimeBudget {
+  daysPerWeek: number
+  minutesPerDay: TrainingMinutes
+}
+
+/** What each of the old four paces meant, for a profile that predates the question. */
+const LEGACY_BUDGET: Record<Commitment, TimeBudget> = {
+  light: { daysPerWeek: 1, minutesPerDay: 10 },
+  casual: { daysPerWeek: 3, minutesPerDay: 20 },
+  regular: { daysPerWeek: 5, minutesPerDay: 30 },
+  heavy: { daysPerWeek: 7, minutesPerDay: 60 },
+}
+
+const isMinutes = (v: unknown): v is TrainingMinutes =>
+  MINUTE_OPTIONS.some(m => m === v)
+const isDays = (v: unknown): v is number =>
+  typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 7
+
+/**
+ * The learner's time budget, whichever way it was stored.
+ *
+ * @param profile - The stored profile, or null for a learner who was never asked
+ */
+export function budgetOf(profile: LearnerProfile | null): TimeBudget {
+  const legacy = LEGACY_BUDGET[profile?.commitment ?? 'casual']
+  return {
+    daysPerWeek: isDays(profile?.daysPerWeek) ? profile.daysPerWeek : legacy.daysPerWeek,
+    minutesPerDay: isMinutes(profile?.minutesPerDay) ? profile.minutesPerDay : legacy.minutesPerDay,
+  }
+}
+
+/** One drill, start to summary, in minutes — the unit a training day is cut into. */
+export const BLOCK_MINUTES = 5
+
+/**
+ * The old pace nearest to a budget. Challenge selection and the weekly figures
+ * still speak in sessions a week, and this is how a budget reaches them.
+ *
+ * @param budget - Days a week and minutes a day
+ */
+export function commitmentFor(budget: TimeBudget): Commitment {
+  const perWeek = (budget.daysPerWeek * budget.minutesPerDay) / BLOCK_MINUTES
+  // Cut so that each old pace maps back onto itself (2, 12, 30 and 84 blocks
+  // a week): confirming the suggested budget unchanged must not raise the pace.
+  if (perWeek <= 2) return 'light'
+  if (perWeek <= 12) return 'casual'
+  if (perWeek <= 30) return 'regular'
+  return 'heavy'
 }
 
 const isGoal = (v: unknown): v is Goal => GOAL_OPTIONS.some(o => o.value === v)
@@ -279,10 +347,13 @@ export function getProfile(): LearnerProfile | null {
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null) return null
 
-    const { goal, commitment } = parsed as Record<string, unknown>
+    const { goal, commitment, daysPerWeek, minutesPerDay } = parsed as Record<string, unknown>
     if (!isGoal(goal) || !isCommitment(commitment)) return null
 
-    return { goal, commitment }
+    const profile: LearnerProfile = { goal, commitment }
+    if (isDays(daysPerWeek)) profile.daysPerWeek = daysPerWeek
+    if (isMinutes(minutesPerDay)) profile.minutesPerDay = minutesPerDay
+    return profile
   } catch {
     return null
   }
@@ -291,6 +362,7 @@ export function getProfile(): LearnerProfile | null {
 export function setProfile(profile: LearnerProfile): void {
   try {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile))
+    planStateChanged()
   } catch {
     /* storage unavailable — the plan falls back to the full path */
   }

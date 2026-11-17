@@ -5,6 +5,7 @@ import { useStatsStore } from '../../store/stats-store'
 import { useAppStore } from '../../store/app-store'
 import type { TrainingSessionResult, LifetimeStats, SessionDetails } from '../../services/stats-types'
 import { CountingSystemId } from '../../engine/counting/types'
+import { CURRICULUM } from '../../services/curriculum'
 
 /** No-op loadStats so mounting doesn't trigger async loading. */
 const noopLoadStats = vi.fn().mockResolvedValue(undefined)
@@ -236,9 +237,44 @@ describe('AnalyticsDashboard — the training plan strip', () => {
     expect(within(strip).getByText(/0 of 5 stages/)).toBeInTheDocument()
   })
 
+  /**
+   * Good Speed Drills, `count` of them over `days` different calendar days
+   * ending today. Whole days apart, so each is its own local day.
+   */
+  const speedDrills = (count: number, days: number) =>
+    Array.from({ length: count }, (_, i) => makeSession({
+      accuracy: 0.95,
+      timestamp: new Date(Date.now() - (i % days) * 86_400_000).toISOString(),
+    }))
+  const hiLo = CURRICULUM.find(s => s.id === 'hi-lo')!.drill!
+
   it('counts cleared stages the same way the plan does', () => {
     localStorage.setItem('bjt_placement', 'hi-lo')
-    withData(Array.from({ length: 3 }, () => makeSession({ accuracy: 0.95 })))
+    // The stage's own bar, read from the curriculum: its sessions, on its days.
+    withData(speedDrills(hiLo.minSessions, hiLo.minDays))
+    render(<AnalyticsDashboard />)
+
+    const strip = screen.getByTestId('analytics-plan-strip')
+    expect(within(strip).getByText(/1 of 5 stages/)).toBeInTheDocument()
+    expect(within(strip).getByText('True count')).toBeInTheDocument()
+  })
+
+  it('does not call a stage cleared that was drilled in one sitting', () => {
+    // The plan says "come back on other days"; this page must not say "done".
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    withData(speedDrills(hiLo.minSessions * 2, 1))
+    render(<AnalyticsDashboard />)
+
+    const strip = screen.getByTestId('analytics-plan-strip')
+    expect(within(strip).getByText(/0 of 5 stages/)).toBeInTheDocument()
+    expect(within(strip).getByText('The Hi-Lo count')).toBeInTheDocument()
+  })
+
+  it('keeps a stage that was already paid for cleared', () => {
+    // Finished under the old, shorter bar: the plan keeps it, so this does too.
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    localStorage.setItem('bjt_claimed_stages', JSON.stringify(['hi-lo']))
+    withData(speedDrills(3, 1))
     render(<AnalyticsDashboard />)
 
     const strip = screen.getByTestId('analytics-plan-strip')

@@ -217,24 +217,35 @@ function SeatShell({ testid, slotWidth, dimmed = false, active = false, cards, s
       data-testid={testid}
     >
       <div className="flex items-end justify-center" style={{ height: CARDS_ROOM }}>{cards}</div>
-      <div className="relative flex items-end justify-center w-full" style={{ height: SPOT_ROOM }}>{spot}</div>
+      <div className="relative flex items-end justify-center w-full" style={{ height: SPOT_ROOM }}>
+        {/* Whose turn it is, said on the betting circle — as on a live table.
+            It used to be a glowing rectangle round the whole seat, which at
+            the outer seats ran over the rim and, round a split hand's own
+            frame, drew one box inside another (design review, 17 Nov 2026). */}
+        {active && (
+          <motion.span
+            aria-hidden
+            data-testid="seat-turn"
+            className="absolute bottom-0 left-1/2 rounded-full pointer-events-none border-2 border-gold"
+            style={{
+              width: SPOT_SIZE, height: SPOT_SIZE, marginLeft: -SPOT_SIZE / 2,
+              boxShadow: '0 0 0 4px rgba(212,168,71,.22), 0 0 22px rgba(212,168,71,.55)',
+            }}
+            // Opacity loops survive `reducedMotion` — it only disables transform
+            // and layout — so this one has to be switched off by hand. A pulse is
+            // the kind of motion you cannot look away from.
+            animate={reduced ? { opacity: 1 } : { opacity: [0.55, 1, 0.55] }}
+            transition={reduced ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
+          />
+        )}
+        {spot}
+      </div>
       {/* One line, there from the deal on: what the seat is doing, and at
           settlement what it won or lost. Inserted only when there was a result
           it pushed every seat's cards up in the same frame. */}
       <div className="flex items-center justify-center" style={{ height: 26 }} data-testid="seat-result">{result ?? status}</div>
       <div className="flex items-center justify-center" style={{ height: 36 }}>{name}</div>
 
-      {active && (
-        <motion.div
-          className="absolute -inset-x-1 -top-1 bottom-0 rounded-xl pointer-events-none"
-          style={{ boxShadow: '0 0 20px rgba(212, 168, 67, 0.4), 0 0 40px rgba(212, 168, 67, 0.15)' }}
-          // Opacity loops survive `reducedMotion` — it only disables transform
-          // and layout — so this one has to be switched off by hand. A pulse is
-          // the kind of motion you cannot look away from.
-          animate={reduced ? { opacity: 0.8 } : { opacity: [0.5, 1, 0.5] }}
-          transition={reduced ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
-        />
-      )}
     </div>
   )
 }
@@ -323,7 +334,7 @@ export function EmptySeat({ seat, slotWidth = 200, onOpen }: {
       ) : (
         <span
           aria-hidden
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full border-2 border-white/15"
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full border-2 border-white/25"
           style={{ width: SPOT_SIZE, height: SPOT_SIZE }}
           data-testid="bet-spot"
         />
@@ -584,7 +595,7 @@ export function BotSeat({
         </span>
       ) : null}
       name={<NamePlate name={bot.name} bankroll={bot.bankroll} />}
-      status={<BotStatusBadge status={botStatus} />}
+      status={gameStep === 'betting' ? undefined : <BotStatusBadge status={botStatus} />}
     />
   )
 }

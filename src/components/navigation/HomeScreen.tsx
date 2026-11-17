@@ -13,11 +13,10 @@ import type { AppMode } from '../../store/app-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
 import { TrainingPlan } from '../plan/TrainingPlan'
-import { StartHere } from '../onboarding/StartHere'
 import { GuidedTour } from '../onboarding/GuidedTour'
 import { DailyChallengeCard } from './DailyChallengeCard'
 import { WeeklyChallengeCard } from './WeeklyChallengeCard'
-import { DashboardHeader, ProductTitle } from './DashboardHeader'
+import { DashboardHeader } from './DashboardHeader'
 
 interface FeatureCard {
   mode: AppMode
@@ -79,15 +78,14 @@ export function HomeScreen() {
       */}
       <TrainingPlan
         embedded
+        onTour={() => setTouring(true)}
         before={
-          <>
-            <ProductTitle />
-            {/* Sits above the plan because it answers a question the plan
-                assumes you already have: not "what is my next stage" but
-                "what do I do with any of this". It removes itself once
-                acted on, so a returning user never sees it. */}
-            <StartHere onTour={() => setTouring(true)} />
-          </>
+          // Who you are and how far you have come, in one compact row, then
+          // straight to today. The product's name is in the bar above; a
+          // second, larger copy of it pushed the day's training down the page.
+          <div className="w-full max-w-3xl flex flex-col items-center pt-6 md:pt-8">
+            <DashboardHeader />
+          </div>
         }
         after={<HomeSections />}
       />
@@ -103,11 +101,7 @@ function HomeSections() {
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
 
   return (
-    <div className="relative z-10 w-full flex flex-col items-center mt-12">
-      {/* Your numbers, below the answer. "How am I doing" is a real question,
-          but it is not the one someone opens the app with. */}
-      <DashboardHeader />
-
+    <div className="relative z-10 w-full max-w-3xl flex flex-col items-center mt-12">
       {/* Challenges sit under the plan, not above it: they are today's nudge,
           not the destination. */}
       <section className="relative z-10 w-full max-w-5xl mb-10 space-y-3">
@@ -210,7 +204,7 @@ function HomeSections() {
       {/* Tools */}
       <section className="relative z-10 w-full max-w-5xl mb-12">
         <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-4 px-1">{t('home.toolsProgress')}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {TOOL_CARDS.map(({ mode, icon: Icon, titleKey, descKey }) => (
             <button
               key={mode}

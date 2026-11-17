@@ -870,12 +870,12 @@
       "why": "Cada habilidad por separado es fácil. Lo difícil es sostenerlas todas a la vez mientras la mesa habla."
     },
     "drill": {
-      "flashcards": "{{n}} sesiones de tarjetas con {{pct}} % o más",
-      "speedDrill": "{{n}} Speed Drills con {{pct}} % o más",
-      "deckEstimation": "{{n}} sesiones de estimación de barajas con {{pct}} % o más",
-      "deviations": "{{n}} sesiones de tarjetas de desviaciones con {{pct}} % o más",
-      "betSpread": "{{n}} sesiones de bet spread con {{pct}} % o más",
-      "casino": "{{n}} sesiones de casino jugadas"
+      "flashcards": "{{n}} sesiones de Flashcards con {{pct}} % o más, en {{days}} días distintos",
+      "speedDrill": "{{n}} Speed Drills con {{pct}} % o más, en {{days}} días distintos",
+      "deckEstimation": "{{n}} sesiones de Deck Estimation con {{pct}} % o más, en {{days}} días distintos",
+      "deviations": "{{n}} sesiones de Flashcards de desviaciones con {{pct}} % o más, en {{days}} días distintos",
+      "betSpread": "{{n}} sesiones de Bet Spread con {{pct}} % o más, en {{days}} días distintos",
+      "casino": "{{n}} Casino Sessions jugadas, en {{days}} días distintos"
     }
   },
   "plan": {
@@ -923,7 +923,9 @@
       "close_one": "{{count}} intento hasta ahora, mejor {{best}} % — {{gap}} por debajo del listón del {{bar}} %. Casi lo tienes.",
       "close_other": "{{count}} intentos hasta ahora, mejor {{best}} % — {{gap}} por debajo del listón del {{bar}} %. Casi lo tienes.",
       "far_one": "{{count}} intento hasta ahora, mejor {{best}} %. El listón está en {{bar}} %, {{target}} veces.",
-      "far_other": "{{count}} intentos hasta ahora, mejor {{best}} %. El listón está en {{bar}} %, {{target}} veces."
+      "far_other": "{{count}} intentos hasta ahora, mejor {{best}} %. El listón está en {{bar}} %, {{target}} veces.",
+      "spacing_one": "Suficientes sesiones buenas. Aún falta {{count}} día más: una habilidad tiene que aguantar una noche para contar.",
+      "spacing_other": "Suficientes sesiones buenas. Aún faltan {{count}} días más: una habilidad tiene que aguantar una noche para contar."
     },
     "effort": {
       "attempts_one": "{{count}} intento · mejor",
@@ -932,7 +934,67 @@
       "barIs": ", el listón está en {{bar}} %"
     },
     "stagesComplete_one": "{{done}} de {{count}} etapa completada",
-    "stagesComplete_other": "{{done}} de {{count}} etapas completadas"
+    "stagesComplete_other": "{{done}} de {{count}} etapas completadas",
+    "today": {
+      "title": "Tu sesión de hoy",
+      "minutes": "{{n}} min",
+      "doneOf": "{{done}} de {{total}} min",
+      "kind": {
+        "read": "Leer",
+        "warmup": "Calentamiento",
+        "work": "Lo de hoy",
+        "table": "En la mesa"
+      },
+      "start": "Empezar: {{block}}",
+      "next": "Siguiente: {{block}}",
+      "complete": "La sesión de hoy está hecha.",
+      "completeSub": "Lo que hagas de más hoy es un extra. La etapa también necesita otros días: vuelve para la siguiente.",
+      "again": "Entrenar un poco más",
+      "lockedFocus": "{{stage}} forma parte de Pro. El día de hoy se arma con lo que tienes abierto.",
+      "empty": "Todavía no hay nada que practicar: empieza por la lectura de abajo."
+    },
+    "week": {
+      "label": "Esta semana",
+      "days": "{{trained}} de {{target}} días",
+      "met": "Semana cumplida",
+      "dayNames": [
+        "L",
+        "M",
+        "X",
+        "J",
+        "V",
+        "S",
+        "D"
+      ]
+    },
+    "forecast_one": "Alrededor de {{count}} semana hasta tu objetivo a este ritmo",
+    "forecast_other": "Alrededor de {{count}} semanas hasta tu objetivo a este ritmo",
+    "time": {
+      "label": "Tu tiempo",
+      "value_one": "{{count}} día por semana · {{minutes}} min",
+      "value_other": "{{count}} días por semana · {{minutes}} min",
+      "daysHeading": "Días de entrenamiento por semana",
+      "minutesHeading": "Minutos en un día de entrenamiento"
+    },
+    "timeQuestion": {
+      "heading": "¿Cuánto tiempo tienes?",
+      "sub": "El plan ajusta cada día de entrenamiento a ese tiempo. El camino es el mismo para todos y los XP también: con menos tiempo, simplemente tarda más.",
+      "continue": "Crear mi plan"
+    },
+    "daysProgress": "{{days}}/{{target}} días",
+    "path": {
+      "title": "Tu camino",
+      "open": "Abrir el plan completo",
+      "stageOf": "Etapa {{n}} de {{total}}"
+    },
+    "how": {
+      "title": "Cómo funciona",
+      "s1": "Cada día de entrenamiento tiene una sesión corta hecha para ti: calentamiento, lo de hoy y la mesa en cuanto sepas contar.",
+      "s2": "Una etapa se completa con sesiones buenas en varios días distintos. Nadie la termina de una sentada.",
+      "s3": "Cada respuesta correcta da XP. Los niveles, premios y retos salen del propio entrenamiento.",
+      "dismiss": "Entendido"
+    },
+    "loading": "Cargando tu plan"
   },
   "recommend": {
     "startTraining": "Empezar a entrenar",

@@ -8,7 +8,7 @@ import { useLevelStore } from '../store/level-store'
 import { stageForMode } from '../services/challenges/challenge-selection'
 import { getClaimedStages } from '../services/stage-rewards'
 import { stageXP } from '../services/stage-rewards'
-import { stageIndex } from '../services/curriculum'
+import { CURRICULUM, stageIndex, type StageId } from '../services/curriculum'
 import type { TrainingMode, TrainingSessionResult } from '../services/stats-types'
 
 const proState = { isPro: true }
@@ -30,8 +30,28 @@ function session(mode: TrainingMode, accuracy: number): TrainingSessionResult {
   } as unknown as TrainingSessionResult
 }
 
-const many = (n: number, mode: TrainingMode, accuracy: number) =>
-  Array.from({ length: n }, () => session(mode, accuracy))
+/**
+ * `count` runs dealt round-robin over `days` different calendar days. 10:00
+ * UTC on consecutive dates is a different local day each, in any timezone.
+ */
+const spread = (count: number, days: number, mode: TrainingMode, accuracy: number) =>
+  Array.from({ length: count }, (_, i) => ({
+    ...session(mode, accuracy),
+    timestamp: `2026-05-${String(1 + (i % days)).padStart(2, '0')}T10:00:00.000Z`,
+  }))
+
+const drillOf = (id: StageId) => CURRICULUM[stageIndex(id)].drill!
+
+/**
+ * Exactly what a stage asks for — its own number of sessions on its own
+ * number of days, read from the curriculum rather than typed in here.
+ */
+function finishing(id: StageId, mode: TrainingMode, accuracy: number): TrainingSessionResult[] {
+  const drill = drillOf(id)
+  const sessions = spread(drill.minSessions, drill.minDays, mode, accuracy)
+  if (!sessions.every(drill.counts)) throw new Error(`sessions do not count towards ${id}`)
+  return sessions
+}
 
 beforeEach(() => {
   localStorage.clear()
@@ -71,7 +91,7 @@ describe('useLearnerSync', () => {
     const daily = vi.fn()
     useChallengeStore.setState({ syncLearner: daily })
     localStorage.setItem('bjt_placement', 'hi-lo')
-    useStatsStore.setState({ sessions: many(3, 'speedDrill', 0.95) })
+    useStatsStore.setState({ sessions: finishing('hi-lo', 'speedDrill', 0.95) })
 
     renderHook(() => useLearnerSync())
 
@@ -84,7 +104,7 @@ describe('useLearnerSync', () => {
     const addXP = vi.fn()
     useLevelStore.setState({ addChallengeXP: addXP })
     localStorage.setItem('bjt_placement', 'hi-lo')
-    useStatsStore.setState({ sessions: many(3, 'speedDrill', 0.95) })
+    useStatsStore.setState({ sessions: finishing('hi-lo', 'speedDrill', 0.95) })
 
     renderHook(() => useLearnerSync())
 
@@ -103,17 +123,58 @@ describe('useLearnerSync', () => {
   it('pays nothing when no stage is finished', () => {
     const addXP = vi.fn()
     useLevelStore.setState({ addChallengeXP: addXP })
-    useStatsStore.setState({ sessions: many(2, 'speedDrill', 0.95) })
+    const { minSessions, minDays } = drillOf('hi-lo')
+    useStatsStore.setState({ sessions: spread(minSessions - 1, minDays, 'speedDrill', 0.95) })
 
     renderHook(() => useLearnerSync())
 
     expect(addXP).not.toHaveBeenCalled()
   })
 
+  it('pays nothing for a stage drilled to the full count in one sitting', () => {
+    // The sessions are all there; the other days are not. Paying here would
+    // bring back the plan that could be finished in an afternoon.
+    const daily = vi.fn()
+    const addXP = vi.fn()
+    useChallengeStore.setState({ syncLearner: daily })
+    useLevelStore.setState({ addChallengeXP: addXP })
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    const { minSessions, minDays } = drillOf('hi-lo')
+    useStatsStore.setState({ sessions: spread(minSessions * 2, 1, 'speedDrill', 0.95) })
+
+    renderHook(() => useLearnerSync())
+
+    expect(addXP).not.toHaveBeenCalled()
+    expect(getClaimedStages()).not.toContain('hi-lo')
+    expect(daily).toHaveBeenCalledWith(expect.objectContaining({ stage: 'hi-lo' }))
+
+    // One day short is still short.
+    useStatsStore.setState({ sessions: spread(minSessions, minDays - 1, 'speedDrill', 0.95) })
+    renderHook(() => useLearnerSync())
+    expect(addXP).not.toHaveBeenCalled()
+  })
+
+  it('keeps a stage paid under the old bar finished, without paying it again', () => {
+    // Three good runs in one sitting closed Hi-Lo before 17 Nov 2026. Whoever
+    // was paid for that is not sent back, and is not paid twice.
+    const daily = vi.fn()
+    const addXP = vi.fn()
+    useChallengeStore.setState({ syncLearner: daily })
+    useLevelStore.setState({ addChallengeXP: addXP })
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    localStorage.setItem('bjt_claimed_stages', JSON.stringify(['hi-lo']))
+    useStatsStore.setState({ sessions: spread(3, 1, 'speedDrill', 0.95) })
+
+    renderHook(() => useLearnerSync())
+
+    expect(daily).toHaveBeenCalledWith(expect.objectContaining({ stage: 'true-count' }))
+    expect(addXP).not.toHaveBeenCalled()
+  })
+
   it('never pays the same stage twice across remounts', () => {
     const addXP = vi.fn()
     useLevelStore.setState({ addChallengeXP: addXP })
-    useStatsStore.setState({ sessions: many(3, 'speedDrill', 0.95) })
+    useStatsStore.setState({ sessions: finishing('hi-lo', 'speedDrill', 0.95) })
 
     const first = renderHook(() => useLearnerSync())
     const paidFirst = addXP.mock.calls.length
@@ -129,7 +190,10 @@ describe('useLearnerSync', () => {
     useLevelStore.setState({ addChallengeXP: addXP })
     // Flashcards clear basic strategy, speed drills clear Hi-Lo.
     useStatsStore.setState({
-      sessions: [...many(3, 'deviationFlashCards', 0.9), ...many(3, 'speedDrill', 0.95)],
+      sessions: [
+        ...finishing('basic-strategy', 'deviationFlashCards', 0.9),
+        ...finishing('hi-lo', 'speedDrill', 0.95),
+      ],
     })
 
     renderHook(() => useLearnerSync())

@@ -111,6 +111,82 @@ describe('the betting clock', () => {
     expect(screen.queryByTestId('action-controls')).toBeNull()
   })
 
+  /**
+   * A stand the clock made is not a decision (17 Nov 2026). A player who
+   * looked away for thirty seconds on 16 against a 9 did not "stand on 16":
+   * the hand is played out, and nothing goes into the play accuracy.
+   *
+   * Read off the summary after the cash-out, which prints the graded plays as
+   * "correct/total" — the same figures the saved session carries.
+   */
+  describe('a stand made by the clock is not graded', () => {
+    /** Every "n/m" on the summary: in plain blackjack, the play row and the insurance row. */
+    const gradedCounts = () =>
+      [...(screen.getByTestId('play-again').closest('.max-w-2xl')?.textContent ?? '').matchAll(/(\d+)\/(\d+)/g)]
+        .map(m => ({ correct: Number(m[1]), total: Number(m[2]) }))
+
+    const betAndDeal = () => {
+      fireEvent.click(screen.getByText('+$25'))
+      fireEvent.click(screen.getByTestId('confirm-bet'))
+      tick(8000)
+    }
+
+    const finishRoundAndCashOut = () => {
+      tick(20_000)
+      for (let i = 0; i < 3 && screen.queryByTestId('next-hand'); i++) {
+        fireEvent.click(screen.getByTestId('next-hand'))
+        tick(500)
+      }
+      fireEvent.click(screen.getByTestId('cash-out'))
+    }
+
+    it('counts a stand the player made — the control', () => {
+      sitDown()
+      betAndDeal()
+      fireEvent.click(screen.getByTestId('action-stand'))
+      finishRoundAndCashOut()
+
+      // One play was graded, whatever its verdict. Without this the test
+      // below could pass on a summary that never counts anything.
+      const counts = gradedCounts()
+      expect(counts.length).toBeGreaterThan(0)
+      expect(counts.filter(c => c.total === 1)).toHaveLength(1)
+      expect(counts.reduce((n, c) => n + c.total, 0)).toBe(1)
+    })
+
+    it('counts nothing for a stand the clock made', () => {
+      sitDown()
+      betAndDeal()
+      expect(screen.getByTestId('decision-clock')).toHaveTextContent('0:30')
+      // Nobody touches the hand; the clock runs out and the table stands it.
+      tick(DECISION_SECONDS * 1000 + 1000)
+      expect(screen.queryByTestId('action-controls')).toBeNull()
+      finishRoundAndCashOut()
+
+      // The hand was played and the session ended with it on record...
+      expect(screen.getByTestId('play-again')).toBeInTheDocument()
+      expect(useCasinoSessionTrackerStore.getState().sessions).toHaveLength(1)
+      expect(useCasinoSessionTrackerStore.getState().sessions[0].handsPlayed).toBe(1)
+      // ...and no decision was graded: every count on the summary is 0 of 0.
+      const counts = gradedCounts()
+      expect(counts.length).toBeGreaterThan(0)
+      expect(counts.every(c => c.total === 0 && c.correct === 0)).toBe(true)
+    })
+
+    it('still grades the plays the player made before the clock ran out', () => {
+      sitDown()
+      betAndDeal()
+      // A hit by hand, then the hand is left to the clock.
+      fireEvent.click(screen.getByTestId('action-hit'))
+      tick(2000)
+      if (screen.queryByTestId('action-stand')) tick(DECISION_SECONDS * 1000 + 1000)
+      finishRoundAndCashOut()
+
+      // The hit counts; the clock's stand after it does not.
+      expect(gradedCounts().reduce((n, c) => n + c.total, 0)).toBe(1)
+    })
+  })
+
   it('does not run down while the session is paused', () => {
     sitDown()
     fireEvent.click(screen.getByText('+$25'))

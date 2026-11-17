@@ -12,6 +12,7 @@ import {
   currentStage,
   getPlacement,
   getReadStages,
+  claimedStageIds,
   stageIndex,
 } from '../../services/curriculum'
 import type { TrainingSessionResult } from '../../services/stats-types'
@@ -175,7 +176,7 @@ function PlanStrip({
   const placement = getPlacement()
   if (!placement) return null
 
-  const progress = deriveCurriculum(sessions, getReadStages(), isPro)
+  const progress = deriveCurriculum(sessions, getReadStages(), isPro, claimedStageIds())
   const active = currentStage(progress, placement)
   const from = stageIndex(placement)
   const total = progress.length - from

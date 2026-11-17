@@ -1,3 +1,5 @@
+import { planStateChanged } from './plan-state-signal'
+
 const KEY = 'bjt_level_intro_seen'
 
 /**
@@ -26,6 +28,7 @@ export function hasSeenLevelIntro(): boolean {
 export function markLevelIntroSeen(): void {
   try {
     localStorage.setItem(KEY, 'true')
+    planStateChanged()
   } catch {
     /* storage unavailable — worst case is the intro repeating once */
   }

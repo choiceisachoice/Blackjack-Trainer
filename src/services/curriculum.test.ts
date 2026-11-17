@@ -12,6 +12,8 @@ import {
   setPlacement,
   getReadStages,
   markStageRead,
+  setReadStages,
+  claimedStageIds,
   stageTrend,
   stageEffort,
   activeStage,
@@ -37,6 +39,45 @@ function session(mode: TrainingMode, accuracy: number, details?: unknown): Train
 const repeat = (n: number, f: () => TrainingSessionResult) => Array.from({ length: n }, f)
 const stage = (id: StageId) => CURRICULUM.find(s => s.id === id)!
 
+/** A session each drill stage counts, by stage. */
+const DRILL_SESSION: Partial<Record<StageId, { mode: TrainingMode; details?: unknown }>> = {
+  'basic-strategy': { mode: 'deviationFlashCards' },
+  'hi-lo': { mode: 'speedDrill' },
+  'true-count': { mode: 'deckEstimation' },
+  deviations: {
+    mode: 'deviationFlashCards',
+    details: { type: 'deviationFlashCards', perDeviation: { '16 vs 10': { correct: 3, incorrect: 0 } } },
+  },
+  'bet-spread': { mode: 'betSpread' },
+  table: { mode: 'casinoSession' },
+}
+
+/** 10:00 UTC on the n-th day of March 2026 — a different local day for every n, in any timezone. */
+const onDay = (n: number) => `2026-03-${String(n).padStart(2, '0')}T10:00:00.000Z`
+
+/**
+ * `count` qualifying runs of a stage's drill, dealt round-robin over `days`
+ * different calendar days.
+ */
+function runs(id: StageId, count: number, days: number, accuracy = 0.95): TrainingSessionResult[] {
+  const kind = DRILL_SESSION[id]!
+  const out = Array.from({ length: count }, (_, i) => ({
+    ...session(kind.mode, accuracy, kind.details),
+    timestamp: onDay(1 + (i % days)),
+  }))
+  // A helper that built sessions the stage ignores would make every test
+  // below pass or fail for the wrong reason.
+  if (!out.every(stage(id).drill!.counts)) throw new Error(`sessions do not count towards ${id}`)
+  return out
+}
+
+/**
+ * Exactly what a stage asks for: its own `minSessions`, on its own `minDays`.
+ * Read from the curriculum, so a changed bar moves the tests with it.
+ */
+const finishing = (id: StageId, accuracy = 0.95) =>
+  runs(id, stage(id).drill!.minSessions, stage(id).drill!.minDays, accuracy)
+
 describe('CURRICULUM shape', () => {
   it('is ordered along the real dependency chain', () => {
     // You cannot size bets by a count you can't keep.
@@ -61,6 +102,8 @@ describe('CURRICULUM shape', () => {
       if (!s.drill) continue
       const text = drillDescription(s.drill, i18next.t)
       expect(text, s.id).toContain(String(s.drill.minSessions))
+      // The days are part of the promise now, and have to be in the sentence.
+      expect(text, s.id).toContain(`${s.drill.minDays} different days`)
       if (s.drill.minAccuracy > 0) {
         expect(text, s.id).toContain(String(Math.round(s.drill.minAccuracy * 100)))
       }
@@ -90,10 +133,22 @@ describe('deriveStageProgress', () => {
     expect(p.done).toBe(false)
   })
 
-  it('completes once enough qualifying sessions exist', () => {
-    const p = deriveStageProgress(stage('hi-lo'), repeat(3, () => session('speedDrill', 0.95)), [], true)
+  it('completes once enough qualifying sessions exist on enough different days', () => {
+    const { minSessions, minDays } = stage('hi-lo').drill!
+    const p = deriveStageProgress(stage('hi-lo'), finishing('hi-lo'), [], true)
     expect(p.done).toBe(true)
-    expect(p.current).toBe(3)
+    expect(p.current).toBe(minSessions)
+    expect(p.target).toBe(minSessions)
+    expect(p.days).toBe(minDays)
+    expect(p.targetDays).toBe(minDays)
+  })
+
+  it('is not done one session short, however well the days are spread', () => {
+    const { minSessions, minDays } = stage('hi-lo').drill!
+    const p = deriveStageProgress(stage('hi-lo'), runs('hi-lo', minSessions - 1, minDays), [], true)
+    expect(p.done).toBe(false)
+    expect(p.current).toBe(minSessions - 1)
+    expect(p.days).toBe(minDays)
   })
 
   it('ignores sessions from a different mode', () => {
@@ -102,14 +157,15 @@ describe('deriveStageProgress', () => {
   })
 
   it('counts a flashcards session towards deviations only if it contained deviations', () => {
-    const plain = repeat(3, () => session('deviationFlashCards', 0.95, { type: 'deviationFlashCards', perDeviation: {} }))
-    const real = repeat(3, () =>
-      session('deviationFlashCards', 0.95, {
-        type: 'deviationFlashCards',
-        perDeviation: { '16 vs 10': { correct: 3, incorrect: 0 } },
-      }),
-    )
+    // Same number, same days, same accuracy — the only difference is whether
+    // a deviation was ever asked.
+    const real = finishing('deviations')
+    const plain = real.map(s => ({
+      ...s,
+      details: { type: 'deviationFlashCards', perDeviation: {} },
+    })) as unknown as TrainingSessionResult[]
     expect(deriveStageProgress(stage('deviations'), plain, [], true).current).toBe(0)
+    expect(deriveStageProgress(stage('deviations'), plain, [], true).done).toBe(false)
     expect(deriveStageProgress(stage('deviations'), real, [], true).done).toBe(true)
   })
 
@@ -142,23 +198,21 @@ describe('currentStage', () => {
   })
 
   it('advances as stages are completed', () => {
-    const done = [
-      ...repeat(3, () => session('deviationFlashCards', 0.95)),
-      ...repeat(3, () => session('speedDrill', 0.95)),
-    ]
+    const done = [...finishing('basic-strategy'), ...finishing('hi-lo')]
     expect(currentStage(progress(done, ['rules']), 'rules')?.stage.id).toBe('true-count')
   })
 
   it('returns null when the whole path is finished', () => {
+    // The deviation sessions are flashcards too, and there are at least as
+    // many of them on as many days as basic strategy asks for.
+    expect(stage('deviations').drill!.minSessions).toBeGreaterThanOrEqual(stage('basic-strategy').drill!.minSessions)
+    expect(stage('deviations').drill!.minDays).toBeGreaterThanOrEqual(stage('basic-strategy').drill!.minDays)
     const everything = [
-      ...repeat(3, () => session('deviationFlashCards', 0.95, {
-        type: 'deviationFlashCards',
-        perDeviation: { '16 vs 10': { correct: 3, incorrect: 0 } },
-      })),
-      ...repeat(3, () => session('speedDrill', 0.95)),
-      ...repeat(3, () => session('deckEstimation', 0.95)),
-      ...repeat(3, () => session('betSpread', 0.95)),
-      ...repeat(3, () => session('casinoSession', 1)),
+      ...finishing('deviations'),
+      ...finishing('hi-lo'),
+      ...finishing('true-count'),
+      ...finishing('bet-spread'),
+      ...finishing('table', 1),
     ]
     expect(currentStage(progress(everything, ['rules']), 'rules')).toBeNull()
   })
@@ -272,7 +326,21 @@ describe('activeStage', () => {
 
   it('moves on as stages are cleared', () => {
     setPlacement('hi-lo')
-    expect(activeStage(repeat(3, () => session('speedDrill', 0.95)), true)).toBe('true-count')
+    expect(activeStage(finishing('hi-lo'), true)).toBe('true-count')
+  })
+
+  it('stays on a stage whose sessions all fell on one day', () => {
+    setPlacement('hi-lo')
+    const { minSessions } = stage('hi-lo').drill!
+    expect(activeStage(runs('hi-lo', minSessions, 1), true)).toBe('hi-lo')
+  })
+
+  it('treats a stage already paid as finished, with no sessions at all', () => {
+    // The claimed list is read from storage here — the bar was raised on
+    // 17 Nov 2026 and nobody may be sent back to a stage they were paid for.
+    setPlacement('hi-lo')
+    localStorage.setItem('bjt_claimed_stages', JSON.stringify(['hi-lo']))
+    expect(activeStage([], true)).toBe('true-count')
   })
 
   it('never sends a placed learner back below their placement', () => {
@@ -282,10 +350,7 @@ describe('activeStage', () => {
 
   it('is null once the whole path is done', () => {
     setPlacement('bet-spread')
-    const done = [
-      ...repeat(3, () => session('betSpread', 0.9)),
-      ...repeat(3, () => session('casinoSession', 1)),
-    ]
+    const done = [...finishing('bet-spread', 0.9), ...finishing('table', 1)]
     expect(activeStage(done, true)).toBeNull()
   })
 })
@@ -314,7 +379,8 @@ describe('nextUnlockedStage', () => {
   })
 
   it('skips stages that are already finished', () => {
-    const done = repeat(3, () => session('deviationFlashCards', 0.9))
+    const done = finishing('basic-strategy', 0.9)
+    expect(deriveStageProgress(stage('basic-strategy'), done, [], false).done).toBe(true)
     const next = nextUnlockedStage(progressFor(false, done), 'true-count')
     // Basic strategy is cleared by those sessions, but it sits before the
     // locked stage anyway; deviations needs its own sessions.
@@ -425,15 +491,30 @@ describe('stageEffort', () => {
 
   it('switches to partial once something clears', () => {
     expect(classify([...drills(1, 0.95), ...drills(4, 0.3)]))
-      .toEqual({ kind: 'partial', cleared: 1, target: 3 })
+      .toEqual({ kind: 'partial', cleared: 1, target: stage('hi-lo').drill!.minSessions })
   })
 
   it('reports done, and done outranks everything else', () => {
-    expect(classify(drills(3, 0.95))).toEqual({ kind: 'done' })
+    expect(classify(finishing('hi-lo'))).toEqual({ kind: 'done' })
     // Even a locked stage reads as done if the work is there — losing Pro
     // should not retract an achievement.
-    expect(stageEffort(deriveStageProgress(stage('true-count'), Array.from(
-      { length: 3 }, () => session('deckEstimation', 0.9)), [], false))).toEqual({ kind: 'done' })
+    expect(stageEffort(deriveStageProgress(stage('true-count'), finishing('true-count', 0.9), [], false)))
+      .toEqual({ kind: 'done' })
+  })
+
+  it('names the wait when the sessions are there and the days are not', () => {
+    // The whole count in one sitting: nothing is missing but the nights.
+    const { minSessions, minDays } = stage('hi-lo').drill!
+    expect(classify(runs('hi-lo', minSessions, 1)))
+      .toEqual({ kind: 'spacing', days: 1, targetDays: minDays, left: minDays - 1 })
+    expect(classify(runs('hi-lo', minSessions + 4, minDays - 1)))
+      .toEqual({ kind: 'spacing', days: minDays - 1, targetDays: minDays, left: 1 })
+  })
+
+  it('still calls it partial while sessions are missing, whatever the days say', () => {
+    const { minSessions, minDays } = stage('hi-lo').drill!
+    expect(classify(runs('hi-lo', minSessions - 1, minDays)))
+      .toEqual({ kind: 'partial', cleared: minSessions - 1, target: minSessions })
   })
 
   it('reports locked before effort, since the drill cannot be opened', () => {
@@ -459,18 +540,171 @@ describe('a stage needs sessions large enough to prove something', () => {
   it('does not finish a stage on three aborted three-question runs', () => {
     // 13 Nov 2026: three flashcards right, leave, three times — stage done.
     const stage = CURRICULUM.find(s => s.id === 'basic-strategy')!
-    const runs = repeat(3, () => short('deviationFlashCards', 1)).filter(stage.drill!.counts)
-    expect(runs).toHaveLength(3)
-    const p = deriveStageProgress(stage, runs, [], true)
+    // Today's bar in full — enough of them, on enough days — so the only
+    // thing wrong with these runs is their size.
+    const aborted = finishing('basic-strategy', 1)
+      .map(s => ({ ...s, totalQuestions: 3, correctAnswers: 3 }))
+      .filter(stage.drill!.counts)
+    expect(aborted).toHaveLength(stage.drill!.minSessions)
+    const p = deriveStageProgress(stage, aborted, [], true)
     expect(p.done).toBe(false)
     expect(p.current).toBe(0)
+    expect(p.days).toBe(0)
     // They still count as practice: the learner tried.
-    expect(p.attempts).toBe(runs.length)
+    expect(p.attempts).toBe(aborted.length)
   })
 
-  it('keeps the Speed Drill at three runs — one answer there is a whole shoe counted', () => {
+  it('counts a three-answer Speed Drill run — one answer there is a whole shoe counted', () => {
     const stage = CURRICULUM.find(s => s.drill?.mode === 'speedDrill')!
-    const p = deriveStageProgress(stage, repeat(3, () => short('speedDrill', 1)), [], true)
+    expect(short('speedDrill', 1).totalQuestions).toBe(3)
+    const threeAnswerRuns = finishing('hi-lo', 1).map(s => ({ ...s, totalQuestions: 3, correctAnswers: 3 }))
+    const p = deriveStageProgress(stage, threeAnswerRuns, [], true)
+    expect(p.current).toBe(stage.drill!.minSessions)
     expect(p.done).toBe(true)
+  })
+})
+
+describe('a stage has to come back on other days', () => {
+  const drillStages = CURRICULUM.filter(s => s.drill)
+
+  it('asks every drill stage for more than one day, and never for more days than sessions', () => {
+    for (const s of drillStages) {
+      expect(s.drill!.minDays, s.id).toBeGreaterThan(1)
+      expect(s.drill!.minDays, s.id).toBeLessThanOrEqual(s.drill!.minSessions)
+    }
+  })
+
+  it('does not finish any stage in one sitting, however many good runs', () => {
+    // 17 Nov 2026: three good runs closed a stage and the whole plan could be
+    // walked in an afternoon.
+    for (const s of drillStages) {
+      const { minSessions, minDays } = s.drill!
+      const p = deriveStageProgress(s, runs(s.id, minSessions * 3, 1, 1), [], true)
+      expect(p.done, s.id).toBe(false)
+      expect(p.current, s.id).toBe(minSessions)
+      expect(p.days, s.id).toBe(1)
+      expect(stageEffort(p), s.id).toEqual({ kind: 'spacing', days: 1, targetDays: minDays, left: minDays - 1 })
+    }
+  })
+
+  it('is not done one day short, and done on the day that completes the set', () => {
+    for (const s of drillStages) {
+      const { minSessions, minDays } = s.drill!
+      const short = deriveStageProgress(s, runs(s.id, minSessions, minDays - 1, 1), [], true)
+      expect(short.done, s.id).toBe(false)
+      expect(short.days, s.id).toBe(minDays - 1)
+      expect(deriveStageProgress(s, runs(s.id, minSessions, minDays, 1), [], true).done, s.id).toBe(true)
+    }
+  })
+
+  it('counts days only from runs that cleared the bar', () => {
+    // Five days of trying and one good day is one day, not five.
+    const hiLo = stage('hi-lo')
+    const { minSessions, minDays } = hiLo.drill!
+    const sessions = [
+      ...runs('hi-lo', minSessions, 1),
+      ...runs('hi-lo', minDays, minDays, 0.5).map((s, i) => ({ ...s, timestamp: onDay(10 + i) })),
+    ]
+    const p = deriveStageProgress(hiLo, sessions, [], true)
+    expect(p.current).toBe(minSessions)
+    expect(p.days).toBe(1)
+    expect(p.done).toBe(false)
+  })
+
+  it('counts two runs on one calendar day as one day', () => {
+    // Local noon and an hour later: the same day in every timezone.
+    const at = (hour: number) => ({
+      ...session('speedDrill', 0.95),
+      timestamp: new Date(2026, 2, 5, hour).toISOString(),
+    })
+    expect(deriveStageProgress(stage('hi-lo'), [at(12), at(13)], [], true).days).toBe(1)
+  })
+
+  it('buckets by the local calendar day, not by UTC', () => {
+    // Late evening and the next early morning, local time: two days for the
+    // learner whatever UTC calls them.
+    const evening = { ...session('speedDrill', 0.95), timestamp: new Date(2026, 2, 5, 23, 30).toISOString() }
+    const morning = { ...session('speedDrill', 0.95), timestamp: new Date(2026, 2, 6, 0, 30).toISOString() }
+    expect(deriveStageProgress(stage('hi-lo'), [evening, morning], [], true).days).toBe(2)
+  })
+
+  it('caps the days it reports at the days it asks for', () => {
+    const { minSessions, minDays } = stage('hi-lo').drill!
+    const p = deriveStageProgress(stage('hi-lo'), runs('hi-lo', minSessions * 2, minDays + 3), [], true)
+    expect(p.days).toBe(minDays)
+    expect(p.done).toBe(true)
+  })
+
+  it('asks a reading stage for no days at all', () => {
+    const p = deriveStageProgress(stage('rules'), [], [], true)
+    expect(p.targetDays).toBe(0)
+    expect(p.days).toBe(0)
+  })
+})
+
+describe('a stage already paid stays finished', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('is done with zero sessions, and reads as full', () => {
+    // Raising the bar must never take away something earned.
+    const hiLo = stage('hi-lo')
+    const p = deriveStageProgress(hiLo, [], [], true, ['hi-lo'])
+    expect(p.done).toBe(true)
+    expect(p.current).toBe(hiLo.drill!.minSessions)
+    expect(p.days).toBe(hiLo.drill!.minDays)
+    expect(stageEffort(p)).toEqual({ kind: 'done' })
+    // What actually happened is still told straight.
+    expect(p.attempts).toBe(0)
+    expect(p.best).toBeNull()
+  })
+
+  it('stays done under the old bar: three good runs in one sitting', () => {
+    const old = runs('hi-lo', 3, 1)
+    expect(deriveStageProgress(stage('hi-lo'), old, [], true).done).toBe(false)
+    expect(deriveStageProgress(stage('hi-lo'), old, [], true, ['hi-lo']).done).toBe(true)
+  })
+
+  it('finishes only the stage that was paid', () => {
+    const progress = deriveCurriculum([], [], true, ['hi-lo'])
+    expect(progress.filter(p => p.done).map(p => p.stage.id)).toEqual(['hi-lo'])
+  })
+
+  it('does not open a Pro stage by having been paid for it', () => {
+    const p = deriveStageProgress(stage('true-count'), [], [], false, ['true-count'])
+    expect(p.done).toBe(true)
+    expect(p.locked).toBe(true)
+  })
+
+  it('defaults to nothing claimed', () => {
+    expect(deriveCurriculum([], [], true).some(p => p.done)).toBe(false)
+  })
+
+  it('reads the claimed list from storage, dropping what is not a stage', () => {
+    expect(claimedStageIds()).toEqual([])
+    localStorage.setItem('bjt_claimed_stages', JSON.stringify(['hi-lo', 'nonsense', 7, 'rules']))
+    expect(claimedStageIds()).toEqual(['hi-lo', 'rules'])
+  })
+
+  it('survives a corrupt or mis-shaped claimed list', () => {
+    localStorage.setItem('bjt_claimed_stages', '{not json')
+    expect(claimedStageIds()).toEqual([])
+    localStorage.setItem('bjt_claimed_stages', JSON.stringify({ 'hi-lo': true }))
+    expect(claimedStageIds()).toEqual([])
+  })
+})
+
+describe('setReadStages', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('replaces the list, dropping repeats and unknown ids', () => {
+    markStageRead('rules')
+    setReadStages(['hi-lo', 'hi-lo', 'not-a-stage' as StageId, 'basic-strategy'])
+    expect(getReadStages()).toEqual(['hi-lo', 'basic-strategy'])
+  })
+
+  it('can be emptied', () => {
+    markStageRead('rules')
+    setReadStages([])
+    expect(getReadStages()).toEqual([])
   })
 })

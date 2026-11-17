@@ -99,6 +99,30 @@ describe('the order it does things in', () => {
     expect(tokenAtServerCall).not.toBe('not-called')
   })
 
+  it('puts the account sync back to "not started", so the next sign-in waits for its merge', async () => {
+    // The plan waits for the merge before it decides who it is talking to. A
+    // status left at `done` by the previous account would let it judge the
+    // next one from a freshly wiped device.
+    const { useCloudSyncStore } = await import('../../store/cloud-sync-store')
+    const { signOutAndClearLocal } = await import('./cloud-sync')
+    useCloudSyncStore.setState({ status: 'done' })
+
+    await signOutAndClearLocal()
+
+    expect(useCloudSyncStore.getState().status).toBe('idle')
+  })
+
+  it('does so even when the server cannot be reached', async () => {
+    const { useCloudSyncStore } = await import('../../store/cloud-sync-store')
+    const { signOutAndClearLocal } = await import('./cloud-sync')
+    useCloudSyncStore.setState({ status: 'done' })
+    signOut.mockRejectedValue(new Error('offline'))
+
+    await signOutAndClearLocal()
+
+    expect(useCloudSyncStore.getState().status).toBe('idle')
+  })
+
   it('leaves keys that are not an auth session alone', async () => {
     const { signOutAndClearLocal } = await import('./cloud-sync')
     await signOutAndClearLocal()

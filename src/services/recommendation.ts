@@ -2,6 +2,7 @@ import { CURRICULUM, stageIndex, drillDescription, type StageId } from './curric
 import type { Translate } from '../i18n/translate'
 import { levelForStage, isCompleteBeginner } from './starting-point'
 import type { AppMode } from '../store/app-store'
+import { planStateChanged } from './plan-state-signal'
 
 /**
  * The first move suggested on the home screen, chosen from the one answer the
@@ -123,6 +124,7 @@ export function setRecommendation(level: string): void {
     // A fresh answer re-opens the card. Someone who retakes the question is
     // asking to be pointed somewhere again.
     localStorage.removeItem(DISMISSED_KEY)
+    planStateChanged()
   } catch {
     /* storage unavailable — the card simply derives from the placement instead */
   }
@@ -155,6 +157,7 @@ export function isRecommendationDone(): boolean {
 export function setRecommendationDone(): void {
   try {
     localStorage.setItem(DISMISSED_KEY, '1')
+    planStateChanged()
   } catch {
     /* storage unavailable — the card reappears next visit, which is harmless */
   }
@@ -173,6 +176,7 @@ export function hasSeenTour(): boolean {
 export function setTourSeen(): void {
   try {
     localStorage.setItem(TOUR_KEY, '1')
+    planStateChanged()
   } catch {
     /* storage unavailable — the tour can be re-run from the card, no worse */
   }

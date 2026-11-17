@@ -1,6 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { usePlanState, useAwaitingAccount } from '../../hooks/use-plan-state'
+import { buildDayPlan, deriveWeek, weeksToGoal } from '../../services/daily-plan'
+import { todayKey } from '../../services/date-utils'
+import { TimeBudgetPicker, TimeQuestion, TodayBlocks, PathStrip, HowItWorks } from './PlanToday'
 import { Trans, useTranslation } from 'react-i18next'
-import { Check, Lock, BookOpen, Play, Route, RotateCcw, Zap, ChevronRight, Flag, CalendarCheck, CalendarClock, Pencil, X, TrendingUp, ClipboardList } from 'lucide-react'
+import { Check, Lock, BookOpen, Play, Route, RotateCcw, Zap, ChevronRight, Flag, CalendarClock, Pencil, X, TrendingUp, ClipboardList, Timer } from 'lucide-react'
 import { Sparkline } from '../analytics/AnalyticsCharts'
 import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
@@ -15,11 +19,9 @@ import {
   deriveCurriculum,
   currentStage,
   nextUnlockedStage,
-  getPlacement,
   setPlacement,
-  getReadStages,
   markStageRead,
-  hasSkippedPlacement,
+  claimedStageIds,
   setPlacementSkipped,
   clearPlacementSkip,
   stageIndex,
@@ -37,18 +39,19 @@ import {
   profileForLevel,
   goalStage,
   isBeyondGoal,
-  derivePace,
   nextGoalUp,
   proStagesFor,
+  budgetOf,
+  commitmentFor,
   GOAL_OPTIONS,
-  COMMITMENT_OPTIONS,
   type LearnerProfile,
+  type TimeBudget,
 } from '../../services/learner-profile'
 import { weekStartKey } from '../../services/date-utils'
 import { deriveRhythm, rhythmMessage } from '../../services/training-rhythm'
 import { WelcomeScreen } from '../onboarding/WelcomeScreen'
-import { hasSeenWelcome, setWelcomeSeen } from '../../services/onboarding'
-import { setRecommendation } from '../../services/recommendation'
+import { setWelcomeSeen } from '../../services/onboarding'
+import { setRecommendation, setRecommendationDone } from '../../services/recommendation'
 import { ProgressBar } from '../common/ui'
 
 /**
@@ -70,6 +73,7 @@ export function TrainingPlan({
   embedded = false,
   before,
   after,
+  onTour,
 }: {
   /**
    * Rendered inside a page that already owns the scroll and the page title.
@@ -86,6 +90,8 @@ export function TrainingPlan({
    */
   before?: ReactNode
   after?: ReactNode
+  /** Starts the guided tour, where the page embedding the plan has one. */
+  onTour?: () => void
 }) {
   const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
@@ -97,32 +103,60 @@ export function TrainingPlan({
   const challenge = useChallengeStore(s => s.challenge)
   const challengeState = useChallengeStore(s => s.state)
 
-  const [placement, setPlacementState] = useState(() => getPlacement())
-  const [profile, setProfileState] = useState<LearnerProfile | null>(() => getProfile())
-  const [readStages, setReadStages] = useState(() => getReadStages())
+  // The answers are read live: the merge with the account's copy lands after
+  // this screen has mounted, and a screen that read them once asked a
+  // returning learner the first-day question (Darius, 17 Nov 2026).
+  const plan = usePlanState()
+  const awaitingAccount = useAwaitingAccount()
+  const { profile, readStages } = plan
+  // A retake puts the question back without throwing the stored answer away:
+  // leaving it half-way must not un-place anyone.
+  const [retaking, setRetaking] = useState(false)
+  const placement = retaking ? null : plan.placement
+  // Someone with training on record is not a newcomer, whatever the stored
+  // answers say. An account that trained before its answers travelled with it
+  // arrives here with sessions and no placement; asking it "have you ever
+  // played?" is the question the history has already answered. It gets the
+  // plan from the start of the road, with its real progress on it, and the
+  // choice of a starting point one click away.
+  const knownLearner = sessions.length > 0
+  const skipped = retaking ? false : plan.skipped || knownLearner
+  const [editing, setEditing] = useState(false)
   // Only ever shown to an account that has neither been greeted nor placed —
   // a retake must not drop the learner back onto a welcome screen.
-  const [editing, setEditing] = useState(false)
-  const [greeted, setGreeted] = useState(() => hasSeenWelcome() || getPlacement() !== null)
-  // Declining the test is a decision, not a deferral to re-ask every visit.
-  const [skipped, setSkipped] = useState(() => hasSkippedPlacement())
+  const greeted = plan.welcomeSeen || plan.placement !== null || plan.skipped || knownLearner
+  // The time question follows the level question, once, in the same sitting.
+  const [askingTime, setAskingTime] = useState(false)
 
   // The plan is entirely derived from session history, so it has to be loaded.
   useEffect(() => {
     if (lifetimeStats == null) void loadStats()
   }, [lifetimeStats, loadStats])
 
+  // ── The account's answers are still on their way ──
+  // An empty device right after a sign-in says nothing about the learner.
+  // Wait for the merge rather than greet someone who trained here yesterday.
+  if (awaitingAccount && plan.placement === null && !plan.skipped) {
+    return (
+      <div
+        className="flex-1 w-full grid place-items-center py-24"
+        role="status"
+        aria-busy="true"
+        aria-label={t('plan.loading')}
+        data-testid="plan-loading"
+      >
+        <div className="w-full max-w-3xl px-4 flex flex-col gap-3">
+          <div className="h-5 w-40 rounded-md bg-contrast/8 animate-pulse" />
+          <div className="h-44 rounded-2xl bg-contrast/5 animate-pulse" />
+          <div className="h-16 rounded-2xl bg-contrast/5 animate-pulse" />
+        </div>
+      </div>
+    )
+  }
+
   // ── 0. Brand-new account → say hello before asking anything ──
   if (!greeted) {
-    return (
-      <WelcomeScreen
-        isPro={isPro}
-        onStart={() => {
-          setWelcomeSeen()
-          setGreeted(true)
-        }}
-      />
-    )
+    return <WelcomeScreen isPro={isPro} onStart={() => setWelcomeSeen()} />
   }
 
   // ── 1. Not placed yet → the one question, but never insist ──
@@ -136,18 +170,25 @@ export function TrainingPlan({
     return (
       <StartingPoint
         onSkip={() => {
-          setPlacementSkipped()
-          setSkipped(true)
+          if (retaking) setRetaking(false)
+          else setPlacementSkipped()
         }}
         onPick={option => {
-          const derived = profileForLevel()
+          // A retake keeps the goal and the time already given.
+          const kept = getProfile() ?? profileForLevel()
           setPlacement(option.stage)
-          setProfile(derived)
-          setProfileState(derived)
+          setProfile(kept)
           // Remembered so the home screen can open with a first move that
           // matches the answer, rather than the same greeting for everyone.
+          const dismissed = plan.recommendationDone
           setRecommendation(option.value)
-          setPlacementState(option.stage)
+          // Changing the starting point is not asking for the introduction again.
+          if (dismissed) setRecommendationDone()
+          clearPlacementSkip()
+          // Asked once: an account that has already said how much time it has
+          // is not asked again because it changed where it starts.
+          setAskingTime(kept.daysPerWeek == null)
+          setRetaking(false)
         }}
       />
     )
@@ -159,8 +200,24 @@ export function TrainingPlan({
   // personalisation — they simply start at the beginning of it.
   const placed = placement !== null
   const entry = placement ?? CURRICULUM[0].id
-  const progress = deriveCurriculum(sessions, readStages, isPro)
+  const progress = deriveCurriculum(sessions, readStages, isPro, claimedStageIds())
   const goal = profile?.goal ?? 'serious'
+  const budget = budgetOf(profile)
+
+  // ── 1b. The second question: how much time is there? ──
+  if (askingTime) {
+    return (
+      <TimeQuestion
+        initial={budget}
+        weeks={b => weeksToGoal(progress, entry, goal, b)}
+        onDone={b => {
+          setProfile({ ...(getProfile() ?? FALLBACK_PROFILE), ...b, commitment: commitmentFor(b) })
+          setAskingTime(false)
+        }}
+      />
+    )
+  }
+
   const goalIndex = stageIndex(goalStage(goal))
   const from = stageIndex(entry)
 
@@ -176,7 +233,10 @@ export function TrainingPlan({
   const openInstead = active?.locked
     ? nextUnlockedStage(progress, entry, goalStage(goal))
     : null
-  const pace = derivePace(profile?.commitment ?? 'casual', sessions, weekStartKey())
+  const today = todayKey()
+  const week = deriveWeek(sessions, budget, weekStartKey(), today)
+  const day = buildDayPlan({ progress, placement: entry, goal, isPro, budget, sessions, today })
+  const weeksLeft = weeksToGoal(progress, entry, goal, budget)
   // The next rung up, offered only once the current goal is actually done.
   const harder = nextGoalUp(goal)
   // The plan noticing that time has passed. `now` is read once per render
@@ -190,16 +250,9 @@ export function TrainingPlan({
   const doneCount = inGoal.filter(p => p.done).length
   const totalCount = inGoal.length
 
-  const confirmRead = (id: StageProgress['stage']['id']) => {
-    markStageRead(id)
-    setReadStages(getReadStages())
-  }
+  const confirmRead = (id: StageProgress['stage']['id']) => markStageRead(id)
 
-  const retake = () => {
-    clearPlacementSkip()
-    setSkipped(false)
-    setPlacementState(null)
-  }
+  const retake = () => setRetaking(true)
 
   /**
    * Change one answer without re-running the placement test.
@@ -209,10 +262,9 @@ export function TrainingPlan({
    * is the kind of friction that ends with the plan being ignored.
    */
   const updateProfile = (patch: Partial<LearnerProfile>) => {
-    const next = { ...(profile ?? FALLBACK_PROFILE), ...patch }
-    setProfile(next)
-    setProfileState(next)
+    setProfile({ ...(profile ?? FALLBACK_PROFILE), ...patch })
   }
+  const updateBudget = (b: TimeBudget) => updateProfile({ ...b, commitment: commitmentFor(b) })
 
   return (
     <div
@@ -230,8 +282,14 @@ export function TrainingPlan({
       data-testid="training-plan"
     >
       {before}
+      {embedded && !plan.recommendationDone && sessions.length === 0 && (
+        <HowItWorks
+          onDismiss={() => setRecommendationDone()}
+          onTour={onTour && (() => { setRecommendationDone(); onTour() })}
+        />
+      )}
       <div className={embedded ? 'w-full max-w-3xl mx-auto' : 'max-w-3xl mx-auto py-6'}>
-        <header className="text-center">
+        <header className={embedded ? 'flex flex-wrap items-end justify-between gap-x-6 gap-y-3' : 'text-center'}>
           {/* Embedded, the page already carries the product name and a greeting —
               a second big title stacked on the first is the clutter this move
               was supposed to remove. */}
@@ -245,13 +303,21 @@ export function TrainingPlan({
               </h1>
             </>
           )}
-          <p className={`text-sm text-content/55 ${embedded ? '' : 'mt-2'}`}>
-            {t('plan.stagesComplete', { done: doneCount, count: totalCount })}
-          </p>
+          <div className={embedded ? 'text-left' : ''}>
+            {embedded && (
+              <h2 className="text-xs font-bold tracking-[0.16em] uppercase text-content/40">{t('plan.title')}</h2>
+            )}
+            <p className={`text-sm text-content/55 ${embedded ? 'mt-1' : 'mt-2'}`}>
+              {t('plan.stagesComplete', { done: doneCount, count: totalCount })}
+              {embedded && weeksLeft > 0 && (
+                <span className="text-content/40" data-testid="plan-forecast"> · {t('plan.forecast', { count: weeksLeft })}</span>
+              )}
+            </p>
+          </div>
 
           {/* The destination, stated every time rather than once on the result
               screen. A plan whose end you have to remember is a to-do list. */}
-          <div className="mt-5 flex flex-wrap items-stretch justify-center gap-2.5">
+          <div className={embedded ? 'flex flex-wrap items-stretch gap-2.5' : 'mt-5 flex flex-wrap items-stretch justify-center gap-2.5'}>
             <button
               onClick={() => setEditing(v => !v)}
               data-testid="plan-goal"
@@ -272,15 +338,19 @@ export function TrainingPlan({
                 border border-transparent hover:border-gold/35 transition-colors"
             >
               <div className="flex items-center gap-1.5 text-[0.6875rem] font-bold tracking-[0.14em] uppercase text-content/40">
-                <CalendarCheck size={12} /> {t('plan.thisWeek')}
+                <Timer size={12} /> {t('plan.time.label')}
                 <Pencil size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
               <div className="mt-1 text-sm font-semibold tabular-nums">
-                <span className={pace.met ? 'text-success' : undefined}>{pace.done}</span>
-                <span className="text-content/40"> {t('plan.ofNSessions', { n: pace.target })}</span>
+                {t('plan.time.value', { count: budget.daysPerWeek, minutes: budget.minutesPerDay })}
               </div>
             </button>
           </div>
+          {!embedded && weeksLeft > 0 && (
+            <p className="mt-3 text-xs text-content/45" data-testid="plan-forecast">
+              {t('plan.forecast', { count: weeksLeft })}
+            </p>
+          )}
         </header>
 
         {!placed && (
@@ -310,6 +380,8 @@ export function TrainingPlan({
           <PlanSettings
             profile={profile ?? FALLBACK_PROFILE}
             isPro={isPro}
+            budget={budget}
+            onBudget={updateBudget}
             onChange={updateProfile}
             onClose={() => setEditing(false)}
           />
@@ -350,8 +422,8 @@ export function TrainingPlan({
         {/* Up next — the single most important thing on this screen */}
         {active ? (
           <div
-            className="mt-8 rounded-2xl border border-gold/40 p-5 md:p-6
-              bg-[linear-gradient(180deg,var(--color-warm-wash),var(--color-surface))]"
+            className={`${embedded ? 'mt-5' : 'mt-8'} rounded-2xl border border-gold/40 p-5 md:p-6
+              bg-[linear-gradient(180deg,var(--color-warm-wash),var(--color-surface))]`}
             data-testid="plan-up-next"
           >
             <div className="text-xs font-bold tracking-[0.16em] uppercase text-gold">{t('plan.upNext')}</div>
@@ -361,13 +433,25 @@ export function TrainingPlan({
 
             <StageStanding effort={stageEffort(active)} target={active.target} />
 
-            <StageActions
-              p={active}
-              setMode={setMode}
-              onRead={confirmRead}
-              showUpgrade={showUpgrade}
-              primary
-            />
+            {day.lockedFocus && (
+              <p className="mt-3.5 text-sm text-gold/90 max-w-[54ch]" data-testid="plan-locked-focus">
+                {t('plan.today.lockedFocus', { stage: t(active.stage.titleKey) })}
+              </p>
+            )}
+
+            <TodayBlocks day={day} week={week} onOpen={setMode} />
+
+            {/* What the list of blocks cannot do: tick a reading stage, or
+                open the paywall for a stage that is behind it. */}
+            {(active.readOnly || active.locked) && (
+              <StageActions
+                p={active}
+                setMode={setMode}
+                onRead={confirmRead}
+                showUpgrade={showUpgrade}
+                primary
+              />
+            )}
 
             <div className="mt-5 pt-4 border-t border-contrast/10 flex flex-wrap items-center justify-between gap-4">
               <span className="inline-flex items-center gap-2 text-sm">
@@ -396,6 +480,10 @@ export function TrainingPlan({
 
             {/* Reaching the goal used to end in a compliment and nothing else.
                 The one thing a finished learner needs is somewhere to go. */}
+            <div className="text-left">
+              <TodayBlocks day={day} week={week} onOpen={setMode} />
+            </div>
+
             {harder && (
               <button
                 onClick={() => updateProfile({ goal: harder })}
@@ -470,7 +558,18 @@ export function TrainingPlan({
           </button>
         )}
 
+        {embedded && (
+          <PathStrip
+            progress={progress}
+            activeId={active?.stage.id ?? null}
+            entryIndex={from}
+            goalIndex={goalIndex}
+            onOpen={() => setMode('plan')}
+          />
+        )}
+
         {/* The full path */}
+        {!embedded && <>
         <h3 className="mt-10 mb-3 text-xs font-bold tracking-[0.16em] uppercase text-content/40">
           {t('plan.fullPath')}
         </h3>
@@ -525,7 +624,7 @@ export function TrainingPlan({
                         <div className="mt-2 flex items-center gap-2.5">
                           <ProgressBar className="w-28" height={6} value={p.current} max={Math.max(p.target, 1)} />
                           <span className="text-xs text-content/45 tabular-nums">
-                            {p.current}/{p.target} — {drillDescription(p.stage.drill, t)}
+                            {p.current}/{p.target} · {t('plan.daysProgress', { days: p.days, target: p.targetDays })} — {drillDescription(p.stage.drill, t)}
                           </span>
                         </div>
                         <EffortLine effort={stageEffort(p)} />
@@ -556,6 +655,7 @@ export function TrainingPlan({
               makes it sound like something worth avoiding. */}
           <RotateCcw size={15} /> {placed ? t('plan.changeStart') : t('plan.chooseStart')}
         </button>
+        </>}
 
         {!embedded && <div aria-hidden className="w-full h-16 shrink-0" />}
       </div>
@@ -575,11 +675,15 @@ export function TrainingPlan({
 function PlanSettings({
   profile,
   isPro,
+  budget,
+  onBudget,
   onChange,
   onClose,
 }: {
   profile: LearnerProfile
   isPro: boolean
+  budget: TimeBudget
+  onBudget: (next: TimeBudget) => void
   onChange: (patch: Partial<LearnerProfile>) => void
   onClose: () => void
 }) {
@@ -639,24 +743,8 @@ function PlanSettings({
         })}
       </div>
 
-      <h3 className="mt-6 text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
-        {t('plan.weeklyPace')}
-      </h3>
-      <div className="mt-2.5 flex flex-col gap-2">
-        {COMMITMENT_OPTIONS.map(o => (
-          <button
-            key={o.value}
-            onClick={() => onChange({ commitment: o.value })}
-            data-testid={`plan-set-pace-${o.value}`}
-            className={row(profile.commitment === o.value)}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <span className="font-medium text-[0.95rem]">{t(o.labelKey)}</span>
-              {profile.commitment === o.value && <Check size={16} className="text-gold shrink-0" />}
-            </div>
-            <div className="mt-0.5 text-sm text-content/45">{t('profile.pace.hint', { n: o.sessionsPerWeek })}</div>
-          </button>
-        ))}
+      <div className="mt-7 pt-6 border-t border-contrast/10">
+        <TimeBudgetPicker budget={budget} onChange={onBudget} />
       </div>
     </section>
   )
@@ -676,6 +764,8 @@ function StageStanding({ effort, target }: { effort: StageEffort; target: number
   const [tone, text] =
     effort.kind === 'done'
       ? ['text-success', t('plan.standing.done')]
+      : effort.kind === 'spacing'
+        ? ['text-gold', t('plan.standing.spacing', { count: effort.left })]
       : effort.kind === 'partial'
         ? ['text-gold', t('plan.standing.partial', {
             cleared: effort.cleared, target: effort.target, left: effort.target - effort.cleared,

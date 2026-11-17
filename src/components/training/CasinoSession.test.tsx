@@ -91,6 +91,23 @@ function filterDomProps(props: Record<string, unknown>): Record<string, unknown>
   return domProps
 }
 
+/**
+ * The bots' status badges, as soon as a round shows them.
+ *
+ * Looked for while the round runs rather than at one fixed moment after the
+ * bet: the badge is hidden for the whole betting step now, and with a real
+ * shuffle a round can be over and back at the bets inside any fixed wait —
+ * which read as a missing badge about one run in seven.
+ */
+function badgesOnceDealt(): HTMLElement[] {
+  for (let waited = 0; waited < 6000; waited += 250) {
+    act(() => { vi.advanceTimersByTime(250) })
+    const badges = screen.queryAllByTestId('bot-status')
+    if (badges.length > 0) return badges
+  }
+  return []
+}
+
 describe('CasinoSession', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -405,11 +422,9 @@ describe('CasinoSession', () => {
 
       fireEvent.click(screen.getByText('+$25'))
       fireEvent.click(screen.getByTestId('confirm-bet'))
-      act(() => { vi.advanceTimersByTime(6000) })
 
       // Bot status badges should be rendered
-      const statusBadges = screen.queryAllByTestId('bot-status')
-      expect(statusBadges.length).toBeGreaterThan(0)
+      expect(badgesOnceDealt().length).toBeGreaterThan(0)
     })
 
     it('renders green felt table with semi-circle shape', () => {
@@ -555,14 +570,17 @@ describe('CasinoSession', () => {
       expect(screen.getByText(/★.*YOU/)).toBeTruthy()
     })
 
-    it('bot status badges are shown for each seated bot', () => {
+    it('bot status badges are shown for each seated bot once a round is on', () => {
       render(<CasinoSession />)
       fireEvent.click(screen.getByTestId('start-session'))
       act(() => { vi.advanceTimersByTime(100) })
 
-      // Info strip should contain bot status badges
-      const statusBadges = screen.queryAllByTestId('bot-status')
-      expect(statusBadges.length).toBeGreaterThan(0)
+      // While bets are placed a bot has no status to show (17 Nov 2026): the
+      // badge belongs to the round, so it arrives with the cards.
+      fireEvent.click(screen.getByText('+$25'))
+      fireEvent.click(screen.getByTestId('confirm-bet'))
+
+      expect(badgesOnceDealt().length).toBeGreaterThan(0)
     })
   })
 
@@ -598,15 +616,21 @@ describe('CasinoSession', () => {
       act(() => { vi.advanceTimersByTime(100) })
     }
 
-    it('bots show wait status before deal', () => {
+    it('bots show no status while the bets are placed, and one each once the cards are out', () => {
       startSession()
 
-      const statusBadges = screen.queryAllByTestId('bot-status')
-      expect(statusBadges.length).toBeGreaterThan(0)
-      // All bots should be in "Wait" status initially
-      for (const badge of statusBadges) {
-        expect(badge.textContent).toBe('Wait')
-      }
+      // Between rounds there is nothing for a bot to be waiting on, and a row
+      // of "Wait" labels under every name said so six times over. The badge
+      // is hidden for the whole betting step.
+      expect(screen.getByTestId('betting-controls')).toBeInTheDocument()
+      expect(screen.queryAllByTestId('bot-status')).toEqual([])
+
+      fireEvent.click(screen.getByText('+$25'))
+      fireEvent.click(screen.getByTestId('confirm-bet'))
+
+      // The round is on: the badges are back, and the bets are closed.
+      expect(badgesOnceDealt().length).toBeGreaterThan(0)
+      expect(screen.queryByTestId('betting-controls')).toBeNull()
     })
 
     it('bots play sequentially with thinking delay', () => {
@@ -616,13 +640,11 @@ describe('CasinoSession', () => {
       fireEvent.click(screen.getByText('+$25'))
       fireEvent.click(screen.getByTestId('confirm-bet'))
 
+      // The badges arrive with the round (they are hidden while bets are placed).
+      expect(badgesOnceDealt().length).toBeGreaterThan(0)
+
       // Wait for deal animation to complete (500ms per card * total cards + buffer)
       act(() => { vi.advanceTimersByTime(6000) })
-
-      // After deal animation, bots should start playing one at a time
-      // At least one bot should transition to thinking or a final status
-      const statusBadges = screen.queryAllByTestId('bot-status')
-      expect(statusBadges.length).toBeGreaterThan(0)
 
       // Advance time for bots to finish thinking and playing
       act(() => { vi.advanceTimersByTime(15000) })
@@ -765,13 +787,16 @@ describe('CasinoSession', () => {
       expect(screen.queryAllByTestId('bot-settlement').length).toBe(0)
     })
 
-    it('all bot statuses reset to wait during betting phase', () => {
+    it('shows no bot status at all during the betting phase', () => {
+      // Was "all bot statuses reset to wait": a loop over the badges that
+      // checked each said "Wait". The badge is hidden while bets are placed
+      // (17 Nov 2026), so that loop would now run over nothing and pass
+      // whatever happened. The rule it guards is stated outright instead: no
+      // status from a finished round is left standing under a name.
       startSession()
 
-      const statusBadges = screen.queryAllByTestId('bot-status')
-      for (const badge of statusBadges) {
-        expect(badge.textContent).toBe('Wait')
-      }
+      expect(screen.getByTestId('betting-controls')).toBeInTheDocument()
+      expect(screen.queryAllByTestId('bot-status')).toEqual([])
     })
   })
 

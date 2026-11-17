@@ -870,12 +870,12 @@
       "why": "Cada competência isolada é fácil. O difícil é mantê-las todas ao mesmo tempo enquanto a mesa fala."
     },
     "drill": {
-      "flashcards": "{{n}} sessões de cartões com {{pct}}% ou mais",
-      "speedDrill": "{{n}} Speed Drills com {{pct}}% ou mais",
-      "deckEstimation": "{{n}} sessões de estimativa de baralhos com {{pct}}% ou mais",
-      "deviations": "{{n}} sessões de cartões sobre desvios com {{pct}}% ou mais",
-      "betSpread": "{{n}} sessões de bet spread com {{pct}}% ou mais",
-      "casino": "{{n}} sessões de casino jogadas"
+      "flashcards": "{{n}} sessões de Flashcards com {{pct}}% ou mais, em {{days}} dias diferentes",
+      "speedDrill": "{{n}} Speed Drills com {{pct}}% ou mais, em {{days}} dias diferentes",
+      "deckEstimation": "{{n}} sessões de Deck Estimation com {{pct}}% ou mais, em {{days}} dias diferentes",
+      "deviations": "{{n}} sessões de Flashcards de desvios com {{pct}}% ou mais, em {{days}} dias diferentes",
+      "betSpread": "{{n}} sessões de Bet Spread com {{pct}}% ou mais, em {{days}} dias diferentes",
+      "casino": "{{n}} Casino Sessions jogadas, em {{days}} dias diferentes"
     }
   },
   "plan": {
@@ -923,7 +923,9 @@
       "close_one": "{{count}} tentativa até agora, melhor {{best}}% — {{gap}} abaixo do limiar de {{bar}}%. Está quase.",
       "close_other": "{{count}} tentativas até agora, melhor {{best}}% — {{gap}} abaixo do limiar de {{bar}}%. Está quase.",
       "far_one": "{{count}} tentativa até agora, melhor {{best}}%. O limiar é {{bar}}%, {{target}} vezes.",
-      "far_other": "{{count}} tentativas até agora, melhor {{best}}%. O limiar é {{bar}}%, {{target}} vezes."
+      "far_other": "{{count}} tentativas até agora, melhor {{best}}%. O limiar é {{bar}}%, {{target}} vezes.",
+      "spacing_one": "Sessões boas suficientes. Ainda falta {{count}} dia: uma competência tem de aguentar uma noite antes de contar.",
+      "spacing_other": "Sessões boas suficientes. Ainda faltam {{count}} dias: uma competência tem de aguentar uma noite antes de contar."
     },
     "effort": {
       "attempts_one": "{{count}} tentativa · melhor",
@@ -932,7 +934,67 @@
       "barIs": ", o limiar é {{bar}}%"
     },
     "stagesComplete_one": "{{done}} de {{count}} etapa concluída",
-    "stagesComplete_other": "{{done}} de {{count}} etapas concluídas"
+    "stagesComplete_other": "{{done}} de {{count}} etapas concluídas",
+    "today": {
+      "title": "A tua sessão de hoje",
+      "minutes": "{{n}} min",
+      "doneOf": "{{done}} de {{total}} min",
+      "kind": {
+        "read": "Ler",
+        "warmup": "Aquecimento",
+        "work": "O trabalho de hoje",
+        "table": "Na mesa"
+      },
+      "start": "Começar: {{block}}",
+      "next": "A seguir: {{block}}",
+      "complete": "A sessão de hoje está feita.",
+      "completeSub": "Tudo o que fizeres a mais hoje é extra. A etapa também precisa de outros dias: volta para a próxima.",
+      "again": "Treinar mais um pouco",
+      "lockedFocus": "{{stage}} faz parte do Pro. O dia de hoje é montado com o que tens aberto.",
+      "empty": "Ainda não há nada para praticar: começa pela leitura abaixo."
+    },
+    "week": {
+      "label": "Esta semana",
+      "days": "{{trained}} de {{target}} dias",
+      "met": "Semana cumprida",
+      "dayNames": [
+        "S",
+        "T",
+        "Q",
+        "Q",
+        "S",
+        "S",
+        "D"
+      ]
+    },
+    "forecast_one": "Cerca de {{count}} semana até ao teu objetivo a este ritmo",
+    "forecast_other": "Cerca de {{count}} semanas até ao teu objetivo a este ritmo",
+    "time": {
+      "label": "O teu tempo",
+      "value_one": "{{count}} dia por semana · {{minutes}} min",
+      "value_other": "{{count}} dias por semana · {{minutes}} min",
+      "daysHeading": "Dias de treino por semana",
+      "minutesHeading": "Minutos num dia de treino"
+    },
+    "timeQuestion": {
+      "heading": "Quanto tempo tens?",
+      "sub": "O plano ajusta cada dia de treino a esse tempo. O caminho é o mesmo para todos e os XP também: com menos tempo, simplesmente demora mais.",
+      "continue": "Criar o meu plano"
+    },
+    "daysProgress": "{{days}}/{{target}} dias",
+    "path": {
+      "title": "O teu caminho",
+      "open": "Abrir o plano completo",
+      "stageOf": "Etapa {{n}} de {{total}}"
+    },
+    "how": {
+      "title": "Como funciona",
+      "s1": "Cada dia de treino tem uma sessão curta feita para ti: aquecimento, o trabalho de hoje e a mesa assim que souberes contar.",
+      "s2": "Uma etapa fica concluída com sessões boas em vários dias diferentes. Ninguém a termina de uma assentada.",
+      "s3": "Cada resposta certa dá XP. Níveis, prémios e desafios resultam do próprio treino.",
+      "dismiss": "Percebi"
+    },
+    "loading": "A carregar o teu plano"
   },
   "recommend": {
     "startTraining": "Começar a treinar",

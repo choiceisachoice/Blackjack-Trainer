@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup } from '@testing-library/react'
 import { DashboardHeader } from './DashboardHeader'
 import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
@@ -57,11 +57,15 @@ describe('DashboardHeader — first run', () => {
 
     expect(screen.getByText('Welcome')).toBeInTheDocument()
     expect(screen.queryByText('Welcome back')).not.toBeInTheDocument()
-    expect(screen.getByText(/Nothing tracked yet/)).toBeInTheDocument()
-    // No invented figures before there is anything to report. (The invitation
-    // copy mentions "accuracy" as a word, so match the stat's number format.)
+    // No invented figures before there is anything to report.
     expect(screen.queryByText(/\d+% accuracy/)).not.toBeInTheDocument()
     expect(screen.queryByText(/-day streak/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Awards/)).not.toBeInTheDocument()
+    // And no paragraph in their place. "Nothing tracked yet — play a session"
+    // sat directly above the plan's own start button and said the same thing
+    // less precisely; with no history the card is the level and nothing else.
+    expect(screen.queryByText(/Nothing tracked yet/)).not.toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toBeInTheDocument()
   })
 
   /**
@@ -115,33 +119,37 @@ describe('DashboardHeader — returning user', () => {
   })
 })
 
-describe('DashboardHeader — resume', () => {
-  it('continues the last training mode', () => {
-    useStatsStore.setState({ lifetimeStats: STATS, sessions: [session('speedDrill')] })
-    render(<DashboardHeader />)
+describe('DashboardHeader — no way in of its own', () => {
+  /**
+   * There used to be a "Continue <last mode>" button here. It sat beside the
+   * plan's "start today's session" and the two disagreed about what to do
+   * next — the last mode is where you *were*, the plan knows where you are
+   * *going*. The plan is the one that knows, so this card leads nowhere,
+   * whatever the history says. Three tests pinned where that button went;
+   * they now pin that it is gone for each of those histories.
+   */
+  const histories: [string, TrainingMode][] = [
+    ['a drill', 'speedDrill'],
+    ['a session whose screen has another name', 'deviationFlashCards'],
+    ['the table', 'casinoSession'],
+    // Old history can still hold modes whose screen no longer exists.
+    ['a retired mode', 'tableCounting' as TrainingMode],
+  ]
 
-    const cta = screen.getByRole('button', { name: /Continue Speed Drill/ })
-    fireEvent.click(cta)
-    expect(useAppStore.getState().currentMode).toBe('speedDrill')
-  })
+  for (const [what, mode] of histories) {
+    it(`offers nothing to continue after ${what}`, () => {
+      useStatsStore.setState({ lifetimeStats: STATS, sessions: [session(mode)] })
+      render(<DashboardHeader />)
 
-  it('maps a flashcards session onto its differently-named screen', () => {
-    useStatsStore.setState({ lifetimeStats: STATS, sessions: [session('deviationFlashCards')] })
-    render(<DashboardHeader />)
-
-    fireEvent.click(screen.getByRole('button', { name: /Continue Flashcards/ }))
-    expect(useAppStore.getState().currentMode).toBe('deviationTraining')
-  })
-
-  it('offers nothing to continue when the last session used a retired mode', () => {
-    // Old history can still hold modes whose screen no longer exists. A
-    // retired mode never routes into the void: there is simply no button.
-    useStatsStore.setState({ lifetimeStats: STATS, sessions: [session('tableCounting')] })
-    render(<DashboardHeader />)
-
-    expect(screen.queryByText(/Continue/)).not.toBeInTheDocument()
-    expect(screen.queryByRole('button')).toBeNull()
-  })
+      expect(screen.queryByText(/Continue/)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button')).toBeNull()
+      expect(screen.queryByRole('link')).toBeNull()
+      // Rendering it changes nothing about where the learner is.
+      expect(useAppStore.getState().currentMode).toBe('home')
+      // The figures are still there: it reports, it does not direct.
+      expect(screen.getByText('87% accuracy')).toBeInTheDocument()
+    })
+  }
 })
 
 describe('DashboardHeader — hydration', () => {

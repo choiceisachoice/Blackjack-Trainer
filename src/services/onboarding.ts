@@ -1,5 +1,6 @@
 import type { TrainingSessionResult } from './stats-types'
 import type { AppMode } from '../store/app-store'
+import { planStateChanged } from './plan-state-signal'
 
 /** localStorage flag mirroring `profiles.onboarding_seen`. */
 const STORAGE_KEY = 'bjt_onboarding_seen'
@@ -113,6 +114,7 @@ export function hasSeenWelcome(): boolean {
 export function setWelcomeSeen(): void {
   try {
     localStorage.setItem(WELCOME_KEY, 'true')
+    planStateChanged()
   } catch {
     /* storage unavailable */
   }

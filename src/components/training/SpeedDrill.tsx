@@ -8,7 +8,7 @@ import { getSystemById } from '../../engine/counting/counting-systems'
 import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
 import { useIsPro } from '../../store/entitlement-store'
-import { CURRICULUM, stageIndex, deriveStageProgress, getReadStages } from '../../services/curriculum'
+import { CURRICULUM, stageIndex, deriveStageProgress, getReadStages, claimedStageIds } from '../../services/curriculum'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { Card } from '../../engine/shoe/types'
@@ -58,7 +58,7 @@ function HiLoPrimer() {
   const isPro = useIsPro()
   const learned = useMemo(() => {
     const stage = CURRICULUM[stageIndex('hi-lo')]
-    return deriveStageProgress(stage, sessions, getReadStages(), isPro).done
+    return deriveStageProgress(stage, sessions, getReadStages(), isPro, claimedStageIds()).done
   }, [sessions, isPro])
 
   const [open, setOpen] = useState(!learned)

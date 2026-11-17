@@ -1,13 +1,11 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Club, ArrowRight, Flame, Target, Clock, Trophy } from 'lucide-react'
-import { useAppStore } from '../../store/app-store'
+import { Flame, Target, Clock, Trophy } from 'lucide-react'
 import { useLevelStore } from '../../store/level-store'
 import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
 import { LEVELS } from '../../services/level-system'
-import { resumeTargetFor } from '../../services/resume-mode'
 import { formatDuration } from '../analytics/analytics-derive'
 
 /**
@@ -44,12 +42,10 @@ export function ProductTitle() {
  */
 export function DashboardHeader() {
   const { t } = useTranslation()
-  const setMode = useAppStore(s => s.setMode)
   const level = useLevelStore(s => s.level)
   const progress = useLevelStore(s => s.progress)
   const totalXP = useLevelStore(s => s.totalXP)
   const lifetimeStats = useStatsStore(s => s.lifetimeStats)
-  const sessions = useStatsStore(s => s.sessions)
   const loadStats = useStatsStore(s => s.loadStats)
   const getTrainingStreak = useStatsStore(s => s.getTrainingStreak)
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
@@ -65,13 +61,10 @@ export function DashboardHeader() {
   const nextLevel = LEVELS.find(l => l.level === level.level + 1)
   const streak = played ? getTrainingStreak() : 0
 
-  // sessions are sorted newest-first by the store. A retired mode resolves to
-  // null, so old history falls back to the generic call to action.
-  const resume = sessions[0] ? resumeTargetFor(sessions[0].mode) : null
 
   return (
-    <section className="relative z-10 w-full max-w-5xl mb-8">
-      <div className="surface rounded-2xl p-6 md:p-7">
+    <section className="relative z-10 w-full max-w-5xl mb-6">
+      <div className="surface rounded-2xl p-5 md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-5">
           <div className="min-w-0">
             <div className="text-xs font-semibold tracking-[0.2em] uppercase text-content/40">
@@ -107,32 +100,9 @@ export function DashboardHeader() {
             </div>
           </div>
 
-          {/*
-            Where this button goes, in priority order:
-              1. the mode they were last in (resume),
-              2. the drill their CURRENT PLAN STAGE asks for,
-              3. the Learn page.
-
-            It used to fall back to `speedDrill` unconditionally. That is stage
-            three of seven and assumes the learner already knows the Hi-Lo card
-            values — so an account placed at "the game itself" was sent straight
-            into a drill demanding a number whose rule it had never been shown.
-            Never point a beginner past their own plan.
-          */}
-          {/* Only as "continue where you left off". Without a last mode this
-              button said "Start: <the current stage>" — the fourth place on
-              the home screen to name that stage, under a plan whose own
-              button does exactly that. */}
-          {resume && <button
-            onClick={() => setMode(resume.mode)}
-            className="lift-glow inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold
-              text-on-gold bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
-              shadow-[0_10px_30px_-12px_var(--color-gold)]"
-          >
-            <Club size={18} className="fill-current" />
-            {t('common.continueMode', { mode: t(resume.labelKey) })}
-            <ArrowRight size={17} />
-          </button>}
+          {/* No button here. "Continue <last mode>" sat beside the plan's own
+              "start today's session" and the two disagreed about what to do
+              next; the plan is the one that knows. */}
         </div>
 
         {played && lifetimeStats ? (
@@ -144,11 +114,7 @@ export function DashboardHeader() {
             <Stat icon={Clock} label={formatDuration(lifetimeStats.totalPracticeSeconds)} />
             <Stat icon={Trophy} label={`${totalUnlocked}/${ALL_ACHIEVEMENTS.length} ${t('nav.modes.achievements')}`} />
           </div>
-        ) : (
-          <p className="mt-6 pt-5 border-t border-contrast/8 text-sm text-content/50 max-w-lg">
-            {t('home.nothingTracked')}
-          </p>
-        )}
+        ) : null}
       </div>
     </section>
   )

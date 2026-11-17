@@ -870,12 +870,12 @@
       "why": "Each skill is easy alone. The job is doing all of them at once while the table talks."
     },
     "drill": {
-      "flashcards": "{{n}} Flashcards sessions at {{pct}}% or better",
-      "speedDrill": "{{n}} Speed Drills at {{pct}}% or better",
-      "deckEstimation": "{{n}} Deck Estimation sessions at {{pct}}% or better",
-      "deviations": "{{n}} deviation Flashcards sessions at {{pct}}% or better",
-      "betSpread": "{{n}} Bet Spread sessions at {{pct}}% or better",
-      "casino": "{{n}} Casino Sessions played"
+      "flashcards": "{{n}} Flashcards sessions at {{pct}}% or better, on {{days}} different days",
+      "speedDrill": "{{n}} Speed Drills at {{pct}}% or better, on {{days}} different days",
+      "deckEstimation": "{{n}} Deck Estimation sessions at {{pct}}% or better, on {{days}} different days",
+      "deviations": "{{n}} deviation Flashcards sessions at {{pct}}% or better, on {{days}} different days",
+      "betSpread": "{{n}} Bet Spread sessions at {{pct}}% or better, on {{days}} different days",
+      "casino": "{{n}} Casino Sessions played, on {{days}} different days"
     }
   },
   "plan": {
@@ -923,7 +923,9 @@
       "close_one": "{{count}} attempt so far, best {{best}}% — {{gap}} short of the {{bar}}% bar. You are nearly there.",
       "close_other": "{{count}} attempts so far, best {{best}}% — {{gap}} short of the {{bar}}% bar. You are nearly there.",
       "far_one": "{{count}} attempt so far, best {{best}}%. The bar is {{bar}}%, {{target}} times over.",
-      "far_other": "{{count}} attempts so far, best {{best}}%. The bar is {{bar}}%, {{target}} times over."
+      "far_other": "{{count}} attempts so far, best {{best}}%. The bar is {{bar}}%, {{target}} times over.",
+      "spacing_one": "Enough good sessions. It still needs {{count}} more day — a skill has to hold overnight before it counts.",
+      "spacing_other": "Enough good sessions. It still needs {{count}} more days — a skill has to hold overnight before it counts."
     },
     "effort": {
       "attempts_one": "{{count}} attempt so far · best",
@@ -932,7 +934,67 @@
       "barIs": ", bar is {{bar}}%"
     },
     "stagesComplete_one": "{{done}} of {{count}} stage complete",
-    "stagesComplete_other": "{{done}} of {{count}} stages complete"
+    "stagesComplete_other": "{{done}} of {{count}} stages complete",
+    "today": {
+      "title": "Today’s session",
+      "minutes": "{{n}} min",
+      "doneOf": "{{done}} of {{total}} min",
+      "kind": {
+        "read": "Read",
+        "warmup": "Warm-up",
+        "work": "Today’s work",
+        "table": "At the table"
+      },
+      "start": "Start: {{block}}",
+      "next": "Next: {{block}}",
+      "complete": "Today’s session is done.",
+      "completeSub": "Anything more today is extra. The stage also needs other days — come back for the next one.",
+      "again": "Train some more",
+      "lockedFocus": "{{stage}} is part of Pro. Today is built from what is open to you.",
+      "empty": "Nothing to drill yet — start with the reading below."
+    },
+    "week": {
+      "label": "This week",
+      "days": "{{trained}} of {{target}} days",
+      "met": "Week done",
+      "dayNames": [
+        "M",
+        "T",
+        "W",
+        "T",
+        "F",
+        "S",
+        "S"
+      ]
+    },
+    "forecast_one": "About {{count}} week to your goal at this pace",
+    "forecast_other": "About {{count}} weeks to your goal at this pace",
+    "time": {
+      "label": "Your time",
+      "value_one": "{{count}} day a week · {{minutes}} min",
+      "value_other": "{{count}} days a week · {{minutes}} min",
+      "daysHeading": "Training days a week",
+      "minutesHeading": "Minutes on a training day"
+    },
+    "timeQuestion": {
+      "heading": "How much time do you have?",
+      "sub": "The plan cuts every training day to fit. The road is the same for everyone and so is the XP — with less time it simply takes longer.",
+      "continue": "Build my plan"
+    },
+    "daysProgress": "{{days}}/{{target}} days",
+    "path": {
+      "title": "Your path",
+      "open": "Open the full plan",
+      "stageOf": "Stage {{n}} of {{total}}"
+    },
+    "how": {
+      "title": "How this works",
+      "s1": "Every training day has a short session built for you: a warm-up, today’s work, and the table once you can count.",
+      "s2": "A stage is finished by good sessions on several different days. Nobody finishes one in a single sitting.",
+      "s3": "Every correct answer earns XP. Levels, awards and challenges all follow from the training itself.",
+      "dismiss": "Got it"
+    },
+    "loading": "Loading your plan"
   },
   "recommend": {
     "startTraining": "Start training",

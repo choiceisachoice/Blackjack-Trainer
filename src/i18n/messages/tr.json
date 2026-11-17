@@ -870,12 +870,12 @@
       "why": "Her beceri tek başına kolaydır. Zor olan, masa konuşurken hepsini aynı anda yürütmektir."
     },
     "drill": {
-      "flashcards": "En az %{{pct}} ile {{n}} bilgi kartı turu",
-      "speedDrill": "En az %{{pct}} ile {{n}} Speed Drill",
-      "deckEstimation": "En az %{{pct}} ile {{n}} deste tahmini turu",
-      "deviations": "En az %{{pct}} ile {{n}} sapma bilgi kartı turu",
-      "betSpread": "En az %{{pct}} ile {{n}} bet spread turu",
-      "casino": "Oynanmış {{n}} casino oturumu"
+      "flashcards": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Flashcards oturumu",
+      "speedDrill": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Speed Drill",
+      "deckEstimation": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Deck Estimation oturumu",
+      "deviations": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} sapma Flashcards oturumu",
+      "betSpread": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Bet Spread oturumu",
+      "casino": "{{days}} farklı günde oynanmış {{n}} Casino Session"
     }
   },
   "plan": {
@@ -923,7 +923,9 @@
       "close_one": "Şu ana kadar {{count}} deneme, en iyisi %{{best}} — %{{bar}} eşiğinin {{gap}} altında. Neredeyse tamam.",
       "close_other": "Şu ana kadar {{count}} deneme, en iyisi %{{best}} — %{{bar}} eşiğinin {{gap}} altında. Neredeyse tamam.",
       "far_one": "Şu ana kadar {{count}} deneme, en iyisi %{{best}}. Eşik %{{bar}} ve bu {{target}} kez gerekiyor.",
-      "far_other": "Şu ana kadar {{count}} deneme, en iyisi %{{best}}. Eşik %{{bar}} ve bu {{target}} kez gerekiyor."
+      "far_other": "Şu ana kadar {{count}} deneme, en iyisi %{{best}}. Eşik %{{bar}} ve bu {{target}} kez gerekiyor.",
+      "spacing_one": "Yeterince iyi oturum var. {{count}} gün daha gerekiyor: bir beceri sayılmadan önce bir geceyi atlatmalı.",
+      "spacing_other": "Yeterince iyi oturum var. {{count}} gün daha gerekiyor: bir beceri sayılmadan önce bir geceyi atlatmalı."
     },
     "effort": {
       "attempts_one": "{{count}} deneme · en iyisi",
@@ -932,7 +934,67 @@
       "barIs": ", eşik %{{bar}}"
     },
     "stagesComplete_one": "{{count}} aşamadan {{done}} tamamlandı",
-    "stagesComplete_other": "{{count}} aşamadan {{done}} tamamlandı"
+    "stagesComplete_other": "{{count}} aşamadan {{done}} tamamlandı",
+    "today": {
+      "title": "Bugünkü antrenmanın",
+      "minutes": "{{n}} dk",
+      "doneOf": "{{total}} dakikanın {{done}} dakikası",
+      "kind": {
+        "read": "Oku",
+        "warmup": "Isınma",
+        "work": "Bugünün işi",
+        "table": "Masada"
+      },
+      "start": "Başla: {{block}}",
+      "next": "Sırada: {{block}}",
+      "complete": "Bugünkü antrenman tamam.",
+      "completeSub": "Bugün yapacağın her şey artık fazladan. Aşama başka günler de ister: bir sonraki için geri gel.",
+      "again": "Biraz daha çalış",
+      "lockedFocus": "{{stage}} Pro’ya dahil. Bugün, sana açık olanlardan oluşturuldu.",
+      "empty": "Henüz çalışılacak bir şey yok: aşağıdaki okumayla başla."
+    },
+    "week": {
+      "label": "Bu hafta",
+      "days": "{{target}} günün {{trained}} günü",
+      "met": "Hafta tamam",
+      "dayNames": [
+        "P",
+        "S",
+        "Ç",
+        "P",
+        "C",
+        "C",
+        "P"
+      ]
+    },
+    "forecast_one": "Bu tempoyla hedefine yaklaşık {{count}} hafta",
+    "forecast_other": "Bu tempoyla hedefine yaklaşık {{count}} hafta",
+    "time": {
+      "label": "Zamanın",
+      "value_one": "Haftada {{count}} gün · {{minutes}} dk",
+      "value_other": "Haftada {{count}} gün · {{minutes}} dk",
+      "daysHeading": "Haftada antrenman günü",
+      "minutesHeading": "Bir antrenman gününde dakika"
+    },
+    "timeQuestion": {
+      "heading": "Ne kadar zamanın var?",
+      "sub": "Plan her antrenman gününü buna göre ayarlar. Yol herkes için aynı, XP de öyle: daha az zamanla yalnızca daha uzun sürer.",
+      "continue": "Planımı oluştur"
+    },
+    "daysProgress": "{{days}}/{{target}} gün",
+    "path": {
+      "title": "Yolun",
+      "open": "Planın tamamını aç",
+      "stageOf": "Aşama {{n}}/{{total}}"
+    },
+    "how": {
+      "title": "Nasıl işliyor",
+      "s1": "Her antrenman gününde sana göre kısa bir program var: ısınma, bugünün işi ve saymayı öğrenince masa.",
+      "s2": "Bir aşama, birkaç farklı günde yapılan iyi oturumlarla biter. Kimse tek oturuşta bitiremez.",
+      "s3": "Her doğru cevap XP kazandırır. Seviyeler, ödüller ve görevler antrenmanın kendisinden doğar.",
+      "dismiss": "Anladım"
+    },
+    "loading": "Planın yükleniyor"
   },
   "recommend": {
     "startTraining": "Antrenmana başla",

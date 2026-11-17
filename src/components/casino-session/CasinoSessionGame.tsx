@@ -210,7 +210,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     return () => window.clearInterval(id)
   }, [deciding, decisionKey])
   useEffect(() => {
-    if (deciding && decisionSeconds === 0) actions.handleAction(Action.Stand)
+    if (deciding && decisionSeconds === 0) actions.handleAction(Action.Stand, true)
   }, [deciding, decisionSeconds, actions])
 
   // Keyboard shortcuts

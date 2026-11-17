@@ -4,6 +4,10 @@ import { hasSeenOnboarding, setOnboardingSeen } from '../onboarding'
 import { requireSupabase, isSupabaseConfigured } from './client'
 import { getClaimedStages, setClaimedStages } from '../stage-rewards'
 import { CURRICULUM, type StageId } from '../curriculum'
+import {
+  readPlanState, parsePlanState, mergePlanState, writePlanState, type PlanState,
+} from '../plan-state'
+import { onPlanStateChanged } from '../plan-state-signal'
 
 const isStageId = (v: unknown): v is StageId =>
   typeof v === 'string' && CURRICULUM.some(s => s.id === v)
@@ -28,6 +32,12 @@ interface ProfileScalars {
    * `settings` jsonb the schema already carries, so nothing had to migrate.
    */
   claimedStages: StageId[]
+  /**
+   * The learner's answers to the plan — where it starts, what it aims for,
+   * how much time there is, which greetings were seen. Null on the cloud side
+   * until the first write. See `plan-state.ts` for why it travels at all.
+   */
+  plan: PlanState | null
 }
 
 /** Current user id from the local session (fast, no network). */
@@ -44,6 +54,7 @@ function localScalars(): ProfileScalars {
     simBestEdge: achievementEngine.getBestSimEdge(),
     onboardingSeen: hasSeenOnboarding(),
     claimedStages: getClaimedStages(),
+    plan: readPlanState(),
   }
 }
 
@@ -60,7 +71,7 @@ async function fetchCloud(userId: string): Promise<ProfileScalars> {
   if (error) throw error
   cloudSettings = {}
   if (!data) {
-    return { levelXp: 0, simCount: 0, simBestEdge: 0, onboardingSeen: false, claimedStages: [] }
+    return { levelXp: 0, simCount: 0, simBestEdge: 0, onboardingSeen: false, claimedStages: [], plan: null }
   }
   // Read the whole object so the upsert can write it back: `settings` is a
   // single jsonb value, and upserting a fresh object would drop any key this
@@ -75,6 +86,7 @@ async function fetchCloud(userId: string): Promise<ProfileScalars> {
     simBestEdge: data.sim_best_edge ?? 0,
     onboardingSeen: data.onboarding_seen ?? false,
     claimedStages: Array.isArray(claimed) ? (claimed.filter(isStageId) as StageId[]) : [],
+    plan: parsePlanState(cloudSettings.plan),
   }
 }
 
@@ -102,14 +114,27 @@ async function writeCloud(userId: string, s: ProfileScalars): Promise<void> {
       sim_count: s.simCount,
       sim_best_edge: s.simBestEdge,
       onboarding_seen: s.onboardingSeen,
-      settings: { ...cloudSettings, claimed_stages: s.claimedStages },
+      settings: { ...cloudSettings, claimed_stages: s.claimedStages, plan: s.plan },
       updated_at: new Date().toISOString(),
     })
     .eq('id', userId)
     .select('id')
   if (error) throw error
   if (!data || data.length === 0) throw new Error(`profile row not found for user ${userId}`)
+  // What was just written is what the row holds now; the next write carries it.
+  cloudSettings = { ...cloudSettings, claimed_stages: s.claimedStages, plan: s.plan }
 }
+
+/**
+ * Whether this page load has merged with the cloud yet.
+ *
+ * Until it has, a plain write is dangerous: the device may hold nothing — the
+ * minute after a sign-in, before the merge lands — and `settings` is one
+ * jsonb value, so writing it would replace the account's plan answers and its
+ * paid stages with an empty set. XP has a database trigger against exactly
+ * this; `settings` does not, so the guard is here.
+ */
+let hasMerged = false
 
 /**
  * On sign-in: reconcile local and cloud progress by taking the max of each
@@ -138,12 +163,15 @@ export async function syncProfileOnSignIn(): Promise<void> {
     // is paid. Missing this is what let a sign-out/sign-in cycle collect every
     // stage award again.
     claimedStages: Array.from(new Set([...local.claimedStages, ...cloud.claimedStages])),
+    plan: mergePlanState(local.plan ?? readPlanState(), cloud.plan),
   }
   levelSystem.setTotalXP(merged.levelXp)
   achievementEngine.setSimCounters(merged.simCount, merged.simBestEdge)
   setOnboardingSeen(merged.onboardingSeen)
   setClaimedStages(merged.claimedStages)
+  if (merged.plan) writePlanState(merged.plan)
   await writeCloud(userId, merged)
+  hasMerged = true
 }
 
 /**
@@ -160,9 +188,35 @@ export function pushProfileScalars(): void {
   void (async () => {
     try {
       const userId = await currentUserId()
-      if (userId) await writeCloud(userId, localScalars())
+      if (!userId) return
+      // Not merged yet on this page load: merge instead of overwriting.
+      if (!hasMerged) await syncProfileOnSignIn()
+      else await writeCloud(userId, localScalars())
     } catch (e) {
       console.error('profile cloud push failed', e)
     }
   })()
 }
+
+/**
+ * Forget that a merge happened — on sign-out, so the next account's first
+ * write on this page is a merge again and not an overwrite.
+ */
+export function resetProfileSync(): void {
+  hasMerged = false
+  cloudSettings = {}
+}
+
+/** A pending push of the plan answers, so a burst of taps is one write. */
+let planPush: ReturnType<typeof setTimeout> | null = null
+
+// An answer given on this device goes to the account. Debounced: choosing a
+// level writes the placement, the profile and the suggestion in one tick.
+onPlanStateChanged(origin => {
+  if (origin !== 'local' || !isSupabaseConfigured) return
+  if (planPush) clearTimeout(planPush)
+  planPush = setTimeout(() => {
+    planPush = null
+    pushProfileScalars()
+  }, 400)
+})

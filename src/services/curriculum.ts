@@ -3,6 +3,8 @@ import type { AppMode } from '../store/app-store'
 import type { TrainingSessionResult } from './stats-types'
 import { isProMode } from './pro-features'
 import type { Translate } from '../i18n/translate'
+import { planStateChanged } from './plan-state-signal'
+import { dayKey } from './date-utils'
 
 /**
  * The training path, in the order card counting has to be learned.
@@ -38,6 +40,18 @@ export interface DrillRequirement {
    */
   descriptionKey: string
   minSessions: number
+  /**
+   * Different calendar days those sessions have to fall on.
+   *
+   * Three good runs in one sitting used to finish a stage, and seven stages
+   * could be walked in an afternoon — a "plan" over before lunch (Darius,
+   * 17 Nov 2026). The subject does not work like that: a count that is right
+   * ten minutes after practising it and gone the next morning has not been
+   * learned. So the sessions have to be good **and** come back on other days.
+   * Nobody can buy or grind past a night's sleep, which is what makes the
+   * plan last weeks at any pace.
+   */
+  minDays: number
   /** Accuracy floor as a fraction (0.85 = 85%). */
   minAccuracy: number
   /** Which recorded sessions count toward this stage. */
@@ -87,7 +101,8 @@ export const CURRICULUM: CurriculumStage[] = [
     read: { labelKey: 'curriculum.basic-strategy.read', mode: 'learn' },
     drill: {
       descriptionKey: 'curriculum.drill.flashcards',
-      minSessions: 3,
+      minSessions: 8,
+      minDays: 4,
       minAccuracy: 0.85,
       counts: s => s.mode === 'deviationFlashCards',
       mode: 'deviationTraining',
@@ -101,7 +116,8 @@ export const CURRICULUM: CurriculumStage[] = [
     read: { labelKey: 'curriculum.hi-lo.read', mode: 'learn' },
     drill: {
       descriptionKey: 'curriculum.drill.speedDrill',
-      minSessions: 3,
+      minSessions: 10,
+      minDays: 5,
       minAccuracy: 0.9,
       counts: s => s.mode === 'speedDrill',
       mode: 'speedDrill',
@@ -115,7 +131,8 @@ export const CURRICULUM: CurriculumStage[] = [
     read: { labelKey: 'curriculum.true-count.read', mode: 'learn' },
     drill: {
       descriptionKey: 'curriculum.drill.deckEstimation',
-      minSessions: 3,
+      minSessions: 8,
+      minDays: 4,
       minAccuracy: 0.8,
       counts: s => s.mode === 'deckEstimation',
       mode: 'deckEstimation',
@@ -129,7 +146,8 @@ export const CURRICULUM: CurriculumStage[] = [
     read: { labelKey: 'curriculum.deviations.read', mode: 'learn' },
     drill: {
       descriptionKey: 'curriculum.drill.deviations',
-      minSessions: 3,
+      minSessions: 10,
+      minDays: 5,
       minAccuracy: 0.8,
       counts: hasDeviationQuestions,
       mode: 'deviationTraining',
@@ -142,7 +160,8 @@ export const CURRICULUM: CurriculumStage[] = [
     whyKey: 'curriculum.bet-spread.why',
     drill: {
       descriptionKey: 'curriculum.drill.betSpread',
-      minSessions: 3,
+      minSessions: 8,
+      minDays: 4,
       minAccuracy: 0.85,
       counts: s => s.mode === 'betSpread',
       mode: 'betSpread',
@@ -155,7 +174,8 @@ export const CURRICULUM: CurriculumStage[] = [
     whyKey: 'curriculum.table.why',
     drill: {
       descriptionKey: 'curriculum.drill.casino',
-      minSessions: 3,
+      minSessions: 6,
+      minDays: 4,
       minAccuracy: 0,
       counts: s => s.mode === 'casinoSession',
       mode: 'casinoSession',
@@ -173,6 +193,7 @@ export const CURRICULUM: CurriculumStage[] = [
 export function drillDescription(drill: DrillRequirement, t: Translate): string {
   return t(drill.descriptionKey, {
     n: drill.minSessions,
+    days: drill.minDays,
     pct: Math.round(drill.minAccuracy * 100),
   })
 }
@@ -216,6 +237,10 @@ export interface StageProgress {
   best: number | null
   /** The stage's accuracy floor as a whole percentage. */
   bar: number
+  /** Different days with a qualifying session so far (capped at the target). */
+  days: number
+  /** Different days required; 0 for read-only stages. */
+  targetDays: number
 }
 
 /**
@@ -232,6 +257,8 @@ export type StageEffort =
   | { kind: 'below'; best: number; bar: number; gap: number; attempts: number }
   /** At least one session cleared, but not enough of them. */
   | { kind: 'partial'; cleared: number; target: number }
+  /** Enough good sessions, on too few different days. `left` is the days still owed. */
+  | { kind: 'spacing'; days: number; targetDays: number; left: number }
   | { kind: 'done' }
 
 /** Classify a stage's progress. Pure; reads nothing but what it is given. */
@@ -239,6 +266,9 @@ export function stageEffort(p: StageProgress): StageEffort {
   if (p.done) return { kind: 'done' }
   if (p.locked) return { kind: 'locked' }
   if (p.readOnly || p.attempts === 0 || p.best === null) return { kind: 'untouched' }
+  if (p.current >= p.target && p.days < p.targetDays) {
+    return { kind: 'spacing', days: p.days, targetDays: p.targetDays, left: p.targetDays - p.days }
+  }
   if (p.current > 0) return { kind: 'partial', cleared: p.current, target: p.target }
   return {
     kind: 'below',
@@ -263,6 +293,7 @@ export function deriveStageProgress(
   sessions: readonly TrainingSessionResult[],
   readStages: readonly StageId[],
   isPro: boolean,
+  claimed: readonly StageId[] = [],
 ): StageProgress {
   const locked = stageNeedsPro(stage) && !isPro
 
@@ -277,20 +308,29 @@ export function deriveStageProgress(
       attempts: 0,
       best: null,
       bar: 0,
+      days: 0,
+      targetDays: 0,
     }
   }
 
-  const { minSessions, minAccuracy, counts } = stage.drill
+  const { minSessions, minDays, minAccuracy, counts } = stage.drill
   const attempted = sessions.filter(counts)
   // A qualifying session is one whose accuracy was demonstrated: three
   // aborted three-question runs used to finish a stage.
-  const qualifying = attempted.filter(s => provesAccuracy(s) && s.accuracy >= minAccuracy).length
+  const good = attempted.filter(s => provesAccuracy(s) && s.accuracy >= minAccuracy)
+  const qualifying = good.length
+  const days = new Set(good.map(s => dayKey(s.timestamp))).size
+  // A stage that was finished and paid under an earlier, shorter bar stays
+  // finished. Raising the bar must never take away something earned.
+  const paid = claimed.includes(stage.id)
 
   return {
     stage,
-    current: Math.min(qualifying, minSessions),
+    current: paid ? minSessions : Math.min(qualifying, minSessions),
     target: minSessions,
-    done: qualifying >= minSessions,
+    done: paid || (qualifying >= minSessions && days >= minDays),
+    days: paid ? minDays : Math.min(days, minDays),
+    targetDays: minDays,
     readOnly: false,
     locked,
     attempts: attempted.length,
@@ -306,8 +346,9 @@ export function deriveCurriculum(
   sessions: readonly TrainingSessionResult[],
   readStages: readonly StageId[],
   isPro: boolean,
+  claimed: readonly StageId[] = [],
 ): StageProgress[] {
-  return CURRICULUM.map(stage => deriveStageProgress(stage, sessions, readStages, isPro))
+  return CURRICULUM.map(stage => deriveStageProgress(stage, sessions, readStages, isPro, claimed))
 }
 
 /**
@@ -407,7 +448,7 @@ export function activeStage(
 ): StageId | null {
   const placement = getPlacement()
   if (!placement) return null
-  const progress = deriveCurriculum(sessions, getReadStages(), isPro)
+  const progress = deriveCurriculum(sessions, getReadStages(), isPro, claimedStageIds())
   return currentStage(progress, placement)?.stage.id ?? null
 }
 
@@ -450,6 +491,7 @@ export function hasSkippedPlacement(): boolean {
 export function setPlacementSkipped(): void {
   try {
     localStorage.setItem(SKIPPED_KEY, 'true')
+    planStateChanged()
   } catch {
     /* storage unavailable — worst case is being offered the test again */
   }
@@ -459,6 +501,7 @@ export function setPlacementSkipped(): void {
 export function clearPlacementSkip(): void {
   try {
     localStorage.removeItem(SKIPPED_KEY)
+    planStateChanged()
   } catch {
     /* storage unavailable */
   }
@@ -467,6 +510,7 @@ export function clearPlacementSkip(): void {
 export function setPlacement(stage: StageId): void {
   try {
     localStorage.setItem(PLACEMENT_KEY, stage)
+    planStateChanged()
   } catch {
     /* storage unavailable — the plan falls back to starting at the beginning */
   }
@@ -486,10 +530,39 @@ export function getReadStages(): StageId[] {
 
 /** Mark a reading stage confirmed. Idempotent. */
 export function markStageRead(id: StageId): void {
-  const next = Array.from(new Set([...getReadStages(), id]))
+  setReadStages([...getReadStages(), id])
+}
+
+/**
+ * Replace the confirmed reading stages — a tick here, or a merge with the
+ * cloud's copy. Unknown ids and repeats are dropped.
+ *
+ * @param ids - The stages confirmed as read
+ */
+export function setReadStages(ids: readonly StageId[]): void {
+  const next = Array.from(new Set(ids.filter(isStageId)))
   try {
     localStorage.setItem(READ_STAGES_KEY, JSON.stringify(next))
+    planStateChanged()
   } catch {
     /* storage unavailable */
+  }
+}
+
+/**
+ * Stages already finished and paid, read straight from storage.
+ *
+ * `stage-rewards.ts` owns this key and imports this module, so the list is
+ * read here by its key rather than through that module — the alternative is
+ * an import cycle between the two files that define what "finished" means.
+ */
+export function claimedStageIds(): StageId[] {
+  try {
+    const raw = localStorage.getItem('bjt_claimed_stages')
+    if (!raw) return []
+    const parsed: unknown = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed.filter((v): v is StageId => typeof v === 'string' && isStageId(v)) : []
+  } catch {
+    return []
   }
 }

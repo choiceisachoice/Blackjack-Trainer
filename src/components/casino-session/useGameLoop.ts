@@ -128,7 +128,8 @@ export interface VisibleState {
 
 export interface GameActions {
   confirmBet: () => void
-  handleAction: (action: Action) => void
+  /** `timedOut`: the decision clock ran out and the table stands for the player. */
+  handleAction: (action: Action, timedOut?: boolean) => void
   handleInsurance: (take: boolean) => void
   submitCount: () => void
   nextHand: () => void
@@ -1532,7 +1533,7 @@ export function useGameLoop(
     step(from)
   }, [runPostHumanFlow, schedule, setActive, updateHandCards, config.maxSplitHands, betOfHand, enterHand])
 
-  const handleAction = useCallback((action: Action) => {
+  const handleAction = useCallback((action: Action, timedOut = false) => {
     const engine = engineRef.current
     const dr = dealResultRef.current
     if (!engine || !dr || gameStep !== 'human_playing') return
@@ -1583,7 +1584,10 @@ export function useGameLoop(
     // Standing on 21 is not a decision. The table does it for the player
     // after half a second, and it was stored as a graded, correct play —
     // every 21 raised the play accuracy and the decision count a little.
-    const forced = action === Action.Stand && getHandValue(cards).best === 21
+    // Nor is a stand the clock made. A player who looked away for thirty
+    // seconds on 11 against a 6 did not "stand on 11": the hand is played,
+    // and nothing is written into the accuracy or the hand review.
+    const forced = action === Action.Stand && (timedOut || getHandValue(cards).best === 21)
     const decision = {
       action: action.toString(),
       correctAction: correctAction.toString(),
@@ -1864,13 +1868,29 @@ export function useGameLoop(
     const engine = engineRef.current
     if (!engine) return
     const hands = Math.max(1, Math.min(handsAllowed(), Math.floor(wanted) || 1))
-    engine.setHumanBoxes(hands)
-    const seats = engine.getHumanBoxSeats()
-    const current = boxBetsRef.current
-    const seed = current[selectedBoxRef.current ?? current.length - 1] ?? 0
-    applySeats(seats)
-    applyBets(fitBets(Array.from({ length: seats.length }, (_, i) => current[i] ?? seed)))
-    if ((selectedBoxRef.current ?? 0) >= seats.length) applySelected(null)
+    // Grow and shrink from the seats the player holds. Rebuilding them as
+    // "own seat and its neighbours" moved hands off the seats that had been
+    // chosen and left each bet on whatever seat now had its index — $100 put
+    // on the first seat turned up two seats along.
+    const own = engine.getHumanSeatIndex()
+    const held = boxSeatsRef.current.map((seat, i) => ({ seat, bet: boxBetsRef.current[i] ?? 0 }))
+    const seed = boxBetsRef.current[selectedBoxRef.current ?? boxBetsRef.current.length - 1] ?? 0
+    while (held.length > hands) {
+      // The hand furthest from the player's own seat goes first; the own seat last.
+      const far = held.reduce((a, b) => (Math.abs(b.seat - own) > Math.abs(a.seat - own) ? b : a))
+      held.splice(held.indexOf(far), 1)
+    }
+    while (held.length < hands) {
+      const taken = new Set(held.map(h => h.seat))
+      const free = engine.getFreeSeats().filter(s => !taken.has(s))
+        .sort((a, b) => Math.abs(a - own) - Math.abs(b - own) || b - a)
+      if (free.length === 0) break
+      held.push({ seat: free[0], bet: seed })
+    }
+    held.sort((a, b) => a.seat - b.seat)
+    applySeats(held.map(h => h.seat))
+    applyBets(fitBets(held.map(h => h.bet)))
+    applySelected(null)
   }
 
   /** Open a hand on a free seat; it starts with the bet of the selected hand, or its neighbour's. */

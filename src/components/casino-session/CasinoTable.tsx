@@ -16,7 +16,7 @@ const TABLE_SEATS = 6
  * follow the curve of the table's rim, lowest in the middle. One curve for
  * every seat — the betting circles lie on it.
  */
-const SEAT_ARC = [44, 16, 0, 0, 16, 44] as const
+const SEAT_ARC = [70, 20, 0, 0, 20, 70] as const
 
 /** Space kept between the felt's rim and the edge of its box, on every side. */
 const TABLE_GUTTER = 8
