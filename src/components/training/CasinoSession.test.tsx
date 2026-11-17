@@ -52,6 +52,10 @@ vi.mock('../../services/sound-engine', () => ({
     cardFlip: vi.fn(),
     chipPlace: vi.fn(),
     chipCollect: vi.fn(),
+    // Missing here since the table got its own sound for a lost bet: every
+    // test in this file that happened to settle a losing hand threw, which
+    // with a random shoe was now and then, in a different test each time.
+    chipsTaken: vi.fn(),
     correct: vi.fn(),
     wrong: vi.fn(),
     streak: vi.fn(),

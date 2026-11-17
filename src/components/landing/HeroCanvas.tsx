@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
-import { SUIT_PATH, PIPS, PIP_CENTRE, isRedSuit, type CardSuitName } from '../cards/card-suits'
+import { cardImageUrl, type CardSuitName } from '../cards/card-suits'
 
 /**
  * The landing hero's animated background: playing cards and casino chips
@@ -109,10 +109,12 @@ const SUIT_NAME: Record<string, CardSuitName> = {
  * framed court cards. 250 × 350 units at 2×, so a card that comes close stays
  * sharp.
  */
+/** The texture made from each card canvas, so a face that loads later can be shown. */
+const PAINTED = new WeakMap<HTMLCanvasElement, THREE.CanvasTexture>()
+
 function cardCanvas(rank: string, suitChar: string): HTMLCanvasElement {
   const k = 2, W = 250 * k, H = 350 * k, gm = 40 * k
   const suit = SUIT_NAME[suitChar] ?? 'Spades'
-  const ink = isRedSuit(suit) ? '#c8102e' : '#14161a'
   const { cv, x } = newCanvas(W + gm * 2, H + gm * 2)
   x.translate(gm, gm); x.scale(k, k)
 
@@ -121,36 +123,20 @@ function cardCanvas(rank: string, suitChar: string): HTMLCanvasElement {
   x.fillStyle = '#f4f5f7'; roundRect(x, 0, 0, 250, 350, 20); x.fill(); x.restore()
   x.lineWidth = 2; x.strokeStyle = '#c9ced6'; roundRect(x, 1, 1, 248, 348, 19); x.stroke()
 
-  const pip = (cx: number, cy: number, size: number, flip = false) => {
-    x.save(); x.translate(cx, cy); if (flip) x.rotate(Math.PI)
-    x.scale(size / 100, size / 100); x.translate(-50, -50)
-    x.fill(new Path2D(SUIT_PATH[suit])); x.restore()
+  // The face is the standard deck's own card — the same image the product
+  // shows everywhere. It is painted when it arrives; until then the card is
+  // a blank white one, which is what a card turning over looks like anyway.
+  const img = new Image()
+  img.decoding = 'async'
+  img.onload = () => {
+    x.save()
+    roundRect(x, 0, 0, 250, 350, 20); x.clip()
+    x.drawImage(img, 0, 0, 250, 350)
+    x.restore()
+    const tex = PAINTED.get(cv)
+    if (tex) tex.needsUpdate = true
   }
-  const index = () => {
-    x.font = `800 ${rank === '10' ? 38 : 44}px Inter, system-ui, sans-serif`
-    x.textAlign = 'center'; x.textBaseline = 'alphabetic'
-    x.fillText(rank, 31, 52)
-    pip(31, 78, 30)
-  }
-
-  x.fillStyle = ink
-  index()
-  x.save(); x.translate(250, 350); x.rotate(Math.PI); index(); x.restore()
-
-  const spots = PIPS[rank]
-  if (spots) {
-    for (const [px, py, flip] of spots) pip(px, py, 46, flip)
-  } else if (rank === 'A') {
-    pip(PIP_CENTRE.x, PIP_CENTRE.y, 118)
-  } else {
-    // J, Q, K: a framed panel, the letter, two suits.
-    x.save(); x.globalAlpha = 0.06; roundRect(x, 58, 44, 134, 262, 10); x.fill(); x.restore()
-    x.save(); x.globalAlpha = 0.55; x.strokeStyle = ink; x.lineWidth = 2.5; roundRect(x, 58, 44, 134, 262, 10); x.stroke(); x.restore()
-    x.save(); x.globalAlpha = 0.25; x.strokeStyle = ink; x.lineWidth = 1.5; roundRect(x, 66, 52, 118, 246, 6); x.stroke(); x.restore()
-    x.font = '800 128px Inter, system-ui, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'alphabetic'
-    x.fillText(rank, 125, 212)
-    pip(88, 80, 34); pip(162, 270, 34, true)
-  }
+  img.src = cardImageUrl(rank, suit)
   return cv
 }
 
@@ -290,6 +276,7 @@ export function HeroCanvas({ className }: { className?: string }) {
       const sx = baseH * (base.width / base.height)
       const mk = (cv: HTMLCanvasElement): { m: THREE.SpriteMaterial; s: THREE.Sprite } => {
         const tex = canvasTexture(cv)
+        PAINTED.set(cv, tex)
         const m = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, fog: true, opacity: 0 })
         disposables.push(tex, m)
         const s = new THREE.Sprite(m)

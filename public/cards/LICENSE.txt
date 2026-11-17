@@ -1,0 +1,12 @@
+Playing card faces in this folder
+
+The 52 card images (rank + suit letter, e.g. KD.webp) are rendered from the
+"Vector Playing Cards" deck:
+
+  Original artwork: Byron Knoll, released into the public domain
+  (https://code.google.com/archive/p/vector-playing-cards/)
+  SVG collection used: https://github.com/notpeter/Vector-Playing-Cards
+  (public domain, optionally WTFPL where the public domain is not recognised)
+
+Rendered to 360 x 504 WebP on 16 Nov 2026. No changes to the artwork other
+than the size and a 3.6 % change of proportion to the product's 5:7 card.

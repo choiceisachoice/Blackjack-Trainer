@@ -16,6 +16,35 @@ export function hiLoValue(rank: string): -1 | 0 | 1 {
   return -1
 }
 
+/** Whether a rank is a picture card. */
+export function isCourt(rank: string): boolean {
+  return rank === 'J' || rank === 'Q' || rank === 'K'
+}
+
+/**
+ * The picture of a card: the standard deck, as it lies on any casino table.
+ *
+ * The product drew its own faces first, and its J, Q and K were a letter in a
+ * frame. Darius, 16 Nov 2026: "Picture Card — da ist kein Picture drauf." A
+ * court card is its picture, and nobody draws a better king than the one
+ * everybody already knows. The images are Byron Knoll's public-domain deck,
+ * rendered to 360 × 504 WebP (see `public/cards/LICENSE.txt`), one file per
+ * card, fetched only when that card is shown.
+ *
+ * @param rank - 'A', '2' … '10', 'J', 'Q', 'K'
+ * @param suit - The suit's name
+ * @returns The image's URL from the site root
+ */
+export function cardImageUrl(rank: string, suit: string): string {
+  return `/cards/${rank}${suit.charAt(0).toUpperCase()}.webp`
+}
+
+/**
+ * Where the upper figure of a court card lies in its image, in the 250 × 350
+ * units every card is drawn in: the part a small card shows.
+ */
+export const COURT_FIGURE = { x: 33, y: 34, width: 185, height: 141 } as const
+
 /** Each suit drawn in a 100 × 100 box. */
 export const SUIT_PATH: Record<CardSuitName, string> = {
   Hearts:

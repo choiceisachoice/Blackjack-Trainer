@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { isRedSuit, SUIT_PATH, PIPS, PIP_CENTRE, type CardSuitName } from './card-suits'
+import { isRedSuit, isCourt, cardImageUrl, COURT_FIGURE, SUIT_PATH, type CardSuitName } from './card-suits'
 
 /**
  * The one drawing of a playing card.
@@ -10,14 +10,17 @@ import { isRedSuit, SUIT_PATH, PIPS, PIP_CENTRE, type CardSuitName } from './car
  * it. A font's ♥ is not a drawing: it changes with the typeface, some systems
  * hand back an emoji, and at 50px it is a smudge.
  *
- * This is a vector card. Suits are paths, so they are the same heart on every
- * machine and stay sharp at any size. Two layouts share the frame:
+ * Two layouts share the frame:
  *
  * - `compact` — for cards under roughly 90px wide, which is every card on a
- *   table. A large index (rank over suit) and one large suit. At that size a
- *   reader needs the rank first, and nine real pips would be nine dots.
- * - `full` — the traditional pip layout, with framed court cards, for anything
- *   shown large.
+ *   table. A large index (rank over suit) and one large suit, drawn as paths
+ *   so they stay sharp. At that size a reader needs the rank first, and nine
+ *   real pips would be nine dots. A J, Q or K shows its picture where a number
+ *   card shows the suit: a picture card is told by its picture.
+ * - `full` — the standard deck's own card, for anything shown large: the
+ *   classic pip layout and the court figures everybody knows
+ *   (`cardImageUrl`). The first version drew its own, and its court cards
+ *   were a letter in a frame.
  *
  * The component fills its parent; the parent decides the size and should keep
  * the 5:7 ratio.
@@ -72,49 +75,27 @@ export const CardFace = memo(function CardFace({ rank, suit, variant = 'compact'
               lengthAdjust="spacingAndGlyphs"
             >{rank}</text>
             <Pip suit={s} cx={56} cy={150} size={62} />
-            <Pip suit={s} cx={160} cy={248} size={132} />
+            {isCourt(rank) ? (
+              <>
+                {/* The figure's upper half, from the same image the large card uses. */}
+                <svg x="96" y="118" width="140" height="214" viewBox={`${COURT_FIGURE.x + 30} ${COURT_FIGURE.y} ${COURT_FIGURE.width - 60} ${COURT_FIGURE.height + 50}`} preserveAspectRatio="xMidYMid slice">
+                  <image href={cardImageUrl(rank, suit)} width="250" height="350" preserveAspectRatio="none" />
+                </svg>
+                <rect x="96" y="118" width="140" height="214" rx="8" fill="none" stroke={ink} strokeOpacity="0.5" strokeWidth="3" />
+              </>
+            ) : (
+              <Pip suit={s} cx={160} cy={248} size={132} />
+            )}
           </>
         ) : (
           <>
-            <Index rank={rank} suit={s} narrow={narrow} />
-            <g transform="rotate(180 125 175)"><Index rank={rank} suit={s} narrow={narrow} /></g>
-            {PIPS[rank]
-              ? PIPS[rank].map(([x, y, flip], i) => <Pip key={i} suit={s} cx={x} cy={y} size={46} flip={flip} />)
-              : rank === 'A'
-                ? <Pip suit={s} cx={PIP_CENTRE.x} cy={PIP_CENTRE.y} size={118} />
-                : <Court rank={rank} suit={s} ink={ink} />}
+            <image href={cardImageUrl(rank, suit)} width="250" height="350" preserveAspectRatio="none" />
           </>
         )}
       </g>
     </svg>
   )
 })
-
-/** Corner index of the full layout: rank over a small suit. */
-function Index({ rank, suit, narrow }: { rank: string; suit: CardSuitName; narrow: boolean }) {
-  return (
-    <>
-      <text
-        x="31" y="52" fontSize="44" textAnchor="middle"
-        textLength={narrow ? 40 : undefined} lengthAdjust="spacingAndGlyphs"
-      >{rank}</text>
-      <Pip suit={suit} cx={31} cy={78} size={30} />
-    </>
-  )
-}
-
-/** J, Q, K of the full layout: a framed panel with the letter and two suits. */
-function Court({ rank, suit, ink }: { rank: string; suit: CardSuitName; ink: string }) {
-  return (
-    <>
-      <rect x="58" y="44" width="134" height="262" rx="10" fill={ink} fillOpacity="0.06" stroke={ink} strokeOpacity="0.55" strokeWidth="2.5" />
-      <rect x="66" y="52" width="118" height="246" rx="6" fill="none" stroke={ink} strokeOpacity="0.25" strokeWidth="1.5" />
-      <text x="125" y="212" fontSize="128" textAnchor="middle">{rank}</text>
-      <Pip suit={suit} cx={88} cy={80} size={34} />
-      <Pip suit={suit} cx={162} cy={270} size={34} flip />
-    </>
-  )
-}
 
 /**
  * The back of a card: deep red, a white border and a fine diamond lattice.
