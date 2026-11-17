@@ -9,7 +9,7 @@ import { SplitPreview } from './SplitPreview'
  */
 afterEach(() => { cleanup(); vi.useRealTimers() })
 
-const handLabels = () => screen.queryAllByText(/^H\d$/)
+const handLabels = () => screen.queryAllByTestId('split-hand')
 
 describe('SplitPreview', () => {
   it('grows the table to three hands only on the re-split', () => {

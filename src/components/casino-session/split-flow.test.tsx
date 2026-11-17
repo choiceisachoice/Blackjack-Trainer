@@ -55,7 +55,7 @@ function stackShoe(cards: Card[]) {
 }
 
 const tick = (ms: number) => act(() => { vi.advanceTimersByTime(ms) })
-const humanHands = () => screen.getByTestId('human-seat').querySelectorAll('[class*="rounded-lg"]')
+const humanHands = () => screen.getByTestId('human-seat').querySelectorAll('[data-testid="split-hand"]')
 
 function startHeadsUp({ das = true }: { das?: boolean } = {}) {
   render(<CasinoSession />)

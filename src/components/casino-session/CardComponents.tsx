@@ -9,7 +9,11 @@ import { TABLE_CARD, DEALER_CARD } from './helpers'
 export function MiniCard({ card, faceDown }: { card: Card; faceDown?: boolean }) {
   return (
     <div className="w-8 h-11 md:w-10 md:h-14 flex-shrink-0 rounded-[3px] shadow">
-      {faceDown ? <CardBack /> : <CardFace rank={card.rank} suit={card.suit} />}
+      {/* The standard card, as it is printed. The table used to draw its own
+          simplified face — a big index and one suit pushed into the lower
+          right corner, a court figure cropped into a box — and it read as a
+          card that had slipped (Darius, 17 Nov 2026: "die normale Karte"). */}
+      {faceDown ? <CardBack /> : <CardFace rank={card.rank} suit={card.suit} variant="full" />}
     </div>
   )
 }
@@ -33,7 +37,11 @@ const boxOf = (size: CardSize) => ({ width: CARD_BOX[size].width, height: CARD_B
 export function TableCard({ card, faceDown, size = 'player' }: { card: Card; faceDown?: boolean; size?: CardSize }) {
   return (
     <div className="flex-shrink-0 rounded-[6px] shadow-[0_2px_6px_rgba(0,0,0,.45)]" style={boxOf(size)}>
-      {faceDown ? <CardBack /> : <CardFace rank={card.rank} suit={card.suit} />}
+      {/* The standard card, as it is printed. The table used to draw its own
+          simplified face — a big index and one suit pushed into the lower
+          right corner, a court figure cropped into a box — and it read as a
+          card that had slipped (Darius, 17 Nov 2026: "die normale Karte"). */}
+      {faceDown ? <CardBack /> : <CardFace rank={card.rank} suit={card.suit} variant="full" />}
     </div>
   )
 }

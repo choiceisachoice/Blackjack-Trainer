@@ -153,9 +153,40 @@ function HandBanner({ moment, left }: { moment: HandMoment; left: number }) {
  */
 function handBoxes(slotWidth: number, hands: number): { width: number; reach: number } {
   if (hands <= 1) return { width: HAND_BASE, reach: HAND_BASE + Math.max(0, (slotWidth - HAND_BASE) / 2 - 4) }
-  const share = Math.floor((slotWidth - SPLIT_GAP * (hands - 1)) / hands)
-  const width = Math.max(HAND_BASE, Math.min(HAND_BASE + CARD_STEP, share))
-  return { width, reach: width }
+  // A split hand's box is two cards wide and stays that wide: further cards
+  // tighten the fan inside it, so a hit never moves the hand beside it.
+  return { width: HAND_BASE, reach: HAND_BASE }
+}
+
+/** Height of one split hand: its cards and the total under them. */
+const SPLIT_HAND_HEIGHT = TABLE_CARD.height + 22
+const SPLIT_ROW_GAP = 8
+
+/**
+ * How split hands are laid out so that they never leave their seat.
+ *
+ * They used to sit in one row, each at full size, and "run over the slot's
+ * edges into the free felt beside it". Beside it was the next player: two
+ * hands at a five-seat table already lay on the neighbour's cards, and four
+ * covered both neighbours (Darius, 17 Nov 2026).
+ *
+ * Up to two hands share one row. From the third on there are two rows — a
+ * second row costs height, which the felt above a seat has, where a longer
+ * row costs width, which it does not. Then the whole group is scaled to the
+ * seat's width, and to a height that stops short of the dealer.
+ *
+ * @param slotWidth - The seat's width, in table units
+ * @param hands - How many hands the seat holds
+ */
+function splitLayout(slotWidth: number, hands: number): {
+  perRow: number; rows: number; width: number; height: number; scale: number
+} {
+  const perRow = hands <= 2 ? hands : Math.ceil(hands / 2)
+  const rows = Math.ceil(hands / perRow)
+  const width = perRow * HAND_BASE + (perRow - 1) * SPLIT_GAP
+  const height = rows * SPLIT_HAND_HEIGHT + (rows - 1) * SPLIT_ROW_GAP
+  const scale = Math.min(1, (slotWidth - 8) / width, SPLIT_MAX_HEIGHT / height)
+  return { perRow, rows, width, height, scale }
 }
 
 /** Name + bankroll plate at the bottom of a seat block. */
@@ -179,6 +210,8 @@ function NamePlate({ name, bankroll, you }: { name: string; bankroll: number; yo
  * — and with it every betting circle — stays where it is.
  */
 const CARDS_ROOM = TABLE_CARD.height + 28
+/** How tall a seat's split hands may stand: the room, and the open felt above it. */
+const SPLIT_MAX_HEIGHT = CARDS_ROOM + 44
 /** The betting circle printed on the felt, and the room its chips stand in. */
 export const SPOT_SIZE = 66
 const SPOT_ROOM = SPOT_SIZE + 26
@@ -403,6 +436,7 @@ export function HumanSeat({
   // used to show the opening bet only, so doubling $20 still read $20.
   const stake = currentBet * humanHands.reduce((n, _, i) => n + (handDoubled.has(i) ? 2 : 1), 0)
   const box = handBoxes(slotWidth, humanHands.length)
+  const split = splitLayout(slotWidth, humanHands.length)
   // Where the chips go once the hand is settled. A surrender loses (half) the bet.
   const humanOutcome: ChipOutcome = gameStep !== 'settlement' || !humanSettlement ? null
     : humanSettlement.result === 'surrender' ? 'loss'
@@ -419,23 +453,55 @@ export function HumanSeat({
       dimmed={isDimmed}
       active={isActivePlayer}
       cards={isSplit ? (
-        <div className="flex justify-center" style={{ gap: SPLIT_GAP }}>
-          {humanHands.map((hand, i) => (
-            <motion.div
-              key={`hand-${i}`}
-              // The hands do not slide: their boxes are where they will stay,
-              // and the cards are dealt into them.
-              initial={reduced ? false : { scale: 0.96 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              className={`flex flex-col items-center gap-0.5 py-1 rounded-lg transition-opacity duration-500 ease-out
-                ${i === activeHandIndex && gameStep === 'human_playing' ? 'ring-2 ring-gold bg-black/20' : gameStep === 'human_playing' ? 'opacity-40' : ''}`}
-            >
-              <span className="text-[0.65rem] text-gold font-semibold uppercase tracking-wide">{t('casino.table.handNo', { n: i + 1 })}</span>
-              <Hand cards={hand} animateFrom={1} totalClass="text-[0.75rem]" width={box.width} reach={box.reach} />
-              {handDoubled.has(i) && <span className="text-[0.625rem] text-gold">{t('casino.table.doubled')}</span>}
-            </motion.div>
-          ))}
+        // Laid out at full size and scaled as one piece about the point it
+        // stands on, so it stays centred over the betting circle and inside
+        // the seat. `shrink-0`: the seat's row must not squeeze it instead.
+        <div
+          className="shrink-0 flex flex-wrap content-end justify-center"
+          style={{
+            width: split.width,
+            columnGap: SPLIT_GAP,
+            rowGap: SPLIT_ROW_GAP,
+            transform: split.scale < 1 ? `scale(${split.scale})` : undefined,
+            transformOrigin: 'bottom center',
+          }}
+          data-testid="split-hands"
+          data-rows={split.rows}
+        >
+          {humanHands.map((hand, i) => {
+            const playing = gameStep === 'human_playing'
+            const isActive = playing && i === activeHandIndex
+            return (
+              <motion.div
+                key={`hand-${i}`}
+                // The hands do not slide: their boxes are where they will stay,
+                // and the cards are dealt into them.
+                initial={reduced ? false : { scale: 0.96 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className={`relative flex flex-col items-center transition-opacity duration-500 ease-out
+                  ${playing && !isActive ? 'opacity-45' : ''}`}
+                style={{ width: HAND_BASE, height: SPLIT_HAND_HEIGHT }}
+                data-testid="split-hand"
+                data-active={isActive}
+                aria-label={t('casino.table.handNo', { n: i + 1 })}
+              >
+                <Hand cards={hand} animateFrom={1} totalClass="text-[0.8125rem]" width={box.width} reach={box.reach} />
+                {/* Which hand is being played: a line of light under it. A
+                    frame round the cards was a box inside the seat's own
+                    highlight, and at the edge of a seat it lay on the
+                    neighbour. */}
+                {isActive && (
+                  <span aria-hidden className="absolute -bottom-0.5 left-2 right-2 h-[3px] rounded-full bg-gold shadow-[0_0_10px_rgba(212,168,71,.9)]" />
+                )}
+                {handDoubled.has(i) && (
+                  <span className="absolute top-1 right-1 z-30 rounded px-1 text-[0.625rem] font-bold bg-gold text-on-gold">
+                    {t('casino.table.doubled')}
+                  </span>
+                )}
+              </motion.div>
+            )
+          })}
         </div>
       ) : (
         <Hand cards={shownCards} totalClass="text-sm" width={box.width} reach={box.reach} moment={humanMoment} />
@@ -526,8 +592,21 @@ export function BotSeat({
   let cards: React.ReactNode = null
   if (gameStep !== 'betting') {
     if (showSplitHands) {
+      // The same layout as the player's split hands: inside the seat, two
+      // rows from the third hand on.
+      const fit = splitLayout(slotWidth, splitHands.length)
       cards = (
-        <div className="flex justify-center" style={{ gap: SPLIT_GAP }}>
+        <div
+          className="shrink-0 flex flex-wrap content-end justify-center"
+          style={{
+            width: fit.width,
+            columnGap: SPLIT_GAP,
+            rowGap: SPLIT_ROW_GAP,
+            transform: fit.scale < 1 ? `scale(${fit.scale})` : undefined,
+            transformOrigin: 'bottom center',
+          }}
+          data-testid="split-hands"
+        >
           {splitHands.map((view, hi) => {
             const shownCards = view.cards
             if (shownCards.length === 0) return null
@@ -548,16 +627,18 @@ export function BotSeat({
                 initial={reducedBot ? false : { scale: 0.96 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
-                className={`flex flex-col items-center gap-0.5 py-1 rounded-lg ${
-                  hasActiveHand ? (isHandActive ? 'ring-2 ring-gold bg-black/20' : 'opacity-40') : ''
-                }`}
-                style={{ transition: 'opacity 0.4s ease' }}>
-                <span className={`text-[0.625rem] font-semibold uppercase ${hasActiveHand && isHandActive ? 'text-gold' : 'text-white/40'}`}>{t('casino.table.handShort', { n: hi + 1 })}</span>
-                <Hand cards={shownCards} animateFrom={1} totalClass="text-[0.6875rem]" width={split.width} reach={split.reach}
+                className={`relative flex flex-col items-center ${hasActiveHand && !isHandActive ? 'opacity-45' : ''}`}
+                style={{ transition: 'opacity 0.4s ease', width: HAND_BASE, height: SPLIT_HAND_HEIGHT }}
+                data-testid="split-hand"
+                aria-label={t('casino.table.handShort', { n: hi + 1 })}>
+                <Hand cards={shownCards} animateFrom={1} totalClass="text-[0.8125rem]" width={split.width} reach={split.reach}
                   moment={gameStep === 'settlement' && hand?.result === 'win' ? 'win' : null} />
+                {hasActiveHand && isHandActive && (
+                  <span aria-hidden className="absolute -bottom-0.5 left-2 right-2 h-[3px] rounded-full bg-gold shadow-[0_0_10px_rgba(212,168,71,.9)]" />
+                )}
                 {resultLabel && gameStep === 'settlement' && (
-                  <span className={`text-[0.625rem] font-bold ${
-                    (hand?.profit ?? 0) > 0 ? 'text-success' : (hand?.profit ?? 0) < 0 ? 'text-error' : 'text-white/50'
+                  <span className={`absolute top-1 right-1 z-30 rounded px-1 text-[0.625rem] font-bold bg-black/70 ${
+                    (hand?.profit ?? 0) > 0 ? 'text-success' : (hand?.profit ?? 0) < 0 ? 'text-error' : 'text-white/70'
                   }`}>{resultLabel}</span>
                 )}
               </motion.div>
