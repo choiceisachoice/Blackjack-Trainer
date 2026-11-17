@@ -142,7 +142,8 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
     // level reached from this session's own XP is already applied when the
     // reach_level achievements are evaluated (they read persisted XP). Otherwise
     // "I hit Level 5" wouldn't unlock until the next session.
-    useLevelStore.getState().addSessionXP(result)
+    // The sessions before this one decide how much of the day's limit is left.
+    useLevelStore.getState().addSessionXP(result, allSessions.slice(1))
 
     // Update daily challenge progress. Bucket by the user's LOCAL day, the same
     // calendar the challenge engines credit against (see services/date-utils).

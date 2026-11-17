@@ -1,3 +1,5 @@
+import { minAnswersFor } from './accuracy-sample'
+import { dayKey } from './date-utils'
 import type { TrainingSessionResult } from './stats-types'
 
 const STORAGE_KEY = 'bjt_level_xp'
@@ -98,38 +100,39 @@ export const LEVELS: LevelDefinition[] = [
   { level: 25, titleKey: 'levels.l25',    xpRequired: 210_000, tier: 'elite', color: '#b9f2ff', glowColor: 'rgba(185,242,255,0.6)' },
 ]
 
-/** XP reward constants for various activities. */
 /**
- * XP reward constants.
+ * What an achievement pays, by tier.
  *
- * ## Why these went up
- *
- * A good drill used to pay about 40 XP against 100 for a daily challenge, so
- * **only 48 % of a day's XP came from training** — and that was the half the
- * player could not see. A trainer whose ladder is climbed mainly by collecting
- * rewards the wrong thing: achievements are a record of practice, not a
- * substitute for it.
- *
- * A good 20-question drill is now worth about 65 XP and a casino session about
- * 100, putting training at roughly **62 %** of a day's total. Practising is the
- * way up; the rest decorates it.
+ * Training is not in this table any more: a session is paid by what was
+ * answered correctly in it (`sessionXP`), not by a fixed amount for having
+ * finished one.
  */
 export const XP_REWARDS = {
-  sessionBase: 25,
-  sessionAccuracyBonus70: 10,
-  sessionAccuracyBonus85: 20,
-  sessionAccuracyBonus95: 40,
-  sessionPerfect100: 70,
-  /** A casino session is twenty-plus hands and the longest thing on offer. */
-  casinoSessionBase: 60,
-  casinoSessionProfitPer500: 8,
-  handsBonus50: 15,
-  handsBonus100: 20,
   achievementBronze: 25,
   achievementSilver: 50,
   achievementGold: 100,
   achievementDiamond: 200,
 } as const
+
+/**
+ * XP for one correct answer, by mode.
+ *
+ * An answer is not the same amount of work everywhere. In the Speed Drill one
+ * "answer" is a whole run of cards counted and totalled; at the casino table
+ * it is a decision made while holding a count; a flashcard is a few seconds.
+ */
+export const XP_PER_CORRECT: Record<TrainingSessionResult['mode'], number> = {
+  speedDrill: 12,
+  casinoSession: 3,
+  tableCounting: 2,
+  deviationFlashCards: 2,
+  deviationAtTable: 2,
+  betSpread: 2,
+  deckEstimation: 2,
+}
+
+/** The most one mode's training pays in one day. */
+export const DAILY_MODE_XP_CAP = 150
 
 /** Result of an addXP operation. */
 export interface AddXPResult {
@@ -151,46 +154,72 @@ export interface LevelProgress {
   percent: number
 }
 
+/** What a session pays, and what the day's limit did to it. */
+export interface SessionXP {
+  /** What is credited. */
+  amount: number
+  /** What the answers were worth before the day's limit. */
+  earned: number
+  /** The day's limit for this mode took some or all of it. */
+  capped: boolean
+}
+
 /**
- * Calculate XP earned from a training session.
+ * What a session's answers are worth, before the day's limit.
  *
- * XP = base + accuracy bonus + hands bonus + casino profit bonus.
+ * Paid per **correct answer**, so a session is worth what was done in it:
+ * twenty flashcards in one sitting and twenty across four are the same XP.
+ * Accuracy multiplies it (x1.25 from 85 %, x1.5 from 95 %) once the session is
+ * large enough for its accuracy to mean anything — the sample the awards and
+ * the plan already ask for (`minAnswersFor`).
+ *
+ * What this replaced paid 25 XP for finishing any session, plus up to 70 for
+ * its accuracy whatever its size: three correct flashcards were 95 XP, and the
+ * cheapest way up the ladder was many short sessions. A casino session also
+ * paid for its profit, which is luck.
+ *
+ * @param session - The finished session
  */
-export function calculateSessionXP(session: TrainingSessionResult): number {
-  let xp = 0
+export function sessionXPEarned(session: TrainingSessionResult): number {
+  const correct = Math.max(0, Math.min(session.correctAnswers, session.totalQuestions))
+  if (correct === 0) return 0
+  const base = correct * (XP_PER_CORRECT[session.mode] ?? 2)
+  const proven = session.totalQuestions >= minAnswersFor(session.mode)
+  const accuracy = session.totalQuestions > 0 ? correct / session.totalQuestions : 0
+  const factor = !proven ? 1 : accuracy >= 0.95 ? 1.5 : accuracy >= 0.85 ? 1.25 : 1
+  return Math.round(base * factor)
+}
 
-  // Base XP
-  if (session.mode === 'casinoSession') {
-    xp += XP_REWARDS.casinoSessionBase
-
-    // Profit bonus for casino sessions
-    if (session.details.type === 'casinoSession' && session.details.netProfit > 0) {
-      xp += Math.floor(session.details.netProfit / 500) * XP_REWARDS.casinoSessionProfitPer500
-    }
-  } else {
-    xp += XP_REWARDS.sessionBase
+/**
+ * What a session pays once the day's limit is applied.
+ *
+ * One mode pays at most `DAILY_MODE_XP_CAP` in a day. The limit is worked out
+ * from the day's own sessions rather than kept in a counter, so it cannot be
+ * reset by signing out and it is the same on every device.
+ *
+ * @param session - The finished session
+ * @param earlier - Sessions recorded before it (any day, any mode)
+ */
+export function sessionXP(session: TrainingSessionResult, earlier: TrainingSessionResult[] = []): SessionXP {
+  const earned = sessionXPEarned(session)
+  const day = dayKey(session.timestamp)
+  let paidToday = 0
+  for (const s of earlier) {
+    if (s.id === session.id || s.mode !== session.mode || dayKey(s.timestamp) !== day) continue
+    paidToday = Math.min(DAILY_MODE_XP_CAP, paidToday + sessionXPEarned(s))
   }
+  const amount = Math.max(0, Math.min(earned, DAILY_MODE_XP_CAP - paidToday))
+  return { amount, earned, capped: amount < earned }
+}
 
-  // Accuracy bonus (highest applicable tier, not stacked)
-  const accPct = Math.round(session.accuracy * 100)
-  if (accPct >= 100) {
-    xp += XP_REWARDS.sessionPerfect100
-  } else if (accPct >= 95) {
-    xp += XP_REWARDS.sessionAccuracyBonus95
-  } else if (accPct >= 85) {
-    xp += XP_REWARDS.sessionAccuracyBonus85
-  } else if (accPct >= 70) {
-    xp += XP_REWARDS.sessionAccuracyBonus70
-  }
-
-  // Hands bonus (stacks)
-  if (session.totalQuestions >= 100) {
-    xp += XP_REWARDS.handsBonus50 + XP_REWARDS.handsBonus100
-  } else if (session.totalQuestions >= 50) {
-    xp += XP_REWARDS.handsBonus50
-  }
-
-  return xp
+/**
+ * XP credited for a training session.
+ *
+ * @param session - The finished session
+ * @param earlier - Sessions recorded before it, for the day's limit
+ */
+export function calculateSessionXP(session: TrainingSessionResult, earlier: TrainingSessionResult[] = []): number {
+  return sessionXP(session, earlier).amount
 }
 
 /**

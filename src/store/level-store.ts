@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { TrainingSessionResult } from '../services/stats-types'
 import type { LevelDefinition, LevelProgress } from '../services/level-system'
-import { levelSystem, calculateSessionXP, XP_REWARDS } from '../services/level-system'
+import { levelSystem, sessionXP, XP_REWARDS } from '../services/level-system'
 import { pushProfileScalars } from '../services/supabase/profiles-sync'
 import { soundEngine } from '../services/sound-engine'
 
@@ -61,8 +61,11 @@ export interface XPSource {
 
 /** Actions for the level store. */
 export interface LevelStoreActions {
-  /** Add XP from a completed training session. */
-  addSessionXP(session: TrainingSessionResult): void
+  /**
+   * Add XP from a completed training session. `earlier` are the sessions
+   * recorded before it: a mode pays up to a limit per day.
+   */
+  addSessionXP(session: TrainingSessionResult, earlier?: TrainingSessionResult[]): void
   /** Add XP from a completed challenge or a finished plan stage. */
   addChallengeXP(amount: number, labelKey?: string, labelParams?: Record<string, string>): void
   /** Add XP from an unlocked achievement. */
@@ -166,8 +169,15 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
   levelUpData: null,
   lastAward: null,
 
-  addSessionXP(session) {
-    applyXP(set, get, calculateSessionXP(session), 'xp.source.session')
+  addSessionXP(session, earlier = []) {
+    const xp = sessionXP(session, earlier)
+    if (xp.amount > 0) {
+      applyXP(set, get, xp.amount, xp.capped ? 'xp.source.sessionCapped' : 'xp.source.session')
+    } else if (xp.capped) {
+      // Earned, and not paid: say so, or a good session reads as a broken one.
+      awardSeq += 1
+      set({ lastAward: { amount: 0, labelKey: 'xp.source.dailyCap', id: awardSeq } })
+    }
   },
 
   addChallengeXP(amount, labelKey = 'xp.source.challenge', labelParams) {

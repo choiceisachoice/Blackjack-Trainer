@@ -1,25 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { LevelSystem, LEVELS, XP_REWARDS, calculateSessionXP } from './level-system'
+import { LevelSystem, LEVELS } from './level-system'
 import i18next from 'i18next'
-import type { TrainingSessionResult } from './stats-types'
-import { CountingSystemId } from '../engine/counting/types'
-
-/** Helper: create a minimal session result. */
-function makeSession(overrides: Partial<TrainingSessionResult> = {}): TrainingSessionResult {
-  return {
-    id: crypto.randomUUID(),
-    mode: 'speedDrill',
-    timestamp: new Date().toISOString(),
-    countingSystem: CountingSystemId.HiLo,
-    durationSeconds: 120,
-    totalQuestions: 20,
-    correctAnswers: 16,
-    accuracy: 0.8,
-    bestStreak: 5,
-    details: { type: 'speedDrill', cardsPerRound: 10, speedMs: 1000, rcErrors: [] },
-    ...overrides,
-  }
-}
 
 describe('LEVELS definition', () => {
   it('has 25 levels', () => {
@@ -270,101 +251,5 @@ describe('LevelSystem', () => {
       system.setTotalXP(123.9)
       expect(system.getTotalXP()).toBe(123)
     })
-  })
-})
-
-describe('calculateSessionXP', () => {
-  it('gives base 10 XP for a normal session', () => {
-    const session = makeSession({ accuracy: 0.5 })
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase)
-  })
-
-  it('gives base 20 XP for a casino session', () => {
-    const session = makeSession({
-      mode: 'casinoSession',
-      accuracy: 0.5,
-      totalQuestions: 10,
-      details: {
-        type: 'casinoSession', handsPlayed: 10, netProfit: 0, overallScore: 50,
-        grade: 'D', betAccuracy: 50, playAccuracy: 50, countAccuracy: 50,
-        deviationAccuracy: 50, numBots: 2, hadBlackjack: false,
-        longestWinStreak: 0, splitAces: false, maxSplitHands: 1,
-      },
-    })
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.casinoSessionBase)
-  })
-
-  it('adds accuracy bonus +5 at 70%', () => {
-    const session = makeSession({ accuracy: 0.7 })
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus70)
-  })
-
-  it('adds accuracy bonus +10 at 85%', () => {
-    const session = makeSession({ accuracy: 0.85 })
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus85)
-  })
-
-  it('adds accuracy bonus +25 at 95%', () => {
-    const session = makeSession({ accuracy: 0.95 })
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus95)
-  })
-
-  it('adds accuracy bonus +50 at 100%', () => {
-    const session = makeSession({ accuracy: 1.0 })
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionPerfect100)
-  })
-
-  it('gives highest applicable accuracy bonus (not stacked)', () => {
-    const session = makeSession({ accuracy: 0.98 }) // between 95% and 100%
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus95) // not the perfect tier
-  })
-
-  it('adds casino session profit bonus', () => {
-    const session = makeSession({
-      mode: 'casinoSession',
-      accuracy: 0.5,
-      totalQuestions: 50,
-      details: {
-        type: 'casinoSession', handsPlayed: 50, netProfit: 1200, overallScore: 80,
-        grade: 'B', betAccuracy: 80, playAccuracy: 80, countAccuracy: 80,
-        deviationAccuracy: 80, numBots: 2, hadBlackjack: false,
-        longestWinStreak: 3, splitAces: false, maxSplitHands: 1,
-      },
-    })
-    expect(calculateSessionXP(session)).toBe(
-      XP_REWARDS.casinoSessionBase + 2 * XP_REWARDS.casinoSessionProfitPer500 + XP_REWARDS.handsBonus50,
-    )
-  })
-
-  it('no profit bonus for negative profit', () => {
-    const session = makeSession({
-      mode: 'casinoSession',
-      accuracy: 0.5,
-      totalQuestions: 10,
-      details: {
-        type: 'casinoSession', handsPlayed: 10, netProfit: -500, overallScore: 40,
-        grade: 'F', betAccuracy: 40, playAccuracy: 40, countAccuracy: 40,
-        deviationAccuracy: 40, numBots: 2, hadBlackjack: false,
-        longestWinStreak: 0, splitAces: false, maxSplitHands: 1,
-      },
-    })
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.casinoSessionBase) // just base
-  })
-
-  it('adds hands bonus +5 at 50 hands', () => {
-    const session = makeSession({ totalQuestions: 50, accuracy: 0.5 })
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.handsBonus50)
-  })
-
-  it('adds hands bonus +10 at 100 hands (stacks with +5)', () => {
-    const session = makeSession({ totalQuestions: 100, accuracy: 0.5 })
-    expect(calculateSessionXP(session)).toBe(XP_REWARDS.sessionBase + XP_REWARDS.handsBonus50 + XP_REWARDS.handsBonus100)
-  })
-
-  it('combines accuracy, hands, and base bonuses', () => {
-    const session = makeSession({ totalQuestions: 100, accuracy: 0.85 })
-    expect(calculateSessionXP(session)).toBe(
-      XP_REWARDS.sessionBase + XP_REWARDS.sessionAccuracyBonus85 + XP_REWARDS.handsBonus50 + XP_REWARDS.handsBonus100,
-    )
   })
 })

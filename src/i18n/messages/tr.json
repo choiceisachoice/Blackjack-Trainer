@@ -2213,7 +2213,9 @@
       "session": "Antrenman seansı",
       "challenge": "Meydan okuma",
       "achievement": "Başarım",
-      "achievements": "Başarımlar"
+      "achievements": "Başarımlar",
+      "sessionCapped": "Antrenman oturumu — günlük sınıra ulaşıldı",
+      "dailyCap": "Bu mod için günlük XP sınırına ulaşıldı"
     }
   },
   "simulator": {

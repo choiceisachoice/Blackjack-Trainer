@@ -2213,7 +2213,9 @@
       "session": "Trainingssession",
       "challenge": "Challenge",
       "achievement": "Erfolg",
-      "achievements": "Erfolge"
+      "achievements": "Erfolge",
+      "sessionCapped": "Trainingssession — Tageslimit erreicht",
+      "dailyCap": "Tageslimit an XP für diesen Modus erreicht"
     }
   },
   "simulator": {

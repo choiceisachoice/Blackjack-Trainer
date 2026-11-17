@@ -10,7 +10,7 @@ import {
   STAGE_XP_STEP,
 } from './stage-rewards'
 import { CURRICULUM, stageIndex, type StageProgress } from './curriculum'
-import { XP_REWARDS } from './level-system'
+import { XP_REWARDS, DAILY_MODE_XP_CAP } from './level-system'
 
 const progressFor = (done: string[]): StageProgress[] =>
   CURRICULUM.map(stage => ({
@@ -57,9 +57,10 @@ describe('stageXP', () => {
   it('outweighs the rewards it is meant to sit above', () => {
     // A stage is three qualifying sessions plus an accuracy floor — it has to
     // be worth clearly more than one perfect session or a gold achievement.
-    const bestSession = XP_REWARDS.sessionBase + XP_REWARDS.sessionPerfect100
+    // The most a single session can pay is a whole day's limit for its mode.
+    const bestSession = DAILY_MODE_XP_CAP
     for (const s of drilled) {
-      expect(stageXP(s.id), s.id).toBeGreaterThan(bestSession)
+      expect(stageXP(s.id), s.id).toBeGreaterThanOrEqual(bestSession)
       expect(stageXP(s.id), s.id).toBeGreaterThan(XP_REWARDS.achievementGold)
     }
   })

@@ -17,7 +17,7 @@ vi.mock('../services/level-system', async (importOriginal) => {
   return {
     ...actual,
     levelSystem: mockSystem,
-    calculateSessionXP: vi.fn(() => 10),
+    sessionXP: vi.fn(() => ({ amount: 10, earned: 10, capped: false })),
   }
 })
 
@@ -29,7 +29,7 @@ vi.mock('../services/sound-engine', () => ({
 }))
 
 // Import after mocks
-import { levelSystem, LEVELS, calculateSessionXP } from '../services/level-system'
+import { levelSystem, LEVELS, sessionXP } from '../services/level-system'
 import { soundEngine } from '../services/sound-engine'
 
 /** Helper: minimal session result. */
@@ -69,9 +69,9 @@ describe('useLevelStore', () => {
     expect(store.showLevelUp).toBe(false)
   })
 
-  it('addSessionXP calls calculateSessionXP and engine.addXP', () => {
+  it('addSessionXP asks what the session pays and credits it', () => {
     const session = makeSession()
-    ;(calculateSessionXP as ReturnType<typeof vi.fn>).mockReturnValue(15)
+    ;(sessionXP as ReturnType<typeof vi.fn>).mockReturnValue({ amount: 15, earned: 15, capped: false })
     ;(levelSystem.addXP as ReturnType<typeof vi.fn>).mockReturnValue({ leveledUp: false })
     ;(levelSystem.getTotalXP as ReturnType<typeof vi.fn>).mockReturnValue(15)
     ;(levelSystem.getLevel as ReturnType<typeof vi.fn>).mockReturnValue(LEVELS[0])
@@ -81,16 +81,36 @@ describe('useLevelStore', () => {
 
     useLevelStore.getState().addSessionXP(session)
 
-    expect(calculateSessionXP).toHaveBeenCalledWith(session)
+    expect(sessionXP).toHaveBeenCalledWith(session, [])
     expect(levelSystem.addXP).toHaveBeenCalledWith(15)
     expect(useLevelStore.getState().totalXP).toBe(15)
     expect(useLevelStore.getState().progress.percent).toBe(30)
     expect(useLevelStore.getState().showLevelUp).toBe(false)
   })
 
+  it('says so when the day’s limit took part of a session, or all of it', () => {
+    ;(levelSystem.addXP as ReturnType<typeof vi.fn>).mockReturnValue({ leveledUp: false })
+    ;(sessionXP as ReturnType<typeof vi.fn>).mockReturnValue({ amount: 30, earned: 60, capped: true })
+    useLevelStore.getState().addSessionXP(makeSession())
+    expect(useLevelStore.getState().lastAward).toMatchObject({ amount: 30, labelKey: 'xp.source.sessionCapped' })
+
+    // Nothing left to pay: no XP is added, but the session is not met with silence.
+    ;(levelSystem.addXP as ReturnType<typeof vi.fn>).mockClear()
+    ;(sessionXP as ReturnType<typeof vi.fn>).mockReturnValue({ amount: 0, earned: 60, capped: true })
+    useLevelStore.getState().addSessionXP(makeSession())
+    expect(levelSystem.addXP).not.toHaveBeenCalled()
+    expect(useLevelStore.getState().lastAward).toMatchObject({ amount: 0, labelKey: 'xp.source.dailyCap' })
+
+    // A session that earned nothing announces nothing.
+    useLevelStore.setState({ lastAward: null })
+    ;(sessionXP as ReturnType<typeof vi.fn>).mockReturnValue({ amount: 0, earned: 0, capped: false })
+    useLevelStore.getState().addSessionXP(makeSession())
+    expect(useLevelStore.getState().lastAward).toBeNull()
+  })
+
   it('triggers level-up popup and plays sound on level-up', () => {
     const session = makeSession()
-    ;(calculateSessionXP as ReturnType<typeof vi.fn>).mockReturnValue(50)
+    ;(sessionXP as ReturnType<typeof vi.fn>).mockReturnValue({ amount: 50, earned: 50, capped: false })
     ;(levelSystem.addXP as ReturnType<typeof vi.fn>).mockReturnValue({
       leveledUp: true,
       oldLevel: LEVELS[0],

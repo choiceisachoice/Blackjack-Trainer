@@ -61,9 +61,13 @@ export function XpToast() {
       <span className="grid place-items-center w-7 h-7 rounded-lg bg-gold/12 text-gold shrink-0">
         <Zap size={15} />
       </span>
-      <span className="text-sm font-bold text-gold tabular-nums">
-        +{award.amount}&nbsp;XP
-      </span>
+      {/* A session past the day's limit pays nothing and still says why:
+          "+0 XP" would read as a fault. */}
+      {award.amount > 0 && (
+        <span className="text-sm font-bold text-gold tabular-nums">
+          +{award.amount}&nbsp;XP
+        </span>
+      )}
       <span className="text-sm text-content/55">
         {t(award.labelKey, award.labelParams)}
       </span>

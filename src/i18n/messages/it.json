@@ -2213,7 +2213,9 @@
       "session": "Sessione di allenamento",
       "challenge": "Sfida",
       "achievement": "Obiettivo",
-      "achievements": "Obiettivi"
+      "achievements": "Obiettivi",
+      "sessionCapped": "Sessione di allenamento — limite giornaliero raggiunto",
+      "dailyCap": "Limite giornaliero di XP raggiunto per questa modalità"
     }
   },
   "simulator": {
