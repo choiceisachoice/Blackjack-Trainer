@@ -22,6 +22,8 @@ const progressFor = (done: string[]): StageProgress[] =>
     locked: false,
     attempts: 0,
     best: null,
+    days: done.includes(stage.id) ? 3 : 0,
+    targetDays: 3,
     bar: Math.round((stage.drill?.minAccuracy ?? 0) * 100),
   }))
 
