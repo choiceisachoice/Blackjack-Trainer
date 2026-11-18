@@ -618,7 +618,8 @@
       "allHands": "Todas las manos",
       "addHand": "Añadir una mano",
       "removeHand": "Quitar la mano {{n}}",
-      "decisionClock": "Tiempo para decidir"
+      "decisionClock": "Tiempo para decidir",
+      "resultInsured": "Asegurada"
     },
     "act": {
       "hit": "Pedir (H)",
@@ -2280,7 +2281,8 @@
       "achievement": "Logro",
       "achievements": "Logros",
       "sessionCapped": "Sesión de entrenamiento — límite diario alcanzado",
-      "dailyCap": "Límite diario de XP para este modo alcanzado"
+      "dailyCap": "Límite diario de XP para este modo alcanzado",
+      "personalBest": "Sesión de entrenamiento — nuevo récord personal"
     }
   },
   "simulator": {

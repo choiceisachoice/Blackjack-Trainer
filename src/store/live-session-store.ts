@@ -20,7 +20,7 @@ import { useAppStore, type AppMode } from './app-store'
  * Worth knowing, because an earlier version of this comment claimed otherwise:
  * **not** every caller routes through `requestLeave`. The NavBar and the TopBar
  * do; `HomeScreen`, `TrainingPlan`, `AnalyticsDashboard`, `DashboardHeader` and
- * `StartHere` call `setMode` directly. That is now harmless rather than lucky —
+ * the plan call `setMode` directly. That is now harmless rather than lucky —
  * the guard only speaks while the user is standing on the session's own screen
  * (see `requestLeave`), and those components are only ever rendered somewhere
  * else. The Casino Session's own "home" button is on the summary, by which

@@ -310,7 +310,7 @@ describe('TodayBlocks', () => {
     const start = screen.getByTestId('plan-today-start')
     expect(start).toHaveTextContent('Start: Warm-up · Basic strategy')
     fireEvent.click(start)
-    expect(onOpen).toHaveBeenCalledExactlyOnceWith('deviationTraining')
+    expect(onOpen).toHaveBeenCalledExactlyOnceWith('deviationTraining', expect.objectContaining({ mode: 'deviationTraining' }))
   })
 
   it('continues a day in progress at the first block still open', () => {
@@ -321,7 +321,7 @@ describe('TodayBlocks', () => {
     const start = screen.getByTestId('plan-today-start')
     expect(start).toHaveTextContent('Next: Today’s work · The Hi-Lo count')
     fireEvent.click(start)
-    expect(onOpen).toHaveBeenCalledExactlyOnceWith('speedDrill')
+    expect(onOpen).toHaveBeenCalledExactlyOnceWith('speedDrill', expect.objectContaining({ mode: 'speedDrill' }))
   })
 
   it('reports the minutes done against the minutes planned', () => {
@@ -351,7 +351,7 @@ describe('TodayBlocks', () => {
       <TodayBlocks day={day([block('warmup', true), block('work', true)])} week={week()} onOpen={onOpen} />,
     )
     fireEvent.click(screen.getByTestId('plan-block-work'))
-    expect(onOpen).toHaveBeenCalledExactlyOnceWith('speedDrill')
+    expect(onOpen).toHaveBeenCalledExactlyOnceWith('speedDrill', expect.objectContaining({ mode: 'speedDrill' }))
   })
 
   it('says so when there is nothing to drill, and claims neither a start nor a finish', () => {

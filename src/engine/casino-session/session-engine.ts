@@ -545,6 +545,31 @@ export class CasinoSessionEngine {
   }
 
   /**
+   * Settles the insurance on several hands at once.
+   *
+   * Every stake is taken from the bankroll as it stands when the decision is
+   * made. They used to be booked one after the other with the bankroll moving
+   * in between: with $10 left after two $100 bets, the first insurance staked
+   * $10 and won $20 on a dealer blackjack, and the second was then staked
+   * with $30 of that win — money the player did not have when they chose.
+   *
+   * @param bets - The main wager of each hand, in table order
+   * @param taken - Whether each hand was insured
+   * @param dealerHasBlackjack - Whether the dealer has a blackjack
+   * @returns Net result per hand: +2×stake, −stake, or 0 where not taken
+   */
+  settleInsurances(bets: readonly number[], taken: readonly boolean[], dealerHasBlackjack: boolean): number[] {
+    let left = this.humanBankroll
+    return bets.map((bet, i) => {
+      if (!taken[i]) return 0
+      const stake = toCents(Math.max(0, Math.min(bet / 2, left)))
+      left = toCents(left - stake)
+      if (stake === 0) return 0
+      return dealerHasBlackjack ? stake * 2 : -stake
+    })
+  }
+
+  /**
    * What insuring a bet costs: half the bet, or what the player has left.
    *
    * It was `floor(bet / 2)` with no look at the bankroll. A $25 bet insured

@@ -618,7 +618,9 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
             hands={state.boxes}
             // The seats on the felt are how a hand is opened. On a phone the
             // felt is small, so the count can be set here as well.
-            maxHands={compact ? maxHands : 1}
+            // Hands are opened on the felt, on every screen: the row of
+            // numbers a phone still had was a second control for the same thing.
+            maxHands={1}
             focusLabel={state.boxes > 1
               ? (state.selectedBox === null ? t('casino.table.allHands') : t('casino.table.handNo', { n: state.selectedBox + 1 }))
               : undefined}

@@ -145,7 +145,9 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
         for the tests (`getByText('+$25')`): one node, visually hidden, while
         the face of the chip shows the plain value.
       */}
-      <div className={`flex flex-wrap justify-center ${compact ? 'gap-2' : 'gap-2.5'}`}>
+      {/* Beside a phone held sideways the six chips are two rows of three: a
+          wrapping row left the sixth alone on a line of its own. */}
+      <div className={`flex flex-wrap justify-center short:grid short:grid-cols-3 short:justify-items-center ${compact ? 'gap-2' : 'gap-2.5'}`}>
         {getChipDenominations(minBet, maxBet).map(b => (
           <button key={b}
             onClick={() => {
@@ -173,18 +175,21 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
       <div className={compact ? 'flex items-center gap-3' : 'relative'}>
       {secondsLeft !== undefined && (
         <div
-          className={compact ? 'flex items-center whitespace-nowrap' : 'absolute right-full top-1/2 -translate-y-1/2 mr-3 flex items-center gap-2 whitespace-nowrap'}
+          // The bar to the left of the button and the time to its right, so
+          // the row is balanced about the button. Both used to hang on the
+          // left with nothing opposite them.
+          className={compact ? 'flex items-center whitespace-nowrap' : 'contents'}
           data-testid="bet-clock"
           role="timer"
           aria-label={`${secondsLeft}`}
         >
-          <span className={`${compact ? 'hidden' : 'block'} w-20 h-1 rounded-full bg-contrast/15 overflow-hidden`}>
+          <span className={`${compact ? 'hidden' : 'block absolute right-full top-1/2 -translate-y-1/2 mr-3'} w-20 h-1.5 rounded-full bg-contrast/15 overflow-hidden`}>
             <span
               className={`block h-full rounded-full transition-[width] duration-1000 ease-linear ${secondsLeft <= 5 ? 'bg-error' : 'bg-gold'}`}
               style={{ width: `${Math.max(0, Math.min(100, (secondsLeft / secondsTotal) * 100))}%` }}
             />
           </span>
-          <span className={`text-sm font-bold tabular-nums ${secondsLeft <= 5 ? 'text-error' : 'text-content/70'}`}>
+          <span className={`${compact ? '' : 'absolute left-full top-1/2 -translate-y-1/2 ml-3'} text-sm font-bold tabular-nums ${secondsLeft <= 5 ? 'text-error' : 'text-content/70'}`}>
             0:{String(Math.max(0, secondsLeft)).padStart(2, '0')}
           </span>
         </div>

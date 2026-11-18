@@ -83,6 +83,11 @@ export interface DayPlanInput {
   sessions: readonly TrainingSessionResult[]
   /** The day being planned, as `YYYY-MM-DD`. */
   today: string
+  /**
+   * Stages whose reading the learner has opened or ticked. A stage read once
+   * is not put on the day again just because its drill has not been tried.
+   */
+  readStages?: readonly StageId[]
 }
 
 /**
@@ -130,7 +135,7 @@ function lastPractised(
  * @param input - Where the learner stands, what they want, and how much time there is
  */
 export function buildDayPlan(input: DayPlanInput): DayPlan {
-  const { progress, placement, goal, isPro, budget, sessions, today } = input
+  const { progress, placement, goal, isPro, budget, sessions, today, readStages = [] } = input
   const goalIndex = stageIndex(goalStage(goal))
 
   const current = currentStage(progress, placement)
@@ -179,14 +184,18 @@ export function buildDayPlan(input: DayPlanInput): DayPlan {
     const drill = focus.stage.drill
     // Reading before the first run of a stage, and instead of a run where the
     // stage is reading only.
-    if (focus.stage.read && (focus.readOnly || focus.attempts === 0)) {
+    const alreadyRead = !focus.readOnly && readStages.includes(focus.stage.id)
+    if (focus.stage.read && !alreadyRead && (focus.readOnly || focus.attempts === 0)) {
       add('read', focus, focus.stage.read.mode, BLOCK_MINUTES)
       work -= 1
     }
     if (drill) {
       if (focusIsTable) {
-        const sits = Math.max(1, Math.floor((work * BLOCK_MINUTES) / TABLE_MINUTES))
-        for (let i = 0; i < sits; i++) add('table', focus, drill.mode, TABLE_MINUTES)
+        // A day shorter than a full sit still gets the table — for as long
+        // as the day is. A ten-minute day used to be handed fifteen minutes.
+        const minutes = work * BLOCK_MINUTES
+        const sits = Math.max(1, Math.floor(minutes / TABLE_MINUTES))
+        for (let i = 0; i < sits; i++) add('table', focus, drill.mode, Math.min(TABLE_MINUTES, Math.max(BLOCK_MINUTES, minutes)))
         work = 0
       } else {
         for (let i = 0; i < Math.max(work, focus.readOnly ? 0 : 1); i++) {

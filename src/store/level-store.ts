@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { TrainingSessionResult } from '../services/stats-types'
 import type { LevelDefinition, LevelProgress } from '../services/level-system'
-import { levelSystem, sessionXP, XP_REWARDS } from '../services/level-system'
+import { levelSystem, sessionXP, personalBestXP, XP_REWARDS } from '../services/level-system'
 import { pushProfileScalars } from '../services/supabase/profiles-sync'
 import { soundEngine } from '../services/sound-engine'
 
@@ -171,7 +171,12 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
 
   addSessionXP(session, earlier = []) {
     const xp = sessionXP(session, earlier)
-    if (xp.amount > 0) {
+    // A new personal best is paid on top, and outside the day's limit: the
+    // limit is there against grinding, and a best cannot be ground.
+    const best = personalBestXP(session, earlier)
+    if (best > 0) {
+      applyXP(set, get, xp.amount + best, 'xp.source.personalBest')
+    } else if (xp.amount > 0) {
       applyXP(set, get, xp.amount, xp.capped ? 'xp.source.sessionCapped' : 'xp.source.session')
     } else if (xp.capped) {
       // Earned, and not paid: say so, or a good session reads as a broken one.

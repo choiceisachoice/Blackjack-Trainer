@@ -189,15 +189,34 @@ function splitLayout(slotWidth: number, hands: number): {
   return { perRow, rows, width, height, scale }
 }
 
+/**
+ * The result line under a seat — one style for every seat.
+ *
+ * The player's was large and heavy with a gold push and a plate for a
+ * blackjack; a bot's was small, with a grey push and no plate. The same
+ * information in two voices read as two kinds of seat. That this seat is the
+ * player's is said by the star and the gold name.
+ */
+function resultClass(result: HandOutcome, profit: number): string {
+  const tone = result === 'blackjack' ? 'bg-gold text-on-gold'
+    : profit > 0 ? 'text-success'
+    : profit < 0 ? 'text-error'
+    : 'text-gold'
+  return `text-[0.8125rem] font-extrabold whitespace-nowrap drop-shadow-lg px-2 rounded ${tone}`
+}
+
 /** Name + bankroll plate at the bottom of a seat block. */
 function NamePlate({ name, bankroll, you }: { name: string; bankroll: number; you?: boolean }) {
   const { t } = useTranslation()
   return (
     <div className="flex flex-col items-center leading-tight">
-      <span className={`text-[0.75rem] md:text-xs font-semibold ${you ? 'text-gold-bright' : 'text-white/70'}`}>
+      <span
+        className={`text-[0.75rem] md:text-xs font-semibold whitespace-nowrap ${you ? 'text-gold-bright' : 'text-white/70'}`}
+        style={{ zoom: 'var(--label-zoom, 1)' }}
+      >
         {you ? `★ ${t('casino.table.you')}` : name}
       </span>
-      <span className="text-[0.6875rem] text-white/40 tabular-nums">{formatDollar(bankroll)}</span>
+      <span className="text-[0.6875rem] text-white/40 tabular-nums [.stacked-bots_&]:hidden">{formatDollar(bankroll)}</span>
     </div>
   )
 }
@@ -517,16 +536,14 @@ export function HumanSeat({
         <motion.div
           initial={reduced ? false : { scale: 0.8 }}
           animate={{ scale: 1 }}
-          className={`text-sm font-black whitespace-nowrap drop-shadow-lg px-2 rounded ${
-            humanSettlement.result === 'blackjack'
-              ? 'bg-gold text-on-gold'
-              : humanSettlement.profit > 0 ? 'text-success'
-              : humanSettlement.profit < 0 ? 'text-error'
-              : 'text-gold'
-          }`}
+          className={resultClass(humanSettlement.result, humanSettlement.profit)}
           data-testid="human-settlement"
         >
-          {t(SETTLEMENT_KEY[humanSettlement.result])} {humanSettlement.profit > 0 ? '+' : ''}{formatDollar(humanSettlement.profit)}
+          {/* A hand lost to a dealer blackjack and made whole by its insurance
+              is not a "loss of $0": it was insured, and came out even. */}
+          {t(humanSettlement.result === 'loss' && humanSettlement.profit === 0
+            ? 'casino.table.resultInsured'
+            : SETTLEMENT_KEY[humanSettlement.result])} {humanSettlement.profit > 0 ? '+' : ''}{formatDollar(humanSettlement.profit)}
         </motion.div>
       ) : pick?.numbered ? (
         <span className={`text-[0.75rem] font-semibold uppercase tracking-wide ${pick.selected ? 'text-gold-bright' : 'text-white/55'}`}>
@@ -649,13 +666,13 @@ export function BotSeat({
     } else if (hasSplit) {
       const pairCards = bot.turnLog?.[0]?.hands[0]?.cards
         ?? bot.hands.map(h => h.cards[0]).filter(Boolean).slice(0, 2)
-      cards = <Hand cards={pairCards} animateFrom={pairCards.length} totalClass="text-[0.6875rem]" width={single.width} reach={single.reach} />
+      cards = <Hand cards={pairCards} animateFrom={pairCards.length} totalClass="text-sm" width={single.width} reach={single.reach} />
     } else {
       const hand = bot.hands[0]
       const visibleCards = hand && visibleLimit !== undefined ? hand.cards.slice(0, visibleLimit) : hand?.cards ?? []
       const moment: HandMoment | null = isNatural(visibleCards, false) ? 'blackjack'
         : gameStep === 'settlement' && (botSettlement?.profit ?? 0) > 0 ? 'win' : null
-      cards = <Hand cards={visibleCards} totalClass="text-[0.6875rem]" width={single.width} reach={single.reach} moment={moment} />
+      cards = <Hand cards={visibleCards} totalClass="text-sm" width={single.width} reach={single.reach} moment={moment} />
     }
   }
 
@@ -668,9 +685,7 @@ export function BotSeat({
       cards={cards}
       spot={<BetSpot amount={botStake} outcome={botOutcome} payout={botSettlement?.profit} />}
       result={botSettlement && gameStep === 'settlement' ? (
-        <span className={`text-[0.6875rem] font-bold ${
-          botSettlement.profit > 0 ? 'text-success' : botSettlement.profit < 0 ? 'text-error' : 'text-white/50'
-        }`} data-testid="bot-settlement">
+        <span className={resultClass(hasSplit || botSettlement.result !== 'blackjack' ? 'win' : 'blackjack', botSettlement.profit)} data-testid="bot-settlement">
           {hasSplit ? `${t('casino.table.total')}: ` : `${botSettlement.result === 'blackjack' ? t('casino.table.resultBlackjack') : botSettlement.result === 'win' ? t('casino.table.resultWin') : botSettlement.result === 'push' ? t('casino.table.resultPush') : botSettlement.result === 'surrender' ? t('casino.table.resultSurrender') : t('casino.table.resultLoss')} `}
           {botSettlement.profit > 0 ? '+' : ''}{formatDollar(botSettlement.profit)}
         </span>

@@ -186,11 +186,9 @@ describe('buildDayPlan — cut to the time there is', () => {
           for (const minutes of MINUTE_OPTIONS) {
             const day = plan({ placement, isPro, goal, minutes })
             const label = `${placement}/${isPro ? 'pro' : 'free'}/${goal}/${minutes}`
-            // The one exception is carved out, not hidden: a day whose work
-            // *is* the table gets one whole sit of 15 minutes even from a
-            // ten-minute budget. Reported to the author; see the test below.
-            const tableOnTenMinutes = minutes === 10 && day.blocks.some(b => b.kind === 'table')
-            if (!tableOnTenMinutes) expect(day.minutes, label).toBeLessThanOrEqual(minutes)
+            // No exception: a ten-minute day whose work is the table gets a
+            // ten-minute sit, not the full fifteen it used to be handed.
+            expect(day.minutes, label).toBeLessThanOrEqual(minutes)
             expect(day.minutes, label).toBe(day.blocks.reduce((n, b) => n + b.minutes, 0))
           }
         }
@@ -815,5 +813,15 @@ describe('the warm-up, after review', () => {
     const end = stageIndex('true-count')
     expect(day.blocks.length).toBeGreaterThan(0)
     for (const b of day.blocks) expect(stageIndex(b.stage), b.id).toBeLessThanOrEqual(end)
+  })
+})
+
+describe('reading, once', () => {
+  it('does not put a stage’s reading on the day again once it has been opened', () => {
+    const base = { ...input({ placement: 'hi-lo' }) }
+    expect(buildDayPlan(base).blocks.some(b => b.kind === 'read')).toBe(true)
+    expect(buildDayPlan({ ...base, readStages: ['hi-lo'] }).blocks.some(b => b.kind === 'read')).toBe(false)
+    // The minutes the reading took go to the drill.
+    expect(buildDayPlan({ ...base, readStages: ['hi-lo'] }).minutes).toBe(buildDayPlan(base).minutes)
   })
 })

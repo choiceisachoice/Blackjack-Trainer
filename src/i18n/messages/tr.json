@@ -618,7 +618,8 @@
       "allHands": "Tüm eller",
       "addHand": "El ekle",
       "removeHand": "{{n}}. eli kaldır",
-      "decisionClock": "Karar süresi"
+      "decisionClock": "Karar süresi",
+      "resultInsured": "Sigortalı"
     },
     "act": {
       "hit": "Kart Al (H)",
@@ -2280,7 +2281,8 @@
       "achievement": "Başarım",
       "achievements": "Başarımlar",
       "sessionCapped": "Antrenman oturumu — günlük sınıra ulaşıldı",
-      "dailyCap": "Bu mod için günlük XP sınırına ulaşıldı"
+      "dailyCap": "Bu mod için günlük XP sınırına ulaşıldı",
+      "personalBest": "Antrenman oturumu — yeni kişisel rekor"
     }
   },
   "simulator": {

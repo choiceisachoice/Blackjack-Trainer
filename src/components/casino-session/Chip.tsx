@@ -69,12 +69,20 @@ export function ChipStack({ amount, outcome = null, payout, size = 46, bare = fa
   const rise = Math.round(size * 0.13)
   // Largest at the bottom, like a stack a dealer would cut.
   const height = size + rise * 5
+  const paidOut = outcome === 'win' || outcome === 'blackjack'
+  // A paid bet and its payout stand as a pair centred on the circle. The
+  // payout used to be put down to the right of a bet that stayed in the
+  // middle, so every winning seat leaned to one side.
+  const pairShift = size * 0.55
 
   // The payout is its own stack with its own amount: a blackjack on $500 pays
   // $750, and a blank chip beside the bet said nothing about that.
-  const stack = (value: number) => {
-    const chips = chipBreakdown(value).slice(0, 6)
-    const label = formatDollar(value)
+  const stack = (value: number, paid = false) => {
+    // The payout is three chips at most and carries no figure: the result line
+    // under the seat says what was won, and a five-chip stack with "$37.50" in
+    // six-pixel type beside the bet said it worse.
+    const chips = chipBreakdown(value).slice(0, paid ? 3 : 6)
+    const label = paid ? undefined : formatDollar(value)
     return (
     <div className="relative" style={{ width: size, height: size + rise * Math.max(0, chips.length - 1) }}>
       {chips.map((v, i) => (
@@ -97,7 +105,7 @@ export function ChipStack({ amount, outcome = null, payout, size = 46, bare = fa
           <motion.div
             key={`bet-${outcome === 'loss' ? 'lost' : 'on'}`}
             initial={reduced || outcome === 'loss' ? false : { y: 46, scale: 0.9 }}
-            animate={outcome === 'loss' && !reduced ? { y: -150, opacity: 0, scale: 0.85 } : { y: 0, opacity: outcome === 'loss' ? 0 : 1, scale: 1 }}
+            animate={outcome === 'loss' && !reduced ? { y: -150, opacity: 0, scale: 0.85 } : { x: paidOut ? -pairShift : 0, y: 0, opacity: outcome === 'loss' ? 0 : 1, scale: 1 }}
             transition={outcome === 'loss' ? { duration: 0.55, ease: [0.4, 0, 0.9, 0.6], delay: 0.25 } : { duration: 0.28, ease: [0.2, 0.8, 0.25, 1] }}
           >
             {stack(amount)}
@@ -105,13 +113,13 @@ export function ChipStack({ amount, outcome = null, payout, size = 46, bare = fa
           {(outcome === 'win' || outcome === 'blackjack') && (
             <motion.div
               className="absolute bottom-0"
-              style={{ left: '50%', marginLeft: size * 0.6 }}
+              style={{ left: '50%', marginLeft: pairShift - size / 2 }}
               initial={reduced ? false : { y: -150, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.45, ease: [0.2, 0.8, 0.25, 1], delay: 0.2 }}
               data-testid="payout-stack"
             >
-              {stack(payout && payout > 0 ? payout : amount)}
+              {stack(payout && payout > 0 ? payout : amount, true)}
             </motion.div>
           )}
         </>

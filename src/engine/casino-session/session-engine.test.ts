@@ -1908,6 +1908,25 @@ describe('canReSplitAces', () => {
 // Bug fix: Insurance side-bet settlement
 // ═══════════════════════════════════════════════════════
 describe('CasinoSessionEngine — insurance settlement', () => {
+  it('stakes the insurance of every hand from the bankroll as it stands, not from the win of another hand', () => {
+    // Review, 17 Nov 2026: $10 left after two $100 bets, both insured. Booked
+    // one after the other, the first staked $10 and won $20, and the second
+    // was staked with that win: +$80 on a dealer blackjack. The player had
+    // $10 to insure with, once.
+    const engine = new CasinoSessionEngine(createTestConfig())
+    engine.updateHumanBankroll(10 - engine.getHumanBankroll())
+    expect(engine.settleInsurances([100, 100], [true, true], true)).toEqual([20, 0])
+    expect(engine.settleInsurances([100, 100], [true, true], false)).toEqual([-10, 0])
+    // A hand that was not insured takes nothing from the next one's stake.
+    expect(engine.settleInsurances([100, 100], [false, true], true)).toEqual([0, 20])
+  })
+
+  it('insures every hand in full where the bankroll covers it', () => {
+    const engine = new CasinoSessionEngine(createTestConfig())
+    expect(engine.settleInsurances([100, 50, 25], [true, false, true], true)).toEqual([100, 0, 25])
+    expect(engine.settleInsurances([100, 50, 25], [true, false, true], false)).toEqual([-50, 0, -12.5])
+  })
+
   it('pays insurance 2:1 when the dealer has blackjack', () => {
     const engine = new CasinoSessionEngine(createTestConfig())
     // stake = floor(100/2) = 50; win pays 2:1 → net +100

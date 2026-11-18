@@ -253,3 +253,42 @@ describe('pace filtering in selection', () => {
     expect(eligibleChallenges(onlyBig, ctx, 'day').map(c => c.id)).toEqual(['big'])
   })
 })
+
+/**
+ * Challenges lean towards the stage on turn (18 Nov 2026).
+ */
+describe('selectChallenge prefers the learner’s own stage', () => {
+  const pool = [
+    { id: 'flash-1', requiredMode: 'deviationFlashCards' as const },
+    { id: 'flash-2', requiredMode: 'deviationFlashCards' as const },
+    { id: 'flash-3', requiredMode: 'deviationFlashCards' as const },
+    { id: 'count-1', requiredMode: 'speedDrill' as const },
+    { id: 'any-1' },
+    { id: 'any-2' },
+  ]
+  const days = Array.from({ length: 300 }, (_, i) => `2026-${String(1 + (i % 12)).padStart(2, '0')}-${String(1 + (i % 28)).padStart(2, '0')}#${i}`)
+
+  it('draws the stage’s own challenge most days, and still lets the others come round', () => {
+    const ctx: LearnerContext = { stage: 'hi-lo', isPro: true }
+    const picks = days.map(d => selectChallenge(pool, d, ctx).id)
+    const own = picks.filter(id => id === 'count-1').length
+    // One in six by the old rule; now about two days in three.
+    expect(own / days.length).toBeGreaterThan(0.5)
+    expect(own).toBeLessThan(days.length)
+    expect(new Set(picks).size).toBeGreaterThan(3)
+  })
+
+  it('is the same challenge for the same day', () => {
+    const ctx: LearnerContext = { stage: 'hi-lo', isPro: true }
+    expect(selectChallenge(pool, '2026-11-18', ctx)).toBe(selectChallenge(pool, '2026-11-18', ctx))
+  })
+
+  it('changes nothing for a learner with no stage, or a stage no challenge is bound to', () => {
+    const none: LearnerContext = { stage: null, isPro: true }
+    const rules: LearnerContext = { stage: 'rules', isPro: true }
+    for (const d of days.slice(0, 40)) {
+      expect(pool).toContain(selectChallenge(pool, d, none))
+      expect(pool).toContain(selectChallenge(pool, d, rules))
+    }
+  })
+})

@@ -1,4 +1,5 @@
 import { Suit } from '../../engine/shoe/types'
+import { CardBack } from '../cards/CardFace'
 import type { Card } from '../../engine/shoe/types'
 import { getHandValue, isSoft, isBust, isBlackjack } from '../../engine/rules/hand-utils'
 
@@ -46,11 +47,12 @@ export function TeachingCard({ card, size = 'md', faceDown = false }: {
   const s = SIZE[size]
   if (faceDown) {
     return (
-      <div
-        aria-hidden
-        className={`${s.box} shrink-0 border border-white/12
-          bg-[repeating-linear-gradient(45deg,#1e3a8a,#1e3a8a_4px,#16264d_4px,#16264d_8px)]`}
-      />
+      // The table's own card back. This used to be a blue striped box, so a
+      // face-down card in a lesson was not the card the learner then met at
+      // the table.
+      <div aria-hidden className={`${s.box} shrink-0 overflow-hidden`}>
+        <CardBack />
+      </div>
     )
   }
   const red = isRed(card.suit)

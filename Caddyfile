@@ -79,18 +79,24 @@
 		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
-		Content-Security-Policy "frame-ancestors 'none'"
-
-		# The full policy, reporting only for now. It was written and checked
-		# before the Turnstile captcha existed, and a policy that is wrong
-		# about one origin does not degrade — it blocks sign-in. Report-only
-		# lists every violation in the browser console and blocks nothing; once
-		# the live pages (landing, sign-in with the captcha, the app, account)
-		# load without a report, move this string into Content-Security-Policy
-		# above and delete this line. `upgrade-insecure-requests` belongs to the
-		# enforced policy only — browsers ignore it in a report-only one and say
-		# so in the console of every page — so add it back when this moves up.
-		Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; media-src 'self'; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		# The full policy, enforced since 18 Nov 2026.
+		#
+		# It ran report-only from 13 Nov, because a policy that is wrong about
+		# one origin does not degrade — it blocks sign-in. Checked before the
+		# switch, with a listener for `securitypolicyviolation` (the browser
+		# console tools do not show these reports — the first check, read from
+		# the console, proved nothing): signed out on the landing page, sign-in
+		# and sign-up with the captcha, the theory hub and a chapter, the chart,
+		# a translated page, pricing and contact; signed in on the plan, every
+		# training mode, a dealt hand at the casino table, analytics, awards
+		# and the account page. No report on any of them.
+		#
+		# To go back: rename this header to Content-Security-Policy-Report-Only,
+		# drop `upgrade-insecure-requests` from it (browsers reject it there),
+		# and restore `Content-Security-Policy "frame-ancestors 'none'"`.
+		# A new third-party origin (a payment script, an embed, an analytics
+		# host) has to be added here first, or it is silently blocked.
+		Content-Security-Policy "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self' blob:; manifest-src 'self'; media-src 'self'; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
 
 		-Server
 	}

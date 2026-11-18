@@ -1448,13 +1448,14 @@ export function useGameLoop(
     // Settle the insurance side bets in every case: each pays 2:1 on a dealer
     // blackjack, otherwise the half-bet stake is lost. (Previously a losing
     // insurance bet was never deducted — insurance was effectively free.)
-    // Booked one after the other, so a stake never exceeds what is left.
-    const nets: number[] = []
-    for (let b = 0; b < boxCount; b++) {
-      const net = engine.settleInsurance(boxBetsRef.current[b] ?? 0, taken[b] ?? false, dealerHasBJ)
-      nets.push(net)
-      engine.updateHumanBankroll(net)
-    }
+    // All stakes come out of the bankroll as it is now, then all are booked:
+    // one hand's insurance win never pays for the next hand's stake.
+    const nets = engine.settleInsurances(
+      Array.from({ length: boxCount }, (_, b) => boxBetsRef.current[b] ?? 0),
+      Array.from({ length: boxCount }, (_, b) => taken[b] ?? false),
+      dealerHasBJ,
+    )
+    for (const net of nets) engine.updateHumanBankroll(net)
     insuranceNetsRef.current = nets
 
     if (dealerHasBJ) {

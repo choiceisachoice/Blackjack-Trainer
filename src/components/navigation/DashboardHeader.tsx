@@ -9,29 +9,6 @@ import { LEVELS } from '../../services/level-system'
 import { formatDuration } from '../analytics/analytics-derive'
 
 /**
- * The product's name, on its own.
- *
- * Split out from the stats card deliberately. The app shell shows only a
- * compact wordmark, so without this the screen opens with no sense of place —
- * but the 270px stats card behind it used to push the plan's "up next" to
- * **763px on a 694px viewport**, i.e. the answer to "what do I do now" sat
- * entirely below the fold. Title on top (78px), numbers underneath the answer.
- */
-export function ProductTitle() {
-  const { t } = useTranslation()
-  return (
-    <div className="relative z-10 w-full max-w-5xl text-center pt-10 md:pt-14 mb-8">
-      <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gold-gradient leading-[1.15] pb-0.5">
-        Blackjack Card Counting Trainer
-      </h1>
-      <p className="mt-2 text-sm text-content/45">
-        {t('home.tagline')}
-      </p>
-    </div>
-  )
-}
-
-/**
  * The signed-in home header: who you are, how far you've come, and the one
  * button that gets you back to training.
  *

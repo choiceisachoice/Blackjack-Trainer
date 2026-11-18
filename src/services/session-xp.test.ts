@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { XP_REWARDS, XP_PER_CORRECT, DAILY_MODE_XP_CAP, calculateSessionXP, sessionXP, sessionXPEarned } from './level-system'
+import { XP_REWARDS, XP_PER_CORRECT, DAILY_MODE_XP_CAP, calculateSessionXP, sessionXP, sessionXPEarned, personalBestXP, PERSONAL_BEST_XP } from './level-system'
 import type { TrainingSessionResult } from './stats-types'
 import { CountingSystemId } from '../engine/counting/types'
 
@@ -127,5 +127,53 @@ describe('what training is worth beside the other rewards', () => {
   it('a full day in one mode is worth more than a gold achievement, less than a diamond', () => {
     expect(DAILY_MODE_XP_CAP).toBeGreaterThan(XP_REWARDS.achievementGold)
     expect(DAILY_MODE_XP_CAP).toBeLessThan(XP_REWARDS.achievementDiamond)
+  })
+})
+
+/**
+ * A new personal best (18 Nov 2026) — the second half of the XP proposal.
+ */
+describe('personalBestXP', () => {
+  const at = (day: number, hour: number) => new Date(2026, 10, day, hour).toISOString()
+  const run = (correct: number, day: number, hour = 12, over: Partial<TrainingSessionResult> = {}) =>
+    makeSession({ mode: 'deviationFlashCards', totalQuestions: 20, correctAnswers: correct, accuracy: correct / 20, timestamp: at(day, hour), ...over })
+  const history = [run(14, 1), run(15, 2), run(16, 3)]   // best so far: 80%
+
+  it('pays when the best in a mode is beaten', () => {
+    expect(personalBestXP(run(17, 4), history)).toBe(PERSONAL_BEST_XP)
+  })
+
+  it('pays nothing for matching the best, or for falling short of it', () => {
+    expect(personalBestXP(run(16, 4), history)).toBe(0)
+    expect(personalBestXP(run(12, 4), history)).toBe(0)
+  })
+
+  it('needs three proven sessions before there is a best to beat', () => {
+    expect(personalBestXP(run(20, 4), history.slice(0, 2))).toBe(0)
+    // Sessions too small to prove anything are not history.
+    const tiny = [run(14, 1), run(15, 2), run(3, 3, 12, { totalQuestions: 3, accuracy: 1 })]
+    expect(personalBestXP(run(20, 4), tiny)).toBe(0)
+  })
+
+  it('cannot be set by a session too small to prove its accuracy', () => {
+    expect(personalBestXP(run(3, 4, 12, { totalQuestions: 3, accuracy: 1 }), history)).toBe(0)
+  })
+
+  it('pays once a day in a mode, however often the best is raised', () => {
+    const first = run(17, 4, 10)
+    expect(personalBestXP(first, history)).toBe(PERSONAL_BEST_XP)
+    expect(personalBestXP(run(18, 4, 11), [...history, first])).toBe(0)
+    // The next day it can be beaten again.
+    expect(personalBestXP(run(18, 5, 11), [...history, first])).toBe(PERSONAL_BEST_XP)
+  })
+
+  it('keeps each mode its own best', () => {
+    const drill = makeSession({ mode: 'speedDrill', totalQuestions: 5, correctAnswers: 5, accuracy: 1, timestamp: at(4, 12) })
+    expect(personalBestXP(drill, history)).toBe(0)
+  })
+
+  it('leaves the casino table out: its accuracy has its own awards', () => {
+    const table = (c: number, d: number) => makeSession({ mode: 'casinoSession', totalQuestions: 40, correctAnswers: c, accuracy: c / 40, timestamp: at(d, 12) })
+    expect(personalBestXP(table(40, 4), [table(30, 1), table(31, 2), table(32, 3)])).toBe(0)
   })
 })

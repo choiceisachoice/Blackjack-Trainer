@@ -429,7 +429,14 @@ export function CasinoTable({
           return (
             <>
               {others.length > 0 && (
-                <div className="shrink-0 flex items-end justify-center mb-2" data-testid="bot-row" style={{ zoom: botZoom }}>
+                <div
+                  className="stacked-bots shrink-0 flex items-end justify-center mb-2"
+                  data-testid="bot-row"
+                  // The row is drawn small so five players fit a phone; their
+                  // names are drawn back up, or they are five-pixel type
+                  // nobody can read. The bankroll gives its line to the name.
+                  style={{ zoom: botZoom, ['--label-zoom' as string]: Math.min(1.7, 1 / botZoom) }}
+                >
                   {others.map(e => renderSeat(e, botSlot, 0))}
                 </div>
               )}

@@ -618,7 +618,8 @@
       "allHands": "Todas as mãos",
       "addHand": "Adicionar uma mão",
       "removeHand": "Remover a mão {{n}}",
-      "decisionClock": "Tempo para decidir"
+      "decisionClock": "Tempo para decidir",
+      "resultInsured": "Segurada"
     },
     "act": {
       "hit": "Pedir (H)",
@@ -2280,7 +2281,8 @@
       "achievement": "Conquista",
       "achievements": "Conquistas",
       "sessionCapped": "Sessão de treino — limite diário atingido",
-      "dailyCap": "Limite diário de XP atingido para este modo"
+      "dailyCap": "Limite diário de XP atingido para este modo",
+      "personalBest": "Sessão de treino — novo recorde pessoal"
     }
   },
   "simulator": {

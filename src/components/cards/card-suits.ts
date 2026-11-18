@@ -56,24 +56,3 @@ export const SUIT_PATH: Record<CardSuitName, string> = {
     'M50 6a21 21 0 0 1 17 33 21 21 0 1 1-13 34c1 9 5 17 13 23H33c8-6 12-14 13-23a21 21 0 1 1-13-34A21 21 0 0 1 50 6z',
 }
 
-
-/** Pip positions on a 250 × 350 card: [x, y, upside-down]. */
-const L = 82, C = 125, R = 168
-const T = 78, B = 272, M = 175
-const U = 142.7, D = 207.3
-export type Spot = [number, number, boolean]
-export const PIPS: Record<string, Spot[]> = {
-  '2': [[C, T, false], [C, B, true]],
-  '3': [[C, T, false], [C, M, false], [C, B, true]],
-  '4': [[L, T, false], [R, T, false], [L, B, true], [R, B, true]],
-  '5': [[L, T, false], [R, T, false], [C, M, false], [L, B, true], [R, B, true]],
-  '6': [[L, T, false], [R, T, false], [L, M, false], [R, M, false], [L, B, true], [R, B, true]],
-  '7': [[L, T, false], [R, T, false], [C, 126, false], [L, M, false], [R, M, false], [L, B, true], [R, B, true]],
-  '8': [[L, T, false], [R, T, false], [C, 126, false], [L, M, false], [R, M, false], [C, 224, true], [L, B, true], [R, B, true]],
-  '9': [[L, T, false], [R, T, false], [L, U, false], [R, U, false], [C, M, false], [L, D, true], [R, D, true], [L, B, true], [R, B, true]],
-  '10': [[L, T, false], [R, T, false], [C, 110, false], [L, U, false], [R, U, false], [L, D, true], [R, D, true], [C, 240, true], [L, B, true], [R, B, true]],
-}
-
-
-/** The middle of the card, where an ace's one pip sits. */
-export const PIP_CENTRE = { x: C, y: M } as const

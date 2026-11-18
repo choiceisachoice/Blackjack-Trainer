@@ -182,7 +182,8 @@ export function TodayBlocks({
 }: {
   day: DayPlan
   week: WeekPlan
-  onOpen: (mode: AppMode) => void
+  /** Start a block: the screen it is done on, and the block itself. */
+  onOpen: (mode: AppMode, block: PlanBlock) => void
 }) {
   const { t } = useTranslation()
   const title = useStageTitle()
@@ -231,7 +232,7 @@ export function TodayBlocks({
             return (
               <li key={key}>
                 <button
-                  onClick={() => onOpen(b.mode)}
+                  onClick={() => onOpen(b.mode, blocks.find(x => !x.done) ?? b)}
                   data-testid={`plan-block-${b.kind}`}
                   data-done={allDone}
                   data-runs={blocks.length}
@@ -285,7 +286,7 @@ export function TodayBlocks({
 
       {day.next ? (
         <button
-          onClick={() => onOpen(day.next!.mode)}
+          onClick={() => onOpen(day.next!.mode, day.next!)}
           data-testid="plan-today-start"
           className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold
             bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer"

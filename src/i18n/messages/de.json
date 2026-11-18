@@ -618,7 +618,8 @@
       "allHands": "Alle Hände",
       "addHand": "Hand hinzufügen",
       "removeHand": "Hand {{n}} entfernen",
-      "decisionClock": "Zeit für die Entscheidung"
+      "decisionClock": "Zeit für die Entscheidung",
+      "resultInsured": "Versichert"
     },
     "act": {
       "hit": "Ziehen (H)",
@@ -2280,7 +2281,8 @@
       "achievement": "Erfolg",
       "achievements": "Erfolge",
       "sessionCapped": "Trainingssession — Tageslimit erreicht",
-      "dailyCap": "Tageslimit an XP für diesen Modus erreicht"
+      "dailyCap": "Tageslimit an XP für diesen Modus erreicht",
+      "personalBest": "Trainingssession — neue persönliche Bestleistung"
     }
   },
   "simulator": {

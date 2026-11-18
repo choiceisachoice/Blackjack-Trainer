@@ -212,6 +212,47 @@ export function sessionXP(session: TrainingSessionResult, earlier: TrainingSessi
   return { amount, earned, capped: amount < earned }
 }
 
+/** What beating a personal best pays. */
+export const PERSONAL_BEST_XP = 50
+/** Proven sessions a mode needs before a "best" means anything. */
+export const PERSONAL_BEST_MIN_HISTORY = 3
+
+/**
+ * The award for a new personal best in a mode, or 0.
+ *
+ * The second half of the XP proposal: mastery pays most, and getting better
+ * at a drill than you have ever been is mastery the app can measure. Three
+ * rules keep it from being farmed:
+ *
+ *  - only a session large enough to prove its accuracy can set a best, and
+ *    only against at least three earlier ones that were — the first good
+ *    session is a start, not a record;
+ *  - the best has to rise by a whole percentage point;
+ *  - once a day per mode. A best is beaten upwards, so it pays a handful of
+ *    times in a mode's whole life, and then never again at 100%.
+ *
+ * @param session - The finished session
+ * @param earlier - Sessions recorded before it
+ */
+export function personalBestXP(session: TrainingSessionResult, earlier: TrainingSessionResult[] = []): number {
+  if (session.mode === 'casinoSession') return 0
+  const proven = (s: TrainingSessionResult) => s.totalQuestions >= minAnswersFor(s.mode)
+  if (!proven(session)) return 0
+  const before = earlier.filter(s => s.id !== session.id && s.mode === session.mode && proven(s) && s.timestamp < session.timestamp)
+  if (before.length < PERSONAL_BEST_MIN_HISTORY) return 0
+  const pct = (s: TrainingSessionResult) => Math.floor((s.totalQuestions > 0 ? s.correctAnswers / s.totalQuestions : 0) * 100)
+  const best = Math.max(...before.map(pct))
+  if (pct(session) < best + 1) return 0
+  // Already paid today? Then an earlier session today beat the best before it.
+  const day = dayKey(session.timestamp)
+  const today = before.filter(s => dayKey(s.timestamp) === day).sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+  for (const s of today) {
+    const prior = before.filter(o => o.timestamp < s.timestamp)
+    if (prior.length >= PERSONAL_BEST_MIN_HISTORY && pct(s) >= Math.max(...prior.map(pct)) + 1) return 0
+  }
+  return PERSONAL_BEST_XP
+}
+
 /**
  * XP credited for a training session.
  *

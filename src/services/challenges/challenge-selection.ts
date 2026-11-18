@@ -193,5 +193,13 @@ export function selectChallenge<T extends ModeBound>(
   period: 'day' | 'week' = 'day',
 ): T {
   const eligible = eligibleChallenges(pool, ctx, period)
-  return eligible[hashToIndex(periodKey, eligible.length)]
+  // Two periods in three belong to the stage the learner is on. "Reachable"
+  // only kept challenges from running ahead of the plan; it still drew a
+  // flashcards task on most days for someone whose stage is the count. The
+  // third period stays open, so earlier skills keep coming round.
+  const own = ctx.stage
+    ? eligible.filter(c => c.requiredMode && stageForMode(c.requiredMode) === ctx.stage)
+    : []
+  const from = own.length > 0 && hashToIndex(`${periodKey}~stage`, 3) !== 0 ? own : eligible
+  return from[hashToIndex(periodKey, from.length)]
 }

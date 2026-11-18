@@ -235,7 +235,17 @@ export function TrainingPlan({
     : null
   const today = todayKey()
   const week = deriveWeek(sessions, budget, weekStartKey(), today)
-  const day = buildDayPlan({ progress, placement: entry, goal, isPro, budget, sessions, today })
+  const day = buildDayPlan({ progress, placement: entry, goal, isPro, budget, sessions, today, readStages })
+  // Opening a stage's reading from the day's list counts as having read it:
+  // the app cannot check more than that, and the block must not come back
+  // every day until the first drill.
+  const openBlock = (mode: Parameters<typeof setMode>[0], block: { kind: string; stage: StageProgress['stage']['id'] }) => {
+    if (block.kind === 'read') {
+      const p = progress.find(x => x.stage.id === block.stage)
+      if (p && !p.readOnly) markStageRead(block.stage)
+    }
+    setMode(mode)
+  }
   const weeksLeft = weeksToGoal(progress, entry, goal, budget)
   // The next rung up, offered only once the current goal is actually done.
   const harder = nextGoalUp(goal)
@@ -439,7 +449,7 @@ export function TrainingPlan({
               </p>
             )}
 
-            <TodayBlocks day={day} week={week} onOpen={setMode} />
+            <TodayBlocks day={day} week={week} onOpen={openBlock} />
 
             {/* What the list of blocks cannot do: tick a reading stage, or
                 open the paywall for a stage that is behind it. */}
@@ -481,7 +491,7 @@ export function TrainingPlan({
             {/* Reaching the goal used to end in a compliment and nothing else.
                 The one thing a finished learner needs is somewhere to go. */}
             <div className="text-left">
-              <TodayBlocks day={day} week={week} onOpen={setMode} />
+              <TodayBlocks day={day} week={week} onOpen={openBlock} />
             </div>
 
             {harder && (
