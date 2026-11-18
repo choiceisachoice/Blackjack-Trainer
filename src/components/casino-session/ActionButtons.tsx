@@ -65,6 +65,7 @@ export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, hum
     return false
   }
 
+  const touch = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
   return (
     <div className="flex flex-col items-center gap-2" data-testid="action-controls">
       {/* The decision clock, as at an online table: a bar that runs down, red
@@ -102,7 +103,9 @@ export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, hum
               disabled:opacity-30 disabled:cursor-not-allowed
               disabled:hover:shadow-[0_1px_2px_rgba(0,0,0,0.35)] disabled:active:scale-100`}
           >
-            {t(labelKey)}
+            {/* "(H)" is a key on a keyboard. On a touch screen it is noise that
+                pushes five buttons into three rows. */}
+            {touch ? t(labelKey).replace(/\s*\([^)]*\)\s*$/, '') : t(labelKey)}
           </button>
         ))}
       </div>

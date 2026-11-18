@@ -3,7 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { AchievementsPage } from './AchievementsPage'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useStatsStore } from '../../store/stats-store'
-import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
+import { ALL_ACHIEVEMENTS, achievementDescription } from '../../services/achievements/achievement-list'
+import i18n from '../../i18n'
 
 // Mock the achievement engine
 vi.mock('../../services/achievements/achievement-engine', () => ({
@@ -65,6 +66,58 @@ describe('AchievementsPage', () => {
       ).toContain('relative')
       expect(medal.querySelector('.sr-only')).not.toBeNull()
     }
+  })
+
+  it('opens a medal\'s description on a tap, and closes it on the second', () => {
+    // The description used to be a hover tooltip: on a touch screen a tap
+    // showed nothing, and the invisible 440px box made the page scroll
+    // sideways. It is in the document only while it is open.
+    render(<AchievementsPage />)
+    const medal = screen.getByTestId('achievement-card-first_hand')
+    expect(screen.queryByTestId('achievement-popover-first_hand')).toBeNull()
+    expect(screen.queryAllByRole('tooltip')).toHaveLength(0)
+    expect(medal).toHaveAttribute('aria-expanded', 'false')
+
+    fireEvent.click(medal)
+    const popover = screen.getByTestId('achievement-popover-first_hand')
+    const first = ALL_ACHIEVEMENTS.find(a => a.id === 'first_hand')!
+    expect(popover).toHaveTextContent(achievementDescription(first, i18n.t.bind(i18n)))
+    expect(medal).toHaveAttribute('aria-expanded', 'true')
+    expect(medal.getAttribute('aria-describedby')).toBe(popover.id)
+    // Wraps inside the screen instead of running out of it.
+    expect(popover.className).toContain('whitespace-normal')
+    expect(popover.className).toContain('max-w-[min(80vw,260px)]')
+    expect(popover.className).not.toContain('whitespace-nowrap')
+
+    fireEvent.click(medal)
+    expect(screen.queryByTestId('achievement-popover-first_hand')).toBeNull()
+  })
+
+  it('shows one description at a time, and closes it on Escape or a press elsewhere', () => {
+    render(<AchievementsPage />)
+    fireEvent.click(screen.getByTestId('achievement-card-first_hand'))
+    fireEvent.click(screen.getByTestId('achievement-card-sharp_eye'))
+    expect(screen.queryByTestId('achievement-popover-first_hand')).toBeNull()
+    expect(screen.getByTestId('achievement-popover-sharp_eye')).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryAllByRole('tooltip')).toHaveLength(0)
+
+    fireEvent.click(screen.getByTestId('achievement-card-sharp_eye'))
+    fireEvent.pointerDown(document.body)
+    expect(screen.queryAllByRole('tooltip')).toHaveLength(0)
+  })
+
+  it('still shows the description to a mouse that is only passing over', () => {
+    render(<AchievementsPage />)
+    const medal = screen.getByTestId('achievement-card-first_hand')
+    fireEvent.pointerEnter(medal, { pointerType: 'mouse' })
+    expect(screen.getByTestId('achievement-popover-first_hand')).toBeInTheDocument()
+    fireEvent.pointerLeave(medal, { pointerType: 'mouse' })
+    expect(screen.queryByTestId('achievement-popover-first_hand')).toBeNull()
+    // A finger fires the same event and never the leave; it must not count.
+    fireEvent.pointerEnter(medal, { pointerType: 'touch' })
+    expect(screen.queryByTestId('achievement-popover-first_hand')).toBeNull()
   })
 
   it('shows unlocked count in header', () => {

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Suit } from '../../engine/shoe/types'
 import { CardBack } from '../cards/CardFace'
 import type { Card } from '../../engine/shoe/types'
@@ -86,6 +87,7 @@ export function HandFigure({ cards, label, size = 'md', hideSecond = false, note
   hideSecond?: boolean
   note?: string
 }) {
+  const { t } = useTranslation()
   const visible = hideSecond ? cards.slice(0, 1) : cards
   const { best } = getHandValue(visible)
   const soft = isSoft(visible)
@@ -95,9 +97,9 @@ export function HandFigure({ cards, label, size = 'md', hideSecond = false, note
   const total = blackjack
     ? 'Blackjack'
     : bust
-      ? `${best} — bust`
+      ? t('learn.hand.bust', { n: best })
       : soft
-        ? `soft ${best}`
+        ? t('learn.hand.soft', { n: best })
         : `${best}`
 
   return (

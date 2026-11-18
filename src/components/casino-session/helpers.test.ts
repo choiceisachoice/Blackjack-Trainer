@@ -265,3 +265,30 @@ describe('the stacked table — an upright phone', () => {
     expect(stackedTableSize(5, 3).width).toBeGreaterThanOrEqual(3 * 156 + 60)
   })
 })
+
+/**
+ * Phone audit, 18 Nov 2026: at 360 × 640 the box left for the table is almost
+ * square, and the five pixels the action buttons add to the controls flipped
+ * the layout inside every round.
+ */
+describe('isStackedBox — decided by how the phone is held', () => {
+  const screen = { width: 360, height: 640 }
+
+  it('stays stacked whether the box is a little taller or a little wider than square', () => {
+    expect(isStackedBox({ width: 344, height: 347 }, screen)).toBe(true)
+    expect(isStackedBox({ width: 344, height: 342 }, screen)).toBe(true)
+  })
+
+  it('is not stacked on a phone held sideways, whatever is left for the table', () => {
+    expect(isStackedBox({ width: 530, height: 560 }, { width: 844, height: 390 })).toBe(false)
+  })
+
+  it('still needs a narrow box: an upright tablet keeps the arc', () => {
+    expect(isStackedBox({ width: 760, height: 700 }, { width: 768, height: 1024 })).toBe(false)
+  })
+
+  it('falls back to the shape of the box where the screen is unknown', () => {
+    expect(isStackedBox({ width: 344, height: 347 })).toBe(true)
+    expect(isStackedBox({ width: 344, height: 342 })).toBe(false)
+  })
+})

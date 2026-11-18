@@ -177,9 +177,26 @@ in the range; average = mean of last activity − start; registrations =
 counted **now** (there is no history of when a subscription began, so this
 number does not follow the range).
 
-**Retention.** `analytics_purge(interval default '13 months')` exists and is
-not scheduled. The `cron.schedule` line is in the migration, commented, for
-when the retention period is decided.
+**Retention.** Visit statistics are kept **13 months** — the period the
+privacy policy states and the default of `analytics_purge(interval)`, so the
+job calls it without an argument and the two cannot drift. Migration
+`20261118120000_client_failures.sql` schedules it with pg_cron, weekly
+(`analytics-purge`, Mondays 03:15 UTC), next to `client-failures-purge`
+(03:25, 90 days). The block only runs where pg_cron is available (not in
+PGlite), unschedules a job of the same name first, and turns a failure to
+schedule into a WARNING instead of failing the migration — so after the push,
+check once: `select jobname, schedule, command from cron.job;` must list both
+jobs. Until that migration is pushed nothing is purged. Weekly means a row can
+outlive its period by up to seven days; the policy says so.
+
+**Client failures.** Same migration, same access pattern, one notch tighter:
+`client_failures` has RLS on, no policy at all and every client privilege
+revoked. `report_client_failure(place, message, path, build)` is the only
+writer (anon and authenticated; `user_id` from `auth.uid()`, lengths capped,
+at most 30 rows a minute across all callers), `client_failures_recent(limit)`
+the only reader (admins, checked inside). The client half is
+`services/failure-report.ts`, called by `logFailure` for an allowlist of seven
+places; the list is the "Failures" section at the foot of `/admin/analytics`.
 
 **Tests.** The SQL runs for real: `supabase/tests/` boots PGlite (Postgres in
 WebAssembly) with a stub `auth` schema, applies every migration, and calls the
@@ -341,19 +358,48 @@ issue and was dealt with".
    `PGRST202` (function not found) — one console warning per page load,
    nothing a visitor sees, no data. After the push: list the owner in
    `app_admins` (SQL above), open `/account`, follow "Website analytics".
-   Then decide the retention period and schedule `analytics_purge`, or leave
-   it unscheduled deliberately. The consent question for EU visitors (a
+   The retention period is decided (13 months) and migration
+   `20261118120000` schedules `analytics_purge` — see item 1 for what to
+   verify after pushing it. The consent question for EU visitors (a
    stored random id under a strict ePrivacy reading) was closed on 18 Nov 2026 by
    the accept/decline bar (`CookieBanner`, `consent-choice.ts`); the privacy
    policy discloses it, and `analyticsAllowed()` is where a banner's answer
    would go. Owner: Darius.
 
-1. **A failed checkout still produces no automatic signal.** It is not a
-   webhook, so nothing in Stripe notices — and there is nothing server-side to
-   notice it *with*, because the failures that matter here (a blocked preflight,
-   a dead network, Supabase unreachable) never reach a server at all. Closing
-   this properly needs a Supabase log drain or a client-side error reporter, and
-   neither exists.
+1. **A failed checkout now leaves a row — once the migration is pushed, and
+   only if someone looks** (18 Nov 2026). It is not a webhook, so nothing in
+   Stripe notices, and the failures that matter here (a blocked preflight, a
+   dead network, Supabase unreachable) never reach a server on their own.
+
+   What exists: `logFailure` hands the cause to `services/failure-report.ts`
+   for seven places — `checkout`, `checkout-landing`, `billing-portal`,
+   `data-export`, `data-reset`, `profile-avatar`, `profile-name` (not `auth`: a
+   wrong password is not a failure of ours). One row goes to
+   `report_client_failure`: place, `Error.name: message` with e-mail addresses
+   and tokens scrubbed, the pathname, the build, the user from the JWT. No
+   stack. A report that cannot be sent waits in `sessionStorage`
+   (`bjt_pending_failures`, ten at most) and goes out before the next report
+   or on the next app start in that tab. The operator reads the latest 50
+   under "Failures" at `/admin/analytics`; rows are purged after 90 days.
+
+   What still does not exist, and should not be read into it:
+   - **A failure on a device that never comes back is never reported.** The
+     queue is per tab and dies with it. Offline at the till and gone for good
+     is still invisible.
+   - **Nothing notifies anyone.** No mail, no push. The signal is a list the
+     operator has to open; an unread list is no signal.
+   - **The migration `20261118120000_client_failures.sql` is written and
+     tested (PGlite), not pushed.** Until the owner runs `supabase db push`,
+     every report answers `PGRST202`, is dropped with one console warning per
+     page load, and the admin section shows a one-line hint naming the file.
+     It has not run against the real Supabase: pg_cron scheduling in
+     particular is only checked as text. After the push, verify
+     `select jobname from cron.job;`. Owner: Darius.
+   - Scrubbing is pattern-based (e-mail, JWT, `token=` parameters, prefixed
+     keys). A secret in a shape nobody anticipated would be stored; the table
+     is closed to every client role for that reason.
+   - The flood guard is global (30 rows a minute). Someone with the anon key
+     can fill that minute and crowd out genuine reports while they keep it up.
 
    What changed on 19 Aug 2026 is the half that was actively working against
    us: the paywall no longer answers with the thrown message. See *The error a

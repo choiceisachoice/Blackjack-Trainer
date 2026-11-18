@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAchievementStore } from '../../store/achievement-store'
 import { useStatsStore } from '../../store/stats-store'
@@ -7,7 +7,7 @@ import { achievementEngine } from '../../services/achievements/achievement-engin
 import { ALL_ACHIEVEMENTS, achievementName, achievementDescription } from '../../services/achievements/achievement-list'
 import { LEVELS } from '../../services/level-system'
 import type { Achievement, AchievementCategory, AchievementTier } from '../../services/achievements/achievement-types'
-import { ProgressBar, Tooltip, EmptyState } from '../common/ui'
+import { ProgressBar, EmptyState } from '../common/ui'
 import { Lock, Trophy } from 'lucide-react'
 
 /** Filter options for the collection. */
@@ -118,6 +118,8 @@ export function AchievementsPage() {
   const refreshLevel = useLevelStore(s => s.refresh)
 
   const [filter, setFilter] = useState<FilterMode>('all')
+  // The one medal whose description is pinned open by a tap or a click.
+  const [openId, setOpenId] = useState<string | null>(null)
 
   useEffect(() => {
     void loadStats()
@@ -292,6 +294,9 @@ export function AchievementsPage() {
                       unlocked={unlockedIds.includes(a.id)}
                       unlockedAt={unlockedMap.get(a.id)}
                       progress={progressOf(a)}
+                      pinned={openId === a.id}
+                      onToggle={() => setOpenId(id => (id === a.id ? null : a.id))}
+                      onDismiss={() => setOpenId(id => (id === a.id ? null : id))}
                     />
                   ))}
                 </div>
@@ -342,8 +347,22 @@ function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
   }, [currentLevel])
 
   return (
-    <div className="surface p-5 overflow-x-auto overflow-y-hidden" ref={scrollRef}>
-      <div className="relative min-w-max px-2">
+    // Twenty-five levels do not fit, so the strip opens on the current one —
+    // mid-scroll, with a name cut in half at the left edge ("artenfan") and
+    // nothing to say there was more. Both edges fade out now, which is what
+    // says "this continues", and the row is padded by the width of the fade so
+    // the first and the last level can still be scrolled clear of it.
+    <div className="surface py-5">
+      <div
+        className="overflow-x-auto overflow-y-hidden"
+        ref={scrollRef}
+        data-testid="level-roadmap"
+        style={{
+          maskImage: 'linear-gradient(90deg, transparent, #000 44px, #000 calc(100% - 44px), transparent)',
+          WebkitMaskImage: 'linear-gradient(90deg, transparent, #000 44px, #000 calc(100% - 44px), transparent)',
+        }}
+      >
+      <div className="relative min-w-max px-11 pb-1">
         {/* connecting line */}
         <div className="absolute left-0 right-0 top-[15px] h-[3px] rounded-full"
           style={{ background: 'linear-gradient(90deg, var(--color-gold), var(--color-gold) 0%, var(--color-line-strong, rgba(255,255,255,.14)))' }} />
@@ -378,16 +397,38 @@ function LevelRoadmap({ currentLevel }: { currentLevel: number }) {
           })}
         </div>
       </div>
+      </div>
     </div>
   )
 }
 
-/** A single achievement rendered as a collectible medal. */
-function Medal({ achievement, unlocked, unlockedAt, progress }: {
+/** Space kept between the description and the edge of the screen. */
+const POPOVER_MARGIN = 8
+
+/**
+ * A single achievement rendered as a collectible medal.
+ *
+ * The medal is a button and its description a popover the medal owns. It
+ * used to be a hover tooltip — `whitespace-nowrap`, some 440px of it, laid
+ * out invisibly beside every medal: on a phone the page scrolled 190px
+ * sideways into nothing, and a tap showed nothing at all, because a finger
+ * does not hover. Now a tap or a click pins the description open, the mouse
+ * and the keyboard's focus ring still show it in passing, and it is only in
+ * the document while it is shown, wrapped to at most 260px and moved
+ * sideways until it sits inside the screen.
+ *
+ * @param pinned - Whether this medal's description is pinned open
+ * @param onToggle - Pin or unpin it (a tap, a click, Enter)
+ * @param onDismiss - Unpin it (Escape, a press anywhere else)
+ */
+function Medal({ achievement, unlocked, unlockedAt, progress, pinned, onToggle, onDismiss }: {
   achievement: Achievement
   unlocked: boolean
   unlockedAt?: number
   progress: number
+  pinned: boolean
+  onToggle: () => void
+  onDismiss: () => void
 }) {
   const { t, i18n } = useTranslation()
   const tc = TIER_HEX[achievement.tier]
@@ -397,16 +438,73 @@ function Medal({ achievement, unlocked, unlockedAt, progress }: {
     ? t('awards.unlockedOn', { name, desc, date: unlockedAt ? formatDate(unlockedAt, i18n.language) : '' })
     : t('awards.inProgress', { name, desc, pct: Math.round(progress) })
 
+  const popoverId = useId()
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const popoverRef = useRef<HTMLSpanElement>(null)
+  // Passing interest: a mouse over the medal, or the keyboard's focus on it.
+  const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const open = pinned || hovered || focused
+
+  // Keep it on the screen. Centred over an 84px medal, a 260px box runs off
+  // the side for the first and the last medal of every row on a phone.
+  useLayoutEffect(() => {
+    const pop = popoverRef.current
+    if (!open || !pop) return
+    pop.style.setProperty('--shift', '0px')
+    const box = pop.getBoundingClientRect()
+    const width = document.documentElement.clientWidth
+    let shift = 0
+    if (box.left < POPOVER_MARGIN) shift = POPOVER_MARGIN - box.left
+    else if (box.right > width - POPOVER_MARGIN) shift = width - POPOVER_MARGIN - box.right
+    pop.style.setProperty('--shift', `${Math.round(shift)}px`)
+  }, [open, title])
+
+  useEffect(() => {
+    if (!pinned) return
+    const onDown = (e: PointerEvent) => {
+      if (!buttonRef.current?.contains(e.target as Node)) onDismiss()
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onDismiss() }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [pinned, onDismiss])
+
   return (
-    // `relative` is load-bearing, not styling: the sr-only span below is
-    // absolutely positioned, so without a positioned ancestor it resolves
-    // against <html> and its static offset (far down a long list) inflates the
-    // document's scroll height — the page then scrolls past its own content
-    // into empty space, next to the real scrollbar of the app shell.
-    <Tooltip label={title} focusable={false} className="w-full">
-    <div className="relative text-center w-full" data-testid={`achievement-card-${achievement.id}`}>
-      <div
-        className="w-14 h-14 mx-auto rounded-full grid place-items-center text-[1.5rem] border-2"
+    // `relative` is load-bearing, not styling: the sr-only span and the
+    // popover below are absolutely positioned, so without a positioned
+    // ancestor they resolve against <html> and their static offset (far down a
+    // long list) inflates the document's scroll height — the page then scrolls
+    // past its own content into empty space, next to the real scrollbar of the
+    // app shell.
+    <button
+      ref={buttonRef}
+      type="button"
+      onClick={onToggle}
+      // A finger also fires the mouse-compatible enter, and never the leave:
+      // only a real mouse counts as hovering.
+      onPointerEnter={e => { if (e.pointerType === 'mouse') setHovered(true) }}
+      onPointerLeave={() => setHovered(false)}
+      onFocus={e => {
+        // Only the keyboard's focus. A click focuses the button too, and the
+        // second click must be able to close what the first one opened.
+        let viaKeyboard = false
+        try { viaKeyboard = e.currentTarget.matches(':focus-visible') } catch { /* selector unknown */ }
+        setFocused(viaKeyboard)
+      }}
+      onBlur={() => setFocused(false)}
+      aria-expanded={open}
+      aria-describedby={open ? popoverId : undefined}
+      className="relative block w-full text-center cursor-pointer rounded-xl py-1
+        focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+      data-testid={`achievement-card-${achievement.id}`}
+    >
+      <span
+        className="grid w-14 h-14 mx-auto rounded-full place-items-center text-[1.5rem] border-2"
         style={
           unlocked
             ? { borderColor: tc, background: `radial-gradient(circle at 50% 35%, color-mix(in srgb, ${tc} 22%, var(--color-surface)), var(--color-surface))`, boxShadow: `0 0 14px -4px color-mix(in srgb, ${tc} 55%, transparent)` }
@@ -414,14 +512,30 @@ function Medal({ achievement, unlocked, unlockedAt, progress }: {
         }
       >
         <span style={unlocked ? undefined : { filter: 'grayscale(1)', opacity: 0.45 }}>{achievement.icon}</span>
-      </div>
-      <div className={`text-[0.6875rem] mt-1.5 leading-tight ${unlocked ? 'text-content/70' : 'text-content/35'}`}>
+      </span>
+      <span className={`block text-[0.6875rem] mt-1.5 leading-tight ${unlocked ? 'text-content/70' : 'text-content/35'}`}>
         {name}
-      </div>
+      </span>
       {unlocked
         ? <span className="sr-only" data-testid={`unlocked-date-${achievement.id}`}>{unlockedAt ? formatDate(unlockedAt, i18n.language) : t('awards.unknownDate')}</span>
         : <span className="sr-only" data-testid={`progress-${achievement.id}`}>{Math.round(progress)}%</span>}
-    </div>
-    </Tooltip>
+      {open && (
+        <span
+          ref={popoverRef}
+          id={popoverId}
+          role="tooltip"
+          data-testid={`achievement-popover-${achievement.id}`}
+          className="pointer-events-none absolute bottom-full left-1/2 mb-1 z-50 block w-max max-w-[min(80vw,260px)]
+            whitespace-normal text-left rounded-lg border px-2.5 py-1.5 text-xs font-medium leading-snug text-content shadow-lg"
+          style={{
+            transform: 'translateX(calc(-50% + var(--shift, 0px)))',
+            backgroundColor: 'var(--color-tooltip-bg)',
+            borderColor: 'var(--color-tooltip-border)',
+          }}
+        >
+          {title}
+        </span>
+      )}
+    </button>
   )
 }

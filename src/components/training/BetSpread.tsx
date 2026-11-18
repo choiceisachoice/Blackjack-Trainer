@@ -8,6 +8,7 @@ import { soundEngine } from '../../services/sound-engine'
 import type { BetSpreadDetails } from '../../services/stats-types'
 import { TrainingBackdrop } from './TrainingBackdrop'
 import { BET_SPREAD, rand, getMultiplier, getCorrectBet, buildBracketSequence } from './bet-spread-math'
+import { activeLocale } from '../../i18n'
 
 type QuestionType = 'A' | 'B' | 'C'
 type QuestionMode = 'A' | 'B' | 'C' | 'random'
@@ -22,9 +23,25 @@ const TABLE_MINIMUMS = [5, 10, 15, 25, 50, 100]
 const REMAINING_DECKS_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
 const QUESTION_COUNTS = [10, 20, 30, 50]
 
+/**
+ * A number the way the reader's language writes it: "1.5" and "1,600" in
+ * English, "1,5" and "1.600" in German.
+ *
+ * Template strings print a JavaScript number, which is always the English
+ * form — so a German drill asked about "~1.5" decks and offered "$1600".
+ */
+function num(n: number): string {
+  return n.toLocaleString(activeLocale(), { maximumFractionDigits: 2 })
+}
+
+/** A dollar amount: the sign, then the number in the reader's format. */
+function money(n: number): string {
+  return `$${num(n)}`
+}
+
 /** Format TC as "+N" or "N". */
 function formatTC(n: number): string {
-  return n >= 0 ? `+${n}` : `${n}`
+  return n >= 0 ? `+${num(n)}` : num(n)
 }
 
 function pick<T>(arr: readonly T[]): T { return arr[Math.floor(rand() * arr.length)] }
@@ -314,23 +331,27 @@ export function BetSpread() {
   // ── Question Phase ──
   if (phase === 'question') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
+      // `short:` is a phone held sideways (390px tall): the situation goes left,
+      // everything that is answered goes right, and the back bar gives up its
+      // row (`data-drill-run`) — the bets used to sit at y 506–602 of 390.
+      <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-2">
         {/* Stats bar */}
-        <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
+        <div className="flex items-center justify-between w-full max-w-md short:max-w-3xl px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
           <span data-testid="question-progress">{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
           <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
           <span>{t('training.common.streakOf', { n: currentStreak })}</span>
         </div>
 
         {/* Situation card */}
-        <div className="surface p-6 max-w-md w-full">
+        <div className="surface p-6 max-w-md w-full short:max-w-3xl short:p-3 short:grid short:grid-cols-2 short:items-center short:gap-x-6">
+          <div className="contents short:block">
           {/* Table minimum — always shown (realistic scenario) */}
           <div className="flex justify-between items-center pb-3 mb-3 border-b border-contrast/10">
             <span className="text-content/60 text-sm">{t('training.bet.tableMinimum')}</span>
-            <span className="text-gold font-bold text-lg" data-testid="table-min">${question.tableMin}</span>
+            <span className="text-gold font-bold text-lg" data-testid="table-min">{money(question.tableMin)}</span>
           </div>
 
-          <div className="space-y-3 mb-6">
+          <div className="space-y-3 mb-6 short:mb-0">
             {(question.type === 'A' || question.type === 'C') && (
               <>
                 <div className="flex justify-between items-center">
@@ -339,7 +360,7 @@ export function BetSpread() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-content/60 text-sm">{t('training.bet.remainingDecks')}</span>
-                  <span className="text-content font-bold text-lg" data-testid="remaining-decks">~{question.remainingDecks}</span>
+                  <span className="text-content font-bold text-lg" data-testid="remaining-decks">~{num(question.remainingDecks)}</span>
                 </div>
               </>
             )}
@@ -352,9 +373,12 @@ export function BetSpread() {
             )}
           </div>
 
+          </div>
+
+          <div className="contents short:block">
           {/* Type C: TC input */}
           {question.type === 'C' && (
-            <div className="mb-6">
+            <div className="mb-6 short:mb-2">
               <p className="text-content/70 text-sm mb-2 text-center">{t('training.bet.whatIsTc')}</p>
               <div className="flex items-center justify-center gap-3">
                 <button
@@ -385,7 +409,7 @@ export function BetSpread() {
             </div>
           )}
 
-          <p className="text-content font-medium text-center mb-4">{t('training.bet.whatIsBet')}</p>
+          <p className="text-content font-medium text-center mb-4 short:mb-2">{t('training.bet.whatIsBet')}</p>
 
           <div className="flex flex-wrap gap-2 justify-center">
             {betOptions.map(bet => (
@@ -396,9 +420,10 @@ export function BetSpread() {
                 className="px-5 py-2.5 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
                   rounded-xl transition-colors cursor-pointer text-sm min-w-[70px]"
               >
-                ${bet}
+                {money(bet)}
               </button>
             ))}
+          </div>
           </div>
         </div>
       </div>
@@ -409,28 +434,31 @@ export function BetSpread() {
   const multiplier = getMultiplier(question.tc)
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
+    // Sideways phone: verdict and the ramp left, the explanation and the way
+    // on right — placed on the grid, so the markup keeps its reading order.
+    <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-2">
       {/* Stats bar */}
-      <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
+      <div className="flex items-center justify-between w-full max-w-md short:max-w-3xl px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
         <span>{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
         <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
         <span>{t('training.common.streakOf', { n: currentStreak })}</span>
       </div>
 
       {/* Result card */}
-      <div className="surface p-6 max-w-md w-full">
-        <div className={`flex flex-col items-center text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
-          <span className={`grid place-items-center w-12 h-12 rounded-full border
+      <div className="surface p-6 max-w-md w-full short:max-w-3xl short:p-4 short:grid short:grid-cols-2 short:items-start short:gap-x-6 short:gap-y-2">
+        <div className={`flex flex-col items-center text-center mb-4 short:mb-0 short:flex-row short:justify-center short:gap-3
+          short:col-start-1 short:row-start-1 ${isCorrect ? 'text-success' : 'text-error'}`}>
+          <span className={`grid place-items-center w-12 h-12 short:w-9 short:h-9 rounded-full border
             ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
             {isCorrect ? <Check size={24} /> : <X size={24} />}
           </span>
-          <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
+          <h3 className="text-xl font-bold mt-2 short:mt-0" data-testid="feedback-result">
             {isCorrect ? t('training.common.correctBang') : t('training.common.wrongBang')}
           </h3>
         </div>
 
         {/* Explanation */}
-        <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
+        <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2 short:p-3 short:mb-0 short:col-start-2 short:row-start-1 short:row-span-2">
           {question.type === 'C' && !tcCorrect && (
             <p className="text-content/70 text-sm">
               <Trans
@@ -439,7 +467,7 @@ export function BetSpread() {
                   said: formatTC(tcAnswer),
                   right: formatTC(question.tc),
                   rc: formatTC(question.rc),
-                  decks: question.remainingDecks,
+                  decks: num(question.remainingDecks),
                 }}
                 components={{ h: <span className="text-gold font-medium" /> }}
               />
@@ -448,18 +476,18 @@ export function BetSpread() {
           <p className="text-content/70 text-sm" data-testid="feedback-explanation">
             <Trans
               i18nKey="training.bet.betExplain"
-              values={{ tc: formatTC(question.tc), mult: multiplier, min: question.tableMin, bet: question.correctBet }}
+              values={{ tc: formatTC(question.tc), mult: multiplier, min: num(question.tableMin), bet: num(question.correctBet) }}
               components={{ h: <span className="text-gold font-medium" /> }}
             />
             {selectedBet !== null && selectedBet !== question.correctBet && (
-              <span className="text-error">{t('training.bet.youChoseBet', { bet: selectedBet })}</span>
+              <span className="text-error">{t('training.bet.youChoseBet', { bet: num(selectedBet) })}</span>
             )}
           </p>
         </div>
 
         {/* Bet spread reference with highlight */}
-        <div className="bg-contrast/5 rounded-xl p-3 mb-4">
-          <p className="text-xs text-content/40 mb-2 text-center">{t('training.bet.spreadOf', { min: question.tableMin })}</p>
+        <div className="bg-contrast/5 rounded-xl p-3 mb-4 short:mb-0 short:col-start-1 short:row-start-2 short:row-span-2">
+          <p className="text-xs text-content/40 mb-2 text-center">{t('training.bet.spreadOf', { min: num(question.tableMin) })}</p>
           <div className="space-y-0.5">
             {BET_SPREAD.map((row, i) => {
               const isHighlighted = Math.floor(question.tc) >= row.minTC && Math.floor(question.tc) <= row.maxTC
@@ -468,7 +496,7 @@ export function BetSpread() {
                   isHighlighted ? 'bg-gold/20 text-gold font-medium' : 'text-content/50'
                 }`}>
                   <span>{row.label}</span>
-                  <span>{t('training.betSpreadUnit', { mult: row.multiplier, amount: `$${row.multiplier * question.tableMin}` })}</span>
+                  <span>{t('training.betSpreadUnit', { mult: row.multiplier, amount: money(row.multiplier * question.tableMin) })}</span>
                 </div>
               )
             })}
@@ -478,7 +506,7 @@ export function BetSpread() {
         <Button
           onClick={handleNext}
           data-testid="next-question"
-          className="w-full"
+          className="w-full short:col-start-2 short:row-start-3 short:self-end"
         >
           {qIndex + 1 >= session.length ? t('training.common.seeResults') : t('training.common.next')}
         </Button>

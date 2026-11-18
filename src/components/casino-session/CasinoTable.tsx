@@ -46,7 +46,7 @@ function useTableFit(seats: number, bots: number, boxes: number): { ref: React.R
       // be padding on the box, which the measurement included — so the felt was
       // fitted to the padded size and the padding did nothing.
       const box = { width: r.width - TABLE_GUTTER * 2, height: r.height - TABLE_GUTTER * 2 }
-      const upright = isStackedBox(box)
+      const upright = isStackedBox(box, typeof window === 'undefined' ? undefined : { width: window.innerWidth, height: window.innerHeight })
       setStacked(upright)
       const next = upright
         ? fitStackedTable(box, bots, boxes)
@@ -194,6 +194,16 @@ export function CasinoTable({
   const boxCount = gameStep === 'betting'
     ? Math.max(1, boxes)
     : Math.max(1, ...info.map(h => h.box + 1))
+  // Three or four split hands stand in two rows, and at the two middle seats
+  // the upper row lies on the legend printed above them. Cards on print is
+  // what a table looks like — but the gold lettering showing through between
+  // the hands read as clutter, so the print fades while such a hand is out.
+  const middle = (seat: number) => seat === 2 || seat === 3
+  const legendCovered = gameStep !== 'betting' && (
+    seatLayout.some(e => e.type === 'bot' && e.bot && middle(e.seatIndex) && e.bot.hands.length >= 3)
+    || (boxSeats ?? []).some((seat, box) => middle(seat) && info.filter(h => h.box === box).length >= 3)
+    || (!boxSeats && seatLayout.some(e => e.type === 'human' && middle(e.seatIndex)) && info.length >= 3)
+  )
   // The table has six seats and shows all six, taken or not.
   const slots = TABLE_SEATS
   const botCount = seatLayout.length - 1
@@ -294,7 +304,12 @@ export function CasinoTable({
           the message comes and goes.
         */}
         <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center gap-1.5">
-          <div className="w-[min(72%,520px)]">
+          <div
+            className="w-[min(72%,520px)] transition-opacity duration-300"
+            style={{ opacity: legendCovered ? 0.18 : 1 }}
+            data-testid="table-legend"
+            data-covered={legendCovered}
+          >
             <TableLegend blackjackPays={blackjackPays} dealerHitsSoft17={dealerHitsSoft17} />
           </div>
           <div className="h-5 flex items-center justify-center pointer-events-none" aria-live="polite">

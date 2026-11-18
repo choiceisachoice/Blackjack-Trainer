@@ -363,7 +363,9 @@ describe('retention', () => {
     expect(await scalar<number>(db, 'select count(*)::int from public.analytics_visitors')).toBe(1)
   })
 
-  it('is not scheduled by the migration', async () => {
+  // The schedule itself comes from migration 20261118120000 and only where
+  // pg_cron exists; see `client-failures.test.ts`.
+  it('is not scheduled where pg_cron is unavailable (PGlite)', async () => {
     const cron = await scalar<boolean>(db, `select exists (select 1 from pg_extension where extname = 'pg_cron')`)
     expect(cron).toBe(false)
   })

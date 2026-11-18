@@ -22,38 +22,41 @@
     "backToApp": "Zurück zur App",
     "modes": {
       "speedDrill": "Speed",
-      "deviationTraining": "Karten",
-      "betSpread": "Einsatz",
+      "deviationTraining": "Lernkarten",
+      "betSpread": "Bet Spread",
       "deckEstimation": "Decks",
       "casinoSession": "Casino",
       "plan": "Plan",
       "learn": "Lernen",
-      "analytics": "Analyse",
+      "analytics": "Auswertung",
       "strategyChart": "Strategie",
-      "achievements": "Erfolge",
+      "achievements": "Auszeichnungen",
       "bankrollSim": "Bankroll",
       "casinoSessionTracker": "Tracker"
     },
     "goPro": "Pro holen",
     "accountAndBilling": "Konto & Abrechnung",
-    "muteSounds": "Ton aus",
-    "enableSounds": "Ton an",
+    "muteSounds": "Ton ausschalten",
+    "enableSounds": "Ton einschalten",
     "signOut": "Abmelden",
     "proFeature": "Pro-Funktion",
     "backToMenu": "Zurück zum Hauptmenü",
     "more": "Mehr",
-    "menu": "Menü"
+    "menu": "Menü",
+    "sound": "Ton",
+    "soundOn": "Ton an",
+    "soundOff": "Ton aus"
   },
   "session": {
     "leave": {
       "title": "Session verlassen?",
-      "body": "Sie wird pausiert und bleibt genau so erhalten — wenn du zurückkommst, spielst du dieselbe Hand weiter, mit demselben Schuh und derselben Zählung.",
+      "body": "Sie wird pausiert und bleibt genau so erhalten — wenn du zurückkommst, spielst du dieselbe Hand weiter, mit demselben Schlitten und derselben Zählung.",
       "stay": "Weiterspielen",
       "leave": "Pausieren und verlassen"
     },
     "resume": {
       "title": "Deine Session ist noch da",
-      "body": "Pausiert bei Hand {{hand}}, mit demselben Schuh und derselben Zählung. Mach dort weiter, wo du aufgehört hast — oder starte mit einem frischen Schuh.",
+      "body": "Pausiert bei Hand {{hand}}, mit demselben Schlitten und derselben Zählung. Mach dort weiter, wo du aufgehört hast — oder starte mit einem frischen Schlitten.",
       "continue": "Session fortsetzen",
       "restart": "Neue Session starten"
     },
@@ -61,7 +64,7 @@
     "resumeButton": "Fortsetzen",
     "quit": "Session beenden",
     "shuffling": "Karten werden gemischt…",
-    "newShoe": "Neuer Schuh"
+    "newShoe": "Neuer Schlitten"
   },
   "account": {
     "title": "Konto",
@@ -75,8 +78,8 @@
     "accessEndsOn": "Zugang endet am",
     "trialEnds": "Testphase endet",
     "paymentDueBy": "Zahlung fällig bis",
-    "upgradeHint": "Hol dir Pro und schalte den Casino-Tisch, die Abweichungen und die vollständige Analyse frei.",
-    "proEndsNotice": "Wenn der Zugang endet, schliessen die Pro-Modi — Casino-Tisch, Einsatzspreizung, Deck-Schätzung und die Bankroll-Werkzeuge. Eine Session, die du zum späteren Weitermachen pausiert hast, ist danach nicht mehr erreichbar.",
+    "upgradeHint": "Hol dir Pro und schalte den Casino-Tisch, die Abweichungen und die vollständige Auswertung frei.",
+    "proEndsNotice": "Wenn der Zugang endet, schliessen die Pro-Modi — Casino-Tisch, Bet Spread, Deck-Schätzung und die Bankroll-Werkzeuge. Eine Session, die du zum späteren Weitermachen pausiert hast, ist danach nicht mehr erreichbar.",
     "manageSubscription": "Abo verwalten",
     "comparePlans": "Tarife vergleichen →",
     "sectionAccount": "KONTO",
@@ -92,7 +95,7 @@
     "dealingSpeed": "Ausgabetempo",
     "ambientVolume": "Lautstärke Casino-Atmosphäre",
     "sectionData": "DEINE DATEN",
-    "deleteHistoryHint": "Entfernt deine Sessions und die daraus gebaute Auswertung. Level, XP und Erfolge bleiben.",
+    "deleteHistoryHint": "Entfernt deine Sessions und die daraus gebaute Auswertung. Level, XP und Auszeichnungen bleiben.",
     "deleteAccount": "Konto löschen",
     "deleteAccountHint": "Um dein Konto und alles, was dazu gespeichert ist, zu löschen, schreib an {{email}} — von der Adresse, mit der du dich registriert hast.",
     "displayName": "Anzeigename",
@@ -102,7 +105,7 @@
     "nameSaveFailed": "Dein Name konnte nicht gespeichert werden. Nichts wurde geändert — bitte versuch es noch einmal.",
     "xp": "XP",
     "sessions": "Sessions",
-    "achievements": "Erfolge",
+    "achievements": "Auszeichnungen",
     "downloadData": "Meine Daten herunterladen",
     "downloadDataHint": "Eine übersichtliche Zusammenfassung deines Kontos als PDF, Word oder Excel — oder alle Rohdaten als JSON.",
     "changePicture": "Bild ändern",
@@ -125,10 +128,10 @@
     },
     "avatarLevel": "Level {{level}}",
     "avatarLockedLevel": "Ab Level {{level}}",
-    "avatarLockedAchievement": "Mit dem Erfolg: {{name}}",
+    "avatarLockedAchievement": "Mit der Auszeichnung: {{name}}",
     "avatarGroupBase": "Von Anfang an deine",
     "avatarGroupLevels": "Eines pro Level",
-    "avatarGroupAchievements": "Für die schwersten Erfolge",
+    "avatarGroupAchievements": "Für die schwersten Auszeichnungen",
     "avatarUnlockedCount": "{{n}} von {{total}} freigeschaltet",
     "adminAnalytics": "Website-Statistik",
     "downloadFormat": {
@@ -160,7 +163,8 @@
     "flexibleSwitch": "Flexibel — jederzeit auf jährlich wechseln",
     "secureCheckout": "Sichere Zahlung über Stripe. Jederzeit im Konto kündbar.",
     "everythingInFree": "Alles aus Gratis, plus:",
-    "goProPrice": "Pro holen — {{price}}"
+    "goProPrice": "Pro holen — {{price}}",
+    "atCheckout": "Preis wird an der Kasse angezeigt"
   },
   "landing": {
     "nav": {
@@ -180,7 +184,7 @@
       "tags": "Illustrious 18 · Fab 4",
       "cancel": "Jederzeit kündbar",
       "eyebrow": "Hi-Lo-Kartenzählen, richtig trainiert",
-      "headline": "Trainiere den <1>Vorteil</1>, der den Schuh schlägt.",
+      "headline": "Trainiere den <1>Vorteil</1>, der den Schlitten schlägt.",
       "chipStrategy": "Basisstrategie",
       "chipRules": "S17 / H17",
       "shoe": "6-Deck-Schlitten"
@@ -190,9 +194,9 @@
       "s1title": "Das System lernen",
       "s1body": "Hi-Lo-Werte, die Umrechnung auf den True Count, Basisstrategie und die Abweichungen, auf die es ankommt — ohne Fachjargon-Mauer.",
       "s2title": "Bis zum Reflex üben",
-      "s2body": "Zählen auf Zeit, Karteikarten und Deck-Schätzung, bis die Zahlen ohne Nachdenken kommen.",
+      "s2body": "Zählen auf Zeit, Lernkarten und Deck-Schätzung, bis die Zahlen ohne Nachdenken kommen.",
       "s3title": "Am Tisch spielen",
-      "s3body": "Setz dich an eine vollständige Casino-Session, spiel die Einsatzspreizung, nutze die Abweichungen — und lass die Auswertung deine Schwachstellen finden."
+      "s3body": "Setz dich an eine vollständige Casino-Session, spiel den Bet Spread, nutze die Abweichungen — und lass die Auswertung deine Schwachstellen finden."
     },
     "pricingIntro": {
       "eyebrow": "PREISE",
@@ -203,7 +207,7 @@
       "eyebrow": "GUT ZU WISSEN",
       "heading": "Fragen, beantwortet.",
       "q1": "Muss ich zum Starten bezahlen?",
-      "a1": "Nein. Leg ein Konto an, und der Gratis-Tarif gibt dir Speed Drill, Karteikarten, die Grundlagen der Strategietabelle und deine eigene Auswertung — genug, um das Zählen wirklich zu lernen. Auf Pro wechselst du, wenn du den Live-Tisch und die Abweichungen willst.",
+      "a1": "Nein. Leg ein Konto an, und der Gratis-Tarif gibt dir Speed Drill, Lernkarten, die Grundlagen der Strategietabelle und deine eigene Auswertung — genug, um das Zählen wirklich zu lernen. Auf Pro wechselst du, wenn du den Live-Tisch und die Abweichungen willst.",
       "q2": "Ist Kartenzählen legal?",
       "a2": "Im Kopf zu zählen ist legal — es ist blosses Denken. Dies ist ein Übungswerkzeug, um diese Fähigkeit zu schärfen. Casinos sind Privatunternehmen und machen eigene Regeln, spiel also verantwortungsvoll.",
       "q3": "Welches Zählsystem wird gelehrt?",
@@ -228,7 +232,7 @@
       "featuresEyebrow": "Alles in einem Trainer",
       "featuresTitle": "Alles, um <1>wirklich gut zu werden</1>.",
       "howEyebrow": "So funktioniert es",
-      "featuresSub": "Keine Karteikarten im luftleeren Raum — ein durchgehender Weg vom Halten der Zählung bis zum echten Tisch und zum Lesen der eigenen Schwächen."
+      "featuresSub": "Keine Lernkarten im luftleeren Raum — ein durchgehender Weg vom Halten der Zählung bis zum echten Tisch und zum Lesen der eigenen Schwächen."
     },
     "showcase": {
       "freeLabel": "Gratis",
@@ -237,12 +241,12 @@
       "freeSub": "Keine Karte nötig — und wirklich genug, um die Fähigkeit aufzubauen.",
       "proHead": "Bring es an den Tisch.",
       "proSub": "Wo aus der Übung ein echter Vorteil wird.",
-      "t1title": "Speed Drill & Karteikarten",
+      "t1title": "Speed Drill & Lernkarten",
       "t1body": "Halte den Running Count unter Zeitdruck und übe jede Basisstrategie-Hand, bis sie Reflex ist.",
       "t2title": "Auswertung, die nicht schmeichelt",
       "t2body": "Trefferquoten-Verlauf, Übungs-Heatmap und deine schwächsten Hände — aus deinen echten Sessions.",
-      "t3title": "Level & Erfolge",
-      "t3body": "Über 100 Ziele und eine 25-Stufen-Strecke, die dich von der ersten Hand bis zum echten Vorteilsspiel ziehen.",
+      "t3title": "Level & Auszeichnungen",
+      "t3body": "Fast 100 Ziele und eine 25-Stufen-Strecke, die dich von der ersten Hand bis zum echten Vorteilsspiel ziehen.",
       "t4title": "Vollständige Casino-Session",
       "t4body": "Ein echter Filztisch mit mehreren Plätzen — Bots, Splits, Doubles, Auszahlungen und Soft-17-Regel. So nah am Pit wie es geht.",
       "t5title": "Abweichungen in der Tabelle",
@@ -253,23 +257,23 @@
     "manifesto": {
       "eyebrow": "Warum Zähler gewinnen",
       "p1": "Zählen ist kein Geheimsystem, und es ist kein Trick, den die Casinos übersehen haben. Es ist ein kleiner, messbarer Vorteil — ein bis zwei Prozent — der sich erst über Hunderte von Händen zeigt, und nur, wenn du ihn perfekt spielst.",
-      "p2": "Das heißt: die Zählung halten, während am Tisch geredet wird, die Basisstrategie exakt spielen, auch wenn du müde bist, und die Einsätze danach bemessen, was der Schuh dir tatsächlich sagt. Nichts davon ist Wissen, das man einmal liest. Es ist ein Reflex, und Reflexe werden trainiert.",
+      "p2": "Das heißt: die Zählung halten, während am Tisch geredet wird, die Basisstrategie exakt spielen, auch wenn du müde bist, und die Einsätze danach bemessen, was der Schlitten dir tatsächlich sagt. Nichts davon ist Wissen, das man einmal liest. Es ist ein Reflex, und Reflexe werden trainiert.",
       "p3": "Genau dafür gibt es diesen Trainer.",
       "phrases": [
         "Dreh die Chancen zu deinen Gunsten.",
         "Zähl die Karten. Schlag die Bank.",
         "Wo Disziplin das Glück schlägt.",
-        "Beherrsche Hi-Lo. Beherrsche den Schuh.",
+        "Beherrsche Hi-Lo. Beherrsche den Schlitten.",
         "Spiel die Zählung, nicht das Bauchgefühl.",
         "Sieh den True Count. Nutz den Moment.",
         "Die Bank gewinnt immer — bis du zählst.",
         "Setz gross, wenn das Deck heiß läuft.",
         "Vom Anfänger zum Vorteilsspieler.",
-        "Lies den Schuh wie ein Profi.",
+        "Lies den Schlitten wie ein Profi.",
         "Dein Vorteil ist Können, kein Geheimnis.",
         "Schärfe deinen Instinkt, Hand für Hand.",
         "Denk in True Counts.",
-        "Geduld zahlt sich aus — in jedem Schuh.",
+        "Geduld zahlt sich aus — in jedem Schlitten.",
         "Steigt die Zählung, steigt der Einsatz.",
         "Kleiner Vorteil, perfekt gespielt.",
         "Erst Basisstrategie. Dann Abweichungen.",
@@ -278,10 +282,10 @@
       ]
     },
     "freeCard": {
-      "l1": "Speed Drill & Karteikarten",
+      "l1": "Speed Drill & Lernkarten",
       "l2": "Strategietabelle (Grundlagen)",
       "l3": "Deine Basis-Auswertung",
-      "l4": "Erfolge, Level & der Lern-Guide"
+      "l4": "Auszeichnungen, Level & der Lern-Guide"
     },
     "goodToKnow": "Gut zu wissen",
     "tag": {
@@ -339,15 +343,15 @@
     "g2": "Am Tisch",
     "g3": "Dein Vorteil",
     "g4": "Fortschritt",
-    "r1": "Speed Drill & Karteikarten",
-    "r2": "Einsatzspreizung-Training",
+    "r1": "Speed Drill & Lernkarten",
+    "r2": "Bet-Spread-Training",
     "r3": "Deck-Schätzung",
     "r4": "Vollständige Casino-Session — Bots, Splits, Auszahlungen",
     "r5": "Strategietabelle",
     "r6": "Illustrious 18 & Fab 4 Abweichungen",
     "r7": "Auswertung — Verlauf, Heatmap, Skill-Radar, schwächste Hände",
     "r8": "Bankroll-Tracker",
-    "r9": "Erfolge, Level & der Lern-Guide",
+    "r9": "Auszeichnungen, Level & der Lern-Guide",
     "basics": "Grundlagen",
     "goProHeading": "Pro holen",
     "goProSub": "Schalte die fortgeschrittenen Modi frei und sieh dein Kartenzähl-Potenzial vollständig.",
@@ -389,7 +393,7 @@
       "wrongBang": "Falsch!",
       "sessionComplete": "Session abgeschlossen!",
       "questionProgress": "Frage {{n}}/{{total}}",
-      "correctOf": "Richtig: {{n}}/{{total}} ({{pct}} %)",
+      "correctOf": "Richtig: {{n}}/{{total}} ({{pct}} %)",
       "streakOf": "Serie: {{n}}"
     },
     "speed": {
@@ -440,7 +444,7 @@
       "deviation": "Bei TC {{tc}}: <h>{{action}}</h> — eine Abweichung vom Standardspiel ({{basic}}).",
       "noDeviation": "Bei TC {{tc}} bleibt es bei der Basisstrategie: <h>{{action}}</h> (hier keine Abweichung).",
       "focusTitle": "Fokus: deine schwächsten Hände",
-      "focusSub": "{{count}} Hände aus den Analytics. Jede Frage ist eine davon, mit dem Count über und unter dem Index.",
+      "focusSub": "{{count}} Hände aus der Auswertung. Jede Frage ist eine davon, mit dem Count über und unter dem Index.",
       "focusHands": "Diese Hände",
       "focusClear": "Lieber alle Hände üben",
       "focusResults": "Pro Hand",
@@ -455,13 +459,13 @@
       "betEquals": "Einsatz = Multiplikator × Tischminimum (steht bei jeder Frage dabei).",
       "questionType": "Fragetyp",
       "typeRandom": "Zufällig",
-      "typeA": "Typ A",
-      "typeB": "Typ B",
-      "typeC": "Typ C",
+      "typeA": "Einsatz aus RC",
+      "typeB": "Einsatz aus TC",
+      "typeC": "TC + Einsatz",
       "helpRandom": "Mischung aus allen Fragetypen",
-      "helpA": "Typ A — aus RC und Restdecks den optimalen Einsatz wählen",
-      "helpB": "Typ B — aus dem True Count den optimalen Einsatz wählen",
-      "helpC": "Typ C — aus RC und Restdecks den TC eingeben und den Einsatz wählen",
+      "helpA": "Du bekommst Running Count und Restdecks — rechne den True Count im Kopf aus und wähle den Einsatz.",
+      "helpB": "Du bekommst den True Count — wähle den Einsatz, der dazu gehört.",
+      "helpC": "Du bekommst Running Count und Restdecks — gib den True Count ein und wähle dann den Einsatz. Beides muss stimmen.",
       "tableMinimum": "Tischminimum",
       "runningCount": "Running Count",
       "remainingDecks": "Restdecks",
@@ -540,7 +544,7 @@
       },
       "howItWorks": "So funktioniert es",
       "yourLastRun": "Dein letzter Durchgang",
-      "bestInMode": "Bester Wert in diesem Modus: {{pct}} %.",
+      "bestInMode": "Bester Wert in diesem Modus: {{pct}} %.",
       "keepItUp": "Weiter so.",
       "noRuns": "Noch kein Durchgang — starte deinen ersten und verfolge hier deinen Fortschritt.",
       "proTip": "Profi-Tipp"
@@ -650,7 +654,8 @@
       "timeUp_one": "1 Minute gespielt — spiel diese Hand fertig",
       "timeUp_other": "{{count}} Minuten gespielt — spiel diese Hand fertig",
       "speedFast": "Schnell",
-      "insuranceAskHand": "Hand {{n}} versichern? (Dealer zeigt ein Ass)"
+      "insuranceAskHand": "Hand {{n}} versichern? (Dealer zeigt ein Ass)",
+      "continue": "Weiter (Enter)"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -673,7 +678,7 @@
       "missedDeviations": "Verpasste Abweichungen",
       "playAgain": "Noch eine Session",
       "home": "Startseite",
-      "overallScore": "Gesamtwertung: {{pct}} %",
+      "overallScore": "Gesamtwertung: {{pct}} %",
       "anomalies": "Auffälligkeiten während der Session: {{count}}",
       "basicMode": "Nur Blackjack · bewertet nach Basisstrategie"
     },
@@ -692,10 +697,10 @@
     "bot": {
       "wait": "Wartet",
       "thinking": "Überlegt …",
-      "hit": "Karte",
-      "stand": "Bleibt",
+      "hit": "Zieht",
+      "stand": "Steht",
       "double": "Verdoppelt",
-      "split": "Teilt",
+      "split": "Splittet",
       "surrender": "Gibt auf",
       "bust": "ÜBERKAUFT!",
       "blackjack": "Blackjack!",
@@ -706,7 +711,7 @@
     },
     "end": {
       "handsTitle": "{{hands}} Hände gespielt",
-      "body": "Mach Cash-out, um dein Ergebnis zu sehen und die Session zu speichern — oder spiel weiter. Der Schuh bleibt genau, wie er ist.",
+      "body": "Mach Cash-out, um dein Ergebnis zu sehen und die Session zu speichern — oder spiel weiter. Der Schlitten bleibt genau, wie er ist.",
       "keepPlaying": "Weiterspielen",
       "keepNote": "Ab jetzt ohne Limit — Cash-out, wann du willst.",
       "timeTitle_one": "Deine Minute ist um",
@@ -749,12 +754,12 @@
     "nSessions": "{{n}} Sessions",
     "nHands": "{{n}} Hände",
     "roi": "ROI:",
-    "gradeScore": "Note: {{grade}} ({{pct}} %)",
-    "gradeShort": "{{grade}} ({{pct}} %)",
+    "gradeScore": "Note: {{grade}} ({{pct}} %)",
+    "gradeShort": "{{grade}} ({{pct}} %)",
     "deckMin": "{{decks}} Decks, Min. {{min}}",
-    "playPct": "Spiel: {{pct}} %",
-    "betPct": "Einsatz: {{pct}} %",
-    "countPct": "Count: {{pct}} %",
+    "playPct": "Spiel: {{pct}} %",
+    "betPct": "Einsatz: {{pct}} %",
+    "countPct": "Count: {{pct}} %",
     "streaks": "Serien"
   },
   "welcome": {
@@ -871,12 +876,12 @@
       "why": "Jede Fähigkeit für sich ist leicht. Die Kunst ist, alle gleichzeitig zu können, während am Tisch geredet wird."
     },
     "drill": {
-      "flashcards": "{{n}} Flashcards-Sitzungen mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
-      "speedDrill": "{{n}} Speed Drills mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
-      "deckEstimation": "{{n}} Deck-Estimation-Sitzungen mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
-      "deviations": "{{n}} Flashcards-Sitzungen zu Deviations mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
-      "betSpread": "{{n}} Bet-Spread-Sitzungen mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
-      "casino": "{{n}} Casino Sessions gespielt, an {{days}} verschiedenen Tagen"
+      "flashcards": "{{n}} Lernkarten-Sitzungen mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "speedDrill": "{{n}} Speed Drills mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "deckEstimation": "{{n}} Sitzungen Deck-Schätzung mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "deviations": "{{n}} Lernkarten-Sitzungen zu Abweichungen mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "betSpread": "{{n}} Bet-Spread-Sitzungen mit {{pct}} % oder besser, an {{days}} verschiedenen Tagen",
+      "casino": "{{n}} Casino-Sessions gespielt, an {{days}} verschiedenen Tagen"
     }
   },
   "plan": {
@@ -921,10 +926,10 @@
     "standing": {
       "done": "Geschafft. Alles Weitere hier ist Übung.",
       "partial": "{{cleared}} von {{target}} Durchgängen über der Marke. Noch {{left}}.",
-      "close_one": "{{count}} Versuch bisher, bester {{best}} % — {{gap}} unter der Marke von {{bar}} %. Fast geschafft.",
-      "close_other": "{{count}} Versuche bisher, bester {{best}} % — {{gap}} unter der Marke von {{bar}} %. Fast geschafft.",
-      "far_one": "{{count}} Versuch bisher, bester {{best}} %. Die Marke liegt bei {{bar}} %, und das {{target}}-mal.",
-      "far_other": "{{count}} Versuche bisher, bester {{best}} %. Die Marke liegt bei {{bar}} %, und das {{target}}-mal.",
+      "close_one": "{{count}} Versuch bisher, bester {{best}} % — {{gap}} unter der Marke von {{bar}} %. Fast geschafft.",
+      "close_other": "{{count}} Versuche bisher, bester {{best}} % — {{gap}} unter der Marke von {{bar}} %. Fast geschafft.",
+      "far_one": "{{count}} Versuch bisher, bester {{best}} %. Die Marke liegt bei {{bar}} %, und das {{target}}-mal.",
+      "far_other": "{{count}} Versuche bisher, bester {{best}} %. Die Marke liegt bei {{bar}} %, und das {{target}}-mal.",
       "spacing_one": "Genug gute Sitzungen. Es fehlt noch {{count}} weiterer Tag – ein Können muss eine Nacht überstehen, bevor es zählt.",
       "spacing_other": "Genug gute Sitzungen. Es fehlen noch {{count}} weitere Tage – ein Können muss eine Nacht überstehen, bevor es zählt."
     },
@@ -932,7 +937,7 @@
       "attempts_one": "{{count}} Versuch bisher · bester",
       "attempts_other": "{{count}} Versuche bisher · bester",
       "offBar": " — {{gap}} unter der Marke",
-      "barIs": ", Marke liegt bei {{bar}} %"
+      "barIs": ", Marke liegt bei {{bar}} %"
     },
     "stagesComplete_one": "{{done}} von {{count}} Stufe geschafft",
     "stagesComplete_other": "{{done}} von {{count}} Stufen geschafft",
@@ -992,7 +997,7 @@
       "title": "So funktioniert es",
       "s1": "Jeder Trainingstag hat ein kurzes Programm für dich: Aufwärmen, das, was heute dran ist, und der Tisch, sobald du zählen kannst.",
       "s2": "Eine Stufe ist geschafft, wenn du an mehreren verschiedenen Tagen gute Sitzungen hattest. Niemand schafft sie an einem Abend.",
-      "s3": "Jede richtige Antwort bringt XP. Level, Auszeichnungen und Challenges ergeben sich aus dem Training selbst.",
+      "s3": "Jede richtige Antwort bringt XP. Level, Auszeichnungen und Tagesaufgaben ergeben sich aus dem Training selbst.",
       "dismiss": "Verstanden"
     },
     "loading": "Dein Plan wird geladen"
@@ -1090,7 +1095,7 @@
         "more": {
           "p1": "Der Running Count sagt, wie viele hohe Karten zu viel übrig sind, aber nicht, wie konzentriert sie sind. Ein Count von <g>+6</g> bei sechs noch auszuteilenden Decks ist eine hohe Karte zu viel pro Deck — fast nichts. Dasselbe <g>+6</g> bei einem verbleibenden Deck sind sechs hohe Karten zu viel in den nächsten zweiundfünfzig. Das ist ein völlig anderer Schlitten.",
           "p2": "Also teilst du. <g>True Count = Running Count ÷ verbleibende Decks</g>. Running Count <g>+8</g> bei vier verbleibenden Decks ergibt einen True Count von <g>+2</g>; dasselbe <g>+8</g> bei zwei Decks ergibt <g>+4</g>. Die meisten Zähler runden für Einsatzentscheidungen Richtung null, ein +2,7 gilt also als +2 — die vorsichtige Seite.",
-          "p3": "Was die Zahl in Geld bedeutet: Jeder Punkt True Count verschiebt den Vorteil um etwa <g>ein halbes Prozent</g>. Bei True Count null hält das Haus rund 0,5 % gegen einen perfekten Basisstrategie-Spieler. Bei <g>+1</g> ist das Spiel nahezu ausgeglichen, bei <g>+2</g> hältst du etwa ein halbes Prozent, bei <g>+3</g> etwa ein Prozent. Das ist das ganze Geschäftsmodell: klein setzen unter +1, groß darüber.",
+          "p3": "Was die Zahl in Geld bedeutet: Jeder Punkt True Count verschiebt den Vorteil um etwa <g>ein halbes Prozent</g>. Bei True Count null hält das Haus rund 0,5 % gegen einen perfekten Basisstrategie-Spieler. Bei <g>+1</g> ist das Spiel nahezu ausgeglichen, bei <g>+2</g> hältst du etwa ein halbes Prozent, bei <g>+3</g> etwa ein Prozent. Das ist das ganze Geschäftsmodell: klein setzen unter +1, groß darüber.",
           "p4": "Der True Count steuert beide Hälften der Methode — wie viel du setzt und welche Spielzüge du änderst. Seine eine Eingabe, die du nicht vom Tisch ablesen kannst, ist die Zahl der verbleibenden Decks, die du nach Augenmaß schätzen musst. Diese Fähigkeit hat ein eigenes Kapitel und einen eigenen Trainingsmodus."
         }
       },
@@ -1099,9 +1104,9 @@
         "body": "Der mathematisch beste Zug für jede Hand — ziehen, stehen, verdoppeln, splitten oder aufgeben — unter der Annahme, dass du <c>nicht</c> zählst. Lerne das zuerst: es ist das Fundament und drückt den Hausvorteil bereits auf fast null. Der Modus <c>Lernkarten</c> übt es Hand für Hand.",
         "more": {
           "p1": "Die Basisstrategie ist die mathematisch beste Entscheidung für jede Kombination aus deiner Hand und der offenen Karte des Dealers, unter der Annahme, dass du nichts über die restlichen Karten weißt. Sie wurde gelöst, indem Millionen von Händen durch einen Computer liefen, und sie hängt von den Regeln ab: wie viele Decks, ob der Dealer bei Soft 17 zieht, ob du nach einem Split verdoppeln darfst, ob Surrender angeboten wird.",
-          "p2": "Ein paar ihrer Säulen lohnt es sich auswendig zu kennen, bevor du den Rest übst: Teile immer <c>Asse und Achten</c>, teile nie Zehner oder Fünfer. Verdopple eine harte <g>11</g> gegen alles außer einem Ass. Bleibe bei harter <g>17</g> und höher stehen. Mit einer schwachen Hand — hart 12 bis 16 — bleibst du gegen Dealer 2 bis 6 stehen und ziehst gegen 7 oder höher, mit der einen Ausnahme 12, die gegen 2 und 3 zieht.",
-          "p3": "Perfekt gespielt bei guten Regeln senkt die Basisstrategie den Hausvorteil auf etwa <g>0,5 %</g>. Der durchschnittliche Spieler verschenkt 2 % oder mehr durch Raten. Bevor das Zählen also überhaupt etwas beisteuert, holt die Basisstrategie allein den größten Teil des Geldes zurück, das ein Gelegenheitsspieler verliert — deshalb kommt sie zuerst.",
-          "p4": "Sie muss automatisch werden. Zählen kostet Aufmerksamkeit, und wenn davon noch etwas darauf verwendet wird, ob man 15 gegen eine 9 zieht, rutscht der Count. Der Modus <c>Karteikarten</c> zeigt dir jede Hand, die es gibt, bis der richtige Spielzug vor der Frage da ist."
+          "p2": "Ein paar ihrer Säulen lohnt es sich auswendig zu kennen, bevor du den Rest übst: Splitte immer <c>Asse und Achten</c>, splitte nie Zehner oder Fünfer. Verdopple eine harte <g>11</g> gegen alles außer einem Ass. Bleibe bei harter <g>17</g> und höher stehen. Mit einer schwachen Hand — hart 12 bis 16 — bleibst du gegen Dealer 2 bis 6 stehen und ziehst gegen 7 oder höher, mit der einen Ausnahme 12, die gegen 2 und 3 zieht.",
+          "p3": "Perfekt gespielt bei guten Regeln senkt die Basisstrategie den Hausvorteil auf etwa <g>0,5 %</g>. Der durchschnittliche Spieler verschenkt 2 % oder mehr durch Raten. Bevor das Zählen also überhaupt etwas beisteuert, holt die Basisstrategie allein den größten Teil des Geldes zurück, das ein Gelegenheitsspieler verliert — deshalb kommt sie zuerst.",
+          "p4": "Sie muss automatisch werden. Zählen kostet Aufmerksamkeit, und wenn davon noch etwas darauf verwendet wird, ob man 15 gegen eine 9 zieht, rutscht der Count. Der Modus <c>Lernkarten</c> zeigt dir jede Hand, die es gibt, bis der richtige Spielzug vor der Frage da ist."
         }
       },
       "deviations": {
@@ -1111,27 +1116,27 @@
           "p1": "Die Basisstrategie geht von einem neutralen Schlitten aus. Wenn der Count sagt, dass der Schlitten reich an Zehnern ist, sind einige ihrer Spielzüge nicht mehr die besten: Du bleibst öfter stehen, weil der Dealer öfter überkauft; du verdoppelst öfter, weil deine eine Karte eher eine Zehn ist; und du nimmst Versicherung, weil die verdeckte Karte des Dealers eher eine Zehn ist. Bei niedrigem Count das Gegenteil — du ziehst bei Händen, bei denen du normalerweise stehen bleibst.",
           "p2": "Das klassische Beispiel ist hart <g>16 gegen eine 10</g>. Die Basisstrategie zieht, und verliert meistens so oder so. Bei einem True Count von <g>0 oder höher</g> bleibst du stattdessen stehen, weil die Zehn, die dich überkaufen würde, jetzt die wahrscheinlichste Karte ist. Die wertvollste Abweichung überhaupt ist Versicherung bei einem True Count von <g>+3</g>: Versicherung ist eine Nebenwette darauf, dass der Dealer einen Blackjack hält, und sie zahlt sich aus, wenn mehr als ein Drittel der restlichen Karten Zehner sind.",
           "p3": "Jede Abweichung hat einen <c>Index</c>: den True Count, bei dem der bessere Spielzug kippt. Beim Index oder darüber machst du die Abweichung; darunter spielst du Basisstrategie. Manche Indizes sind negativ — das sind Spielzüge, die du bei niedrigem Count änderst, etwa eine 13 gegen eine 2 bei True Count −1 oder schlechter zu ziehen.",
-          "p4": "Abweichungen bringen etwa <g>10–20 %</g> zum erwarteten Gewinn eines Zählers hinzu; den Rest liefert die Einsatzspreizung. Lerne sie also zuletzt, wenn Count und Basisstrategie automatisch laufen, und lerne die wertvollen zuerst — das nächste Kapitel ist diese Liste."
+          "p4": "Abweichungen bringen etwa <g>10–20 %</g> zum erwarteten Gewinn eines Zählers hinzu; den Rest liefert der Bet Spread. Lerne sie also zuletzt, wenn Count und Basisstrategie automatisch laufen, und lerne die wertvollen zuerst — das nächste Kapitel ist diese Liste."
         }
       },
       "i18-fab4": {
         "title": "Illustrious 18 & Fab 4",
         "body": "Von allen möglichen Abweichungen steckt der meiste Wert in einer kleinen Auswahl: den <g>Illustrious 18</g> (den 18 wertvollsten Spielabweichungen) und den <g>Fab 4</g> (den 4 wertvollsten Aufgabe-Abweichungen). Die Namen musst du dir nicht merken — die Lernkarten-Stufe „Abweichungen“ bringt sie dir direkt als Situationen bei.",
         "more": {
-          "p1": "Es gibt Hunderte möglicher Abweichungen, und die meisten sind fast nichts wert. 1986 identifizierte Don Schlesinger die achtzehn, die den weitaus größten Teil des Wertes tragen — die <c>Illustrious 18</c> — und später die vier Surrender-Züge, die zählen, wenn Late Surrender angeboten wird, die <c>Fab 4</c>. Zusammen fangen sie rund <g>80–90 %</g> von allem ein, was Abweichungen dir geben können.",
-          "p2": "Die Liste beginnt mit den vier wichtigsten: Versicherung bei <g>+3</g>, Stehenbleiben mit 16 gegen eine 10 bei <g>0</g>, Stehenbleiben mit 15 gegen eine 10 bei <g>+4</g>, und das Teilen eines Zehnerpaars gegen eine 5 bei <g>+5</g>. Wenn du sonst nichts lernst, lerne diese.",
+          "p1": "Es gibt Hunderte möglicher Abweichungen, und die meisten sind fast nichts wert. 1986 identifizierte Don Schlesinger die achtzehn, die den weitaus größten Teil des Wertes tragen — die <c>Illustrious 18</c> — und später die vier Surrender-Züge, die zählen, wenn Late Surrender angeboten wird, die <c>Fab 4</c>. Zusammen fangen sie rund <g>80–90 %</g> von allem ein, was Abweichungen dir geben können.",
+          "p2": "Die Liste beginnt mit den vier wichtigsten: Versicherung bei <g>+3</g>, Stehenbleiben mit 16 gegen eine 10 bei <g>0</g>, Stehenbleiben mit 15 gegen eine 10 bei <g>+4</g>, und das Splitten eines Zehnerpaars gegen eine 5 bei <g>+5</g>. Wenn du sonst nichts lernst, lerne diese.",
           "p3": "Die Züge mit negativem Index sind die, die Anfänger vergessen: Bei niedrigem Count <c>ziehst</c> du bei Händen, bei denen die Basisstrategie stehen bleibt, etwa 12 gegen 4, 5 oder 6 und 13 gegen 2 oder 3. Sie kommen ständig vor, denn niedrige Counts sind so häufig wie hohe.",
-          "p4": "Die Tabellen unten werden aus der Engine dieses Trainers erzeugt — dieselben Zahlen, an denen dich der Casino-Tisch misst, sie können also nicht auseinanderlaufen. Die Indizes gelten für ein Spiel mit sechs Decks, bei dem der Dealer auf Soft 17 stehen bleibt. Die Abweichungs-Stufe der <c>Karteikarten</c> lehrt jede einzelne als Situation statt als Zeile in einer Liste."
+          "p4": "Die Tabellen unten werden aus der Engine dieses Trainers erzeugt — dieselben Zahlen, an denen dich der Casino-Tisch misst, sie können also nicht auseinanderlaufen. Die Indizes gelten für ein Spiel mit sechs Decks, bei dem der Dealer auf Soft 17 stehen bleibt. Die Abweichungs-Stufe der <c>Lernkarten</c> lehrt jede einzelne als Situation statt als Zeile in einer Liste."
         }
       },
       "bet-spread": {
         "title": "Bet Spread",
         "body": "Du setzt klein, wenn der Count tief ist, und gross, wenn er hoch ist — dieser Abstand ist dein <c>Bet Spread</c>. Fast der ganze Gewinn eines Zählers kommt daher, mehr Geld auf den Tisch zu bringen, wenn die Chancen für dich stehen. Ein Spread von <g>1–16</g> ist ein verbreiteter professioneller Standard.",
         "more": {
-          "p1": "Fast der gesamte Gewinn eines Zählers kommt aus einer Sache: mehr Geld auf dem Tisch zu haben, wenn der True Count hoch ist, als wenn er niedrig ist. Das Verhältnis zwischen deinem kleinsten und größten Einsatz ist deine <c>Einsatzspreizung</c>. Eine Spreizung von <g>1–8</g> an einem 25er-Tisch heißt 25 bei neutralem Count und 200 an der Spitze.",
+          "p1": "Fast der gesamte Gewinn eines Zählers kommt aus einer Sache: mehr Geld auf dem Tisch zu haben, wenn der True Count hoch ist, als wenn er niedrig ist. Das Verhältnis zwischen deinem kleinsten und größten Einsatz ist dein <c>Bet Spread</c>. Ein Spread von <g>1–8</g> an einem 25er-Tisch heißt 25 bei neutralem Count und 200 an der Spitze.",
           "p2": "Eine übliche Rampe für sechs Decks: eine Einheit bei True Count <g>+1 oder darunter</g>, zwei Einheiten bei <g>+2</g>, vier bei <g>+3</g>, acht bei <g>+4</g>, und dort entweder aufhören oder bei +5 auf zwölf oder sechzehn gehen. Die Faustregel dahinter ist Kelly: Setze etwa deinen Vorteil in Prozent deiner Bankroll — bei einem Prozent Vorteil ein Prozent dessen, was du hast.",
           "p3": "Die Bankroll ist das, was die Spreizung überlebbar macht. Die Schwankungen sind selbst mit Vorteil brutal; eine gängige Richtlinie sind mindestens <g>100 bis 200</g> Höchsteinsätze, und je kleiner die Bankroll, desto höher das Risiko, alles zu verlieren, bevor sich der Vorteil zeigt.",
-          "p4": "Dann ist da noch die Frage der Tarnung: Von einer Einheit auf sechzehn zu springen, sobald der Count steigt, ist das Sichtbarste, was ein Zähler tun kann. In Stufen hochzugehen und nicht sofort aufs Minimum zu fallen, wenn der Count sinkt, kostet ein wenig Vorteil und kauft viel Zeit am Tisch. Der Modus <c>Einsatzspreizung</c> trainiert die Rampe; die Casino-Session bewertet jeden Einsatz, den du machst, daran."
+          "p4": "Dann ist da noch die Frage der Tarnung: Von einer Einheit auf sechzehn zu springen, sobald der Count steigt, ist das Sichtbarste, was ein Zähler tun kann. In Stufen hochzugehen und nicht sofort aufs Minimum zu fallen, wenn der Count sinkt, kostet ein wenig Vorteil und kauft viel Zeit am Tisch. Der Modus <c>Bet Spread</c> trainiert die Rampe; die Casino-Session bewertet jeden Einsatz, den du machst, daran."
         }
       },
       "deck-estimation": {
@@ -1139,7 +1144,7 @@
         "body": "Um aus dem Running Count einen True Count zu machen, musst du abschätzen, wie viele Decks übrig sind — mit blossem Auge, an der Dicke im Ablagefach, genau wie am echten Tisch. Das klingt schwer, geht mit Übung aber schnell. Genau das trainiert der Modus <c>Deck-Schätzung</c>.",
         "more": {
           "p1": "Der True Count braucht eine Zahl, die der Tisch dir nicht zeigt: wie viele Decks noch auszuteilen sind. Du liest sie an der Ablage ab. Ein Deck mit 52 Karten ist etwa <g>1,5 cm</g> (0,6 Zoll) hoch, ein Schlitten mit sechs Decks steht also rund 9 cm hoch, und eine Ablage mit 3 cm Karten heißt, zwei Decks sind weg und vier bleiben.",
-          "p2": "Schätze in halben Decks, nicht in Karten. Schau auf die Ablage, schätze die abgelegten Karten, ziehe sie vom Schlitten ab. In einem Schlitten mit sechs Decks und etwa <g>2,5 Decks</g> in der Ablage bleiben <g>3,5</g>. Denk daran, dass die Schnittkarte meist bei rund 75 % Durchdringung sitzt, das letzte anderthalb Deck wird also nie ausgeteilt — was zählt, ist der Count gegenüber dem, was tatsächlich gespielt wird.",
+          "p2": "Schätze in halben Decks, nicht in Karten. Schau auf die Ablage, schätze die abgelegten Karten, ziehe sie vom Schlitten ab. In einem Schlitten mit sechs Decks und etwa <g>2,5 Decks</g> in der Ablage bleiben <g>3,5</g>. Denk daran, dass die Schnittkarte meist bei rund 75 % Durchdringung sitzt, das letzte anderthalb Deck wird also nie ausgeteilt — was zählt, ist der Count gegenüber dem, was tatsächlich gespielt wird.",
           "p3": "Halbdeck-Genauigkeit reicht, weniger nicht. Ein Running Count von +6 bei drei verbleibenden Decks ist ein True Count von <g>+2</g>; verschätzt du die Ablage um ein Deck, nennst du ihn <g>+3</g>, setzt den falschen Betrag und machst eine Abweichung, die du nicht hättest machen sollen. Die meisten Zählfehler an echten Tischen sind Schätzfehler, keine Additionsfehler.",
           "p4": "Mit Wiederholung wird es schnell, wie ein Glas als halb voll zu erkennen. Der Modus <c>Deck-Schätzung</c> zeigt dir Ablagestapel zufälliger Größe und bewertet deine Schätzung; ziele darauf, jedes Mal innerhalb eines halben Decks zu liegen, und mach es dann bei laufendem Count."
         }
@@ -1176,12 +1181,12 @@
       "q2": "Wie lange dauert es, Hi-Lo zu lernen?",
       "a2": "Die meisten halten nach einer Woche täglicher Übung einen genauen Running Count über ein einzelnes Deck und erreichen Tischgeschwindigkeit — eine Karte pro Sekunde oder schneller, mit True-Count-Umrechnung und Basisstrategie nebenher — in ein bis drei Monaten. Das Schwere ist nicht das Zählen; es ist, es zu tun, während alles andere passiert.",
       "q3": "Welches Zählsystem sollte ein Anfänger nutzen?",
-      "a3": "Hi-Lo. Es holt etwa 97 % des Wertes, den ein perfektes System liefern könnte, es ist eine einzige Stufe aus +1 und −1, und jedes ernsthafte Team nutzt es. Mehrstufige Systeme bringen einen Bruchteil eines Prozents mehr, für viel mehr Aufwand und mehr Fehler.",
+      "a3": "Hi-Lo. Es holt etwa 97 % des Wertes, den ein perfektes System liefern könnte, es ist eine einzige Stufe aus +1 und −1, und jedes ernsthafte Team nutzt es. Mehrstufige Systeme bringen einen Bruchteil eines Prozents mehr, für viel mehr Aufwand und mehr Fehler.",
       "q4": "Wie groß ist der Vorteil eines Kartenzählers?",
-      "a4": "Klein. Ein guter Zähler mit solider Einsatzspreizung bei anständigen Regeln hat über das ganze Spiel einen Vorteil von etwa 0,5 bis 1,5 Prozent — mit brutalen kurzfristigen Schwankungen. Es ist eine Mühe, gemessen über Tausende von Händen, kein Weg, ein Casino an einem Abend zu schlagen.",
+      "a4": "Klein. Ein guter Zähler mit solidem Bet Spread bei anständigen Regeln hat über das ganze Spiel einen Vorteil von etwa 0,5 bis 1,5 Prozent — mit brutalen kurzfristigen Schwankungen. Es ist eine Mühe, gemessen über Tausende von Händen, kein Weg, ein Casino an einem Abend zu schlagen.",
       "q5": "Muss ich mir jede gespielte Karte merken?",
       "a5": "Nein. Der Count ist eine einzige Zahl, die um eins rauf- und runtergeht. Du merkst dir nie einzelne Karten, nur die laufende Summe und ungefähr, wie viele Decks noch übrig sind.",
-      "q6": "Welche Einsatzspreizung sollte ich nutzen?",
+      "q6": "Welchen Bet Spread sollte ich nutzen?",
       "a6": "Bei sechs Decks ist eine Spreizung von 1–8 bis 1–16 der professionelle Standard: eine Einheit bei True Count +1 oder darunter, Verdopplung mit jedem Punkt, gedeckelt bei acht bis sechzehn Einheiten. Alles Engere verschenkt den größten Teil des Vorteils; alles Weitere zieht Aufmerksamkeit auf sich.",
       "q7": "Geht es in diesem Trainer um echtes Geld?",
       "a7": "Nein. Jede Hand ist simuliert. Der Trainer ist ein Lernwerkzeug für Basisstrategie und Hi-Lo-Kartenzählen; es gibt kein Glücksspiel, keine Einzahlungen und keine Auszahlungen."
@@ -1189,7 +1194,11 @@
     "readChapter": "Ganzes Kapitel lesen",
     "otherChapters": "Weitere Kapitel",
     "allChapters": "Alle Kapitel",
-    "chapterOf": "Kapitel {{n}} von {{total}}"
+    "chapterOf": "Kapitel {{n}} von {{total}}",
+    "hand": {
+      "soft": "weich {{n}}",
+      "bust": "{{n}} — Bust"
+    }
   },
   "basics": {
     "you": "Du",
@@ -1322,47 +1331,47 @@
     },
     "count_expert": {
       "name": "Zähl-Experte",
-      "desc": "Erreiche im Schnitt 90 %+ über deine letzten 20 Speed Drills"
+      "desc": "Erreiche im Schnitt 90 %+ über deine letzten 20 Speed Drills"
     },
     "six_systems": {
       "name": "Zähl-Meister",
-      "desc": "Erreiche im Schnitt 95 %+ über deine letzten 30 Speed Drills"
+      "desc": "Erreiche im Schnitt 95 %+ über deine letzten 30 Speed Drills"
     },
     "quick_counter": {
       "name": "Schnellzähler",
-      "desc": "Schaffe einen Speed Drill bei Tempo Normal mit 80 %+"
+      "desc": "Schaffe einen Speed Drill bei Tempo Normal mit 80 %+"
     },
     "lightning_fast": {
       "name": "Blitzschnell",
-      "desc": "Schaffe einen Speed Drill bei Tempo Schnell mit 80 %+"
+      "desc": "Schaffe einen Speed Drill bei Tempo Schnell mit 80 %+"
     },
     "blur": {
       "name": "Nur ein Wisch",
-      "desc": "95 %+ Trefferquote bei Tempo Schnell im Speed Drill"
+      "desc": "95 %+ Trefferquote bei Tempo Schnell im Speed Drill"
     },
     "sharp_eye": {
       "name": "Scharfes Auge",
-      "desc": "Erreiche 80 % Trefferquote in einem Durchgang"
+      "desc": "Erreiche 80 % Trefferquote in einem Durchgang"
     },
     "precision": {
       "name": "Präzision",
-      "desc": "Erreiche 90 % Trefferquote in einem Durchgang"
+      "desc": "Erreiche 90 % Trefferquote in einem Durchgang"
     },
     "sniper": {
       "name": "Scharfschütze",
-      "desc": "Erreiche 95 % Trefferquote in einem Durchgang"
+      "desc": "Erreiche 95 % Trefferquote in einem Durchgang"
     },
     "perfection": {
       "name": "Makellos",
-      "desc": "Erreiche 100 % in einem Durchgang (mind. 10 Fragen)"
+      "desc": "Erreiche 100 % in einem Durchgang (mind. 10 Fragen)"
     },
     "well_rounded": {
       "name": "Rundum solide",
-      "desc": "Erreiche 80 %+ in allen fünf Trainingsmodi"
+      "desc": "Erreiche 80 %+ in allen fünf Trainingsmodi"
     },
     "renaissance_counter": {
       "name": "Universalgelehrter",
-      "desc": "Erreiche 90 %+ in allen fünf Trainingsmodi"
+      "desc": "Erreiche 90 %+ in allen fünf Trainingsmodi"
     },
     "in_the_zone": {
       "name": "Im Flow",
@@ -1374,11 +1383,11 @@
     },
     "tc_sharpshooter": {
       "name": "TC-Scharfschütze",
-      "desc": "95 %+ Zähl-Genauigkeit in einer Casino-Session"
+      "desc": "95 %+ Zähl-Genauigkeit in einer Casino-Session"
     },
     "system_scholar": {
       "name": "Schätz-Experte",
-      "desc": "95 %+ Trefferquote in der Deck-Schätzung"
+      "desc": "95 %+ Trefferquote in der Deck-Schätzung"
     },
     "counting_grinder": {
       "name": "Lernkarten-Malocher",
@@ -1386,23 +1395,23 @@
     },
     "deviation_virtuoso": {
       "name": "Abweichungs-Virtuose",
-      "desc": "95 %+ Trefferquote bei Abweichungs-Lernkarten"
+      "desc": "95 %+ Trefferquote bei Abweichungs-Lernkarten"
     },
     "master_collector": {
       "name": "Meistersammler",
-      "desc": "Schalte 50 andere Erfolge frei"
+      "desc": "Schalte 50 andere Auszeichnungen frei"
     },
     "card_counter": {
       "name": "Erfolgsjäger",
-      "desc": "Schalte 20 andere Erfolge frei"
+      "desc": "Schalte 20 andere Auszeichnungen frei"
     },
     "quick_draw": {
       "name": "Schneller Zug",
-      "desc": "90 %+ Trefferquote in einer Schnellfeuer-Deck-Schätzung"
+      "desc": "90 %+ Trefferquote in einer Schnellfeuer-Deck-Schätzung"
     },
     "platinum_collector": {
       "name": "Platin-Sammler",
-      "desc": "Schalte 75 andere Erfolge frei"
+      "desc": "Schalte 75 andere Auszeichnungen frei"
     },
     "deviation_student": {
       "name": "Abweichungs-Schüler",
@@ -1410,11 +1419,11 @@
     },
     "illustrious_18": {
       "name": "Illustrious 18",
-      "desc": "90 %+ Trefferquote bei den Lernkarten"
+      "desc": "90 %+ Trefferquote bei den Lernkarten"
     },
     "table_general": {
       "name": "Lernkarten-Meister",
-      "desc": "95 %+ Trefferquote bei den Lernkarten"
+      "desc": "95 %+ Trefferquote bei den Lernkarten"
     },
     "fab_four_master": {
       "name": "Fab Four",
@@ -1486,19 +1495,19 @@
     },
     "spread_master": {
       "name": "Spread-Meister",
-      "desc": "Erreiche im Schnitt 90 %+ über deine letzten 10 Bet-Spread-Durchgänge"
+      "desc": "Erreiche im Schnitt 90 %+ über deine letzten 10 Bet-Spread-Durchgänge"
     },
     "deck_hawk": {
       "name": "Deck-Falke",
-      "desc": "Erreiche im Schnitt 90 %+ über deine letzten 10 Deck-Schätzungen"
+      "desc": "Erreiche im Schnitt 90 %+ über deine letzten 10 Deck-Schätzungen"
     },
     "triple_perfect": {
       "name": "Dreimal makellos",
-      "desc": "Erreiche 100 % in 3 Durchgängen (je mind. 10 Fragen)"
+      "desc": "Erreiche 100 % in 3 Durchgängen (je mind. 10 Fragen)"
     },
     "ten_perfects": {
       "name": "Perfektionist",
-      "desc": "Erreiche 100 % in 10 Durchgängen (je mind. 10 Fragen)"
+      "desc": "Erreiche 100 % in 10 Durchgängen (je mind. 10 Fragen)"
     },
     "mega_profit": {
       "name": "Mega-Gewinn",
@@ -1530,23 +1539,23 @@
     },
     "casino_valedictorian": {
       "name": "Jahrgangsbester",
-      "desc": "Erreiche Note A+ (95 %+) in einer Casino-Session"
+      "desc": "Erreiche Note A+ (95 %+) in einer Casino-Session"
     },
     "casino_bet_master": {
       "name": "Einsatz-Meister",
-      "desc": "90 %+ Einsatz-Genauigkeit in einer Casino-Session"
+      "desc": "90 %+ Einsatz-Genauigkeit in einer Casino-Session"
     },
     "casino_perfect_play": {
       "name": "Perfektes Spiel",
-      "desc": "95 %+ Spiel-Genauigkeit in einer Casino-Session"
+      "desc": "95 %+ Spiel-Genauigkeit in einer Casino-Session"
     },
     "casino_eagle_eye": {
       "name": "Adlerauge",
-      "desc": "90 %+ Zähl-Genauigkeit in einer Casino-Session"
+      "desc": "90 %+ Zähl-Genauigkeit in einer Casino-Session"
     },
     "casino_triple_threat": {
       "name": "Dreifach-Bedrohung",
-      "desc": "90 %+ bei Einsatz, Spiel UND Zählen in einer einzigen Session"
+      "desc": "90 %+ bei Einsatz, Spiel UND Zählen in einer einzigen Session"
     },
     "casino_in_the_green": {
       "name": "Im Plus",
@@ -1586,7 +1595,7 @@
     },
     "deviation_ace": {
       "name": "Abweichungs-Ass",
-      "desc": "95 %+ Abweichungs-Genauigkeit in einer Casino-Session"
+      "desc": "95 %+ Abweichungs-Genauigkeit in einer Casino-Session"
     },
     "tracker_first_session": {
       "name": "Erster Eintrag",
@@ -1666,10 +1675,10 @@
     "unlocked": "Freigeschaltet",
     "locked": "Gesperrt",
     "unknownDate": "Unbekannt",
-    "percentComplete": "{{pct}} % geschafft",
+    "percentComplete": "{{pct}} % geschafft",
     "unlockedOn": "{{name}} — {{desc}} (freigeschaltet am {{date}})",
-    "inProgress": "{{name}} — {{desc}} ({{pct}} %)",
-    "unlockedBang": "Erfolg freigeschaltet!",
+    "inProgress": "{{name}} — {{desc}} ({{pct}} %)",
+    "unlockedBang": "Auszeichnung freigeschaltet!",
     "cat": {
       "getting_started": "Erste Schritte",
       "dedication": "Ausdauer",
@@ -1690,8 +1699,8 @@
     "maxLevel": "Höchstes Level erreicht",
     "diamond": "Diamant",
     "yourClimb": "Dein Aufstieg — Level {{n}} von {{total}}",
-    "noneUnlocked": "Noch keine Erfolge freigeschaltet",
-    "allUnlocked": "Alle Erfolge freigeschaltet!",
+    "noneUnlocked": "Noch keine Auszeichnungen freigeschaltet",
+    "allUnlocked": "Alle Auszeichnungen freigeschaltet!",
     "unlockCount": "{{n}}/{{total}} freigeschaltet",
     "xpAmount": "{{xp}} XP",
     "xpToNext": "{{xp}} XP bis Level {{n}}"
@@ -1708,7 +1717,7 @@
     "learn": "Lernen",
     "analytics": "Auswertung",
     "strategyChart": "Basisstrategie-Tabelle",
-    "achievements": "Erfolge",
+    "achievements": "Auszeichnungen",
     "deviationTraining": "Abweichungs-Training",
     "casinoSessionTracker": "Casino-Session-Tracker"
   },
@@ -1733,7 +1742,7 @@
     "tagline": "Hi-Lo, geübt bis der Count von allein kommt.",
     "stat": {
       "streak": "{{count}}-Tage-Serie",
-      "accuracy": "{{pct}} % Trefferquote"
+      "accuracy": "{{pct}} % Trefferquote"
     }
   },
   "startLevel": {
@@ -1854,7 +1863,7 @@
     },
     "sharp_eye": {
       "title": "Scharfes Auge",
-      "desc": "Erreiche 80 % Trefferquote in einem Durchgang"
+      "desc": "Erreiche 80 % Trefferquote in einem Durchgang"
     },
     "winning_streak": {
       "title": "Siegesserie",
@@ -1878,7 +1887,7 @@
     },
     "precision": {
       "title": "Präzision",
-      "desc": "Erreiche 90 % Trefferquote in einem Durchgang"
+      "desc": "Erreiche 90 % Trefferquote in einem Durchgang"
     },
     "centurion": {
       "title": "Zenturio",
@@ -1902,11 +1911,11 @@
     },
     "sniper": {
       "title": "Scharfschütze",
-      "desc": "Erreiche 95 % Trefferquote in einem Durchgang"
+      "desc": "Erreiche 95 % Trefferquote in einem Durchgang"
     },
     "count_master": {
       "title": "Zähl-Meister",
-      "desc": "Erreiche 90 %+ Zähl-Genauigkeit in einer Casino-Session"
+      "desc": "Erreiche 90 %+ Zähl-Genauigkeit in einer Casino-Session"
     },
     "lightning_speed": {
       "title": "Blitztempo",
@@ -1946,7 +1955,7 @@
     },
     "accuracy_week": {
       "title": "Woche der Genauigkeit",
-      "desc": "Erreiche 85 %+ in 5 einzelnen Durchgängen"
+      "desc": "Erreiche 85 %+ in 5 einzelnen Durchgängen"
     },
     "casino_regular": {
       "title": "Casino-Stammgast",
@@ -1970,7 +1979,7 @@
     },
     "perfectionist_week": {
       "title": "Woche der Perfektion",
-      "desc": "Erreiche 90 %+ in 10 Durchgängen"
+      "desc": "Erreiche 90 %+ in 10 Durchgängen"
     },
     "ultimate_grinder": {
       "title": "Der grosse Malocher",
@@ -2041,7 +2050,7 @@
       "upgrade": "Schalte das vollständige Bild deines Kartenzähl-Vorteils frei."
     },
     "insightMsg": {
-      "weak": "Du spielst {{name}} in {{miss}} % der Fälle falsch — ein kurzer Lernkarten-Satz schliesst die Lücke am schnellsten.",
+      "weak": "Du spielst {{name}} in {{miss}} % der Fälle falsch — ein kurzer Lernkarten-Satz schliesst die Lücke am schnellsten.",
       "up": "Deine Trefferquote ist gegenüber dem Vorzeitraum um {{delta}} gestiegen — der Schwung ist auf deiner Seite.",
       "down": "Die Trefferquote ist in diesem Zeitraum um {{delta}} gefallen — ein, zwei konzentrierte Durchgänge fangen das auf.",
       "streak": "Du bist auf einer {{streak}} — Regelmässigkeit ist der eigentliche Vorteil eines Zählers. Halte sie am Leben.",
@@ -2059,7 +2068,7 @@
     },
     "planStrip": "Trainingsplan · {{done}} von {{total}} Stufen",
     "edgeStats": "{{sessions}} Durchgänge · {{hands}} Hände",
-    "noAchievements": "Noch keine Erfolge freigeschaltet. Bleib dran!",
+    "noAchievements": "Noch keine Auszeichnungen freigeschaltet. Bleib dran!",
     "heatLess": "weniger",
     "heatMore": "mehr",
     "drillTheseHands": "Diese Hände üben",
@@ -2071,7 +2080,14 @@
     "axisDeviations": "Abweichungen",
     "axisBetting": "Einsatz",
     "axisEstimation": "Schätzen",
-    "axisTablePlay": "Tischspiel"
+    "axisTablePlay": "Tischspiel",
+    "streakUnit_one": "Tag",
+    "streakUnit_other": "Tage",
+    "bestStreak": "Rekord {{n}}",
+    "tagStrong": "Stark",
+    "tagFocus": "Fokus",
+    "recentAchievements": "Neueste Auszeichnungen",
+    "unlockedCount": "{{n}} freigeschaltet"
   },
   "sim": {
     "onboardTitle": "Verfolge deine Bankroll",
@@ -2124,7 +2140,7 @@
   },
   "chart": {
     "title": "Basisstrategie-Tabelle",
-    "sub": "Die vollständige Hi-Lo-Basisstrategie — tippe eine Zelle für Details an.",
+    "sub": "Die vollständige Basisstrategie — wähle eine Zelle für Details.",
     "dealerRule": "Dealer-Regel",
     "proHeadline": "Abweichungen gehören zu Pro — sieh genau, wann der Count die Basisstrategie aussticht.",
     "s1": "I. Harte Summen (12–17+)",
@@ -2134,7 +2150,7 @@
     "countDeviation": "Count-Abweichung",
     "atTrueCount": "Ab True Count",
     "deviationsToggle": "Abweichungen (Illustrious 18)",
-    "rulesLine": "{{rules}} · 6 Decks · DAS · Late Surrender · Für Details auf eine Zelle tippen",
+    "rulesLine": "{{rules}} · 6 Decks · DAS · Late Surrender · Für Details eine Zelle wählen",
     "handHeader": "Hand",
     "yourHand": "Deine Hand:",
     "vsDealer": "gegen Dealer:",
@@ -2142,11 +2158,18 @@
     "withoutSurrender": "Ohne Late Surrender:",
     "belowThat": "(darunter: {{action}})",
     "action": {
-      "H": "Karte",
-      "S": "Bleiben",
+      "H": "Ziehen",
+      "S": "Stehen",
       "D": "Verdoppeln",
-      "SP": "Teilen",
+      "SP": "Splitten",
       "SU": "Aufgeben"
+    },
+    "explain": {
+      "H": "Nimm eine weitere Karte.",
+      "S": "Behalte deine Hand und nimm keine Karte mehr.",
+      "D": "Verdopple deinen Einsatz und nimm genau eine weitere Karte.",
+      "SP": "Splitte das Paar in zwei Hände, jede mit eigenem Einsatz.",
+      "SU": "Gib die Hand auf und erhalte die Hälfte deines Einsatzes zurück."
     }
   },
   "onboardingSteps": {
@@ -2188,7 +2211,7 @@
     "pages": {
       "learn": {
         "title": "Kartenzählen lernen — Hi-Lo, True Count, Basisstrategie, Illustrious 18",
-        "description": "Hi-Lo-Kartenzählen für Einsteiger: Running Count, True Count, Basisstrategie, Illustrious 18 und Fab 4, Einsatzspreizung und Deck-Schätzung."
+        "description": "Hi-Lo-Kartenzählen für Einsteiger: Running Count, True Count, Basisstrategie, Illustrious 18 und Fab 4, Bet Spread und Deck-Schätzung."
       },
       "login": {
         "title": "Anmelden — Blackjack Kartenzähl-Trainer",
@@ -2196,7 +2219,7 @@
       },
       "app": {
         "title": "Training — Blackjack Kartenzähl-Trainer",
-        "description": "Dein Trainingsplan, Übungen, Karteikarten, Einsatzspreizung, Deck-Schätzung und der Casino-Tisch."
+        "description": "Dein Trainingsplan, Übungen, Lernkarten, Bet Spread, Deck-Schätzung und der Casino-Tisch."
       },
       "account": {
         "title": "Konto — Blackjack Kartenzähl-Trainer",
@@ -2216,7 +2239,7 @@
       },
       "learn-card-counting": {
         "title": "Was ist Kartenzählen? So funktioniert es beim Blackjack",
-        "description": "Kartenzählen erklärt: warum der Schuh kippt, was die laufende Bilanz verfolgt und warum Zählen legal, aber unerwünscht ist. Einsteigerkapitel mit Rechenbeispielen."
+        "description": "Kartenzählen erklärt: warum der Schlitten kippt, was die laufende Bilanz verfolgt und warum Zählen legal, aber unerwünscht ist. Einsteigerkapitel mit Rechenbeispielen."
       },
       "learn-hi-lo-system": {
         "title": "Das Hi-Lo-System — Werte, Running Count, Training",
@@ -2272,14 +2295,14 @@
       "unavailable": "Die Anmeldung ist vorübergehend nicht verfügbar. Bitte später erneut versuchen.",
       "weakPassword": "Bitte wähle ein längeres Passwort — mindestens 8 Zeichen."
     },
-    "resetConfirm": "Trainingsverlauf löschen? Deine Sessions und die daraus gebaute Auswertung sind endgültig weg. Level, XP und Erfolge bleiben."
+    "resetConfirm": "Trainingsverlauf löschen? Deine Sessions und die daraus gebaute Auswertung sind endgültig weg. Level, XP und Auszeichnungen bleiben."
   },
   "xp": {
     "source": {
       "session": "Trainingssession",
-      "challenge": "Challenge",
-      "achievement": "Erfolg",
-      "achievements": "Erfolge",
+      "challenge": "Aufgabe",
+      "achievement": "Auszeichnung",
+      "achievements": "Auszeichnungen",
       "sessionCapped": "Trainingssession — Tageslimit erreicht",
       "dailyCap": "Tageslimit an XP für diesen Modus erreicht",
       "personalBest": "Trainingssession — neue persönliche Bestleistung"
@@ -2334,7 +2357,22 @@
     "loading": "Bericht wird geladen…",
     "errorTitle": "Der Bericht konnte nicht geladen werden.",
     "errorBody": "Nur eingetragene Admins können ihn lesen. Wenn du einer bist, versuch es gleich noch einmal.",
-    "definitions": "Ein Besucher ist ein Browser mit einer zufälligen Kennung. Eine Sitzung endet nach 30 Minuten ohne Aktivität; ihre Dauer reicht vom ersten Seitenaufruf bis zur letzten Aktivität. Registrierungen sind im Zeitraum erstellte Konten. Zahlende Kunden sind aktive Abonnements, gezählt zum jetzigen Zeitpunkt."
+    "definitions": "Ein Besucher ist ein Browser mit einer zufälligen Kennung. Eine Sitzung endet nach 30 Minuten ohne Aktivität; ihre Dauer reicht vom ersten Seitenaufruf bis zur letzten Aktivität. Registrierungen sind im Zeitraum erstellte Konten. Zahlende Kunden sind aktive Abonnements, gezählt zum jetzigen Zeitpunkt.",
+    "failures": {
+      "title": "Fehler",
+      "loading": "Fehler werden geladen…",
+      "empty": "Keine Fehler erfasst.",
+      "error": "Die Fehler konnten nicht geladen werden.",
+      "missingMigration": "Es wird noch nichts erfasst: Zuerst muss die Migration {{file}} eingespielt werden.",
+      "time": "Zeit",
+      "place": "Stelle",
+      "message": "Meldung",
+      "path": "Seite",
+      "signedIn": "Angemeldet",
+      "yes": "Ja",
+      "no": "Nein",
+      "note": "Die letzten 50 technischen Fehler bei einem Kauf oder einer Kontoaktion, 90 Tage aufbewahrt; Zeiten in deiner Zeitzone. Ein Fehler, der auftrat, während das Gerät offline war, kommt erst beim nächsten Besuch dieser Person an – falls es einen gibt. Niemand wird benachrichtigt: Diese Liste siehst du nur, wenn du diese Seite öffnest."
+    }
   },
   "report": {
     "title": "Dein Blackjack-Trainer-Konto",
@@ -2351,7 +2389,7 @@
       "byMode": "Nach Trainingsmodus",
       "casino": "Casino-Sessions",
       "recent": "Letzte {{count}} Sessions",
-      "achievements": "Freigeschaltete Erfolge",
+      "achievements": "Freigeschaltete Auszeichnungen",
       "bankroll": "Echtgeld-Bankroll-Log",
       "about": "Über dieses Dokument"
     },
@@ -2360,7 +2398,7 @@
       "level": "Level",
       "xp": "XP gesamt",
       "nextLevel": "Nächstes Level",
-      "achievements": "Erfolge",
+      "achievements": "Auszeichnungen",
       "firstSession": "Erste Session",
       "sessions": "Sessions",
       "practiceTime": "Trainingszeit",
@@ -2388,7 +2426,7 @@
       "end": "Ende",
       "result": "Ergebnis",
       "grade": "Note",
-      "achievement": "Erfolg",
+      "achievement": "Auszeichnung",
       "description": "Beschreibung",
       "casino": "Casino",
       "hours": "Stunden",
@@ -2397,7 +2435,7 @@
     "empty": {
       "sessions": "Noch keine Trainings-Sessions.",
       "casino": "Noch keine Casino-Sessions.",
-      "achievements": "Noch keine Erfolge freigeschaltet.",
+      "achievements": "Noch keine Auszeichnungen freigeschaltet.",
       "bankroll": "Keine Einträge im Bankroll-Log."
     },
     "aboutText": "Diese Übersicht zeigt die wichtigsten Informationen zu deinem Konto. Den vollständigen, maschinenlesbaren Datensatz mit allem, was die App über dich speichert, kannst du auf deiner Kontoseite als JSON-Datei herunterladen.",
@@ -2406,7 +2444,7 @@
   "qrReward": {
     "eyebrow": "Danke fürs Scannen",
     "title": "Hier ist deine Belohnung",
-    "percent": "{{percent}} %",
+    "percent": "{{percent}} %",
     "noNumber": "Dein Rabatt",
     "offPro": "auf Pro, mit dem Jahresplan",
     "howMuch": "{{yearly}} im Jahr statt {{monthlyTotal}} bei monatlicher Zahlung.",
@@ -2425,6 +2463,7 @@
     "more": "Mehr in der Datenschutzerklärung",
     "accept": "Akzeptieren",
     "decline": "Ablehnen",
-    "settings": "Cookie-Einstellungen"
+    "settings": "Cookie-Einstellungen",
+    "short": "Nur für unsere eigene Besuchsstatistik. Keine Werbung, keine Dritten."
   }
 }

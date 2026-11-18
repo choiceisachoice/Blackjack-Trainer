@@ -12,6 +12,7 @@ import { CURRICULUM, stageIndex, deriveStageProgress, getReadStages, claimedStag
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { Card } from '../../engine/shoe/types'
+import { cardImageUrl, preloadCardImages } from '../cards/card-suits'
 import { Suit } from '../../engine/shoe/types'
 import type { SpeedDrillDetails } from '../../services/stats-types'
 import { TrainingBackdrop } from './TrainingBackdrop'
@@ -103,6 +104,9 @@ function HiLoPrimer() {
 }
 
 export function SpeedDrill() {
+  // The faces are fetched while the setup is on screen, so the first card of
+  // a run is already there when it is shown.
+  useEffect(() => { preloadCardImages() }, [])
   const { t } = useTranslation()
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const selectedRules = useAppStore(s => s.selectedRules)
@@ -392,9 +396,18 @@ export function SpeedDrill() {
     return (
       // Neutral ground, not felt green: this is a counting drill, not a table.
       // The felt belongs to the Casino Session, where it means something.
-      <div className="app-canvas flex-1 flex flex-col items-center justify-center gap-6 px-4">
+      //
+      // `short:` is a phone held sideways (390px tall), where the 350px card
+      // ran from y 164 to 514 and Stop sat at 571. There the card is fitted to
+      // the height and stands left; progress, countdown and Stop stack beside
+      // it, and the back bar gives up its row (`data-drill-run`).
+      <div
+        data-drill-run
+        className="app-canvas flex-1 flex flex-col items-center justify-center gap-6 px-4
+          short:grid short:grid-cols-[auto_minmax(0,22rem)] short:content-center short:justify-center short:gap-x-10 short:gap-y-4"
+      >
         {/* Progress */}
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm short:col-start-2 short:row-start-1">
           <div className="flex justify-between text-xs text-content/50 mb-1">
             <span>{t('training.speed.cardProgress', { n: currentIndex + 1, total: cards.length })}</span>
             <span>{Math.round(progress)}%</span>
@@ -420,14 +433,27 @@ export function SpeedDrill() {
           alone. Scale degrades to "slightly small and perfectly readable"; the
           old opacity degraded to "gone".
         */}
+        <div className="contents short:block short:col-start-1 short:row-start-1 short:row-span-3">
         <motion.div
           key={currentIndex}
           initial={reduced ? false : { scale: 0.94 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.1 }}
-          className={`w-[250px] h-[350px] rounded-2xl bg-white border-2 border-gray-300
-            shadow-2xl flex flex-col justify-between p-4 ${isRed ? 'text-red-600' : 'text-gray-900'}`}
+          className={`relative w-[250px] h-[350px] short:h-[calc(100dvh-7rem)] short:w-[calc((100dvh-7rem)*5/7)]
+            short:max-h-[350px] short:max-w-[250px] rounded-2xl bg-white border-2 border-gray-300
+            shadow-2xl flex flex-col justify-between p-4 overflow-hidden ${isRed ? 'text-red-600' : 'text-gray-900'}`}
+          data-testid="drill-card"
         >
+          {/* The standard card, on top of the drawn one. The drawn card stays
+              underneath on purpose: if an image is late or fails, the rank is
+              still there to be read — the drill never waits for a picture. */}
+          <img
+            src={cardImageUrl(card.rank, card.suit)}
+            alt=""
+            aria-hidden
+            draggable={false}
+            className="absolute inset-0 w-full h-full select-none"
+          />
           <div className="flex flex-col leading-none">
             <span className="text-4xl font-bold">{card.rank}</span>
             <span className="text-3xl">{SUIT_SYMBOL[card.suit]}</span>
@@ -440,9 +466,10 @@ export function SpeedDrill() {
             <span className="text-3xl">{SUIT_SYMBOL[card.suit]}</span>
           </div>
         </motion.div>
+        </div>
 
         {/* Countdown bar. Position is written by the frame loop above. */}
-        <div className="w-[250px] h-1 bg-contrast/10 rounded-full overflow-hidden">
+        <div className="w-[250px] h-1 bg-contrast/10 rounded-full overflow-hidden short:w-full short:col-start-2 short:row-start-2">
           <div
             ref={countdownRef}
             data-testid="drill-countdown"
@@ -455,7 +482,8 @@ export function SpeedDrill() {
 
         <button
           onClick={handleAbort}
-          className="text-sm text-content/40 hover:text-content/70 transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center min-h-10 px-4 text-sm text-content/40 hover:text-content/70 transition-colors cursor-pointer
+            short:col-start-2 short:row-start-3 short:justify-self-center"
         >
           {t('training.speed.stopEsc')}
         </button>
@@ -466,7 +494,7 @@ export function SpeedDrill() {
   // ── Input Phase ──
   if (phase === 'input') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
+      <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-4">
         <h2 className="text-xl font-bold text-content">{t('training.speed.question')}</h2>
 
         <div className="flex items-center gap-4">
@@ -482,7 +510,7 @@ export function SpeedDrill() {
             type="number"
             value={userAnswer}
             onChange={(e) => setUserAnswer(Number(e.target.value) || 0)}
-            data-testid="count-input"
+            inputMode="numeric" data-testid="count-input"
             className="w-24 h-16 text-center text-3xl font-bold bg-contrast/10 border border-contrast/20
               rounded-xl text-content focus:border-gold/60
               [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -519,10 +547,12 @@ export function SpeedDrill() {
   const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-4">
-      <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
+    // Sideways phone: the verdict left, the figures and the two ways on right.
+    // This screen has its own way back, so the back bar's row goes to it too.
+    <div data-drill-run className="flex-1 flex flex-col items-center justify-center px-4">
+      <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6 short:max-w-3xl short:flex-row short:p-4">
         {/* Result banner */}
-        <div className="flex flex-col items-center text-center gap-3">
+        <div className="flex flex-col items-center text-center gap-3 short:flex-1">
           <span className={`grid place-items-center w-16 h-16 rounded-full border
             ${isCorrect ? 'text-success bg-success/10 border-success/30' : 'text-error bg-error/10 border-error/30'}`}>
             {isCorrect ? <Check size={32} /> : <X size={32} />}
@@ -537,6 +567,7 @@ export function SpeedDrill() {
           )}
         </div>
 
+        <div className="contents short:flex short:flex-1 short:flex-col short:gap-3">
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 w-full text-center">
           <StatCard label={t('training.common.streak')} value={streak} />
@@ -563,6 +594,7 @@ export function SpeedDrill() {
           >
             {t('training.common.backToMenu')}
           </button>
+        </div>
         </div>
       </div>
     </div>

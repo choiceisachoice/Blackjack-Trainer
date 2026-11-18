@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { getConsent, setConsent, clearConsent, onConsentChanged } from '../../services/analytics/consent-choice'
@@ -21,10 +21,27 @@ export function CookieBanner() {
   const consent = useSyncExternalStore(onConsentChanged, getConsent, () => 'declined' as const)
   const applies = useSyncExternalStore(() => () => {}, consentQuestionApplies, () => false)
 
-  if (!applies || consent !== null) return null
+  // While the bar is up it publishes its height, so a button pinned to the
+  // bottom of a phone screen (the table setup's Start, the welcome's first
+  // step) stands on top of it instead of under it.
+  const bar = useRef<HTMLDivElement>(null)
+  const showing = applies && consent === null
+  useEffect(() => {
+    const el = bar.current
+    if (!showing || !el) return
+    const root = document.documentElement
+    const publish = () => root.style.setProperty('--cookie-bar', `${Math.ceil(el.getBoundingClientRect().height)}px`)
+    publish()
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
+    observer?.observe(el)
+    return () => { observer?.disconnect(); root.style.removeProperty('--cookie-bar') }
+  }, [showing])
+
+  if (!showing) return null
 
   return (
     <div
+      ref={bar}
       role="dialog"
       aria-modal="false"
       aria-label={t('consent.title')}
@@ -33,13 +50,16 @@ export function CookieBanner() {
     >
       <div
         className="pointer-events-auto mx-auto max-w-3xl rounded-2xl border border-contrast/12 bg-[var(--color-surface-2)]
-          shadow-[0_18px_50px_-12px_rgba(0,0,0,.85)] p-4 sm:p-5
-          flex flex-col sm:flex-row sm:items-center gap-4"
+          shadow-[0_18px_50px_-12px_rgba(0,0,0,.85)] p-3.5 sm:p-5
+          flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
       >
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-content">{t('consent.title')}</h2>
           <p className="mt-1 text-sm text-content/65 leading-relaxed">
-            {t('consent.body')}{' '}
+            {/* A phone gets the short version: the long one made the bar a
+                third of the screen and put it on top of the start buttons. */}
+            <span className="max-sm:hidden">{t('consent.body')}</span>
+            <span className="sm:hidden">{t('consent.short')}</span>{' '}
             <Link to="/privacy" className="underline underline-offset-2 text-content/80 hover:text-gold">
               {t('consent.more')}
             </Link>

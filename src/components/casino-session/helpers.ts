@@ -239,11 +239,21 @@ const SEAT_ROOM = TABLE_CARD.width + TABLE_CARD.step + 44
  * Whether a box calls for the stacked layout: narrower than a small tablet
  * and taller than it is wide.
  *
+ * Where the screen's own size is known it decides "taller than wide", not the
+ * box: on a 360 × 640 phone the box left for the table is almost square, and
+ * the five pixels the action buttons add to the controls tipped it over — the
+ * table changed from two rows to one arc and back inside every round (phone
+ * audit, 18 Nov 2026). How a phone is held does not change during a hand.
+ *
  * @param available - The box the table may fill
+ * @param screen - The viewport, when known
  */
-export function isStackedBox(available: Size): boolean {
+export function isStackedBox(available: Size, screen?: Size): boolean {
+  const upright = screen && screen.width > 0 && screen.height > 0
+    ? screen.height > screen.width
+    : available.height > available.width
   return Number.isFinite(available.width) && Number.isFinite(available.height)
-    && available.width > 0 && available.width < 600 && available.height > available.width
+    && available.width > 0 && available.width < 600 && upright
 }
 
 /**

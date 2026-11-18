@@ -17,6 +17,9 @@ import {
   formatDuration,
   splitHoursMinutes,
   formatWhen,
+  formatPercent,
+  percentMarked,
+  handLabel,
 } from './analytics-derive'
 
 const NOW = new Date('2026-07-08T12:00:00.000Z')
@@ -123,7 +126,11 @@ describe('buildKpis', () => {
     expect(byKey.sessions.delta).toBe(1) // 2 - 1
     expect(byKey.hands.display).toBe('20')
     expect(byKey.hands.delta).toBe(10) // 20 - 10
-    expect(byKey.streak.display).toBe('4~ days')
+    // The number alone: "days" is a translated plural, so it travels as a
+    // key and a count, not as English inside the display string.
+    expect(byKey.streak.display).toBe('4')
+    expect(byKey.streak.unit).toEqual({ key: 'analytics.streakUnit', count: 4 })
+    expect(byKey.accuracy.deltaDisplay).toBe('+20.0%')
     expect(byKey.time.delta).toBe(600 - 120)
   })
 
@@ -273,6 +280,51 @@ function dev(perDeviation: Record<string, [number, number]>): SessionDetails {
   return { type: 'deviationFlashCards', deviationSet: 'all', perDeviation: per }
 }
 
+describe('formatPercent', () => {
+  it('writes the decimal separator and the sign position of the active language', async () => {
+    expect(formatPercent(0.103)).toBe('10.3%')
+    await i18next.changeLanguage('de')
+    try {
+      // A comma, and a no-break space before the sign — "10.3%" on a German
+      // page was the finding.
+      expect(formatPercent(0.103)).toBe('10,3\u00a0%')
+    } finally {
+      await i18next.changeLanguage('en')
+    }
+  })
+})
+
+describe('handLabel', () => {
+  it('translates the side bet and leaves the hands as they are', () => {
+    // A stand-in translator: the point is which name goes through it.
+    const t = ((key: string) => `<${key}>`) as Parameters<typeof handLabel>[1]
+    expect(handLabel('16 vs 10', t)).toBe('16 vs 10')
+    expect(handLabel('Insurance', t)).toBe('<actions.insurance>')
+  })
+})
+
 // Type guard sanity: modes referenced above are valid TrainingMode values.
 const _modes: TrainingMode[] = ['speedDrill', 'deviationFlashCards', 'deckEstimation', 'casinoSession']
 void _modes
+
+/** The KPI tile's figure, as each language writes a percentage (18 Nov 2026). */
+describe('percentMarked', () => {
+  it('marks the sign as the small part where it follows the number', async () => {
+    expect(percentMarked(0.9)).toBe('90~%')
+    await i18next.changeLanguage('de')
+    try {
+      expect(percentMarked(0.9)).toBe('90~ %')
+    } finally {
+      await i18next.changeLanguage('en')
+    }
+  })
+
+  it('leaves the figure whole where the sign comes first', async () => {
+    await i18next.changeLanguage('tr')
+    try {
+      expect(percentMarked(0.9)).toBe('%90')
+    } finally {
+      await i18next.changeLanguage('en')
+    }
+  })
+})

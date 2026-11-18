@@ -132,7 +132,9 @@ export function Toggle({ checked, onChange, label, testId }: {
   testId?: string
 }) {
   return (
-    <label className="flex items-center justify-between gap-4 cursor-pointer">
+    // 40px tall: the switch itself is 24, and on a phone that was the whole
+    // target. The label is part of it, so the row is.
+    <label className="flex items-center justify-between gap-4 cursor-pointer min-h-10">
       <span className="text-sm text-content/80">{label}</span>
       <button
         type="button"
@@ -309,7 +311,9 @@ export function Slider({ value, onChange, label, testId, className = '' }: {
           aria-valuetext={`${Math.round(value * 100)}%`}
           data-testid={testId}
           onChange={e => onChange(parseFloat(e.target.value))}
-          className="w-32 h-1 accent-gold cursor-pointer"
+          // The track is drawn 4px high inside a 40px box: the box is what a
+          // finger meets.
+          className="w-32 h-10 accent-gold cursor-pointer bg-transparent"
         />
       </span>
     </label>

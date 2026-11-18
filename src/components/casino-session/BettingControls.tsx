@@ -145,6 +145,11 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
         for the tests (`getByText('+$25')`): one node, visually hidden, while
         the face of the chip shows the plain value.
       */}
+      {/* On a desktop the chips and the Deal button share one row. Stacked,
+          the panel was 155px tall and set the height of the whole controls
+          area — on a 730px laptop window that was a quarter of the screen
+          kept empty under a table drawn small to make room for it. */}
+      <div className={compact ? 'contents' : 'flex flex-col items-center gap-2 lg:flex-row lg:gap-8 short:flex-col short:gap-2'}>
       {/* Beside a phone held sideways the six chips are two rows of three: a
           wrapping row left the sixth alone on a line of its own. */}
       <div className={`flex flex-wrap justify-center short:grid short:grid-cols-3 short:justify-items-center ${compact ? 'gap-2' : 'gap-2.5'}`}>
@@ -172,7 +177,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
       {/* The Deal button and the betting clock share a row; the clock is laid
           out beside the button, not under it, so it adds no height to a panel
           the table's size depends on. */}
-      <div className={compact ? 'flex items-center gap-3' : 'relative'}>
+      <div className={compact ? 'flex items-center gap-3' : 'relative lg:ml-24 lg:mr-12 short:mx-0'}>
       {secondsLeft !== undefined && (
         <div
           // The bar to the left of the button and the time to its right, so
@@ -203,6 +208,7 @@ export function BettingControls({ currentBet, minBet, maxBet, bankroll, onBetCha
           disabled:hover:shadow-[0_1px_2px_rgba(0,0,0,0.35)]`}>
         {t('casino.table.deal', { amount: dealAmount ?? formatDollar(currentBet > 0 ? currentBet : minBet) + (hands > 1 ? ` × ${hands}` : '') })}
       </button>
+      </div>
       </div>
     </div>
   )

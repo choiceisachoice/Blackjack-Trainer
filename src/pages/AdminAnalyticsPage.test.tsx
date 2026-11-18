@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { AnalyticsReport } from '../services/analytics/report'
+import type { ClientFailure, ClientFailuresResult } from '../services/analytics/failures'
 
 const fetchAnalyticsReport = vi.fn<(b: { from: Date; to: Date }) => Promise<AnalyticsReport>>()
 vi.mock('../services/analytics/report', async (importOriginal) => {
@@ -9,7 +10,34 @@ vi.mock('../services/analytics/report', async (importOriginal) => {
   return { ...real, fetchAnalyticsReport: (b: { from: Date; to: Date }) => fetchAnalyticsReport(b) }
 })
 
+const fetchClientFailures = vi.fn<(limit?: number) => Promise<ClientFailuresResult>>()
+vi.mock('../services/analytics/failures', async (importOriginal) => {
+  const real = await importOriginal<typeof import('../services/analytics/failures')>()
+  return { ...real, fetchClientFailures: (limit?: number) => fetchClientFailures(limit) }
+})
+
 import { AdminAnalyticsPage } from './AdminAnalyticsPage'
+
+const FAILURES: ClientFailure[] = [
+  {
+    id: 12,
+    occurred_at: '2026-11-18T09:30:00+00:00',
+    place: 'checkout',
+    message: 'FunctionsHttpError: Edge Function returned a non-2xx status code',
+    path: '/de/app',
+    signed_in: true,
+    app_build: 'index-B4x9Kq.js',
+  },
+  {
+    id: 11,
+    occurred_at: '2026-11-17T22:05:00+00:00',
+    place: 'checkout-landing',
+    message: 'TypeError: Failed to fetch',
+    path: null,
+    signed_in: false,
+    app_build: null,
+  },
+]
 
 const REPORT: AnalyticsReport = {
   visitors: 47,
@@ -46,6 +74,8 @@ const renderPage = () => render(<MemoryRouter><AdminAnalyticsPage /></MemoryRout
 beforeEach(() => {
   cleanup()
   fetchAnalyticsReport.mockReset()
+  fetchClientFailures.mockReset()
+  fetchClientFailures.mockResolvedValue({ kind: 'ok', rows: [] })
 })
 
 describe('AdminAnalyticsPage', () => {
@@ -145,5 +175,111 @@ describe('AdminAnalyticsPage', () => {
     fetchAnalyticsReport.mockResolvedValue(REPORT)
     renderPage()
     expect(await screen.findByTestId('analytics-definitions')).toHaveTextContent(/30 minutes/)
+  })
+})
+
+describe('AdminAnalyticsPage — failures', () => {
+  beforeEach(() => {
+    fetchAnalyticsReport.mockResolvedValue(REPORT)
+  })
+
+  it('asks for the latest 50', async () => {
+    renderPage()
+    await screen.findByTestId('failures-empty')
+    expect(fetchClientFailures).toHaveBeenCalledTimes(1)
+    expect(fetchClientFailures).toHaveBeenCalledWith(50)
+  })
+
+  it('lists each failure: time in the browser’s zone, place, message, page, signed in', async () => {
+    fetchClientFailures.mockResolvedValue({ kind: 'ok', rows: FAILURES })
+    renderPage()
+    const rows = await screen.findAllByTestId('failure-row')
+    expect(rows).toHaveLength(2)
+
+    // Whatever zone the test machine is in, it is the browser's rendering of
+    // the server's instant — and the instant itself stays machine-readable.
+    expect(rows[0]).toHaveTextContent(new Date(FAILURES[0].occurred_at).toLocaleString('en'))
+    expect(rows[0].querySelector('time')).toHaveAttribute('datetime', FAILURES[0].occurred_at)
+    expect(rows[0]).toHaveTextContent('checkout')
+    expect(rows[0]).toHaveTextContent('FunctionsHttpError: Edge Function returned a non-2xx status code')
+    expect(rows[0]).toHaveTextContent('/de/app')
+    expect(rows[0].lastElementChild).toHaveTextContent(/^Yes$/)
+
+    expect(rows[1]).toHaveTextContent('checkout-landing')
+    expect(rows[1]).toHaveTextContent('TypeError: Failed to fetch')
+    expect(rows[1].lastElementChild).toHaveTextContent(/^No$/)
+    // No page recorded is a dash, not an empty cell that looks like a bug.
+    expect(rows[1].children[3]).toHaveTextContent(/^—$/)
+
+    expect(screen.queryByTestId('failures-empty')).not.toBeInTheDocument()
+  })
+
+  it('keeps the order the database gave: newest first', async () => {
+    fetchClientFailures.mockResolvedValue({ kind: 'ok', rows: FAILURES })
+    renderPage()
+    const rows = await screen.findAllByTestId('failure-row')
+    expect(rows.map(r => r.children[1].textContent)).toEqual(['checkout', 'checkout-landing'])
+  })
+
+  it('heads the columns', async () => {
+    fetchClientFailures.mockResolvedValue({ kind: 'ok', rows: FAILURES })
+    renderPage()
+    await screen.findByTestId('failures-table')
+    expect(screen.getAllByRole('columnheader').map(h => h.textContent)).toEqual(['Time', 'Place', 'Message', 'Page', 'Signed in'])
+  })
+
+  it('says so when there are none', async () => {
+    renderPage()
+    expect(await screen.findByTestId('failures-empty')).toHaveTextContent('No failures recorded.')
+    expect(screen.queryByTestId('failures-table')).not.toBeInTheDocument()
+  })
+
+  it('is honest about what the list cannot show', async () => {
+    renderPage()
+    const note = await screen.findByTestId('failures-note')
+    // Offline failures arrive late or never; nobody is notified.
+    expect(note).toHaveTextContent(/offline only arrives on that visitor’s next visit — if there is one/)
+    expect(note).toHaveTextContent(/Nothing notifies you/)
+    expect(note).toHaveTextContent(/90 days/)
+  })
+
+  it('names the migration to push, instead of an error, when the function is missing', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    fetchClientFailures.mockResolvedValue({ kind: 'missing-migration' })
+    renderPage()
+    expect(await screen.findByTestId('failures-missing-migration')).toHaveTextContent('20261118120000_client_failures.sql')
+    expect(screen.queryByTestId('failures-error')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('failures-empty')).not.toBeInTheDocument()
+    expect(err).not.toHaveBeenCalled()
+    err.mockRestore()
+  })
+
+  it('says in a sentence when the list could not be loaded, and never shows what was thrown', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    fetchClientFailures.mockRejectedValue(new Error('permission denied for function client_failures_recent'))
+    renderPage()
+    expect(await screen.findByTestId('failures-error')).toHaveTextContent('The failures could not be loaded.')
+    expect(screen.queryByText(/permission denied/)).not.toBeInTheDocument()
+    err.mockRestore()
+  })
+
+  it('still shows the failures when the report itself is refused', async () => {
+    // A failed checkout must not be hidden behind an unrelated broken chart.
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    fetchAnalyticsReport.mockRejectedValue(new Error('boom'))
+    fetchClientFailures.mockResolvedValue({ kind: 'ok', rows: FAILURES })
+    renderPage()
+    expect(await screen.findByText('The report could not be loaded.')).toBeInTheDocument()
+    expect(await screen.findAllByTestId('failure-row')).toHaveLength(2)
+    err.mockRestore()
+  })
+
+  it('reloads together with the report', async () => {
+    renderPage()
+    await screen.findByTestId('failures-empty')
+    fetchClientFailures.mockResolvedValue({ kind: 'ok', rows: FAILURES })
+    fireEvent.click(screen.getByTestId('analytics-reload'))
+    expect(await screen.findAllByTestId('failure-row')).toHaveLength(2)
+    expect(fetchClientFailures).toHaveBeenCalledTimes(2)
   })
 })

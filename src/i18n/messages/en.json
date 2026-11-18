@@ -42,7 +42,10 @@
     "proFeature": "Pro feature",
     "backToMenu": "Back to main menu",
     "more": "More",
-    "menu": "Menu"
+    "menu": "Menu",
+    "sound": "Sound",
+    "soundOn": "Sound on",
+    "soundOff": "Sound off"
   },
   "session": {
     "leave": {
@@ -160,7 +163,8 @@
     "flexibleSwitch": "Flexible — switch to yearly anytime",
     "secureCheckout": "Secure checkout by Stripe. Cancel anytime from your account.",
     "everythingInFree": "Everything in Free, plus:",
-    "goProPrice": "Go Pro — {{price}}"
+    "goProPrice": "Go Pro — {{price}}",
+    "atCheckout": "Price shown at checkout"
   },
   "landing": {
     "nav": {
@@ -242,7 +246,7 @@
       "t2title": "Analytics that don’t lie",
       "t2body": "Accuracy trend, practice heatmap and your weakest hands — from your real sessions.",
       "t3title": "Levels & achievements",
-      "t3body": "100+ goals and a 25-level track that pull you from first hand to genuine advantage play.",
+      "t3body": "Nearly 100 goals and a 25-level track that pull you from first hand to genuine advantage play.",
       "t4title": "Full Casino Session",
       "t4body": "A real multi-seat felt table — bots, splits, doubles, payouts and dealer soft-17 rules. The closest thing to the pit.",
       "t5title": "Deviations on the chart",
@@ -455,13 +459,13 @@
       "betEquals": "Bet = multiplier × the table minimum (shown each question).",
       "questionType": "Question Type",
       "typeRandom": "Random",
-      "typeA": "Type A",
-      "typeB": "Type B",
-      "typeC": "Type C",
+      "typeA": "Bet from RC",
+      "typeB": "Bet from TC",
+      "typeC": "TC + bet",
       "helpRandom": "Mix of all question types",
-      "helpA": "Type A — given RC and remaining decks, choose the optimal bet",
-      "helpB": "Type B — given the True Count, choose the optimal bet",
-      "helpC": "Type C — given RC and remaining decks, enter the TC and choose the bet",
+      "helpA": "You get the running count and the decks left — work out the true count in your head and choose the bet.",
+      "helpB": "You get the true count — choose the bet that goes with it.",
+      "helpC": "You get the running count and the decks left — enter the true count, then choose the bet. Both have to be right.",
       "tableMinimum": "Table Minimum",
       "runningCount": "Running Count",
       "remainingDecks": "Remaining Decks",
@@ -650,7 +654,8 @@
       "timeUp_one": "1 minute played — finish this hand",
       "timeUp_other": "{{count}} minutes played — finish this hand",
       "speedFast": "Fast",
-      "insuranceAskHand": "Insure hand {{n}}? (Dealer shows Ace)"
+      "insuranceAskHand": "Insure hand {{n}}? (Dealer shows Ace)",
+      "continue": "Continue (Enter)"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -1189,7 +1194,11 @@
     "readChapter": "Read the full chapter",
     "otherChapters": "Other chapters",
     "allChapters": "All chapters",
-    "chapterOf": "Chapter {{n}} of {{total}}"
+    "chapterOf": "Chapter {{n}} of {{total}}",
+    "hand": {
+      "soft": "soft {{n}}",
+      "bust": "{{n}} — bust"
+    }
   },
   "basics": {
     "you": "You",
@@ -2071,7 +2080,14 @@
     "axisDeviations": "Deviations",
     "axisBetting": "Betting",
     "axisEstimation": "Estimation",
-    "axisTablePlay": "Table play"
+    "axisTablePlay": "Table play",
+    "streakUnit_one": "day",
+    "streakUnit_other": "days",
+    "bestStreak": "Best {{n}}",
+    "tagStrong": "Strong",
+    "tagFocus": "Focus",
+    "recentAchievements": "Recent achievements",
+    "unlockedCount": "{{n}} unlocked"
   },
   "sim": {
     "onboardTitle": "Start Tracking Your Bankroll",
@@ -2124,7 +2140,7 @@
   },
   "chart": {
     "title": "Basic Strategy Chart",
-    "sub": "The complete Hi-Lo basic strategy — tap any cell for details.",
+    "sub": "The complete basic strategy — select any cell for details.",
     "dealerRule": "Dealer rule",
     "proHeadline": "Deviations are a Pro feature — see exactly when to break basic strategy by the count.",
     "s1": "I. Hard Totals (12-17+)",
@@ -2134,7 +2150,7 @@
     "countDeviation": "Count Deviation",
     "atTrueCount": "At True Count",
     "deviationsToggle": "Deviations (Illustrious 18)",
-    "rulesLine": "{{rules}} · 6 Deck · DAS · Late Surrender · Tap any cell for details",
+    "rulesLine": "{{rules}} · 6 Deck · DAS · Late Surrender · Select any cell for details",
     "handHeader": "Hand",
     "yourHand": "Your Hand:",
     "vsDealer": "vs Dealer:",
@@ -2147,6 +2163,13 @@
       "D": "Double",
       "SP": "Split",
       "SU": "Surrender"
+    },
+    "explain": {
+      "H": "Take another card.",
+      "S": "Keep the hand you have and take no more cards.",
+      "D": "Double your bet and take exactly one more card.",
+      "SP": "Split the pair into two hands, each with its own bet.",
+      "SU": "Give up the hand and get half your bet back."
     }
   },
   "onboardingSteps": {
@@ -2334,7 +2357,22 @@
     "loading": "Loading the report…",
     "errorTitle": "The report could not be loaded.",
     "errorBody": "Only listed admins can read it. If you are one, try again in a moment.",
-    "definitions": "A visitor is a browser with a random id. A session ends after 30 minutes without activity; its length runs from the first page view to the last activity. Registrations are accounts created in the range. Paying customers are active subscriptions, counted right now."
+    "definitions": "A visitor is a browser with a random id. A session ends after 30 minutes without activity; its length runs from the first page view to the last activity. Registrations are accounts created in the range. Paying customers are active subscriptions, counted right now.",
+    "failures": {
+      "title": "Failures",
+      "loading": "Loading the failures…",
+      "empty": "No failures recorded.",
+      "error": "The failures could not be loaded.",
+      "missingMigration": "Nothing is being recorded yet: the migration {{file}} has to be pushed first.",
+      "time": "Time",
+      "place": "Place",
+      "message": "Message",
+      "path": "Page",
+      "signedIn": "Signed in",
+      "yes": "Yes",
+      "no": "No",
+      "note": "The latest 50 technical failures of a checkout or an account action, kept for 90 days; times are in your time zone. A failure that happened while the device was offline only arrives on that visitor’s next visit — if there is one. Nothing notifies you: this list is only seen when you open this page."
+    }
   },
   "report": {
     "title": "Your Blackjack Trainer account",
@@ -2425,6 +2463,7 @@
     "more": "More in the privacy policy",
     "accept": "Accept",
     "decline": "Decline",
-    "settings": "Cookie settings"
+    "settings": "Cookie settings",
+    "short": "Only for our own visit statistics. No ads, no third parties."
   }
 }

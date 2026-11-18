@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useStatsStore } from '../../store/stats-store'
 import { useAchievementStore } from '../../store/achievement-store'
@@ -15,6 +15,7 @@ import {
   claimedStageIds,
   stageIndex,
 } from '../../services/curriculum'
+import { getProfile, goalStage } from '../../services/learner-profile'
 import type { TrainingSessionResult } from '../../services/stats-types'
 import { achievementEngine } from '../../services/achievements/achievement-engine'
 import { getAchievementById, achievementName } from '../../services/achievements/achievement-list'
@@ -23,6 +24,7 @@ import {
   RANGE_LABEL_KEY,
   MODE_DISPLAY,
   formatWhen,
+  formatPercent,
   buildKpis,
   buildTrend,
   buildHeatmap,
@@ -31,6 +33,7 @@ import {
   buildEdge,
   buildWeakestHands,
   deriveInsight,
+  handLabel,
   type TimeRange,
   type Kpi,
 } from './analytics-derive'
@@ -114,6 +117,13 @@ function KpiTile({ kpi, hero, footNote }: { kpi: Kpi; hero?: boolean; footNote?:
       <div className="text-[0.75rem] font-semibold tracking-[0.12em] uppercase text-content/50">{t(kpi.labelKey)}</div>
       <div className="text-[clamp(1.6rem,3vw,2.05rem)] font-extrabold tracking-tight leading-none mt-2 text-content">
         {renderKpiValue(kpi.display)}
+        {kpi.unit && (
+          <small className="text-[0.5em] font-bold text-content/50 ml-1">
+            {/* The plural key carries the number for languages that need it to
+                pick a form; the figure itself is already printed large. */}
+            {t(kpi.unit.key, { count: kpi.unit.count })}
+          </small>
+        )}
       </div>
       <div className="flex items-center justify-between mt-2 min-h-[26px]">
         {showPill ? (
@@ -157,6 +167,47 @@ function renderInsight(text: string, highlights: string[]) {
  * All figures derive from real stored sessions — nothing is illustrative.
  */
 /**
+ * A box that scrolls sideways and says so.
+ *
+ * The session table is wider than its card on a phone and scrolled inside it
+ * with nothing to show that it did — the last column was simply cut. While
+ * there is more to the right (or to the left), that edge fades out.
+ */
+function ScrollFade({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [more, setMore] = useState({ left: false, right: false })
+  useEffect(() => {
+    const box = ref.current
+    if (!box) return
+    const update = () => {
+      const left = box.scrollLeft > 1
+      const right = box.scrollLeft + box.clientWidth < box.scrollWidth - 1
+      setMore(m => (m.left === left && m.right === right ? m : { left, right }))
+    }
+    update()
+    box.addEventListener('scroll', update, { passive: true })
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
+    observer?.observe(box)
+    return () => {
+      box.removeEventListener('scroll', update)
+      observer?.disconnect()
+    }
+  }, [])
+  const mask = `linear-gradient(90deg, ${more.left ? 'transparent' : '#000'}, #000 28px, #000 calc(100% - 28px), ${more.right ? 'transparent' : '#000'})`
+  return (
+    <div
+      ref={ref}
+      data-testid="scroll-fade"
+      data-more-right={more.right}
+      className="overflow-x-auto overflow-y-hidden"
+      style={more.left || more.right ? { maskImage: mask, WebkitMaskImage: mask } : undefined}
+    >
+      {children}
+    </div>
+  )
+}
+
+/**
  * The training plan, condensed to one row: how far along the path the learner
  * is and what they are working on.
  *
@@ -178,9 +229,15 @@ function PlanStrip({
 
   const progress = deriveCurriculum(sessions, getReadStages(), isPro, claimedStageIds())
   const active = currentStage(progress, placement)
+  // Counted the way the plan counts, along the whole road to the goal: the
+  // stages behind the starting point are behind, and the road ends where the
+  // learner's goal ends, not at the last stage there is. This strip used to
+  // count from the placement to the end of the curriculum — "1 of 3 stages"
+  // above a plan that said five of seven.
   const from = stageIndex(placement)
-  const total = progress.length - from
-  const done = progress.slice(from).filter(p => p.done).length
+  const goalIndex = stageIndex(goalStage(getProfile()?.goal ?? 'serious'))
+  const total = goalIndex + 1
+  const done = from + progress.slice(from, goalIndex + 1).filter(p => p.done).length
 
   return (
     <button
@@ -341,7 +398,18 @@ export function AnalyticsDashboard() {
               </div>
               <div className="text-[13.5px] leading-snug text-content/90">
                 <span className="block text-[0.6875rem] font-bold tracking-[0.14em] uppercase text-content/50">{t('analytics.insight')}</span>
-                {renderInsight(t(derived.insight.textKey, derived.insight.values), derived.insight.highlights)}
+                {/* The hand's name is translated on the way in, and its
+                    highlight with it, or the bold would look for "Insurance"
+                    in a sentence that says "Versicherung". */}
+                {renderInsight(
+                  t(derived.insight.textKey, {
+                    ...derived.insight.values,
+                    ...(typeof derived.insight.values?.name === 'string'
+                      ? { name: handLabel(derived.insight.values.name, t) }
+                      : {}),
+                  }),
+                  derived.insight.highlights.map(h => handLabel(h, t)),
+                )}
               </div>
             </div>
 
@@ -352,7 +420,7 @@ export function AnalyticsDashboard() {
                   key={kpi.key}
                   kpi={kpi}
                   hero={kpi.key === 'accuracy'}
-                  footNote={kpi.key === 'streak' && bestStreak > 0 ? `Best ${bestStreak}` : undefined}
+                  footNote={kpi.key === 'streak' && bestStreak > 0 ? t('analytics.bestStreak', { n: bestStreak }) : undefined}
                 />
               ))}
             </section>
@@ -479,14 +547,14 @@ export function AnalyticsDashboard() {
 
             {/* Recent sessions */}
             <Panel title={t('analytics.recentSessions')} note={t('analytics.note.lastN', { n: Math.min(sessions.length, 8) })}>
-              <div className="overflow-x-auto overflow-y-hidden">
-                <table className="w-full text-[0.85rem] border-collapse tabular-nums">
+              <ScrollFade>
+                <table className="w-full text-[0.85rem] border-collapse tabular-nums whitespace-nowrap">
                   <thead>
                     <tr className="text-[0.6875rem] tracking-[0.1em] uppercase text-content/40">
-                      <th className="text-left font-semibold px-2.5 pb-2.5">{t('analytics.col.when')}</th>
-                      <th className="text-left font-semibold px-2.5 pb-2.5">{t('analytics.col.mode')}</th>
-                      <th className="text-right font-semibold px-2.5 pb-2.5">{t('analytics.col.accuracy')}</th>
-                      <th className="text-right font-semibold px-2.5 pb-2.5">{t('analytics.col.hands')}</th>
+                      <th className="text-left font-semibold px-1.5 sm:px-2.5 pb-2.5">{t('analytics.col.when')}</th>
+                      <th className="text-left font-semibold px-1.5 sm:px-2.5 pb-2.5">{t('analytics.col.mode')}</th>
+                      <th className="text-right font-semibold px-1.5 sm:px-2.5 pb-2.5">{t('analytics.col.accuracy')}</th>
+                      <th className="text-right font-semibold px-1.5 sm:px-2.5 pb-2.5">{t('analytics.col.hands')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -496,28 +564,28 @@ export function AnalyticsDashboard() {
                       const disp = MODE_DISPLAY[s.mode]
                       return (
                         <tr key={s.id} className="border-t border-contrast/10">
-                          <td className="px-2.5 py-2.5 text-content/50">{formatWhen(s.timestamp, now, t)}</td>
-                          <td className="px-2.5 py-2.5">
+                          <td className="px-1.5 sm:px-2.5 py-2.5 text-content/50">{formatWhen(s.timestamp, now, t)}</td>
+                          <td className="px-1.5 sm:px-2.5 py-2.5">
                             <span className="inline-flex items-center gap-2">
                               <i className="w-1.5 h-1.5 rounded-full" style={{ background: disp?.color ?? 'var(--color-gold)' }} />
                               {disp ? t(disp.labelKey) : s.mode}
                             </span>
                           </td>
-                          <td className="px-2.5 py-2.5 text-right">
+                          <td className="px-1.5 sm:px-2.5 py-2.5 text-right">
                             <span
                               className="font-bold px-2 py-0.5 rounded-full text-xs"
                               style={{ color: col, background: `color-mix(in srgb, ${col} 14%, transparent)` }}
                             >
-                              {acc}%
+                              {formatPercent(s.accuracy, 0)}
                             </span>
                           </td>
-                          <td className="px-2.5 py-2.5 text-right text-content/50">{s.totalQuestions}</td>
+                          <td className="px-1.5 sm:px-2.5 py-2.5 text-right text-content/50">{s.totalQuestions}</td>
                         </tr>
                       )
                     })}
                   </tbody>
                 </table>
-              </div>
+              </ScrollFade>
             </Panel>
 
             {/* Achievements */}
@@ -558,7 +626,7 @@ export function AnalyticsDashboard() {
             // training history, and at `text-error/60` it read 3.12:1 on the
             // light theme — quiet is the right tone for a destructive action,
             // unreadable is not. The hover moves the underline instead.
-            className="text-sm text-error hover:underline transition-colors cursor-pointer"
+            className="inline-flex items-center min-h-10 text-sm text-error hover:underline transition-colors cursor-pointer"
             data-testid="reset-all-stats"
           >
             {t('analytics.deleteHistory')}
@@ -593,11 +661,11 @@ function RecentAchievements() {
     .filter(u => u.achievement != null)
 
   return (
-    <Panel title={`Recent achievements`} note={`${totalUnlocked} unlocked`}>
-      <div className="flex items-center justify-end mb-2 -mt-1">
+    <Panel title={t('analytics.recentAchievements')} note={t('analytics.unlockedCount', { n: totalUnlocked })}>
+      <div className="flex items-center justify-end -mt-3">
         <button
           onClick={() => setMode('achievements')}
-          className="text-xs text-gold hover:text-gold/80 transition-colors cursor-pointer"
+          className="inline-flex items-center min-h-10 pl-3 text-xs text-gold hover:text-gold/80 transition-colors cursor-pointer"
           data-testid="view-all-achievements"
         >
           {t('analytics.viewAll')} →

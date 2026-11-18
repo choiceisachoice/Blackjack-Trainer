@@ -39,6 +39,30 @@ export function cardImageUrl(rank: string, suit: string): string {
   return `/cards/${rank}${suit.charAt(0).toUpperCase()}.webp`
 }
 
+const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const
+const SUITS: CardSuitName[] = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+let preloaded = false
+
+/**
+ * Fetch all 52 card faces ahead of use, once per page load.
+ *
+ * A card that is shown for 600 ms in the Speed Drill, or dealt at the table,
+ * must not arrive as a white rectangle that fills in later: its image has to
+ * be in the browser's cache before the first one is asked for. Under a
+ * megabyte in all, fetched while the setup screen is being read.
+ */
+export function preloadCardImages(): void {
+  if (preloaded || typeof Image === 'undefined') return
+  preloaded = true
+  for (const suit of SUITS) {
+    for (const rank of RANKS) {
+      const img = new Image()
+      img.decoding = 'async'
+      img.src = cardImageUrl(rank, suit)
+    }
+  }
+}
+
 /**
  * Where the upper figure of a court card lies in its image, in the 250 × 350
  * units every card is drawn in: the part a small card shows.

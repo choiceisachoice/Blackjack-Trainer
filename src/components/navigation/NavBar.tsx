@@ -4,7 +4,7 @@ import {
   Lock, Crown, Settings, Loader2,
   type LucideIcon, Menu, ChevronDown,
 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../store/app-store'
@@ -62,7 +62,7 @@ const TOOL_ITEMS: NavItem[] = [
  */
 export function NavBar() {
   const currentMode = useAppStore(s => s.currentMode)
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const rawSetMode = useAppStore(s => s.setMode)
   const requestLeave = useLiveSessionStore(s => s.requestLeave)
   const requestLeaveApp = useLiveSessionStore(s => s.requestLeaveApp)
@@ -132,6 +132,66 @@ export function NavBar() {
     }
   }, [menuOpen])
   const activeTool = TOOL_ITEMS.find(item => item.mode === currentMode)
+
+  /**
+   * Whether the five training tabs fit beside everything else in the bar.
+   *
+   * Measured, not assumed from a breakpoint. The strip was shown from 768px
+   * up and scrolled sideways with its scrollbar hidden when it did not fit:
+   * on a phone held sideways (844px) it needed 564px and had 486, so "Casino"
+   * was cut in half with nothing to say there was more. How much room there
+   * is depends on the language and on whether someone is signed in, which no
+   * single breakpoint knows. When the tabs do not fit they leave the bar as a
+   * group and the menu lists them — the same menu a phone already gets.
+   *
+   * While hidden, the strip stays in the document (out of the flow, invisible
+   * and inert) so that its natural width can still be read.
+   */
+  const barRef = useRef<HTMLDivElement>(null)
+  const tabsRef = useRef<HTMLElement>(null)
+  const rightRef = useRef<HTMLDivElement>(null)
+  const brandRef = useRef<HTMLButtonElement>(null)
+  const [tabsFit, setTabsFit] = useState(true)
+  useLayoutEffect(() => {
+    const bar = barRef.current
+    const tabs = tabsRef.current
+    const menu = menuRef.current
+    const right = rightRef.current
+    const brand = brandRef.current
+    if (!bar || !tabs || !menu || !right || !brand) return
+    const measure = () => {
+      const style = getComputedStyle(bar)
+      const gap = parseFloat(style.columnGap) || 0
+      const inner = bar.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0)
+      // Brand, tabs, menu button, spacer, right cluster: four gaps.
+      const room = inner - brand.offsetWidth - menu.offsetWidth - right.offsetWidth - gap * 4
+      const needed = tabs.scrollWidth
+      // A little slack before the tabs come back, so a width at the very
+      // edge does not flip between the two states (the button's own label,
+      // and so its width, differs between them).
+      setTabsFit(fit => needed + (fit ? 0 : 24) <= room)
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    for (const el of [bar, tabs, menu, right, brand]) observer.observe(el)
+    return () => observer.disconnect()
+  }, [i18n.language, signedIn, isPro, currentMode])
+
+  /** Keep the open menu inside the screen: it is 256px wide and the button can sit near the right edge. */
+  const menuPanelRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const panel = menuPanelRef.current
+    if (!menuOpen || !panel) return
+    panel.style.setProperty('--shift', '0px')
+    const box = panel.getBoundingClientRect()
+    const width = document.documentElement.clientWidth
+    const margin = 8
+    let shift = 0
+    if (box.right > width - margin) shift = width - margin - box.right
+    if (box.left + shift < margin) shift = margin - box.left
+    panel.style.setProperty('--shift', `${Math.round(shift)}px`)
+  }, [menuOpen, tabsFit])
 
   /** One row of the menu: icon, name, lock. 44px tall — it is the touch target. */
   const renderMenuRow = ({ mode, icon: Icon }: NavItem, testId: string) => {
@@ -219,7 +279,10 @@ export function NavBar() {
             ? 'text-gold bg-gold/10 border border-gold/30'
             : 'text-content/60 hover:text-content border border-transparent hover:bg-contrast/5'}`}
       >
-        <Icon size={16} className={active ? 'text-gold' : 'text-content/50 group-hover:text-gold'} />
+        {/* On a tablet's width the five names alone fill the strip — in German
+            they are "Lernkarten" and "Bet Spread", the words the screens
+            themselves use — so there the icons give way to them. */}
+        <Icon size={16} className={`max-lg:hidden ${active ? 'text-gold' : 'text-content/50 group-hover:text-gold'}`} />
         {/* Hidden with `display`, so it leaves the layout *and* keeps no stray
             flex gap behind — but stays in the document for assistive tech. */}
         <span className="font-medium">{label}</span>
@@ -231,11 +294,13 @@ export function NavBar() {
   return (
     <header className="sticky top-0 z-40 shrink-0">
       <div
-        className="h-14 flex items-center gap-4 px-4 border-b border-contrast/10 backdrop-blur-xl"
+        ref={barRef}
+        className="relative h-14 flex items-center gap-4 px-4 border-b border-contrast/10 backdrop-blur-xl"
         style={{ backgroundColor: 'var(--color-topbar)' }}
       >
         {/* Brand */}
         <button
+          ref={brandRef}
           onClick={() => setMode('home')}
           data-testid="nav-home"
           aria-label={t('nav.home')}
@@ -258,7 +323,14 @@ export function NavBar() {
         {/* Nav links (scrollable on small screens) */}
         {/* The training modes keep their labels — they are what the product is
             for. The tools group is the one that collapses. */}
-        <nav className="order-3 md:order-2 hidden md:flex items-center gap-1 overflow-x-auto no-scrollbar min-w-0">
+        <nav
+          ref={tabsRef}
+          data-testid="nav-tabs"
+          data-fits={tabsFit}
+          inert={!tabsFit}
+          className={`order-3 md:order-2 hidden md:flex items-center gap-1 shrink-0
+            ${tabsFit ? '' : 'md:absolute md:left-0 md:top-0 md:invisible md:pointer-events-none'}`}
+        >
           {TRAIN_ITEMS.map(item => renderItem(item))}
         </nav>
 
@@ -273,21 +345,24 @@ export function NavBar() {
                 ? 'text-gold bg-gold/10 border border-gold/30'
                 : 'text-content/70 hover:text-content border border-contrast/10 hover:bg-contrast/5'}`}
           >
-            <Menu size={16} className="md:hidden" />
-            <span className="md:hidden">{t('nav.menu')}</span>
-            <span className="hidden md:inline">{activeTool ? t(`nav.modes.${activeTool.mode}`) : t('nav.more')}</span>
-            <ChevronDown size={14} className={`hidden md:block transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+            {/* "Menu" while it holds the training modes as well — on a phone,
+                and wherever the tabs did not fit; "More" beside the tabs. */}
+            <Menu size={16} className={tabsFit ? 'md:hidden' : ''} />
+            <span className={tabsFit ? 'md:hidden' : ''}>{t('nav.menu')}</span>
+            <span className={tabsFit ? 'hidden md:inline' : 'hidden'}>{activeTool ? t(`nav.modes.${activeTool.mode}`) : t('nav.more')}</span>
+            <ChevronDown size={14} className={`${tabsFit ? 'hidden md:block' : 'hidden'} transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
           </button>
           {menuOpen && (
             <div
               role="menu"
               data-testid="nav-menu"
-              className="absolute left-0 top-full mt-2 w-64 p-1.5 rounded-xl border border-contrast/12 shadow-[0_18px_50px_-12px_rgba(0,0,0,.8)] z-50"
-              style={{ backgroundColor: 'var(--color-surface-2)' }}
+              ref={menuPanelRef}
+              className="absolute left-0 top-full mt-2 w-64 max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-4.5rem)] overflow-y-auto p-1.5 rounded-xl border border-contrast/12 shadow-[0_18px_50px_-12px_rgba(0,0,0,.8)] z-50"
+              style={{ backgroundColor: 'var(--color-surface-2)', transform: 'translateX(var(--shift, 0px))' }}
             >
               {/* The training modes, for the width at which the strip beside
                   this button cannot show all five. */}
-              <div className="md:hidden pb-1.5 mb-1.5 border-b border-contrast/10">
+              <div className={`${tabsFit ? 'md:hidden ' : ''}pb-1.5 mb-1.5 border-b border-contrast/10`}>
                 {TRAIN_ITEMS.map(item => renderMenuRow(item, `menu-${item.mode}`))}
               </div>
               {TOOL_ITEMS.map(item => renderMenuRow(item, `nav-${item.mode}`))}
@@ -298,7 +373,7 @@ export function NavBar() {
         <div className="order-4 flex-1 min-w-0" aria-hidden />
 
         {/* Right cluster */}
-        <div className="order-5 flex items-center gap-2 shrink-0">
+        <div ref={rightRef} className="order-5 flex items-center gap-2 shrink-0">
           {signedIn && !isPro && (
             <button
               onClick={() => showUpgradeModal()}
@@ -324,8 +399,14 @@ export function NavBar() {
           <button
             onClick={toggleSound}
             data-testid="sound-toggle"
-            aria-label={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
-            title={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
+            // A switch: one name, a pressed state, and an icon and a tooltip
+            // that both show that state. The label used to name the action
+            // ("mute") under an icon that showed the state (a sounding
+            // speaker) — and in German the action labels, "Ton aus" / "Ton
+            // an", read as states, so the button said "off" while it was on.
+            aria-label={t('nav.sound')}
+            aria-pressed={soundEnabled}
+            title={soundEnabled ? t('nav.soundOn') : t('nav.soundOff')}
             className="grid place-items-center w-8 h-8 rounded-lg text-content/50 hover:text-gold hover:bg-contrast/5 transition-colors cursor-pointer"
           >
             {soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}

@@ -28,9 +28,9 @@
       "casinoSession": "Casino",
       "plan": "Plano",
       "learn": "Aprender",
-      "analytics": "Análise",
+      "analytics": "Análises",
       "strategyChart": "Estratégia",
-      "achievements": "Conquistas",
+      "achievements": "Prémios",
       "bankrollSim": "Bankroll",
       "casinoSessionTracker": "Registo"
     },
@@ -42,7 +42,10 @@
     "proFeature": "Funcionalidade Pro",
     "backToMenu": "Voltar ao menu principal",
     "more": "Mais",
-    "menu": "Menu"
+    "menu": "Menu",
+    "sound": "Som",
+    "soundOn": "Som ligado",
+    "soundOff": "Som desligado"
   },
   "session": {
     "leave": {
@@ -160,7 +163,8 @@
     "flexibleSwitch": "Flexível — mude para anual quando quiser",
     "secureCheckout": "Pagamento seguro com Stripe. Cancele quando quiser na sua conta.",
     "everythingInFree": "Tudo o do gratuito, mais:",
-    "goProPrice": "Obter Pro — {{price}}"
+    "goProPrice": "Obter Pro — {{price}}",
+    "atCheckout": "Preço apresentado no pagamento"
   },
   "landing": {
     "nav": {
@@ -242,7 +246,7 @@
       "t2title": "Análises que não mentem",
       "t2body": "Tendência de acerto, mapa de calor e as suas mãos mais fracas — a partir das suas sessões reais.",
       "t3title": "Níveis e conquistas",
-      "t3body": "Mais de 100 objetivos e um percurso de 25 níveis que o levam da primeira mão ao jogo com vantagem a sério.",
+      "t3body": "Quase 100 objetivos e um percurso de 25 níveis que o levam da primeira mão ao jogo com vantagem a sério.",
       "t4title": "Sessão de casino completa",
       "t4body": "Uma verdadeira mesa de feltro com vários lugares — bots, splits, dobros, pagamentos e regra do soft 17. O mais perto do pit.",
       "t5title": "Os desvios na tabela",
@@ -455,13 +459,13 @@
       "betEquals": "Aposta = multiplicador × o mínimo da mesa (indicado em cada pergunta).",
       "questionType": "Tipo de pergunta",
       "typeRandom": "Aleatório",
-      "typeA": "Tipo A",
-      "typeB": "Tipo B",
-      "typeC": "Tipo C",
+      "typeA": "Aposta com RC",
+      "typeB": "Aposta com TC",
+      "typeC": "TC + aposta",
       "helpRandom": "Mistura de todos os tipos de pergunta",
-      "helpA": "Tipo A — com o RC e os baralhos restantes, escolha a aposta ótima",
-      "helpB": "Tipo B — com o true count, escolha a aposta ótima",
-      "helpC": "Tipo C — com o RC e os baralhos restantes, introduza o TC e escolha a aposta",
+      "helpA": "Recebe o running count e os baralhos restantes — calcule o true count de cabeça e escolha a aposta.",
+      "helpB": "Recebe o true count — escolha a aposta que lhe corresponde.",
+      "helpC": "Recebe o running count e os baralhos restantes — introduza o true count e depois escolha a aposta. Os dois têm de estar certos.",
       "tableMinimum": "Mínimo da mesa",
       "runningCount": "Running count",
       "remainingDecks": "Baralhos restantes",
@@ -650,7 +654,8 @@
       "timeUp_one": "1 minuto jogado — termine esta mão",
       "timeUp_other": "{{count}} minutos jogados — termine esta mão",
       "speedFast": "Rápido",
-      "insuranceAskHand": "Segurar a mão {{n}}? (O dealer mostra um ás)"
+      "insuranceAskHand": "Segurar a mão {{n}}? (O dealer mostra um ás)",
+      "continue": "Continuar (Enter)"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -871,12 +876,12 @@
       "why": "Cada competência isolada é fácil. O difícil é mantê-las todas ao mesmo tempo enquanto a mesa fala."
     },
     "drill": {
-      "flashcards": "{{n}} sessões de Flashcards com {{pct}}% ou mais, em {{days}} dias diferentes",
+      "flashcards": "{{n}} sessões de Cartões com {{pct}}% ou mais, em {{days}} dias diferentes",
       "speedDrill": "{{n}} Speed Drills com {{pct}}% ou mais, em {{days}} dias diferentes",
-      "deckEstimation": "{{n}} sessões de Deck Estimation com {{pct}}% ou mais, em {{days}} dias diferentes",
-      "deviations": "{{n}} sessões de Flashcards de desvios com {{pct}}% ou mais, em {{days}} dias diferentes",
-      "betSpread": "{{n}} sessões de Bet Spread com {{pct}}% ou mais, em {{days}} dias diferentes",
-      "casino": "{{n}} Casino Sessions jogadas, em {{days}} dias diferentes"
+      "deckEstimation": "{{n}} sessões de Estimativa de baralhos com {{pct}}% ou mais, em {{days}} dias diferentes",
+      "deviations": "{{n}} sessões de Cartões de desvios com {{pct}}% ou mais, em {{days}} dias diferentes",
+      "betSpread": "{{n}} sessões de Bet spread com {{pct}}% ou mais, em {{days}} dias diferentes",
+      "casino": "{{n}} sessões de casino jogadas, em {{days}} dias diferentes"
     }
   },
   "plan": {
@@ -1189,7 +1194,11 @@
     "readChapter": "Ler o capítulo completo",
     "otherChapters": "Outros capítulos",
     "allChapters": "Todos os capítulos",
-    "chapterOf": "Capítulo {{n}} de {{total}}"
+    "chapterOf": "Capítulo {{n}} de {{total}}",
+    "hand": {
+      "soft": "{{n}} mole",
+      "bust": "{{n}} — rebenta"
+    }
   },
   "basics": {
     "you": "Você",
@@ -2071,7 +2080,14 @@
     "axisDeviations": "Desvios",
     "axisBetting": "Aposta",
     "axisEstimation": "Estimativa",
-    "axisTablePlay": "Jogo na mesa"
+    "axisTablePlay": "Jogo na mesa",
+    "streakUnit_one": "dia",
+    "streakUnit_other": "dias",
+    "bestStreak": "Recorde {{n}}",
+    "tagStrong": "Forte",
+    "tagFocus": "Foco",
+    "recentAchievements": "Prémios recentes",
+    "unlockedCount": "{{n}} desbloqueados"
   },
   "sim": {
     "onboardTitle": "Acompanhe a sua bankroll",
@@ -2124,7 +2140,7 @@
   },
   "chart": {
     "title": "Tabela de estratégia básica",
-    "sub": "A estratégia básica Hi-Lo completa — toque numa célula para detalhes.",
+    "sub": "A estratégia básica completa — selecione uma célula para ver os detalhes.",
     "dealerRule": "Regra do dealer",
     "proHeadline": "Os desvios são uma funcionalidade Pro — veja exatamente quando a contagem se sobrepõe à estratégia básica.",
     "s1": "I. Totais duros (12-17+)",
@@ -2134,7 +2150,7 @@
     "countDeviation": "Desvio por contagem",
     "atTrueCount": "A partir do true count",
     "deviationsToggle": "Desvios (Illustrious 18)",
-    "rulesLine": "{{rules}} · 6 baralhos · DAS · Late Surrender · Toque numa célula para ver o detalhe",
+    "rulesLine": "{{rules}} · 6 baralhos · DAS · Late Surrender · Selecione uma célula para ver o detalhe",
     "handHeader": "Mão",
     "yourHand": "A sua mão:",
     "vsDealer": "contra o dealer:",
@@ -2147,6 +2163,13 @@
       "D": "Dobrar",
       "SP": "Dividir",
       "SU": "Desistir"
+    },
+    "explain": {
+      "H": "Peça mais uma carta.",
+      "S": "Fique com a mão que tem e não peça mais cartas.",
+      "D": "Dobre a aposta e receba exatamente mais uma carta.",
+      "SP": "Divida o par em duas mãos, cada uma com a sua aposta.",
+      "SU": "Desista da mão e recupere metade da aposta."
     }
   },
   "onboardingSteps": {
@@ -2334,7 +2357,22 @@
     "loading": "A carregar o relatório…",
     "errorTitle": "Não foi possível carregar o relatório.",
     "errorBody": "Só os administradores registados o podem ler. Se for um deles, tente novamente daqui a pouco.",
-    "definitions": "Um visitante é um navegador com um identificador aleatório. Uma sessão termina após 30 minutos sem atividade; a sua duração vai da primeira visualização à última atividade. Os registos são as contas criadas no período. Os clientes pagantes são as subscrições ativas, contadas neste momento."
+    "definitions": "Um visitante é um navegador com um identificador aleatório. Uma sessão termina após 30 minutos sem atividade; a sua duração vai da primeira visualização à última atividade. Os registos são as contas criadas no período. Os clientes pagantes são as subscrições ativas, contadas neste momento.",
+    "failures": {
+      "title": "Falhas",
+      "loading": "A carregar as falhas…",
+      "empty": "Nenhuma falha registada.",
+      "error": "Não foi possível carregar as falhas.",
+      "missingMigration": "Ainda nada está a ser registado: primeiro é preciso aplicar a migração {{file}}.",
+      "time": "Hora",
+      "place": "Local",
+      "message": "Mensagem",
+      "path": "Página",
+      "signedIn": "Com sessão",
+      "yes": "Sim",
+      "no": "Não",
+      "note": "As últimas 50 falhas técnicas de uma compra ou de uma ação da conta, guardadas durante 90 dias; as horas estão no seu fuso horário. Uma falha ocorrida enquanto o dispositivo estava offline só chega na visita seguinte dessa pessoa, se houver uma. Nada o avisa: esta lista só é vista ao abrir esta página."
+    }
   },
   "report": {
     "title": "A sua conta Blackjack Trainer",
@@ -2425,6 +2463,7 @@
     "more": "Mais na política de privacidade",
     "accept": "Aceitar",
     "decline": "Recusar",
-    "settings": "Definições de cookies"
+    "settings": "Definições de cookies",
+    "short": "Apenas para as nossas próprias estatísticas de visitas. Sem publicidade, sem terceiros."
   }
 }

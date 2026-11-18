@@ -203,7 +203,7 @@ describe('TrainingPlan', () => {
     })
     expect(upNextTitle()).toBe('The Hi-Lo count')
     // 7 stages total, placed at index 2 → 5 remain.
-    expect(screen.getByText('0 of 5 stages complete')).toBeInTheDocument()
+    expect(screen.getByText('2 of 7 stages complete')).toBeInTheDocument()
   })
 
   it('marks stages before the placement as skipped rather than incomplete', () => {
@@ -222,7 +222,7 @@ describe('TrainingPlan', () => {
     render(<TrainingPlan />)
 
     expect(upNextTitle()).toBe('True count')
-    expect(screen.getByText('1 of 5 stages complete')).toBeInTheDocument()
+    expect(screen.getByText('3 of 7 stages complete')).toBeInTheDocument()
   })
 
   it('does not move on from a stage drilled to the full count in one sitting', () => {
@@ -234,7 +234,7 @@ describe('TrainingPlan', () => {
     render(<TrainingPlan />)
 
     expect(upNextTitle()).toBe('The Hi-Lo count')
-    expect(screen.getByText('0 of 5 stages complete')).toBeInTheDocument()
+    expect(screen.getByText('2 of 7 stages complete')).toBeInTheDocument()
     // And it says what is missing, in days.
     const standing = screen.getByTestId('plan-standing').textContent!
     expect(standing).toMatch(/Enough good sessions/)
@@ -251,7 +251,7 @@ describe('TrainingPlan', () => {
     render(<TrainingPlan />)
 
     expect(upNextTitle()).toBe('True count')
-    expect(screen.getByText('1 of 5 stages complete')).toBeInTheDocument()
+    expect(screen.getByText('3 of 7 stages complete')).toBeInTheDocument()
   })
 
   it('does not count sessions that missed the accuracy bar', () => {
@@ -261,7 +261,7 @@ describe('TrainingPlan', () => {
     render(<TrainingPlan />)
 
     expect(upNextTitle()).toBe('The Hi-Lo count')
-    expect(screen.getByText('0 of 5 stages complete')).toBeInTheDocument()
+    expect(screen.getByText('2 of 7 stages complete')).toBeInTheDocument()
   })
 
   it('lays out today’s session in the up-next card, in place of one drill button', () => {
@@ -417,7 +417,7 @@ describe('TrainingPlan', () => {
 
     expect(screen.getByTestId('plan-complete')).toBeInTheDocument()
     expect(screen.queryByTestId('plan-up-next')).not.toBeInTheDocument()
-    expect(screen.getByText('2 of 2 stages complete')).toBeInTheDocument()
+    expect(screen.getByText('7 of 7 stages complete')).toBeInTheDocument()
     // Somewhere to go, not just a compliment: today still has a session.
     const today = within(screen.getByTestId('plan-complete')).getByTestId('plan-today')
     expect(within(today).getAllByTestId(/^plan-block-/).length).toBeGreaterThan(0)
@@ -434,7 +434,7 @@ describe('TrainingPlan', () => {
 
     expect(screen.queryByTestId('plan-complete')).toBeNull()
     expect(upNextTitle()).toBe('The whole thing, at the table')
-    expect(screen.getByText('1 of 2 stages complete')).toBeInTheDocument()
+    expect(screen.getByText('6 of 7 stages complete')).toBeInTheDocument()
   })
 
   it('shows what finishing the current stage is worth', () => {
@@ -571,11 +571,11 @@ describe('TrainingPlan', () => {
     expect(screen.queryByTestId('plan-open-instead')).toBeNull()
   })
 
-  it('counts a single remaining stage in the singular', () => {
+  it('counts the stages behind the starting point as behind', () => {
     localStorage.setItem('bjt_placement', 'true-count')
     localStorage.setItem('bjt_learner_profile', JSON.stringify({ goal: 'curious', commitment: 'casual' }))
     render(<TrainingPlan />)
-    expect(screen.getByText('0 of 1 stage complete')).toBeInTheDocument()
+    expect(screen.getByText('3 of 4 stages complete')).toBeInTheDocument()
   })
 
   describe('adjusting the plan', () => {
@@ -689,7 +689,9 @@ describe('TrainingPlan', () => {
 
       expect(getReadStages()).toEqual([])
       expect(within(screen.getByTestId('plan-stage-hi-lo')).getByText('The Hi-Lo count')).toBeInTheDocument()
-      expect(screen.getByText(/1 of \d+ stages complete/)).toBeInTheDocument()
+      // One stage finished, wherever the count starts from.
+      expect(screen.getByText(/\d of \d+ stages complete/)).toBeInTheDocument()
+      expect(screen.queryByText(/^0 of \d+ stages complete/)).toBeNull()
     })
 
     it('warns which goals a free account cannot finish', () => {
@@ -759,7 +761,7 @@ describe('TrainingPlan', () => {
       useStatsStore.setState({ sessions: many(10, 'speedDrill', 0.895) })
       render(<TrainingPlan />)
 
-      expect(screen.getByText('0 of 5 stages complete')).toBeInTheDocument()
+      expect(screen.getByText('2 of 7 stages complete')).toBeInTheDocument()
       expect(upNextTitle()).toBe('The Hi-Lo count')
     })
 
@@ -962,7 +964,7 @@ describe('TrainingPlan', () => {
       render(<TrainingPlan />)
 
       expect(upNextTitle()).toBe('True count')
-      expect(screen.getByText('1 of 5 stages complete')).toBeInTheDocument()
+      expect(screen.getByText('3 of 7 stages complete')).toBeInTheDocument()
     })
   })
 

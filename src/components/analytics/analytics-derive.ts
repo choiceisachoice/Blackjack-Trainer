@@ -85,6 +85,56 @@ export function formatWhen(iso: string, now: Date, t: Translate): string {
   return new Date(iso).toLocaleDateString(activeLocale(), { month: 'short', day: 'numeric' })
 }
 
+/**
+ * A share (0–1) as a percentage in the active language: "10.3%" in English,
+ * "10,3 %" in German, "%10,3" in Turkish.
+ *
+ * `toFixed` writes a point whatever the reader's language is, and the
+ * percent sign does not sit in the same place everywhere either.
+ *
+ * @param share - The value as a fraction of one
+ * @param digits - Decimal places, fixed
+ */
+export function formatPercent(share: number, digits = 1): string {
+  return new Intl.NumberFormat(activeLocale(), {
+    style: 'percent',
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(share)
+}
+
+/**
+ * A whole percentage for a KPI tile, with `~` in front of the part drawn small.
+ *
+ * The tile wrote "90~%" for every language. German puts a space before the
+ * sign and Turkish puts the sign first; where it comes first there is nothing
+ * to draw small, and the figure is returned as the language writes it.
+ *
+ * @param share - A fraction, 0.9 for ninety percent
+ */
+export function percentMarked(share: number): string {
+  const parts = new Intl.NumberFormat(activeLocale(), { style: 'percent', maximumFractionDigits: 0 }).formatToParts(share)
+  const sign = parts.findIndex(p => p.type === 'percentSign')
+  const firstDigit = parts.findIndex(p => p.type === 'integer')
+  const text = (from: number, to: number) => parts.slice(from, to).map(p => p.value).join('')
+  if (sign < firstDigit) return text(0, parts.length)
+  const numberEnd = parts.map(p => p.type === 'integer' || p.type === 'group').lastIndexOf(true) + 1
+  return `${text(0, numberEnd)}~${text(numberEnd, parts.length)}`
+}
+
+/**
+ * The name a misplayed hand is shown under.
+ *
+ * Hands are stored by the engine's own name ("16 vs 10"), which reads the
+ * same in every language — except the one side bet, stored as "Insurance".
+ *
+ * @param name - The stored deviation name
+ * @param t - Translator
+ */
+export function handLabel(name: string, t: Translate): string {
+  return name === 'Insurance' ? t('actions.insurance') : name
+}
+
 /** Inclusive lower-bound timestamp (ms) for a range, or -Infinity for `all`. */
 function rangeStartMs(now: Date, range: TimeRange): number {
   const days = RANGE_DAYS[range]
@@ -147,6 +197,12 @@ export interface Kpi {
   labelKey: string
   /** Pre-formatted primary value (may contain a unit suffix marker `~`). */
   display: string
+  /**
+   * A counted unit to print small after the value ("days"), as a plural
+   * translation key and its count. A word cannot ride in `display` the way
+   * "%" and "h" do: it has to be translated, and it has a plural.
+   */
+  unit?: { key: string; count: number }
   /** Delta vs. previous window; null when not comparable (e.g. `all`). */
   delta: number | null
   /** Pre-formatted delta label (e.g. "3.1%", "8", "3h 20m"). */
@@ -212,9 +268,9 @@ export function buildKpis(
     {
       key: 'accuracy',
       labelKey: 'analytics.kpi.accuracy',
-      display: curSessions > 0 ? `${Math.round(curAcc * 100)}~%` : '—',
+      display: curSessions > 0 ? percentMarked(curAcc) : '—',
       delta: accDelta,
-      deltaDisplay: accDelta === null ? '' : `${accDelta >= 0 ? '+' : '−'}${Math.abs(accDelta).toFixed(1)}%`,
+      deltaDisplay: accDelta === null ? '' : `${accDelta >= 0 ? '+' : '−'}${formatPercent(Math.abs(accDelta) / 100)}`,
       spark: dailySeries(cur, d => Math.round(accuracyOf(d) * 100)),
     },
     {
@@ -228,7 +284,8 @@ export function buildKpis(
     {
       key: 'streak',
       labelKey: 'analytics.kpi.streak',
-      display: streak > 0 ? `${streak}~ days` : '—',
+      display: streak > 0 ? `${streak}` : '—',
+      unit: streak > 0 ? { key: 'analytics.streakUnit', count: streak } : undefined,
       delta: null,
       deltaDisplay: '',
       spark: dailySeries(cur, d => (d.length > 0 ? 1 : 0)),
@@ -522,7 +579,10 @@ export function deriveInsight(
       icon: '🎯',
       textKey: 'analytics.insightMsg.weak',
       values: { name: weak.name, miss },
-      highlights: [weak.name, `${miss}%`],
+      // Every way a language writes the figure: "80%", "80 %" (with the
+      // no-break space German, Spanish and French use) and Turkish "%80".
+      // Only the first was listed, so the gold never appeared in the others.
+      highlights: [weak.name, `${miss}%`, `${miss}\u00a0%`, `${miss} %`, `%${miss}`],
     }
   }
 
@@ -533,16 +593,18 @@ export function deriveInsight(
       return {
         icon: '📈',
         textKey: 'analytics.insightMsg.up',
-        values: { delta: `+${delta.toFixed(1)}%` },
-        highlights: [`+${delta.toFixed(1)}%`],
+        values: { delta: `+${formatPercent(delta / 100)}` },
+        highlights: [`+${formatPercent(delta / 100)}`],
       }
     }
     if (delta <= -3) {
       return {
         icon: '📉',
         textKey: 'analytics.insightMsg.down',
-        values: { delta: `${delta.toFixed(1)}%` },
-        highlights: [`${delta.toFixed(1)}%`],
+        // No sign on the way down: the sentence already says "fell by", and
+        // "fell by -3.2%" says it twice.
+        values: { delta: formatPercent(Math.abs(delta) / 100) },
+        highlights: [formatPercent(Math.abs(delta) / 100)],
       }
     }
   }
@@ -560,7 +622,7 @@ export function deriveInsight(
   return {
     icon: '✨',
     textKey: 'analytics.insightMsg.steady',
-    values: { acc: `${acc}%`, n: cur.length },
-    highlights: [`${acc}%`],
+    values: { acc: formatPercent(acc / 100, 0), n: cur.length },
+    highlights: [formatPercent(acc / 100, 0)],
   }
 }

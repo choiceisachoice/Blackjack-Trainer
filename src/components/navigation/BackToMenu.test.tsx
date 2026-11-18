@@ -18,6 +18,18 @@ describe('BackToMenu', () => {
     expect(useAppStore.getState().currentMode).toBe('home')
   })
 
+  it('gives its row to a running drill on a phone held sideways, and only there', () => {
+    render(<BackToMenu />)
+    const bar = screen.getByTestId('back-to-menu-bar')
+    // Hidden only under the `short` variant and only beside a `data-drill-run`
+    // root — never unconditionally, or the way back is gone on every screen.
+    const hiding = bar.className.split(/\s+/).filter(c => c.endsWith(':hidden'))
+    expect(hiding).toHaveLength(1)
+    expect(hiding[0]).toMatch(/^short:/)
+    expect(hiding[0]).toContain('[data-drill-run]')
+    expect(bar.className).not.toMatch(/(^|\s)hidden(\s|$)/)
+  })
+
   it('asks before leaving a running Casino Session instead of ending it', () => {
     useAppStore.setState({ currentMode: 'casinoSession' })
     useLiveSessionStore.getState().beginSession('casinoSession')

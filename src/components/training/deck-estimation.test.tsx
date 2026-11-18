@@ -254,3 +254,22 @@ describe('DeckEstimation', () => {
     expect(screen.getByTestId('summary-title')).toBeInTheDocument()
   })
 })
+
+/**
+ * `data-drill-run` is what tells the back bar to give up its row on a phone
+ * held sideways (see `BackToMenu`). It has to be there for the whole run and
+ * must not be there on the setup screen, which keeps the arrow home.
+ */
+describe('DeckEstimation — marks a running drill for the sideways-phone layout', () => {
+  it('is unmarked on the setup screen and marked on question and feedback', () => {
+    const { container } = render(<DeckEstimation />)
+    expect(container.querySelector('[data-drill-run]')).toBeNull()
+
+    fireEvent.click(screen.getByTestId('start-training'))
+    expect(container.querySelector('[data-drill-run]')).not.toBeNull()
+
+    fireEvent.click(container.querySelector('button[data-testid^="deck-"]')!)
+    expect(screen.getByTestId('next-question')).toBeInTheDocument()
+    expect(container.querySelector('[data-drill-run]')).not.toBeNull()
+  })
+})

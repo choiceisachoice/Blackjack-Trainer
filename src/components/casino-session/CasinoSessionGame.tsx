@@ -517,8 +517,9 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
           <button
             onClick={toggleSound}
             data-testid="hud-sound-toggle"
-            aria-label={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
-            title={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
+            aria-label={t('nav.sound')}
+            aria-pressed={soundEnabled}
+            title={soundEnabled ? t('nav.soundOn') : t('nav.soundOff')}
             className="grid place-items-center w-8 h-8 max-sm:w-10 max-sm:h-10 short:w-10 short:h-10 -my-1 rounded-lg border border-contrast/15 text-content/70 hover:text-gold hover:border-gold/40 cursor-pointer"
           >
             {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
@@ -602,7 +603,10 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
         still resized on every deal. That leaves the felt
         a 455px scene at 1080p, above TABLE_MIN_HEIGHT.
       */}
-      <div className="shrink-0 min-h-[10.25rem] max-sm:min-h-[11.5rem] flex flex-col justify-center bg-contrast/5 border-t border-contrast/10 px-4 py-3
+      {/* From 1024px on the bet panel is two rows (chips and Deal side by
+          side) and measures 104px: the area is 7.75rem there, and the 45px it
+          gives back go to the felt. */}
+      <div className="shrink-0 min-h-[10.25rem] lg:min-h-[7.75rem] max-sm:min-h-[10.5rem] flex flex-col justify-center bg-contrast/5 border-t border-contrast/10 px-4 py-3
         short:w-[17rem] short:min-h-0 short:border-t-0 short:border-l short:px-2 short:py-2 short:overflow-y-auto" data-testid="controls-area">
         {/* Betting */}
         {state.gameStep === 'betting' && (
@@ -672,7 +676,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
 
         {/* Count Check */}
         {state.gameStep === 'count_check' && (
-          <div className="flex flex-col items-center gap-3" data-testid="count-check">
+          <div className="flex flex-col items-center gap-3 lg:flex-row lg:justify-center lg:gap-5 short:flex-col" data-testid="count-check">
             <span className="text-sm text-content">{t('casino.hud.countAsk')}</span>
             {!state.countFeedback ? (
               <>
@@ -680,14 +684,15 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                   <label className="flex items-center gap-2">
                     <span className="text-sm text-content/60">RC:</span>
                     <Input type="number" value={state.rcInput} onChange={e => actions.setRcInput(e.target.value)}
-                      data-testid="rc-input" autoFocus
-                      className="px-3 py-1.5 w-20 text-center" />
+                      data-testid="rc-input" autoFocus inputMode="numeric"
+                      // 16px: below that iOS zooms the whole page when the field is focused.
+                      className="px-3 py-1.5 w-20 text-center text-base" />
                   </label>
                   <label className="flex items-center gap-2">
                     <span className="text-sm text-content/60">TC:</span>
                     <Input type="number" step="0.5" value={state.tcInput} onChange={e => actions.setTcInput(e.target.value)}
-                      data-testid="tc-input"
-                      className="px-3 py-1.5 w-20 text-center" />
+                      data-testid="tc-input" inputMode="decimal"
+                      className="px-3 py-1.5 w-20 text-center text-base" />
                   </label>
                 </div>
                 <button onClick={actions.submitCount} data-testid="submit-count"
@@ -744,9 +749,16 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
                 )
               }
 
+              // The whole hand, not its first move. Hitting a hard 18 into a
+              // bust after a correct first hit was reviewed as "Play: correct"
+              // (audit, 18 Nov 2026): only the first decision was looked at,
+              // while the split branch above already read all of them.
+              const firstWrong = decisions.find(d => !d.isCorrect)
+              const playCorrect = decisions.length > 0 ? !firstWrong : state.handReview.firstActionCorrect
+              const should = firstWrong?.correctAction ?? state.handReview.correctFirstAction
               return (
-                <span className={`text-xs ${state.handReview.firstActionCorrect ? 'text-success' : 'text-error'}`}>
-                  {t('casino.review.playLabel')} {state.handReview.firstActionCorrect ? t('casino.review.correct') : t('casino.review.wrongShould', { value: state.handReview.correctFirstAction })}
+                <span className={`text-xs ${playCorrect ? 'text-success' : 'text-error'}`} data-testid="review-play" data-correct={playCorrect}>
+                  {t('casino.review.playLabel')} {playCorrect ? t('casino.review.correct') : t('casino.review.wrongShould', { value: should })}
                 </span>
               )
             })()}
@@ -762,7 +774,10 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
           <div className="flex flex-col items-center gap-2">
             <button onClick={actions.nextHand} data-testid="next-hand"
               className="px-6 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
-              {t('casino.hud.nextHand')}
+              {/* With the review after every hand switched on, this press
+                  shows the review and a second one deals: two presses under
+                  one label read as a button that did not work. */}
+              {config.trainingMode ? t('casino.hud.continue') : t('casino.hud.nextHand')}
             </button>
           </div>
         )}

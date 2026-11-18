@@ -28,9 +28,9 @@
       "casinoSession": "Kumarhane",
       "plan": "Plan",
       "learn": "Öğren",
-      "analytics": "Analiz",
+      "analytics": "Analizler",
       "strategyChart": "Strateji",
-      "achievements": "Başarımlar",
+      "achievements": "Ödüller",
       "bankrollSim": "Kasa",
       "casinoSessionTracker": "Kayıt"
     },
@@ -42,7 +42,10 @@
     "proFeature": "Pro özelliği",
     "backToMenu": "Ana menüye dön",
     "more": "Daha fazla",
-    "menu": "Menü"
+    "menu": "Menü",
+    "sound": "Ses",
+    "soundOn": "Ses açık",
+    "soundOff": "Ses kapalı"
   },
   "session": {
     "leave": {
@@ -160,7 +163,8 @@
     "flexibleSwitch": "Esnek — istediğiniz zaman yıllığa geçin",
     "secureCheckout": "Stripe ile güvenli ödeme. Hesabınızdan istediğiniz zaman iptal edebilirsiniz.",
     "everythingInFree": "Ücretsizdeki her şey, ayrıca:",
-    "goProPrice": "Pro'ya geç — {{price}}"
+    "goProPrice": "Pro'ya geç — {{price}}",
+    "atCheckout": "Fiyat ödeme adımında gösterilir"
   },
   "landing": {
     "nav": {
@@ -242,7 +246,7 @@
       "t2title": "Yalan söylemeyen analiz",
       "t2body": "Doğruluk eğrisi, çalışma ısı haritası ve en zayıf elleriniz — gerçek oturumlarınızdan.",
       "t3title": "Seviyeler & başarımlar",
-      "t3body": "100’den fazla hedef ve sizi ilk elden gerçek avantaj oyununa taşıyan 25 seviyelik bir yol.",
+      "t3body": "100’e yakın hedef ve sizi ilk elden gerçek avantaj oyununa taşıyan 25 seviyelik bir yol.",
       "t4title": "Tam kumarhane oturumu",
       "t4body": "Çok koltuklu gerçek bir çuha masa — botlar, bölmeler, katılar, ödemeler ve soft 17 kuralı. Pit’e en yakın hâli.",
       "t5title": "Tabloda sapmalar",
@@ -455,13 +459,13 @@
       "betEquals": "Bahis = çarpan × masa minimumu (her soruda gösterilir).",
       "questionType": "Soru türü",
       "typeRandom": "Rastgele",
-      "typeA": "A tipi",
-      "typeB": "B tipi",
-      "typeC": "C tipi",
+      "typeA": "RC’den bahis",
+      "typeB": "TC’den bahis",
+      "typeC": "TC + bahis",
       "helpRandom": "Tüm soru türlerinin karışımı",
-      "helpA": "A tipi — RC ve kalan desteye göre en uygun bahsi seçin",
-      "helpB": "B tipi — true count’a göre en uygun bahsi seçin",
-      "helpC": "C tipi — RC ve kalan desteye göre TC’yi girin ve bahsi seçin",
+      "helpA": "Running count ve kalan deste verilir — true count’u aklınızdan hesaplayıp bahsi seçin.",
+      "helpB": "True count verilir — ona karşılık gelen bahsi seçin.",
+      "helpC": "Running count ve kalan deste verilir — true count’u girin, sonra bahsi seçin. İkisi de doğru olmalı.",
       "tableMinimum": "Masa minimumu",
       "runningCount": "Running count",
       "remainingDecks": "Kalan deste",
@@ -650,7 +654,8 @@
       "timeUp_one": "1 dakika oynandı — bu eli bitir",
       "timeUp_other": "{{count}} dakika oynandı — bu eli bitir",
       "speedFast": "Hızlı",
-      "insuranceAskHand": "{{n}}. el sigortalansın mı? (Krupiye as gösteriyor)"
+      "insuranceAskHand": "{{n}}. el sigortalansın mı? (Krupiye as gösteriyor)",
+      "continue": "Devam (Enter)"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -871,12 +876,12 @@
       "why": "Her beceri tek başına kolaydır. Zor olan, masa konuşurken hepsini aynı anda yürütmektir."
     },
     "drill": {
-      "flashcards": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Flashcards oturumu",
+      "flashcards": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Bilgi kartları oturumu",
       "speedDrill": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Speed Drill",
-      "deckEstimation": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Deck Estimation oturumu",
-      "deviations": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} sapma Flashcards oturumu",
-      "betSpread": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Bet Spread oturumu",
-      "casino": "{{days}} farklı günde oynanmış {{n}} Casino Session"
+      "deckEstimation": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Deste tahmini oturumu",
+      "deviations": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} sapma Bilgi kartları oturumu",
+      "betSpread": "{{days}} farklı günde, %{{pct}} veya üzeri {{n}} Bet spread oturumu",
+      "casino": "{{days}} farklı günde oynanmış {{n}} Casino oturumu"
     }
   },
   "plan": {
@@ -1189,7 +1194,11 @@
     "readChapter": "Bölümün tamamını oku",
     "otherChapters": "Diğer bölümler",
     "allChapters": "Tüm bölümler",
-    "chapterOf": "Bölüm {{n}} / {{total}}"
+    "chapterOf": "Bölüm {{n}} / {{total}}",
+    "hand": {
+      "soft": "yumuşak {{n}}",
+      "bust": "{{n}} — battı"
+    }
   },
   "basics": {
     "you": "Siz",
@@ -2071,7 +2080,14 @@
     "axisDeviations": "Sapmalar",
     "axisBetting": "Bahis",
     "axisEstimation": "Tahmin",
-    "axisTablePlay": "Masa oyunu"
+    "axisTablePlay": "Masa oyunu",
+    "streakUnit_one": "gün",
+    "streakUnit_other": "gün",
+    "bestStreak": "En iyi {{n}}",
+    "tagStrong": "Güçlü",
+    "tagFocus": "Odak",
+    "recentAchievements": "Son ödüller",
+    "unlockedCount": "{{n}} açıldı"
   },
   "sim": {
     "onboardTitle": "Bankroll’unuzu takip edin",
@@ -2124,7 +2140,7 @@
   },
   "chart": {
     "title": "Temel strateji tablosu",
-    "sub": "Eksiksiz Hi-Lo temel stratejisi — ayrıntı için bir hücreye dokunun.",
+    "sub": "Eksiksiz temel strateji — ayrıntı için bir hücre seçin.",
     "dealerRule": "Krupiye kuralı",
     "proHeadline": "Sapmalar bir Pro özelliğidir — sayımın temel stratejiyi ne zaman geçersiz kıldığını tam olarak görün.",
     "s1": "I. Sert toplamlar (12-17+)",
@@ -2134,7 +2150,7 @@
     "countDeviation": "Sayım sapması",
     "atTrueCount": "True count",
     "deviationsToggle": "Sapmalar (Illustrious 18)",
-    "rulesLine": "{{rules}} · 6 deste · DAS · Late Surrender · Ayrıntı için bir hücreye dokunun",
+    "rulesLine": "{{rules}} · 6 deste · DAS · Late Surrender · Ayrıntı için bir hücre seçin",
     "handHeader": "El",
     "yourHand": "Eliniz:",
     "vsDealer": "krupiyeye karşı:",
@@ -2142,11 +2158,18 @@
     "withoutSurrender": "Late Surrender yoksa:",
     "belowThat": "(altında: {{action}})",
     "action": {
-      "H": "Kart",
+      "H": "Kart Al",
       "S": "Dur",
-      "D": "İkiye katla",
+      "D": "Çiftle",
       "SP": "Böl",
-      "SU": "Pes et"
+      "SU": "Teslim Ol"
+    },
+    "explain": {
+      "H": "Bir kart daha alın.",
+      "S": "Elinizi koruyun, başka kart almayın.",
+      "D": "Bahsinizi ikiye katlayın ve yalnızca bir kart daha alın.",
+      "SP": "Çifti, her biri kendi bahsiyle iki ele bölün.",
+      "SU": "Elden çekilin ve bahsinizin yarısını geri alın."
     }
   },
   "onboardingSteps": {
@@ -2334,7 +2357,22 @@
     "loading": "Rapor yükleniyor…",
     "errorTitle": "Rapor yüklenemedi.",
     "errorBody": "Yalnızca kayıtlı yöneticiler okuyabilir. Yöneticiyseniz biraz sonra tekrar deneyin.",
-    "definitions": "Ziyaretçi, rastgele bir kimliğe sahip bir tarayıcıdır. Oturum, 30 dakika etkinlik olmayınca sona erer; süresi ilk sayfa görüntülemesinden son etkinliğe kadar sayılır. Kayıtlar, aralıkta oluşturulan hesaplardır. Ödeme yapan müşteriler, şu anda sayılan etkin aboneliklerdir."
+    "definitions": "Ziyaretçi, rastgele bir kimliğe sahip bir tarayıcıdır. Oturum, 30 dakika etkinlik olmayınca sona erer; süresi ilk sayfa görüntülemesinden son etkinliğe kadar sayılır. Kayıtlar, aralıkta oluşturulan hesaplardır. Ödeme yapan müşteriler, şu anda sayılan etkin aboneliklerdir.",
+    "failures": {
+      "title": "Hatalar",
+      "loading": "Hatalar yükleniyor…",
+      "empty": "Kayıtlı hata yok.",
+      "error": "Hatalar yüklenemedi.",
+      "missingMigration": "Henüz hiçbir şey kaydedilmiyor: önce {{file}} migrasyonunun uygulanması gerekiyor.",
+      "time": "Zaman",
+      "place": "Yer",
+      "message": "Mesaj",
+      "path": "Sayfa",
+      "signedIn": "Oturum açık",
+      "yes": "Evet",
+      "no": "Hayır",
+      "note": "Bir satın alma veya hesap işlemindeki son 50 teknik hata, 90 gün saklanır; saatler sizin saat diliminizdedir. Cihaz çevrimdışıyken oluşan bir hata, ancak o ziyaretçinin bir sonraki ziyaretinde ulaşır; tabii böyle bir ziyaret olursa. Hiçbir şey sizi uyarmaz: bu liste yalnızca bu sayfayı açtığınızda görülür."
+    }
   },
   "report": {
     "title": "Blackjack Trainer hesabın",
@@ -2425,6 +2463,7 @@
     "more": "Ayrıntılar gizlilik politikasında",
     "accept": "Kabul et",
     "decline": "Reddet",
-    "settings": "Çerez ayarları"
+    "settings": "Çerez ayarları",
+    "short": "Yalnızca kendi ziyaret istatistiğimiz için. Reklam yok, üçüncü taraf yok."
   }
 }

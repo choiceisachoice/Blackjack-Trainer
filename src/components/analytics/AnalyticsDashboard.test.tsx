@@ -6,6 +6,7 @@ import { useAppStore } from '../../store/app-store'
 import type { TrainingSessionResult, LifetimeStats, SessionDetails } from '../../services/stats-types'
 import { CountingSystemId } from '../../engine/counting/types'
 import { CURRICULUM } from '../../services/curriculum'
+import { goalStage } from '../../services/learner-profile'
 
 /** No-op loadStats so mounting doesn't trigger async loading. */
 const noopLoadStats = vi.fn().mockResolvedValue(undefined)
@@ -233,8 +234,9 @@ describe('AnalyticsDashboard — the training plan strip', () => {
 
     const strip = screen.getByTestId('analytics-plan-strip')
     expect(within(strip).getByText('The Hi-Lo count')).toBeInTheDocument()
-    // Placed at index 2 of 7 → five stages remain.
-    expect(within(strip).getByText(/0 of 5 stages/)).toBeInTheDocument()
+    // Placed at index 2 of 7: the two stages behind the starting point are
+    // behind, and with no goal chosen the road runs to the last of the seven.
+    expect(within(strip).getByText(/2 of 7 stages/)).toBeInTheDocument()
   })
 
   /**
@@ -254,9 +256,43 @@ describe('AnalyticsDashboard — the training plan strip', () => {
     withData(speedDrills(hiLo.minSessions, hiLo.minDays))
     render(<AnalyticsDashboard />)
 
+    // The plan's rule (`TrainingPlan`, `doneCount` / `totalCount`): done is
+    // every stage behind the starting point plus the ones cleared since, and
+    // the total is the road up to and including the goal's last stage.
+    const from = CURRICULUM.findIndex(s => s.id === 'hi-lo')
+    const goalIndex = CURRICULUM.findIndex(s => s.id === goalStage('serious'))
+    const clearedSincePlacement = 1 // hi-lo itself
     const strip = screen.getByTestId('analytics-plan-strip')
-    expect(within(strip).getByText(/1 of 5 stages/)).toBeInTheDocument()
+    expect(within(strip).getByText(new RegExp(`${from + clearedSincePlacement} of ${goalIndex + 1} stages`))).toBeInTheDocument()
+    expect(within(strip).getByText(/3 of 7 stages/)).toBeInTheDocument()
     expect(within(strip).getByText('True count')).toBeInTheDocument()
+  })
+
+  it('ends the road where the chosen goal ends, as the plan does', () => {
+    // "Curious" stops at the true count, the fourth stage of seven. Counted
+    // to the end of the curriculum, this strip would say "3 of 7" above a
+    // plan that says "3 of 4".
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    localStorage.setItem('bjt_learner_profile', JSON.stringify({ goal: 'curious', commitment: 'regular' }))
+    withData(speedDrills(hiLo.minSessions, hiLo.minDays))
+    render(<AnalyticsDashboard />)
+
+    expect(goalStage('curious')).toBe('true-count')
+    const strip = screen.getByTestId('analytics-plan-strip')
+    expect(within(strip).getByText(/3 of 4 stages/)).toBeInTheDocument()
+  })
+
+  it('does not count a stage cleared beyond the goal', () => {
+    // Placed past where the goal ends: nothing after the goal may be added
+    // to a road that stops before it.
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    localStorage.setItem('bjt_learner_profile', JSON.stringify({ goal: 'curious', commitment: 'regular' }))
+    localStorage.setItem('bjt_claimed_stages', JSON.stringify(['deviations', 'bet-spread']))
+    withData([makeSession()])
+    render(<AnalyticsDashboard />)
+
+    const strip = screen.getByTestId('analytics-plan-strip')
+    expect(within(strip).getByText(/2 of 4 stages/)).toBeInTheDocument()
   })
 
   it('does not call a stage cleared that was drilled in one sitting', () => {
@@ -266,7 +302,7 @@ describe('AnalyticsDashboard — the training plan strip', () => {
     render(<AnalyticsDashboard />)
 
     const strip = screen.getByTestId('analytics-plan-strip')
-    expect(within(strip).getByText(/0 of 5 stages/)).toBeInTheDocument()
+    expect(within(strip).getByText(/2 of 7 stages/)).toBeInTheDocument()
     expect(within(strip).getByText('The Hi-Lo count')).toBeInTheDocument()
   })
 
@@ -278,7 +314,7 @@ describe('AnalyticsDashboard — the training plan strip', () => {
     render(<AnalyticsDashboard />)
 
     const strip = screen.getByTestId('analytics-plan-strip')
-    expect(within(strip).getByText(/1 of 5 stages/)).toBeInTheDocument()
+    expect(within(strip).getByText(/3 of 7 stages/)).toBeInTheDocument()
     expect(within(strip).getByText('True count')).toBeInTheDocument()
   })
 

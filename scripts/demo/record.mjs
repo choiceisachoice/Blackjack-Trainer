@@ -506,7 +506,7 @@ const SCENES = {
   async 'bet-spread'(page) {
     await openMode(page, 'betSpread')
     await sleep(1600)
-    await glideClick(page, 'button:has-text("Type C")')
+    await glideClick(page, 'button:has-text("TC + bet")')
     await glideClick(page, 'button:has-text("10")')
     await sleep(500)
     await glideClick(page, '[data-testid="start-training"]', { settle: 1400 })

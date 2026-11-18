@@ -1,3 +1,5 @@
+import { reportFailure } from './failure-report'
+
 /**
  * Where the technical half of a failure goes.
  *
@@ -19,15 +21,27 @@
  * Returns `void` deliberately. A helper that returned a string would invite the
  * next caller to put it in state, which is the habit this replaces.
  *
- * ## Why the console and not a table
+ * ## The console, and since 18 Nov 2026 also a table
  *
- * The failures worth catching here are the ones that never reach the server —
- * a blocked preflight, a dead network, Supabase unreachable. There is nothing
- * server-side to record them *with*. What actually reports these is the
- * customer, which is why the message they see matters more than any log: one
- * who reads "something went wrong, write to us at …" gets in touch, and one who
- * reads "Edge Function returned a non-2xx status code" leaves.
+ * A console on a customer's device is read by nobody, so for a short allowlist
+ * of places — checkout, the billing portal, the account actions — the cause is
+ * also handed to `failure-report.ts`, which sends one scrubbed row to the
+ * database for the admin page. Sign-in failures are not on that list: a wrong
+ * password is not a failure of ours.
+ *
+ * The limit is worth knowing. The failures that matter most are the ones that
+ * never reach a server — a blocked preflight, a dead network, Supabase
+ * unreachable — and a report cannot get out then either. It waits in
+ * `sessionStorage` for the next visit in that tab; if there is none, the only
+ * report is still the customer, which is why the message they read matters as
+ * much as it did before.
  */
 export function logFailure(where: string, cause: unknown): void {
   console.error(`[${where}] failed`, cause)
+  try {
+    reportFailure(where, cause)
+  } catch {
+    // `reportFailure` does not throw; this is the belt to its braces, because
+    // the callers are `catch` blocks on the payment path.
+  }
 }

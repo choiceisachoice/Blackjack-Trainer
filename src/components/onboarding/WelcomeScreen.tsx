@@ -104,7 +104,9 @@ export function WelcomeScreen({ isPro, onStart }: { isPro: boolean; onStart: () 
           ))}
         </ol>
 
-        <div {...rise(0.58, 'mt-[clamp(1.75rem,4vh,3rem)]')}>
+        {/* On a phone the one button of this screen stays in reach: it was
+            cut by the fold at 390x844 and entirely below it at 360x640. */}
+        <div {...rise(0.58, 'mt-[clamp(1.75rem,4vh,3rem)] max-sm:sticky max-sm:bottom-[calc(0.75rem+var(--cookie-bar,0px))] max-sm:z-10')}>
           <button
             onClick={onStart}
             data-testid="welcome-start"

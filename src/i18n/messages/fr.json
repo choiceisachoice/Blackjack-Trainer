@@ -28,9 +28,9 @@
       "casinoSession": "Casino",
       "plan": "Plan",
       "learn": "Apprendre",
-      "analytics": "Analyse",
+      "analytics": "Analyses",
       "strategyChart": "Stratégie",
-      "achievements": "Trophées",
+      "achievements": "Récompenses",
       "bankrollSim": "Bankroll",
       "casinoSessionTracker": "Suivi"
     },
@@ -42,7 +42,10 @@
     "proFeature": "Fonction Pro",
     "backToMenu": "Retour au menu principal",
     "more": "Plus",
-    "menu": "Menu"
+    "menu": "Menu",
+    "sound": "Son",
+    "soundOn": "Son activé",
+    "soundOff": "Son coupé"
   },
   "session": {
     "leave": {
@@ -160,7 +163,8 @@
     "flexibleSwitch": "Flexible — passez à l'annuel quand vous voulez",
     "secureCheckout": "Paiement sécurisé par Stripe. Résiliable à tout moment depuis votre compte.",
     "everythingInFree": "Tout le gratuit, plus :",
-    "goProPrice": "Passer à Pro — {{price}}"
+    "goProPrice": "Passer à Pro — {{price}}",
+    "atCheckout": "Prix affiché au moment du paiement"
   },
   "landing": {
     "nav": {
@@ -242,7 +246,7 @@
       "t2title": "Une analyse qui ne ment pas",
       "t2body": "Courbe de précision, carte de chaleur et vos mains les plus faibles — issues de vos vraies sessions.",
       "t3title": "Niveaux & trophées",
-      "t3body": "Plus de 100 objectifs et un parcours de 25 niveaux qui vous mènent de la première main au vrai jeu d’avantage.",
+      "t3body": "Près de 100 objectifs et un parcours de 25 niveaux qui vous mènent de la première main au vrai jeu d’avantage.",
       "t4title": "Session de casino complète",
       "t4body": "Une vraie table de feutre multi-places — bots, splits, doubles, paiements et règle du soft 17. Au plus près de la fosse.",
       "t5title": "Les déviations sur le tableau",
@@ -389,7 +393,7 @@
       "wrongBang": "Faux !",
       "sessionComplete": "Session terminée !",
       "questionProgress": "Question {{n}}/{{total}}",
-      "correctOf": "Correct : {{n}}/{{total}} ({{pct}} %)",
+      "correctOf": "Correct : {{n}}/{{total}} ({{pct}} %)",
       "streakOf": "Série : {{n}}"
     },
     "speed": {
@@ -455,13 +459,13 @@
       "betEquals": "Mise = multiplicateur × le minimum de table (indiqué à chaque question).",
       "questionType": "Type de question",
       "typeRandom": "Aléatoire",
-      "typeA": "Type A",
-      "typeB": "Type B",
-      "typeC": "Type C",
+      "typeA": "Mise selon RC",
+      "typeB": "Mise selon TC",
+      "typeC": "TC + mise",
       "helpRandom": "Mélange de tous les types de questions",
-      "helpA": "Type A — à partir du RC et des jeux restants, choisissez la mise optimale",
-      "helpB": "Type B — à partir du true count, choisissez la mise optimale",
-      "helpC": "Type C — à partir du RC et des jeux restants, saisissez le TC puis choisissez la mise",
+      "helpA": "Vous recevez le running count et les jeux restants — calculez le true count de tête et choisissez la mise.",
+      "helpB": "Vous recevez le true count — choisissez la mise qui lui correspond.",
+      "helpC": "Vous recevez le running count et les jeux restants — saisissez le true count, puis choisissez la mise. Les deux doivent être justes.",
       "tableMinimum": "Minimum de table",
       "runningCount": "Running count",
       "remainingDecks": "Jeux restants",
@@ -540,7 +544,7 @@
       },
       "howItWorks": "Comment ça marche",
       "yourLastRun": "Votre dernière session",
-      "bestInMode": "Meilleur score dans ce mode : {{pct}} %.",
+      "bestInMode": "Meilleur score dans ce mode : {{pct}} %.",
       "keepItUp": "Continuez comme ça.",
       "noRuns": "Aucune session pour l’instant — lancez la première et suivez vos progrès ici.",
       "proTip": "Astuce"
@@ -650,7 +654,8 @@
       "timeUp_one": "1 minute jouée — terminez cette main",
       "timeUp_other": "{{count}} minutes jouées — terminez cette main",
       "speedFast": "Rapide",
-      "insuranceAskHand": "Assurer la main {{n}} ? (Le croupier montre un as)"
+      "insuranceAskHand": "Assurer la main {{n}} ? (Le croupier montre un as)",
+      "continue": "Continuer (Entrée)"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -673,7 +678,7 @@
       "missedDeviations": "Déviations manquées",
       "playAgain": "Rejouer",
       "home": "Accueil",
-      "overallScore": "Score global : {{pct}} %",
+      "overallScore": "Score global : {{pct}} %",
       "anomalies": "Anomalies détectées pendant la session : {{count}}",
       "basicMode": "Blackjack seul · noté sur la stratégie de base"
     },
@@ -749,12 +754,12 @@
     "nSessions": "{{n}} sessions",
     "nHands": "{{n}} mains",
     "roi": "ROI :",
-    "gradeScore": "Note : {{grade}} ({{pct}} %)",
-    "gradeShort": "{{grade}} ({{pct}} %)",
+    "gradeScore": "Note : {{grade}} ({{pct}} %)",
+    "gradeShort": "{{grade}} ({{pct}} %)",
     "deckMin": "{{decks}} jeux, min. {{min}}",
-    "playPct": "Jeu : {{pct}} %",
-    "betPct": "Mise : {{pct}} %",
-    "countPct": "Comptage : {{pct}} %",
+    "playPct": "Jeu : {{pct}} %",
+    "betPct": "Mise : {{pct}} %",
+    "countPct": "Comptage : {{pct}} %",
     "streaks": "Séries"
   },
   "welcome": {
@@ -871,12 +876,12 @@
       "why": "Chaque compétence est facile isolément. La difficulté est de les tenir toutes en même temps pendant que la table parle."
     },
     "drill": {
-      "flashcards": "{{n}} sessions de Flashcards à {{pct}} % ou plus, sur {{days}} jours différents",
-      "speedDrill": "{{n}} Speed Drills à {{pct}} % ou plus, sur {{days}} jours différents",
-      "deckEstimation": "{{n}} sessions de Deck Estimation à {{pct}} % ou plus, sur {{days}} jours différents",
-      "deviations": "{{n}} sessions de Flashcards sur les déviations à {{pct}} % ou plus, sur {{days}} jours différents",
-      "betSpread": "{{n}} sessions de Bet Spread à {{pct}} % ou plus, sur {{days}} jours différents",
-      "casino": "{{n}} Casino Sessions jouées, sur {{days}} jours différents"
+      "flashcards": "{{n}} sessions de Cartes mémo à {{pct}} % ou plus, sur {{days}} jours différents",
+      "speedDrill": "{{n}} Speed Drills à {{pct}} % ou plus, sur {{days}} jours différents",
+      "deckEstimation": "{{n}} sessions d’Estimation des jeux à {{pct}} % ou plus, sur {{days}} jours différents",
+      "deviations": "{{n}} sessions de Cartes mémo sur les déviations à {{pct}} % ou plus, sur {{days}} jours différents",
+      "betSpread": "{{n}} sessions de Bet spread à {{pct}} % ou plus, sur {{days}} jours différents",
+      "casino": "{{n}} sessions de casino jouées, sur {{days}} jours différents"
     }
   },
   "plan": {
@@ -921,10 +926,10 @@
     "standing": {
       "done": "Validée. Tout le reste ici n’est que pratique.",
       "partial": "{{cleared}} sessions sur {{target}} ont passé la barre. Encore {{left}}.",
-      "close_one": "{{count}} tentative jusqu’ici, meilleur {{best}} % — {{gap}} sous la barre de {{bar}} %. Vous y êtes presque.",
-      "close_other": "{{count}} tentatives jusqu’ici, meilleur {{best}} % — {{gap}} sous la barre de {{bar}} %. Vous y êtes presque.",
-      "far_one": "{{count}} tentative jusqu’ici, meilleur {{best}} %. La barre est à {{bar}} %, {{target}} fois.",
-      "far_other": "{{count}} tentatives jusqu’ici, meilleur {{best}} %. La barre est à {{bar}} %, {{target}} fois.",
+      "close_one": "{{count}} tentative jusqu’ici, meilleur {{best}} % — {{gap}} sous la barre de {{bar}} %. Vous y êtes presque.",
+      "close_other": "{{count}} tentatives jusqu’ici, meilleur {{best}} % — {{gap}} sous la barre de {{bar}} %. Vous y êtes presque.",
+      "far_one": "{{count}} tentative jusqu’ici, meilleur {{best}} %. La barre est à {{bar}} %, {{target}} fois.",
+      "far_other": "{{count}} tentatives jusqu’ici, meilleur {{best}} %. La barre est à {{bar}} %, {{target}} fois.",
       "spacing_one": "Assez de bonnes sessions. Il manque encore {{count}} jour : un acquis doit tenir une nuit avant de compter.",
       "spacing_other": "Assez de bonnes sessions. Il manque encore {{count}} jours : un acquis doit tenir une nuit avant de compter."
     },
@@ -932,7 +937,7 @@
       "attempts_one": "{{count}} tentative · meilleur",
       "attempts_other": "{{count}} tentatives · meilleur",
       "offBar": " — {{gap}} sous la barre",
-      "barIs": ", la barre est à {{bar}} %"
+      "barIs": ", la barre est à {{bar}} %"
     },
     "stagesComplete_one": "{{done}} étape sur {{count}} terminée",
     "stagesComplete_other": "{{done}} étapes sur {{count}} terminées",
@@ -1090,7 +1095,7 @@
         "more": {
           "p1": "Le running count dit combien de cartes hautes en trop il reste, mais pas à quel point elles sont concentrées. Un compte de <g>+6</g> avec six jeux encore à distribuer, c’est une carte haute en trop par jeu — presque rien. Le même <g>+6</g> avec un seul jeu restant, c’est six cartes hautes en trop dans les cinquante-deux prochaines. C’est un sabot très différent.",
           "p2": "Alors tu divises. <g>True Count = Running Count ÷ jeux restants</g>. Un running count de <g>+8</g> avec quatre jeux restants donne un true count de <g>+2</g> ; le même <g>+8</g> avec deux jeux restants donne <g>+4</g>. La plupart des compteurs arrondissent vers zéro pour les décisions de mise, donc un +2,7 est traité comme +2 — le côté prudent.",
-          "p3": "Ce que le nombre veut dire en argent : chaque point de true count déplace l’avantage d’environ <g>un demi pour cent</g>. À un true count de zéro, la maison détient environ 0,5 % contre un joueur parfait en stratégie de base. À <g>+1</g> le jeu est presque équilibré, à <g>+2</g> tu détiens environ un demi pour cent, à <g>+3</g> environ un pour cent. C’est tout le modèle économique : miser petit sous +1, gros au-dessus.",
+          "p3": "Ce que le nombre veut dire en argent : chaque point de true count déplace l’avantage d’environ <g>un demi pour cent</g>. À un true count de zéro, la maison détient environ 0,5 % contre un joueur parfait en stratégie de base. À <g>+1</g> le jeu est presque équilibré, à <g>+2</g> tu détiens environ un demi pour cent, à <g>+3</g> environ un pour cent. C’est tout le modèle économique : miser petit sous +1, gros au-dessus.",
           "p4": "Le true count pilote les deux moitiés de la méthode — combien tu mises, et quelles décisions tu changes. Sa seule entrée que tu ne peux pas lire sur la table est le nombre de jeux restants, qu’il faut estimer à l’œil. Cette compétence a son propre chapitre et son propre mode d’entraînement."
         }
       },
@@ -1100,7 +1105,7 @@
         "more": {
           "p1": "La stratégie de base est la décision mathématiquement optimale pour chaque combinaison de ta main et de la carte visible du croupier, en supposant que tu ne sais rien des cartes restantes. Elle a été résolue en faisant passer des millions de mains dans un ordinateur, et elle dépend des règles : nombre de jeux, croupier tirant ou non sur un 17 souple, double après partage ou non, abandon proposé ou non.",
           "p2": "Quelques-uns de ses piliers valent la peine d’être connus par cœur avant de travailler le reste : partage toujours <c>les as et les huit</c>, ne partage jamais les dix ni les cinq. Double un <g>11</g> dur contre tout sauf un as. Reste sur un <g>17</g> dur et plus. Avec une main faible — 12 à 16 dur — reste contre un croupier de 2 à 6 et tire contre 7 ou plus, la seule exception étant le 12, qui tire contre 2 et 3.",
-          "p3": "Jouée parfaitement avec de bonnes règles, la stratégie de base ramène l’avantage de la maison à environ <g>0,5 %</g>. Le joueur moyen en cède 2 % ou plus en devinant. Avant même que le comptage n’apporte quoi que ce soit, la stratégie de base seule récupère la plus grande partie de l’argent qu’un joueur occasionnel perd — c’est pourquoi elle vient en premier.",
+          "p3": "Jouée parfaitement avec de bonnes règles, la stratégie de base ramène l’avantage de la maison à environ <g>0,5 %</g>. Le joueur moyen en cède 2 % ou plus en devinant. Avant même que le comptage n’apporte quoi que ce soit, la stratégie de base seule récupère la plus grande partie de l’argent qu’un joueur occasionnel perd — c’est pourquoi elle vient en premier.",
           "p4": "Elle doit devenir automatique. Compter demande de l’attention, et si une partie de cette attention sert encore à se demander s’il faut tirer un 15 contre un 9, le compte va glisser. Le mode <c>Cartes mémoire</c> te montre toutes les mains qui existent jusqu’à ce que la bonne décision arrive avant la question."
         }
       },
@@ -1111,14 +1116,14 @@
           "p1": "La stratégie de base suppose un sabot neutre. Quand le compte dit que le sabot est riche en dix, certaines de ses décisions ne sont plus les meilleures : tu restes plus souvent, parce que le croupier saute plus souvent ; tu doubles plus souvent, parce que ta carte unique a plus de chances d’être un dix ; et tu prends l’assurance, parce que la carte cachée du croupier a plus de chances d’être un dix. Quand le compte est bas, l’inverse — tu tires sur des mains où tu resterais normalement.",
           "p2": "L’exemple classique est le <g>16 dur contre un 10</g>. La stratégie de base tire, et perd la plupart du temps de toute façon. À un true count de <g>0 ou plus</g> tu restes à la place, parce que le dix qui te ferait sauter est maintenant la carte la plus probable. La déviation la plus précieuse de toutes est l’assurance à un true count de <g>+3</g> : l’assurance est une mise annexe sur un blackjack du croupier, et elle est rentable quand plus d’un tiers des cartes restantes sont des dix.",
           "p3": "Chaque déviation a un <c>indice</c> : le true count auquel la meilleure décision bascule. À l’indice ou au-dessus, tu fais la déviation ; en dessous, tu joues la stratégie de base. Certains indices sont négatifs — ce sont des décisions que tu changes quand le compte est bas, comme tirer un 13 contre un 2 à un true count de −1 ou pire.",
-          "p4": "Les déviations ajoutent environ <g>10–20 %</g> au profit attendu d’un compteur ; l’écart de mise produit le reste. Apprends-les donc en dernier, quand le compte et la stratégie de base sont automatiques, et apprends d’abord les plus précieuses — le chapitre suivant est cette liste."
+          "p4": "Les déviations ajoutent environ <g>10–20 %</g> au profit attendu d’un compteur ; l’écart de mise produit le reste. Apprends-les donc en dernier, quand le compte et la stratégie de base sont automatiques, et apprends d’abord les plus précieuses — le chapitre suivant est cette liste."
         }
       },
       "i18-fab4": {
         "title": "Illustrious 18 et Fab 4",
         "body": "De toutes les déviations possibles, l’essentiel de la valeur tient à un petit ensemble : les <g>Illustrious 18</g> (les 18 déviations de jeu les plus rentables) et les <g>Fab 4</g> (les 4 déviations d’abandon les plus rentables). Inutile de retenir les noms — le niveau « Déviations » des cartes mémo les enseigne directement comme des situations.",
         "more": {
-          "p1": "Il existe des centaines de déviations possibles, et la plupart ne valent presque rien. En 1986, Don Schlesinger a identifié les dix-huit qui portent la grande majorité de la valeur — les <c>Illustrious 18</c> — puis les quatre décisions d’abandon qui comptent quand l’abandon tardif est proposé, les <c>Fab 4</c>. Ensemble, elles captent environ <g>80–90 %</g> de tout ce que les déviations peuvent te donner.",
+          "p1": "Il existe des centaines de déviations possibles, et la plupart ne valent presque rien. En 1986, Don Schlesinger a identifié les dix-huit qui portent la grande majorité de la valeur — les <c>Illustrious 18</c> — puis les quatre décisions d’abandon qui comptent quand l’abandon tardif est proposé, les <c>Fab 4</c>. Ensemble, elles captent environ <g>80–90 %</g> de tout ce que les déviations peuvent te donner.",
           "p2": "La liste commence par les quatre qui comptent le plus : l’assurance à <g>+3</g>, rester sur 16 contre un 10 à <g>0</g>, rester sur 15 contre un 10 à <g>+4</g>, et partager une paire de dix contre un 5 à <g>+5</g>. Si tu n’apprends rien d’autre, apprends celles-là.",
           "p3": "Les décisions à indice négatif sont celles que les débutants oublient : à compte bas, tu <c>tires</c> sur des mains où la stratégie de base reste, comme 12 contre 4, 5 ou 6, et 13 contre 2 ou 3. Elles reviennent sans cesse, parce que les comptes bas sont aussi fréquents que les hauts.",
           "p4": "Les tableaux ci-dessous sont générés par le moteur même de cet entraîneur — les mêmes chiffres que ceux avec lesquels la table de casino te note, ils ne peuvent donc pas diverger. Les indices valent pour une partie à six jeux où le croupier reste sur un 17 souple. Le niveau déviations des <c>Cartes mémoire</c> enseigne chacune d’elles comme une situation plutôt que comme une ligne d’une liste."
@@ -1139,7 +1144,7 @@
         "body": "Pour transformer le running count en true count, il faut juger combien de jeux restent — à l’œil, à l’épaisseur du sabot de défausse, comme à une vraie table. Cela paraît difficile mais devient rapide avec la pratique. C’est exactement ce qu’entraîne le mode <c>Estimation des jeux</c>.",
         "more": {
           "p1": "Le true count a besoin d’un nombre que la table ne te montre pas : combien de jeux restent à distribuer. Tu le lis dans la défausse. Un jeu de 52 cartes fait environ <g>1,5 cm</g> (0,6 pouce) de haut, donc un sabot de six jeux mesure environ 9 cm, et une défausse de 3 cm de cartes signifie que deux jeux sont partis et qu’il en reste quatre.",
-          "p2": "Estime en demi-jeux, pas en cartes. Regarde la défausse, estime les cartes écartées, soustrais du sabot. Dans un sabot de six jeux avec environ <g>2,5 jeux</g> dans la défausse, il en reste <g>3,5</g>. Rappelle-toi que la carte de coupe se situe généralement vers 75 % de pénétration, donc le dernier jeu et demi n’est jamais distribué — ce qui compte, c’est le compte par rapport à ce qui sera réellement joué.",
+          "p2": "Estime en demi-jeux, pas en cartes. Regarde la défausse, estime les cartes écartées, soustrais du sabot. Dans un sabot de six jeux avec environ <g>2,5 jeux</g> dans la défausse, il en reste <g>3,5</g>. Rappelle-toi que la carte de coupe se situe généralement vers 75 % de pénétration, donc le dernier jeu et demi n’est jamais distribué — ce qui compte, c’est le compte par rapport à ce qui sera réellement joué.",
           "p3": "La précision au demi-jeu suffit, et moins ne suffit pas. Un running count de +6 avec trois jeux restants est un true count de <g>+2</g> ; trompe-toi d’un jeu sur la défausse et tu l’appelles <g>+3</g>, tu mises le mauvais montant et tu fais une déviation que tu n’aurais pas dû faire. La plupart des erreurs de comptage aux vraies tables sont des erreurs d’estimation, pas d’addition.",
           "p4": "Cela devient rapide avec la répétition, comme juger qu’un verre est à moitié plein. Le mode <c>Estimation des jeux</c> te montre des défausses de tailles aléatoires et note ton estimation ; vise à être à un demi-jeu près à chaque fois, puis fais-le avec le compte qui tourne en même temps."
         }
@@ -1176,7 +1181,7 @@
       "q2": "Combien de temps faut-il pour apprendre le Hi-Lo ?",
       "a2": "La plupart des gens tiennent un running count exact sur un seul jeu après une semaine de pratique quotidienne, et atteignent la vitesse de table — une carte par seconde ou moins, avec conversion en true count et stratégie de base en parallèle — en un à trois mois. Le difficile n’est pas de compter ; c’est de le faire pendant que tout le reste se passe.",
       "q3": "Quel système de comptage un débutant devrait-il utiliser ?",
-      "a3": "Le Hi-Lo. Il obtient environ 97 % de la valeur qu’un système parfait pourrait donner, c’est un seul niveau de +1 et −1, et toutes les équipes sérieuses l’utilisent. Les systèmes à plusieurs niveaux ajoutent une fraction de pour cent contre beaucoup plus d’efforts et plus d’erreurs.",
+      "a3": "Le Hi-Lo. Il obtient environ 97 % de la valeur qu’un système parfait pourrait donner, c’est un seul niveau de +1 et −1, et toutes les équipes sérieuses l’utilisent. Les systèmes à plusieurs niveaux ajoutent une fraction de pour cent contre beaucoup plus d’efforts et plus d’erreurs.",
       "q4": "Quel est l’avantage d’un compteur de cartes ?",
       "a4": "Petit. Un bon compteur avec un écart de mise solide et des règles correctes a en moyenne un avantage d’environ 0,5 à 1,5 pour cent sur l’ensemble du jeu — avec des fluctuations brutales à court terme. C’est un travail de fond mesuré sur des milliers de mains, pas un moyen de battre un casino en une soirée.",
       "q5": "Dois-je mémoriser chaque carte jouée ?",
@@ -1189,7 +1194,11 @@
     "readChapter": "Lire le chapitre complet",
     "otherChapters": "Autres chapitres",
     "allChapters": "Tous les chapitres",
-    "chapterOf": "Chapitre {{n}} sur {{total}}"
+    "chapterOf": "Chapitre {{n}} sur {{total}}",
+    "hand": {
+      "soft": "{{n}} souple",
+      "bust": "{{n}} — brûlé"
+    }
   },
   "basics": {
     "you": "Vous",
@@ -1322,47 +1331,47 @@
     },
     "count_expert": {
       "name": "Compteur confirmé",
-      "desc": "Atteignez 90 % ou plus de moyenne sur vos 20 derniers Speed Drills"
+      "desc": "Atteignez 90 % ou plus de moyenne sur vos 20 derniers Speed Drills"
     },
     "six_systems": {
       "name": "Maître compteur",
-      "desc": "Atteignez 95 % ou plus de moyenne sur vos 30 derniers Speed Drills"
+      "desc": "Atteignez 95 % ou plus de moyenne sur vos 30 derniers Speed Drills"
     },
     "quick_counter": {
       "name": "Compteur rapide",
-      "desc": "Terminez un Speed Drill en vitesse Normale avec 80 % ou plus"
+      "desc": "Terminez un Speed Drill en vitesse Normale avec 80 % ou plus"
     },
     "lightning_fast": {
       "name": "Rapide comme l’éclair",
-      "desc": "Terminez un Speed Drill en vitesse Rapide avec 80 % ou plus"
+      "desc": "Terminez un Speed Drill en vitesse Rapide avec 80 % ou plus"
     },
     "blur": {
       "name": "Flou",
-      "desc": "95 % ou plus en vitesse Rapide au Speed Drill"
+      "desc": "95 % ou plus en vitesse Rapide au Speed Drill"
     },
     "sharp_eye": {
       "name": "Œil aiguisé",
-      "desc": "Atteignez 80 % de précision sur une session"
+      "desc": "Atteignez 80 % de précision sur une session"
     },
     "precision": {
       "name": "Précision",
-      "desc": "Atteignez 90 % de précision sur une session"
+      "desc": "Atteignez 90 % de précision sur une session"
     },
     "sniper": {
       "name": "Tireur d’élite",
-      "desc": "Atteignez 95 % de précision sur une session"
+      "desc": "Atteignez 95 % de précision sur une session"
     },
     "perfection": {
       "name": "Perfection",
-      "desc": "Faites 100 % sur une session (10 questions minimum)"
+      "desc": "Faites 100 % sur une session (10 questions minimum)"
     },
     "well_rounded": {
       "name": "Complet",
-      "desc": "Atteignez 80 % ou plus dans les cinq modes d’entraînement"
+      "desc": "Atteignez 80 % ou plus dans les cinq modes d’entraînement"
     },
     "renaissance_counter": {
       "name": "Compteur universel",
-      "desc": "Atteignez 90 % ou plus dans les cinq modes d’entraînement"
+      "desc": "Atteignez 90 % ou plus dans les cinq modes d’entraînement"
     },
     "in_the_zone": {
       "name": "Dans la zone",
@@ -1374,11 +1383,11 @@
     },
     "tc_sharpshooter": {
       "name": "Tireur d’élite du TC",
-      "desc": "95 % ou plus de précision de comptage en session de casino"
+      "desc": "95 % ou plus de précision de comptage en session de casino"
     },
     "system_scholar": {
       "name": "Expert en estimation",
-      "desc": "95 % ou plus en estimation des jeux"
+      "desc": "95 % ou plus en estimation des jeux"
     },
     "counting_grinder": {
       "name": "Bourreau de cartes mémo",
@@ -1386,7 +1395,7 @@
     },
     "deviation_virtuoso": {
       "name": "Virtuose des déviations",
-      "desc": "95 % ou plus aux cartes mémo de déviations"
+      "desc": "95 % ou plus aux cartes mémo de déviations"
     },
     "master_collector": {
       "name": "Grand collectionneur",
@@ -1398,7 +1407,7 @@
     },
     "quick_draw": {
       "name": "Tir rapide",
-      "desc": "90 % ou plus dans une estimation des jeux en Tir rapide"
+      "desc": "90 % ou plus dans une estimation des jeux en Tir rapide"
     },
     "platinum_collector": {
       "name": "Collectionneur platine",
@@ -1410,11 +1419,11 @@
     },
     "illustrious_18": {
       "name": "Illustrious 18",
-      "desc": "90 % ou plus aux cartes mémo"
+      "desc": "90 % ou plus aux cartes mémo"
     },
     "table_general": {
       "name": "Maître des cartes mémo",
-      "desc": "95 % ou plus aux cartes mémo"
+      "desc": "95 % ou plus aux cartes mémo"
     },
     "fab_four_master": {
       "name": "Fab Four",
@@ -1486,19 +1495,19 @@
     },
     "spread_master": {
       "name": "Maître du spread",
-      "desc": "Atteignez 90 % ou plus de moyenne sur vos 10 dernières sessions de bet spread"
+      "desc": "Atteignez 90 % ou plus de moyenne sur vos 10 dernières sessions de bet spread"
     },
     "deck_hawk": {
       "name": "Faucon des jeux",
-      "desc": "Atteignez 90 % ou plus de moyenne sur vos 10 dernières estimations des jeux"
+      "desc": "Atteignez 90 % ou plus de moyenne sur vos 10 dernières estimations des jeux"
     },
     "triple_perfect": {
       "name": "Triple sans faute",
-      "desc": "Faites 100 % sur 3 sessions (10 questions minimum chacune)"
+      "desc": "Faites 100 % sur 3 sessions (10 questions minimum chacune)"
     },
     "ten_perfects": {
       "name": "Perfectionniste",
-      "desc": "Faites 100 % sur 10 sessions (10 questions minimum chacune)"
+      "desc": "Faites 100 % sur 10 sessions (10 questions minimum chacune)"
     },
     "mega_profit": {
       "name": "Méga profit",
@@ -1530,23 +1539,23 @@
     },
     "casino_valedictorian": {
       "name": "Major de promotion",
-      "desc": "Obtenez la note A+ (95 % ou plus) en session de casino"
+      "desc": "Obtenez la note A+ (95 % ou plus) en session de casino"
     },
     "casino_bet_master": {
       "name": "Maître des mises",
-      "desc": "90 % ou plus de précision de mise en session de casino"
+      "desc": "90 % ou plus de précision de mise en session de casino"
     },
     "casino_perfect_play": {
       "name": "Jeu parfait",
-      "desc": "95 % ou plus de précision de jeu en session de casino"
+      "desc": "95 % ou plus de précision de jeu en session de casino"
     },
     "casino_eagle_eye": {
       "name": "Œil de lynx",
-      "desc": "90 % ou plus de précision de comptage en session de casino"
+      "desc": "90 % ou plus de précision de comptage en session de casino"
     },
     "casino_triple_threat": {
       "name": "Triple menace",
-      "desc": "90 % ou plus en mise, en jeu ET en comptage dans une même session"
+      "desc": "90 % ou plus en mise, en jeu ET en comptage dans une même session"
     },
     "casino_in_the_green": {
       "name": "Dans le vert",
@@ -1586,7 +1595,7 @@
     },
     "deviation_ace": {
       "name": "As des déviations",
-      "desc": "95 % ou plus de précision sur les déviations en session de casino"
+      "desc": "95 % ou plus de précision sur les déviations en session de casino"
     },
     "tracker_first_session": {
       "name": "Première entrée",
@@ -1666,9 +1675,9 @@
     "unlocked": "Débloqué",
     "locked": "Verrouillé",
     "unknownDate": "Inconnue",
-    "percentComplete": "{{pct}} % terminé",
+    "percentComplete": "{{pct}} % terminé",
     "unlockedOn": "{{name}} — {{desc}} (débloqué le {{date}})",
-    "inProgress": "{{name}} — {{desc}} ({{pct}} %)",
+    "inProgress": "{{name}} — {{desc}} ({{pct}} %)",
     "unlockedBang": "Succès débloqué !",
     "cat": {
       "getting_started": "Premiers pas",
@@ -1708,7 +1717,7 @@
     "learn": "Apprendre",
     "analytics": "Analyses",
     "strategyChart": "Tableau de stratégie de base",
-    "achievements": "Succès",
+    "achievements": "Récompenses",
     "deviationTraining": "Entraînement aux déviations",
     "casinoSessionTracker": "Suivi des sessions"
   },
@@ -1733,7 +1742,7 @@
     "tagline": "Le Hi-Lo, travaillé jusqu’à ce que le compte vienne tout seul.",
     "stat": {
       "streak": "Série de {{count}} j",
-      "accuracy": "{{pct}} % de précision"
+      "accuracy": "{{pct}} % de précision"
     }
   },
   "startLevel": {
@@ -1854,7 +1863,7 @@
     },
     "sharp_eye": {
       "title": "Œil aiguisé",
-      "desc": "Atteignez 80 % de précision sur une session"
+      "desc": "Atteignez 80 % de précision sur une session"
     },
     "winning_streak": {
       "title": "Série gagnante",
@@ -1878,7 +1887,7 @@
     },
     "precision": {
       "title": "Précision",
-      "desc": "Atteignez 90 % de précision sur une session"
+      "desc": "Atteignez 90 % de précision sur une session"
     },
     "centurion": {
       "title": "Centurion",
@@ -1902,11 +1911,11 @@
     },
     "sniper": {
       "title": "Tireur d’élite",
-      "desc": "Atteignez 95 % de précision sur une session"
+      "desc": "Atteignez 95 % de précision sur une session"
     },
     "count_master": {
       "title": "Maître compteur",
-      "desc": "Atteignez 90 % ou plus de précision de comptage en session de casino"
+      "desc": "Atteignez 90 % ou plus de précision de comptage en session de casino"
     },
     "lightning_speed": {
       "title": "Vitesse éclair",
@@ -1946,7 +1955,7 @@
     },
     "accuracy_week": {
       "title": "Semaine précision",
-      "desc": "Atteignez 85 % ou plus dans 5 sessions distinctes"
+      "desc": "Atteignez 85 % ou plus dans 5 sessions distinctes"
     },
     "casino_regular": {
       "title": "Habitué du casino",
@@ -1970,7 +1979,7 @@
     },
     "perfectionist_week": {
       "title": "Semaine perfectionniste",
-      "desc": "Atteignez 90 % ou plus dans 10 sessions"
+      "desc": "Atteignez 90 % ou plus dans 10 sessions"
     },
     "ultimate_grinder": {
       "title": "Bosseur ultime",
@@ -2041,7 +2050,7 @@
       "upgrade": "Débloquez le tableau complet de votre avantage au comptage."
     },
     "insightMsg": {
-      "weak": "Vous jouez mal {{name}} dans {{miss}} % des cas — une courte série de cartes mémo comblerait l’écart le plus vite.",
+      "weak": "Vous jouez mal {{name}} dans {{miss}} % des cas — une courte série de cartes mémo comblerait l’écart le plus vite.",
       "up": "Votre précision a grimpé de {{delta}} par rapport à la période précédente — l’élan est de votre côté.",
       "down": "La précision a baissé de {{delta}} sur la période — une ou deux séances ciblées la stabiliseront.",
       "streak": "Vous êtes sur une {{streak}} — la régularité est le vrai avantage du compteur. Faites-la durer.",
@@ -2071,7 +2080,14 @@
     "axisDeviations": "Écarts",
     "axisBetting": "Mise",
     "axisEstimation": "Estimation",
-    "axisTablePlay": "Jeu à table"
+    "axisTablePlay": "Jeu à table",
+    "streakUnit_one": "jour",
+    "streakUnit_other": "jours",
+    "bestStreak": "Record {{n}}",
+    "tagStrong": "Fort",
+    "tagFocus": "Focus",
+    "recentAchievements": "Récompenses récentes",
+    "unlockedCount": "{{n}} débloquées"
   },
   "sim": {
     "onboardTitle": "Suivez votre bankroll",
@@ -2124,7 +2140,7 @@
   },
   "chart": {
     "title": "Tableau de stratégie de base",
-    "sub": "La stratégie de base Hi-Lo complète — touchez une case pour les détails.",
+    "sub": "La stratégie de base complète — choisissez une case pour les détails.",
     "dealerRule": "Règle du croupier",
     "proHeadline": "Les déviations sont réservées à Pro — voyez exactement quand le compte l’emporte sur la stratégie de base.",
     "s1": "I. Totaux durs (12-17+)",
@@ -2134,7 +2150,7 @@
     "countDeviation": "Déviation selon le compte",
     "atTrueCount": "À partir du true count",
     "deviationsToggle": "Déviations (Illustrious 18)",
-    "rulesLine": "{{rules}} · 6 jeux · DAS · Late Surrender · Touchez une case pour le détail",
+    "rulesLine": "{{rules}} · 6 jeux · DAS · Late Surrender · Choisissez une case pour le détail",
     "handHeader": "Main",
     "yourHand": "Votre main :",
     "vsDealer": "contre croupier :",
@@ -2147,6 +2163,13 @@
       "D": "Doubler",
       "SP": "Séparer",
       "SU": "Abandonner"
+    },
+    "explain": {
+      "H": "Prenez une carte de plus.",
+      "S": "Gardez votre main et ne prenez plus de carte.",
+      "D": "Doublez votre mise et prenez exactement une carte de plus.",
+      "SP": "Séparez la paire en deux mains, chacune avec sa propre mise.",
+      "SU": "Abandonnez la main et récupérez la moitié de votre mise."
     }
   },
   "onboardingSteps": {
@@ -2334,7 +2357,22 @@
     "loading": "Chargement du rapport…",
     "errorTitle": "Le rapport n’a pas pu être chargé.",
     "errorBody": "Seuls les administrateurs inscrits peuvent le lire. Si vous en faites partie, réessayez dans un instant.",
-    "definitions": "Un visiteur est un navigateur doté d’un identifiant aléatoire. Une session se termine après 30 minutes sans activité ; sa durée va de la première page vue à la dernière activité. Les inscriptions sont les comptes créés sur la période. Les clients payants sont les abonnements actifs, comptés à l’instant."
+    "definitions": "Un visiteur est un navigateur doté d’un identifiant aléatoire. Une session se termine après 30 minutes sans activité ; sa durée va de la première page vue à la dernière activité. Les inscriptions sont les comptes créés sur la période. Les clients payants sont les abonnements actifs, comptés à l’instant.",
+    "failures": {
+      "title": "Erreurs",
+      "loading": "Chargement des erreurs…",
+      "empty": "Aucune erreur enregistrée.",
+      "error": "Les erreurs n’ont pas pu être chargées.",
+      "missingMigration": "Rien n’est encore enregistré : la migration {{file}} doit d’abord être appliquée.",
+      "time": "Heure",
+      "place": "Endroit",
+      "message": "Message",
+      "path": "Page",
+      "signedIn": "Connecté",
+      "yes": "Oui",
+      "no": "Non",
+      "note": "Les 50 dernières erreurs techniques lors d’un achat ou d’une action sur le compte, conservées 90 jours ; les heures sont dans votre fuseau horaire. Une erreur survenue alors que l’appareil était hors ligne n’arrive qu’à la prochaine visite de cette personne, s’il y en a une. Rien ne vous prévient : cette liste n’est vue que lorsque vous ouvrez cette page."
+    }
   },
   "report": {
     "title": "Votre compte Blackjack Trainer",
@@ -2406,7 +2444,7 @@
   "qrReward": {
     "eyebrow": "Merci d’avoir scanné",
     "title": "Voici ta récompense",
-    "percent": "{{percent}} %",
+    "percent": "{{percent}} %",
     "noNumber": "Ta réduction",
     "offPro": "sur Pro, avec le forfait annuel",
     "howMuch": "{{yearly}} par an au lieu de {{monthlyTotal}} en payant au mois.",
@@ -2425,6 +2463,7 @@
     "more": "Plus dans la politique de confidentialité",
     "accept": "Accepter",
     "decline": "Refuser",
-    "settings": "Paramètres des cookies"
+    "settings": "Paramètres des cookies",
+    "short": "Uniquement pour nos propres statistiques de visite. Pas de publicité, pas de tiers."
   }
 }

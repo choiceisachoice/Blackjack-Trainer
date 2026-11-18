@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { preloadCardImages } from '../cards/card-suits'
 import { useAppStore } from '../../store/app-store'
 import { useLiveSessionStore } from '../../store/live-session-store'
 import { useStatsStore } from '../../store/stats-store'
@@ -23,6 +24,9 @@ interface CasinoSessionProps {
 }
 
 export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {}) {
+  // The card faces are fetched while the setup is being read: the first deal
+  // must not put down white rectangles that fill in a moment later.
+  useEffect(() => { preloadCardImages() }, [])
   const setMode = useAppStore(s => s.setMode)
   const soundEnabled = useAppStore(s => s.soundEnabled)
   const selectedSystem = useAppStore(s => s.selectedSystem)

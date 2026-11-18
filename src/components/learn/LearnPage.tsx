@@ -189,7 +189,7 @@ export function LearnPage({ openAll = false, chapters = 'inline' }: { openAll?: 
                             <Link
                               to={learnTopicPath(learnTopicById(topic.id)!)}
                               data-testid={`read-${topic.id}`}
-                              className="inline-flex items-center gap-1.5 font-semibold text-gold hover:text-gold-bright"
+                              className="inline-flex items-center gap-1.5 min-h-10 font-semibold text-gold hover:text-gold-bright"
                             >
                               {t('learn.readChapter')} <ArrowRight size={15} />
                             </Link>

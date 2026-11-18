@@ -42,7 +42,10 @@
     "proFeature": "Función Pro",
     "backToMenu": "Volver al menú principal",
     "more": "Más",
-    "menu": "Menú"
+    "menu": "Menú",
+    "sound": "Sonido",
+    "soundOn": "Sonido activado",
+    "soundOff": "Sonido desactivado"
   },
   "session": {
     "leave": {
@@ -160,7 +163,8 @@
     "flexibleSwitch": "Flexible: cambia a anual cuando quieras",
     "secureCheckout": "Pago seguro con Stripe. Cancela cuando quieras desde tu cuenta.",
     "everythingInFree": "Todo lo gratuito, y además:",
-    "goProPrice": "Hazte Pro — {{price}}"
+    "goProPrice": "Hazte Pro — {{price}}",
+    "atCheckout": "El precio se muestra al pagar"
   },
   "landing": {
     "nav": {
@@ -242,7 +246,7 @@
       "t2title": "Analíticas que no mienten",
       "t2body": "Tendencia de acierto, mapa de calor y tus manos más débiles, a partir de tus sesiones reales.",
       "t3title": "Niveles y logros",
-      "t3body": "Más de 100 objetivos y un recorrido de 25 niveles que te llevan de la primera mano al juego con ventaja de verdad.",
+      "t3body": "Casi 100 objetivos y un recorrido de 25 niveles que te llevan de la primera mano al juego con ventaja de verdad.",
       "t4title": "Sesión de casino completa",
       "t4body": "Una mesa de fieltro real con varias plazas: bots, splits, dobles, pagos y regla de soft 17. Lo más parecido al pit.",
       "t5title": "Las desviaciones en la tabla",
@@ -389,7 +393,7 @@
       "wrongBang": "¡Incorrecto!",
       "sessionComplete": "¡Sesión completada!",
       "questionProgress": "Pregunta {{n}}/{{total}}",
-      "correctOf": "Correctas: {{n}}/{{total}} ({{pct}} %)",
+      "correctOf": "Correctas: {{n}}/{{total}} ({{pct}} %)",
       "streakOf": "Racha: {{n}}"
     },
     "speed": {
@@ -455,13 +459,13 @@
       "betEquals": "Apuesta = multiplicador × el mínimo de la mesa (se indica en cada pregunta).",
       "questionType": "Tipo de pregunta",
       "typeRandom": "Aleatorio",
-      "typeA": "Tipo A",
-      "typeB": "Tipo B",
-      "typeC": "Tipo C",
+      "typeA": "Apuesta con RC",
+      "typeB": "Apuesta con TC",
+      "typeC": "TC + apuesta",
       "helpRandom": "Mezcla de todos los tipos de pregunta",
-      "helpA": "Tipo A — con el RC y las barajas restantes, elige la apuesta óptima",
-      "helpB": "Tipo B — con el true count, elige la apuesta óptima",
-      "helpC": "Tipo C — con el RC y las barajas restantes, introduce el TC y elige la apuesta",
+      "helpA": "Recibes el running count y las barajas restantes: calcula el true count de cabeza y elige la apuesta.",
+      "helpB": "Recibes el true count: elige la apuesta que le corresponde.",
+      "helpC": "Recibes el running count y las barajas restantes: introduce el true count y luego elige la apuesta. Las dos cosas tienen que estar bien.",
       "tableMinimum": "Mínimo de mesa",
       "runningCount": "Running count",
       "remainingDecks": "Barajas restantes",
@@ -540,7 +544,7 @@
       },
       "howItWorks": "Cómo funciona",
       "yourLastRun": "Tu última sesión",
-      "bestInMode": "Mejor en este modo: {{pct}} %.",
+      "bestInMode": "Mejor en este modo: {{pct}} %.",
       "keepItUp": "Sigue así.",
       "noRuns": "Todavía no hay sesiones: empieza la primera y sigue aquí tu progreso.",
       "proTip": "Consejo"
@@ -650,7 +654,8 @@
       "timeUp_one": "1 minuto jugado — termina esta mano",
       "timeUp_other": "{{count}} minutos jugados — termina esta mano",
       "speedFast": "Rápido",
-      "insuranceAskHand": "¿Asegurar la mano {{n}}? (El crupier muestra un as)"
+      "insuranceAskHand": "¿Asegurar la mano {{n}}? (El crupier muestra un as)",
+      "continue": "Continuar (Enter)"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -673,7 +678,7 @@
       "missedDeviations": "Desviaciones falladas",
       "playAgain": "Jugar otra vez",
       "home": "Inicio",
-      "overallScore": "Puntuación global: {{pct}} %",
+      "overallScore": "Puntuación global: {{pct}} %",
       "anomalies": "Anomalías detectadas durante la sesión: {{count}}",
       "basicMode": "Solo Blackjack · evaluado por estrategia básica"
     },
@@ -871,12 +876,12 @@
       "why": "Cada habilidad por separado es fácil. Lo difícil es sostenerlas todas a la vez mientras la mesa habla."
     },
     "drill": {
-      "flashcards": "{{n}} sesiones de Flashcards con {{pct}} % o más, en {{days}} días distintos",
-      "speedDrill": "{{n}} Speed Drills con {{pct}} % o más, en {{days}} días distintos",
-      "deckEstimation": "{{n}} sesiones de Deck Estimation con {{pct}} % o más, en {{days}} días distintos",
-      "deviations": "{{n}} sesiones de Flashcards de desviaciones con {{pct}} % o más, en {{days}} días distintos",
-      "betSpread": "{{n}} sesiones de Bet Spread con {{pct}} % o más, en {{days}} días distintos",
-      "casino": "{{n}} Casino Sessions jugadas, en {{days}} días distintos"
+      "flashcards": "{{n}} sesiones de Tarjetas con {{pct}} % o más, en {{days}} días distintos",
+      "speedDrill": "{{n}} Speed Drills con {{pct}} % o más, en {{days}} días distintos",
+      "deckEstimation": "{{n}} sesiones de Estimación de barajas con {{pct}} % o más, en {{days}} días distintos",
+      "deviations": "{{n}} sesiones de Tarjetas de desviaciones con {{pct}} % o más, en {{days}} días distintos",
+      "betSpread": "{{n}} sesiones de Bet spread con {{pct}} % o más, en {{days}} días distintos",
+      "casino": "{{n}} sesiones de casino jugadas, en {{days}} días distintos"
     }
   },
   "plan": {
@@ -921,10 +926,10 @@
     "standing": {
       "done": "Superada. Todo lo demás aquí es práctica.",
       "partial": "{{cleared}} de {{target}} sesiones superaron el listón. Quedan {{left}}.",
-      "close_one": "{{count}} intento hasta ahora, mejor {{best}} % — {{gap}} por debajo del listón del {{bar}} %. Casi lo tienes.",
-      "close_other": "{{count}} intentos hasta ahora, mejor {{best}} % — {{gap}} por debajo del listón del {{bar}} %. Casi lo tienes.",
-      "far_one": "{{count}} intento hasta ahora, mejor {{best}} %. El listón está en {{bar}} %, {{target}} veces.",
-      "far_other": "{{count}} intentos hasta ahora, mejor {{best}} %. El listón está en {{bar}} %, {{target}} veces.",
+      "close_one": "{{count}} intento hasta ahora, mejor {{best}} % — {{gap}} por debajo del listón del {{bar}} %. Casi lo tienes.",
+      "close_other": "{{count}} intentos hasta ahora, mejor {{best}} % — {{gap}} por debajo del listón del {{bar}} %. Casi lo tienes.",
+      "far_one": "{{count}} intento hasta ahora, mejor {{best}} %. El listón está en {{bar}} %, {{target}} veces.",
+      "far_other": "{{count}} intentos hasta ahora, mejor {{best}} %. El listón está en {{bar}} %, {{target}} veces.",
       "spacing_one": "Suficientes sesiones buenas. Aún falta {{count}} día más: una habilidad tiene que aguantar una noche para contar.",
       "spacing_other": "Suficientes sesiones buenas. Aún faltan {{count}} días más: una habilidad tiene que aguantar una noche para contar."
     },
@@ -932,7 +937,7 @@
       "attempts_one": "{{count}} intento · mejor",
       "attempts_other": "{{count}} intentos · mejor",
       "offBar": " — {{gap}} por debajo del listón",
-      "barIs": ", el listón está en {{bar}} %"
+      "barIs": ", el listón está en {{bar}} %"
     },
     "stagesComplete_one": "{{done}} de {{count}} etapa completada",
     "stagesComplete_other": "{{done}} de {{count}} etapas completadas",
@@ -1189,7 +1194,11 @@
     "readChapter": "Leer el capítulo completo",
     "otherChapters": "Otros capítulos",
     "allChapters": "Todos los capítulos",
-    "chapterOf": "Capítulo {{n}} de {{total}}"
+    "chapterOf": "Capítulo {{n}} de {{total}}",
+    "hand": {
+      "soft": "{{n}} blando",
+      "bust": "{{n}} — se pasa"
+    }
   },
   "basics": {
     "you": "Tú",
@@ -1322,47 +1331,47 @@
     },
     "count_expert": {
       "name": "Contador experto",
-      "desc": "Alcanza una media del 90 % o más en tus últimos 20 Speed Drills"
+      "desc": "Alcanza una media del 90 % o más en tus últimos 20 Speed Drills"
     },
     "six_systems": {
       "name": "Maestro del conteo",
-      "desc": "Alcanza una media del 95 % o más en tus últimos 30 Speed Drills"
+      "desc": "Alcanza una media del 95 % o más en tus últimos 30 Speed Drills"
     },
     "quick_counter": {
       "name": "Contador rápido",
-      "desc": "Completa un Speed Drill a velocidad Normal con 80 % o más"
+      "desc": "Completa un Speed Drill a velocidad Normal con 80 % o más"
     },
     "lightning_fast": {
       "name": "Rápido como un rayo",
-      "desc": "Completa un Speed Drill a velocidad Rápida con 80 % o más"
+      "desc": "Completa un Speed Drill a velocidad Rápida con 80 % o más"
     },
     "blur": {
       "name": "Un borrón",
-      "desc": "95 % o más a velocidad Rápida en Speed Drill"
+      "desc": "95 % o más a velocidad Rápida en Speed Drill"
     },
     "sharp_eye": {
       "name": "Ojo afilado",
-      "desc": "Alcanza un 80 % de precisión en una sesión"
+      "desc": "Alcanza un 80 % de precisión en una sesión"
     },
     "precision": {
       "name": "Precisión",
-      "desc": "Alcanza un 90 % de precisión en una sesión"
+      "desc": "Alcanza un 90 % de precisión en una sesión"
     },
     "sniper": {
       "name": "Francotirador",
-      "desc": "Alcanza un 95 % de precisión en una sesión"
+      "desc": "Alcanza un 95 % de precisión en una sesión"
     },
     "perfection": {
       "name": "Perfección",
-      "desc": "Consigue un 100 % en una sesión (mín. 10 preguntas)"
+      "desc": "Consigue un 100 % en una sesión (mín. 10 preguntas)"
     },
     "well_rounded": {
       "name": "Muy completo",
-      "desc": "Alcanza un 80 % o más en los cinco modos"
+      "desc": "Alcanza un 80 % o más en los cinco modos"
     },
     "renaissance_counter": {
       "name": "Contador renacentista",
-      "desc": "Alcanza un 90 % o más en los cinco modos"
+      "desc": "Alcanza un 90 % o más en los cinco modos"
     },
     "in_the_zone": {
       "name": "En racha",
@@ -1374,11 +1383,11 @@
     },
     "tc_sharpshooter": {
       "name": "Tirador del TC",
-      "desc": "95 % o más de precisión de conteo en una sesión de casino"
+      "desc": "95 % o más de precisión de conteo en una sesión de casino"
     },
     "system_scholar": {
       "name": "Experto en estimación",
-      "desc": "95 % o más en estimación de barajas"
+      "desc": "95 % o más en estimación de barajas"
     },
     "counting_grinder": {
       "name": "Currante de tarjetas",
@@ -1386,7 +1395,7 @@
     },
     "deviation_virtuoso": {
       "name": "Virtuoso de las desviaciones",
-      "desc": "95 % o más en las tarjetas de desviaciones"
+      "desc": "95 % o más en las tarjetas de desviaciones"
     },
     "master_collector": {
       "name": "Gran coleccionista",
@@ -1398,7 +1407,7 @@
     },
     "quick_draw": {
       "name": "Desenfunde rápido",
-      "desc": "90 % o más en una estimación de barajas contrarreloj"
+      "desc": "90 % o más en una estimación de barajas contrarreloj"
     },
     "platinum_collector": {
       "name": "Coleccionista de platino",
@@ -1410,11 +1419,11 @@
     },
     "illustrious_18": {
       "name": "Illustrious 18",
-      "desc": "90 % o más en las tarjetas"
+      "desc": "90 % o más en las tarjetas"
     },
     "table_general": {
       "name": "Maestro de las tarjetas",
-      "desc": "95 % o más en las tarjetas"
+      "desc": "95 % o más en las tarjetas"
     },
     "fab_four_master": {
       "name": "Fab Four",
@@ -1486,19 +1495,19 @@
     },
     "spread_master": {
       "name": "Maestro del spread",
-      "desc": "Alcanza una media del 90 % o más en tus últimas 10 sesiones de bet spread"
+      "desc": "Alcanza una media del 90 % o más en tus últimas 10 sesiones de bet spread"
     },
     "deck_hawk": {
       "name": "Halcón de barajas",
-      "desc": "Alcanza una media del 90 % o más en tus últimas 10 estimaciones de barajas"
+      "desc": "Alcanza una media del 90 % o más en tus últimas 10 estimaciones de barajas"
     },
     "triple_perfect": {
       "name": "Triple perfecto",
-      "desc": "Consigue un 100 % en 3 sesiones (mín. 10 preguntas cada una)"
+      "desc": "Consigue un 100 % en 3 sesiones (mín. 10 preguntas cada una)"
     },
     "ten_perfects": {
       "name": "Perfeccionista",
-      "desc": "Consigue un 100 % en 10 sesiones (mín. 10 preguntas cada una)"
+      "desc": "Consigue un 100 % en 10 sesiones (mín. 10 preguntas cada una)"
     },
     "mega_profit": {
       "name": "Megabeneficio",
@@ -1530,23 +1539,23 @@
     },
     "casino_valedictorian": {
       "name": "Número uno de la clase",
-      "desc": "Consigue una nota A+ (95 % o más) en una sesión de casino"
+      "desc": "Consigue una nota A+ (95 % o más) en una sesión de casino"
     },
     "casino_bet_master": {
       "name": "Maestro de las apuestas",
-      "desc": "90 % o más de precisión de apuesta en una sesión de casino"
+      "desc": "90 % o más de precisión de apuesta en una sesión de casino"
     },
     "casino_perfect_play": {
       "name": "Juego perfecto",
-      "desc": "95 % o más de precisión de juego en una sesión de casino"
+      "desc": "95 % o más de precisión de juego en una sesión de casino"
     },
     "casino_eagle_eye": {
       "name": "Ojo de águila",
-      "desc": "90 % o más de precisión de conteo en una sesión de casino"
+      "desc": "90 % o más de precisión de conteo en una sesión de casino"
     },
     "casino_triple_threat": {
       "name": "Triple amenaza",
-      "desc": "90 % o más en apuesta, juego Y conteo en una misma sesión"
+      "desc": "90 % o más en apuesta, juego Y conteo en una misma sesión"
     },
     "casino_in_the_green": {
       "name": "En verde",
@@ -1586,7 +1595,7 @@
     },
     "deviation_ace": {
       "name": "As de las desviaciones",
-      "desc": "95 % o más de precisión en desviaciones en una sesión de casino"
+      "desc": "95 % o más de precisión en desviaciones en una sesión de casino"
     },
     "tracker_first_session": {
       "name": "Primer registro",
@@ -1666,9 +1675,9 @@
     "unlocked": "Desbloqueado",
     "locked": "Bloqueado",
     "unknownDate": "Desconocida",
-    "percentComplete": "{{pct}} % completado",
+    "percentComplete": "{{pct}} % completado",
     "unlockedOn": "{{name}} — {{desc}} (desbloqueado el {{date}})",
-    "inProgress": "{{name}} — {{desc}} ({{pct}} %)",
+    "inProgress": "{{name}} — {{desc}} ({{pct}} %)",
     "unlockedBang": "¡Logro desbloqueado!",
     "cat": {
       "getting_started": "Primeros pasos",
@@ -1733,7 +1742,7 @@
     "tagline": "Hi-Lo, practicado hasta que el conteo sale solo.",
     "stat": {
       "streak": "Racha de {{count}} d",
-      "accuracy": "{{pct}} % de acierto"
+      "accuracy": "{{pct}} % de acierto"
     }
   },
   "startLevel": {
@@ -1854,7 +1863,7 @@
     },
     "sharp_eye": {
       "title": "Ojo afilado",
-      "desc": "Alcanza un 80 % de precisión en una sesión"
+      "desc": "Alcanza un 80 % de precisión en una sesión"
     },
     "winning_streak": {
       "title": "Racha ganadora",
@@ -1878,7 +1887,7 @@
     },
     "precision": {
       "title": "Precisión",
-      "desc": "Alcanza un 90 % de precisión en una sesión"
+      "desc": "Alcanza un 90 % de precisión en una sesión"
     },
     "centurion": {
       "title": "Centurión",
@@ -1902,11 +1911,11 @@
     },
     "sniper": {
       "title": "Francotirador",
-      "desc": "Alcanza un 95 % de precisión en una sesión"
+      "desc": "Alcanza un 95 % de precisión en una sesión"
     },
     "count_master": {
       "title": "Maestro del conteo",
-      "desc": "Consigue un 90 % o más de precisión de conteo en una sesión de casino"
+      "desc": "Consigue un 90 % o más de precisión de conteo en una sesión de casino"
     },
     "lightning_speed": {
       "title": "Velocidad relámpago",
@@ -1946,7 +1955,7 @@
     },
     "accuracy_week": {
       "title": "Semana de la precisión",
-      "desc": "Alcanza un 85 % o más en 5 sesiones distintas"
+      "desc": "Alcanza un 85 % o más en 5 sesiones distintas"
     },
     "casino_regular": {
       "title": "Habitual del casino",
@@ -1970,7 +1979,7 @@
     },
     "perfectionist_week": {
       "title": "Semana perfeccionista",
-      "desc": "Alcanza un 90 % o más en 10 sesiones"
+      "desc": "Alcanza un 90 % o más en 10 sesiones"
     },
     "ultimate_grinder": {
       "title": "Currante supremo",
@@ -2041,7 +2050,7 @@
       "upgrade": "Desbloquea el panorama completo de tu ventaja al contar."
     },
     "insightMsg": {
-      "weak": "Fallas {{name}} en el {{miss}} % de los casos: una serie corta de tarjetas cerraría la brecha antes.",
+      "weak": "Fallas {{name}} en el {{miss}} % de los casos: una serie corta de tarjetas cerraría la brecha antes.",
       "up": "Tu precisión ha subido {{delta}} respecto al periodo anterior: la inercia te acompaña.",
       "down": "La precisión ha bajado {{delta}} en este periodo: una o dos sesiones enfocadas la estabilizarán.",
       "streak": "Llevas una {{streak}}: la constancia es la verdadera ventaja de un contador. Mantenla.",
@@ -2071,7 +2080,14 @@
     "axisDeviations": "Desviaciones",
     "axisBetting": "Apuesta",
     "axisEstimation": "Estimación",
-    "axisTablePlay": "Juego en mesa"
+    "axisTablePlay": "Juego en mesa",
+    "streakUnit_one": "día",
+    "streakUnit_other": "días",
+    "bestStreak": "Récord {{n}}",
+    "tagStrong": "Fuerte",
+    "tagFocus": "Foco",
+    "recentAchievements": "Logros recientes",
+    "unlockedCount": "{{n}} desbloqueados"
   },
   "sim": {
     "onboardTitle": "Haz seguimiento de tu bankroll",
@@ -2124,7 +2140,7 @@
   },
   "chart": {
     "title": "Tabla de estrategia básica",
-    "sub": "La estrategia básica Hi-Lo completa: toca una celda para ver detalles.",
+    "sub": "La estrategia básica completa: elige una celda para ver detalles.",
     "dealerRule": "Regla del crupier",
     "proHeadline": "Las desviaciones son una función Pro: mira exactamente cuándo el conteo se impone a la estrategia básica.",
     "s1": "I. Totales duros (12-17+)",
@@ -2134,7 +2150,7 @@
     "countDeviation": "Desviación por conteo",
     "atTrueCount": "A partir del true count",
     "deviationsToggle": "Desviaciones (Illustrious 18)",
-    "rulesLine": "{{rules}} · 6 barajas · DAS · Late Surrender · Toca una casilla para ver el detalle",
+    "rulesLine": "{{rules}} · 6 barajas · DAS · Late Surrender · Elige una casilla para ver el detalle",
     "handHeader": "Mano",
     "yourHand": "Tu mano:",
     "vsDealer": "contra crupier:",
@@ -2147,6 +2163,13 @@
       "D": "Doblar",
       "SP": "Dividir",
       "SU": "Rendirse"
+    },
+    "explain": {
+      "H": "Pide otra carta.",
+      "S": "Quédate con tu mano y no pidas más cartas.",
+      "D": "Dobla tu apuesta y recibe exactamente una carta más.",
+      "SP": "Divide la pareja en dos manos, cada una con su propia apuesta.",
+      "SU": "Abandona la mano y recupera la mitad de tu apuesta."
     }
   },
   "onboardingSteps": {
@@ -2334,7 +2357,22 @@
     "loading": "Cargando el informe…",
     "errorTitle": "No se pudo cargar el informe.",
     "errorBody": "Solo los administradores registrados pueden leerlo. Si eres uno de ellos, inténtalo de nuevo en un momento.",
-    "definitions": "Un visitante es un navegador con un identificador aleatorio. Una sesión termina tras 30 minutos sin actividad; su duración va desde la primera página vista hasta la última actividad. Los registros son las cuentas creadas en el periodo. Los clientes de pago son las suscripciones activas, contadas ahora mismo."
+    "definitions": "Un visitante es un navegador con un identificador aleatorio. Una sesión termina tras 30 minutos sin actividad; su duración va desde la primera página vista hasta la última actividad. Los registros son las cuentas creadas en el periodo. Los clientes de pago son las suscripciones activas, contadas ahora mismo.",
+    "failures": {
+      "title": "Errores",
+      "loading": "Cargando los errores…",
+      "empty": "No hay errores registrados.",
+      "error": "No se pudieron cargar los errores.",
+      "missingMigration": "Todavía no se registra nada: primero hay que aplicar la migración {{file}}.",
+      "time": "Hora",
+      "place": "Lugar",
+      "message": "Mensaje",
+      "path": "Página",
+      "signedIn": "Con sesión",
+      "yes": "Sí",
+      "no": "No",
+      "note": "Los últimos 50 errores técnicos de una compra o de una acción de la cuenta, guardados 90 días; las horas están en tu zona horaria. Un error ocurrido mientras el dispositivo estaba sin conexión solo llega en la siguiente visita de esa persona, si la hay. Nada te avisa: esta lista solo se ve al abrir esta página."
+    }
   },
   "report": {
     "title": "Tu cuenta de Blackjack Trainer",
@@ -2406,7 +2444,7 @@
   "qrReward": {
     "eyebrow": "Gracias por escanear",
     "title": "Aquí tienes tu recompensa",
-    "percent": "{{percent}} %",
+    "percent": "{{percent}} %",
     "noNumber": "Tu descuento",
     "offPro": "en Pro, con el plan anual",
     "howMuch": "{{yearly}} al año en vez de {{monthlyTotal}} pagando cada mes.",
@@ -2425,6 +2463,7 @@
     "more": "Más en la política de privacidad",
     "accept": "Aceptar",
     "decline": "Rechazar",
-    "settings": "Configuración de cookies"
+    "settings": "Configuración de cookies",
+    "short": "Solo para nuestras propias estadísticas de visitas. Sin publicidad, sin terceros."
   }
 }

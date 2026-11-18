@@ -63,7 +63,9 @@ export function TopBar() {
         <button
           onClick={toggleSound}
           data-testid="sound-toggle"
-          title={soundEnabled ? t('nav.muteSounds') : t('nav.enableSounds')}
+          aria-label={t('nav.sound')}
+          aria-pressed={soundEnabled}
+          title={soundEnabled ? t('nav.soundOn') : t('nav.soundOff')}
           className="text-base text-content/50 hover:text-content transition-colors cursor-pointer"
         >
           {soundEnabled ? '\uD83D\uDD0A' : '\uD83D\uDD07'}

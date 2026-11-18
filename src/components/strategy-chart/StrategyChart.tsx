@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import type { Translate } from '../../i18n/translate'
 import { Lock } from 'lucide-react'
@@ -43,16 +43,30 @@ const ACTION_LABEL_KEY: Record<ChartAction, string> = {
   SU: 'chart.action.SU',
 }
 
-/** Full explanation text for the detail panel. */
-function getActionExplanation(action: ChartAction): string {
-  switch (action) {
-    case 'H': return 'Hit - Take another card.'
-    case 'S': return 'Stand - Keep your current hand.'
-    case 'D': return 'Double Down - Double your bet and take exactly one more card.'
-    case 'SP': return 'Split - Split into two separate hands.'
-    case 'SU': return 'Surrender - Give up half your bet and fold.'
-  }
+/**
+ * What each action means, for the detail panel — as translation keys.
+ *
+ * These were five English sentences returned from a `switch`, which is one
+ * more shape the JSX lint rule cannot see. The action's name is not repeated
+ * in them: the line above already prints it.
+ */
+const ACTION_EXPLAIN_KEY: Record<ChartAction, string> = {
+  H: 'chart.explain.H',
+  S: 'chart.explain.S',
+  D: 'chart.explain.D',
+  SP: 'chart.explain.SP',
+  SU: 'chart.explain.SU',
 }
+
+/**
+ * The hand column: pinned to the left edge of the scroll box, on the page's
+ * own ground so the cells pass under it, and above a hovered cell (z-index 10).
+ * The negative margin and the padding cover the scroll box's 8px of padding,
+ * where a cell would otherwise show beside the label; the 1px ring of the
+ * same colour closes the gap between two rows, through which the deviation
+ * badges of the cells underneath showed as dashes.
+ */
+const STICKY_HAND = 'sticky left-0 z-20 -ml-2 pl-2 bg-casino-bg shadow-[0_0_0_1px_var(--color-casino-bg)] text-xs font-semibold flex items-center justify-center p-1'
 
 interface CellInfo {
   hand: string
@@ -136,6 +150,25 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
 
   const selectedDev = selected ? DEVIATION_CELLS[`${selected.hand}|${selected.dealer}`] : undefined
 
+  // Whether the chart continues past the right edge of its scroll box. On a
+  // phone it is 616px in 374, and nothing said so: the last four dealer
+  // columns were simply not there. While this is true the edge fades out.
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [moreRight, setMoreRight] = useState(false)
+  useEffect(() => {
+    const box = scrollRef.current
+    if (!box) return
+    const update = () => setMoreRight(box.scrollLeft + box.clientWidth < box.scrollWidth - 1)
+    update()
+    box.addEventListener('scroll', update, { passive: true })
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
+    observer?.observe(box)
+    return () => {
+      box.removeEventListener('scroll', update)
+      observer?.disconnect()
+    }
+  }, [])
+
   return (
     <div className="flex-1 p-4 md:p-6 max-w-4xl mx-auto w-full">
       {/* Header */}
@@ -189,7 +222,7 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
         ))}
         {showDeviations && (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-content" style={{ border: '2px solid var(--color-gold-bright)' }}>
-            <span className="grid place-items-center rounded-full text-on-gold font-extrabold" style={{ width: '14px', height: '14px', fontSize: '8px', backgroundColor: 'var(--color-gold-bright)' }}>#</span>
+            <span className="grid place-items-center rounded-full text-on-gold font-extrabold leading-none" style={{ width: '16px', height: '16px', fontSize: '10px', backgroundColor: 'var(--color-gold-bright)' }}>#</span>
             {t('chart.countDeviation')}
           </span>
         )}
@@ -199,19 +232,33 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
         {t('chart.rulesLine', { rules: ruleLabel })}
       </p>
 
-      {/* Scrollable chart area */}
-      <div className="overflow-x-auto overflow-y-hidden pb-2">
-        <div style={{ minWidth: '600px' }}>
+      {/* Scrollable chart area. The padding is room for what hangs over a
+          cell's edge — the deviation badge sits 4px outside its top right
+          corner, and a scroll box cuts at its padding edge, so in the last
+          column (11 v A, 10 v A) half of each badge was gone. */}
+      <div className="relative -mx-2">
+      <div
+        ref={scrollRef}
+        data-testid="chart-scroll"
+        className="overflow-x-auto overflow-y-hidden"
+      >
+        {/* The padding is on the content, not on the scroll box: a sticky
+            column pins to the box's padding edge, and with the padding out
+            there the cells showed through an 8px strip to its left. */}
+        <div className="p-2" style={{ minWidth: '616px' }}>
           {sections.map(section => (
             <div key={section.title} className="mb-5">
-              <h3 className="text-sm font-semibold text-gold mb-2">{section.title}</h3>
+              {/* The title and the hand column stay put while the dealer
+                  columns scroll under them: scrolled to the right, a row of
+                  colours without its hand is not a chart. */}
+              <h3 className="sticky left-0 w-max text-sm font-semibold text-gold mb-2">{section.title}</h3>
 
               {/* Header row */}
               <div
                 className="grid gap-px mb-px"
                 style={{ gridTemplateColumns: '72px repeat(10, 1fr)' }}
               >
-                <div className="text-xs font-semibold text-content/50 flex items-center justify-center p-1">
+                <div className={`${STICKY_HAND} text-content/50`}>
                   {t('chart.handHeader')}
                 </div>
                 {DEALER_KEYS.map(dk => (
@@ -231,7 +278,7 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
                   className="grid gap-px mb-px"
                   style={{ gridTemplateColumns: '72px repeat(10, 1fr)' }}
                 >
-                  <div className="text-xs font-semibold text-content/70 flex items-center justify-center p-1">
+                  <div className={`${STICKY_HAND} text-content/70`} data-testid="chart-hand">
                     {row.label}
                   </div>
                   {row.cells.map((action, ci) => {
@@ -243,7 +290,8 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
                         key={dealer}
                         onClick={() => setSelected({ hand: row.label, dealer, action })}
                         data-testid="chart-cell"
-                        className="relative flex items-center justify-center rounded text-xs font-bold cursor-pointer transition-all duration-100"
+                        className="relative flex items-center justify-center rounded text-xs font-bold cursor-pointer transition-all duration-100
+                          [@media(pointer:coarse)]:min-h-8"
                         style={{
                           backgroundColor: ACTION_COLORS[action],
                           color: ACTION_INK,
@@ -268,7 +316,7 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
                           <span
                             className="absolute -top-1 -right-1 grid place-items-center rounded-full font-extrabold text-black leading-none"
                             style={{
-                              minWidth: '14px', height: '14px', padding: '0 2px', fontSize: '8px',
+                              minWidth: '16px', height: '16px', padding: '0 2px', fontSize: '10px',
                               backgroundColor: '#f0cd82', boxShadow: '0 0 6px rgba(240,205,130,0.7)',
                             }}
                           >
@@ -284,10 +332,26 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
           ))}
         </div>
       </div>
+        {moreRight && (
+          <div
+            aria-hidden
+            data-testid="chart-more-right"
+            className="pointer-events-none absolute inset-y-0 right-0 w-10 z-30"
+            style={{ background: 'linear-gradient(to left, var(--color-casino-bg), transparent)' }}
+          />
+        )}
+      </div>
 
       {/* Detail Panel */}
       {selected && (
-        <div className="mt-4 p-4 rounded-xl bg-contrast/10 border border-contrast/20 text-center">
+        <div
+          // The explanation of a cell is under three tables. Clicking a cell
+          // near the top changed nothing in sight — the panel appeared 800px
+          // further down. It is brought into view when it changes.
+          key={`${selected.hand}-${selected.dealer}`}
+          ref={el => { el?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }) }}
+          data-testid="chart-detail"
+          className="mt-4 p-4 rounded-xl bg-contrast/10 border border-contrast/20 text-center scroll-mb-6">
           <p className="text-content text-sm font-semibold mb-1">
             {t('chart.yourHand')} <span className="text-gold">{selected.hand}</span>
             {' '}{t('chart.vsDealer')} <span className="text-gold">{selected.dealer}</span>
@@ -299,14 +363,14 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
             {selected.action} &mdash; {t(ACTION_LABEL_KEY[selected.action])}
           </p>
           <p className="text-content/50 text-xs">
-            {getActionExplanation(selected.action)}
+            {t(ACTION_EXPLAIN_KEY[selected.action])}
           </p>
           {showDeviations && selectedDev && (
             <div className="mt-3 pt-3 border-t border-contrast/15">
               <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-bright">
                 <span
                   className="grid place-items-center rounded-full text-black font-extrabold"
-                  style={{ minWidth: '16px', height: '16px', fontSize: '9px', backgroundColor: '#f0cd82' }}
+                  style={{ minWidth: '16px', height: '16px', fontSize: '10px', backgroundColor: '#f0cd82' }}
                 >
                   {selectedDev.index}
                 </span>
@@ -331,7 +395,7 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
           )}
           <button
             onClick={() => setSelected(null)}
-            className="mt-2 text-xs text-content/40 hover:text-content/70 cursor-pointer transition-colors"
+            className="mt-1 inline-flex items-center justify-center min-h-10 px-4 text-xs text-content/40 hover:text-content/70 cursor-pointer transition-colors"
           >
             {t('common.dismiss')}
           </button>

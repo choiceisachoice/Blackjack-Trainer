@@ -13,6 +13,7 @@ import {
   type RangeChoice,
   type RangePreset,
 } from '../services/analytics/report'
+import { fetchClientFailures, CLIENT_FAILURES_MIGRATION, type ClientFailure } from '../services/analytics/failures'
 import { DailyBars, type DailyMetric } from '../components/analytics-web/WebAnalyticsCharts'
 import { Segmented, EmptyState } from '../components/common/ui'
 
@@ -79,6 +80,106 @@ function RankedList({ rows, testId }: { rows: { label: string; count: number; ke
         </li>
       ))}
     </ol>
+  )
+}
+
+/**
+ * What the failures section is showing. "Loading" is the absence of an answer
+ * for the current reload tick, as with the report above.
+ */
+type FailuresAnswer =
+  | { tick: number; kind: 'rows'; rows: ClientFailure[] }
+  | { tick: number; kind: 'missing-migration' }
+  | { tick: number; kind: 'error' }
+
+/**
+ * The latest client failures: a checkout, portal or account action that threw
+ * in a visitor's browser (`services/failure-report.ts`).
+ *
+ * Independent of the report above it — its own request, its own states — so a
+ * refused or empty report never hides a failed checkout, and the reverse.
+ * Nothing pushes these rows to anyone: this list is the signal, and it is
+ * only seen when the page is opened.
+ */
+function FailuresSection({ reloadTick }: { reloadTick: number }) {
+  const { t, i18n } = useTranslation()
+  const [answer, setAnswer] = useState<FailuresAnswer | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    fetchClientFailures(50)
+      .then(r => {
+        if (!alive) return
+        setAnswer(r.kind === 'ok'
+          ? { tick: reloadTick, kind: 'rows', rows: r.rows }
+          : { tick: reloadTick, kind: 'missing-migration' })
+      })
+      .catch(e => {
+        logFailure('admin-failures', e)
+        if (alive) setAnswer({ tick: reloadTick, kind: 'error' })
+      })
+    return () => { alive = false }
+  }, [reloadTick])
+
+  const loading = answer?.tick !== reloadTick
+  /** The server's instant, in the browser's zone and the reader's language. */
+  const when = (iso: string) => {
+    const d = new Date(iso)
+    return Number.isNaN(d.getTime()) ? iso : d.toLocaleString(i18n.language)
+  }
+
+  return (
+    <Panel title={t('adminAnalytics.failures.title')} className="mt-8">
+      <div data-testid="analytics-failures" aria-busy={loading}>
+        {!answer && (
+          <div className="flex items-center gap-2 text-sm text-content/50" data-testid="failures-loading">
+            <Loader2 size={16} className="animate-spin" /> {t('adminAnalytics.failures.loading')}
+          </div>
+        )}
+        {answer?.kind === 'missing-migration' && (
+          <p className="text-sm text-content/60" data-testid="failures-missing-migration">
+            {t('adminAnalytics.failures.missingMigration', { file: CLIENT_FAILURES_MIGRATION })}
+          </p>
+        )}
+        {answer?.kind === 'error' && (
+          <p className="text-sm text-error" data-testid="failures-error">{t('adminAnalytics.failures.error')}</p>
+        )}
+        {answer?.kind === 'rows' && answer.rows.length === 0 && (
+          <p className="text-sm text-content/40" data-testid="failures-empty">{t('adminAnalytics.failures.empty')}</p>
+        )}
+        {answer?.kind === 'rows' && answer.rows.length > 0 && (
+          <div className={`overflow-x-auto ${loading ? 'opacity-60' : ''}`}>
+            <table className="w-full text-sm text-left" data-testid="failures-table">
+              <thead>
+                <tr className="text-[0.75rem] font-semibold tracking-[0.08em] uppercase text-content/50">
+                  <th scope="col" className="py-2 pr-4 font-semibold whitespace-nowrap">{t('adminAnalytics.failures.time')}</th>
+                  <th scope="col" className="py-2 pr-4 font-semibold">{t('adminAnalytics.failures.place')}</th>
+                  <th scope="col" className="py-2 pr-4 font-semibold">{t('adminAnalytics.failures.message')}</th>
+                  <th scope="col" className="py-2 pr-4 font-semibold">{t('adminAnalytics.failures.path')}</th>
+                  <th scope="col" className="py-2 font-semibold whitespace-nowrap">{t('adminAnalytics.failures.signedIn')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {answer.rows.map(f => (
+                  <tr key={f.id} className="border-t border-contrast/10 align-top" data-testid="failure-row">
+                    <td className="py-2 pr-4 whitespace-nowrap tabular-nums text-content/70">
+                      <time dateTime={f.occurred_at}>{when(f.occurred_at)}</time>
+                    </td>
+                    <td className="py-2 pr-4 whitespace-nowrap font-semibold text-content">{f.place}</td>
+                    <td className="py-2 pr-4 text-content/85 break-words min-w-[14rem]">{f.message}</td>
+                    <td className="py-2 pr-4 text-content/60 break-all">{f.path ?? '—'}</td>
+                    <td className="py-2 text-content/70">{f.signed_in ? t('adminAnalytics.failures.yes') : t('adminAnalytics.failures.no')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <p className="mt-4 text-xs text-content/40 max-w-3xl" data-testid="failures-note">
+        {t('adminAnalytics.failures.note')}
+      </p>
+    </Panel>
   )
 }
 
@@ -266,6 +367,9 @@ export function AdminAnalyticsPage() {
             </p>
           </div>
         )}
+
+        {/* Outside the report's states on purpose: see `FailuresSection`. */}
+        <FailuresSection reloadTick={reloadTick} />
       </div>
     </div>
   )

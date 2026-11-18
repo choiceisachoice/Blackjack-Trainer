@@ -7,6 +7,7 @@ import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { DeckEstimationDetails } from '../../services/stats-types'
 import { TrainingBackdrop } from './TrainingBackdrop'
+import { activeLocale } from '../../i18n'
 
 type DeckCount = 6 | 8
 type AccuracyMode = 'half' | 'whole'
@@ -29,6 +30,17 @@ const QUICK_FIRE_SECONDS = 3
 const LARGE_PX_PER_CARD = 1.4
 /** What `DiscardTray` draws under the tray: its base, the gap and the label. */
 const DISCARD_FOOT_PX = 34
+
+/**
+ * A deck count the way the reader's language writes it — "1.5" in English,
+ * "1,5" in German. `fixed` keeps one decimal on a measured value ("2.0").
+ */
+function decks(n: number, fixed = false): string {
+  return n.toLocaleString(activeLocale(), {
+    minimumFractionDigits: fixed ? 1 : 0,
+    maximumFractionDigits: 1,
+  })
+}
 
 /** Returns button options for deck selection. */
 function getDeckOptions(maxDecks: number, mode: AccuracyMode): number[] {
@@ -88,7 +100,8 @@ function DiscardScene({ remainingCards, totalCards, size }: {
     <div
       data-testid="discard-visual"
       className={`relative rounded-2xl ${isLarge
-        ? 'flex-1 min-h-0 max-h-[580px] flex flex-col px-6 pt-3 pb-3.5 md:flex-none md:max-h-none md:block md:px-10 md:pt-5 md:pb-7'
+        ? `flex-1 min-h-0 max-h-[580px] flex flex-col px-6 pt-3 pb-3.5 md:flex-none md:max-h-none md:block md:px-10 md:pt-5 md:pb-7
+           short:flex-none short:max-h-none short:self-stretch short:min-h-0 short:flex short:flex-col short:px-8 short:pt-2 short:pb-3`
         : ''}`}
       style={{
         padding: isLarge ? undefined : '12px 24px 16px',
@@ -106,16 +119,19 @@ function DiscardScene({ remainingCards, totalCards, size }: {
         boxShadow: 'inset 0 0 60px rgba(0,0,0,0.35), 0 10px 40px rgba(0,0,0,0.5)',
       }}
     >
-      <div className={`text-center ${isLarge ? 'mb-2 md:mb-3 text-xs' : 'mb-3 text-[0.6875rem]'} tracking-widest uppercase text-white/45 font-semibold`}>
+      <div className={`text-center ${isLarge ? 'mb-2 md:mb-3 short:mb-1 text-xs' : 'mb-3 text-[0.6875rem]'} tracking-widest uppercase text-white/45 font-semibold`}>
         {t('training.deckShoeTray', { n: numDecks })}
       </div>
       {/*
         Large: the height comes from the phone's free space, up to what a wide
         screen shows at its fixed scale. Both 6 and 8 decks fill the same space
         on a phone; the share of the tray that holds cards is what is trained.
+        A phone held sideways (`short:`) is wide enough for the two-column
+        layout and far too low for its fixed scale — the tray was 582px on a
+        390px screen — so there the height comes from the free space again.
       */}
       <div
-        className={isLarge ? 'flex-1 min-h-0 flex justify-center md:h-[var(--tray-height)] md:flex-none' : 'flex justify-center'}
+        className={isLarge ? 'flex-1 min-h-0 flex justify-center md:h-[var(--tray-height)] md:flex-none short:h-auto short:flex-1 short:min-h-0' : 'flex justify-center'}
         style={isLarge ? { '--tray-height': `${Math.round(totalCards * LARGE_PX_PER_CARD) + 8 + DISCARD_FOOT_PX}px` } as CSSProperties : undefined}
       >
         <DiscardTray
@@ -304,7 +320,7 @@ export function DeckEstimation() {
   }, [phase, handleNext])
 
   const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0
-  const avgError = stats.total > 0 ? (stats.totalError / stats.total).toFixed(1) : '0.0'
+  const avgError = decks(stats.total > 0 ? stats.totalError / stats.total : 0, true)
   const deckOptions = getDeckOptions(deckCount, accuracyMode)
 
   // ── Settings Phase ──
@@ -399,7 +415,7 @@ export function DeckEstimation() {
           <div className="space-y-3 mb-6">
             <div className="flex justify-between">
               <span className="text-content/60">{t('training.deck.correctLabel')}</span>
-              <span className="text-content font-bold">{stats.correct}/{stats.total} ({accuracy}%)</span>
+              <span className="text-content font-bold">{stats.correct}/{stats.total} ({(accuracy / 100).toLocaleString(activeLocale(), { style: 'percent', maximumFractionDigits: 0 })})</span>
             </div>
             <div className="flex justify-between">
               <span className="text-content/60">{t('training.deck.avgErrorLabel')}</span>
@@ -421,7 +437,7 @@ export function DeckEstimation() {
   // ── Question Phase ──
   if (phase === 'question') {
     return (
-      <div className="flex-1 overflow-y-auto flex flex-col items-center gap-3 px-4 py-3 md:gap-6 md:py-6">
+      <div data-drill-run className="flex-1 overflow-y-auto flex flex-col items-center gap-3 px-4 py-3 md:gap-6 md:py-6 short:gap-2 short:py-2">
         {/* Stats bar */}
         <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
           <span>{t('training.common.correctOf', { n: stats.correct, total: stats.total, pct: accuracy })}</span>
@@ -452,18 +468,22 @@ export function DeckEstimation() {
           the fold — the player looked at the tray, scrolled, and lost the round
           to the scrollbar. On a wide screen the two sit side by side; on a
           narrow one the tray takes the height the answers leave. Only below
-          its floor (a phone on its side) does the page scroll, and the answer
-          row then sticks to the bottom of the scroll box to stay in reach.
+          its floor does the page scroll, and the answer row then sticks to
+          the bottom of the scroll box to stay in reach. A phone on its side
+          (`short:`) gets the side-by-side layout with the tray fitted to the
+          height that is left, and the back bar's row on top (`data-drill-run`).
         */}
-        <div className="w-full flex-1 max-w-4xl flex flex-col items-center gap-3 md:flex-none md:grid md:grid-cols-[auto_minmax(0,1fr)] md:items-center md:gap-10">
-          <div className="w-full flex-1 min-h-[220px] flex flex-col items-center justify-center md:contents">
+        <div className="w-full flex-1 max-w-4xl flex flex-col items-center gap-3 md:flex-none md:grid md:grid-cols-[auto_minmax(0,1fr)] md:items-center md:gap-10
+          short:flex-1 short:min-h-0 short:grid short:grid-cols-[auto_minmax(0,1fr)] short:grid-rows-[minmax(0,1fr)] short:items-center short:gap-6">
+          <div className="w-full flex-1 min-h-[220px] flex flex-col items-center justify-center md:contents short:contents">
             <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="large" />
           </div>
 
           <div
             className="w-full flex flex-col items-center gap-2 md:gap-4
               sticky bottom-0 z-10 py-2 -mb-3 bg-casino-bg/90 backdrop-blur-sm
-              md:static md:py-0 md:mb-0 md:bg-transparent md:backdrop-blur-none"
+              md:static md:py-0 md:mb-0 md:bg-transparent md:backdrop-blur-none
+              short:static short:py-0 short:mb-0 short:bg-transparent short:backdrop-blur-none"
           >
             <p className="text-content font-medium text-center">{t('training.deck.howMany')}</p>
 
@@ -477,9 +497,9 @@ export function DeckEstimation() {
                   data-testid={`deck-${d}`}
                   className="basis-[calc((100%-1.875rem)/6)] py-2.5 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
                     rounded-xl transition-colors cursor-pointer text-sm
-                    md:basis-auto md:px-4 md:min-w-[56px]"
+                    md:basis-auto md:px-4 md:min-w-[56px] short:basis-auto short:px-4 short:min-w-[56px]"
                 >
-                  {d}
+                  {decks(d)}
                 </button>
               ))}
             </div>
@@ -494,7 +514,7 @@ export function DeckEstimation() {
   const closeEnough = isCorrect && selectedAnswer !== null && Math.abs(selectedAnswer - correctDecks) > 0.01
 
   return (
-    <div className="flex-1 overflow-y-auto flex flex-col items-center gap-6 px-4 py-6">
+    <div data-drill-run className="flex-1 overflow-y-auto flex flex-col items-center gap-3 px-4 py-3 md:gap-6 md:py-6 short:gap-2 short:py-2">
       {/* Stats bar */}
       <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
         <span>{t('training.common.correctOf', { n: stats.correct, total: stats.total, pct: accuracy })}</span>
@@ -502,13 +522,17 @@ export function DeckEstimation() {
       </div>
 
       {/* Result card */}
-      <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-6 max-w-md w-full shadow-2xl">
-        <div className={`flex flex-col items-center text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
-          <span className={`grid place-items-center w-12 h-12 rounded-full border
+      {/* Sideways phone: verdict, explanation and the way on left, the tray
+          recap beside them at 70% — stacked they were 570px on a 390px screen. */}
+      <div className="bg-casino-bg/95 border border-contrast/20 rounded-2xl p-4 md:p-6 max-w-md w-full shadow-2xl
+        short:max-w-2xl short:p-3 short:grid short:grid-cols-[minmax(0,1fr)_auto] short:items-center short:gap-x-6">
+        <div className="contents short:block">
+        <div className={`flex flex-col items-center text-center mb-4 short:mb-2 short:flex-row short:justify-center short:gap-3 ${isCorrect ? 'text-success' : 'text-error'}`}>
+          <span className={`grid place-items-center w-12 h-12 short:w-9 short:h-9 rounded-full border
             ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
             {isCorrect ? <Check size={24} /> : <X size={24} />}
           </span>
-          <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
+          <h3 className="text-xl font-bold mt-2 short:mt-0" data-testid="feedback-result">
             {isCorrect
               ? (closeEnough ? t('training.deck.closeEnough') : t('training.common.correctBang'))
               : (selectedAnswer === null ? t('training.deck.timesUp') : t('training.common.wrongBang'))}
@@ -516,26 +540,30 @@ export function DeckEstimation() {
         </div>
 
         {/* Explanation */}
-        <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
+        <div className="bg-contrast/5 rounded-xl p-4 mb-4 short:p-3 short:mb-3 space-y-2">
           <p className="text-content/70 text-sm" data-testid="feedback-explanation">
-            {t('training.deck.remaining', { n: correctDecks.toFixed(1) })}
-            {selectedAnswer !== null && t('training.deck.youSaid', { v: selectedAnswer })}
+            {t('training.deck.remaining', { n: decks(correctDecks, true) })}
+            {selectedAnswer !== null && t('training.deck.youSaid', { v: decks(selectedAnswer) })}
           </p>
           {!isCorrect && selectedAnswer !== null && (
             <p className="text-content/50 text-xs">
-              {t('training.deck.offBy', { v: errorDecks.toFixed(1) })}
+              {t('training.deck.offBy', { v: decks(errorDecks, true) })}
             </p>
           )}
         </div>
 
-        {/* Discard tray recap */}
-        <div className="flex justify-center mb-4">
-          <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="small" />
-        </div>
-
+        {/* The way on comes before the recap. Under the tray it sat at
+            y 675–717 on a 640px screen: every round of a session ended in a
+            scroll to reach the one button there is. */}
         <Button onClick={handleNext} data-testid="next-question" className="w-full">
           {round >= numRounds ? t('training.common.seeResults') : t('training.common.next')}
         </Button>
+        </div>
+
+        {/* Discard tray recap */}
+        <div className="flex justify-center mt-4 short:mt-0 short:[zoom:0.7]">
+          <DiscardScene remainingCards={remainingCards} totalCards={totalCards} size="small" />
+        </div>
       </div>
     </div>
   )

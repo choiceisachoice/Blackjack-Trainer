@@ -79,7 +79,7 @@ function Hand({ cards, animateFrom = 0, totalClass = 'text-sm', width = HAND_BAS
         ))}
         {shown && <HandBanner key={shown} moment={shown} left={fan / 2} />}
       </div>
-      <span className={`${totalClass} text-white/90 font-bold ${cards.length === 0 ? 'invisible' : ''}`}>{cards.length === 0 ? '0' : handValueStr(cards)}</span>
+      <span className={`${totalClass} text-white/90 font-bold ${cards.length === 0 ? 'invisible' : ''}`} style={{ zoom: 'var(--label-zoom, 1)' }}>{cards.length === 0 ? '0' : handValueStr(cards)}</span>
     </div>
   )
 }
@@ -116,7 +116,7 @@ function HandBanner({ moment, left }: { moment: HandMoment; left: number }) {
   return (
     <motion.div
       className="absolute z-20 pointer-events-none"
-      style={{ left, bottom: 14, x: '-50%' }}
+      style={{ left, bottom: -2, x: '-50%' }}
       initial={reduced ? false : { scale: 0.3, rotate: -14 }}
       animate={{ scale: 1, rotate: -5 }}
       transition={{ type: 'spring', stiffness: 520, damping: 17 }}
@@ -295,7 +295,10 @@ function SeatShell({ testid, slotWidth, dimmed = false, active = false, cards, s
       {/* One line, there from the deal on: what the seat is doing, and at
           settlement what it won or lost. Inserted only when there was a result
           it pushed every seat's cards up in the same frame. */}
-      <div className="flex items-center justify-center" style={{ height: 26 }} data-testid="seat-result">{result ?? status}</div>
+      <div className="flex items-center justify-center" style={{ height: 26 }} data-testid="seat-result">
+        {/* Drawn back up in the phone's small bots' row, like the names. */}
+        <span className="inline-flex" style={{ zoom: 'var(--label-zoom, 1)' }}>{result ?? status}</span>
+      </div>
       <div className="flex items-center justify-center" style={{ height: 36 }}>{name}</div>
 
     </div>

@@ -202,3 +202,32 @@ describe('SpeedDrill', () => {
     })
   })
 })
+
+/**
+ * `data-drill-run` is what tells the back bar to give up its row on a phone
+ * held sideways (see `BackToMenu`). The card run, the answer and the result
+ * all carry it; the setup screen, which keeps the arrow home, does not.
+ */
+describe('SpeedDrill — marks a running drill for the sideways-phone layout', () => {
+  beforeEach(() => { vi.useFakeTimers() })
+  afterEach(() => { vi.useRealTimers() })
+
+  it('is unmarked on the setup screen and marked from the first card to the result', () => {
+    const { container } = render(<SpeedDrill />)
+    expect(container.querySelector('[data-drill-run]')).toBeNull()
+
+    fireEvent.click(screen.getByTestId('start-drill'))
+    const run = container.querySelector('[data-drill-run]')
+    expect(run).not.toBeNull()
+    // The card is still the drawn card with the picture on top.
+    expect(run!.querySelector('[data-testid="drill-card"] > img')).not.toBeNull()
+
+    act(() => { vi.advanceTimersByTime(60000) })
+    expect(screen.getByTestId('count-input')).toBeInTheDocument()
+    expect(container.querySelector('[data-drill-run]')).not.toBeNull()
+
+    fireEvent.click(screen.getByTestId('submit-answer'))
+    expect(screen.getByTestId('try-again')).toBeInTheDocument()
+    expect(container.querySelector('[data-drill-run]')).not.toBeNull()
+  })
+})

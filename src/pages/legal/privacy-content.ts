@@ -36,6 +36,7 @@ export const PRIVACY_DOC: LegalDoc = {
             'Local device storage: your preferences and an offline copy of your progress are kept in your browser (localStorage), and a session cookie keeps you signed in. We do not use advertising or cross-site tracking cookies.',
             'Bot check: when you sign in, register or request a password reset, Cloudflare Turnstile checks that a person — not a script — is submitting the form. For that check Cloudflare processes your IP address and technical characteristics of your browser under its own privacy policy. We receive only a pass-or-fail token and never see those details.',
             'Visit statistics: to know how many people visit, which pages they read and how long they stay, we record each page view in our own database — the page path, the time, the site that linked to us (its domain only), whether the device is a phone, tablet or desktop, and a random visitor identifier stored in your browser. That identifier is a random number; it is not derived from you or your device, it is not shared with anyone, and signing out replaces it. We do not store your IP address or your browser’s identification string. If you are signed in, a visit is linked to your account. Browsers that send the Global Privacy Control or Do Not Track signal are not counted at all. These statistics are kept for 13 months. We only do this if you agree: on your first visit a bar at the bottom of the page asks whether you accept cookies, and until you choose "Accept" nothing is recorded and no ID is stored. (Strictly it is an entry in the local storage of your browser rather than a cookie; we use the familiar word because it does the same job and falls under the same rules.) "Decline" removes an ID stored earlier. You can change your answer at any time under "Cookie settings" at the foot of every public page. A browser that sends Global Privacy Control or Do Not Track is treated as a "no" without being asked.',
+            'Error reports: when a purchase or an account action (opening the billing portal, exporting or resetting your data, changing your name or picture) fails for a technical reason, we record the error message, the page you were on, the time, the version of the app and — if you were signed in — the link to your account, so that we can find and fix the fault. Anything in the message that looks like an e-mail address or an access token is removed before it is sent. These reports are kept for 90 days.',
           ],
         },
       ],
@@ -68,7 +69,7 @@ export const PRIVACY_DOC: LegalDoc = {
     {
       heading: '6. How long we keep it',
       blocks: [
-        'We keep your data for as long as your account exists. When you delete your account, the personal data linked to it is removed and any visit statistics are unlinked from it. Signing out clears the offline copy stored in your browser. Visit statistics are kept for 13 months.',
+        'We keep your data for as long as your account exists. When you delete your account, the personal data linked to it is removed and any visit statistics are unlinked from it. Signing out clears the offline copy stored in your browser. Visit statistics are kept for 13 months and error reports for 90 days; both are deleted by a weekly job, so an entry can remain for up to a week beyond its period.',
       ],
     },
     {

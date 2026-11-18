@@ -30,7 +30,7 @@
       "learn": "Impara",
       "analytics": "Analisi",
       "strategyChart": "Strategia",
-      "achievements": "Premi",
+      "achievements": "Riconoscimenti",
       "bankrollSim": "Bankroll",
       "casinoSessionTracker": "Registro"
     },
@@ -42,7 +42,10 @@
     "proFeature": "Funzione Pro",
     "backToMenu": "Torna al menu principale",
     "more": "Altro",
-    "menu": "Menu"
+    "menu": "Menu",
+    "sound": "Audio",
+    "soundOn": "Audio attivo",
+    "soundOff": "Audio disattivato"
   },
   "session": {
     "leave": {
@@ -160,7 +163,8 @@
     "flexibleSwitch": "Flessibile — passa all'annuale quando vuoi",
     "secureCheckout": "Pagamento sicuro con Stripe. Disdici quando vuoi dal tuo account.",
     "everythingInFree": "Tutto il gratuito, più:",
-    "goProPrice": "Passa a Pro — {{price}}"
+    "goProPrice": "Passa a Pro — {{price}}",
+    "atCheckout": "Prezzo mostrato al pagamento"
   },
   "landing": {
     "nav": {
@@ -242,7 +246,7 @@
       "t2title": "Analisi che non mente",
       "t2body": "Andamento della precisione, mappa di calore e le tue mani più deboli — dalle tue sessioni reali.",
       "t3title": "Livelli & premi",
-      "t3body": "Oltre 100 obiettivi e un percorso a 25 livelli che ti portano dalla prima mano al vero gioco di vantaggio.",
+      "t3body": "Quasi 100 obiettivi e un percorso a 25 livelli che ti portano dalla prima mano al vero gioco di vantaggio.",
       "t4title": "Sessione di casinò completa",
       "t4body": "Un vero tavolo in panno multi-posto — bot, split, raddoppi, pagamenti e regola del soft 17. Il più vicino possibile al pit.",
       "t5title": "Le deviazioni sulla tabella",
@@ -455,13 +459,13 @@
       "betEquals": "Puntata = moltiplicatore × il minimo del tavolo (indicato a ogni domanda).",
       "questionType": "Tipo di domanda",
       "typeRandom": "Casuale",
-      "typeA": "Tipo A",
-      "typeB": "Tipo B",
-      "typeC": "Tipo C",
+      "typeA": "Puntata da RC",
+      "typeB": "Puntata da TC",
+      "typeC": "TC + puntata",
       "helpRandom": "Un misto di tutti i tipi di domanda",
-      "helpA": "Tipo A — dati RC e mazzi rimanenti, scegli la puntata ottimale",
-      "helpB": "Tipo B — dato il true count, scegli la puntata ottimale",
-      "helpC": "Tipo C — dati RC e mazzi rimanenti, inserisci il TC e scegli la puntata",
+      "helpA": "Ricevi il running count e i mazzi rimanenti: calcola il true count a mente e scegli la puntata.",
+      "helpB": "Ricevi il true count: scegli la puntata che gli corrisponde.",
+      "helpC": "Ricevi il running count e i mazzi rimanenti: inserisci il true count, poi scegli la puntata. Devono essere giusti entrambi.",
       "tableMinimum": "Minimo del tavolo",
       "runningCount": "Running count",
       "remainingDecks": "Mazzi rimanenti",
@@ -650,7 +654,8 @@
       "timeUp_one": "1 minuto giocato — finisci questa mano",
       "timeUp_other": "{{count}} minuti giocati — finisci questa mano",
       "speedFast": "Veloce",
-      "insuranceAskHand": "Assicurare la mano {{n}}? (Il banco mostra un asso)"
+      "insuranceAskHand": "Assicurare la mano {{n}}? (Il banco mostra un asso)",
+      "continue": "Continua (Invio)"
     },
     "summary": {
       "bankroll": "Bankroll",
@@ -871,12 +876,12 @@
       "why": "Ogni abilità presa da sola è facile. Il difficile è tenerle tutte insieme mentre al tavolo si parla."
     },
     "drill": {
-      "flashcards": "{{n}} sessioni di Flashcards al {{pct}}% o più, in {{days}} giorni diversi",
+      "flashcards": "{{n}} sessioni di Flashcard al {{pct}}% o più, in {{days}} giorni diversi",
       "speedDrill": "{{n}} Speed Drill al {{pct}}% o più, in {{days}} giorni diversi",
-      "deckEstimation": "{{n}} sessioni di Deck Estimation al {{pct}}% o più, in {{days}} giorni diversi",
-      "deviations": "{{n}} sessioni di Flashcards sulle deviazioni all’{{pct}}% o più, in {{days}} giorni diversi",
-      "betSpread": "{{n}} sessioni di Bet Spread all’{{pct}}% o più, in {{days}} giorni diversi",
-      "casino": "{{n}} Casino Session giocate, in {{days}} giorni diversi"
+      "deckEstimation": "{{n}} sessioni di Stima dei mazzi al {{pct}}% o più, in {{days}} giorni diversi",
+      "deviations": "{{n}} sessioni di Flashcard sulle deviazioni all’{{pct}}% o più, in {{days}} giorni diversi",
+      "betSpread": "{{n}} sessioni di Bet spread all’{{pct}}% o più, in {{days}} giorni diversi",
+      "casino": "{{n}} sessioni al casinò giocate, in {{days}} giorni diversi"
     }
   },
   "plan": {
@@ -1189,7 +1194,11 @@
     "readChapter": "Leggi il capitolo completo",
     "otherChapters": "Altri capitoli",
     "allChapters": "Tutti i capitoli",
-    "chapterOf": "Capitolo {{n}} di {{total}}"
+    "chapterOf": "Capitolo {{n}} di {{total}}",
+    "hand": {
+      "soft": "{{n}} morbido",
+      "bust": "{{n}} — sballato"
+    }
   },
   "basics": {
     "you": "Tu",
@@ -2071,7 +2080,14 @@
     "axisDeviations": "Deviazioni",
     "axisBetting": "Puntata",
     "axisEstimation": "Stima",
-    "axisTablePlay": "Gioco al tavolo"
+    "axisTablePlay": "Gioco al tavolo",
+    "streakUnit_one": "giorno",
+    "streakUnit_other": "giorni",
+    "bestStreak": "Record {{n}}",
+    "tagStrong": "Forte",
+    "tagFocus": "Focus",
+    "recentAchievements": "Riconoscimenti recenti",
+    "unlockedCount": "{{n}} sbloccati"
   },
   "sim": {
     "onboardTitle": "Tieni traccia della tua bankroll",
@@ -2124,7 +2140,7 @@
   },
   "chart": {
     "title": "Tabella della strategia di base",
-    "sub": "La strategia di base Hi-Lo completa — tocca una cella per i dettagli.",
+    "sub": "La strategia di base completa — seleziona una cella per i dettagli.",
     "dealerRule": "Regola del banco",
     "proHeadline": "Le deviazioni sono una funzione Pro — vedi esattamente quando il conteggio scavalca la strategia di base.",
     "s1": "I. Totali duri (12-17+)",
@@ -2134,7 +2150,7 @@
     "countDeviation": "Deviazione da conteggio",
     "atTrueCount": "Da true count",
     "deviationsToggle": "Deviazioni (Illustrious 18)",
-    "rulesLine": "{{rules}} · 6 mazzi · DAS · Late Surrender · Tocca una cella per i dettagli",
+    "rulesLine": "{{rules}} · 6 mazzi · DAS · Late Surrender · Seleziona una cella per i dettagli",
     "handHeader": "Mano",
     "yourHand": "La tua mano:",
     "vsDealer": "contro il banco:",
@@ -2146,7 +2162,14 @@
       "S": "Stare",
       "D": "Raddoppiare",
       "SP": "Dividere",
-      "SU": "Arrendersi"
+      "SU": "Abbandonare"
+    },
+    "explain": {
+      "H": "Prendi un’altra carta.",
+      "S": "Tieni la mano che hai e non prendere altre carte.",
+      "D": "Raddoppia la puntata e prendi esattamente una carta in più.",
+      "SP": "Dividi la coppia in due mani, ognuna con la propria puntata.",
+      "SU": "Abbandona la mano e recupera metà della puntata."
     }
   },
   "onboardingSteps": {
@@ -2334,7 +2357,22 @@
     "loading": "Caricamento del rapporto…",
     "errorTitle": "Impossibile caricare il rapporto.",
     "errorBody": "Solo gli amministratori registrati possono leggerlo. Se sei uno di loro, riprova tra un istante.",
-    "definitions": "Un visitatore è un browser con un identificativo casuale. Una sessione termina dopo 30 minuti di inattività; la sua durata va dalla prima pagina vista all’ultima attività. Le registrazioni sono gli account creati nel periodo. I clienti paganti sono gli abbonamenti attivi, contati in questo momento."
+    "definitions": "Un visitatore è un browser con un identificativo casuale. Una sessione termina dopo 30 minuti di inattività; la sua durata va dalla prima pagina vista all’ultima attività. Le registrazioni sono gli account creati nel periodo. I clienti paganti sono gli abbonamenti attivi, contati in questo momento.",
+    "failures": {
+      "title": "Errori",
+      "loading": "Caricamento degli errori…",
+      "empty": "Nessun errore registrato.",
+      "error": "Impossibile caricare gli errori.",
+      "missingMigration": "Non viene ancora registrato nulla: prima va applicata la migrazione {{file}}.",
+      "time": "Ora",
+      "place": "Punto",
+      "message": "Messaggio",
+      "path": "Pagina",
+      "signedIn": "Con accesso",
+      "yes": "Sì",
+      "no": "No",
+      "note": "Gli ultimi 50 errori tecnici di un acquisto o di un’azione sull’account, conservati per 90 giorni; gli orari sono nel tuo fuso orario. Un errore avvenuto mentre il dispositivo era offline arriva solo alla visita successiva di quella persona, se ce n’è una. Nulla ti avvisa: questo elenco si vede solo aprendo questa pagina."
+    }
   },
   "report": {
     "title": "Il tuo account Blackjack Trainer",
@@ -2425,6 +2463,7 @@
     "more": "Di più nell’informativa sulla privacy",
     "accept": "Accetta",
     "decline": "Rifiuta",
-    "settings": "Impostazioni dei cookie"
+    "settings": "Impostazioni dei cookie",
+    "short": "Solo per la nostra statistica delle visite. Niente pubblicità, niente terzi."
   }
 }

@@ -257,8 +257,12 @@ export function TrainingPlan({
     ? progress.find(p => p.stage.id === rhythm.refresh) ?? null
     : null
   const inGoal = progress.slice(from, goalIndex + 1)
-  const doneCount = inGoal.filter(p => p.done).length
-  const totalCount = inGoal.length
+  // Counted along the whole road to the goal, the way the line of points
+  // below draws it: the stages behind the starting point are behind. The
+  // header used to count from the starting point only — "1 of 3 stages" over
+  // a road with five of seven ticked (audit, 18 Nov 2026).
+  const doneCount = from + inGoal.filter(p => p.done).length
+  const totalCount = goalIndex + 1
 
   const confirmRead = (id: StageProgress['stage']['id']) => markStageRead(id)
 

@@ -258,7 +258,7 @@ export function TodayBlocks({
                     <span className="block text-[0.6875rem] font-semibold tracking-[0.1em] uppercase text-content/40">
                       {t(`plan.today.kind.${b.kind}`)}
                     </span>
-                    <span className={`block text-[0.95rem] font-semibold truncate ${allDone ? 'text-content/45' : ''}`}>
+                    <span className={`block text-[0.95rem] font-semibold leading-snug line-clamp-2 ${allDone ? 'text-content/45' : ''}`}>
                       {title(b.stage)}
                     </span>
                   </span>
@@ -268,7 +268,8 @@ export function TodayBlocks({
                       {blocks.map(x => (
                         <span
                           key={x.id}
-                          className={`w-1.5 h-4 rounded-full ${x.done ? 'bg-gold' : 'bg-contrast/15'}`}
+                          // Dots, not bars: two upright bars beside a play icon are a pause sign.
+                          className={`w-2 h-2 rounded-full ${x.done ? 'bg-gold' : 'bg-contrast/20'}`}
                         />
                       ))}
                     </span>
@@ -346,7 +347,13 @@ export function PathStrip({
 
       <ol className="mt-4 grid grid-cols-7 gap-0">
         {progress.map((p, i) => {
-          const known = p.done || i < entryIndex
+          // The road is walked in order. A stage finished ahead of the one on
+          // turn is finished and stays counted — but drawn like the stages
+          // behind, it made a road with a gap in it: "done" after "not done".
+          // It gets an outlined tick, "done already", until the road reaches it.
+          const reached = progress.slice(entryIndex, i).every(q => q.done)
+          const early = i >= entryIndex && p.done && !reached
+          const known = (p.done || i < entryIndex) && !early
           const isActive = i === activeIndex
           const beyond = i > goalIndex
           return (
@@ -354,7 +361,7 @@ export function PathStrip({
               key={p.stage.id}
               className={`relative flex flex-col items-center text-center px-0.5 ${beyond ? 'opacity-40' : ''}`}
               data-testid={`path-node-${p.stage.id}`}
-              data-state={known ? 'done' : isActive ? 'active' : 'ahead'}
+              data-state={known ? 'done' : early ? 'early' : isActive ? 'active' : 'ahead'}
             >
               {/* The rail between this point and the next. */}
               {i < progress.length - 1 && (
@@ -369,12 +376,14 @@ export function PathStrip({
                 className={`relative z-10 grid place-items-center w-[27px] h-[27px] rounded-full text-xs font-bold border ${
                   known
                     ? 'bg-gold border-gold text-on-gold'
+                    : early
+                      ? 'bg-casino-bg border-gold/60 text-gold'
                     : isActive
                       ? 'bg-casino-bg border-gold text-gold shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-gold)_18%,transparent)]'
                       : 'bg-casino-bg border-contrast/20 text-content/40'
                 }`}
               >
-                {known ? <Check size={13} strokeWidth={3} /> : p.locked ? <Lock size={11} /> : i + 1}
+                {known || early ? <Check size={13} strokeWidth={3} /> : p.locked ? <Lock size={11} /> : i + 1}
               </span>
               <span
                 className={`mt-2 text-[0.6875rem] leading-tight max-w-[11ch] hyphens-auto ${

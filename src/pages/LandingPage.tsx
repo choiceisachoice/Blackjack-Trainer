@@ -173,27 +173,30 @@ export function LandingPage() {
         style={{ backgroundColor: 'var(--color-topbar)' }}>
         {/* Tighter padding and gaps below sm: at 360px the wordmark and the
             actions otherwise meet with zero space between them. */}
-        <nav className="max-w-6xl mx-auto w-full px-4 sm:px-6 h-[62px] flex items-center justify-between gap-3">
+        <nav className="max-w-6xl mx-auto w-full px-4 sm:px-6 h-[62px] flex items-center justify-between gap-2 sm:gap-3">
           <div className="flex items-center gap-2.5 font-bold">
             <span className="w-7 h-7 rounded-lg grid place-items-center bg-gradient-to-b from-gold-bright to-gold text-on-gold shrink-0"><Spade size={15} /></span>
-            {/* Below 360px the wordmark plus the actions need ~342px, so it
-                would wrap to two lines inside a 62px bar. Drop to the mark
-                alone there; from 360px up it fits on one line. */}
-            <span className="hidden min-[360px]:inline whitespace-nowrap">Blackjack Trainer</span>
+            {/* The wordmark gives way before an action does. Signed in, the
+                bar holds the mark, the language menu and one link, and has
+                room for it from 420px; signed out it also holds "Sign in" and
+                the button, which in German are 215px on their own. Measured
+                at 360px before this: the bar ran to 381px (390 in German) and
+                the page scrolled sideways. */}
+            <span className={`hidden whitespace-nowrap ${authed ? 'min-[420px]:inline' : 'sm:inline'}`}>Blackjack Trainer</span>
           </div>
-          <div className="flex items-center gap-4 sm:gap-5 text-sm text-content/70 shrink-0">
-            <a href="#features" className="hidden sm:inline hover:text-content">{t('landing.nav.features')}</a>
-            <a href="#pricing" className="hidden sm:inline hover:text-content">{t('landing.nav.pricing')}</a>
-            <Link to="/learn" className="hidden sm:inline hover:text-content">{t('landing.nav.learn')}</Link>
+          <div className="flex items-center gap-2 sm:gap-5 text-sm text-content/70 shrink-0">
+            <a href="#features" className="hidden sm:inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.features')}</a>
+            <a href="#pricing" className="hidden sm:inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.pricing')}</a>
+            <Link to="/learn" className="hidden sm:inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.learn')}</Link>
             {/* The one control a visitor may need before they can read the rest.
                 It belongs on the page they land on, not only inside the app. */}
             <LanguageSwitcher />
             {authed ? (
-              <Link to="/app" className="font-semibold text-gold hover:text-gold-bright">{t('landing.hero.ctaOpen')}</Link>
+              <Link to="/app" className="inline-flex items-center min-h-10 px-1 whitespace-nowrap font-semibold text-gold hover:text-gold-bright">{t('landing.hero.ctaOpen')}</Link>
             ) : (
               <>
-                <Link to="/login" className="hover:text-content">{t('landing.nav.signIn')}</Link>
-                <button onClick={startFree} className="rounded-lg px-3.5 sm:px-4 py-2.5 font-semibold bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer whitespace-nowrap">{t('landing.nav.startFree')}</button>
+                <Link to="/login" className="inline-flex items-center min-h-10 hover:text-content px-1 whitespace-nowrap">{t('landing.nav.signIn')}</Link>
+                <button onClick={startFree} className="rounded-lg px-3 sm:px-4 py-2.5 font-semibold bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer whitespace-nowrap">{t('landing.nav.startFree')}</button>
               </>
             )}
           </div>
@@ -272,11 +275,15 @@ export function LandingPage() {
       <section id="pricing" className="max-w-6xl mx-auto px-6 py-20">
         <Reveal>
           <SectionHead
+            center
             eyebrow={t('landing.pricingIntro.eyebrow')}
             title={<Trans i18nKey="landing.pricingIntro.title" components={[<span key="0" />, <span key="1" className="text-gold-gradient" />]} />}
             sub={t('landing.pricingIntro.body')} />
         </Reveal>
-        <Reveal delay={0.06} className="mt-10 grid gap-4 md:grid-cols-[1fr_1.15fr] items-stretch max-w-3xl">
+        {/* Centred in the section, and each card as tall as its own content:
+            stretched to the Pro card, the free one carried some 300px of
+            empty panel under its button. */}
+        <Reveal delay={0.06} className="mt-10 grid gap-4 md:grid-cols-[1fr_1.15fr] items-start max-w-3xl mx-auto">
           {/* Free */}
           <div className="surface rounded-2xl p-7 flex flex-col">
             <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">{t('pricing.free')}</div>
@@ -301,7 +308,8 @@ export function LandingPage() {
             {/* Fetched from Stripe, never asserted. The marketing page is the
                 place a wrong price does the most damage, so it shows a skeleton
                 until it has the real one and no figure at all if the fetch
-                fails — Stripe still states the amount at checkout. */}
+                fails — only a line saying where the figure will be, because
+                Stripe still states the amount at checkout. */}
             <div className="mt-3.5 flex items-baseline gap-2 flex-wrap min-h-10" data-testid="pricing-amount">
               {current ? (
                 <>
@@ -317,18 +325,20 @@ export function LandingPage() {
                     {t(`pricing.${current.interval === 'year' ? 'perYear' : 'perMonth'}`)}
                   </span>
                 </>
+              ) : priceStatus === 'error' ? (
+                /* A skeleton that goes on animating after the fetch has failed
+                    promises an arrival that will never happen, and the bare
+                    reserved height that stood here instead read as a hole in
+                    the card. One neutral sentence, in the same 40px. (Locally,
+                    with no Supabase configured, this is the state to expect.) */
+                <span className="self-center text-sm text-content/60" data-testid="pricing-amount-unavailable">
+                  {t('pricing.atCheckout')}
+                </span>
               ) : (
-                /* Pulses only while something is still coming. A skeleton that
-                    goes on animating after the fetch has failed promises an
-                    arrival that will never happen; the reserved height alone is
-                    the honest version of "no price". (Locally, with no Supabase
-                    configured, this is the state you should expect to see.) */
                 <span
                   aria-hidden
                   data-testid="pricing-amount-pending"
-                  className={`h-9 w-36 self-center rounded-lg ${
-                    priceStatus === 'error' ? 'bg-transparent' : 'bg-contrast/10 animate-pulse'
-                  }`}
+                  className="h-9 w-36 self-center rounded-lg bg-contrast/10 animate-pulse"
                 />
               )}
             </div>
@@ -405,17 +415,17 @@ export function LandingPage() {
       <footer className="border-t border-white/8 py-8">
         {/* text-content/40 fails WCAG AA here (3.53:1 on the near-black
             background); /60 clears the 4.5:1 threshold for this size. */}
-        <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-between items-center gap-4 text-sm text-content/60">
+        <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-between items-center gap-x-4 gap-y-2 text-sm text-content/60">
           <div className="flex items-center gap-2.5 font-semibold text-content/80"><span className="w-6 h-6 rounded-md grid place-items-center bg-gradient-to-b from-gold-bright to-gold text-on-gold"><Spade size={13} /></span> Blackjack Trainer</div>
-          <div className="flex gap-5 flex-wrap">
-            <a href="#features" className="hover:text-content">{t('landing.nav.features')}</a>
-            <a href="#pricing" className="hover:text-content">{t('landing.nav.pricing')}</a>
-            <Link to="/learn" className="hover:text-content">{t('landing.nav.learn')}</Link>
-            <Link to="/login" className="hover:text-content">{t('landing.nav.signIn')}</Link>
-            <Link to="/terms" className="hover:text-content">{t('landing.footer.terms')}</Link>
-            <Link to="/privacy" className="hover:text-content">{t('landing.footer.privacy')}</Link>
-            <Link to="/contact" className="hover:text-content">{t('landing.footer.contact')}</Link>
-            <CookieSettingsLink className="hover:text-content" />
+          <div className="flex gap-x-5 flex-wrap">
+            <a href="#features" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.features')}</a>
+            <a href="#pricing" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.pricing')}</a>
+            <Link to="/learn" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.learn')}</Link>
+            <Link to="/login" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.signIn')}</Link>
+            <Link to="/terms" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.terms')}</Link>
+            <Link to="/privacy" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.privacy')}</Link>
+            <Link to="/contact" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.contact')}</Link>
+            <CookieSettingsLink className="inline-flex items-center min-h-10 hover:text-content" />
           </div>
           <SocialLinks />
           <div>{t('landing.footer.note')}</div>
@@ -440,9 +450,14 @@ function HeroLayer() {
   )
 }
 
-function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: ReactNode; sub?: string }) {
+/**
+ * @param center - Centre the block in its section. Used above the pricing
+ *   cards, which are centred themselves: a heading on the left edge over two
+ *   cards in the middle belongs to neither.
+ */
+function SectionHead({ eyebrow, title, sub, center = false }: { eyebrow: string; title: ReactNode; sub?: string; center?: boolean }) {
   return (
-    <div className="max-w-[34em]">
+    <div className={`max-w-[34em] ${center ? 'mx-auto text-center' : ''}`}>
       <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{eyebrow}</div>
       <h2 className="mt-3 text-3xl md:text-[2.375rem] font-extrabold tracking-tight leading-tight text-balance">{title}</h2>
       {sub && <p className="mt-3.5 text-content/60 text-base">{sub}</p>}

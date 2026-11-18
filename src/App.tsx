@@ -5,6 +5,7 @@ import { useAuthStore } from './store/auth-store'
 import { handleSignedIn } from './services/supabase/cloud-sync'
 import { useEntitlementStore } from './store/entitlement-store'
 import { startCheckout, consumePendingCheckout } from './services/supabase/billing'
+import { flushPendingFailures } from './services/failure-report'
 import { ProtectedRoute } from './routes/ProtectedRoute'
 import { AdminRoute } from './routes/AdminRoute'
 import { ScrollToTop } from './routes/ScrollToTop'
@@ -72,6 +73,11 @@ function App() {
   // Load the auth session once. Harmless (resolves to signed-out) when Supabase
   // isn't configured yet.
   useEffect(() => { void initAuth() }, [initAuth])
+
+  // Failure reports that could not be sent on an earlier page load in this tab
+  // (network down, Supabase unreachable) go out now. Never rejects, does
+  // nothing without Supabase or with an empty queue.
+  useEffect(() => { void flushPendingFailures() }, [])
 
   // On sign-in: migrate local data to the cloud (once) and hydrate from it.
   useEffect(() => {

@@ -1,4 +1,5 @@
-import type { TrendPoint, HeatCell, ModeAccuracy, RadarAxis, EdgePoint } from './analytics-derive'
+import { useEffect, useRef, useState } from 'react'
+import { handLabel, formatPercent, type TrendPoint, type HeatCell, type ModeAccuracy, type RadarAxis, type EdgePoint } from './analytics-derive'
 import { useTranslation } from 'react-i18next'
 import { ProgressBar } from '../common/ui'
 
@@ -59,7 +60,21 @@ export function Sparkline({ data }: { data: number[] }) {
 /** Accuracy trend area chart with gridlines, a 90% goal line, and an emphasized endpoint. */
 export function TrendChart({ points }: { points: TrendPoint[] }) {
   const { t } = useTranslation()
-  const W = 680
+  // Drawn in the pixels it is shown at. The view box used to be a fixed 680
+  // wide and stretched to the card (`preserveAspectRatio="none"`), so on a
+  // phone the axis figures were squeezed to under half their width.
+  const svgRef = useRef<SVGSVGElement>(null)
+  const [W, setW] = useState(680)
+  useEffect(() => {
+    const svg = svgRef.current
+    if (!svg || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => {
+      const width = Math.round(svg.getBoundingClientRect().width)
+      if (width > 0) setW(width)
+    })
+    observer.observe(svg)
+    return () => observer.disconnect()
+  }, [])
   const H = 230
   const padL = 34
   const padR = 12
@@ -76,7 +91,7 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
   const last = points[points.length - 1]
 
   return (
-    <svg className="block w-full" height={230} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={t('analytics.accuracyTrend')}>
+    <svg ref={svgRef} className="block w-full" height={230} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={t('analytics.accuracyTrend')} data-testid="trend-chart">
       <defs>
         <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={GOLD} stopOpacity={0.32} />
@@ -86,7 +101,7 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
       {[50, 60, 70, 80, 90].map(g => (
         <g key={g}>
           <line x1={padL} x2={W - padR} y1={y(g)} y2={y(g)} stroke={g === 90 ? GRID_STRONG : GRID} strokeWidth={1} strokeDasharray={g === 90 ? '4 4' : undefined} />
-          <text x={padL - 8} y={y(g) + 3.5} textAnchor="end" fontSize={10} fill={FAINT}>{g}</text>
+          <text x={padL - 8} y={y(g) + 3.5} textAnchor="end" fontSize={11} fill={FAINT}>{g}</text>
         </g>
       ))}
       <path d={area} fill="url(#trendFill)" />
@@ -95,12 +110,17 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
         <>
           <circle cx={x(points.length - 1)} cy={y(last.accuracy)} r={9} fill={GOLD} opacity={0.18} />
           <circle cx={x(points.length - 1)} cy={y(last.accuracy)} r={4.5} fill={GOLD_BRIGHT} />
-          <text x={x(points.length - 1)} y={y(last.accuracy) - 13} textAnchor="end" fontSize={12} fontWeight={700} fill={GOLD_BRIGHT}>{last.accuracy}%</text>
+          <text x={x(points.length - 1)} y={y(last.accuracy) - 13} textAnchor="end" fontSize={12} fontWeight={700} fill={GOLD_BRIGHT}>{formatPercent(last.accuracy / 100, 0)}</text>
         </>
       )}
     </svg>
   )
 }
+
+/** The radar's view box width, its label size in pixels, and the most that size may grow to in view-box units. */
+const RADAR_BOX_WIDTH = 350
+const RADAR_LABEL_PX = 10
+const RADAR_LABEL_MAX = 12.5
 
 const HEAT_SHADE: Record<number, string> = {
   0: 'color-mix(in srgb, var(--color-contrast) 8%, transparent)',
@@ -152,14 +172,17 @@ const barColor = (a: number): string =>
 export function ModeBars({ rows }: { rows: ModeAccuracy[] }) {
   const { t } = useTranslation()
   return (
-    <div className="flex flex-col gap-3.5">
+    // One grid for all rows, not one per row: the name column is then as wide
+    // as the longest name with its badge. At a fixed 130px the two rows that
+    // carry a badge were the two whose names were cut ("Bet S…", "Deck-…").
+    <div className="grid items-center gap-x-3 gap-y-3.5" style={{ gridTemplateColumns: 'minmax(0, max-content) minmax(72px, 1fr) max-content' }}>
       {rows.map(r => (
-        <div key={r.mode} className="grid items-center gap-3" style={{ gridTemplateColumns: '130px 1fr 44px' }}>
-          <div className="text-[0.85rem] font-medium text-content flex items-center gap-1.5">
+        <div key={r.mode} className="contents">
+          <div className="min-w-0 text-[0.85rem] font-medium text-content flex items-center gap-1.5">
             <span className="truncate">{t(r.labelKey)}</span>
             {r.tag && (
               <span
-                className="text-[0.65rem] font-bold uppercase tracking-wide px-1.5 py-px rounded"
+                className="shrink-0 text-[0.65rem] font-bold uppercase tracking-wide px-1.5 py-px rounded"
                 style={{
                   color: r.tag === 'best' ? 'var(--color-success)' : 'var(--color-warning)',
                   background: r.tag === 'best'
@@ -167,12 +190,12 @@ export function ModeBars({ rows }: { rows: ModeAccuracy[] }) {
                     : 'color-mix(in srgb, var(--color-warning) 15%, transparent)',
                 }}
               >
-                {r.tag === 'best' ? 'Strong' : 'Focus'}
+                {t(r.tag === 'best' ? 'analytics.tagStrong' : 'analytics.tagFocus')}
               </span>
             )}
           </div>
           <ProgressBar height={10} value={Math.round(r.accuracy * 100)} fill={barColor(r.accuracy)} glow={`color-mix(in srgb, ${barColor(r.accuracy)} 40%, transparent)`} />
-          <div className="text-[0.85rem] font-bold text-right text-content">{Math.round(r.accuracy * 100)}%</div>
+          <div className="text-[0.85rem] font-bold text-right text-content whitespace-nowrap">{formatPercent(Math.round(r.accuracy * 100) / 100, 0)}</div>
         </div>
       ))}
     </div>
@@ -181,15 +204,16 @@ export function ModeBars({ rows }: { rows: ModeAccuracy[] }) {
 
 /** Most-misplayed hands: amber→red bars keyed by miss-rate. */
 export function WeakestHands({ hands }: { hands: { name: string; accuracy: number }[] }) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-2.5" data-testid="weakest-hands">
       {hands.map(h => {
         const miss = Math.round((1 - h.accuracy) * 100)
         return (
-          <div key={h.name} className="grid items-center gap-3" style={{ gridTemplateColumns: '1fr 90px 40px' }}>
-            <span className="text-[0.85rem] font-medium text-content truncate">{h.name}</span>
+          <div key={h.name} className="grid items-center gap-3" style={{ gridTemplateColumns: '1fr 90px minmax(40px, max-content)' }}>
+            <span className="text-[0.85rem] font-medium text-content truncate">{handLabel(h.name, t)}</span>
             <ProgressBar height={8} value={miss} fill="linear-gradient(90deg, var(--color-warning), var(--color-error))" glow="color-mix(in srgb, var(--color-error) 40%, transparent)" />
-            <span className="text-[0.85rem] font-bold text-right" style={{ color: 'var(--color-error)' }}>{miss}%</span>
+            <span className="text-[0.85rem] font-bold text-right whitespace-nowrap" style={{ color: 'var(--color-error)' }}>{formatPercent(miss / 100, 0)}</span>
           </div>
         )
       })}
@@ -200,6 +224,25 @@ export function WeakestHands({ hands }: { hands: { name: string; accuracy: numbe
 /** Radial skill profile (pentagon) over 5 training areas. */
 export function SkillRadar({ axes }: { axes: RadarAxis[] }) {
   const { t } = useTranslation()
+  // The labels are set in view-box units, so they shrink with the drawing:
+  // on a 360px phone the 350-unit box is 286px wide and 10 units came out as
+  // 8.2px. The label size is scaled back up by the same factor, so it reads
+  // at 10px whatever the drawing's width (capped, so it cannot outgrow the
+  // room the box leaves beside the pentagon).
+  const svgRef = useRef<SVGSVGElement>(null)
+  const [labelSize, setLabelSize] = useState(RADAR_LABEL_PX)
+  useEffect(() => {
+    const svg = svgRef.current
+    if (!svg || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => {
+      const width = svg.getBoundingClientRect().width
+      if (width <= 0) return
+      const size = Math.min(RADAR_LABEL_MAX, Math.max(RADAR_LABEL_PX, (RADAR_LABEL_PX * RADAR_BOX_WIDTH) / width))
+      setLabelSize(Math.round(size * 10) / 10)
+    })
+    observer.observe(svg)
+    return () => observer.disconnect()
+  }, [])
   const cx = 140
   const cy = 104
   const R = 82
@@ -211,7 +254,13 @@ export function SkillRadar({ axes }: { axes: RadarAxis[] }) {
   const dataPoly = axes.map((a, i) => pt(i, (R * a.value) / 100).map(v => v.toFixed(1)).join(',')).join(' ')
 
   return (
-    <svg className="flex-1 max-w-[300px]" viewBox="0 0 280 220" role="img" aria-label={t('analytics.skillProfile')} data-testid="skill-radar">
+    // The view box is wider than the pentagon by the length of a label on
+    // each side. The labels are anchored outwards from the corners, so at
+    // "0 0 280 220" the two side ones ran out of the box and were cut
+    // ("ischspiel", "Abweichu").
+    // Drawn at its own size where there is room (350 units → 350px), so the
+    // labels keep the 10px they were set in; it only scales down on a phone.
+    <svg ref={svgRef} className="basis-[350px] grow-0 shrink min-w-0 max-w-full overflow-visible" viewBox={`-40 0 ${RADAR_BOX_WIDTH} 220`} role="img" aria-label={t('analytics.skillProfile')} data-testid="skill-radar">
       <defs>
         <radialGradient id="radarFill">
           <stop offset="0" stopColor={GOLD} stopOpacity={0.45} />
@@ -228,7 +277,7 @@ export function SkillRadar({ axes }: { axes: RadarAxis[] }) {
         return (
           <g key={a.axis}>
             <line x1={cx} y1={cy} x2={ex.toFixed(1)} y2={ey.toFixed(1)} stroke={GRID} strokeWidth={1} />
-            <text x={lx.toFixed(1)} y={(ly + 3).toFixed(1)} textAnchor={anchor} fontSize={10} fontWeight={600} fill={FAINT}>{t(a.axis)}</text>
+            <text x={lx.toFixed(1)} y={(ly + 3).toFixed(1)} textAnchor={anchor} fontSize={labelSize} fontWeight={600} fill={FAINT}>{t(a.axis)}</text>
           </g>
         )
       })}

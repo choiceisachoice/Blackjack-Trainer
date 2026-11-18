@@ -21,7 +21,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
   return (
     <div className="app-canvas min-h-screen text-content">
       <div className="max-w-3xl mx-auto px-6 py-12 md:py-16">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-content/60 hover:text-content">
+        <Link to="/" className="inline-flex items-center gap-2 min-h-10 text-sm text-content/60 hover:text-content">
           <ArrowLeft size={16} /> {t('common.backToHome')}
         </Link>
 
@@ -73,10 +73,12 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
           ))}
         </div>
 
-        <footer className="mt-14 pt-6 border-t border-white/8 flex flex-wrap gap-x-5 gap-y-2 text-sm text-content/55">
-          <Link to="/terms" className="hover:text-content">{t('contact.terms')}</Link>
-          <Link to="/privacy" className="hover:text-content">{t('contact.privacy')}</Link>
-          <Link to="/contact" className="hover:text-content">{t('contact.title')}</Link>
+        <footer className="mt-14 pt-4 border-t border-white/8 flex flex-wrap items-center gap-x-5 text-sm text-content/55">
+          {/* 40px to the finger: three legal links at 20px each were the
+              smallest targets on the page. */}
+          <Link to="/terms" className="inline-flex items-center min-h-10 hover:text-content">{t('contact.terms')}</Link>
+          <Link to="/privacy" className="inline-flex items-center min-h-10 hover:text-content">{t('contact.privacy')}</Link>
+          <Link to="/contact" className="inline-flex items-center min-h-10 hover:text-content">{t('contact.title')}</Link>
           <span className="ml-auto text-content/40">{t('legal.updated', { date: LEGAL_META.lastUpdated })}</span>
           <SocialLinks className="basis-full mt-3" />
         </footer>

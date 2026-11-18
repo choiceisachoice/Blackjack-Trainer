@@ -58,17 +58,17 @@ describe('BetSpread — UI', () => {
     expect(screen.getByText('Bet Spread')).toBeInTheDocument()
     expect(screen.getByText('Bet Spread Reference')).toBeInTheDocument()
     expect(screen.getByText('Random')).toBeInTheDocument()
-    expect(screen.getByText('Type A')).toBeInTheDocument()
-    expect(screen.getByText('Type B')).toBeInTheDocument()
-    expect(screen.getByText('Type C')).toBeInTheDocument()
+    expect(screen.getByText('Bet from RC')).toBeInTheDocument()
+    expect(screen.getByText('Bet from TC')).toBeInTheDocument()
+    expect(screen.getByText('TC + bet')).toBeInTheDocument()
     // New: number-of-questions selector
     expect(screen.getByRole('group', { name: 'Number of questions' })).toBeInTheDocument()
     expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 
-  it('Type B shows the True Count, table minimum and a full bet ramp', () => {
+  it('"Bet from TC" shows the True Count, table minimum and a full bet ramp', () => {
     render(<BetSpread />)
-    fireEvent.click(screen.getByText('Type B'))
+    fireEvent.click(screen.getByText('Bet from TC'))
     fireEvent.click(screen.getByTestId('start-training'))
 
     expect(screen.getByTestId('true-count')).toBeInTheDocument()
@@ -82,9 +82,9 @@ describe('BetSpread — UI', () => {
     }
   })
 
-  it('Type A shows RC and remaining decks but not the TC', () => {
+  it('"Bet from RC" shows RC and remaining decks but not the TC', () => {
     render(<BetSpread />)
-    fireEvent.click(screen.getByText('Type A'))
+    fireEvent.click(screen.getByText('Bet from RC'))
     fireEvent.click(screen.getByTestId('start-training'))
 
     expect(screen.getByTestId('running-count')).toBeInTheDocument()
@@ -94,7 +94,7 @@ describe('BetSpread — UI', () => {
 
   it('picking the correct bet shows Correct', () => {
     render(<BetSpread />)
-    fireEvent.click(screen.getByText('Type B'))
+    fireEvent.click(screen.getByText('Bet from TC'))
     fireEvent.click(screen.getByTestId('start-training'))
 
     const tc = num('true-count')
@@ -107,7 +107,7 @@ describe('BetSpread — UI', () => {
 
   it('picking a wrong bet shows Wrong with an explanation', () => {
     render(<BetSpread />)
-    fireEvent.click(screen.getByText('Type B'))
+    fireEvent.click(screen.getByText('Bet from TC'))
     fireEvent.click(screen.getByTestId('start-training'))
 
     const tc = num('true-count')
@@ -123,7 +123,7 @@ describe('BetSpread — UI', () => {
 
   it('runs a finite session and ends in a summary', () => {
     render(<BetSpread />)
-    fireEvent.click(screen.getByText('Type B'))
+    fireEvent.click(screen.getByText('Bet from TC'))
     fireEvent.click(screen.getByText('10')) // shortest session
     fireEvent.click(screen.getByTestId('start-training'))
 
@@ -136,5 +136,24 @@ describe('BetSpread — UI', () => {
 
     expect(screen.getByTestId('summary-title')).toBeInTheDocument()
     expect(screen.getByTestId('summary-accuracy')).toBeInTheDocument()
+  })
+})
+
+/**
+ * `data-drill-run` is what tells the back bar to give up its row on a phone
+ * held sideways (see `BackToMenu`). It has to be there for the whole run and
+ * must not be there on the setup screen, which keeps the arrow home.
+ */
+describe('BetSpread — marks a running drill for the sideways-phone layout', () => {
+  it('is unmarked on the setup screen and marked on question and feedback', () => {
+    const { container } = render(<BetSpread />)
+    expect(container.querySelector('[data-drill-run]')).toBeNull()
+
+    fireEvent.click(screen.getByTestId('start-training'))
+    expect(container.querySelector('[data-drill-run]')).not.toBeNull()
+
+    fireEvent.click(container.querySelector('button[data-testid^="bet-"]')!)
+    expect(screen.getByTestId('next-question')).toBeInTheDocument()
+    expect(container.querySelector('[data-drill-run]')).not.toBeNull()
   })
 })

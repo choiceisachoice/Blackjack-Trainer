@@ -22,7 +22,19 @@ export function BackToMenu() {
   const requestLeave = useLiveSessionStore(s => s.requestLeave)
 
   return (
-    <div className="shrink-0 px-4 pt-3 -mb-1" data-testid="back-to-menu-bar">
+    // `relative z-10`: the row gives its last 4px to the screen below it
+    // (`-mb-1`), and a screen that paints its own ground — the plan, a
+    // running drill — then painted over the pill's bottom border.
+    //
+    // The `short:` rule: on a phone held sideways the screen is 390px tall and
+    // this row took 53 of them. While a drill is running (the drill marks its
+    // root with `data-drill-run`) the row is given to the question; the
+    // navigation bar above still leads home, and the setup and summary
+    // screens keep the arrow.
+    <div
+      className="relative z-10 shrink-0 px-4 pt-3 -mb-1 short:[&:has(~_[data-drill-run],~_*_[data-drill-run])]:hidden"
+      data-testid="back-to-menu-bar"
+    >
       {/* A bordered pill, not a line of dim text: on a wide screen a small
           grey label in the corner of a black canvas is invisible, and the
           first person to look for it did not find it. */}

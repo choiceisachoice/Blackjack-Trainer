@@ -328,17 +328,20 @@ export function DeviationTraining() {
   // ── Question Phase ──
   if (phase === 'question') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
+      // `short:` is a phone held sideways (390px tall): the hand goes left, the
+      // answers right, and the back bar gives up its row (`data-drill-run`),
+      // so the question and every answer are on screen without scrolling.
+      <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-2">
         {/* Stats bar */}
-        <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
+        <div className="flex items-center justify-between w-full max-w-md short:max-w-2xl px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
           <span data-testid="question-progress">{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
           <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
           <span>{t('training.common.streakOf', { n: currentStreak })}</span>
         </div>
 
         {/* Situation card */}
-        <div className="surface p-6 max-w-md w-full">
-          <div className="space-y-3 mb-6">
+        <div className="surface p-6 max-w-md w-full short:max-w-2xl short:p-4 short:grid short:grid-cols-2 short:items-center short:gap-x-6">
+          <div className="space-y-3 mb-6 short:mb-0">
             <div className="flex justify-between items-center">
               <span className="text-content/60 text-sm">{t('training.flash.yourHand')}</span>
               <span className="text-content font-bold text-lg" data-testid="player-hand">{formatHand(question)}</span>
@@ -358,9 +361,10 @@ export function DeviationTraining() {
             )}
           </div>
 
-          <p className="text-content font-medium text-center mb-4">{t('training.flash.whatDoYouDo')}</p>
+          <div className="contents short:block">
+          <p className="text-content font-medium text-center mb-4 short:mb-2">{t('training.flash.whatDoYouDo')}</p>
 
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-2 justify-center short:grid short:grid-cols-2">
             {ALL_ACTIONS.map(action => {
               const on = enabled[action]
               return (
@@ -378,6 +382,7 @@ export function DeviationTraining() {
               )
             })}
           </div>
+          </div>
         </div>
       </div>
     )
@@ -386,15 +391,15 @@ export function DeviationTraining() {
   // ── Feedback Phase ──
   const deviated = question.correctAction !== question.basicAction
   return (
-    <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
-      <div className="flex items-center justify-between w-full max-w-md px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
+    <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-2">
+      <div className="flex items-center justify-between w-full max-w-md short:max-w-2xl px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
         <span>{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
         <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
         <span>{t('training.common.streakOf', { n: currentStreak })}</span>
       </div>
 
-      <div className="surface p-6 max-w-md w-full">
-        <div className={`flex flex-col items-center text-center mb-4 ${isCorrect ? 'text-success' : 'text-error'}`}>
+      <div className="surface p-6 max-w-md w-full short:max-w-2xl short:p-4 short:grid short:grid-cols-[auto_minmax(0,1fr)] short:items-center short:gap-x-6">
+        <div className={`flex flex-col items-center text-center mb-4 short:mb-0 short:min-w-36 ${isCorrect ? 'text-success' : 'text-error'}`}>
           <span className={`grid place-items-center w-12 h-12 rounded-full border
             ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
             {isCorrect ? <Check size={24} /> : <X size={24} />}
@@ -404,7 +409,8 @@ export function DeviationTraining() {
           </h3>
         </div>
 
-        <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2">
+        <div className="contents short:block">
+        <div className="bg-contrast/5 rounded-xl p-4 mb-4 short:p-3 short:mb-3 space-y-2">
           {!isCorrect && selectedAction && (
             <p className="text-content/70 text-sm">
               <Trans
@@ -437,6 +443,7 @@ export function DeviationTraining() {
         <Button onClick={handleNext} data-testid="next-question" className="w-full">
           {qIndex + 1 >= session.length ? t('training.common.seeResults') : t('training.common.next')}
         </Button>
+        </div>
       </div>
     </div>
   )

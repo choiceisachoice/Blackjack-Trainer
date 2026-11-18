@@ -28,21 +28,23 @@ export function PublicShell({ children, cta = true, testId = 'public-shell' }: P
   return (
     <div className="app-canvas min-h-screen text-content" data-testid={testId}>
       <header className="sticky top-0 z-30 border-b border-contrast/8 bg-surface/80 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2 font-bold" data-testid="learn-home">
+        {/* Tighter below sm: at 360px the German bar ("Anmelden", "Kostenlos
+            starten") needed 366px and the page scrolled sideways by six. */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <Link to="/" className="flex items-center gap-2 min-h-10 font-bold shrink-0" data-testid="learn-home">
             <span className="grid place-items-center w-8 h-8 rounded-lg text-gold bg-gold/10 border border-gold/20">
               <Spade size={16} className="fill-current" />
             </span>
             <span className="hidden sm:inline">{t('landing.brand')}</span>
           </Link>
-          <nav className="flex items-center gap-3 sm:gap-5 text-sm text-content/70">
-            <Link to="/learn" className="hidden sm:inline hover:text-content">{t('landing.nav.learn')}</Link>
-            <Link to="/strategy-chart" className="hidden sm:inline hover:text-content">{t('nav.modes.strategyChart')}</Link>
+          <nav className="flex items-center gap-2 sm:gap-5 text-sm text-content/70 min-w-0">
+            <Link to="/learn" className="hidden sm:inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.learn')}</Link>
+            <Link to="/strategy-chart" className="hidden sm:inline-flex items-center min-h-10 hover:text-content">{t('nav.modes.strategyChart')}</Link>
             <LanguageSwitcher />
-            <Link to="/login" className="hover:text-content">{t('landing.nav.signIn')}</Link>
+            <Link to="/login" className="inline-flex items-center min-h-10 hover:text-content px-1 whitespace-nowrap">{t('landing.nav.signIn')}</Link>
             <Link
               to="/login"
-              className="rounded-lg px-3.5 sm:px-4 py-2.5 font-semibold bg-gradient-to-b from-gold-bright to-gold text-on-gold whitespace-nowrap"
+              className="rounded-lg px-3 sm:px-4 py-2.5 font-semibold bg-gradient-to-b from-gold-bright to-gold text-on-gold whitespace-nowrap"
               data-testid="learn-start"
             >
               {t('landing.nav.startFree')}
@@ -71,14 +73,16 @@ export function PublicShell({ children, cta = true, testId = 'public-shell' }: P
       </main>
 
       <footer className="border-t border-contrast/8">
-        <div className="max-w-5xl mx-auto px-6 py-8 flex flex-wrap items-center justify-between gap-4 text-sm text-content/50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-content/50">
           <span>{t('landing.footer.note')}</span>
-          <nav className="flex items-center gap-5">
-            <Link to="/" className="hover:text-content">{t('common.backToHome')}</Link>
-            <Link to="/terms" className="hover:text-content">{t('landing.footer.terms')}</Link>
-            <Link to="/privacy" className="hover:text-content">{t('landing.footer.privacy')}</Link>
-            <Link to="/contact" className="hover:text-content">{t('landing.footer.contact')}</Link>
-            <CookieSettingsLink className="hover:text-content" />
+          {/* Wraps: five links in one row are 394px in German, on a 360px
+              screen. Each is 40px tall to the finger and one line to the eye. */}
+          <nav className="flex flex-wrap items-center gap-x-5">
+            <Link to="/" className="inline-flex items-center min-h-10 hover:text-content">{t('common.backToHome')}</Link>
+            <Link to="/terms" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.terms')}</Link>
+            <Link to="/privacy" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.privacy')}</Link>
+            <Link to="/contact" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.contact')}</Link>
+            <CookieSettingsLink className="inline-flex items-center min-h-10 hover:text-content" />
           </nav>
           <SocialLinks />
         </div>

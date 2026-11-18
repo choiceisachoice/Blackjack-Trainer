@@ -308,7 +308,7 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
           // On a phone the form is three screens long: the way to start stays
           // in reach at the bottom instead of waiting under all of it.
           className="lift-glow mt-8 w-full py-3.5 rounded-xl font-semibold text-black
-            max-sm:sticky max-sm:bottom-3 max-sm:z-20
+            max-sm:sticky max-sm:bottom-[calc(0.75rem+var(--cookie-bar,0px))] max-sm:z-20
             bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
             flex items-center justify-center gap-2 shadow-[0_10px_30px_-12px_var(--color-gold)]"
         >

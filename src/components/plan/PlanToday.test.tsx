@@ -398,11 +398,19 @@ describe('PathStrip', () => {
       .toEqual(['done', 'done', 'active', 'ahead', 'ahead', 'ahead', 'ahead'])
   })
 
-  it('marks a finished stage as known wherever it sits', () => {
+  it('draws a stage finished ahead of the road as done already, not as part of the road walked', () => {
+    // 18 Nov 2026: "table" ticked like the stages behind while "bet spread"
+    // before it was still open read as a road with a gap in it.
     const paid = deriveCurriculum([], ['rules'], true, ['hi-lo'])
     render(<PathStrip progress={paid} activeId="basic-strategy" entryIndex={0} goalIndex={6} onOpen={vi.fn()} />)
     expect(stateOf('rules')).toBe('done')
     expect(stateOf('basic-strategy')).toBe('active')
+    expect(stateOf('hi-lo')).toBe('early')
+  })
+
+  it('ticks it like the rest once the road has reached it', () => {
+    const paid = deriveCurriculum([], ['rules'], true, ['basic-strategy', 'hi-lo'])
+    render(<PathStrip progress={paid} activeId="true-count" entryIndex={0} goalIndex={6} onOpen={vi.fn()} />)
     expect(stateOf('hi-lo')).toBe('done')
   })
 
