@@ -2420,8 +2420,8 @@
     "badge": "Your QR reward"
   },
   "consent": {
-    "title": "May we count your visit?",
-    "body": "We keep our own visit statistics: which pages are read and for how long. For that a random ID is stored in your browser. No advertising, no third parties, nothing leaves our database.",
+    "title": "Accept cookies?",
+    "body": "We use a cookie for our own visit statistics: which pages are read and for how long. No advertising, no third parties, nothing leaves our database.",
     "more": "More in the privacy policy",
     "accept": "Accept",
     "decline": "Decline",

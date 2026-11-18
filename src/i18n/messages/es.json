@@ -2420,8 +2420,8 @@
     "badge": "Tu recompensa QR"
   },
   "consent": {
-    "title": "¿Podemos contar tu visita?",
-    "body": "Llevamos nuestras propias estadísticas de visitas: qué páginas se leen y durante cuánto tiempo. Para ello se guarda un identificador aleatorio en tu navegador. Sin publicidad, sin terceros, nada sale de nuestra base de datos.",
+    "title": "¿Aceptar cookies?",
+    "body": "Usamos una cookie para nuestras propias estadísticas de visitas: qué páginas se leen y durante cuánto tiempo. Sin publicidad, sin terceros, nada sale de nuestra base de datos.",
     "more": "Más en la política de privacidad",
     "accept": "Aceptar",
     "decline": "Rechazar",

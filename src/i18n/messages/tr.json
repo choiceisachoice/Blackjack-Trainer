@@ -2420,8 +2420,8 @@
     "badge": "QR ödülün"
   },
   "consent": {
-    "title": "Ziyaretini sayabilir miyiz?",
-    "body": "Kendi ziyaret istatistiğimizi tutuyoruz: hangi sayfalar okunuyor ve ne kadar süre. Bunun için tarayıcında rastgele bir kimlik saklanır. Reklam yok, üçüncü taraf yok, hiçbir şey veritabanımızdan çıkmaz.",
+    "title": "Çerezleri kabul ediyor musun?",
+    "body": "Kendi ziyaret istatistiğimiz için bir çerez kullanıyoruz: hangi sayfalar okunuyor ve ne kadar süre. Reklam yok, üçüncü taraf yok, hiçbir şey veritabanımızdan çıkmaz.",
     "more": "Ayrıntılar gizlilik politikasında",
     "accept": "Kabul et",
     "decline": "Reddet",

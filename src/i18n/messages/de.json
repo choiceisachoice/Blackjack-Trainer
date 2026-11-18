@@ -2420,8 +2420,8 @@
     "badge": "Deine QR-Belohnung"
   },
   "consent": {
-    "title": "Dürfen wir deinen Besuch zählen?",
-    "body": "Wir führen eine eigene Besuchsstatistik: welche Seiten gelesen werden und wie lange. Dafür wird eine zufällige Kennung in deinem Browser gespeichert. Keine Werbung, keine Dritten, nichts verlässt unsere Datenbank.",
+    "title": "Cookies akzeptieren?",
+    "body": "Wir verwenden ein Cookie für unsere eigene Besuchsstatistik: welche Seiten gelesen werden und wie lange. Keine Werbung, keine Dritten, nichts verlässt unsere Datenbank.",
     "more": "Mehr in der Datenschutzerklärung",
     "accept": "Akzeptieren",
     "decline": "Ablehnen",
