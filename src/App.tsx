@@ -9,6 +9,7 @@ import { ProtectedRoute } from './routes/ProtectedRoute'
 import { AdminRoute } from './routes/AdminRoute'
 import { ScrollToTop } from './routes/ScrollToTop'
 import { PageViewTracker } from './components/analytics-web/PageViewTracker'
+import { CookieBanner } from './components/common/CookieBanner'
 import { AppLoader } from './components/common/AppLoader'
 import { IntroGate } from './components/common/IntroGate'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
@@ -172,6 +173,7 @@ function App() {
     {/* Page views, counted on every route change (ADR-003). Renders nothing;
         does nothing when Supabase is not configured or the visitor opted out. */}
     <PageViewTracker />
+    <CookieBanner />
     <Suspense fallback={<RouteLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />

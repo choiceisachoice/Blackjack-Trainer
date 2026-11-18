@@ -2418,5 +2418,13 @@
     "close": "Fermer",
     "loading": "Chargement du prix",
     "badge": "Ta récompense QR"
+  },
+  "consent": {
+    "title": "Pouvons-nous compter ta visite ?",
+    "body": "Nous tenons nos propres statistiques de visite : quelles pages sont lues et pendant combien de temps. Pour cela, un identifiant aléatoire est enregistré dans ton navigateur. Pas de publicité, pas de tiers, rien ne quitte notre base de données.",
+    "more": "Plus dans la politique de confidentialité",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "settings": "Paramètres des cookies"
   }
 }

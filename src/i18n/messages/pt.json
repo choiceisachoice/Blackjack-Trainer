@@ -2418,5 +2418,13 @@
     "close": "Fechar",
     "loading": "A carregar o preço",
     "badge": "A tua recompensa QR"
+  },
+  "consent": {
+    "title": "Podemos contar a tua visita?",
+    "body": "Mantemos as nossas próprias estatísticas de visitas: que páginas são lidas e durante quanto tempo. Para isso é guardado um identificador aleatório no teu navegador. Sem publicidade, sem terceiros, nada sai da nossa base de dados.",
+    "more": "Mais na política de privacidade",
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "settings": "Definições de cookies"
   }
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react'
+import { CookieSettingsLink } from '../components/common/CookieBanner'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { Spade, Check, Loader2 } from 'lucide-react'
@@ -414,6 +415,7 @@ export function LandingPage() {
             <Link to="/terms" className="hover:text-content">{t('landing.footer.terms')}</Link>
             <Link to="/privacy" className="hover:text-content">{t('landing.footer.privacy')}</Link>
             <Link to="/contact" className="hover:text-content">{t('landing.footer.contact')}</Link>
+            <CookieSettingsLink className="hover:text-content" />
           </div>
           <SocialLinks />
           <div>{t('landing.footer.note')}</div>

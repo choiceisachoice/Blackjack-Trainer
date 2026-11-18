@@ -2418,5 +2418,13 @@
     "close": "Chiudi",
     "loading": "Caricamento del prezzo",
     "badge": "La tua ricompensa QR"
+  },
+  "consent": {
+    "title": "Possiamo contare la tua visita?",
+    "body": "Teniamo una nostra statistica delle visite: quali pagine vengono lette e per quanto tempo. Per questo viene salvato un identificativo casuale nel tuo browser. Niente pubblicità, niente terzi, nulla esce dal nostro database.",
+    "more": "Di più nell’informativa sulla privacy",
+    "accept": "Accetta",
+    "decline": "Rifiuta",
+    "settings": "Impostazioni dei cookie"
   }
 }

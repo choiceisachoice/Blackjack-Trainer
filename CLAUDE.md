@@ -343,7 +343,8 @@ issue and was dealt with".
    `app_admins` (SQL above), open `/account`, follow "Website analytics".
    Then decide the retention period and schedule `analytics_purge`, or leave
    it unscheduled deliberately. The consent question for EU visitors (a
-   stored random id under a strict ePrivacy reading) is open; the privacy
+   stored random id under a strict ePrivacy reading) was closed on 18 Nov 2026 by
+   the accept/decline bar (`CookieBanner`, `consent-choice.ts`); the privacy
    policy discloses it, and `analyticsAllowed()` is where a banner's answer
    would go. Owner: Darius.
 

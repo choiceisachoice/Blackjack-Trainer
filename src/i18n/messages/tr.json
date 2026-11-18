@@ -2418,5 +2418,13 @@
     "close": "Kapat",
     "loading": "Fiyat yükleniyor",
     "badge": "QR ödülün"
+  },
+  "consent": {
+    "title": "Ziyaretini sayabilir miyiz?",
+    "body": "Kendi ziyaret istatistiğimizi tutuyoruz: hangi sayfalar okunuyor ve ne kadar süre. Bunun için tarayıcında rastgele bir kimlik saklanır. Reklam yok, üçüncü taraf yok, hiçbir şey veritabanımızdan çıkmaz.",
+    "more": "Ayrıntılar gizlilik politikasında",
+    "accept": "Kabul et",
+    "decline": "Reddet",
+    "settings": "Çerez ayarları"
   }
 }

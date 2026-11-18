@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { CookieSettingsLink } from './CookieBanner'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Spade } from 'lucide-react'
@@ -77,6 +78,7 @@ export function PublicShell({ children, cta = true, testId = 'public-shell' }: P
             <Link to="/terms" className="hover:text-content">{t('landing.footer.terms')}</Link>
             <Link to="/privacy" className="hover:text-content">{t('landing.footer.privacy')}</Link>
             <Link to="/contact" className="hover:text-content">{t('landing.footer.contact')}</Link>
+            <CookieSettingsLink className="hover:text-content" />
           </nav>
           <SocialLinks />
         </div>

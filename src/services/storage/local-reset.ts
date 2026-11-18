@@ -29,6 +29,10 @@ const DEVICE_PREF_KEYS = new Set([
   'bjt_dealing_speed',
   'bjt_ambient_volume',
   'bjt_locale',
+  // The answer to the cookie question: asked once per device, not once per
+  // sign-in. Wiping it would put the banner back in front of everyone who
+  // signs out.
+  'bjt_cookie_consent',
 ])
 
 /** localStorage key recording which user the local caches currently belong to. */

@@ -18,6 +18,8 @@ beforeEach(() => {
   rpc.mockReset()
   rpc.mockResolvedValue({ data: 'sid', error: null })
   localStorage.clear()
+  // The visitor has accepted: these tests are about what is sent once they have.
+  localStorage.setItem('bjt_cookie_consent', 'accepted')
   resetTrackerForTests()
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('')))
   Object.defineProperty(navigator, 'webdriver', { value: false, configurable: true })
@@ -166,5 +168,14 @@ describe('startHeartbeat', () => {
     vi.advanceTimersByTime(HEARTBEAT_MS * 3)
     expect(fetch).not.toHaveBeenCalled()
     stop()
+  })
+})
+
+describe('without a yes to the cookie question', () => {
+  it('sends nothing and stores no visitor id', async () => {
+    localStorage.removeItem('bjt_cookie_consent')
+    await trackPageView('/learn')
+    ping()
+    expect(localStorage.getItem('bjt_visitor_id')).toBeNull()
   })
 })
