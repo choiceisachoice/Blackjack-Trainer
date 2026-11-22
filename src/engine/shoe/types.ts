@@ -30,3 +30,18 @@ export interface ShoeConfig {
   numDecks: number
   penetration: number
 }
+
+/**
+ * A shoe as plain data, for saving a table and putting it back.
+ *
+ * Cards are numbers 0–51 (suit × 13 + rank, in the order of the enums above):
+ * 312 small numbers instead of 312 objects.
+ */
+export interface ShoeSnapshot {
+  /** Every card of the shoe in its current order, dealt ones included. */
+  cards: number[]
+  /** How many cards have been dealt. */
+  dealIndex: number
+  /** Where the cut card sits. */
+  cutCardIndex: number
+}

@@ -162,6 +162,14 @@ export interface SessionXP {
   earned: number
   /** The day's limit for this mode took some or all of it. */
   capped: boolean
+  /**
+   * The part of `amount` paid for the correct answers themselves, and the part
+   * the accuracy factor added on top. `base + bonus === amount`, always: when
+   * the day's limit cuts a session short the answers are paid first and the
+   * bonus gets what is left, so the lines of the toast add up to the credit.
+   */
+  base: number
+  bonus: number
 }
 
 /**
@@ -209,7 +217,9 @@ export function sessionXP(session: TrainingSessionResult, earlier: TrainingSessi
     paidToday = Math.min(DAILY_MODE_XP_CAP, paidToday + sessionXPEarned(s))
   }
   const amount = Math.max(0, Math.min(earned, DAILY_MODE_XP_CAP - paidToday))
-  return { amount, earned, capped: amount < earned }
+  const correct = Math.max(0, Math.min(session.correctAnswers, session.totalQuestions))
+  const base = Math.min(amount, correct * (XP_PER_CORRECT[session.mode] ?? 2))
+  return { amount, earned, capped: amount < earned, base, bonus: amount - base }
 }
 
 /** What beating a personal best pays. */

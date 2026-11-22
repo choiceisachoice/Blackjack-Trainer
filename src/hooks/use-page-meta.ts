@@ -14,7 +14,7 @@ export const SITE_ORIGIN = 'https://black-jack-training.com'
  * the whole reason the chapters became pages.
  */
 export type PageKey =
-  | 'landing' | 'learn' | 'strategy-chart' | 'login' | 'app' | 'account' | 'terms' | 'privacy' | 'contact'
+  | 'landing' | 'learn' | 'strategy-chart' | 'try' | 'login' | 'app' | 'account' | 'terms' | 'privacy' | 'contact'
   | 'admin-analytics'
   | `learn-${string}`
 

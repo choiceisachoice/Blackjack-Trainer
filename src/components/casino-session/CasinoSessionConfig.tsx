@@ -11,6 +11,8 @@ import { playableLimits } from './helpers'
 interface CasinoSessionConfigProps {
   initialConfig: CasinoSessionConfig
   onStart: (config: CasinoSessionConfig) => void
+  /** Shown above the form: the offer to continue a saved session, when there is one. */
+  notice?: React.ReactNode
 }
 
 /*
@@ -96,7 +98,7 @@ function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
  * Uses segmented controls, toggle switches and styled fields instead of raw
  * native inputs. Card counting is Hi-Lo only, so no system picker is shown.
  */
-export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessionConfigProps) {
+export function CasinoSessionConfigView({ initialConfig, onStart, notice }: CasinoSessionConfigProps) {
   const { t } = useTranslation()
   const [config, setConfig] = useState<CasinoSessionConfig>(initialConfig)
   const soundEnabled = useAppStore(s => s.soundEnabled)
@@ -119,6 +121,9 @@ export function CasinoSessionConfigView({ initialConfig, onStart }: CasinoSessio
       <div className="relative isolate min-h-full px-4 py-8">
       <TrainingBackdrop mode="casinoSession" showRails railBreakpoint="2xl" />
       <div className="max-w-3xl mx-auto">
+        {/* `empty:hidden`: the notice renders nothing when there is nothing
+            to say, and its margin must go with it. */}
+        {notice && <div className="mb-6 empty:hidden">{notice}</div>}
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">{t('casino.setup.title')}</h2>

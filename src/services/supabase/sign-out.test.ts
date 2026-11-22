@@ -69,14 +69,34 @@ describe('signing out when the server cannot be reached', () => {
   })
 
   it('does not reject, because the caller has to navigate away regardless', async () => {
+    // Used to assert `undefined`. The sign-out now says how it ended, since
+    // there is one way for it not to sign anyone out (unsent sessions — see
+    // sign-out-unsaved.test.ts); a server that cannot be reached is not it.
     const { signOutAndClearLocal } = await import('./cloud-sync')
     signOut.mockRejectedValue(new Error('offline'))
 
-    await expect(signOutAndClearLocal()).resolves.toBeUndefined()
+    await expect(signOutAndClearLocal()).resolves.toBe('signedOut')
   })
 })
 
 describe('the order it does things in', () => {
+  it('lets work still in memory finish before the wipe, never after', async () => {
+    // A casino table in play used to be recorded by its unmount — after the
+    // wipe, into storage with no owner, and from there into whoever signed in
+    // next. The table registers its ending here; this is the order it needs.
+    const { registerBeforeSignOut } = await import('../storage/before-sign-out')
+    const { signOutAndClearLocal } = await import('./cloud-sync')
+    const off = registerBeforeSignOut(async () => {
+      await new Promise(r => setTimeout(r, 5))
+      calls.push('table')
+    })
+
+    await signOutAndClearLocal()
+    off()
+
+    expect(calls).toEqual(['table', 'wipe', 'server'])
+  })
+
   it('wipes before it asks the server, never after', async () => {
     // The old order was `await signOut()` *then* wipe, so a failed call skipped
     // the wipe entirely. This is that regression, stated as an assertion.

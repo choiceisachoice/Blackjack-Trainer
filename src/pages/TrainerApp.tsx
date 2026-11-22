@@ -24,10 +24,13 @@ import { LevelUpPopup } from '../components/navigation/LevelUpPopup'
 import { ErrorBoundary } from '../components/common/ErrorBoundary'
 import { UpgradePanel } from '../components/pro/UpgradePanel'
 import { UpgradeModalHost } from '../components/pro/UpgradeModalHost'
-import { useIsPro } from '../store/entitlement-store'
+import { useIsPro, useEntitlementStore } from '../store/entitlement-store'
+import { useCasinoTrialStore, useTrialOpen } from '../store/casino-trial-store'
 import { useLearnerSync } from '../hooks/use-learner-sync'
-import { isProMode } from '../services/pro-features'
+import { isModeLocked } from '../services/pro-features'
 import { useModeUrl } from '../hooks/use-mode-url'
+import { settleAbandonedSession, settleSavedSession } from '../components/casino-session/record-session'
+import { LIVE_SESSION_KEY } from '../services/casino-live-session'
 
 // Modes whose page relies on the app shell for scrolling. Analytics, Achievements
 // and the Casino Session Tracker are excluded: their pages scroll themselves
@@ -48,7 +51,16 @@ export function TrainerApp() {
   const currentMode = useAppStore(s => s.currentMode)
   const setMode = useAppStore(s => s.setMode)
   const isPro = useIsPro()
-  const locked = isProMode(currentMode) && !isPro
+  /*
+    The casino table's free trial (`services/casino-trial.ts`). The table is
+    open to an account without Pro while trial hands remain — and while a
+    trial table is still on screen: the last hand is counted when it is
+    settled, and its review and the summary come after that.
+  */
+  const trialOpen = useTrialOpen()
+  const trialSeated = useCasinoTrialStore(s => s.seated)
+  const tableOpen = isPro || trialOpen || trialSeated
+  const locked = isModeLocked(currentMode, isPro, trialOpen || trialSeated)
   const scrollable = SCROLLABLE_MODES.has(currentMode) || locked
 
   /**
@@ -67,12 +79,51 @@ export function TrainerApp() {
   const casinoLive = useLiveSessionStore(s => s.activeMode === 'casinoSession')
   const casinoVisible = currentMode === 'casinoSession' && !locked
   // Losing Pro takes the session with it: a paused hand behind a paywall is
-  // not something to keep alive, and the guard must stop protecting it.
-  const casinoMounted = (casinoVisible || casinoLive) && isPro
+  // not something to keep alive, and the guard must stop protecting it. (An
+  // account on its trial keeps the table: `tableOpen`. Not `!isPro` — the
+  // trial table reports its session from a child effect, which runs before
+  // this one, and would be ended the moment it began.)
+  const casinoMounted = (casinoVisible || casinoLive) && tableOpen
 
   useEffect(() => {
-    if (!isPro) useLiveSessionStore.getState().endSession()
-  }, [isPro])
+    if (!tableOpen) useLiveSessionStore.getState().endSession()
+  }, [tableOpen])
+
+  /*
+    A trial table saved on this device whose hands are used up — the page was
+    closed between the last card and the summary. It cannot be sat at again,
+    so it is not offered: it is cashed out here, the way a table nobody came
+    back to is, and its result is in the statistics when the paywall asks for
+    it. Only once the server has said the account has no Pro, and never the
+    table that is on screen in this tab.
+  */
+  const savedTrialTable = useLiveSessionStore(s => (s.saved?.trial ? s.saved.id : null))
+  const entitlementLoaded = useEntitlementStore(s => s.loaded)
+  const trialUsedUp = useCasinoTrialStore(s => s.known) && !trialOpen
+  useEffect(() => {
+    if (savedTrialTable && entitlementLoaded && !isPro && trialUsedUp && !trialSeated && !casinoLive) {
+      void settleSavedSession(savedTrialTable)
+    }
+  }, [savedTrialTable, entitlementLoaded, isPro, trialUsedUp, trialSeated, casinoLive])
+
+  /**
+   * A casino table saved on this device — left by a closed tab, a reload or a
+   * dead phone.
+   *
+   * Looked at once when the app opens: a table nobody came back to for a day
+   * is cashed out there and then, silently, so the hands played at it are not
+   * lost; anything younger is published for the resume card on the home
+   * screen. The `storage` listener keeps that card honest when another tab
+   * continues the table or cashes it out.
+   */
+  useEffect(() => {
+    void settleAbandonedSession()
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === null || e.key === LIVE_SESSION_KEY) useLiveSessionStore.getState().refreshSaved()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   // Feed the training plan's stage to the challenge engines, so all of them
   // agree on where this learner is.
@@ -136,7 +187,9 @@ export function TrainerApp() {
         <ErrorBoundary key={currentMode} onReset={() => setMode('home')}>
         {locked ? (
           <div className="flex-1 flex items-start justify-center p-4 md:p-8">
-            <UpgradePanel />
+            {/* Where the table would be, the paywall speaks about the table:
+                to someone who played the trial, about their own hands. */}
+            <UpgradePanel atTable={currentMode === 'casinoSession'} />
           </div>
         ) : (
           <>

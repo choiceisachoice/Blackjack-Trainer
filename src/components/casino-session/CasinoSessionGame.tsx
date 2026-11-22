@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
 import { getHandValue, isBust, isPair } from '../../engine/rules/hand-utils'
@@ -7,7 +7,10 @@ import { casinoAmbient } from '../../services/casino-ambient'
 import type { CasinoSessionConfig, CasinoSessionResult } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
 import { useAppStore, DEALING_SPEED_LABEL, DEALING_SPEEDS } from '../../store/app-store'
-import { useGameLoop } from './useGameLoop'
+import { useGameLoop, type LiveTable, type TableHouse } from './useGameLoop'
+import { isTrialTable } from './trial-table'
+import { useIsPro } from '../../store/entitlement-store'
+import { useCasinoTrialStore, selectTrialLeft, useTrialLeft } from '../../store/casino-trial-store'
 import { MAX_PLAYER_HANDS } from '../../engine/casino-session/types'
 import { CasinoTable } from './CasinoTable'
 import { ActionButtons } from './ActionButtons'
@@ -45,10 +48,30 @@ interface CasinoSessionGameProps {
    * the statistics as a completed one.
    */
   onRestart?: () => void
+  /**
+   * The id this table is saved and recorded under, and the saved copy it
+   * continues from when it was picked up again. Without it the table is not
+   * saved at all — which is how the tests that are not about saving run it.
+   */
+  live?: LiveTable
 }
 
-export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd, backgrounded = false, onRestart }: CasinoSessionGameProps) {
+export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd, backgrounded = false, onRestart, live }: CasinoSessionGameProps) {
   const { t } = useTranslation()
+  /*
+    The free trial at this table (`casino-trial.ts`): every settled hand is
+    counted against the account's ten, and the table closes when the player
+    leaves the last of them. Read from the store at the moment it matters, not
+    from a render: the count also moves when another device plays.
+  */
+  const trialActive = isTrialTable(config, useIsPro())
+  const trialLeft = useTrialLeft()
+  const house = useMemo<TableHouse | undefined>(() => (trialActive
+    ? {
+      onHandSettled: () => useCasinoTrialStore.getState().countHand(),
+      isClosed: () => selectTrialLeft(useCasinoTrialStore.getState()) === 0,
+    }
+    : undefined), [trialActive])
   const {
     state,
     actions,
@@ -61,7 +84,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     bankroll,
     handNum,
     initSession,
-  } = useGameLoop(config, recorder, onSessionEnd)
+  } = useGameLoop(config, recorder, onSessionEnd, live, house)
 
   const targetHands = config.sessionMode === 'hands' ? config.targetHands : undefined
 
@@ -103,6 +126,15 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     }
   }, [backgrounded])
 
+  /*
+    A trial table waiting for a bet with no hands left to bet on: the count
+    was used up somewhere else (another device, another tab) while this table
+    stood here. It is cashed out, like any table whose session is over.
+  */
+  useEffect(() => {
+    if (trialActive && trialLeft === 0 && state.gameStep === 'betting' && !state.closedElsewhere) actions.quitSession()
+  }, [trialActive, trialLeft, state.gameStep, state.closedElsewhere, actions])
+
   const continueSession = () => { setJustReturned(false); actions.setPaused(false) }
   const restartSession = () => { setJustReturned(false); actions.discardSession(); onRestart?.() }
 
@@ -139,7 +171,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   // there — mid-hand, count up, shoe young — and drop the player on the
   // summary. Now the target only asks (see `state.limitReached` below): a notice
   // while the hand is played out, then cash out or keep playing.
-  const endPromptOpen = state.limitReached !== null && state.gameStep === 'betting' && !state.isPaused
+  const endPromptOpen = state.limitReached !== null && state.gameStep === 'betting' && !state.isPaused && !state.closedElsewhere
   // Cash-out between hands only: a hand in play has money on it that is not
   // settled yet, and the summary would book it as lost or ignore it.
   const canCashOut = state.gameStep === 'betting'
@@ -169,7 +201,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
    * Enter does. It only ever deals one round on its own — the player's turn
    * waits for the player.
    */
-  const clockRuns = state.gameStep === 'betting' && !state.isPaused && !endPromptOpen && !state.showReshuffle
+  const clockRuns = state.gameStep === 'betting' && !state.isPaused && !endPromptOpen && !state.showReshuffle && !state.closedElsewhere
   const [betSeconds, setBetSeconds] = useState(BET_SECONDS)
   const roundKey = state.gameStep === 'betting' ? handNum : -1
   const [clockRound, setClockRound] = useState(roundKey)
@@ -390,6 +422,29 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
       </AnimatePresence>
 
       {/*
+        This table was cashed out in another tab. It is recorded there, so
+        nothing played here from now on could be written down: the table is
+        closed, with the one sentence that says why and the way out. Leaving
+        goes through `onRestart`, which puts the session away without asking
+        whether to discard it — there is nothing left to discard.
+      */}
+      {state.closedElsewhere && (
+        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center px-6" role="alertdialog" aria-modal="true"
+          aria-describedby="table-closed-elsewhere" data-testid="table-closed-elsewhere">
+          <div className="surface rounded-2xl p-7 md:p-8 max-w-md w-full text-center">
+            <p id="table-closed-elsewhere" className="text-base text-content">{t('casino.end.elsewhere')}</p>
+            <button
+              onClick={() => { onRestart?.(); setMode('home') }}
+              data-testid="closed-elsewhere-menu"
+              className="mt-6 px-7 py-3 rounded-xl font-bold bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer"
+            >
+              {t('nav.backToMenu')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/*
         The target is reached and the next bet waits for an answer. Arrives
         instantly, like the pause panel: it holds the only way on.
       */}
@@ -454,11 +509,22 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
               {formatDollar(bankroll)}
             </span>
           </span>
-          <span className="text-content/60">
+          {/* On a phone the trial's label takes this figure's place: with both,
+              the bar grows a third row above a felt that has none to spare,
+              and at the trial table the session's result is the bankroll
+              minus a starting figure that never changes. */}
+          <span className={`text-content/60 ${trialActive ? 'max-sm:hidden' : ''}`} data-testid="hud-session-net">
             {t('casino.hud.session')} <span className={`font-semibold ${bankroll - config.startingBankroll >= 0 ? 'text-success' : 'text-error'}`}>
               {formatDollar(bankroll - config.startingBankroll)}
             </span>
           </span>
+          {/* The trial, said once and quietly: a figure among the others in
+              the bar, not a banner over the felt. */}
+          {trialActive && (
+            <span className="text-gold/80" data-testid="trial-hands-left">
+              {trialLeft > 0 ? t('casino.trial.left', { count: trialLeft }) : t('casino.trial.lastPlayed')}
+            </span>
+          )}
         </div>
         {/* On a phone the bar holds what a hand needs — the money, the clock,
             sound, pause, cash out — in two rows instead of three. The shoe is

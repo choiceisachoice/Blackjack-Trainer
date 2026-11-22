@@ -10,6 +10,7 @@ import {
   yearlySaving,
   CH_VAT_PERCENT,
   isProMode,
+  isModeLocked,
 } from './pro-features'
 
 describe('formatMoney', () => {
@@ -238,5 +239,28 @@ describe('the VAT note', () => {
     // for anyone travelling or on a VPN. So it has to be a sentence that stays
     // true no matter who reads it.
     expect(note).toMatch(/Switzerland/)
+  })
+})
+
+describe('isModeLocked', () => {
+  it('locks every Pro mode for an account without Pro', () => {
+    for (const mode of ['casinoSession', 'betSpread', 'deckEstimation', 'bankrollSim', 'casinoSessionTracker'] as const) {
+      expect(isModeLocked(mode, false, false)).toBe(true)
+    }
+  })
+
+  it('locks nothing for Pro, and never a free mode', () => {
+    expect(isModeLocked('casinoSession', true, false)).toBe(false)
+    expect(isModeLocked('betSpread', true, false)).toBe(false)
+    expect(isModeLocked('speedDrill', false, false)).toBe(false)
+    expect(isModeLocked('home', false, true)).toBe(false)
+  })
+
+  it('opens the casino table, and only the table, while trial hands remain', () => {
+    expect(isModeLocked('casinoSession', false, true)).toBe(false)
+    // The trial is of the table: its log and the other Pro drills stay Pro.
+    expect(isModeLocked('casinoSessionTracker', false, true)).toBe(true)
+    expect(isModeLocked('betSpread', false, true)).toBe(true)
+    expect(isModeLocked('bankrollSim', false, true)).toBe(true)
   })
 })

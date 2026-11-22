@@ -9,6 +9,9 @@ import { stageForMode } from '../services/challenges/challenge-selection'
 import { getClaimedStages } from '../services/stage-rewards'
 import { stageXP } from '../services/stage-rewards'
 import { CURRICULUM, stageIndex, type StageId } from '../services/curriculum'
+import { getClaimedRewards, setClaimedRewards, weekKey, streakKey, WEEK_GOAL_XP } from '../services/weekly-rewards'
+import { setProfile } from '../services/learner-profile'
+import { parseDayKey, shiftDayKey, todayKey, weekStartKey } from '../services/date-utils'
 import type { TrainingMode, TrainingSessionResult } from '../services/stats-types'
 
 const proState = { isPro: true }
@@ -200,5 +203,125 @@ describe('useLearnerSync', () => {
 
     expect(addXP.mock.calls.map(c => c[0]))
       .toEqual([stageXP('basic-strategy'), stageXP('hi-lo')])
+  })
+
+  /**
+   * The kept week (21 Nov 2026). Paid by the same effect as the stages and by
+   * the same rule: from the recorded sessions, once, marked only when paid.
+   */
+  describe('the weekly goal', () => {
+    const monday = weekStartKey()
+    /** A drill on the n-th day of a week, at local noon. */
+    const on = (weekMonday: string, n: number): TrainingSessionResult => ({
+      ...session('deviationFlashCards', 0.5),
+      timestamp: parseDayKey(shiftDayKey(weekMonday, n)).toISOString(),
+    })
+    /** Sessions on the first `days` days of the week before this one. */
+    const lastWeek = (days: number) => Array.from({ length: days }, (_, i) => on(shiftDayKey(monday, -7), i))
+    const plan = (daysPerWeek: number) =>
+      setProfile({ goal: 'serious', commitment: 'casual', daysPerWeek, minutesPerDay: 20 })
+    const weekCalls = (addXP: ReturnType<typeof vi.fn>) =>
+      addXP.mock.calls.filter(c => typeof c[1] === 'string' && (c[1] as string).startsWith('xp.source.week'))
+
+    it('pays 60 XP for a week with the planned days in it, and marks it paid', () => {
+      const addXP = vi.fn()
+      useLevelStore.setState({ addChallengeXP: addXP })
+      plan(3)
+      useStatsStore.setState({ sessions: lastWeek(3) })
+
+      renderHook(() => useLearnerSync())
+
+      expect(weekCalls(addXP)).toEqual([[WEEK_GOAL_XP, 'xp.source.weekGoal']])
+      expect(getClaimedRewards()).toEqual([weekKey(shiftDayKey(monday, -7))])
+    })
+
+    it('pays nothing for a week that is a day short', () => {
+      const addXP = vi.fn()
+      useLevelStore.setState({ addChallengeXP: addXP })
+      plan(3)
+      useStatsStore.setState({ sessions: lastWeek(2) })
+
+      renderHook(() => useLearnerSync())
+
+      expect(weekCalls(addXP)).toEqual([])
+      expect(getClaimedRewards()).toEqual([])
+    })
+
+    it('pays a week once: mounting again, or signing in again, adds nothing', () => {
+      const addXP = vi.fn()
+      useLevelStore.setState({ addChallengeXP: addXP })
+      plan(3)
+      useStatsStore.setState({ sessions: lastWeek(3) })
+
+      renderHook(() => useLearnerSync()).unmount()
+      renderHook(() => useLearnerSync()).unmount()
+      // New sessions arriving re-run the effect; the week stays paid.
+      useStatsStore.setState({ sessions: [...lastWeek(3), on(shiftDayKey(monday, -7), 5)] })
+      renderHook(() => useLearnerSync())
+
+      expect(weekCalls(addXP)).toHaveLength(1)
+    })
+
+    it('pays the streak milestone with the week that completes it', () => {
+      const addXP = vi.fn()
+      useLevelStore.setState({ addChallengeXP: addXP })
+      plan(2)
+      // The week before last was kept and paid; last week makes two in a row.
+      setClaimedRewards([weekKey(shiftDayKey(monday, -14))])
+      useStatsStore.setState({ sessions: lastWeek(2) })
+
+      renderHook(() => useLearnerSync())
+
+      expect(weekCalls(addXP)).toEqual([
+        [WEEK_GOAL_XP, 'xp.source.weekGoal'],
+        [50, 'xp.source.weekStreak', { n: '2' }],
+      ])
+      expect(getClaimedRewards()).toContain(streakKey(shiftDayKey(monday, -14), 2))
+    })
+
+    it('does not reach back when the plan is lowered: only this week and last', () => {
+      const addXP = vi.fn()
+      useLevelStore.setState({ addChallengeXP: addXP })
+      // One day in each of the last four weeks, against a plan of five…
+      const sessions = [-28, -21, -14, -7].map(d => on(shiftDayKey(monday, d), 0))
+      useStatsStore.setState({ sessions })
+      plan(5)
+      const { unmount } = renderHook(() => useLearnerSync())
+      expect(weekCalls(addXP)).toEqual([])
+      unmount()
+
+      // …and then the plan becomes one day a week.
+      plan(1)
+      renderHook(() => useLearnerSync())
+      expect(weekCalls(addXP)).toEqual([[WEEK_GOAL_XP, 'xp.source.weekGoal']])
+      expect(getClaimedRewards()).toEqual([weekKey(shiftDayKey(monday, -7))])
+    })
+
+    it('pays nothing to a learner who never said how many days there are', () => {
+      // The default pace is three days; nobody promised it.
+      const addXP = vi.fn()
+      useLevelStore.setState({ addChallengeXP: addXP })
+      useStatsStore.setState({ sessions: lastWeek(7) })
+
+      renderHook(() => useLearnerSync())
+
+      expect(weekCalls(addXP)).toEqual([])
+      expect(getClaimedRewards()).toEqual([])
+    })
+
+    it('leaves the stage awards exactly as they were', () => {
+      const addXP = vi.fn()
+      useLevelStore.setState({ addChallengeXP: addXP })
+      localStorage.setItem('bjt_placement', 'hi-lo')
+      useStatsStore.setState({ sessions: finishing('hi-lo', 'speedDrill', 0.95) })
+
+      renderHook(() => useLearnerSync())
+
+      expect(addXP).toHaveBeenCalledWith(stageXP('hi-lo'), 'plan.stageComplete', { stage: expect.stringContaining('Hi-Lo') })
+      expect(getClaimedStages()).toContain('hi-lo')
+      // Sessions from May are no week of this month's.
+      expect(todayKey() > '2026-05-31').toBe(true)
+      expect(weekCalls(addXP)).toEqual([])
+    })
   })
 })

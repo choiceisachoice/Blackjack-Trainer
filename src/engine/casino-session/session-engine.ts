@@ -20,6 +20,8 @@ import type {
 } from './types'
 import type { SessionEventRecorder } from '../../services/session-recorder'
 import { MAX_PLAYER_HANDS } from './types'
+import { CASINO_SNAPSHOT_VERSION, parseSnapshot } from './session-snapshot'
+import type { CasinoSessionSnapshot } from './session-snapshot'
 
 /** Money to the cent, so a payout never carries floating-point dust. */
 function toCents(amount: number): number {
@@ -104,7 +106,13 @@ export class CasinoSessionEngine {
     Hearts: '\u2665', Diamonds: '\u2666', Clubs: '\u2663', Spades: '\u2660',
   }
 
-  constructor(config: CasinoSessionConfig, recorder?: SessionEventRecorder | null) {
+  /**
+   * @param config - The table's rules and limits
+   * @param recorder - Optional event recorder for debug diagnostics
+   * @param restored - A checked snapshot to continue from; use `restore()`,
+   *   which does the checking, rather than passing one here
+   */
+  constructor(config: CasinoSessionConfig, recorder?: SessionEventRecorder | null, restored?: CasinoSessionSnapshot) {
     this.config = config
     this.recorder = recorder ?? null
     this.humanBankroll = config.startingBankroll
@@ -126,8 +134,76 @@ export class CasinoSessionEngine {
       maxSplitHands: config.maxSplitHands,
     }
 
+    // A restored table draws no random number here: no shuffle, no bots
+    // sitting down. It goes on from exactly where the saved one stood.
+    const savedShoe = restored ? Shoe.restore(config, restored.shoe) : null
+    if (restored && savedShoe) {
+      this.shoe = savedShoe
+      this.seats = restored.seats
+      this.usedBotNames = new Set(restored.usedBotNames)
+      this.runningCount = restored.runningCount
+      this.cardsDealt = restored.cardsDealt
+      this.handHistory = restored.handHistory
+      this.currentHandNumber = restored.currentHandNumber
+      this.humanBoxSeats = restored.humanBoxSeats
+      this.humanBoxes = restored.humanBoxSeats.length
+      this.humanBankroll = restored.humanBankroll
+      this.peakBankroll = restored.peakBankroll
+      this.worstDrawdown = restored.worstDrawdown
+      return
+    }
+
     this.shoe = this.createShoe()
     this.seats = this.initializeSeats()
+  }
+
+  // ─── Snapshot ────────────────────────────────────────
+
+  /**
+   * The whole table as plain data: rules, shoe, count, bankroll, bots, the
+   * seats of the player's hands and every hand recorded so far.
+   *
+   * Meant to be taken between hands. Taken mid-hand it is still a valid
+   * table, but the cards on the felt are not part of it — they are simply
+   * out of the shoe.
+   *
+   * @returns A deep copy, safe to keep and to put through `JSON.stringify`
+   */
+  snapshot(): CasinoSessionSnapshot {
+    const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+    return {
+      version: CASINO_SNAPSHOT_VERSION,
+      config: copy(this.config),
+      shoe: this.shoe.snapshot(),
+      seats: copy(this.seats),
+      usedBotNames: [...this.usedBotNames],
+      runningCount: this.runningCount,
+      cardsDealt: this.cardsDealt,
+      handHistory: copy(this.handHistory),
+      currentHandNumber: this.currentHandNumber,
+      humanBoxSeats: [...this.humanBoxSeats],
+      humanBankroll: this.humanBankroll,
+      peakBankroll: this.peakBankroll,
+      worstDrawdown: this.worstDrawdown,
+    }
+  }
+
+  /**
+   * Rebuilds an engine from `snapshot()`, in exactly the state it was taken in.
+   *
+   * @param snapshot - What `snapshot()` returned, typically after storage and `JSON.parse`
+   * @param recorder - Optional event recorder for the hands still to come
+   * @returns The engine, or null — never an exception — when the snapshot is
+   *   from another version or is not a complete, consistent table
+   */
+  static restore(snapshot: unknown, recorder?: SessionEventRecorder | null): CasinoSessionEngine | null {
+    const checked = parseSnapshot(snapshot)
+    if (!checked) return null
+    try {
+      return new CasinoSessionEngine(checked.config, recorder, checked)
+    } catch {
+      return null
+    }
   }
 
   /** Formats a Card as a readable string (e.g. "A\u2660"). */
@@ -850,6 +926,8 @@ export class CasinoSessionEngine {
     this.recorder?.recordPlayerAction(
       `bot:${bot.name}`, action, finalValue, this.fmtCard(dealerUpCard),
       bsActionStr, action === bsActionStr, false, hn,
+      // A temperament's mistake is how that bot plays, not a fault of the engine.
+      bot.skillLevel === 'basic_strategy',
     )
   }
 

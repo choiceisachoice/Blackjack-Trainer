@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import { GraduationCap, Check, X, Target } from 'lucide-react'
 import { Panel, Segmented, Button, StatCard } from '../common/ui'
 import { Action } from '../../engine/rules/types'
@@ -77,13 +77,56 @@ function startingLevel(): FlashLevel {
   return stage && stageIndex(stage) >= stageIndex('deviations') ? 'deviations' : 'basic'
 }
 
-export function DeviationTraining() {
+/** One hand answered wrongly, with the play that was right. */
+export interface FlashMiss {
+  /** The player's hand as the card showed it ("16", "A,7", "8,8"). */
+  hand: string
+  /** The dealer's upcard. */
+  dealer: string
+  chosen: Action
+  correct: Action
+}
+
+/** What a finished round came to. */
+export interface FlashRoundResult {
+  correct: number
+  total: number
+  bestStreak: number
+  /** In the order they were played. */
+  misses: FlashMiss[]
+}
+
+/**
+ * A fixed round with its own first and last screen: the public trial at
+ * `/try`.
+ *
+ * The questions and the feedback are this component's own — a visitor plays
+ * the product, not a copy of it. What a trial replaces is the two screens
+ * that assume an account: the setup (levels, deviations, the plan) and the
+ * summary (back to settings).
+ */
+export interface FlashTrial {
+  /** How many hands. Basic strategy only: a deviation needs a count the visitor has not learned. */
+  questions: number
+  /** Open on the first hand instead of the intro — the visitor already pressed "try a round". */
+  autoStart: boolean
+  /** Whether the round goes through the ordinary session recording. */
+  record: boolean
+  /** Called once when the first hand is dealt. */
+  onStart?: () => void
+  /** The screen before the first hand. */
+  renderIntro: (start: () => void) => ReactNode
+  /** The screen after the last hand, in place of the summary. */
+  renderSummary: (result: FlashRoundResult) => ReactNode
+}
+
+export function DeviationTraining({ trial }: { trial?: FlashTrial } = {}) {
   const { t } = useTranslation()
   const dealerHitsSoft17 = useAppStore(s => s.selectedRules.dealerHitsSoft17)
 
-  const [level, setLevel] = useState<FlashLevel>(startingLevel)
-  const [numQuestions, setNumQuestions] = useState(20)
-  const [phase, setPhase] = useState<Phase>('settings')
+  const [level, setLevel] = useState<FlashLevel>(() => (trial ? 'basic' : startingLevel()))
+  const [numQuestions, setNumQuestions] = useState(trial?.questions ?? 20)
+  const [phase, setPhase] = useState<Phase>(trial?.autoStart ? 'question' : 'settings')
 
   // Read once, on mount. Later changes to the store do not restart a drill.
   const [focus, setFocus] = useState<string[] | null>(() => focusFromHandoff(useAppStore.getState().flashFocus))
@@ -93,7 +136,11 @@ export function DeviationTraining() {
     useAppStore.getState().setFlashFocus(null)
   }, [])
 
-  const [session, setSession] = useState<FlashQuestion[]>([])
+  // A trial that opens on the first hand deals it here: the session a hook's
+  // mount effect would deal arrives one render late, after a blank frame.
+  const [session, setSession] = useState<FlashQuestion[]>(() => (trial?.autoStart
+    ? buildFlashSession('basic', trial.questions, useAppStore.getState().selectedRules.dealerHitsSoft17)
+    : []))
   const [qIndex, setQIndex] = useState(0)
   const question = session[qIndex] ?? null
 
@@ -108,6 +155,8 @@ export function DeviationTraining() {
   // Per-deviation results accumulated across the session and saved on unmount,
   // so Analytics' weakest-hands panel and deviation stats reflect real answers.
   const perDeviationRef = useRef<Record<string, { correct: number; incorrect: number }>>({})
+  /** The hands missed this round, for a summary that names them. */
+  const [misses, setMisses] = useState<FlashMiss[]>([])
 
   const { statsRef, finish, begin } = useSessionSave('deviationFlashCards', (): DeviationDetails => ({
     type: 'deviationFlashCards',
@@ -115,9 +164,15 @@ export function DeviationTraining() {
     perDeviation: perDeviationRef.current,
   }))
 
+  // The round that was dealt in the initial state has started too.
+  const trialRef = useRef(trial)
+  useEffect(() => { if (trialRef.current?.autoStart) trialRef.current.onStart?.() }, [])
+
   const startSession = useCallback(() => {
     begin()
+    trialRef.current?.onStart?.()
     perDeviationRef.current = {}
+    setMisses([])
     setSession(focus
       ? buildFocusFlashSession(focus, numQuestions, dealerHitsSoft17)
       : buildFlashSession(level, numQuestions, dealerHitsSoft17))
@@ -150,6 +205,10 @@ export function DeviationTraining() {
       perDeviationRef.current[name] = entry
     }
 
+    if (!correct) {
+      setMisses(m => [...m, { hand: formatHand(question), dealer: question.dealer, chosen: action, correct: question.correctAction }])
+    }
+
     const newAttempts = totalAttempts + 1
     const newCorrect = totalCorrect + (correct ? 1 : 0)
     const newBestStreak = correct ? Math.max(bestStreak, currentStreak + 1) : bestStreak
@@ -166,7 +225,11 @@ export function DeviationTraining() {
       setCurrentStreak(0)
     }
 
-    statsRef.current = { totalQuestions: newAttempts, correctAnswers: newCorrect, bestStreak: newBestStreak }
+    // A round that is not recorded leaves the tally at zero, which is below
+    // the threshold every save path checks.
+    if (trialRef.current?.record !== false) {
+      statsRef.current = { totalQuestions: newAttempts, correctAnswers: newCorrect, bestStreak: newBestStreak }
+    }
     setPhase('feedback')
   }, [question, totalAttempts, totalCorrect, bestStreak, currentStreak, statsRef])
 
@@ -194,6 +257,12 @@ export function DeviationTraining() {
   }, [phase, handleNext])
 
   const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
+
+  // ── Trial: its own first and last screen ──
+  if (trial && phase === 'settings') return <>{trial.renderIntro(startSession)}</>
+  if (trial && phase === 'summary') {
+    return <>{trial.renderSummary({ correct: totalCorrect, total: totalAttempts, bestStreak, misses })}</>
+  }
 
   // ── Settings Phase ──
   if (phase === 'settings') {

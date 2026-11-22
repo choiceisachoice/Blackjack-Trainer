@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import { DeviationTraining } from './DeviationTraining'
+import { DeviationTraining, type FlashRoundResult, type FlashTrial } from './DeviationTraining'
 import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
 import { DEFAULT_RULES } from '../../engine/rules/types'
@@ -242,5 +242,112 @@ describe('DeviationTraining — marks a running drill for the sideways-phone lay
     fireEvent.click(container.querySelector('button[data-testid^="action-"]:not([disabled])')!)
     expect(screen.getByTestId('next-question')).toBeInTheDocument()
     expect(container.querySelector('[data-drill-run]')).not.toBeNull()
+  })
+})
+
+describe('DeviationTraining as a trial round (the public /try page)', () => {
+  beforeEach(() => {
+    useAppStore.setState({ selectedRules: { ...DEFAULT_RULES, dealerHitsSoft17: false }, flashFocus: null })
+  })
+
+  /** A trial with marked-up first and last screens, and the result it was handed. */
+  function trial(over: Partial<FlashTrial> = {}) {
+    const seen: { result: FlashRoundResult | null } = { result: null }
+    const config: FlashTrial = {
+      questions: 10,
+      autoStart: false,
+      record: true,
+      renderIntro: start => <button data-testid="trial-start" onClick={start}>go</button>,
+      renderSummary: result => { seen.result = result; return <div data-testid="trial-end" /> },
+      ...over,
+    }
+    return { config, seen }
+  }
+
+  function answerAll(wrongOn: number[] = []) {
+    for (let i = 0; i < 10; i++) {
+      const right = correctForShownHand()
+      const pick = wrongOn.includes(i) ? (right === Action.Hit ? Action.Stand : Action.Hit) : right
+      fireEvent.click(screen.getByTestId(`action-${String(pick).toLowerCase()}`))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+  }
+
+  it('shows the trial’s own first screen instead of the setup', () => {
+    const { config } = trial()
+    render(<DeviationTraining trial={config} />)
+    expect(screen.getByTestId('trial-start')).toBeInTheDocument()
+    expect(screen.queryByTestId('start-training')).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'Level' })).not.toBeInTheDocument()
+  })
+
+  it('deals basic strategy only, the number of hands it was given', () => {
+    const { config } = trial()
+    render(<DeviationTraining trial={config} />)
+    fireEvent.click(screen.getByTestId('trial-start'))
+    for (let i = 0; i < 10; i++) {
+      expect(screen.getByTestId('question-progress')).toHaveTextContent(`Question ${i + 1}/10`)
+      expect(screen.queryByTestId('true-count')).not.toBeInTheDocument()
+      fireEvent.click(screen.getByTestId('action-hit'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+    expect(screen.getByTestId('trial-end')).toBeInTheDocument()
+    expect(screen.queryByTestId('back-to-settings')).not.toBeInTheDocument()
+  })
+
+  it('hands the last screen the score and the missed hands with the right play', () => {
+    const { config, seen } = trial()
+    render(<DeviationTraining trial={config} />)
+    fireEvent.click(screen.getByTestId('trial-start'))
+    answerAll([3])
+    expect(seen.result).toMatchObject({ correct: 9, total: 10 })
+    expect(seen.result?.misses).toHaveLength(1)
+    const miss = seen.result!.misses[0]
+    expect(miss.correct).toBe(lookupBasicAction(miss.hand, miss.dealer, S17_STRATEGY))
+    expect(miss.chosen).not.toBe(miss.correct)
+  })
+
+  it('opens on the first hand when asked to, and says the round has started', () => {
+    const onStart = vi.fn()
+    const { config } = trial({ autoStart: true, onStart })
+    render(<DeviationTraining trial={config} />)
+    expect(screen.queryByTestId('trial-start')).not.toBeInTheDocument()
+    expect(screen.getByTestId('question-progress')).toHaveTextContent('Question 1/10')
+    expect(onStart).toHaveBeenCalledTimes(1)
+  })
+
+  it('says the round has started when the first screen’s button is pressed', () => {
+    const onStart = vi.fn()
+    const { config } = trial({ onStart })
+    render(<DeviationTraining trial={config} />)
+    expect(onStart).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByTestId('trial-start'))
+    expect(onStart).toHaveBeenCalledTimes(1)
+  })
+
+  it('records the round like any other session', () => {
+    const recordSpy = vi.fn()
+    useStatsStore.setState({ recordSession: recordSpy })
+    const { config } = trial()
+    const { unmount } = render(<DeviationTraining trial={config} />)
+    fireEvent.click(screen.getByTestId('trial-start'))
+    answerAll()
+    expect(recordSpy).toHaveBeenCalledTimes(1)
+    expect(recordSpy.mock.calls[0][0]).toMatchObject({ mode: 'deviationFlashCards', totalQuestions: 10, correctAnswers: 10 })
+    unmount()
+    expect(recordSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('records nothing when told not to — not at the end, not on leaving', () => {
+    const recordSpy = vi.fn()
+    useStatsStore.setState({ recordSession: recordSpy })
+    const { config, seen } = trial({ record: false })
+    const { unmount } = render(<DeviationTraining trial={config} />)
+    fireEvent.click(screen.getByTestId('trial-start'))
+    answerAll([0])
+    // The visitor still gets the result.
+    expect(seen.result).toMatchObject({ correct: 9, total: 10 })
+    unmount()
+    expect(recordSpy).not.toHaveBeenCalled()
   })
 })

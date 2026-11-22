@@ -5,6 +5,8 @@ import { useAchievementStore } from '../../store/achievement-store'
 import { useStatsStore } from '../../store/stats-store'
 import { ALL_ACHIEVEMENTS, achievementDescription } from '../../services/achievements/achievement-list'
 import i18n from '../../i18n'
+import { achievementEngine } from '../../services/achievements/achievement-engine'
+import { medalProgress } from './medal-progress'
 
 // Mock the achievement engine
 vi.mock('../../services/achievements/achievement-engine', () => ({
@@ -165,6 +167,75 @@ describe('AchievementsPage', () => {
 
     // "first_hand" is locked by default, should expose a progress value
     expect(screen.getByTestId('progress-first_hand')).toBeInTheDocument()
+  })
+
+  /**
+   * The ring on a locked medal (21 Nov 2026). The engine has always known how
+   * far along an award is; it was only told to someone who tapped the medal.
+   */
+  describe('progress on the medal itself', () => {
+    const byType = (type: string) => ALL_ACHIEVEMENTS.find(a => a.requirement.type === type && a.requirement.value > 1)!
+    const progressAt = (pct: number) =>
+      (achievementEngine.getProgress as ReturnType<typeof vi.fn>).mockImplementation(() => pct)
+
+    beforeEach(() => progressAt(0))
+
+    it('draws how far a locked award is', () => {
+      progressAt(40)
+      render(<AchievementsPage />)
+      const ring = screen.getByTestId('medal-ring-week_warrior')
+      expect(ring).toHaveAttribute('data-percent', '40')
+      expect(ring.querySelector('circle')).toHaveAttribute('stroke-dasharray', '40 100')
+      // Drawn for the eye only: the number is read out by the label beside it.
+      expect(ring).toHaveAttribute('aria-hidden', 'true')
+    })
+
+    it('puts no number on the medal — that stays in the description', () => {
+      progressAt(40)
+      render(<AchievementsPage />)
+      const card = screen.getByTestId('achievement-card-week_warrior')
+      const visible = [...card.querySelectorAll('span')].filter(s => !s.className.includes('sr-only'))
+      expect(visible.some(s => /\d+\s*%/.test(s.textContent ?? ''))).toBe(false)
+      fireEvent.click(card)
+      expect(screen.getByTestId('achievement-popover-week_warrior').textContent).toMatch(/40/)
+    })
+
+    it('draws nothing where nothing has been done yet', () => {
+      render(<AchievementsPage />)
+      expect(screen.queryByTestId('medal-ring-week_warrior')).toBeNull()
+    })
+
+    it('draws nothing on an award that is done or not done', () => {
+      progressAt(40)
+      render(<AchievementsPage />)
+      const binary = ALL_ACHIEVEMENTS.filter(a => medalProgress(a, 40) === null)
+      expect(binary.length).toBeGreaterThan(0)
+      for (const a of binary) expect(screen.queryByTestId(`medal-ring-${a.id}`)).toBeNull()
+      // "Your first session" is one step, not a distance.
+      expect(screen.queryByTestId('medal-ring-first_hand')).toBeNull()
+      // Every other locked award has its ring.
+      const measurable = ALL_ACHIEVEMENTS.filter(a => medalProgress(a, 40) !== null)
+      for (const a of measurable) expect(screen.getByTestId(`medal-ring-${a.id}`)).toBeInTheDocument()
+    })
+
+    it('draws nothing on an unlocked medal', () => {
+      progressAt(100)
+      useAchievementStore.setState({ unlockedIds: ['week_warrior'], totalUnlocked: 1 })
+      render(<AchievementsPage />)
+      expect(screen.queryByTestId('medal-ring-week_warrior')).toBeNull()
+    })
+
+    it('medalProgress: a value where there is one, null where there is not', () => {
+      expect(medalProgress(byType('streak'), 42.4)).toBe(42.4)
+      expect(medalProgress(byType('sessions'), 250)).toBe(100)
+      expect(medalProgress(byType('sessions'), -5)).toBe(0)
+      expect(medalProgress(byType('sessions'), Number.NaN)).toBeNull()
+      for (const type of ['perfect', 'speed', 'night_session', 'casino_blackjack', 'tracker_first_win']) {
+        const a = ALL_ACHIEVEMENTS.find(x => x.requirement.type === type)
+        if (a) expect(medalProgress(a, 50)).toBeNull()
+      }
+      expect(medalProgress(ALL_ACHIEVEMENTS.find(a => a.id === 'first_hand')!, 0)).toBeNull()
+    })
   })
 
   it('filter buttons work', () => {

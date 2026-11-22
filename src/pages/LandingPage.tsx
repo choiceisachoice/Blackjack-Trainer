@@ -203,9 +203,12 @@ export function LandingPage() {
         </nav>
       </header>
 
-      <section className="relative min-h-[calc(100vh-62px)] flex items-center overflow-hidden">
+      {/* On a phone the block starts near the top instead of in the middle:
+          with a four-line headline (German) the second button otherwise sat
+          under the cookie bar on a first visit — the visit it is there for. */}
+      <section className="relative min-h-[calc(100vh-62px)] flex items-center max-sm:items-start overflow-hidden">
         <HeroLayer />
-        <div className="relative z-[5] w-full intro-enter">
+        <div className="relative z-[5] w-full intro-enter max-sm:pt-10 max-sm:pb-8">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.hero.eyebrow')}</div>
             <h1 className="mt-4 text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.02] text-balance max-w-[15ch]">
@@ -221,7 +224,20 @@ export function LandingPage() {
               <button onClick={startFree} className="rounded-xl px-6 py-3.5 font-semibold bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer shadow-[0_8px_30px_-10px_rgba(212,168,71,.6)]">
                 {authed ? t('landing.hero.ctaOpen') : t('landing.hero.ctaStart')}
               </button>
-              <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">{t('landing.hero.ctaSeePro')}</a>
+              {/* Two actions, never three. A visitor without an account gets
+                  the product itself as the second one: a round of flashcards
+                  before any form (`/try`, opened on its first hand). Someone
+                  signed in has no use for a trial and keeps the way to the
+                  prices, which everyone else still has in the bar above and
+                  at the foot of the page. */}
+              {authed ? (
+                <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">{t('landing.hero.ctaSeePro')}</a>
+              ) : (
+                <Link to="/try" state={{ autoStart: true }} data-testid="hero-try"
+                  className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">
+                  {t('landing.hero.ctaTry')}
+                </Link>
+              )}
             </div>
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-content/40">
               <span>{t('landing.hero.noCard')}</span><Dot /><span>{t('landing.hero.shoe')}</span><Dot /><span>{t('landing.hero.tags')}</span><Dot /><span>{t('landing.hero.cancel')}</span>

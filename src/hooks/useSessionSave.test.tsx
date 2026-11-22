@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useSessionSave } from './useSessionSave'
 import { useStatsStore } from '../store/stats-store'
 import type { SessionDetails } from '../services/stats-types'
+import { setLocalOwner } from '../services/storage/local-owner'
+import { runBeforeSignOut } from '../services/storage/before-sign-out'
 
 const details = (): SessionDetails => ({
   type: 'speedDrill', cardsPerRound: 20, speedMs: 1000, rcErrors: [],
@@ -53,6 +55,48 @@ describe('useSessionSave', () => {
     window.dispatchEvent(new Event('pagehide'))
     unmount()
     expect(recordSpy).toHaveBeenCalledTimes(1)
+  })
+
+  /**
+   * A sign-out wipes the device and only then unmounts the mode. The session
+   * has to be written before the wipe, while the account is signed in — and
+   * not after it, into storage the next account to sign in would inherit.
+   */
+  describe('around a sign-out', () => {
+    afterEach(() => localStorage.clear())
+
+    it('records the drill when the sign-out runs its tasks, and not again on unmount', async () => {
+      setLocalOwner('user-a')
+      const { unmount } = render(<Harness questions={20} />)
+      await runBeforeSignOut()
+      expect(recordSpy).toHaveBeenCalledTimes(1)
+      localStorage.clear() // the wipe
+      unmount()
+      expect(recordSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not record on unmount once the device no longer belongs to the account', () => {
+      setLocalOwner('user-a')
+      const { unmount } = render(<Harness questions={20} />)
+      localStorage.clear() // wiped without the tasks having run
+      unmount()
+      expect(recordSpy).not.toHaveBeenCalled()
+    })
+
+    it('keeps a session begun on a device nobody owned yet', () => {
+      const { unmount } = render(<Harness questions={20} />)
+      setLocalOwner('user-a') // the first sign-in settled meanwhile
+      unmount()
+      expect(recordSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('leaves no task behind after unmount', async () => {
+      const { unmount } = render(<Harness questions={2} />)
+      unmount()
+      render(<Harness questions={20} />)
+      await runBeforeSignOut()
+      expect(recordSpy).toHaveBeenCalledTimes(1)
+    })
   })
 
   /**

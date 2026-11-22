@@ -12,6 +12,7 @@
 //   /learn            -> dist/learn/index.html
 //   /learn/true-count -> dist/learn/true-count/index.html   (one per chapter)
 //   /strategy-chart   -> dist/strategy-chart/index.html
+//   /try              -> dist/try/index.html      (the trial round's first screen)
 //   /de               -> dist/de/index.html
 //   /de/learn         -> dist/de/learn/index.html
 //   anything else     -> dist/shell.html          (the empty app shell, for /app etc.)
@@ -114,9 +115,9 @@ async function main() {
  * site carries the same page in several languages.
  */
 function sitemap(routes) {
-  // The chapters and the chart are the pages meant to rank; the hub above
+  // The chapters, the chart and the trial round are the pages meant to rank; the hub above
   // them; the legal pages exist and that is all a crawler needs to know.
-  const isContent = route => route.startsWith('/learn/') || route === '/strategy-chart'
+  const isContent = route => route.startsWith('/learn/') || route === '/strategy-chart' || route === '/try'
   const priority = route => (route === '/' ? '1.0' : route === '/learn' ? '0.9' : isContent(route) ? '0.8' : '0.3')
   const changefreq = route => (route === '/' ? 'weekly' : route === '/learn' || isContent(route) ? 'monthly' : 'yearly')
   const urls = []

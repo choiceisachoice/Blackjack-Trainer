@@ -6,11 +6,16 @@ import { handleSignedIn } from './services/supabase/cloud-sync'
 import { useEntitlementStore } from './store/entitlement-store'
 import { startCheckout, consumePendingCheckout } from './services/supabase/billing'
 import { flushPendingFailures } from './services/failure-report'
+import { useFirstSessionEvent } from './services/analytics/use-first-session-event'
 import { ProtectedRoute } from './routes/ProtectedRoute'
 import { AdminRoute } from './routes/AdminRoute'
 import { ScrollToTop } from './routes/ScrollToTop'
 import { PageViewTracker } from './components/analytics-web/PageViewTracker'
 import { CookieBanner } from './components/common/CookieBanner'
+import { OfflineNotice } from './components/common/OfflineNotice'
+// Imported for its listener: the browser offers the install once, shortly
+// after load, long before the account page (where the button is) has arrived.
+import './hooks/use-install-prompt'
 import { AppLoader } from './components/common/AppLoader'
 import { IntroGate } from './components/common/IntroGate'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
@@ -18,7 +23,7 @@ import { AppSkeleton } from './components/common/AppSkeleton'
 import { unprefixedPath } from './i18n/locales'
 import {
   LandingPage, LoginPage, TrainerApp, AccountPage, ResetPasswordPage, TermsPage, PrivacyPage, ContactPage,
-  LearnPublicPage, LearnTopicPage, StrategyChartPublicPage, AdminAnalyticsPage, isAppPath, routeFor,
+  LearnPublicPage, LearnTopicPage, StrategyChartPublicPage, TryPage, AdminAnalyticsPage, isAppPath, routeFor,
 } from './routes/pages'
 
 // The ternary matters: guarding only the <Route> leaves the dynamic import in
@@ -78,6 +83,10 @@ function App() {
   // (network down, Supabase unreachable) go out now. Never rejects, does
   // nothing without Supabase or with an empty queue.
   useEffect(() => { void flushPendingFailures() }, [])
+
+  // The path to purchase: an account's very first recorded training session.
+  // Watches the stats store; sends nothing without the visitor's consent.
+  useFirstSessionEvent(authStatus === 'signedIn')
 
   // On sign-in: migrate local data to the cloud (once) and hydrate from it.
   useEffect(() => {
@@ -180,6 +189,10 @@ function App() {
         does nothing when Supabase is not configured or the visitor opted out. */}
     <PageViewTracker />
     <CookieBanner />
+    {/* A slim strip while there is no connection or a session is waiting to
+        be uploaded. Renders nothing signed out, outside the app, or in a
+        build without Supabase. */}
+    <OfflineNotice />
     <Suspense fallback={<RouteLoader />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -194,6 +207,9 @@ function App() {
         <Route path="/learn" element={<LearnPublicPage />} />
         <Route path="/learn/:slug" element={<LearnTopicPage />} />
         <Route path="/strategy-chart" element={<StrategyChartPublicPage />} />
+        {/* One round of flashcards without an account. Public on purpose; a
+            signed-in visitor is sent on to the app by the page itself. */}
+        <Route path="/try" element={<TryPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/contact" element={<ContactPage />} />

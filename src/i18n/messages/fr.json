@@ -187,7 +187,8 @@
       "headline": "Travaillez l’<1>avantage</1> qui bat le sabot.",
       "chipStrategy": "Stratégie de base",
       "chipRules": "S17 / H17",
-      "shoe": "sabot de 6 jeux"
+      "shoe": "sabot de 6 jeux",
+      "ctaTry": "Essayer une partie — sans compte"
     },
     "steps": {
       "heading": "Apprendre. S’entraîner. Jouer.",
@@ -356,7 +357,15 @@
     "goProHeading": "Passer à Pro",
     "goProSub": "Débloquez les modes avancés et l’image complète de votre avantage au comptage.",
     "alreadyPro": "Ce compte dispose déjà de Pro. Si tout paraît encore verrouillé, rechargez la page.",
-    "saveAgainst": "Économisez {{saved}} par rapport à {{monthly}}/mois"
+    "saveAgainst": "Économisez {{saved}} par rapport à {{monthly}}/mois",
+    "personalFinished": "Vous avez terminé « {{stage}} ».",
+    "personalAt": "Votre plan en est à « {{stage}} ».",
+    "personalNextIsPro": "Étape suivante de votre plan : « {{stage}} », qui fait partie de Pro.",
+    "personalThisIsPro": "S’y entraîner fait partie de Pro.",
+    "personalLaterIsPro": "Plus loin dans votre plan, « {{stage}} » fait partie de Pro.",
+    "trialLead_one": "Votre main à la table : {{pct}} % de vos décisions conformes à la stratégie de base.",
+    "trialLead_other": "Vos {{count}} mains à la table : {{pct}} % de vos décisions conformes à la stratégie de base.",
+    "trialSupport": "Avec Pro, la table reste ouverte : autant de mains que vous voulez, avec le count et vos propres règles."
   },
   "contact": {
     "title": "Contact",
@@ -715,7 +724,31 @@
       "keepPlaying": "Continuer",
       "keepNote": "Plus de limite — encaissez quand vous voulez.",
       "timeTitle_one": "Votre minute est écoulée",
-      "timeTitle_other": "Vos {{count}} minutes sont écoulées"
+      "timeTitle_other": "Vos {{count}} minutes sont écoulées",
+      "elsewhere": "Cette table a été encaissée dans un autre onglet ; elle est donc fermée ici aussi."
+    },
+    "resume": {
+      "title": "Vous avez une session en cours",
+      "status": "Main {{hand}} · Bankroll {{bankroll}}",
+      "continue": "Reprendre",
+      "cashOut": "Encaisser maintenant",
+      "proOnly": "La table fait partie de Pro. Vous pouvez tout de même encaisser cette session."
+    },
+    "trial": {
+      "entry_one": "Essayer {{count}} main gratuite",
+      "entry_other": "Essayer {{count}} mains gratuites",
+      "introTitle_one": "{{count}} main gratuite à la table",
+      "introTitle_other": "{{count}} mains gratuites à la table",
+      "introBody": "La table complète, avec deux autres joueurs. Après chaque main, vous voyez si vous l’avez jouée selon la stratégie de base.",
+      "introNote": "Une fois par compte. Ensuite, la table fait partie de Pro.",
+      "start": "Prendre place",
+      "left_one": "Essai : encore {{count}} main",
+      "left_other": "Essai : encore {{count}} mains",
+      "lastPlayed": "Essai : dernière main",
+      "summaryDone": "C’étaient vos {{hands}} mains gratuites.",
+      "summaryLeft_one": "Il vous reste {{count}} main gratuite.",
+      "summaryLeft_other": "Il vous reste {{count}} mains gratuites.",
+      "toPro": "Continuer avec Pro"
     }
   },
   "tracker": {
@@ -2276,6 +2309,10 @@
       "admin-analytics": {
         "title": "Statistiques du site — Blackjack Card Counting Trainer",
         "description": "Visiteurs, pages vues, durée des sessions, inscriptions et clients payants."
+      },
+      "try": {
+        "title": "Essayer la stratégie de base au blackjack — gratuit, sans inscription",
+        "description": "Joue dix mains de blackjack selon la stratégie de base, gratuitement et sans compte. À la fin, tu vois ton score et le bon coup pour chaque main manquée."
       }
     }
   },
@@ -2305,7 +2342,21 @@
       "achievements": "Succès",
       "sessionCapped": "Session d’entraînement — limite du jour atteinte",
       "dailyCap": "Limite d’XP du jour atteinte pour ce mode",
-      "personalBest": "Session d’entraînement — nouveau record personnel"
+      "personalBest": "Session d’entraînement — nouveau record personnel",
+      "weekGoal": "Objectif de la semaine atteint",
+      "weekStreak": "{{n}} semaines d’affilée"
+    },
+    "part": {
+      "correct": "Bonnes réponses",
+      "accuracy": "Bonus de précision",
+      "personalBest": "Nouveau record personnel",
+      "dailyCap": "Limite du jour atteinte",
+      "other": "Autres"
+    },
+    "weekStreak": {
+      "label_one": "{{count}} semaine",
+      "label_other": "{{count}} semaines",
+      "hint": "Semaines d’affilée avec tes jours d’entraînement prévus"
     }
   },
   "simulator": {
@@ -2372,6 +2423,25 @@
       "yes": "Oui",
       "no": "Non",
       "note": "Les 50 dernières erreurs techniques lors d’un achat ou d’une action sur le compte, conservées 90 jours ; les heures sont dans votre fuseau horaire. Une erreur survenue alors que l’appareil était hors ligne n’arrive qu’à la prochaine visite de cette personne, s’il y en a une. Rien ne vous prévient : cette liste n’est vue que lorsque vous ouvrez cette page."
+    },
+    "funnel": {
+      "title": "Parcours jusqu’à l’achat",
+      "loading": "Chargement du parcours jusqu’à l’achat…",
+      "error": "Le parcours jusqu’à l’achat n’a pas pu être chargé.",
+      "missingMigration": "Rien n’est encore enregistré : la migration {{file}} doit d’abord être appliquée.",
+      "share": "{{percent}} %",
+      "steps": {
+        "visitors": "Visiteurs",
+        "signupViews": "Ont vu le formulaire d’inscription",
+        "registrations": "Se sont inscrits",
+        "firstSessions": "Première séance d’entraînement",
+        "paywallViews": "Ont vu l’offre Pro",
+        "checkoutStarts": "Ont commencé le paiement",
+        "payingCustomers": "Clients payants"
+      },
+      "note": "Chaque barre est une étape sur la période choisie ; le pourcentage est sa part par rapport à l’étape précédente. Pour les étapes visiteurs, formulaire d’inscription, première séance, offre Pro et paiement, seuls les visiteurs ayant accepté les cookies sont comptés. Les inscriptions comptent tous les nouveaux comptes : cette étape peut donc dépasser la précédente. Les clients payants sont les abonnements actifs à l’instant et ne suivent pas la période. Chaque étape est comptée séparément : ce n’est pas un même groupe de personnes suivi du début à la fin.",
+      "since": "Les étapes sont enregistrées depuis le {{date}} ; il n’existe rien avant ce jour.",
+      "sinceNone": "Aucune étape n’a encore été enregistrée : elles n’existent qu’à partir du jour où la migration a été appliquée."
     }
   },
   "report": {
@@ -2465,5 +2535,39 @@
     "decline": "Refuser",
     "settings": "Paramètres des cookies",
     "short": "Uniquement pour nos propres statistiques de visite. Pas de publicité, pas de tiers."
+  },
+  "offline": {
+    "notice": "Pas de connexion — ton entraînement est enregistré sur cet appareil et sera envoyé dès que tu seras de nouveau en ligne.",
+    "restored": "De nouveau en ligne — tout est enregistré.",
+    "signOut": {
+      "title": "Tout n’est pas encore envoyé",
+      "body_one": "{{count}} séance d’entraînement n’a pas encore été envoyée. Si tu te déconnectes maintenant, elle sera supprimée de cet appareil.",
+      "body_other": "{{count}} séances d’entraînement n’ont pas encore été envoyées. Si tu te déconnectes maintenant, elles seront supprimées de cet appareil.",
+      "stay": "Rester connecté",
+      "anyway": "Se déconnecter quand même"
+    }
+  },
+  "install": {
+    "button": "Installer l’application",
+    "description": "Place l’entraîneur sur ton écran d’accueil et ouvre-le comme une application. Il lui faut toujours une connexion pour démarrer."
+  },
+  "try": {
+    "eyebrow": "Gratuit · sans compte",
+    "title": "Joue une partie de stratégie de base",
+    "intro": "{{hands}} mains. Tu vois ta main et la carte du croupier, et tu choisis le coup. À la fin, tu obtiens ton score et les mains que tu as manquées.",
+    "start": "Distribuer la première main",
+    "end": {
+      "eyebrow": "Partie terminée",
+      "score": "{{correct}} mains sur {{total}} bien jouées",
+      "perfect": "Aucune erreur — chaque main jouée dans les règles de l’art.",
+      "missedTitle": "Les mains que tu as manquées",
+      "colHand": "Main contre croupier",
+      "colYou": "Ton coup",
+      "colRight": "Bon coup",
+      "hand": "{{hand}} contre {{dealer}}",
+      "keep": "Crée un compte gratuit pour garder ce résultat et recevoir ton plan d’entraînement.",
+      "plan": "Crée un compte gratuit et reçois ton plan d’entraînement.",
+      "cta": "Créer un compte gratuit"
+    }
   }
 }

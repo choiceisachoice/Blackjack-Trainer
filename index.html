@@ -6,6 +6,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#070809" />
 
+    <!-- Home-screen install, without a service worker.
+         The manifest gives the app an icon, a name and its own window; it
+         does not make it start offline, and nothing here caches a build. A
+         caching worker in front of a site that deploys often is how people
+         get stuck on an old one. Every prerendered page is cut from this
+         file, so all of them carry these lines. Icons: scripts/generate-icons.mjs. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Blackjack" />
+
     <!-- The ground colour, before the stylesheet.
          Without it the document is white until the CSS has arrived, and a
          dark site opened on a white flash. The second rule belongs to

@@ -21,6 +21,26 @@ export function isProMode(mode: AppMode): boolean {
 }
 
 /**
+ * Whether a mode is closed to this account — what draws the lock in the
+ * navigation and on the home screen, and what puts the paywall in the mode's
+ * place.
+ *
+ * One exception to "Pro modes need Pro": the casino table, for as long as the
+ * account has hands of its free trial left (`casino-trial.ts`). Asked in one
+ * place so that the lock and the door behind it cannot disagree — a lock on
+ * something that then opens is the same mistake as no lock on something that
+ * does not.
+ *
+ * @param mode - The mode in question
+ * @param isPro - Whether the account has Pro
+ * @param trialOpen - Whether the casino table's free trial can still be played
+ */
+export function isModeLocked(mode: AppMode, isPro: boolean, trialOpen: boolean): boolean {
+  if (isPro || !isProMode(mode)) return false
+  return !(mode === 'casinoSession' && trialOpen)
+}
+
+/**
  * The plans the paywall offers, in the order it shows them.
  *
  * Ids only. The amounts are **not** here: they used to be, as literals beside a

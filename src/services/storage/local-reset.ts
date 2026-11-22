@@ -10,6 +10,8 @@ import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker
 import { useChallengeStore } from '../../store/challenge-store'
 import { useWeeklyChallengeStore } from '../../store/weekly-challenge-store'
 import { useEntitlementStore } from '../../store/entitlement-store'
+import { useCasinoTrialStore } from '../../store/casino-trial-store'
+import { resetPendingSessions } from './pending-sessions'
 
 /** Every app-owned localStorage key starts with this. */
 const APP_PREFIX = 'bjt_'
@@ -35,24 +37,9 @@ const DEVICE_PREF_KEYS = new Set([
   'bjt_cookie_consent',
 ])
 
-/** localStorage key recording which user the local caches currently belong to. */
-export const LOCAL_OWNER_KEY = 'bjt_local_owner'
-
-/** The user id the local caches belong to, or null for never-signed-in (guest) data. */
-export function getLocalOwner(): string | null {
-  try {
-    return localStorage.getItem(LOCAL_OWNER_KEY)
-  } catch {
-    return null
-  }
-}
-
-/** Record which user the local caches belong to. */
-export function setLocalOwner(userId: string): void {
-  try {
-    localStorage.setItem(LOCAL_OWNER_KEY, userId)
-  } catch { /* ignore */ }
-}
+// The owner record lives in a leaf module so the storage facade can read it
+// without importing this file (which imports every store).
+export { LOCAL_OWNER_KEY, getLocalOwner, setLocalOwner } from './local-owner'
 
 /**
  * Wipe every trace of the current user's progress from this device: the
@@ -78,6 +65,10 @@ export function clearLocalAppData(): void {
     }
     doomed.forEach(key => localStorage.removeItem(key))
   } catch { /* ignore */ }
+  // The list of sessions awaiting upload went with the keys above; tell its
+  // subscribers, or the offline notice would keep announcing an upload for
+  // sessions that no longer exist on this device.
+  resetPendingSessions()
 
   // 2. In-memory singletons — they cached the old user's data at construction.
   achievementEngine.reloadFromStorage()
@@ -96,4 +87,7 @@ export function clearLocalAppData(): void {
   useChallengeStore.getState().refresh()
   useWeeklyChallengeStore.getState().refresh()
   useEntitlementStore.getState().reset()
+  // The trial count went with the keys: it is unknown again until the next
+  // account's merge lands, and nothing is offered meanwhile.
+  useCasinoTrialStore.getState().refresh()
 }

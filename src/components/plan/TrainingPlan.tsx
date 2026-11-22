@@ -48,6 +48,7 @@ import {
   type TimeBudget,
 } from '../../services/learner-profile'
 import { weekStartKey } from '../../services/date-utils'
+import { currentWeekStreak, getClaimedRewards } from '../../services/weekly-rewards'
 import { deriveRhythm, rhythmMessage } from '../../services/training-rhythm'
 import { WelcomeScreen } from '../onboarding/WelcomeScreen'
 import { setWelcomeSeen } from '../../services/onboarding'
@@ -235,6 +236,10 @@ export function TrainingPlan({
     : null
   const today = todayKey()
   const week = deriveWeek(sessions, budget, weekStartKey(), today)
+  // Counted from the weeks already paid, plus this one once it is kept — so
+  // the number is right in the render that shows "Week done", one effect
+  // before the payment is written down. No plan answered, no streak.
+  const weekStreak = profile ? currentWeekStreak(getClaimedRewards(), today, week.met) : 0
   const day = buildDayPlan({ progress, placement: entry, goal, isPro, budget, sessions, today, readStages })
   // Opening a stage's reading from the day's list counts as having read it:
   // the app cannot check more than that, and the block must not come back
@@ -453,7 +458,7 @@ export function TrainingPlan({
               </p>
             )}
 
-            <TodayBlocks day={day} week={week} onOpen={openBlock} />
+            <TodayBlocks day={day} week={week} weekStreak={weekStreak} onOpen={openBlock} />
 
             {/* What the list of blocks cannot do: tick a reading stage, or
                 open the paywall for a stage that is behind it. */}
@@ -495,7 +500,7 @@ export function TrainingPlan({
             {/* Reaching the goal used to end in a compliment and nothing else.
                 The one thing a finished learner needs is somewhere to go. */}
             <div className="text-left">
-              <TodayBlocks day={day} week={week} onOpen={openBlock} />
+              <TodayBlocks day={day} week={week} weekStreak={weekStreak} onOpen={openBlock} />
             </div>
 
             {harder && (

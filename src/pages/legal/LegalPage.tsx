@@ -1,22 +1,49 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Spade, ArrowLeft, AlertTriangle } from 'lucide-react'
-import type { LegalDoc } from './legal-types'
-import { LEGAL_META, hasUnsetPlaceholders } from './legal-meta'
+import { Spade, ArrowLeft, AlertTriangle, Languages } from 'lucide-react'
+import { LOCALE_STORAGE_KEY, resolveLocale } from '../../i18n/locales'
+import { hasUnsetPlaceholders } from './legal-meta'
+import { legalDate } from './legal-locale'
+import { TRANSLATION_NOTICE, isLegalTranslation, legalDoc, legalPath, type LegalKind } from './legal-docs'
 import { SocialLinks } from '../../components/common/SocialLinks'
 
 /**
- * Shared layout for the Terms and Privacy pages. Renders a {@link LegalDoc}
+ * Shared layout for the Terms and Privacy pages. Renders a `LegalDoc`
  * as readable long-form prose on the app canvas, with a back link and cross
  * links between the legal pages.
+ *
+ * The document is chosen by the active language (`legalDoc`): English is the
+ * original, the six others are translations, and a language without one
+ * falls back to English. A translated page opens with a notice saying so and
+ * pointing at the English text, which is the binding one; the English page
+ * carries no such notice.
  *
  * While any `[SET: …]` placeholder remains in `legal-meta`, a banner makes that
  * unmistakable, so a draft can be reviewed in place without being mistaken for
  * a finished, published policy.
  */
-export function LegalPage({ doc }: { doc: LegalDoc }) {
-  const { t } = useTranslation()
+export function LegalPage({ kind }: { kind: LegalKind }) {
+  const { t, i18n } = useTranslation()
   const draft = hasUnsetPlaceholders()
+  const locale = resolveLocale(i18n.language)
+  const doc = legalDoc(kind, locale)
+  const notice = isLegalTranslation(kind, locale) ? TRANSLATION_NOTICE[locale] : null
+  // The date belongs to the text on the page: a language that fell back to
+  // the English document shows the English date with it.
+  const updated = legalDate(notice ? locale : 'en')
+
+  /*
+    The English page is at the unprefixed URL, outside this router's basename
+    (`/de`), so this is a plain link and a full navigation. An unprefixed URL
+    is drawn in the reader's stored language, though — without the line below
+    "English version" would load `/privacy` and turn it German again. Storing
+    the choice first is what the language switcher does; done on the click
+    itself rather than by taking the navigation over, so opening the link in
+    a new tab works the same way.
+  */
+  const rememberEnglish = () => {
+    try { localStorage.setItem(LOCALE_STORAGE_KEY, 'en') } catch { /* the link still works */ }
+  }
 
   return (
     <div className="app-canvas min-h-screen text-content">
@@ -49,6 +76,28 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
           </div>
         )}
 
+        {notice && (
+          <p
+            lang={locale}
+            data-testid="legal-translation-notice"
+            className="mt-8 flex items-start gap-3 rounded-xl border border-contrast/12 bg-contrast/5 p-4 text-sm text-content/75"
+          >
+            <Languages size={18} className="text-gold/80 shrink-0 mt-0.5" aria-hidden />
+            <span>
+              {notice.before}
+              <a
+                href={legalPath(kind)}
+                hrefLang="en"
+                onClick={rememberEnglish}
+                className="font-semibold text-content underline underline-offset-2 hover:text-gold"
+              >
+                {notice.link}
+              </a>
+              {notice.after}
+            </span>
+          </p>
+        )}
+
         <div className="mt-10 flex flex-col gap-8">
           {doc.sections.map(section => (
             <section key={section.heading}>
@@ -79,7 +128,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
           <Link to="/terms" className="inline-flex items-center min-h-10 hover:text-content">{t('contact.terms')}</Link>
           <Link to="/privacy" className="inline-flex items-center min-h-10 hover:text-content">{t('contact.privacy')}</Link>
           <Link to="/contact" className="inline-flex items-center min-h-10 hover:text-content">{t('contact.title')}</Link>
-          <span className="ml-auto text-content/40">{t('legal.updated', { date: LEGAL_META.lastUpdated })}</span>
+          <span className="ml-auto text-content/40">{t('legal.updated', { date: updated })}</span>
           <SocialLinks className="basis-full mt-3" />
         </footer>
       </div>

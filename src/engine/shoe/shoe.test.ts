@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { Shoe } from './shoe'
 import { Rank, Suit } from './types'
 
@@ -143,5 +143,76 @@ describe('Shoe', () => {
     expect(() => new Shoe({ numDecks: 6, penetration: 0.86 })).toThrow()
     expect(() => new Shoe({ numDecks: 6, penetration: 0.5 })).toThrow()
     expect(() => new Shoe({ numDecks: 6, penetration: 1.0 })).toThrow()
+  })
+})
+
+describe('Shoe — saved and put back', () => {
+  const config = { numDecks: 6, penetration: 0.75 }
+
+  it('deals the same cards in the same order after a trip through JSON', () => {
+    const shoe = new Shoe(config)
+    for (let i = 0; i < 37; i++) shoe.deal()
+    const restored = Shoe.restore(config, JSON.parse(JSON.stringify(shoe.snapshot())))!
+    expect(restored.remaining()).toBe(shoe.remaining())
+    expect(restored.cutCardReached()).toBe(shoe.cutCardReached())
+    for (let i = 0; i < 275; i++) expect(restored.deal()).toEqual(shoe.deal())
+    expect(() => restored.deal()).toThrow()
+  })
+
+  it('keeps the cut card where it was', () => {
+    const shoe = new Shoe(config)
+    const restored = Shoe.restore(config, shoe.snapshot())!
+    while (!shoe.cutCardReached()) { shoe.deal(); restored.deal() }
+    expect(restored.cutCardReached()).toBe(true)
+    expect(restored.remaining()).toBe(shoe.remaining())
+  })
+
+  it('shuffles the same way afterwards: the order of the dealt cards is kept too', () => {
+    const seeded = (seed: number) => () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+    const shoe = new Shoe(config)
+    for (let i = 0; i < 100; i++) shoe.deal()
+    const restored = Shoe.restore(config, shoe.snapshot())!
+
+    const random = vi.spyOn(Math, 'random').mockImplementation(seeded(7))
+    shoe.reset()
+    random.mockImplementation(seeded(7))
+    restored.reset()
+    random.mockRestore()
+    for (let i = 0; i < 312; i++) expect(restored.deal()).toEqual(shoe.deal())
+  })
+
+  it('draws no random number when it is restored', () => {
+    const snapshot = new Shoe(config).snapshot()
+    const random = vi.spyOn(Math, 'random')
+    Shoe.restore(config, snapshot)
+    expect(random).not.toHaveBeenCalled()
+    random.mockRestore()
+  })
+
+  it('is a copy: the snapshot does not change when the shoe deals on', () => {
+    const shoe = new Shoe(config)
+    const snapshot = shoe.snapshot()
+    const text = JSON.stringify(snapshot)
+    shoe.deal()
+    shoe.reset()
+    expect(JSON.stringify(snapshot)).toBe(text)
+  })
+
+  it('refuses anything that is not a complete shoe for the table', () => {
+    const good = new Shoe(config).snapshot()
+    expect(Shoe.restore(config, good)).toBeInstanceOf(Shoe)
+    expect(Shoe.restore({ numDecks: 8, penetration: 0.75 }, good)).toBeNull()
+    expect(Shoe.restore({ numDecks: 6, penetration: 0.95 }, good)).toBeNull()
+    expect(Shoe.restore({ numDecks: 0, penetration: 0.75 }, good)).toBeNull()
+    expect(Shoe.restore(config, null)).toBeNull()
+    expect(Shoe.restore(config, 'shoe')).toBeNull()
+    expect(Shoe.restore(config, {})).toBeNull()
+    expect(Shoe.restore(config, { ...good, cards: good.cards.slice(1) })).toBeNull()
+    expect(Shoe.restore(config, { ...good, cards: good.cards.map((c, i) => (i === 0 ? (c + 1) % 52 : c)) })).toBeNull()
+    expect(Shoe.restore(config, { ...good, cards: good.cards.map((c, i) => (i === 0 ? 52 : c)) })).toBeNull()
+    expect(Shoe.restore(config, { ...good, cards: good.cards.map((c, i) => (i === 0 ? 1.5 : c)) })).toBeNull()
+    expect(Shoe.restore(config, { ...good, dealIndex: -1 })).toBeNull()
+    expect(Shoe.restore(config, { ...good, dealIndex: 313 })).toBeNull()
+    expect(Shoe.restore(config, { ...good, cutCardIndex: '234' })).toBeNull()
   })
 })

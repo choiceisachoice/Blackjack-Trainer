@@ -12,9 +12,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  * problem into a support ticket or a chargeback.
  */
 
-const signOutAndClearLocal = vi.fn<() => Promise<void>>()
+type SignOutOptions = { discardUnsaved?: boolean }
+const signOutAndClearLocal = vi.fn<(options?: SignOutOptions) => Promise<'signedOut' | 'unsaved' | void>>()
 vi.mock('../services/supabase/cloud-sync', () => ({
-  signOutAndClearLocal: () => signOutAndClearLocal(),
+  signOutAndClearLocal: (options?: SignOutOptions) => signOutAndClearLocal(options),
 }))
 
 const openBillingPortal = vi.fn<() => Promise<void>>()
@@ -28,6 +29,7 @@ vi.mock('../services/supabase/billing', () => ({
 import { AccountPage } from './AccountPage'
 import { useEntitlementStore } from '../store/entitlement-store'
 import { LEGAL_META } from './legal/legal-meta'
+import { markSessionPending, resetPendingSessions } from '../services/storage/pending-sessions'
 
 /** Supabase is unconfigured under test, so everything is unlocked and the
  *  Pro "Manage subscription" path is the one on screen. */
@@ -142,6 +144,34 @@ describe('signing out from the account page', () => {
 
     fireEvent.click(screen.getByTestId('account-sign-out'))
     expect(signOutAndClearLocal).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks before deleting sessions that could not be uploaded', async () => {
+    // The wipe used to take them without a word. The sign-out now reports
+    // them and has wiped nothing; the page asks, and staying is the default.
+    localStorage.clear()
+    resetPendingSessions()
+    markSessionPending('a')
+    signOutAndClearLocal.mockResolvedValueOnce('unsaved')
+    renderPage()
+
+    fireEvent.click(screen.getByTestId('account-sign-out'))
+
+    const question = await screen.findByTestId('unsaved-sign-out-dialog', {}, T)
+    expect(question).toHaveTextContent('1 training session has not been uploaded yet')
+    // Still signed in: the button is usable again.
+    expect(screen.getByTestId('account-sign-out')).not.toBeDisabled()
+
+    fireEvent.click(screen.getByTestId('unsaved-sign-out-stay'))
+    expect(screen.queryByTestId('unsaved-sign-out-dialog')).toBeNull()
+    expect(signOutAndClearLocal).toHaveBeenCalledTimes(1)
+
+    // Asked again, and this time answered the other way.
+    signOutAndClearLocal.mockResolvedValueOnce('unsaved')
+    fireEvent.click(screen.getByTestId('account-sign-out'))
+    fireEvent.click(await screen.findByTestId('unsaved-sign-out-anyway', {}, T))
+    await waitFor(() => expect(signOutAndClearLocal).toHaveBeenLastCalledWith({ discardUnsaved: true }), T)
+    resetPendingSessions()
   })
 })
 

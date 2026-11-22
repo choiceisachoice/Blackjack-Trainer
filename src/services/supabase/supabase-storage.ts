@@ -77,7 +77,11 @@ export class SupabaseStorageService implements StorageService {
 
   async saveSessionResult(result: TrainingSessionResult): Promise<void> {
     const uid = await this.userId()
-    if (!uid) return
+    // Thrown, not returned: the caller keeps the session marked as waiting
+    // for upload until a write has actually happened. Offline with an expired
+    // token there is no session to read, and returning quietly here reported
+    // "saved to the cloud" for a row that was never sent.
+    if (!uid) throw new Error('no signed-in session; the session was not sent')
     // Upsert on the primary key so a retried/migrated save can't duplicate.
     const { error } = await requireSupabase()
       .from('training_sessions')
@@ -87,8 +91,10 @@ export class SupabaseStorageService implements StorageService {
 
   /** Bulk upsert — used by the one-time local→cloud migration. */
   async saveMany(results: TrainingSessionResult[]): Promise<void> {
+    if (results.length === 0) return
     const uid = await this.userId()
-    if (!uid || results.length === 0) return
+    // Thrown for the same reason as in `saveSessionResult`.
+    if (!uid) throw new Error('no signed-in session; the sessions were not sent')
     const { error } = await requireSupabase()
       .from('training_sessions')
       .upsert(results.map(r => toRow(r, uid)), { onConflict: 'id' })

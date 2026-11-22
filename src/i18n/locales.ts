@@ -69,6 +69,7 @@ export const PUBLIC_PATHS: readonly string[] = [
   '/learn',
   ...LEARN_TOPIC_PATHS,
   '/strategy-chart',
+  '/try',
   '/terms',
   '/privacy',
   '/contact',

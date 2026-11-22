@@ -1,4 +1,5 @@
 import { requireSupabase, isSupabaseConfigured } from './client'
+import { trackEvent } from '../analytics/events'
 
 /** The subscription plans offered at checkout. Price ids live server-side only. */
 export type BillingPlan = 'monthly' | 'yearly'
@@ -48,6 +49,10 @@ export type CheckoutOutcome = 'redirecting' | 'already-subscribed'
  */
 export async function startCheckout(plan: BillingPlan): Promise<CheckoutOutcome> {
   if (!isSupabaseConfigured) throw new Error('Billing is unavailable in this environment.')
+  // Counted here, once, for every way a checkout begins: the paywall, the
+  // landing page and the intent resumed after sign-in. Before the request, so
+  // it is on its way while the Edge Function answers and the browser leaves.
+  void trackEvent('checkout_start')
   const { data, error } = await requireSupabase().functions.invoke('create-checkout-session', {
     body: { plan },
   })

@@ -1,18 +1,34 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { preloadCardImages } from '../cards/card-suits'
 import { useAppStore } from '../../store/app-store'
 import { useLiveSessionStore } from '../../store/live-session-store'
-import { useStatsStore } from '../../store/stats-store'
-import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker-store'
 import { SessionRecorder } from '../../services/session-recorder'
 import { casinoAmbient } from '../../services/casino-ambient'
 import type { CasinoSessionConfig, CasinoSessionResult } from '../../engine/casino-session/types'
-import type { CasinoSessionDetails } from '../../services/stats-types'
-import { DEFAULT_CONFIG, isRecordableSession } from './helpers'
+import {
+  clearLiveSession,
+  loadLiveSession,
+  newLiveSessionId,
+  type SavedLiveSession,
+} from '../../services/casino-live-session'
+import { DEFAULT_CONFIG } from './helpers'
 import type { Phase } from './helpers'
 import { CasinoSessionConfigView } from './CasinoSessionConfig'
 import { CasinoSessionSummary } from './CasinoSessionSummary'
 import { CasinoSessionGame } from './CasinoSessionGame'
+import { ResumeSessionCard } from './ResumeSessionCard'
+import { recordCasinoSession, settleSavedSession } from './record-session'
+import { TrialIntro } from './TrialIntro'
+import { isTrialTable, trialTableConfig } from './trial-table'
+import { useIsPro } from '../../store/entitlement-store'
+import { useCasinoTrialStore, useTrialLeft } from '../../store/casino-trial-store'
+
+/** A recorder for the hands still to come, already told the table's rules. */
+function startRecorder(config: CasinoSessionConfig): SessionRecorder {
+  const recorder = new SessionRecorder()
+  recorder.start(config)
+  return recorder
+}
 
 interface CasinoSessionProps {
   /**
@@ -30,9 +46,34 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
   const setMode = useAppStore(s => s.setMode)
   const soundEnabled = useAppStore(s => s.soundEnabled)
   const selectedSystem = useAppStore(s => s.selectedSystem)
+  /*
+    Without Pro this component is the free trial (`casino-trial.ts`): the
+    intro instead of the setup screen, the one fixed table, and a count of
+    hands that ends it. `TrainerApp` only mounts it for such an account while
+    trial hands remain or a trial table is still on screen.
+  */
+  const isPro = useIsPro()
+  const trialLeft = useTrialLeft()
+  /** The account's own trial table is saved on this device, waiting to be continued. */
+  const savedTrialTable = useLiveSessionStore(s => s.saved?.trial === true)
 
-  const [phase, setPhase] = useState<Phase>('config')
-  const [lastConfig, setLastConfig] = useState<CasinoSessionConfig>({
+  /**
+   * "Continue" on the home screen's resume card brings the player here with a
+   * request to open the saved table. It is read once, while mounting, and only
+   * read: the effect below withdraws it. (An initializer runs twice in
+   * development; one that took the request away would find none the second
+   * time.)
+   */
+  const [boot] = useState<SavedLiveSession | null>(() => {
+    const saved = useLiveSessionStore.getState().resumeRequested ? loadLiveSession() : null
+    // A Pro table left behind by an account that has no Pro any more is not
+    // continued as a trial: its result can be cashed out, nothing else.
+    return saved && (isPro || saved.config.trial === true) ? saved : null
+  })
+  useEffect(() => { useLiveSessionStore.getState().clearResumeRequest() }, [])
+
+  const [phase, setPhase] = useState<Phase>(boot ? 'playing' : 'config')
+  const [lastConfig, setLastConfig] = useState<CasinoSessionConfig>(boot ? boot.config : {
     ...DEFAULT_CONFIG,
     countingSystem: selectedSystem,
   })
@@ -40,7 +81,18 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
   // State, not a ref: the recorder is handed to child components, so it is
   // render-relevant data. As a ref it worked only because every write happened
   // to be paired with a state update that forced the re-render.
-  const [recorder, setRecorder] = useState<SessionRecorder | null>(null)
+  const [recorder, setRecorder] = useState<SessionRecorder | null>(() => (boot ? startRecorder(boot.config) : null))
+  /**
+   * The table being played: its id, and — when it was picked up again rather
+   * than started — the saved copy it continues from.
+   *
+   * The id is made when the session starts and is what the session is saved
+   * and recorded under. The ref mirrors it for `handleSessionEnd`, which is
+   * also called from the game's unmount, after the last render.
+   */
+  const [live, setLive] = useState<{ id: string; resume: SavedLiveSession | null } | null>(() =>
+    (boot ? { id: boot.id, resume: boot } : null))
+  const liveIdRef = useRef<string | null>(boot ? boot.id : null)
 
   /**
    * Tell the navigation guard when there is something to protect.
@@ -66,148 +118,121 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
    */
   useEffect(() => () => { useLiveSessionStore.getState().endSession() }, [])
 
+  /**
+   * A trial table on screen — in play, or showing its summary — says so, so
+   * that `TrainerApp` keeps it mounted through the last hand's settlement and
+   * the summary. Both come after the tenth hand has been counted; see
+   * `seated` in the trial store.
+   */
+  const trialSeated = !isPro && phase !== 'config' && lastConfig.trial === true
+  useEffect(() => {
+    useCasinoTrialStore.getState().setSeated(trialSeated)
+  }, [trialSeated])
+  useEffect(() => () => { useCasinoTrialStore.getState().setSeated(false) }, [])
+
+  /*
+    Pro ended while a Pro table was on the felt, and the account still has
+    trial hands (so `TrainerApp` keeps this mounted). The table is not the
+    trial's: it is left. Unmounting the game records what was played at it —
+    and shows that summary — exactly as leaving it any other way does. Set
+    while rendering, the documented alternative to an effect a frame late.
+  */
+  if (phase === 'playing' && !isPro && lastConfig.trial !== true) setPhase('config')
+
   const handleStart = useCallback((config: CasinoSessionConfig) => {
-    const next = new SessionRecorder()
-    next.start(config)
-    setRecorder(next)
-    setLastConfig(config)
-    setPhase('playing')
+    const begin = () => {
+      const id = newLiveSessionId()
+      liveIdRef.current = id
+      setLive({ id, resume: null })
+      setRecorder(startRecorder(config))
+      setLastConfig(config)
+      setPhase('playing')
+    }
+    /*
+      A table still saved on this device is cashed out before a new one takes
+      its place. There is one saved table; the new session writes over it the
+      moment it starts, and the hands of the old one would be gone without a
+      record — the very loss saving the table exists to prevent. Starting
+      fresh is a way of saying "I am done with that one", so it is settled
+      the way "Cash out now" settles it.
+    */
+    if (loadLiveSession()) void settleSavedSession().finally(begin)
+    else begin()
   }, [])
+
+  /** "Continue" on the setup screen's resume card: the saved table, at its next bet. */
+  const handleResume = useCallback(() => {
+    const saved = loadLiveSession()
+    if (!saved || !(isPro || saved.config.trial === true)) {
+      // Gone meanwhile — cashed out in another tab, or unreadable. The card
+      // goes with it. (Or not a table this account may sit at: see `boot`.)
+      useLiveSessionStore.getState().refreshSaved()
+      return
+    }
+    liveIdRef.current = saved.id
+    setLive({ id: saved.id, resume: saved })
+    setRecorder(startRecorder(saved.config))
+    setLastConfig(saved.config)
+    setPhase('playing')
+  }, [isPro])
 
   const handleSessionEnd = useCallback((sessionResult: CasinoSessionResult) => {
+    casinoAmbient.stop()
+    // A trial table that closed before a hand was played has no result to
+    // show: back to where it was opened from. (Recording it only puts the
+    // saved copy away.)
+    if (sessionResult.config.trial === true && sessionResult.hands.length === 0) {
+      recordCasinoSession(sessionResult, { liveId: liveIdRef.current })
+      setPhase('config')
+      setRecorder(null)
+      return
+    }
     setResult(sessionResult)
     setPhase('summary')
-    casinoAmbient.stop()
-
-    // Compute achievement-relevant fields from hand data
-    const hands = sessionResult.hands
-
-    /*
-      A session with no hands in it is not a session.
-
-      Everything below ran unconditionally, so opening the table and leaving
-      again wrote a full row: 60 XP for the casino base reward, a zero-hand
-      entry in the analytics and in the bankroll tracker, and — because the
-      final curriculum stage asks for three casino sessions at `minAccuracy: 0`
-      — one third of the last stage of the training plan. Three open-and-close
-      round trips finished it without a card being dealt.
-
-      The rule itself lives in `helpers.ts` so it can be tested without
-      mounting a table. The summary still shows and the live session still
-      ends — the player sees what they did, only the record is withheld.
-    */
-    if (!isRecordableSession(hands.length)) return
-    const hadBlackjack = hands.some(h => h.result === 'blackjack')
-    // After a split the record holds hand 1 only ([A, x]), so "both cards are
-    // aces" was almost never true and the achievement rarely fired. A first
-    // action of Split on a hand that starts with an ace *is* a pair of aces.
-    const splitAces = hands.some(h =>
-      h.playerCards.length >= 1 &&
-      h.playerCards[0].rank === 'A' &&
-      h.firstAction === 'Split'
-    )
-    let longestWinStreak = 0
-    let currentStreak = 0
-    for (const h of hands) {
-      if (h.result === 'win' || h.result === 'blackjack') {
-        currentStreak++
-        if (currentStreak > longestWinStreak) longestWinStreak = currentStreak
-      } else {
-        currentStreak = 0
-      }
-    }
-    let maxSplitHands = 1
-    for (const h of hands) {
-      const splitCount = h.decisions.filter(d => d.action === 'Split').length
-      if (splitCount + 1 > maxSplitHands) maxSplitHands = splitCount + 1
-    }
-
-    // Save to stats store for analytics
-    const details: CasinoSessionDetails = {
-      type: 'casinoSession',
-      handsPlayed: hands.length,
-      netProfit: sessionResult.netProfit,
-      overallScore: sessionResult.overallScore,
-      grade: sessionResult.grade,
-      betAccuracy: sessionResult.betAccuracy,
-      playAccuracy: sessionResult.playAccuracy,
-      countAccuracy: sessionResult.countAccuracy,
-      totalCountChecks: sessionResult.totalCountChecks,
-      deviationAccuracy: sessionResult.deviationAccuracy,
-      totalDeviationSituations: sessionResult.totalDeviationSituations,
-      playStyle: sessionResult.config.playStyle ?? 'counting',
-      numBots: sessionResult.config.numBots,
-      hadBlackjack,
-      longestWinStreak,
-      splitAces,
-      maxSplitHands,
-      // Carried so the Casino Session Tracker can be rebuilt after a sign-out
-      // wipes it. `details` is jsonb, so this costs no migration.
-      startingBankroll: sessionResult.startingBankroll,
-      finalBankroll: sessionResult.finalBankroll,
-      tableConfig: {
-        numDecks: sessionResult.config.numDecks,
-        minBet: sessionResult.config.minBet,
-        blackjackPays: sessionResult.config.blackjackPays,
-      },
-    }
-    // XP follows the same rule as the grade: in basic play the bets are not a
-    // decision the player was asked to get right, so they do not count against
-    // the accuracy that sets the XP tier.
-    const basicPlay = sessionResult.config.playStyle === 'basic'
-    const totalDecisions = sessionResult.totalPlayDecisions + (basicPlay ? 0 : sessionResult.totalBetDecisions)
-    const correctDecisions = sessionResult.correctPlayDecisions + (basicPlay ? 0 : sessionResult.correctBetDecisions)
-    // Fire-and-forget by design: the session, the XP and the achievements are
-    // all applied synchronously inside, and persistence is best-effort and
-    // cannot reject. See the tail of `recordSession`.
-    void useStatsStore.getState().recordSession({
-      mode: 'casinoSession',
-      startTime: sessionResult.startTime,
-      totalQuestions: totalDecisions,
-      correctAnswers: correctDecisions,
-      bestStreak: 0,
-      details,
-      countingSystem: sessionResult.config.countingSystem,
-    })
-
-    // Every cashed-out session lands in the Casino Session Tracker. It used to
-    // land there only if the tracker had been set up by hand first, so a
-    // player who never opened it lost every session. A tracker nobody set up
-    // starts from this session's own bankroll.
-    const trackerStore = useCasinoSessionTrackerStore.getState()
-    if (trackerStore.startingBankroll === 0 && trackerStore.sessions.length === 0) {
-      trackerStore.setStartingBankroll(sessionResult.startingBankroll)
-    }
-    const now = new Date()
-    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-    trackerStore.addSession({
-      id: `cs-${Date.now()}`,
-      date: dateStr,
-      timestamp: Date.now(),
-      handsPlayed: hands.length,
-      duration: sessionResult.durationSeconds,
-      startingBankroll: sessionResult.startingBankroll,
-      finalBankroll: sessionResult.finalBankroll,
-      profit: sessionResult.netProfit,
-      betAccuracy: sessionResult.betAccuracy,
-      playAccuracy: sessionResult.playAccuracy,
-      countAccuracy: sessionResult.countAccuracy,
-      overallScore: sessionResult.overallScore,
-      grade: sessionResult.grade,
-      numBots: sessionResult.config.numBots,
-      config: {
-        numDecks: sessionResult.config.numDecks,
-        minBet: sessionResult.config.minBet,
-        blackjackPays: sessionResult.config.blackjackPays,
-      },
-    })
+    // Statistics, XP and the tracker — and the saved table goes with it. The
+    // summary shows either way; a session with no hands, or one another tab
+    // has already cashed out, is simply not written (again).
+    recordCasinoSession(sessionResult, { liveId: liveIdRef.current })
   }, [])
+
+  /**
+   * "Start a new session" from the table: the session is dropped, unrecorded,
+   * and so is its saved copy — otherwise the setup screen it leads to would
+   * offer to resume the table that was just thrown away.
+   */
+  const handleRestart = useCallback(() => {
+    if (liveIdRef.current) clearLiveSession(liveIdRef.current)
+    useLiveSessionStore.getState().refreshSaved()
+    setPhase('config')
+    setResult(null)
+    setRecorder(null)
+  }, [])
+
+  if (phase === 'config' && !isPro) {
+    // Nothing once the hands are gone: `TrainerApp` puts the paywall here.
+    if (trialLeft === 0) return null
+    return (
+      <TrialIntro
+        handsLeft={trialLeft}
+        onStart={() => handleStart(trialTableConfig(selectedSystem))}
+        // The trial's own table: continue it, nothing beside it. Any other
+        // saved table (a Pro table from before) can only be cashed out, and
+        // sits above the offer as it does above the setup screen.
+        savedTable={savedTrialTable ? <ResumeSessionCard onContinue={handleResume} /> : undefined}
+        notice={<ResumeSessionCard onContinue={handleResume} />}
+      />
+    )
+  }
 
   if (phase === 'config') {
     return (
       <CasinoSessionConfigView
         initialConfig={lastConfig}
         onStart={handleStart}
+        // The same choice the home screen offers, for whoever comes straight
+        // to the table: continue the saved session or cash it out. (Starting
+        // a new one from the form below cashes it out first — `handleStart`.)
+        notice={<ResumeSessionCard onContinue={handleResume} />}
       />
     )
   }
@@ -216,7 +241,14 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
     return (
       <CasinoSessionSummary
         result={result}
-        onPlayAgain={() => { setPhase('config'); setResult(null) }}
+        trial={isTrialTable(result.config, isPro) ? { handsLeft: trialLeft } : undefined}
+        onPlayAgain={() => {
+          // In the same breath as the phase: with no hands left the paywall
+          // takes this place, and must not wait for an effect to say so.
+          if (!isPro) useCasinoTrialStore.getState().setSeated(false)
+          setPhase('config')
+          setResult(null)
+        }}
         onHome={() => setMode('home')}
         recorder={recorder}
       />
@@ -236,7 +268,8 @@ export function CasinoSession({ backgrounded = false }: CasinoSessionProps = {})
         statistics and the tracker as a completed one, and half a shoe played
         before wandering off is not a result worth recording.
       */
-      onRestart={() => { setPhase('config'); setResult(null); setRecorder(null) }}
+      onRestart={handleRestart}
+      live={live ?? undefined}
     />
   )
 }

@@ -187,7 +187,8 @@
       "headline": "Entrena la <1>ventaja</1> que le gana al zapato.",
       "chipStrategy": "Estrategia básica",
       "chipRules": "S17 / H17",
-      "shoe": "zapato de 6 barajas"
+      "shoe": "zapato de 6 barajas",
+      "ctaTry": "Prueba una ronda — sin cuenta"
     },
     "steps": {
       "heading": "Apréndelo. Practicalo. Juégalo.",
@@ -356,7 +357,15 @@
     "goProHeading": "Hazte Pro",
     "goProSub": "Desbloquea los modos avanzados y la imagen completa de tu ventaja al contar.",
     "alreadyPro": "Esta cuenta ya tiene Pro. Si sigue pareciendo bloqueada, recarga la página.",
-    "saveAgainst": "Ahorra {{saved}} frente a {{monthly}}/mes"
+    "saveAgainst": "Ahorra {{saved}} frente a {{monthly}}/mes",
+    "personalFinished": "Has terminado «{{stage}}».",
+    "personalAt": "Tu plan está en «{{stage}}».",
+    "personalNextIsPro": "Lo siguiente en tu plan: «{{stage}}», que forma parte de Pro.",
+    "personalThisIsPro": "Practicarlo forma parte de Pro.",
+    "personalLaterIsPro": "Más adelante en tu plan, «{{stage}}» forma parte de Pro.",
+    "trialLead_one": "Tu mano en la mesa: {{pct}} % de tus decisiones según la estrategia básica.",
+    "trialLead_other": "Tus {{count}} manos en la mesa: {{pct}} % de tus decisiones según la estrategia básica.",
+    "trialSupport": "Con Pro la mesa sigue abierta: tantas manos como quieras, con el count y tus propias reglas."
   },
   "contact": {
     "title": "Contacto",
@@ -715,7 +724,31 @@
       "keepPlaying": "Seguir jugando",
       "keepNote": "Sin límite a partir de aquí: cobra cuando quieras.",
       "timeTitle_one": "Se acabó tu minuto",
-      "timeTitle_other": "Se acabaron tus {{count}} minutos"
+      "timeTitle_other": "Se acabaron tus {{count}} minutos",
+      "elsewhere": "Esta mesa se cobró en otra pestaña, así que aquí también está cerrada."
+    },
+    "resume": {
+      "title": "Tienes una sesión en curso",
+      "status": "Mano {{hand}} · Bankroll {{bankroll}}",
+      "continue": "Continuar",
+      "cashOut": "Cobrar ahora",
+      "proOnly": "La mesa forma parte de Pro. Aun así puedes cobrar esta sesión."
+    },
+    "trial": {
+      "entry_one": "Prueba {{count}} mano gratis",
+      "entry_other": "Prueba {{count}} manos gratis",
+      "introTitle_one": "{{count}} mano gratis en la mesa",
+      "introTitle_other": "{{count}} manos gratis en la mesa",
+      "introBody": "La mesa completa, con otros dos jugadores. Después de cada mano ves si la jugaste según la estrategia básica.",
+      "introNote": "Una vez por cuenta. Después, la mesa forma parte de Pro.",
+      "start": "Tomar asiento",
+      "left_one": "Prueba: queda {{count}} mano",
+      "left_other": "Prueba: quedan {{count}} manos",
+      "lastPlayed": "Prueba: última mano",
+      "summaryDone": "Esas fueron tus {{hands}} manos gratis.",
+      "summaryLeft_one": "Te queda {{count}} mano gratis.",
+      "summaryLeft_other": "Te quedan {{count}} manos gratis.",
+      "toPro": "Seguir jugando con Pro"
     }
   },
   "tracker": {
@@ -2276,6 +2309,10 @@
       "admin-analytics": {
         "title": "Estadísticas del sitio — Blackjack Card Counting Trainer",
         "description": "Visitantes, páginas vistas, duración de las sesiones, registros y clientes de pago."
+      },
+      "try": {
+        "title": "Prueba la estrategia básica de blackjack — gratis, sin registro",
+        "description": "Juega diez manos de blackjack según la estrategia básica, gratis y sin cuenta. Al final ves tu resultado y la jugada correcta de cada mano fallada."
       }
     }
   },
@@ -2305,7 +2342,21 @@
       "achievements": "Logros",
       "sessionCapped": "Sesión de entrenamiento — límite diario alcanzado",
       "dailyCap": "Límite diario de XP para este modo alcanzado",
-      "personalBest": "Sesión de entrenamiento — nuevo récord personal"
+      "personalBest": "Sesión de entrenamiento — nuevo récord personal",
+      "weekGoal": "Objetivo semanal cumplido",
+      "weekStreak": "{{n}} semanas seguidas"
+    },
+    "part": {
+      "correct": "Respuestas correctas",
+      "accuracy": "Bonificación por precisión",
+      "personalBest": "Nuevo récord personal",
+      "dailyCap": "Límite diario alcanzado",
+      "other": "Otros"
+    },
+    "weekStreak": {
+      "label_one": "{{count}} semana",
+      "label_other": "{{count}} semanas",
+      "hint": "Semanas seguidas con tus días de entrenamiento previstos"
     }
   },
   "simulator": {
@@ -2372,6 +2423,25 @@
       "yes": "Sí",
       "no": "No",
       "note": "Los últimos 50 errores técnicos de una compra o de una acción de la cuenta, guardados 90 días; las horas están en tu zona horaria. Un error ocurrido mientras el dispositivo estaba sin conexión solo llega en la siguiente visita de esa persona, si la hay. Nada te avisa: esta lista solo se ve al abrir esta página."
+    },
+    "funnel": {
+      "title": "Camino hasta la compra",
+      "loading": "Cargando el camino hasta la compra…",
+      "error": "No se pudo cargar el camino hasta la compra.",
+      "missingMigration": "Todavía no se registra nada: primero hay que aplicar la migración {{file}}.",
+      "share": "{{percent}} %",
+      "steps": {
+        "visitors": "Visitantes",
+        "signupViews": "Vieron el formulario de registro",
+        "registrations": "Se registraron",
+        "firstSessions": "Primera sesión de entrenamiento",
+        "paywallViews": "Vieron la oferta Pro",
+        "checkoutStarts": "Iniciaron el pago",
+        "payingCustomers": "Clientes de pago"
+      },
+      "note": "Cada barra es un paso en el periodo elegido; el porcentaje es su parte respecto al paso anterior. En los pasos de visitantes, formulario de registro, primera sesión, oferta Pro y pago solo se cuentan los visitantes que aceptaron las cookies. Los registros cuentan todas las cuentas nuevas, por eso ese paso puede ser mayor que el anterior. Los clientes de pago son las suscripciones activas ahora mismo y no siguen el periodo. Cada paso se cuenta por separado: no es un mismo grupo de personas seguido de principio a fin.",
+      "since": "Los pasos se registran desde el {{date}}; no hay nada anterior a ese día.",
+      "sinceNone": "Todavía no se ha registrado ningún paso: solo existen desde el día en que se aplicó la migración."
     }
   },
   "report": {
@@ -2465,5 +2535,39 @@
     "decline": "Rechazar",
     "settings": "Configuración de cookies",
     "short": "Solo para nuestras propias estadísticas de visitas. Sin publicidad, sin terceros."
+  },
+  "offline": {
+    "notice": "Sin conexión: tu entrenamiento está guardado en este dispositivo y se subirá cuando vuelvas a estar en línea.",
+    "restored": "De nuevo en línea: todo está guardado.",
+    "signOut": {
+      "title": "Aún no se ha subido todo",
+      "body_one": "{{count}} sesión de entrenamiento aún no se ha subido. Si cierras sesión ahora, se eliminará de este dispositivo.",
+      "body_other": "{{count}} sesiones de entrenamiento aún no se han subido. Si cierras sesión ahora, se eliminarán de este dispositivo.",
+      "stay": "Seguir conectado",
+      "anyway": "Cerrar sesión de todos modos"
+    }
+  },
+  "install": {
+    "button": "Instalar la app",
+    "description": "Pon el entrenador en tu pantalla de inicio y ábrelo como una app. Para arrancar sigue necesitando conexión."
+  },
+  "try": {
+    "eyebrow": "Gratis · sin cuenta",
+    "title": "Juega una ronda de estrategia básica",
+    "intro": "{{hands}} manos. Ves tu mano y la carta del crupier y eliges la jugada. Al final recibes tu resultado y las manos que fallaste.",
+    "start": "Repartir la primera mano",
+    "end": {
+      "eyebrow": "Ronda terminada",
+      "score": "{{correct}} de {{total}} manos bien jugadas",
+      "perfect": "Ni un solo error — cada mano jugada de manual.",
+      "missedTitle": "Las manos que fallaste",
+      "colHand": "Mano contra crupier",
+      "colYou": "Tu jugada",
+      "colRight": "Jugada correcta",
+      "hand": "{{hand}} contra {{dealer}}",
+      "keep": "Crea una cuenta gratuita para guardar este resultado y recibir tu plan de entrenamiento.",
+      "plan": "Crea una cuenta gratuita y recibe tu plan de entrenamiento.",
+      "cta": "Crear cuenta gratuita"
+    }
   }
 }

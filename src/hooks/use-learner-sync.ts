@@ -7,7 +7,10 @@ import { useWeeklyChallengeStore } from '../store/weekly-challenge-store'
 import { useLevelStore } from '../store/level-store'
 import { activeStage, deriveCurriculum, getReadStages } from '../services/curriculum'
 import { pendingStageAwards, markStageClaimed } from '../services/stage-rewards'
-import { getProfile, sessionsPerWeek } from '../services/learner-profile'
+import { budgetOf, getProfile, sessionsPerWeek } from '../services/learner-profile'
+import { pendingWeeklyAwards, getClaimedRewards, markRewardClaimed } from '../services/weekly-rewards'
+import { todayKey } from '../services/date-utils'
+import { useAwaitingAccount, usePlanState } from './use-plan-state'
 
 /**
  * Keeps the challenge engines pointed at the learner's current stage.
@@ -30,6 +33,10 @@ export function useLearnerSync(): void {
   const syncDaily = useChallengeStore(s => s.syncLearner)
   const syncWeekly = useWeeklyChallengeStore(s => s.syncLearner)
   const addXP = useLevelStore(s => s.addChallengeXP)
+  // The planned days decide whether a week is kept, so a change of plan (a tap
+  // here, or the account's copy arriving) has to run the effect again.
+  const plan = usePlanState()
+  const awaitingAccount = useAwaitingAccount()
 
   useEffect(() => {
     // The pace answer reaches challenge selection here, so a learner with
@@ -50,8 +57,29 @@ export function useLearnerSync(): void {
       addXP(award.xp, 'plan.stageComplete', { stage: t(award.titleKey) })
       markStageClaimed(award.stage)
     }
+
+    // A kept week, and weeks kept in a row. Paid here for the same reason as
+    // the stages: derived from the recorded sessions, marked paid only after
+    // the XP is in. Two things are waited for first. Without the learner's
+    // own answer there is no plan to keep — the default pace is not a promise
+    // anyone made. And right after a sign-in the sessions are back before the
+    // account's plan and its paid set are, so judging then would measure the
+    // week against the wrong number of days and pay what is already paid.
+    if (profile && !awaitingAccount) {
+      const awards = pendingWeeklyAwards({
+        sessions,
+        daysPerWeek: budgetOf(profile).daysPerWeek,
+        today: todayKey(),
+        claimed: getClaimedRewards(),
+      })
+      for (const award of awards) {
+        if (award.kind === 'week') addXP(award.xp, 'xp.source.weekGoal')
+        else addXP(award.xp, 'xp.source.weekStreak', { n: String(award.weeks) })
+        markRewardClaimed(award.key)
+      }
+    }
     // `t` is a dependency because the XP ledger entry names the stage; the
-    // effect is idempotent (each stage is marked claimed once), so an extra
-    // run after a language change costs nothing.
-  }, [sessions, isPro, syncDaily, syncWeekly, addXP, t])
+    // effect is idempotent (each stage and each week is marked claimed once),
+    // so an extra run after a language change costs nothing.
+  }, [sessions, isPro, syncDaily, syncWeekly, addXP, t, plan, awaitingAccount])
 }

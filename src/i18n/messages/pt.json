@@ -187,7 +187,8 @@
       "headline": "Treine a <1>vantagem</1> que vence o sabot.",
       "chipStrategy": "Estratégia básica",
       "chipRules": "S17 / H17",
-      "shoe": "sabot de 6 baralhos"
+      "shoe": "sabot de 6 baralhos",
+      "ctaTry": "Experimenta uma ronda — sem conta"
     },
     "steps": {
       "heading": "Aprender. Treinar. Jogar.",
@@ -356,7 +357,15 @@
     "goProHeading": "Obter Pro",
     "goProSub": "Desbloqueie os modos avançados e o retrato completo da sua vantagem na contagem.",
     "alreadyPro": "Esta conta já tem Pro. Se continuar a parecer bloqueada, recarregue a página.",
-    "saveAgainst": "Poupe {{saved}} face a {{monthly}}/mês"
+    "saveAgainst": "Poupe {{saved}} face a {{monthly}}/mês",
+    "personalFinished": "Concluiu «{{stage}}».",
+    "personalAt": "O seu plano está em «{{stage}}».",
+    "personalNextIsPro": "A seguir no seu plano: «{{stage}}», que faz parte do Pro.",
+    "personalThisIsPro": "Praticar esta etapa faz parte do Pro.",
+    "personalLaterIsPro": "Mais adiante no seu plano, «{{stage}}» faz parte do Pro.",
+    "trialLead_one": "A sua mão na mesa: {{pct}}% das suas decisões segundo a estratégia básica.",
+    "trialLead_other": "As suas {{count}} mãos na mesa: {{pct}}% das suas decisões segundo a estratégia básica.",
+    "trialSupport": "Com o Pro a mesa continua aberta: as mãos que quiser, com o count e as suas próprias regras."
   },
   "contact": {
     "title": "Contacto",
@@ -715,7 +724,31 @@
       "keepPlaying": "Continuar a jogar",
       "keepNote": "Sem limite a partir daqui — levante quando quiser.",
       "timeTitle_one": "O seu minuto terminou",
-      "timeTitle_other": "Os seus {{count}} minutos terminaram"
+      "timeTitle_other": "Os seus {{count}} minutos terminaram",
+      "elsewhere": "Esta sessão já foi levantada noutro separador, por isso a mesa está fechada aqui."
+    },
+    "resume": {
+      "title": "Tem uma sessão em curso",
+      "status": "Mão {{hand}} · Bankroll {{bankroll}}",
+      "continue": "Continuar",
+      "cashOut": "Levantar agora",
+      "proOnly": "A mesa faz parte do Pro. Pode levantar esta sessão na mesma."
+    },
+    "trial": {
+      "entry_one": "Experimente {{count}} mão grátis",
+      "entry_other": "Experimente {{count}} mãos grátis",
+      "introTitle_one": "{{count}} mão grátis na mesa",
+      "introTitle_other": "{{count}} mãos grátis na mesa",
+      "introBody": "A mesa completa, com outros dois jogadores. Depois de cada mão vê se a jogou segundo a estratégia básica.",
+      "introNote": "Uma vez por conta. Depois, a mesa faz parte do Pro.",
+      "start": "Sentar-se à mesa",
+      "left_one": "Teste: resta {{count}} mão",
+      "left_other": "Teste: restam {{count}} mãos",
+      "lastPlayed": "Teste: última mão",
+      "summaryDone": "Foram as suas {{hands}} mãos grátis.",
+      "summaryLeft_one": "Resta-lhe {{count}} mão grátis.",
+      "summaryLeft_other": "Restam-lhe {{count}} mãos grátis.",
+      "toPro": "Continuar com o Pro"
     }
   },
   "tracker": {
@@ -2276,6 +2309,10 @@
       "admin-analytics": {
         "title": "Estatísticas do site — Blackjack Card Counting Trainer",
         "description": "Visitantes, visualizações, duração das sessões, registos e clientes pagantes."
+      },
+      "try": {
+        "title": "Experimenta a estratégia básica de blackjack — grátis, sem registo",
+        "description": "Joga dez mãos de blackjack segundo a estratégia básica, grátis e sem conta. No fim vês o teu resultado e a jogada certa para cada mão falhada."
       }
     }
   },
@@ -2305,7 +2342,21 @@
       "achievements": "Conquistas",
       "sessionCapped": "Sessão de treino — limite diário atingido",
       "dailyCap": "Limite diário de XP atingido para este modo",
-      "personalBest": "Sessão de treino — novo recorde pessoal"
+      "personalBest": "Sessão de treino — novo recorde pessoal",
+      "weekGoal": "Objetivo da semana cumprido",
+      "weekStreak": "{{n}} semanas seguidas"
+    },
+    "part": {
+      "correct": "Respostas certas",
+      "accuracy": "Bónus de precisão",
+      "personalBest": "Novo recorde pessoal",
+      "dailyCap": "Limite diário atingido",
+      "other": "Outros"
+    },
+    "weekStreak": {
+      "label_one": "{{count}} semana",
+      "label_other": "{{count}} semanas",
+      "hint": "Semanas seguidas com os teus dias de treino previstos"
     }
   },
   "simulator": {
@@ -2372,6 +2423,25 @@
       "yes": "Sim",
       "no": "Não",
       "note": "As últimas 50 falhas técnicas de uma compra ou de uma ação da conta, guardadas durante 90 dias; as horas estão no seu fuso horário. Uma falha ocorrida enquanto o dispositivo estava offline só chega na visita seguinte dessa pessoa, se houver uma. Nada o avisa: esta lista só é vista ao abrir esta página."
+    },
+    "funnel": {
+      "title": "Caminho até à compra",
+      "loading": "A carregar o caminho até à compra…",
+      "error": "Não foi possível carregar o caminho até à compra.",
+      "missingMigration": "Ainda nada está a ser registado: primeiro é preciso aplicar a migração {{file}}.",
+      "share": "{{percent}} %",
+      "steps": {
+        "visitors": "Visitantes",
+        "signupViews": "Viram o formulário de registo",
+        "registrations": "Registaram-se",
+        "firstSessions": "Primeira sessão de treino",
+        "paywallViews": "Viram a oferta Pro",
+        "checkoutStarts": "Iniciaram o pagamento",
+        "payingCustomers": "Clientes pagantes"
+      },
+      "note": "Cada barra é um passo no período escolhido; a percentagem é a sua parte em relação ao passo anterior. Nos passos visitantes, formulário de registo, primeira sessão, oferta Pro e pagamento só são contados os visitantes que aceitaram os cookies. Os registos contam todas as contas novas, por isso esse passo pode ser maior do que o anterior. Os clientes pagantes são as subscrições ativas neste momento e não seguem o período. Cada passo é contado à parte: não é um mesmo grupo de pessoas seguido do início ao fim.",
+      "since": "Os passos são registados desde {{date}}; não existe nada anterior a esse dia.",
+      "sinceNone": "Ainda não foi registado nenhum passo: só existem a partir do dia em que a migração foi aplicada."
     }
   },
   "report": {
@@ -2465,5 +2535,39 @@
     "decline": "Recusar",
     "settings": "Definições de cookies",
     "short": "Apenas para as nossas próprias estatísticas de visitas. Sem publicidade, sem terceiros."
+  },
+  "offline": {
+    "notice": "Sem ligação — o teu treino está guardado neste dispositivo e será enviado quando voltares a estar online.",
+    "restored": "De novo online — está tudo guardado.",
+    "signOut": {
+      "title": "Ainda não foi tudo enviado",
+      "body_one": "{{count}} sessão de treino ainda não foi enviada. Se terminares sessão agora, será eliminada deste dispositivo.",
+      "body_other": "{{count}} sessões de treino ainda não foram enviadas. Se terminares sessão agora, serão eliminadas deste dispositivo.",
+      "stay": "Manter sessão iniciada",
+      "anyway": "Terminar sessão mesmo assim"
+    }
+  },
+  "install": {
+    "button": "Instalar a app",
+    "description": "Põe o treinador no ecrã inicial e abre-o como uma app. Para arrancar continua a precisar de ligação."
+  },
+  "try": {
+    "eyebrow": "Grátis · sem conta",
+    "title": "Joga uma ronda de estratégia básica",
+    "intro": "{{hands}} mãos. Vês a tua mão e a carta do dealer e escolhes a jogada. No fim recebes o teu resultado e as mãos que falhaste.",
+    "start": "Dar a primeira mão",
+    "end": {
+      "eyebrow": "Ronda concluída",
+      "score": "{{correct}} de {{total}} mãos bem jogadas",
+      "perfect": "Nem um erro — todas as mãos jogadas como manda o livro.",
+      "missedTitle": "As mãos que falhaste",
+      "colHand": "Mão contra dealer",
+      "colYou": "A tua jogada",
+      "colRight": "Jogada certa",
+      "hand": "{{hand}} contra {{dealer}}",
+      "keep": "Cria uma conta gratuita para guardar este resultado e receber o teu plano de treino.",
+      "plan": "Cria uma conta gratuita e recebe o teu plano de treino.",
+      "cta": "Criar conta gratuita"
+    }
   }
 }

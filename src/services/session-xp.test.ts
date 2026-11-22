@@ -90,7 +90,7 @@ describe('sessionXP — a mode pays up to a limit per day', () => {
     makeSession({ id, mode, timestamp, correctAnswers: correct, totalQuestions: correct, accuracy: 1 })
 
   it('pays in full while the day is under the limit', () => {
-    expect(sessionXP(cards('a', 20), [])).toEqual({ amount: 60, earned: 60, capped: false })
+    expect(sessionXP(cards('a', 20), [])).toEqual({ amount: 60, earned: 60, capped: false, base: 40, bonus: 20 })
     expect(calculateSessionXP(cards('a', 20))).toBe(60)
   })
 
@@ -98,8 +98,8 @@ describe('sessionXP — a mode pays up to a limit per day', () => {
     const first = cards('a', 20)   // 60
     const second = cards('b', 20)  // 60, makes 120
     const third = cards('c', 20)   // only 30 left
-    expect(sessionXP(third, [second, first])).toEqual({ amount: DAILY_MODE_XP_CAP - 120, earned: 60, capped: true })
-    expect(sessionXP(cards('d', 20), [third, second, first])).toEqual({ amount: 0, earned: 60, capped: true })
+    expect(sessionXP(third, [second, first])).toEqual({ amount: DAILY_MODE_XP_CAP - 120, earned: 60, capped: true, base: 30, bonus: 0 })
+    expect(sessionXP(cards('d', 20), [third, second, first])).toEqual({ amount: 0, earned: 60, capped: true, base: 0, bonus: 0 })
   })
 
   it('the limit is per mode', () => {
@@ -110,7 +110,7 @@ describe('sessionXP — a mode pays up to a limit per day', () => {
 
   it('and per day: yesterday does not count', () => {
     const yesterday = [cards('a', 40, '2026-11-15T10:00:00'), cards('b', 40, '2026-11-15T12:00:00')]
-    expect(sessionXP(cards('c', 20), yesterday)).toEqual({ amount: 60, earned: 60, capped: false })
+    expect(sessionXP(cards('c', 20), yesterday)).toEqual({ amount: 60, earned: 60, capped: false, base: 40, bonus: 20 })
   })
 
   it('a session is never counted against itself', () => {
@@ -175,5 +175,68 @@ describe('personalBestXP', () => {
   it('leaves the casino table out: its accuracy has its own awards', () => {
     const table = (c: number, d: number) => makeSession({ mode: 'casinoSession', totalQuestions: 40, correctAnswers: c, accuracy: c / 40, timestamp: at(d, 12) })
     expect(personalBestXP(table(40, 4), [table(30, 1), table(31, 2), table(32, 3)])).toBe(0)
+  })
+})
+
+/**
+ * What a session's XP is made of (21 Nov 2026) — the two lines the toast
+ * shows for it. They have to add up to what was credited in every case, the
+ * day's limit included, or the toast states a sum that is not the sum.
+ */
+describe('sessionXP — the answers and the accuracy on top', () => {
+  const day = '2026-11-16T10:00:00'
+  const cards = (id: string, correct: number, total: number) =>
+    makeSession({ id, mode: 'deviationFlashCards', timestamp: day, correctAnswers: correct, totalQuestions: total, accuracy: correct / total })
+
+  it('below 85 % there is no bonus: all of it is the answers', () => {
+    expect(sessionXP(cards('a', 16, 20))).toMatchObject({ amount: 32, base: 32, bonus: 0 })
+  })
+
+  it('from 85 % and from 95 % the factor is the bonus', () => {
+    expect(sessionXP(cards('a', 17, 20))).toMatchObject({ amount: 43, base: 34, bonus: 9 })
+    expect(sessionXP(cards('a', 20, 20))).toMatchObject({ amount: 60, base: 40, bonus: 20 })
+  })
+
+  it('a session too small to prove its accuracy has no bonus', () => {
+    expect(sessionXP(cards('a', 9, 9))).toMatchObject({ amount: 18, base: 18, bonus: 0 })
+  })
+
+  it('the limit takes the bonus first and the answers last', () => {
+    // A perfect twenty is 40 for the answers and 20 on top. What is left of
+    // the day's 150 decides how much of that is paid.
+    const perfect = (id: string) => cards(id, 20, 20)                 // 60
+    // 90 paid, 60 left: all of it.
+    expect(sessionXP(perfect('a'), [perfect('x'), cards('y', 15, 20)]))
+      .toMatchObject({ amount: 60, base: 40, bonus: 20, capped: false })
+    // 100 paid, 50 left: the answers and half the bonus.
+    expect(sessionXP(perfect('b'), [perfect('x'), cards('y', 20, 40)]))
+      .toMatchObject({ amount: 50, base: 40, bonus: 10, capped: true })
+    // 120 paid, 30 left: not even all the answers, and no bonus.
+    expect(sessionXP(perfect('c'), [perfect('x'), perfect('y')]))
+      .toMatchObject({ amount: 30, base: 30, bonus: 0, capped: true })
+    // 130 paid, 20 left.
+    expect(sessionXP(perfect('d'), [perfect('x'), perfect('y'), cards('z', 5, 20)]))
+      .toMatchObject({ amount: 20, base: 20, bonus: 0, capped: true })
+  })
+
+  it('base and bonus are the amount, whatever the session and whatever came before', () => {
+    const modes: TrainingSessionResult['mode'][] = ['speedDrill', 'casinoSession', 'deviationFlashCards', 'betSpread', 'deckEstimation']
+    for (const mode of modes) {
+      const earlier: TrainingSessionResult[] = []
+      for (let i = 0; i < 12; i++) {
+        const total = 3 + ((i * 7) % 40)
+        const correct = Math.round(total * (0.5 + ((i * 3) % 6) / 10))
+        const s = makeSession({ id: `${mode}-${i}`, mode, timestamp: day, correctAnswers: Math.min(correct, total), totalQuestions: total })
+        const xp = sessionXP(s, earlier)
+        expect(xp.base + xp.bonus).toBe(xp.amount)
+        expect(xp.base).toBeGreaterThanOrEqual(0)
+        expect(xp.bonus).toBeGreaterThanOrEqual(0)
+        expect(xp.amount).toBeLessThanOrEqual(xp.earned)
+        earlier.push(s)
+      }
+      // And the day as a whole never pays more than its limit.
+      const paid = earlier.reduce((n, s, i) => n + sessionXP(s, earlier.slice(0, i)).amount, 0)
+      expect(paid).toBeLessThanOrEqual(DAILY_MODE_XP_CAP)
+    }
   })
 })

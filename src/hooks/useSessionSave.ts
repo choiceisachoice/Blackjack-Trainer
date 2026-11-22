@@ -2,6 +2,8 @@ import { useRef, useEffect, useCallback } from 'react'
 import { useStatsStore } from '../store/stats-store'
 import { useAppStore } from '../store/app-store'
 import type { TrainingMode, SessionDetails } from '../services/stats-types'
+import { getLocalOwner } from '../services/storage/local-owner'
+import { registerBeforeSignOut } from '../services/storage/before-sign-out'
 
 /** Minimum questions required to save a session. */
 const MIN_QUESTIONS = 3
@@ -80,6 +82,14 @@ export function useSessionSave(
   const buildDetailsRef = useRef(buildDetails)
   /** Guards against saving the same session twice (unmount + pagehide). */
   const savedRef = useRef(false)
+  /**
+   * Whose device data this was when the mode opened. A sign-out wipes the
+   * device and only then unmounts the mode; a save at that point would write
+   * the session into storage that has no owner and belongs to whoever signs
+   * in next. So the sign-out saves first (below), and a save that finds the
+   * owner changed does nothing.
+   */
+  const ownerRef = useRef<string | null>(null)
 
   // Keep buildDetails ref current (in an effect — refs aren't written in render).
   useEffect(() => { buildDetailsRef.current = buildDetails })
@@ -89,6 +99,9 @@ export function useSessionSave(
   const save = useCallback(() => {
     const stats = statsRef.current
     if (savedRef.current || stats.totalQuestions < MIN_QUESTIONS) return
+    // `null` at the start is a device nobody owned yet (a first sign-in still
+    // settling, or the app without a cloud): that session is kept.
+    if (ownerRef.current !== null && getLocalOwner() !== ownerRef.current) return
     savedRef.current = true
 
     // Deliberately not awaited, and safe to leave that way: `recordSession`
@@ -116,6 +129,9 @@ export function useSessionSave(
   useEffect(() => {
     // Reset start time when the hook mounts
     startTimeRef.current = Date.now()
+    ownerRef.current = getLocalOwner()
+    // Signing out mid-drill: record it while the account is still signed in.
+    const unregister = registerBeforeSignOut(save)
 
     // Closing the tab / reloading does NOT run React unmount cleanup, so without
     // this the whole in-progress session (and its XP) would be silently lost.
@@ -129,6 +145,7 @@ export function useSessionSave(
     return () => {
       window.removeEventListener('pagehide', onPageHide)
       window.removeEventListener('pageshow', onPageShow)
+      unregister()
       save() // save on in-app navigation (mode switch)
     }
   }, [save])

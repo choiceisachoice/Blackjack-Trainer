@@ -187,7 +187,8 @@
       "headline": "Trainiere den <1>Vorteil</1>, der den Schlitten schlägt.",
       "chipStrategy": "Basisstrategie",
       "chipRules": "S17 / H17",
-      "shoe": "6-Deck-Schlitten"
+      "shoe": "6-Deck-Schlitten",
+      "ctaTry": "Runde ausprobieren — ohne Konto"
     },
     "steps": {
       "heading": "Lernen. Üben. Spielen.",
@@ -356,7 +357,15 @@
     "goProHeading": "Pro holen",
     "goProSub": "Schalte die fortgeschrittenen Modi frei und sieh dein Kartenzähl-Potenzial vollständig.",
     "alreadyPro": "Dieses Konto hat bereits Pro. Falls es weiterhin gesperrt aussieht, lade die Seite neu.",
-    "saveAgainst": "Spare {{saved}} gegenüber {{monthly}}/Monat"
+    "saveAgainst": "Spare {{saved}} gegenüber {{monthly}}/Monat",
+    "personalFinished": "Du hast „{{stage}}“ abgeschlossen.",
+    "personalAt": "Dein Plan steht bei „{{stage}}“.",
+    "personalNextIsPro": "Als Nächstes in deinem Plan: „{{stage}}“ – das gehört zu Pro.",
+    "personalThisIsPro": "Das Üben dazu gehört zu Pro.",
+    "personalLaterIsPro": "Später in deinem Plan gehört „{{stage}}“ zu Pro.",
+    "trialLead_one": "Deine Hand am Tisch: {{pct}} % deiner Entscheidungen nach Basisstrategie.",
+    "trialLead_other": "Deine {{count}} Hände am Tisch: {{pct}} % deiner Entscheidungen nach Basisstrategie.",
+    "trialSupport": "Mit Pro bleibt der Tisch offen: so viele Hände, wie du willst, mit Count und eigenen Regeln."
   },
   "contact": {
     "title": "Kontakt",
@@ -715,7 +724,31 @@
       "keepPlaying": "Weiterspielen",
       "keepNote": "Ab jetzt ohne Limit — Cash-out, wann du willst.",
       "timeTitle_one": "Deine Minute ist um",
-      "timeTitle_other": "Deine {{count}} Minuten sind um"
+      "timeTitle_other": "Deine {{count}} Minuten sind um",
+      "elsewhere": "Du hast an diesem Tisch schon in einem anderen Tab Cash-out gemacht, deshalb ist er hier geschlossen."
+    },
+    "resume": {
+      "title": "Du hast eine laufende Session",
+      "status": "Hand {{hand}} · Bankroll {{bankroll}}",
+      "continue": "Fortsetzen",
+      "cashOut": "Jetzt Cash-out",
+      "proOnly": "Der Tisch gehört zu Pro. Den Cash-out für diese Session kannst du trotzdem machen."
+    },
+    "trial": {
+      "entry_one": "{{count}} Hand gratis spielen",
+      "entry_other": "{{count}} Hände gratis spielen",
+      "introTitle_one": "{{count}} Hand gratis am Tisch",
+      "introTitle_other": "{{count}} Hände gratis am Tisch",
+      "introBody": "Der volle Tisch mit zwei Mitspielern. Nach jeder Hand siehst du, ob du sie nach Basisstrategie gespielt hast.",
+      "introNote": "Einmal pro Konto. Danach gehört der Tisch zu Pro.",
+      "start": "Platz nehmen",
+      "left_one": "Gratis: noch {{count}} Hand",
+      "left_other": "Gratis: noch {{count}} Hände",
+      "lastPlayed": "Gratis: letzte Hand",
+      "summaryDone": "Das waren deine {{hands}} Gratis-Hände.",
+      "summaryLeft_one": "Du hast noch {{count}} Gratis-Hand.",
+      "summaryLeft_other": "Du hast noch {{count}} Gratis-Hände.",
+      "toPro": "Mit Pro weiterspielen"
     }
   },
   "tracker": {
@@ -2276,6 +2309,10 @@
       "admin-analytics": {
         "title": "Website-Statistik — Blackjack Card Counting Trainer",
         "description": "Besucher, Seitenaufrufe, Sitzungsdauer, Registrierungen und zahlende Kunden."
+      },
+      "try": {
+        "title": "Blackjack-Basisstrategie ausprobieren — kostenlos, ohne Anmeldung",
+        "description": "Spiel zehn Blackjack-Hände nach der Basisstrategie, kostenlos und ohne Konto. Am Ende siehst du dein Ergebnis und den richtigen Zug für jede Hand, die du falsch gespielt hast."
       }
     }
   },
@@ -2305,7 +2342,21 @@
       "achievements": "Auszeichnungen",
       "sessionCapped": "Trainingssession — Tageslimit erreicht",
       "dailyCap": "Tageslimit an XP für diesen Modus erreicht",
-      "personalBest": "Trainingssession — neue persönliche Bestleistung"
+      "personalBest": "Trainingssession — neue persönliche Bestleistung",
+      "weekGoal": "Wochenziel erreicht",
+      "weekStreak": "{{n}} Wochen in Folge"
+    },
+    "part": {
+      "correct": "Richtige Antworten",
+      "accuracy": "Bonus für Genauigkeit",
+      "personalBest": "Neue Bestleistung",
+      "dailyCap": "Tageslimit erreicht",
+      "other": "Weiteres"
+    },
+    "weekStreak": {
+      "label_one": "{{count}} Woche",
+      "label_other": "{{count}} Wochen",
+      "hint": "Wochen in Folge mit deinen geplanten Trainingstagen"
     }
   },
   "simulator": {
@@ -2372,6 +2423,25 @@
       "yes": "Ja",
       "no": "Nein",
       "note": "Die letzten 50 technischen Fehler bei einem Kauf oder einer Kontoaktion, 90 Tage aufbewahrt; Zeiten in deiner Zeitzone. Ein Fehler, der auftrat, während das Gerät offline war, kommt erst beim nächsten Besuch dieser Person an – falls es einen gibt. Niemand wird benachrichtigt: Diese Liste siehst du nur, wenn du diese Seite öffnest."
+    },
+    "funnel": {
+      "title": "Weg zum Kauf",
+      "loading": "Weg zum Kauf wird geladen…",
+      "error": "Der Weg zum Kauf konnte nicht geladen werden.",
+      "missingMigration": "Es wird noch nichts erfasst: Zuerst muss die Migration {{file}} eingespielt werden.",
+      "share": "{{percent}} %",
+      "steps": {
+        "visitors": "Besucher",
+        "signupViews": "Registrierformular gesehen",
+        "registrations": "Registriert",
+        "firstSessions": "Erste Trainingssitzung",
+        "paywallViews": "Pro-Angebot gesehen",
+        "checkoutStarts": "Bezahlvorgang gestartet",
+        "payingCustomers": "Zahlende Kunden"
+      },
+      "note": "Jeder Balken ist ein Schritt im gewählten Zeitraum; die Prozentzahl ist sein Anteil am Schritt davor. In den Schritten Besucher, Registrierformular, erste Sitzung, Pro-Angebot und Bezahlvorgang werden nur Besucher gezählt, die Cookies akzeptiert haben. Registrierungen zählen jedes neue Konto, deshalb kann dieser Schritt grösser sein als der davor. Zahlende Kunden sind die jetzt aktiven Abonnements und folgen dem Zeitraum nicht. Jeder Schritt wird für sich gezählt: Es ist nicht eine Gruppe von Personen, die von Anfang bis Ende verfolgt wird.",
+      "since": "Schritte werden seit dem {{date}} erfasst; aus der Zeit davor gibt es nichts.",
+      "sinceNone": "Bisher wurde kein Schritt erfasst – es gibt sie erst ab dem Tag, an dem die Migration eingespielt wurde."
     }
   },
   "report": {
@@ -2465,5 +2535,39 @@
     "decline": "Ablehnen",
     "settings": "Cookie-Einstellungen",
     "short": "Nur für unsere eigene Besuchsstatistik. Keine Werbung, keine Dritten."
+  },
+  "offline": {
+    "notice": "Keine Verbindung – dein Training ist auf diesem Gerät gespeichert und wird hochgeladen, sobald du wieder online bist.",
+    "restored": "Wieder online – alles ist gespeichert.",
+    "signOut": {
+      "title": "Noch nicht alles hochgeladen",
+      "body_one": "{{count}} Trainingssitzung wurde noch nicht hochgeladen. Wenn du dich jetzt abmeldest, wird sie von diesem Gerät gelöscht.",
+      "body_other": "{{count}} Trainingssitzungen wurden noch nicht hochgeladen. Wenn du dich jetzt abmeldest, werden sie von diesem Gerät gelöscht.",
+      "stay": "Angemeldet bleiben",
+      "anyway": "Trotzdem abmelden"
+    }
+  },
+  "install": {
+    "button": "App installieren",
+    "description": "Leg den Trainer auf deinen Startbildschirm und öffne ihn wie eine App. Zum Starten braucht er weiterhin eine Verbindung."
+  },
+  "try": {
+    "eyebrow": "Kostenlos · ohne Konto",
+    "title": "Spiel eine Runde Basisstrategie",
+    "intro": "{{hands}} Hände. Du siehst deine Hand und die Karte des Dealers und wählst den Zug. Am Ende bekommst du dein Ergebnis und die Hände, die du falsch gespielt hast.",
+    "start": "Erste Hand austeilen",
+    "end": {
+      "eyebrow": "Runde geschafft",
+      "score": "{{correct}} von {{total}} Händen richtig gespielt",
+      "perfect": "Kein einziger Fehler — jede Hand wie aus dem Lehrbuch.",
+      "missedTitle": "Diese Hände waren falsch",
+      "colHand": "Hand gegen Dealer",
+      "colYou": "Dein Zug",
+      "colRight": "Richtiger Zug",
+      "hand": "{{hand}} gegen {{dealer}}",
+      "keep": "Erstelle ein kostenloses Konto, damit dein Ergebnis bleibt und du deinen Trainingsplan bekommst.",
+      "plan": "Erstelle ein kostenloses Konto und hol dir deinen Trainingsplan.",
+      "cta": "Kostenloses Konto erstellen"
+    }
   }
 }

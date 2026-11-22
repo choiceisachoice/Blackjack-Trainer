@@ -14,8 +14,10 @@ import { LanguageSwitcher } from '../common/LanguageSwitcher'
 import { useAuthStore, isSupabaseConfigured } from '../../store/auth-store'
 import { useIsPro } from '../../store/entitlement-store'
 import { useUpgradePrompt } from '../../store/upgrade-prompt-store'
-import { isProMode } from '../../services/pro-features'
-import { signOutAndClearLocal } from '../../services/supabase/cloud-sync'
+import { isModeLocked } from '../../services/pro-features'
+import { useTrialOpen } from '../../store/casino-trial-store'
+import { useGuardedSignOut } from '../../hooks/use-guarded-sign-out'
+import { UnsavedSignOutDialog } from '../common/UnsavedSignOutDialog'
 import { LevelBadge } from './LevelBadge'
 import { Avatar } from '../common/Avatar'
 import { avatarOf } from '../../services/supabase/profile-avatar'
@@ -90,6 +92,7 @@ export function NavBar() {
   const avatar = resolveAvatar(chosenAvatar, { level: levelNumber, unlockedAchievementIds: unlockedIds })
   const signedIn = isSupabaseConfigured && authStatus === 'signedIn'
   const isPro = useIsPro()
+  const trialOpen = useTrialOpen()
   const showUpgradeModal = useUpgradePrompt(s => s.show)
   const navigate = useNavigate()
   /**
@@ -97,7 +100,8 @@ export function NavBar() {
    * but it must not look broken either. Without a pending state the button did
    * nothing visible for the whole round trip and could be fired repeatedly.
    */
-  const [signingOut, setSigningOut] = useState(false)
+  const guardedSignOut = useGuardedSignOut(() => void navigate('/'))
+  const signingOut = guardedSignOut.busy
 
   /**
    * The menu that holds what the bar cannot label.
@@ -196,7 +200,7 @@ export function NavBar() {
   /** One row of the menu: icon, name, lock. 44px tall — it is the touch target. */
   const renderMenuRow = ({ mode, icon: Icon }: NavItem, testId: string) => {
     const active = currentMode === mode
-    const proLocked = !isPro && isProMode(mode)
+    const proLocked = isModeLocked(mode, isPro, trialOpen)
     return (
       <button
         key={mode}
@@ -219,12 +223,11 @@ export function NavBar() {
     // dialog answers by navigating, so the sign-out itself has to wait for the
     // route change rather than run behind it.
     if (!requestLeaveApp({ kind: 'signOut' })) return
-    setSigningOut(true)
     // `signOutAndClearLocal` clears this device before it talks to the server
-    // and never rejects, so navigating afterwards is unconditional: a failed
-    // revoke must not leave someone parked on a signed-in screen.
-    await signOutAndClearLocal()
-    void navigate('/')
+    // and never rejects, so a failed revoke does not leave someone parked on a
+    // signed-in screen. The one case in which it does not sign out — sessions
+    // that could not be uploaded — is asked about below.
+    await guardedSignOut.signOut()
   }
 
   /**
@@ -264,7 +267,7 @@ export function NavBar() {
   const renderItem = ({ mode, icon: Icon }: NavItem) => {
     const label = t(`nav.modes.${mode}`)
     const active = currentMode === mode
-    const proLocked = !isPro && isProMode(mode)
+    const proLocked = isModeLocked(mode, isPro, trialOpen)
     return (
       <button
         key={mode}
@@ -441,6 +444,14 @@ export function NavBar() {
         </div>
       </div>
       <div className="hairline" />
+      {guardedSignOut.unsavedCount !== null && (
+        <UnsavedSignOutDialog
+          count={guardedSignOut.unsavedCount}
+          busy={guardedSignOut.busy}
+          onStay={guardedSignOut.stay}
+          onSignOut={() => void guardedSignOut.signOutAnyway()}
+        />
+      )}
     </header>
   )
 }

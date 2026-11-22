@@ -3,7 +3,16 @@ import { clearLocalAppData, getLocalOwner, setLocalOwner } from '../storage/loca
 import { SupabaseStorageService } from './supabase-storage'
 import { useAuthStore } from '../../store/auth-store'
 import { syncAchievementsOnSignIn } from './achievements-sync'
-import { syncProfileOnSignIn, resetProfileSync } from './profiles-sync'
+import { syncProfileOnSignIn, resetProfileSync, pushProfileScalars, pushProfileScalarsNow } from './profiles-sync'
+import { runBeforeSignOut } from '../storage/before-sign-out'
+import {
+  confirmSessionsUploaded,
+  getPendingSessionIds,
+  getPendingSnapshot,
+  markUploadFailed,
+  subscribePendingSessions,
+} from '../storage/pending-sessions'
+import { withTimeout } from '../storage/with-timeout'
 import { useCloudSyncStore } from '../../store/cloud-sync-store'
 import { fetchCloudSessions, upsertCloudSessions, normalizeId, mergeById } from './bankroll-sync'
 import { useStatsStore } from '../../store/stats-store'
@@ -16,6 +25,7 @@ import { useEntitlementStore } from '../../store/entitlement-store'
 import type { TrackedSession } from '../../store/bankroll-tracker-store'
 import type { TrainingSessionResult } from '../stats-types'
 import { requireSupabase, isSupabaseConfigured } from './client'
+import { clearGuestRound, guestDataBelongsTo } from '../guest-trial'
 
 const cloud = new SupabaseStorageService()
 
@@ -39,8 +49,11 @@ export function normalizeSessionId(s: TrainingSessionResult): TrainingSessionRes
  * before this sync used non-uuid ids; those are reassigned a uuid so they fit
  * the cloud primary key. The merged set is written back locally and pushed up.
  */
-async function syncBankrollOnSignIn(userId: string): Promise<void> {
+async function syncBankrollOnSignIn(userId: string, current: () => boolean): Promise<void> {
   const cloudSessions = await fetchCloudSessions(userId)
+  // The account may have changed while the request was out: this is that
+  // account's real-money log and must not land in someone else's tracker.
+  if (!current()) return
 
   // Read the local set only AFTER the fetch resolves. Snapshotting it before the
   // await would drop any session the user added while the request was in flight.
@@ -51,6 +64,43 @@ async function syncBankrollOnSignIn(userId: string): Promise<void> {
   await upsertCloudSessions(userId, localNormalized) // push local-only + local edits
 }
 
+/** What a sign-out attempt came to. */
+export type SignOutOutcome = 'signedOut' | 'unsaved'
+
+/** How long the level and the achievements may take to go up before a sign-out stops waiting for them. */
+export const SIGN_OUT_PROGRESS_TIMEOUT_MS = 12_000
+
+/**
+ * Send what is still waiting on this device, while there is still a session
+ * to send it as. Resolves with whether nothing is left waiting.
+ *
+ * The level, the stage claims and the achievements go up with the sessions,
+ * as on reconnect: their own pushes failed along with the session's. A failure
+ * of those two is logged and does not hold the sign-out — see the note in
+ * `signOutAndClearLocal`.
+ */
+async function uploadBeforeSignOut(): Promise<boolean> {
+  if (!isSupabaseConfigured || getPendingSessionIds().length === 0) return true
+  // No request when the browser itself says there is no network: it could
+  // only fail, after a wait.
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return false
+  try {
+    await pushLocalSessions()
+    const results = await Promise.allSettled([
+      withTimeout(pushProfileScalarsNow(), SIGN_OUT_PROGRESS_TIMEOUT_MS, 'profile push before sign-out'),
+      withTimeout(syncAchievementsOnSignIn(), SIGN_OUT_PROGRESS_TIMEOUT_MS, 'achievement sync before sign-out'),
+    ])
+    for (const r of results) {
+      if (r.status === 'rejected') console.error('progress upload before sign-out failed', r.reason)
+    }
+  } catch (e) {
+    console.error('upload of waiting sessions before sign-out failed', e)
+  }
+  // Asked again rather than inferred: a push that resolved without sending
+  // (the device's data is not this account's) leaves the list as it was.
+  return getPendingSessionIds().length === 0
+}
+
 /**
  * Sign out and wipe the local caches.
  *
@@ -59,12 +109,44 @@ async function syncBankrollOnSignIn(userId: string): Promise<void> {
  * previous user's data behind would push their training history, achievements,
  * level and real-money bankroll log into a stranger's cloud account. The cloud
  * copy is untouched — signing back in restores everything.
+ *
+ * Resolves with `'unsaved'` — and has then wiped nothing and signed nobody
+ * out — when sessions recorded on this device could not be uploaded. The
+ * caller asks, and calls again with `discardUnsaved` if the answer is to sign
+ * out regardless. Never rejects.
+ *
+ * @param options.discardUnsaved Sign out even if sessions are lost with it
  */
-export async function signOutAndClearLocal(): Promise<void> {
-  // 1. The wipe, first and unconditionally. It is synchronous and cannot fail on
-  //    a network, and it used to run *after* the server call — so a failed call
-  //    skipped it entirely and left the previous user's data for `handleSignedIn`
-  //    to push into whoever signed in next.
+export async function signOutAndClearLocal(
+  options: { discardUnsaved?: boolean } = {},
+): Promise<SignOutOutcome> {
+  // 0. Before anything is wiped, while the user is still signed in:
+  //
+  //    a) Work held only in memory is finished and recorded — a casino table
+  //       in play. It used to be recorded by the table's unmount, *after* the
+  //       wipe, into storage that no longer had an owner and was then merged
+  //       into whoever signed in next.
+  //    b) Sessions still waiting for the cloud are sent. The wipe takes
+  //       `bjt_sessions` and the list of what is waiting; nothing brings them
+  //       back. If they cannot be sent, nothing happens here at all and the
+  //       caller is told.
+  //
+  //    Not covered, and known: with the sessions confirmed, a level push that
+  //    fails here is only logged, and progress with no session attached that
+  //    never reached the cloud (nothing on the waiting list) is not looked for.
+  await runBeforeSignOut()
+  if (!options.discardUnsaved && !(await uploadBeforeSignOut())) return 'unsaved'
+
+  // 1. The wipe — unconditionally from here on, and before the server call.
+  //    It is synchronous and cannot fail on a network, and it used to run
+  //    *after* the server call — so a failed call skipped it entirely and left
+  //    the previous user's data for `handleSignedIn` to push into whoever
+  //    signed in next.
+  //
+  //    A sign-in merge still in flight is disowned first: whatever it receives
+  //    from now on belongs to the account that just left.
+  syncRun++
+  signInSync = null
   clearLocalAppData()
   resetProfileSync()
   useCloudSyncStore.getState().set('idle')
@@ -87,6 +169,7 @@ export async function signOutAndClearLocal(): Promise<void> {
   //    narrow — only `sb-*-auth-token`, nothing else.
   forgetStoredAuthSession()
   useAuthStore.setState({ status: 'signedOut', session: null, user: null })
+  return 'signedOut'
 }
 
 /** Drop any persisted Supabase auth session from this browser. */
@@ -101,12 +184,169 @@ function forgetStoredAuthSession(): void {
   } catch { /* storage unavailable — nothing persisted, nothing to forget */ }
 }
 
-/** In-flight sign-in sync, so a repeat call joins it instead of racing it. */
-let signInSync: Promise<void> | null = null
+/** How long the batch push of local sessions may take before it counts as failed. */
+export const SESSION_PUSH_TIMEOUT_MS = 20_000
+
+/** In-flight session push, so a repeat call joins it instead of racing it. */
+let sessionPush: Promise<number> | null = null
 
 /**
- * Run when a user signs in. Concurrency-safe: a second call while one is in
- * flight (StrictMode double-effect, a fast sign-out→sign-in) joins the first.
+ * Push the sessions held on this device to the cloud. Resolves with how many
+ * were sent; rejects when the cloud did not confirm them.
+ *
+ * This is the one push there is. The sign-in merge runs it on every page
+ * load, and `installReconnectSync` runs it again when the browser comes back
+ * online — so a session saved without a connection does not wait for the next
+ * visit. It is an upsert on the session id: sending a session twice writes one
+ * row, which is what makes it safe to call from both.
+ *
+ * It covers the guest → first-account migration and every session that fell
+ * back to local. Legacy sessions predate uuid ids (older builds used short
+ * counters like "a0"). The cloud primary key is a uuid, and the push is ONE
+ * upsert, so a single legacy row makes Postgres reject the whole batch
+ * (22P02). Those ids are reassigned and written back locally first, so local
+ * and cloud agree and the next sync does not duplicate anything.
+ */
+export function pushLocalSessions(): Promise<number> {
+  if (sessionPush) return sessionPush
+  sessionPush = runSessionPush().finally(() => { sessionPush = null })
+  return sessionPush
+}
+
+async function runSessionPush(): Promise<number> {
+  // Only what belongs to the signed-in account goes up — the same test
+  // `getDeviceSessionResults` applies before showing it. The upsert writes
+  // every row under the *current* session's user id, so without this a device
+  // still holding someone else's sessions (the wipe that enforces ownership
+  // runs a moment after sign-in; the reconnect triggers do not wait for it)
+  // would file them in this account. A guest's sessions have no owner until
+  // the sign-in merge claims them with `setLocalOwner`, and it does so before
+  // it calls this — which is what keeps the first-account migration working.
+  // Nothing is confirmed here: what is waiting stays waiting.
+  const userId = useAuthStore.getState().user?.id
+  if (!userId || getLocalOwner() !== userId) return 0
+
+  // Read before the sessions: an id marked after this line belongs to a
+  // session this batch may not contain, and must not be confirmed by it.
+  const waiting = getPendingSessionIds()
+  const localSessions = await localStorageService.getAllSessionResults()
+  if (localSessions.length === 0) {
+    // Marked as waiting with no local copy (the local write failed): there is
+    // nothing left on this device to send.
+    confirmSessionsUploaded(waiting)
+    return 0
+  }
+  const normalized = localSessions.map(normalizeSessionId)
+  if (normalized.some((s, i) => s.id !== localSessions[i].id)) {
+    await localStorageService.replaceAllSessionResults(normalized)
+  }
+  try {
+    await withTimeout(cloud.saveMany(normalized), SESSION_PUSH_TIMEOUT_MS, 'session push')
+  } catch (e) {
+    markUploadFailed()
+    throw e
+  }
+  confirmSessionsUploaded(waiting)
+  return normalized.length
+}
+
+/** First wait before a failed upload is tried again; doubles up to the cap. */
+export const UPLOAD_RETRY_MIN_MS = 15_000
+/** Longest wait between two upload attempts. */
+export const UPLOAD_RETRY_MAX_MS = 5 * 60_000
+
+/**
+ * Send what is waiting as soon as it can be sent.
+ *
+ * Three triggers, one push:
+ *  - the browser's `online` event — the connection came back;
+ *  - the tab becoming visible again — a phone that was in a pocket;
+ *  - a timer after a failed attempt, backing off from 15 s to 5 min — for the
+ *    case `online` never reports: the network is there and Supabase is not.
+ *
+ * The level, the stage claims and the achievements go up with it. Their own
+ * pushes are fire-and-forget and failed along with the session's.
+ *
+ * Returns the function that removes the listeners (for tests).
+ */
+export function installReconnectSync(): () => void {
+  if (!isSupabaseConfigured || typeof window === 'undefined') return () => {}
+
+  let retryDelay = UPLOAD_RETRY_MIN_MS
+  let retryTimer: ReturnType<typeof setTimeout> | null = null
+
+  const signedIn = () => useAuthStore.getState().status === 'signedIn'
+  const online = () => navigator.onLine !== false
+
+  const upload = () => {
+    if (!signedIn() || !online() || getPendingSessionIds().length === 0) return
+    pushLocalSessions().then(
+      () => {
+        pushProfileScalars()
+        syncAchievementsOnSignIn().catch(e => console.error('achievement sync after reconnect failed', e))
+      },
+      e => console.error('upload of waiting sessions failed; it will be tried again', e),
+    )
+  }
+
+  const onOnline = () => {
+    if (!signedIn()) return
+    // Progress written while offline (a stage claim, a plan answer) has no
+    // session attached; one cheap update sends it either way.
+    if (getPendingSessionIds().length === 0) pushProfileScalars()
+    upload()
+  }
+  const onVisible = () => { if (document.visibilityState === 'visible') upload() }
+
+  const unsubscribe = subscribePendingSessions(() => {
+    if (!getPendingSnapshot().failed) {
+      retryDelay = UPLOAD_RETRY_MIN_MS
+      if (retryTimer) { clearTimeout(retryTimer); retryTimer = null }
+      return
+    }
+    if (retryTimer) return
+    retryTimer = setTimeout(() => {
+      retryTimer = null
+      retryDelay = Math.min(retryDelay * 2, UPLOAD_RETRY_MAX_MS)
+      upload()
+    }, retryDelay)
+  })
+
+  window.addEventListener('online', onOnline)
+  document.addEventListener('visibilitychange', onVisible)
+  return () => {
+    window.removeEventListener('online', onOnline)
+    document.removeEventListener('visibilitychange', onVisible)
+    unsubscribe()
+    if (retryTimer) clearTimeout(retryTimer)
+  }
+}
+
+// Installed once, with the module: `App` imports this file on every page.
+installReconnectSync()
+
+/**
+ * How long one network step of the sign-in merge may take. Without a limit a
+ * request that never answers held the whole merge — and every screen waiting
+ * for `done` — for good.
+ */
+export const SIGN_IN_STEP_TIMEOUT_MS = 15_000
+
+/** In-flight sign-in sync and whose it is, so a repeat call joins it instead of racing it. */
+let signInSync: { userId: string | null; promise: Promise<void> } | null = null
+
+/**
+ * Counts sign-in merges and sign-outs. A merge remembers the number it started
+ * with; once the number has moved on, the account it was started for is no
+ * longer the one on this device and it must write nothing more.
+ */
+let syncRun = 0
+
+/**
+ * Run when a user signs in. Concurrency-safe: a second call for the same user
+ * while one is in flight (StrictMode double-effect) joins the first. A call
+ * for a different user starts its own run — joining would hand that user the
+ * previous one's merge and skip their own — and the earlier run stops writing.
  *
  *  0. **Account isolation:** if the local caches belong to a different user,
  *     wipe them before anything merges. Otherwise the steps below would push
@@ -122,77 +362,114 @@ let signInSync: Promise<void> | null = null
  */
 export function handleSignedIn(): Promise<void> {
   if (!isSupabaseConfigured) return Promise.resolve()
-  if (signInSync) return signInSync
+  const userId = useAuthStore.getState().user?.id ?? null
+  if (signInSync && signInSync.userId === userId) return signInSync.promise
+  const run = ++syncRun
   useCloudSyncStore.getState().set('syncing')
-  signInSync = runSignInSync().finally(() => {
+  const promise = runSignInSync(run).finally(() => {
+    // Superseded by a sign-out or by another account's run: the status and
+    // the slot are theirs now.
+    if (run !== syncRun) return
     signInSync = null
     useCloudSyncStore.getState().set('done')
   })
-  return signInSync
+  signInSync = { userId, promise }
+  return promise
 }
 
-async function runSignInSync(): Promise<void> {
+async function runSignInSync(run: number): Promise<void> {
+  /** Whether this run still speaks for the account on this device. */
+  const current = () => run === syncRun
+
+  /**
+   * One step of the merge: bounded in time, isolated from the others, and its
+   * result only shown if the account has not changed meanwhile. Resolves with
+   * whether the run may go on.
+   */
+  const step = async (what: string, work: () => Promise<void>, apply?: () => void): Promise<boolean> => {
+    try {
+      await withTimeout(work(), SIGN_IN_STEP_TIMEOUT_MS, what)
+      if (current()) apply?.()
+    } catch (e) {
+      console.error(`${what} on sign-in failed`, e)
+    }
+    return current()
+  }
+
   try {
     const { data } = await requireSupabase().auth.getSession()
     const userId = data.session?.user.id
-    if (!userId) return
+    if (!userId || !current()) return
 
     // Account isolation. `null` owner means guest data that has never belonged
     // to an account — that is the legitimate one-time migration, so keep it.
+    //
+    // With one exception since the public trial round (`/try`): ownerless
+    // data that carries the trial's stamp goes only to an account created
+    // after that round began — the visitor who played and then signed up. On
+    // a shared computer the next sign-in may be somebody else's existing
+    // account, and a stranger's round must not land in their history. See
+    // `services/guest-trial.ts`.
     const owner = getLocalOwner()
-    if (owner && owner !== userId) {
+    const foreign = owner
+      ? owner !== userId
+      : !guestDataBelongsTo(data.session?.user.created_at)
+    if (foreign) {
       clearLocalAppData()
       resetProfileSync()
     }
     setLocalOwner(userId)
+    // Claimed or wiped: either way the stamp has done its work.
+    clearGuestRound()
 
-    // Push any local sessions to the cloud (idempotent upsert on id). This
-    // covers both the guest → first-account migration and any sessions that
-    // fell back to local while offline. Cheap: a signed-in user's new sessions
-    // go straight to the cloud, so local stays near-empty between syncs.
-    // Legacy sessions predate uuid ids (older builds used short counters like
-    // "a0"). The cloud primary key is a uuid, and the push is ONE upsert, so a
-    // single legacy row makes Postgres reject the whole batch (22P02) — which
-    // aborted this entire sync, taking achievements, level, bankroll and stats
-    // hydration with it. Reassign those ids and write them back locally first,
-    // so local and cloud agree and the next sync doesn't duplicate anything.
-    const localSessions = await localStorageService.getAllSessionResults()
-    if (localSessions.length > 0) {
-      const normalized = localSessions.map(normalizeSessionId)
-      if (normalized.some((s, i) => s.id !== localSessions[i].id)) {
-        await localStorageService.replaceAllSessionResults(normalized)
-      }
-      await cloud.saveMany(normalized)
+    // Push any local sessions to the cloud (idempotent upsert on id) — see
+    // `pushLocalSessions`. Isolated like the steps below: a push that fails
+    // used to abort this entire sync, taking achievements, level, bankroll and
+    // stats hydration with it. The sessions stay marked as waiting and the
+    // reconnect sync tries again. It carries its own time limit.
+    try {
+      await pushLocalSessions()
+    } catch (e) {
+      console.error('session push on sign-in failed; the sessions stay on this device', e)
     }
+    if (!current()) return
 
     // Achievements: union cloud + local, push local-only up, refresh the UI.
     // Isolated so a failure here can't block stats hydration below.
-    try {
-      await syncAchievementsOnSignIn()
-      useAchievementStore.getState().loadAchievements()
-    } catch (e) {
-      console.error('achievement sync on sign-in failed', e)
-    }
+    if (!await step('achievement sync', syncAchievementsOnSignIn,
+      () => useAchievementStore.getState().loadAchievements())) return
 
     // Progress scalars: max-merge level XP + sim counters, then refresh the UI.
-    try {
-      await syncProfileOnSignIn()
-      useLevelStore.getState().refresh()
-    } catch (e) {
-      console.error('profile sync on sign-in failed', e)
-    }
+    if (!await step('profile sync', syncProfileOnSignIn,
+      () => useLevelStore.getState().refresh())) return
 
     // Bankroll tracker: union-merge the real-money session log.
-    try {
-      await syncBankrollOnSignIn(userId)
-    } catch (e) {
-      console.error('bankroll sync on sign-in failed', e)
-    }
+    if (!await step('bankroll sync', () => syncBankrollOnSignIn(userId, current))) return
 
     // Entitlement: load the Pro subscription status for gating.
-    await useEntitlementStore.getState().loadEntitlement()
+    //
+    // The store writes its answer whenever the request comes back. If this
+    // run has been superseded by then, that answer is the previous account's
+    // subscription drawn for whoever is here now — so it is put right, and on
+    // the request itself rather than on the timed wait, which may have given
+    // up first.
+    const entitlement = useEntitlementStore.getState().loadEntitlement()
+    void entitlement.then(() => {
+      if (current()) return
+      if (useAuthStore.getState().status === 'signedIn') void useEntitlementStore.getState().loadEntitlement()
+      else useEntitlementStore.getState().reset()
+    }, () => { /* the store reports its own failures */ })
+    if (!await step('entitlement load', () => entitlement)) return
 
+    // The history. It has its own time limit (`CLOUD_READ_TIMEOUT_MS`).
     await useStatsStore.getState().loadStats()
+    if (!current()) {
+      // As with the entitlement: what just landed in the store is the
+      // previous account's history.
+      if (useAuthStore.getState().status === 'signedIn') void useStatsStore.getState().loadStats()
+      else useStatsStore.setState({ sessions: [], lifetimeStats: null })
+      return
+    }
 
     /*
       Put the Casino Session Tracker back.

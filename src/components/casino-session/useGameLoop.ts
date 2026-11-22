@@ -40,6 +40,38 @@ import { MAX_PLAYER_HANDS } from '../../engine/casino-session/types'
 import { buildSplitReplay } from './split-replay'
 import { sessionLimitReached, type SessionLimit } from './session-limit'
 import { useStepAnimation, type AnimStep } from './useStepAnimation'
+import { clearLiveSession, isRecorded, saveLiveSession, type SavedLiveSession } from '../../services/casino-live-session'
+import { getLocalOwner } from '../../services/storage/local-owner'
+import { voidOpenHand } from '../../engine/casino-session/session-snapshot'
+import { useLiveSessionStore } from '../../store/live-session-store'
+import { useAuthStore, isSupabaseConfigured } from '../../store/auth-store'
+import { recordCasinoSession, registerOpenTable } from './record-session'
+
+/**
+ * The table as it is kept on the device: the id it is saved and recorded
+ * under, and — when the player picked a saved table up again — the copy to
+ * continue from.
+ */
+export interface LiveTable {
+  id: string
+  resume: SavedLiveSession | null
+}
+
+/**
+ * What the house adds to a table from outside the game: the free trial counts
+ * its hands and closes the table when they are used up. The game loop knows
+ * nothing of trials — it reports a settled hand and asks whether it may deal
+ * another.
+ */
+export interface TableHouse {
+  /** A hand was settled — called once per hand, at the moment it is recorded. */
+  onHandSettled?: () => void
+  /**
+   * Asked when the player leaves a finished hand: true ends the session
+   * there, the way an empty bankroll does. Never asked in the middle of a hand.
+   */
+  isClosed?: () => boolean
+}
 
 /** Seats at the table. */
 const TABLE_SEATS = 6
@@ -122,6 +154,12 @@ export interface VisibleState {
    * keep playing.
    */
   limitReached: SessionLimit
+  /**
+   * This table was cashed out in another tab. It is over here too: nothing
+   * more is dealt, saved or recorded, and the only thing on offer is the way
+   * back to the menu.
+   */
+  closedElsewhere: boolean
 }
 
 // ─── Game Actions ────────────────────────────────────
@@ -172,12 +210,30 @@ export function useGameLoop(
   config: CasinoSessionConfig,
   recorder: SessionRecorder | null,
   onSessionEnd: (result: CasinoSessionResult) => void,
+  live?: LiveTable,
+  house?: TableHouse,
 ) {
   const engineRef = useRef<CasinoSessionEngine | null>(null)
+  /** The house's callbacks as of the last render, for the callbacks below that outlive one. */
+  const houseRef = useRef<TableHouse | undefined>(house)
+  useEffect(() => { houseRef.current = house }, [house])
+  /** The player chose to play on past the target — mirrored for `persist`. */
+  const keptPlayingRef = useRef(false)
+  /**
+   * How many hands the table held when this component took it over: none for
+   * a new session, the saved ones for a table that was picked up again. See
+   * the unmount cleanup for what it decides.
+   */
+  const handsAtStartRef = useRef(0)
   const startTimeRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   /** True once the session has been recorded, so it can never be recorded twice. */
   const endedRef = useRef(false)
+  /**
+   * Whose local data this table writes into: the owner on the device when the
+   * table opened. See `stillOurs`.
+   */
+  const ownerRef = useRef<string | null>(null)
   /** The bets of the round just played, by box, offered again for the next one. */
   const lastBetsRef = useRef<number[]>([])
   /**
@@ -241,6 +297,8 @@ export function useGameLoop(
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   /** The player chose to play on past the target: no target for the rest of the session. */
   const [keptPlaying, setKeptPlaying] = useState(false)
+  /** The table was cashed out in another tab (see `persist`). */
+  const [closedElsewhere, setClosedElsewhere] = useState(false)
 
   const [humanHands, setHumanHands] = useState<Card[][]>([[]])
   const [activeHandIndex, setActiveHandIndex] = useState(0)
@@ -469,16 +527,141 @@ export function useGameLoop(
 
   // ─── Session Lifecycle ─────────────────────────────
 
+  const liveId = live?.id
+  const resume = live?.resume ?? null
+
+  /**
+   * Whether this device's data still belongs to whoever sat down here.
+   *
+   * The belt under the sign-out's own work (`registerOpenTable` below). A
+   * sign-out wipes the device and only then unmounts the table; anything the
+   * table wrote after that — the saved copy, the session, XP — landed in
+   * storage with no owner and was handed to the next account to sign in.
+   * Two signs that the wipe has happened, either is enough: the owner record
+   * is gone or is someone else's, or nobody is signed in.
+   *
+   * An owner that appears where there was none is the first sign-in adopting
+   * guest data, not a change of hands. And without Supabase there are no
+   * accounts at all (the offline build, the tests): the auth status is then
+   * permanently "signed out" and says nothing.
+   */
+  const stillOurs = useCallback((): boolean => {
+    const owner = getLocalOwner()
+    if (ownerRef.current === null && owner !== null) ownerRef.current = owner
+    if (owner !== ownerRef.current) return false
+    return !isSupabaseConfigured || useAuthStore.getState().status === 'signedIn'
+  }, [])
+
+  /**
+   * Write the table to the device, so a closed tab, a reload or a dead phone
+   * does not take the session with it.
+   *
+   * Called when the session starts, after every settled hand (at the
+   * settlement, after the count check that belongs to it, and back at the
+   * betting step) — and during a hand, every time cards have left the shoe:
+   * after the deal, after each card the player draws, after the bots and the
+   * dealer have drawn theirs.
+   *
+   * The rule for a hand that was in progress when the page died: it is NOT
+   * replayed, **its bet is returned and its cards are burned.** The copy
+   * written during a hand is the table as it stands if the hand is called off
+   * (`voidOpenHand`): the shoe, the cards dealt and the count as they are now,
+   * the bets back in the bankroll, the hand's number free again. So the table
+   * comes back at the betting step of the next hand, and the next deal comes
+   * from further down the shoe.
+   *
+   * It used to be written only between hands. The copy then predated the
+   * deal, and a reload put the cards back: look at a losing hand, reload,
+   * "Continue", and the identical hand was dealt again — to be played
+   * differently, or reloaded away until it won.
+   *
+   * What this does not do: a hand that is reloaded away is still a hand
+   * without a result. Forfeiting the bet instead would close that, and would
+   * also take the money of everyone whose phone died on a blackjack.
+   *
+   * The count in a copy written mid-hand includes every card the engine has
+   * drawn, also one the animation had not shown yet when the page died.
+   *
+   * A table that turns out to have been cashed out in another tab stops here:
+   * see `closedElsewhere`.
+   */
+  const persist = useCallback(() => {
+    const engine = engineRef.current
+    if (!engine || !liveId || endedRef.current || !stillOurs()) return
+    const now = Date.now()
+    const open = openWagerRef.current
+    const snapshot = engine.snapshot()
+    const saved = saveLiveSession({
+      id: liveId,
+      snapshot: open > 0 ? voidOpenHand(snapshot, open) : snapshot,
+      config,
+      // Frozen at the start of a pause, like the clock on screen.
+      elapsedSeconds: Math.max(0, Math.floor(((pauseStartRef.current || now) - startTimeRef.current) / 1000)),
+      savedAt: now,
+      ui: { lastBets: lastBetsRef.current, keptPlaying: keptPlayingRef.current },
+    })
+    /*
+      Refused because the session is already recorded: another tab cashed this
+      table out. Playing on would end in a summary of hands that are written
+      down nowhere — the row exists and a second one is refused. So the table
+      stops, says why, and offers the menu. (A write refused for any other
+      reason — a full quota — costs nothing and the table plays on.)
+    */
+    if (!saved && isRecorded(liveId)) {
+      endedRef.current = true
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+      pendingTimeouts.current.forEach(clearTimeout)
+      pendingTimeouts.current.clear()
+      animation.clear()
+      setClosedElsewhere(true)
+    }
+  }, [liveId, config, stillOurs, animation])
+
   const initSession = useCallback(() => {
-    const engine = new CasinoSessionEngine(config, recorder ?? undefined)
+    // A table that was picked up again is put back exactly as it was saved;
+    // if the copy cannot be read after all, a new table is better than none.
+    const restored = resume ? CasinoSessionEngine.restore(resume.snapshot, recorder ?? undefined) : null
+    const engine = restored ?? new CasinoSessionEngine(config, recorder ?? undefined)
     engineRef.current = engine
-    startTimeRef.current = Date.now()
-    setElapsedSeconds(0)
+    ownerRef.current = getLocalOwner()
+    handsAtStartRef.current = engine.getHandHistory().length
+    // The session clock goes on from where it was saved.
+    const elapsed = restored && resume ? resume.elapsedSeconds : 0
+    startTimeRef.current = Date.now() - elapsed * 1000
+    setElapsedSeconds(elapsed)
     setGameStep('betting')
-    setKeptPlaying(false)
+    const kept = restored && resume ? resume.ui.keptPlaying : false
+    keptPlayingRef.current = kept
+    setKeptPlaying(kept)
+    if (restored && resume) {
+      // The betting screen as it was: the player's hands on their seats and
+      // the last bets on the spots. Set before `resetRoundState`, which reads
+      // both.
+      lastBetsRef.current = resume.ui.lastBets
+      const boxSeats = engine.getHumanBoxSeats()
+      boxSeatsRef.current = boxSeats
+      setBoxSeatsState(boxSeats)
+      boxesRef.current = boxSeats.length
+      setBoxesState(boxSeats.length)
+      // Saved at the settlement, before the table went back to betting: the
+      // shuffle that belongs to the end of that round has not happened yet.
+      // (Saved after it, this finds nothing to shuffle.)
+      if (engine.reshuffleAfterRound()) {
+        setDiscardCount(0)
+        setShowReshuffle(true)
+        schedule(() => setShowReshuffle(false), 1800)
+      } else {
+        // Every card out of the shoe is in the tray: nothing is on the felt.
+        setDiscardCount(engine.getCardsDealt())
+      }
+    } else {
+      lastBetsRef.current = []
+      setDiscardCount(0)
+    }
     setSeats(engine.getSeats())
     setBotStatuses({})
     resetRoundState()
+    persist()
 
     // Start timer. While paused the clock is frozen (the pause effect below
     // shifts startTime forward on resume so paused time never counts).
@@ -488,7 +671,7 @@ export function useGameLoop(
       if (isPausedRef.current) return
       setElapsedSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000))
     }, 1000)
-  }, [config, recorder, resetRoundState])
+  }, [config, recorder, resetRoundState, resume, persist, schedule])
 
   // Keep the session clock honest across pauses: freeze it on pause, and on
   // resume push startTime forward by the paused duration so a time-limited
@@ -548,7 +731,13 @@ export function useGameLoop(
    * summary instead of the setup. Closing it here is what makes the cleanup
    * skip it.
    */
-  const discardSession = useCallback(() => { endedRef.current = true }, [])
+  const discardSession = useCallback(() => {
+    endedRef.current = true
+    // Thrown away means thrown away: the saved copy too, or the setup screen
+    // would offer to resume it.
+    if (liveId) clearLiveSession(liveId)
+    useLiveSessionStore.getState().refreshSaved()
+  }, [liveId])
 
   // On unmount (navigate away, quit): stop the clock, cancel every pending
   // gameplay timeout so none fire against a dead component, and flush a session
@@ -560,16 +749,56 @@ export function useGameLoop(
       timeouts.forEach(clearTimeout)
       timeouts.clear()
       const engine = engineRef.current
-      if (engine && !endedRef.current) {
+      // Not after a sign-out has wiped the device: see `stillOurs`. The
+      // sign-out itself ended and recorded the table before it wiped.
+      if (engine && !endedRef.current && stillOurs()) {
         closeOpenHand(engine)
         const result = engine.calculateSessionResult(startTimeRef.current, sessionEndTime())
-        if (result.hands.length > 0) {
+        if (result.hands.length === 0) {
+          // Nothing was played: there is nothing to record and nothing worth
+          // coming back to. (A reload at this point still finds the table —
+          // this is the app itself putting it away.)
+          if (liveId) clearLiveSession(liveId)
+        } else if (result.hands.length > handsAtStartRef.current) {
           endedRef.current = true
           onSessionEnd(result)
         }
+        /*
+          Otherwise: a table that was picked up again and left before a hand
+          was finished. Nothing has changed since it was saved, so it stays
+          saved — still in progress, still on the resume card — rather than
+          being recorded as over.
+
+          This case is also what React's development double-mount looks like
+          (mount, unmount, mount, within one commit): without it, pressing
+          "Continue" in development recorded the session and showed its
+          summary before the table had drawn.
+        */
+        useLiveSessionStore.getState().refreshSaved()
       }
     }
-  }, [onSessionEnd])
+  }, [onSessionEnd, liveId, stillOurs])
+
+  /**
+   * A sign-out ends the table first, while the statistics still have an owner.
+   *
+   * Exactly a cash-out, minus the summary screen: the open hand's bets go
+   * back, the session is recorded under the table's id, the saved copy goes
+   * with it. `endedRef` then makes the unmount that follows the wipe a no-op.
+   */
+  useEffect(() => registerOpenTable(() => {
+    const engine = engineRef.current
+    if (!engine || endedRef.current) return
+    endedRef.current = true
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+    pendingTimeouts.current.forEach(clearTimeout)
+    pendingTimeouts.current.clear()
+    closeOpenHand(engine)
+    recordCasinoSession(
+      engine.calculateSessionResult(startTimeRef.current, sessionEndTime()),
+      { liveId: liveId ?? null },
+    )
+  }), [liveId])
 
   // ─── Settlement ────────────────────────────────────
 
@@ -643,8 +872,12 @@ export function useGameLoop(
     }
 
     engine.recordHand(record)
+    houseRef.current?.onHandSettled?.()
     handRecordRef.current._built = record as unknown
-  }, [recorder])
+    // The hand is settled: this is the moment it becomes safe from a closed
+    // tab. Everything from here to the next bet only adds to it.
+    persist()
+  }, [recorder, persist])
 
   const settleDealerRound = useCallback((finalDealerCards: Card[]) => {
     const engine = engineRef.current
@@ -960,6 +1193,8 @@ export function useGameLoop(
       initialCounts[seatIdx] = bot.hands[0]?.cards.length ?? 2
       engine.playBotAtSeat(seatIdx, dealerUpCard)
     }
+    // Their cards are out of the shoe now, whatever the replay has shown.
+    persist()
 
     const updatedSeats = engine.getSeats()
     setSeats([...updatedSeats])
@@ -983,7 +1218,7 @@ export function useGameLoop(
     }
 
     return allSteps
-  }, [buildBotAnimSteps])
+  }, [buildBotAnimSteps, persist])
 
   const buildDealerSteps = useCallback((): AnimStep[] => {
     const engine = engineRef.current
@@ -1002,6 +1237,7 @@ export function useGameLoop(
       return true
     })
     const finalDealerCards = engine.playDealerHand([...originalDealerCards], humanNeedsDealer)
+    persist()
 
     recorder?.recordDealerUpCardCheck(
       formatCard(dr.dealerUpCard), formatCard(dr.dealerUpCard),
@@ -1042,7 +1278,7 @@ export function useGameLoop(
     })
 
     return steps
-  }, [recorder, settleDealerRound])
+  }, [recorder, settleDealerRound, persist])
 
   // ─── Play goes round the table ─────────────────────
 
@@ -1129,6 +1365,7 @@ export function useGameLoop(
         //    the now-active hand (so the card never arrives on a dimmed hand).
         schedule(() => {
           const newCard = engine.drawCard()
+          persist()
           soundEngine.cardDeal()
           updateHandCards(nextIdx, [...nextHand, newCard])
         }, scaledDelay(500))
@@ -1138,7 +1375,7 @@ export function useGameLoop(
     } else {
       runPostHumanFlow()
     }
-  }, [updateHandCards, runPostHumanFlow, schedule, setActive, enterHand])
+  }, [updateHandCards, runPostHumanFlow, schedule, setActive, enterHand, persist])
 
   /**
    * Hand the table to the player: the first hand that is theirs to play.
@@ -1160,7 +1397,9 @@ export function useGameLoop(
 
   const confirmBet = useCallback(() => {
     const engine = engineRef.current
-    if (!engine) return
+    // A table that is over — cashed out elsewhere, or ended by a sign-out —
+    // deals nothing more, whatever key arrives.
+    if (!engine || endedRef.current) return
     // The target is reached: the end prompt is up, and the next hand waits for
     // the player's answer (Enter must not deal past it).
     if (sessionLimitReached(config, engine.getCurrentHandNumber(), elapsedSeconds, keptPlaying)) return
@@ -1221,6 +1460,12 @@ export function useGameLoop(
     const dealResult = engine.dealNewRound(boxSeatsRef.current)
     botsPlayedToRef.current = -1
     dealResultRef.current = dealResult
+    // The cards are out of the shoe: from here a reload must not bring them
+    // back. The copy holds the bets returned and the cards burned.
+    persist()
+    // That write is also where a table learns it was cashed out in another
+    // tab; it is closed then, and this hand is not laid out.
+    if (endedRef.current) return
     // A fresh shoe empties the discard tray.
     if (dealResult.reshuffled) setDiscardCount(0)
 
@@ -1407,14 +1652,14 @@ export function useGameLoop(
       // Normal — play goes round the table to the player's first hand.
       beginHumanTurn()
     })
-  }, [config, seatLayout, elapsedSeconds, keptPlaying, animation, computeBotsAndBuildSteps, buildDealerSteps, settleDealerRound, recorder, setActive, beginHumanTurn, applyBets, applyInsuranceBox, applySeats])
+  }, [config, seatLayout, elapsedSeconds, keptPlaying, animation, computeBotsAndBuildSteps, buildDealerSteps, settleDealerRound, recorder, setActive, beginHumanTurn, applyBets, applyInsuranceBox, applySeats, persist])
 
   // ─── Insurance ─────────────────────────────────────
 
   const handleInsurance = useCallback((take: boolean) => {
     const engine = engineRef.current
     const dr = dealResultRef.current
-    if (!engine || !dr) return
+    if (!engine || !dr || endedRef.current) return
 
     // Not being asked (a key pressed after the last answer): nothing to do.
     const asked = insuranceBoxRef.current
@@ -1457,6 +1702,9 @@ export function useGameLoop(
     )
     for (const net of nets) engine.updateHumanBankroll(net)
     insuranceNetsRef.current = nets
+    // A side bet is settled the moment the dealer checks, and stays settled
+    // if the hand is then lost to a reload.
+    persist()
 
     if (dealerHasBJ) {
       setDealerHoleRevealed(true)
@@ -1485,7 +1733,7 @@ export function useGameLoop(
     } else {
       beginHumanTurn()
     }
-  }, [applyInsuranceBox, seatLayout, animation, computeBotsAndBuildSteps, buildDealerSteps, recorder, settleDealerRound, beginHumanTurn])
+  }, [applyInsuranceBox, seatLayout, animation, computeBotsAndBuildSteps, buildDealerSteps, recorder, settleDealerRound, beginHumanTurn, persist])
 
   // ─── Human Play ────────────────────────────────────
 
@@ -1520,6 +1768,7 @@ export function useGameLoop(
       setActive(idx)
       schedule(() => {
         const nc = engine.drawCard()
+        persist()
         soundEngine.cardDeal()
         updateHandCards(idx, [...hand, nc])
         // A second ace and room for another hand: the player decides.
@@ -1532,12 +1781,12 @@ export function useGameLoop(
       }, scaledDelay(500))
     }
     step(from)
-  }, [runPostHumanFlow, schedule, setActive, updateHandCards, config.maxSplitHands, betOfHand, enterHand])
+  }, [runPostHumanFlow, schedule, setActive, updateHandCards, config.maxSplitHands, betOfHand, enterHand, persist])
 
   const handleAction = useCallback((action: Action, timedOut = false) => {
     const engine = engineRef.current
     const dr = dealResultRef.current
-    if (!engine || !dr || gameStep !== 'human_playing') return
+    if (!engine || !dr || gameStep !== 'human_playing' || endedRef.current) return
 
     const cards = humanHands[activeHandIndex] ?? []
     if (cards.length < 2) return
@@ -1633,6 +1882,7 @@ export function useGameLoop(
 
     if (action === Action.Hit) {
       const card = engine.drawCard()
+      persist()
       const newCards = [...cards, card]
       decision.cardReceived = card
       decision.handValueAfter = getHandValue(newCards).best
@@ -1653,6 +1903,7 @@ export function useGameLoop(
       setHandDoubled(newDoubled)
       handDoubledRef.current = newDoubled
       const card = engine.drawCard()
+      persist()
       const newCards = [...cards, card]
       decision.cardReceived = card
       decision.handValueAfter = getHandValue(newCards).best
@@ -1706,6 +1957,7 @@ export function useGameLoop(
 
       schedule(() => {
         const newCard1 = engine.drawCard()
+        persist()
         soundEngine.cardDeal()
         updateHandCards(hi, [card1, newCard1])
         setActive(hi)
@@ -1726,7 +1978,7 @@ export function useGameLoop(
 
       return
     }
-  }, [humanHands, activeHandIndex, gameStep, betOfHand, config, handDoubled, updateHandCards, advanceToNextHand, advanceAceHands, recorder, schedule, setActive])
+  }, [humanHands, activeHandIndex, gameStep, betOfHand, config, handDoubled, updateHandCards, advanceToNextHand, advanceAceHands, recorder, schedule, setActive, persist])
 
   // ─── Count Check ───────────────────────────────────
 
@@ -1735,7 +1987,7 @@ export function useGameLoop(
 
   const submitCount = useCallback(() => {
     const engine = engineRef.current
-    if (!engine) return
+    if (!engine || endedRef.current) return
     // Once per check. Enter submits, and a second Enter — pressed to get past
     // the feedback — submitted again and scheduled a second `proceedAfterHand`
     // two seconds behind the first. By then the next hand had been bet and
@@ -1769,6 +2021,8 @@ export function useGameLoop(
       lastHand.tcCorrect = validation.tcCorrect
       lastHand.rcError = validation.rcError
       lastHand.tcError = validation.tcError
+      // The answer belongs to the hand already saved.
+      persist()
     }
 
     if (validation.rcCorrect && validation.tcCorrect) {
@@ -1789,7 +2043,7 @@ export function useGameLoop(
     // so naming it in the dependency array is a temporal-dead-zone ReferenceError.
     // The linter's suggestion is not merely unwise here, it does not run.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- declared later; naming it here throws
-  }, [rcInput, tcInput, config, recorder])
+  }, [rcInput, tcInput, config, recorder, persist])
 
   // ─── Next Hand / End ───────────────────────────────
 
@@ -1799,8 +2053,9 @@ export function useGameLoop(
 
     // A reached target does not end the session here: the table goes back to
     // betting and asks there (cash out or keep playing). Only running out of
-    // money ends it on its own — there is no next bet to ask about.
-    if (engine.getHumanBankroll() < config.minBet) {
+    // money ends it on its own — there is no next bet to ask about — and a
+    // table the house has closed (the free trial's hands are used up).
+    if (engine.getHumanBankroll() < config.minBet || houseRef.current?.isClosed?.()) {
       endSession()
       return
     }
@@ -1821,10 +2076,14 @@ export function useGameLoop(
     }
     setSeats([...engine.getSeats()])
     setGameStep('betting')
-  }, [config, endSession, resetRoundState])
+    // Back at the betting step, shuffle done if one was due: the table exactly
+    // as a resume will show it.
+    persist()
+  }, [config, endSession, resetRoundState, persist])
 
   const nextHand = useCallback(() => {
     const engine = engineRef.current
+    if (endedRef.current) return
     if (!engine) { proceedAfterHand(); return }
 
     if (gameStep === 'settlement') {
@@ -1959,6 +2218,7 @@ export function useGameLoop(
     botActiveSplitHands,
     botSplitHands,
     limitReached: sessionLimitReached(config, engineRef.current?.getCurrentHandNumber() ?? 0, elapsedSeconds, keptPlaying),
+    closedElsewhere,
   }
 
   const actions: GameActions = {
@@ -1984,7 +2244,7 @@ export function useGameLoop(
     setPaused: setIsPaused,
     quitSession: endSession,
     discardSession,
-    keepPlaying: () => setKeptPlaying(true),
+    keepPlaying: () => { keptPlayingRef.current = true; setKeptPlaying(true); persist() },
   }
 
   return {

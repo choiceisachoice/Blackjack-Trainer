@@ -72,6 +72,27 @@ describe('prerender entry', () => {
     expect(meta.canonical).toBe('https://black-jack-training.com/strategy-chart')
   })
 
+  it('renders the trial round’s first screen — the same for every visitor — with its own head', async () => {
+    expect(entry.PRERENDER_ROUTES.map(r => r.path)).toContain('/try')
+    const { html, meta } = await entry.render('/try', 'en')
+    expect(html).toMatch(/<h1/)
+    expect(html).toMatch(/data-testid="try-start"/)
+    // No hand in the HTML: a hand dealt at build time would be swapped for
+    // another one the moment the page starts.
+    expect(html).not.toMatch(/data-testid="player-hand"/)
+    expect(meta.title).toMatch(/basic strategy/i)
+    expect(meta.canonical).toBe('https://black-jack-training.com/try')
+    const de = await entry.render('/try', 'de', '/de')
+    expect(de.meta.canonical).toBe('https://black-jack-training.com/de/try')
+    expect(de.html).toMatch(/Basisstrategie/)
+    expect(de.meta.title).not.toBe(meta.title)
+  })
+
+  it('writes every public path, and nothing else — the sitemap and the language menu read the same list', async () => {
+    const { PUBLIC_PATHS } = await import('./i18n/locales')
+    expect([...entry.PRERENDER_ROUTES.map(r => r.path)].sort()).toEqual([...PUBLIC_PATHS].sort())
+  })
+
   it('links the hub to the chapters instead of repeating them', async () => {
     const { html } = await entry.render('/learn', 'en')
     expect(html).toMatch(/href="\/learn\/hi-lo-system"/)

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { computeLifetimeStats, storage } from '../services/storage/storage-service'
+import { computeLifetimeStats, getDeviceSessionResults, storage } from '../services/storage/storage-service'
 import type {
   TrainingSessionResult,
   TrainingMode,
@@ -46,6 +46,22 @@ export interface StatsStoreActions {
     bestStreak: number
     details: SessionDetails
     countingSystem?: CountingSystemId
+    /**
+     * The id the record is stored under; a random one when omitted.
+     *
+     * Passing one makes the call idempotent: a session with this id that is
+     * already in the list is not recorded again — no second row, no second XP.
+     * The Casino Session passes the id it gave the table when it started, so a
+     * table cashed out from two tabs, or by hand and by the automatic cash-out
+     * at once, is one session.
+     */
+    id?: string
+    /**
+     * When the session ended (ms since epoch); now when omitted. For a session
+     * that is recorded after the fact — a table left open and cashed out a day
+     * later ended when its last hand was played, not when it was found.
+     */
+    endTime?: number
   }): Promise<void>
 
   /**
@@ -95,8 +111,33 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
         (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       )
       set({ sessions, lifetimeStats, isLoading: false })
-    } catch {
-      set({ isLoading: false })
+    } catch (e) {
+      /*
+       * The cloud could not be read: no network, or a request that never
+       * answered (the storage facade turns that into a failure after a few
+       * seconds, which is what keeps `isLoading` from staying true forever).
+       *
+       * What is already on screen stays. Only an empty store is filled from
+       * the device's own copy — after a reload on a bad connection that copy
+       * is all there is, and judging the day from nothing would hand out the
+       * daily XP limit a second time.
+       */
+      console.warn('stats could not be loaded from the cloud; keeping what this device has', e)
+      let fallback: TrainingSessionResult[] = []
+      if (get().sessions.length === 0) {
+        try {
+          fallback = await getDeviceSessionResults()
+        } catch { /* storage unavailable: nothing to fall back to */ }
+      }
+      // Checked again after the await: a session finished meanwhile wins.
+      if (fallback.length > 0 && get().sessions.length === 0) {
+        fallback.sort(
+          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
+        set({ sessions: fallback, lifetimeStats: computeLifetimeStats(fallback), isLoading: false })
+      } else {
+        set({ isLoading: false })
+      }
     }
   },
 
@@ -108,12 +149,17 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
     bestStreak,
     details,
     countingSystem,
+    id,
+    endTime,
   }) {
-    const now = Date.now()
+    // Recorded already: nothing below may run a second time (see `id`).
+    if (id !== undefined && get().sessions.some(s => s.id === id)) return
+
+    const now = endTime ?? Date.now()
     const durationSeconds = Math.round((now - startTime) / 1000)
 
     const result: TrainingSessionResult = {
-      id: crypto.randomUUID(),
+      id: id ?? crypto.randomUUID(),
       mode,
       timestamp: new Date(startTime).toISOString(),
       countingSystem: countingSystem ?? useAppStore.getState().selectedSystem,
@@ -131,7 +177,17 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
     // figures that did not yet include the session the player just finished.
     // Computing from `allSessions` is both instant and consistent with what is
     // on screen.
-    const allSessions = [result, ...get().sessions]
+    //
+    // The list is newest first, and stays so: a session recorded after the
+    // fact (a casino table cashed out a day later carries its own, older
+    // times) goes where it belongs, not to the head. At the head it showed as
+    // the latest session until the next load re-sorted the list.
+    const earlier = get().sessions
+    const startedAt = new Date(result.timestamp).getTime()
+    const at = earlier.findIndex(s => new Date(s.timestamp).getTime() <= startedAt)
+    const allSessions = at === -1
+      ? [...earlier, result]
+      : [...earlier.slice(0, at), result, ...earlier.slice(at)]
     const lifetimeStats = computeLifetimeStats(allSessions)
     set(() => ({
       sessions: allSessions,
@@ -143,18 +199,28 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
     // reach_level achievements are evaluated (they read persisted XP). Otherwise
     // "I hit Level 5" wouldn't unlock until the next session.
     // The sessions before this one decide how much of the day's limit is left.
-    useLevelStore.getState().addSessionXP(result, allSessions.slice(1))
+    useLevelStore.getState().addSessionXP(result, earlier)
 
     // Update daily challenge progress. Bucket by the user's LOCAL day, the same
     // calendar the challenge engines credit against (see services/date-utils).
+    //
+    // Only for a session that ended today. One recorded after the fact ended
+    // when it ended: yesterday's table, found this morning, is not progress
+    // on today's challenge.
     const today = todayKey()
-    const todaySessions = allSessions.filter(s => dayKey(s.timestamp) === today)
-    useChallengeStore.getState().updateProgress(result, todaySessions)
+    const endedOn = dayKey(now)
+    if (endedOn === today) {
+      const todaySessions = allSessions.filter(s => dayKey(s.timestamp) === today)
+      useChallengeStore.getState().updateProgress(result, todaySessions)
+    }
 
-    // Update weekly challenge progress (local ISO week, Monday-start).
+    // Update weekly challenge progress (local ISO week, Monday-start) — by
+    // the same rule, for a session that ended this week.
     const weekStart = weekStartKey()
-    const weekSessions = allSessions.filter(s => dayKey(s.timestamp) >= weekStart)
-    useWeeklyChallengeStore.getState().updateProgress(result, weekSessions)
+    if (endedOn >= weekStart) {
+      const weekSessions = allSessions.filter(s => dayKey(s.timestamp) >= weekStart)
+      useWeeklyChallengeStore.getState().updateProgress(result, weekSessions)
+    }
 
     // Achievements last, so they see this session's level and challenge XP.
     const dayStreak = get().getTrainingStreak()

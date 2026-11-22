@@ -187,7 +187,8 @@
       "headline": "Train the <1>edge</1> that beats the shoe.",
       "chipStrategy": "Basic strategy",
       "chipRules": "S17 / H17",
-      "shoe": "6-deck shoe"
+      "shoe": "6-deck shoe",
+      "ctaTry": "Try a round — no account"
     },
     "steps": {
       "heading": "Learn it. Drill it. Play it.",
@@ -356,7 +357,15 @@
     "goProHeading": "Go Pro",
     "goProSub": "Unlock the advanced modes and the full picture of your card-counting edge.",
     "alreadyPro": "You already have Pro on this account. If it still looks locked, reload the page.",
-    "saveAgainst": "Save {{saved}} against {{monthly}}/month"
+    "saveAgainst": "Save {{saved}} against {{monthly}}/month",
+    "personalFinished": "You have finished “{{stage}}”.",
+    "personalAt": "Your plan is at “{{stage}}”.",
+    "personalNextIsPro": "Next on your plan: “{{stage}}” — it is part of Pro.",
+    "personalThisIsPro": "Practising it is part of Pro.",
+    "personalLaterIsPro": "Further along your plan, “{{stage}}” is part of Pro.",
+    "trialLead_one": "Your hand at the table: {{pct}}% of your decisions followed basic strategy.",
+    "trialLead_other": "Your {{count}} hands at the table: {{pct}}% of your decisions followed basic strategy.",
+    "trialSupport": "With Pro the table stays open: as many hands as you like, with the count and your own rules."
   },
   "contact": {
     "title": "Contact",
@@ -715,7 +724,31 @@
       "keepPlaying": "Keep playing",
       "keepNote": "No limit from here — cash out whenever you like.",
       "timeTitle_one": "Your minute is up",
-      "timeTitle_other": "Your {{count}} minutes are up"
+      "timeTitle_other": "Your {{count}} minutes are up",
+      "elsewhere": "This table was cashed out in another tab, so it is closed here too."
+    },
+    "resume": {
+      "title": "You have a session in progress",
+      "status": "Hand {{hand}} · Bankroll {{bankroll}}",
+      "continue": "Continue",
+      "cashOut": "Cash out now",
+      "proOnly": "The table is part of Pro. You can still cash this session out."
+    },
+    "trial": {
+      "entry_one": "Try {{count}} hand free",
+      "entry_other": "Try {{count}} hands free",
+      "introTitle_one": "{{count}} free hand at the table",
+      "introTitle_other": "{{count}} free hands at the table",
+      "introBody": "The full table, with two other players. After every hand you see whether you played it by basic strategy.",
+      "introNote": "Once per account. After that the table is part of Pro.",
+      "start": "Take a seat",
+      "left_one": "Trial: {{count}} hand left",
+      "left_other": "Trial: {{count}} hands left",
+      "lastPlayed": "Trial: last hand",
+      "summaryDone": "Those were your {{hands}} free hands.",
+      "summaryLeft_one": "You have {{count}} free hand left.",
+      "summaryLeft_other": "You have {{count}} free hands left.",
+      "toPro": "Keep playing with Pro"
     }
   },
   "tracker": {
@@ -2276,6 +2309,10 @@
       "admin-analytics": {
         "title": "Website analytics — Blackjack Card Counting Trainer",
         "description": "Visitors, page views, session length, registrations and paying customers."
+      },
+      "try": {
+        "title": "Try a Round of Blackjack Basic Strategy — Free, No Signup",
+        "description": "Play ten blackjack hands against basic strategy, free and without an account. See your score and the right play for every hand you missed."
       }
     }
   },
@@ -2305,7 +2342,21 @@
       "achievements": "Achievements",
       "sessionCapped": "Training session — daily limit reached",
       "dailyCap": "Daily XP limit for this mode reached",
-      "personalBest": "Training session — new personal best"
+      "personalBest": "Training session — new personal best",
+      "weekGoal": "Weekly goal reached",
+      "weekStreak": "{{n}} weeks in a row"
+    },
+    "part": {
+      "correct": "Correct answers",
+      "accuracy": "Accuracy bonus",
+      "personalBest": "New personal best",
+      "dailyCap": "Daily limit reached",
+      "other": "Other"
+    },
+    "weekStreak": {
+      "label_one": "{{count}} week",
+      "label_other": "{{count}} weeks",
+      "hint": "Weeks in a row with your planned training days"
     }
   },
   "simulator": {
@@ -2372,6 +2423,25 @@
       "yes": "Yes",
       "no": "No",
       "note": "The latest 50 technical failures of a checkout or an account action, kept for 90 days; times are in your time zone. A failure that happened while the device was offline only arrives on that visitor’s next visit — if there is one. Nothing notifies you: this list is only seen when you open this page."
+    },
+    "funnel": {
+      "title": "Path to purchase",
+      "loading": "Loading the path to purchase…",
+      "error": "The path to purchase could not be loaded.",
+      "missingMigration": "Nothing is being recorded yet: the migration {{file}} has to be applied first.",
+      "share": "{{percent}}%",
+      "steps": {
+        "visitors": "Visitors",
+        "signupViews": "Saw the sign-up form",
+        "registrations": "Registered",
+        "firstSessions": "First training session",
+        "paywallViews": "Saw the upgrade offer",
+        "checkoutStarts": "Started checkout",
+        "payingCustomers": "Paying customers"
+      },
+      "note": "Each bar is one step in the selected range; the percentage is its share of the step before. Only visitors who accepted cookies are counted in the visitor, sign-up form, first session, upgrade offer and checkout steps. Registrations count every new account, so that step can be larger than the one before it. Paying customers are the active subscriptions right now and do not follow the range. Each step is counted on its own: this is not one group of people followed from start to finish.",
+      "since": "Steps have been recorded since {{date}}; there is nothing from before that day.",
+      "sinceNone": "No step has been recorded so far — they exist only from the day the migration was applied."
     }
   },
   "report": {
@@ -2465,5 +2535,39 @@
     "decline": "Decline",
     "settings": "Cookie settings",
     "short": "Only for our own visit statistics. No ads, no third parties."
+  },
+  "offline": {
+    "notice": "No connection — your training is saved on this device and will be uploaded when you are back online.",
+    "restored": "Back online — everything is saved.",
+    "signOut": {
+      "title": "Not everything is uploaded yet",
+      "body_one": "{{count}} training session has not been uploaded yet. Signing out now deletes it from this device.",
+      "body_other": "{{count}} training sessions have not been uploaded yet. Signing out now deletes them from this device.",
+      "stay": "Stay signed in",
+      "anyway": "Sign out anyway"
+    }
+  },
+  "install": {
+    "button": "Install app",
+    "description": "Put the trainer on your home screen and open it like an app. It still needs a connection to start."
+  },
+  "try": {
+    "eyebrow": "Free · no account",
+    "title": "Play a round of basic strategy",
+    "intro": "{{hands}} hands. You see your hand and the dealer’s card and pick the play. At the end you get your score and the hands you missed.",
+    "start": "Deal the first hand",
+    "end": {
+      "eyebrow": "Round complete",
+      "score": "{{correct}} of {{total}} hands played right",
+      "perfect": "Not one mistake — every hand played by the book.",
+      "missedTitle": "The hands you missed",
+      "colHand": "Hand vs. dealer",
+      "colYou": "Your play",
+      "colRight": "Right play",
+      "hand": "{{hand}} vs. {{dealer}}",
+      "keep": "Create a free account to keep this result and get your training plan.",
+      "plan": "Create a free account and get your training plan.",
+      "cta": "Create free account"
+    }
   }
 }

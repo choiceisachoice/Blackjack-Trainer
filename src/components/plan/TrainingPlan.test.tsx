@@ -11,6 +11,7 @@ import { getPlacement, getReadStages, hasSkippedPlacement, CURRICULUM, type Stag
 import { getProfile, commitmentFor } from '../../services/learner-profile'
 import { readPlanState, writePlanState, type PlanState } from '../../services/plan-state'
 import { isRecommendationDone } from '../../services/recommendation'
+import { shiftDayKey, weekStartKey } from '../../services/date-utils'
 import type { TrainingMode, TrainingSessionResult } from '../../services/stats-types'
 
 // Pro state is the one input the plan cannot derive from sessions, so it is the
@@ -348,6 +349,39 @@ describe('TrainingPlan', () => {
     const dots = screen.getByTestId('plan-week').querySelectorAll('[data-trained]')
     expect(dots).toHaveLength(7)
     expect(screen.getByTestId('plan-week').querySelectorAll('[data-trained="true"]')).toHaveLength(1)
+  })
+
+  it('shows weeks kept in a row beside the week, counted from the weeks that were paid', () => {
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    localStorage.setItem('bjt_learner_profile', JSON.stringify({
+      goal: 'serious', commitment: 'casual', daysPerWeek: 1, minutesPerDay: 20,
+    }))
+    const monday = weekStartKey()
+    // The two weeks before this one were kept and paid.
+    localStorage.setItem('bjt_claimed_rewards', JSON.stringify([
+      `week:${shiftDayKey(monday, -14)}`, `week:${shiftDayKey(monday, -7)}`,
+    ]))
+    render(<TrainingPlan />)
+    // This week is still open: the streak of two stands.
+    expect(screen.getByTestId('plan-week-streak')).toHaveTextContent('2 weeks')
+    cleanup()
+
+    // One session today keeps a one-day week — three, in the same render,
+    // before anything has been written down as paid.
+    useStatsStore.setState({ sessions: many(1, 'speedDrill', 0.5) })
+    render(<TrainingPlan />)
+    expect(screen.getByTestId('plan-week-streak')).toHaveTextContent('3 weeks')
+  })
+
+  it('shows no streak for a first kept week, or with none paid', () => {
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    localStorage.setItem('bjt_learner_profile', JSON.stringify({
+      goal: 'serious', commitment: 'casual', daysPerWeek: 1, minutesPerDay: 20,
+    }))
+    useStatsStore.setState({ sessions: many(1, 'speedDrill', 0.5) })
+    render(<TrainingPlan />)
+    expect(within(screen.getByTestId('plan-today')).getByText('Week done')).toBeInTheDocument()
+    expect(screen.queryByTestId('plan-week-streak')).toBeNull()
   })
 
   it('seats a Pro learner at the table once counting is in place and the day is long enough', () => {

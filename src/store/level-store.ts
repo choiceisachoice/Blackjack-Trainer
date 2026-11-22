@@ -40,7 +40,81 @@ export interface LevelStoreState {
    * source still re-triggers the toast; without it, two 40-XP drills in a row
    * would announce once.
    */
-  lastAward: { amount: number; labelKey: string; labelParams?: Record<string, string>; id: number } | null
+  lastAward: XpAward | null
+}
+
+/**
+ * One announcement of XP: what was credited, and what it was made of.
+ *
+ * A finished session pays from several places within the same moment — the
+ * answers, the accuracy on top, a personal best, and an instant later a
+ * stage, a kept week, a challenge, an award. Each used to replace the one
+ * before it in `lastAward`, so the toast showed whichever came last and the
+ * rest was paid in silence. Payouts that land while an announcement is still
+ * fresh now join it as further `parts`.
+ *
+ * `amount` is always the sum of `parts` — the lines of the toast add up to
+ * what was credited, by construction.
+ */
+export interface XpAward {
+  /** Increments with every payout, so the toast re-arms. */
+  id: number
+  /** XP credited by everything in this announcement. */
+  amount: number
+  /** What it was made of, in the order it was paid. Every part is above zero. */
+  parts: XPSource[]
+  /**
+   * The one line that says it all, when one line can: a single part, or a
+   * session the day's limit left nothing of. Absent once there is more to say.
+   */
+  labelKey?: string
+  labelParams?: Record<string, string>
+  /** A remark that is not an amount — the day's limit took part of a session. */
+  noteKey?: string
+  /** When it was last added to (epoch ms). */
+  at: number
+}
+
+/** How long after a payout a further one still belongs to the same announcement. */
+export const AWARD_MERGE_MS = 1500
+
+/** The most lines the toast lists under its total. */
+export const AWARD_MAX_LINES = 3
+
+/** One line of the toast: a part with its amount, or a remark without one. */
+export interface AwardLine {
+  labelKey: string
+  labelParams?: Record<string, string>
+  amount?: number
+}
+
+/**
+ * The lines the toast shows for an award — at most {@link AWARD_MAX_LINES}.
+ *
+ * More parts than fit are not dropped: the two largest keep their own line
+ * and the rest share one ("Other"), so the lines still add up to the total.
+ * The remark about the day's limit is shown when there is a line left for it.
+ *
+ * @param award - The announcement
+ */
+export function awardLines(award: Pick<XpAward, 'parts' | 'noteKey'>): AwardLine[] {
+  let lines: AwardLine[] = award.parts.map(p => ({ ...p }))
+  if (lines.length > AWARD_MAX_LINES) {
+    const keep = new Set(
+      award.parts
+        .map((p, i) => ({ i, amount: p.amount }))
+        .sort((a, b) => b.amount - a.amount || a.i - b.i)
+        .slice(0, AWARD_MAX_LINES - 1)
+        .map(x => x.i),
+    )
+    const rest = award.parts.reduce((sum, p, i) => (keep.has(i) ? sum : sum + p.amount), 0)
+    lines = [
+      ...award.parts.filter((_, i) => keep.has(i)).map(p => ({ ...p })),
+      { labelKey: 'xp.part.other', amount: rest },
+    ]
+  }
+  if (award.noteKey && lines.length < AWARD_MAX_LINES) lines.push({ labelKey: award.noteKey })
+  return lines
 }
 
 /**
@@ -116,27 +190,68 @@ function tierToXP(tier: string): number {
 /** Monotonic id so repeated identical payouts still register as new. */
 let awardSeq = 0
 
+/** What one payout announces. */
+interface Payout {
+  /** What was credited, line by line. May be empty when only a remark is made. */
+  parts: XPSource[]
+  /** The single line for it, when it stands alone. */
+  labelKey: string
+  labelParams?: Record<string, string>
+  noteKey?: string
+}
+
+/**
+ * The announcement after a payout: a new one, or the fresh one with this
+ * payout added to it.
+ */
+function announce(previous: XpAward | null, payout: Payout): XpAward {
+  awardSeq += 1
+  const now = Date.now()
+  const parts = payout.parts.filter(p => p.amount > 0)
+  const sum = (list: XPSource[]) => list.reduce((n, p) => n + p.amount, 0)
+  if (!previous || now - previous.at > AWARD_MERGE_MS) {
+    return {
+      id: awardSeq,
+      amount: sum(parts),
+      parts,
+      // One line only when one line says everything.
+      ...(parts.length <= 1 ? { labelKey: payout.labelKey, labelParams: payout.labelParams } : {}),
+      noteKey: payout.noteKey,
+      at: now,
+    }
+  }
+  const all = [...previous.parts, ...parts]
+  return {
+    id: awardSeq,
+    amount: sum(all),
+    parts: all,
+    // Two payouts are two lines. Only two remarks with nothing paid are one.
+    ...(all.length === 0 ? { labelKey: previous.labelKey ?? payout.labelKey } : {}),
+    noteKey: previous.noteKey ?? payout.noteKey,
+    at: now,
+  }
+}
+
 function applyXP(
   set: (partial: Partial<LevelStore>) => void,
   get: () => LevelStore,
-  amount: number,
-  labelKey: string,
-  labelParams?: Record<string, string>,
+  payout: Payout,
 ): void {
+  const amount = payout.parts.reduce((n, p) => n + Math.max(0, p.amount), 0)
   if (amount <= 0) return
 
   const before = get().levelUpData
   const result = levelSystem.addXP(amount)
-  awardSeq += 1
 
   const base = {
-    lastAward: { amount, labelKey, labelParams, id: awardSeq },
+    lastAward: announce(get().lastAward, payout),
     totalXP: levelSystem.getTotalXP(),
     level: levelSystem.getLevel(),
     progress: levelSystem.getProgressToNext(),
   }
 
-  const source: XPSource = { labelKey, labelParams, amount }
+  // The level-up popup keeps one line per payout, as before.
+  const source: XPSource = { labelKey: payout.labelKey, labelParams: payout.labelParams, amount }
 
   if (result.leveledUp && result.oldLevel && result.newLevel) {
     // Sound only on the first hop of a burst — before this hop there was no
@@ -174,29 +289,42 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
     // A new personal best is paid on top, and outside the day's limit: the
     // limit is there against grinding, and a best cannot be ground.
     const best = personalBestXP(session, earlier)
-    if (best > 0) {
-      applyXP(set, get, xp.amount + best, 'xp.source.personalBest')
-    } else if (xp.amount > 0) {
-      applyXP(set, get, xp.amount, xp.capped ? 'xp.source.sessionCapped' : 'xp.source.session')
+    // What the session is made of. The answers are paid first, the accuracy
+    // factor is what it added on top; the two are `xp.amount` exactly.
+    const base = xp.base ?? xp.amount
+    const parts: XPSource[] = [
+      { labelKey: 'xp.part.correct', amount: base },
+      { labelKey: 'xp.part.accuracy', amount: xp.amount - base },
+      { labelKey: 'xp.part.personalBest', amount: best },
+    ].filter(p => p.amount > 0)
+    const labelKey = best > 0
+      ? 'xp.source.personalBest'
+      : xp.amount > 0
+        ? (xp.capped ? 'xp.source.sessionCapped' : 'xp.source.session')
+        : 'xp.source.dailyCap'
+    const payout: Payout = { parts, labelKey, noteKey: xp.capped ? 'xp.part.dailyCap' : undefined }
+    if (parts.length > 0) {
+      applyXP(set, get, payout)
     } else if (xp.capped) {
       // Earned, and not paid: say so, or a good session reads as a broken one.
-      awardSeq += 1
-      set({ lastAward: { amount: 0, labelKey: 'xp.source.dailyCap', id: awardSeq } })
+      set({ lastAward: announce(get().lastAward, payout) })
     }
   },
 
   addChallengeXP(amount, labelKey = 'xp.source.challenge', labelParams) {
-    applyXP(set, get, amount, labelKey, labelParams)
+    applyXP(set, get, { parts: [{ labelKey, labelParams, amount }], labelKey, labelParams })
   },
 
   addAchievementXP(tier) {
-    applyXP(set, get, tierToXP(tier), 'xp.source.achievement')
+    const labelKey = 'xp.source.achievement'
+    applyXP(set, get, { parts: [{ labelKey, amount: tierToXP(tier) }], labelKey })
   },
 
   addAchievementsXP(tiers) {
     // Sum first, then apply once, so several achievements unlocked together are
     // one line in the breakdown rather than several competing popups.
-    applyXP(set, get, tiers.reduce((sum, t) => sum + tierToXP(t), 0), 'xp.source.achievements')
+    const labelKey = 'xp.source.achievements'
+    applyXP(set, get, { parts: [{ labelKey, amount: tiers.reduce((sum, t) => sum + tierToXP(t), 0) }], labelKey })
   },
 
   dismissLevelUp() {

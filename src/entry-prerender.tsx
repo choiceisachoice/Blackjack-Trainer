@@ -10,6 +10,7 @@ import { LandingPage } from './pages/LandingPage'
 import { LearnPublicPage } from './pages/LearnPublicPage'
 import { LearnTopicPage } from './pages/LearnTopicPage'
 import { StrategyChartPublicPage } from './pages/StrategyChartPublicPage'
+import { TryPage } from './pages/TryPage'
 import { TermsPage } from './pages/legal/TermsPage'
 import { PrivacyPage } from './pages/legal/PrivacyPage'
 import { ContactPage } from './pages/legal/ContactPage'
@@ -50,6 +51,9 @@ export const PRERENDER_ROUTES: readonly { path: string; page: PageKey }[] = [
   // One page per chapter: the hub links to them, and each answers one query.
   ...LEARN_TOPICS.map(t => ({ path: learnTopicPath(t), page: `learn-${t.slug}` as PageKey })),
   { path: '/strategy-chart', page: 'strategy-chart' },
+  // The trial round's first screen: the same for every visitor, so it can be
+  // written ahead; the round itself is dealt in the browser.
+  { path: '/try', page: 'try' },
   { path: '/terms', page: 'terms' },
   { path: '/privacy', page: 'privacy' },
   { path: '/contact', page: 'contact' },
@@ -86,6 +90,7 @@ export async function render(path: string, locale: Locale, basename = ''): Promi
           <Route path="/learn" element={<LearnPublicPage />} />
           <Route path="/learn/:slug" element={<LearnTopicPage />} />
           <Route path="/strategy-chart" element={<StrategyChartPublicPage />} />
+          <Route path="/try" element={<TryPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/contact" element={<ContactPage />} />

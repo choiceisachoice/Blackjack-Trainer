@@ -10,6 +10,27 @@ import { useAuthStore } from '../../store/auth-store'
 import { isSupabaseConfigured } from '../supabase/client'
 import { SupabaseStorageService } from '../supabase/supabase-storage'
 import { dayKey, dayKeyOffset } from '../date-utils'
+import {
+  confirmSessionsUploaded,
+  getPendingSessionIds,
+  markSessionPending,
+  markUploadFailed,
+} from './pending-sessions'
+import { withTimeout } from './with-timeout'
+import { getLocalOwner } from './local-owner'
+
+/**
+ * How long a cloud write may take before it counts as failed. The session is
+ * on the device either way; this only decides when the learner is told that
+ * it is waiting to be uploaded.
+ */
+export const CLOUD_SAVE_TIMEOUT_MS = 12_000
+
+/**
+ * How long a cloud read may take. Without a limit a request that never
+ * answers left `loadStats` — and every screen waiting on it — loading forever.
+ */
+export const CLOUD_READ_TIMEOUT_MS = 12_000
 
 /** Keys used in localStorage. */
 const SESSIONS_KEY = 'bjt_sessions'
@@ -272,9 +293,23 @@ class SyncedStorageService implements StorageService {
     const localWrite = this.local.saveSessionResult(result)
 
     if (this.impl() !== this.local) {
-      this.cloud.saveSessionResult(result).catch(e => {
-        console.error('cloud session save failed; the local copy stands', e)
-      })
+      // Marked as waiting *before* the request leaves, and written to storage:
+      // if the tab is closed with the request in flight, or the request never
+      // answers, the next page load still knows this session has to go up.
+      markSessionPending(result.id)
+      const offline = typeof navigator !== 'undefined' && navigator.onLine === false
+      const push = offline
+        // No request when the browser itself says there is no network: it
+        // could only fail, after making supabase-js retry a token refresh.
+        ? Promise.reject(new Error('offline'))
+        : withTimeout(this.cloud.saveSessionResult(result), CLOUD_SAVE_TIMEOUT_MS, 'cloud session save')
+      push.then(
+        () => confirmSessionsUploaded([result.id]),
+        e => {
+          markUploadFailed()
+          console.error('cloud session save failed; the local copy stands and will be uploaded later', e)
+        },
+      )
     }
 
     // Still surfaced to the caller: `recordSession` logs it and carries on, and
@@ -284,17 +319,62 @@ class SyncedStorageService implements StorageService {
   getSessionResults(mode: TrainingMode): Promise<TrainingSessionResult[]> {
     return this.impl().getSessionResults(mode)
   }
-  getAllSessionResults(): Promise<TrainingSessionResult[]> {
-    return this.impl().getAllSessionResults()
+  /**
+   * All sessions. From the cloud when signed in — plus any session that is on
+   * this device and not confirmed in the cloud yet.
+   *
+   * Without that second half, a session saved while offline disappeared from
+   * the history the moment any screen reloaded the stats: the cloud's list is
+   * the source of truth, and the cloud had not heard of it.
+   *
+   * "Not confirmed yet" is not the whole of it, though. A read that left
+   * before a session's upload and came back after it found the session
+   * neither in its answer nor on the waiting list — the upload had been
+   * confirmed in between — and the session just finished dropped out of the
+   * history until the next reload. So everything this device holds for the
+   * signed-in account and the answer lacks is kept, waiting or not. The
+   * device's copy is the account's own (the owner check), it is emptied with
+   * the cloud's by `clearAll`, and whatever is in it is uploaded again on the
+   * next page load anyway.
+   */
+  async getAllSessionResults(): Promise<TrainingSessionResult[]> {
+    if (this.impl() === this.local) return this.local.getAllSessionResults()
+    const fromCloud = await withTimeout(
+      this.cloud.getAllSessionResults(), CLOUD_READ_TIMEOUT_MS, 'cloud session read',
+    )
+    // Both read after the answer, so they describe the device as it is now.
+    const pending = getPendingSessionIds()
+    const userId = useAuthStore.getState().user?.id
+    const ownDevice = !!userId && getLocalOwner() === userId
+    if (pending.length === 0 && !ownDevice) return fromCloud
+    const known = new Set(fromCloud.map(s => s.id))
+    const onDevice = (await this.local.getAllSessionResults())
+      .filter(s => !known.has(s.id) && (ownDevice || pending.includes(s.id)))
+    return onDevice.length > 0 ? [...onDevice, ...fromCloud] : fromCloud
   }
   getSessionResultsByDateRange(start: Date, end: Date): Promise<TrainingSessionResult[]> {
     return this.impl().getSessionResultsByDateRange(start, end)
   }
-  getLifetimeStats(): Promise<LifetimeStats> {
-    return this.impl().getLifetimeStats()
+  async getLifetimeStats(): Promise<LifetimeStats> {
+    // Derived from the same list as above, so the figures include a session
+    // that is still waiting for the cloud.
+    return computeLifetimeStats(await this.getAllSessionResults())
   }
-  clearAll(): Promise<void> {
-    return this.impl().clearAll()
+  /**
+   * Delete the whole history — the cloud's and this device's.
+   *
+   * Signed in, only the cloud's used to go. The device's copy stayed in
+   * `bjt_sessions`, and since the sign-in merge uploads whatever is in there,
+   * the sessions recorded on this device were back in the account on the next
+   * page load. The cloud goes first: if that fails, nothing has been deleted,
+   * which is what the reset screens tell the reader.
+   */
+  async clearAll(): Promise<void> {
+    if (this.impl() !== this.local) {
+      await this.cloud.clearAll()
+      confirmSessionsUploaded(getPendingSessionIds())
+    }
+    await this.local.clearAll()
   }
 }
 
@@ -303,3 +383,21 @@ export const storage: StorageService = new SyncedStorageService()
 
 /** Direct access to the localStorage backend (used by the one-time cloud migration). */
 export const localStorageService = new LocalStorageService()
+
+/**
+ * The sessions held on this device, for when the cloud cannot be read.
+ *
+ * Not the whole history — only what was recorded here since the last sign-in —
+ * so it is a stand-in for an empty screen, never a replacement for a list
+ * that is already loaded. Empty unless the local caches belong to the account
+ * that is signed in: on a shared device the wipe that enforces that runs a
+ * moment after sign-in, and nobody is shown the previous person's history in
+ * the gap.
+ */
+export async function getDeviceSessionResults(): Promise<TrainingSessionResult[]> {
+  if (isSupabaseConfigured) {
+    const userId = useAuthStore.getState().user?.id
+    if (!userId || getLocalOwner() !== userId) return []
+  }
+  return localStorageService.getAllSessionResults()
+}

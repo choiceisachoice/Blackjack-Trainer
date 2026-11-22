@@ -105,6 +105,8 @@ export interface CasinoSessionDetails {
    * Optional: sessions recorded before the mode existed were all counting.
    */
   playStyle?: 'counting' | 'basic'
+  /** Played at the free trial table (`casino-trial.ts`). Absent on every other session. */
+  trial?: boolean
   /** Number of bots at the table. */
   numBots: number
   /** Whether the player got a blackjack during the session. */

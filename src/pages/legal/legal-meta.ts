@@ -11,6 +11,29 @@
  * pages surface a visible warning while any remain, so a draft never ships
  * silently as if it were final.
  */
+/**
+ * The date the Terms and the Privacy Policy were last changed, as an ISO day.
+ *
+ * The one place the date is written. Every language's "last updated" line is
+ * formatted from it (`formatLegalDate`), so the seven versions cannot
+ * disagree about when the text changed.
+ */
+const LAST_UPDATED_ISO = '2026-11-18'
+
+/**
+ * The last-updated date, written out the way a given locale writes dates.
+ *
+ * @param tag - A BCP 47 tag, e.g. `en-GB` → "18 November 2026", `de-CH` → "18. November 2026"
+ * @param iso - The day to format; defaults to the documents' last-updated date
+ */
+export function formatLegalDate(tag: string, iso: string = LAST_UPDATED_ISO): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  // UTC on both sides: a calendar day must not slip to the 17th for a reader
+  // west of Greenwich.
+  return new Intl.DateTimeFormat(tag, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(Date.UTC(y, m - 1, d)))
+}
+
 export const LEGAL_META = {
   /** The product's public name. */
   productName: 'Blackjack Card Counting Trainer',
@@ -53,10 +76,14 @@ export const LEGAL_META = {
   governingLaw: 'Switzerland',
 
   /**
-   * Date these documents were last changed. Update it whenever you edit the
-   * Terms or Privacy text — the "last updated" line is legally meaningful.
+   * Date these documents were last changed, as an ISO day. Update
+   * `LAST_UPDATED_ISO` above whenever you edit the Terms or Privacy text —
+   * the "last updated" line is legally meaningful.
    */
-  lastUpdated: '18 November 2026',
+  lastUpdatedIso: LAST_UPDATED_ISO,
+
+  /** The same date as the English pages print it ("18 November 2026"). */
+  lastUpdated: formatLegalDate('en-GB'),
 } as const
 
 /**

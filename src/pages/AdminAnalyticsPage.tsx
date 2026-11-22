@@ -14,6 +14,7 @@ import {
   type RangePreset,
 } from '../services/analytics/report'
 import { fetchClientFailures, CLIENT_FAILURES_MIGRATION, type ClientFailure } from '../services/analytics/failures'
+import { fetchFunnel, funnelSteps, FUNNEL_MIGRATION, type Funnel, type FunnelStepId } from '../services/analytics/funnel'
 import { DailyBars, type DailyMetric } from '../components/analytics-web/WebAnalyticsCharts'
 import { Segmented, EmptyState } from '../components/common/ui'
 
@@ -178,6 +179,116 @@ function FailuresSection({ reloadTick }: { reloadTick: number }) {
       </div>
       <p className="mt-4 text-xs text-content/40 max-w-3xl" data-testid="failures-note">
         {t('adminAnalytics.failures.note')}
+      </p>
+    </Panel>
+  )
+}
+
+const FUNNEL_STEP_KEY: Record<FunnelStepId, string> = {
+  visitors: 'adminAnalytics.funnel.steps.visitors',
+  signup_views: 'adminAnalytics.funnel.steps.signupViews',
+  registrations: 'adminAnalytics.funnel.steps.registrations',
+  first_sessions: 'adminAnalytics.funnel.steps.firstSessions',
+  paywall_views: 'adminAnalytics.funnel.steps.paywallViews',
+  checkout_starts: 'adminAnalytics.funnel.steps.checkoutStarts',
+  paying_customers: 'adminAnalytics.funnel.steps.payingCustomers',
+}
+
+/** What the funnel section is showing, tagged with the request it answers. */
+type FunnelAnswer =
+  | { key: string; kind: 'funnel'; funnel: Funnel }
+  | { key: string; kind: 'missing-migration' }
+  | { key: string; kind: 'error' }
+
+/**
+ * The path to purchase for the selected range: seven steps from arriving to
+ * paying, each with its count and its share of the step before.
+ *
+ * Its own request and its own states, like the failures below it: before the
+ * migration is applied this section says so in one line and the rest of the
+ * page is unaffected.
+ *
+ * The footnote is part of the numbers. The steps are counted three different
+ * ways — cookie-accepting visitors, everyone, and "right now" — and a reader
+ * who is not told will read a drop-off that is only a difference in who was
+ * counted.
+ */
+function FunnelSection({ bounds, requestKey }: { bounds: { from: Date; to: Date } | null; requestKey: string | null }) {
+  const { t, i18n } = useTranslation()
+  const [answer, setAnswer] = useState<FunnelAnswer | null>(null)
+
+  useEffect(() => {
+    if (!bounds || !requestKey) return
+    let alive = true
+    fetchFunnel(bounds)
+      .then(r => {
+        if (!alive) return
+        setAnswer(r.kind === 'ok'
+          ? { key: requestKey, kind: 'funnel', funnel: r.funnel }
+          : { key: requestKey, kind: 'missing-migration' })
+      })
+      .catch(e => {
+        logFailure('admin-funnel', e)
+        if (alive) setAnswer({ key: requestKey, kind: 'error' })
+      })
+    return () => { alive = false }
+  }, [bounds, requestKey])
+
+  const loading = requestKey !== null && answer?.key !== requestKey
+  const steps = answer?.kind === 'funnel' ? funnelSteps(answer.funnel) : []
+  const since = answer?.kind === 'funnel' && answer.funnel.events_since ? new Date(answer.funnel.events_since) : null
+
+  return (
+    <Panel title={t('adminAnalytics.funnel.title')} className="mt-8">
+      <div data-testid="analytics-funnel" aria-busy={loading}>
+        {!answer && (
+          <div className="flex items-center gap-2 text-sm text-content/50" data-testid="funnel-loading">
+            <Loader2 size={16} className="animate-spin" /> {t('adminAnalytics.funnel.loading')}
+          </div>
+        )}
+        {answer?.kind === 'missing-migration' && (
+          <p className="text-sm text-content/60" data-testid="funnel-missing-migration">
+            {t('adminAnalytics.funnel.missingMigration', { file: FUNNEL_MIGRATION })}
+          </p>
+        )}
+        {answer?.kind === 'error' && (
+          <p className="text-sm text-error" data-testid="funnel-error">{t('adminAnalytics.funnel.error')}</p>
+        )}
+        {answer?.kind === 'funnel' && (
+          <ol className={`space-y-2 ${loading ? 'opacity-60' : ''}`} data-testid="funnel-steps">
+            {steps.map(step => (
+              <li key={step.id} className="grid grid-cols-[minmax(0,6.5rem)_minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)_auto] items-center gap-3 text-sm" data-testid={`funnel-step-${step.id}`}>
+                <span className="text-content/85 leading-snug">{t(FUNNEL_STEP_KEY[step.id])}</span>
+                <span className="h-6 rounded-md bg-contrast/5 overflow-hidden" aria-hidden="true">
+                  <span
+                    className="block h-full rounded-md"
+                    data-testid={`funnel-bar-${step.id}`}
+                    style={{ width: `${step.width}%`, background: 'color-mix(in srgb, var(--color-gold) 55%, transparent)' }}
+                  />
+                </span>
+                <span className="flex items-baseline justify-end gap-2 tabular-nums whitespace-nowrap">
+                  <span className="font-semibold text-content" data-testid={`funnel-count-${step.id}`}>{step.count.toLocaleString(i18n.language)}</span>
+                  <span className="text-xs text-content/50 w-[4.5rem] text-right" data-testid={`funnel-share-${step.id}`}>
+                    {step.percentOfPrevious === null ? '—' : t('adminAnalytics.funnel.share', { percent: step.percentOfPrevious })}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+      <p className="mt-4 text-xs text-content/40 max-w-3xl" data-testid="funnel-note">
+        {t('adminAnalytics.funnel.note')}
+        {answer?.kind === 'funnel' && (
+          <>
+            {' '}
+            <span data-testid="funnel-since">
+              {since && !Number.isNaN(since.getTime())
+                ? t('adminAnalytics.funnel.since', { date: since.toLocaleDateString(i18n.language) })
+                : t('adminAnalytics.funnel.sinceNone')}
+            </span>
+          </>
+        )}
       </p>
     </Panel>
   )
@@ -367,6 +478,9 @@ export function AdminAnalyticsPage() {
             </p>
           </div>
         )}
+
+        {/* Outside the report's states on purpose, like the failures below. */}
+        <FunnelSection bounds={bounds} requestKey={key} />
 
         {/* Outside the report's states on purpose: see `FailuresSection`. */}
         <FailuresSection reloadTick={reloadTick} />

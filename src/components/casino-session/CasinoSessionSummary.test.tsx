@@ -115,3 +115,31 @@ describe('CasinoSessionSummary — Just Blackjack', () => {
     expect(screen.queryByTestId('summary-basic-mode')).toBeNull()
   })
 })
+
+describe('the summary of a trial table', () => {
+  const show = (handsLeft: number) =>
+    render(<CasinoSessionSummary result={RESULT} onPlayAgain={vi.fn()} onHome={vi.fn()} recorder={null} trial={{ handsLeft }} />)
+
+  it('is the ordinary summary, with one line about the trial', () => {
+    show(4)
+    expect(screen.getByText('B+')).toBeInTheDocument()
+    expect(screen.getByTestId('trial-summary-note')).toHaveTextContent('You have 4 free hands left.')
+    expect(screen.getByTestId('play-again')).toHaveTextContent('Play Again')
+    expect(screen.getByTestId('summary-actions')).not.toHaveClass('max-sm:flex-col')
+  })
+
+  it('names the way on honestly once the hands are gone', () => {
+    show(0)
+    expect(screen.getByTestId('trial-summary-note')).toHaveTextContent('Those were your 10 free hands.')
+    expect(screen.getByTestId('play-again')).toHaveTextContent('Keep playing with Pro')
+    // Still two ways out and no third.
+    expect(screen.getAllByRole('button')).toHaveLength(2)
+    // One under the other on a phone: the label is a sentence, not a word.
+    expect(screen.getByTestId('summary-actions')).toHaveClass('max-sm:flex-col')
+  })
+
+  it('says nothing about a trial after any other session', () => {
+    render(<CasinoSessionSummary result={RESULT} onPlayAgain={vi.fn()} onHome={vi.fn()} recorder={null} />)
+    expect(screen.queryByTestId('trial-summary-note')).toBeNull()
+  })
+})

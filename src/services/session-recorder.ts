@@ -103,6 +103,7 @@ export interface SessionEventRecorder {
     isCorrect: boolean,
     isBlackjack: boolean,
     handNumber: number,
+    playsByTheBook?: boolean,
   ): void
   recordBlackjackCheck(
     player: string,
@@ -306,6 +307,15 @@ export class SessionRecorder implements SessionEventRecorder {
   /**
    * Records a player action (human or bot).
    * Detects bot basic strategy violations.
+   *
+   * Only for a bot that is meant to play by the book. The check dates from
+   * when every bot did; since the table seats temperaments — the timid one,
+   * the gambler, the one who never busts (`bot-player.ts`) — their mistakes
+   * are the design, and counting each as an anomaly put "Anomalies detected"
+   * on the summary of nearly every session with other players at the table.
+   *
+   * @param playsByTheBook - Whether this player is expected to play basic
+   *   strategy. Defaults to true, the check as it always was.
    */
   recordPlayerAction(
     player: string,
@@ -316,6 +326,7 @@ export class SessionRecorder implements SessionEventRecorder {
     isCorrect: boolean,
     isBlackjack: boolean,
     handNumber: number,
+    playsByTheBook = true,
   ): void {
     this.record('player_action', {
       handNumber,
@@ -328,7 +339,7 @@ export class SessionRecorder implements SessionEventRecorder {
       isBlackjack,
     })
 
-    if (player.startsWith('bot:') && !isCorrect && !isBlackjack) {
+    if (player.startsWith('bot:') && playsByTheBook && !isCorrect && !isBlackjack) {
       const msg = `ANOMALY Hand #${handNumber}: ${player} played ${action} ` +
         `but correct was ${correctAction} (hand: ${handValue} vs dealer ${dealerUpCard})`
       this.anomalies.push(msg)

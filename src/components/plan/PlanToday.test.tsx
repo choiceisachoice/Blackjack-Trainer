@@ -370,6 +370,36 @@ describe('TodayBlocks', () => {
     expect(within(today).queryByText('Week done')).toBeNull()
   })
 
+  /**
+   * Weeks kept in a row — the one place the streak is shown (21 Nov 2026).
+   */
+  it('shows the week streak beside the dots from two weeks on', () => {
+    render(<TodayBlocks day={day([block('work')])} week={week({ trained: 1, target: 3 })} weekStreak={3} onOpen={vi.fn()} />)
+    const streak = within(screen.getByTestId('plan-today')).getByTestId('plan-week-streak')
+    expect(streak).toHaveTextContent('3 weeks')
+    expect(streak.querySelector('svg')).not.toBeNull()
+  })
+
+  it('shows no streak for none, or for a single week', () => {
+    for (const n of [undefined, 0, 1]) {
+      const { unmount } = render(
+        <TodayBlocks day={day([block('work')])} week={week({ trained: 3, target: 3, met: true })} weekStreak={n} onOpen={vi.fn()} />,
+      )
+      expect(screen.queryByTestId('plan-week-streak')).toBeNull()
+      unmount()
+    }
+  })
+
+  it('draws one flame, not two, when the week is done and a streak stands', () => {
+    render(
+      <TodayBlocks day={day([block('work')])} week={week({ trained: 3, target: 3, met: true })} weekStreak={4} onOpen={vi.fn()} />,
+    )
+    const today = screen.getByTestId('plan-today')
+    expect(within(today).getByText('Week done')).toBeInTheDocument()
+    expect(within(today).getByTestId('plan-week-streak')).toHaveTextContent('4 weeks')
+    expect(today.querySelectorAll('svg.lucide-flame')).toHaveLength(1)
+  })
+
   it('says the week is done once the planned days are in', () => {
     render(
       <TodayBlocks day={day([block('work')])} week={week({ trained: 3, target: 3, met: true })} onOpen={vi.fn()} />,

@@ -23,6 +23,18 @@ and a full Casino Session table.
   achievements, level/XP and the bankroll log all sync (see ADR-001).
 - **Monetization:** **Stripe subscriptions** (monthly/yearly) gate a **Pro** tier. Server side runs on
   Supabase Edge Functions; entitlement is written only by the signature-verified webhook (see ADR-002).
+- **Free trial of the casino table** (22 Nov 2026): an account without Pro may play **ten hands
+  at the real table, once** — counted per account when a hand is settled, not per visit. One
+  entry point: the Casino Session card on the home screen says "Try 10 hands free" where its
+  lock was (the nav lock goes with it), opens a three-line intro and then one fixed table
+  (`trial-table.ts`: the default table, basic strategy graded, review after every hand; the
+  count, several hands and the setup screen stay Pro). A quiet label in the table's status bar
+  counts down; after the last hand comes the ordinary summary, then the paywall with one line
+  from the trial's own result (`trialPaywallLine`). The count lives in `bjt_casino_trial` and in
+  `profiles.settings.casino_trial_hands`, merged by MAX in `profiles-sync` — no migration, no
+  table, no new analytics event. It is a **client-side counter** and says so in
+  `services/casino-trial.ts`: fine for a trial, never the model for Pro. `isModeLocked` in
+  `pro-features.ts` is the one rule the lock and the door share.
 - **UI Language:** English
 - **UI Theme:** **Dark-luxury only** (near-black `#070809` + gold `#d4a847`), in the style of
   Linear/Resend/Raycast. The Casino Session uses a realistic green-felt table within that shell.
@@ -94,9 +106,9 @@ npx supabase migration new <name>  # Create new migration
 ## Public pages, prerendered, in seven languages
 
 `npm run build` ends with `node scripts/prerender.mjs`: it builds
-`src/entry-prerender.tsx` for Node, renders the fourteen public routes (`/`,
-`/learn`, the eight chapters `/learn/<slug>`, `/strategy-chart`, `/terms`,
-`/privacy`, `/contact`) in every language and writes 98 HTML files into
+`src/entry-prerender.tsx` for Node, renders the fifteen public routes (`/`,
+`/learn`, the eight chapters `/learn/<slug>`, `/strategy-chart`, `/try`,
+`/terms`, `/privacy`, `/contact`) in every language and writes 105 HTML files into
 `dist` — `dist/learn/index.html`, `dist/de/learn/true-count/index.html` and
 so on — plus `sitemap.xml` with hreflang alternates. The client does
 **not** hydrate them; `main.tsx` reads the language prefix off the URL, opens
@@ -120,6 +132,29 @@ shows, deviations still behind Pro — because a tool earns links where a
 paragraph earns readers. The chapter pages and the chart share
 `PublicShell`, so a visitor from a search result always has the same way
 home and the same way in.
+
+## The trial round (`/try`)
+
+One round of ten basic-strategy flashcards without an account, reached from
+the landing hero's second button (signed-out visitors only). It is the real
+`DeviationTraining` with a `trial` prop that swaps the setup and the summary
+for the page's own two screens (`pages/TryPage.tsx`); the summary names the
+missed hands and offers one next step, the free account. Prerendered like the
+other public pages — the first screen is an intro that is the same for
+everyone; the landing's button skips it through router state.
+
+The round is recorded by the ordinary session recording, locally, and the
+sign-in merge uploads it to the account created afterwards. Three rules keep
+it out of anyone else's history (`services/guest-trial.ts`, tested end to end
+in `services/supabase/guest-round-migration.test.tsx`): the trial stamps
+`bjt_guest_since`, and ownerless data carrying that stamp goes only to an
+account **created after** the stamp (five minutes of clock slack) — an older
+account signing in on that device gets it wiped instead; a signed-in visitor
+is redirected to `/app`; and on a device that still holds an account's data
+(`bjt_local_owner` set, nobody signed in) the round is played but not
+recorded, and the summary does not promise to keep it. Not covered: a
+confirmation mail opened in a different browser than the one the round was
+played in — the round stays behind there.
 
 ## Demo recordings
 
@@ -218,6 +253,13 @@ login. What you cannot look at, you cannot judge.
 | `/dev/motion` | **“Bloom” — a 12.8s title sequence on canvas.** One card becomes 52, which open into a rotating rosette, close into a dealer's fan, and give back the card they started from. Two earlier versions of this screen failed the same way and the lesson is worth keeping: the first animated the product's *vocabulary* (running count, true count, bet ramp) and meant nothing to anyone who did not already know those words; the second drew card **backs** — dark rectangles on a dark ground, monotone no matter how well lit. The colour in a deck is on the front. Faces up on green felt, suits stepping ♠♥♣♦ so red and black alternate around the ring. The model (`services/motion/deck-film.ts`) is a pure function of `(card, t)`, so the piece is seekable — which is what makes the scrubber a review tool rather than a toy. |
 
 | `/dev/split` | **A bot's re-split, replayed on the real seat.** 8♥8♠ vs 6, the first hand catching the 8♦ — the case Darius found on 8 Oct 2026, when the table showed three hands at once. A re-split comes up once in a few hundred live hands, so this is the only way to watch one: two hands slide apart, the 8♦ is dealt, *then* the third hand appears, and each hand is played out before the next gets its card. Same engine (`playBotTurn` + its turn log) and same replay (`split-replay.ts`) as the table. |
+
+**Looking at the free tier locally.** The offline dev server (`npm run dev -- --mode offline`)
+unlocks everything, so locks, paywall and the casino trial cannot be seen. In the browser
+console: `localStorage.dev_free_tier = '1'` (and `localStorage.bjt_casino_trial = '{"used":0}'`
+for the trial, which is otherwise "unknown" without an account), then reload. The switch is read
+behind `import.meta.env.DEV` in `entitlement-store.ts`, only where Supabase is not configured,
+and can only take Pro away; the string is absent from a production bundle (checked by building).
 
 They are excluded from `i18next/no-literal-string` on purpose: read by whoever is building
 the thing, never by a user. Guard new ones with the same ternary as the others — guarding
@@ -421,6 +463,16 @@ issue and was dealt with".
    which is its own risk and proves less than it looks. Left deliberately.
 
 ### Closed
+
+- **A bot's temperament is no longer an "anomaly"** (22 Nov 2026). The session summary showed
+  "⚠ Anomalies detected during the session: 3" after nearly every table with other players at
+  it. `SessionRecorder` flags a bot that departs from basic strategy — a self-check from when
+  every bot played by the book. Since the table seats temperaments (timid, gambler, never-bust,
+  `bot-player.ts`), their mistakes are the design, and each one was counted. Found while looking
+  at the free trial's end screen, where every new account would have met it. The engine now
+  tells the recorder whether the bot is a by-the-book one (`playsByTheBook`); the check itself
+  is unchanged for those. Not examined: a by-the-book bot that cannot double for lack of
+  bankroll hits instead and may still be flagged.
 
 - **The repository's Caddyfile is running** (8 Oct 2026). `nixpacks.toml`
   points the start command at `./Caddyfile` — the Nixpacks template with three

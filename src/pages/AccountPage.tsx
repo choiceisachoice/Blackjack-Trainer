@@ -12,7 +12,8 @@ import { useLevelStore } from '../store/level-store'
 import { useAchievementStore } from '../store/achievement-store'
 import { openBillingPortal } from '../services/supabase/billing'
 import { isAppAdmin } from '../services/supabase/app-admin'
-import { signOutAndClearLocal } from '../services/supabase/cloud-sync'
+import { useGuardedSignOut } from '../hooks/use-guarded-sign-out'
+import { UnsavedSignOutDialog } from '../components/common/UnsavedSignOutDialog'
 import {
   displayNameOf, normalizeDisplayName, updateDisplayName,
   DISPLAY_NAME_MIN, DISPLAY_NAME_MAX,
@@ -31,6 +32,7 @@ import { casinoAmbient } from '../services/casino-ambient'
 import { useUpgradePrompt } from '../store/upgrade-prompt-store'
 import { UpgradeModalHost } from '../components/pro/UpgradeModalHost'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
+import { InstallAppButton } from '../components/common/InstallAppButton'
 import { Field, Input, Segmented, Slider, Toggle } from '../components/common/ui'
 import { logFailure } from '../services/failure-log'
 import { usePageMeta } from '../hooks/use-page-meta'
@@ -302,8 +304,6 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
   const unlocked = useAchievementStore(s => s.totalUnlocked)
   const unlockedIds = useAchievementStore(s => s.unlockedIds)
   const progress: AvatarProgress = { level: level.level, unlockedAchievementIds: unlockedIds }
-  const [signingOut, setSigningOut] = useState(false)
-
   /**
    * The same sign-out the nav bar performs, and it was not before.
    *
@@ -312,13 +312,13 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
    * level and the real-money bankroll log. `handleSignedIn` then treats all of
    * it as belonging to whoever signs in next on this machine. Two ways out of
    * the app, two different behaviours, and this was the wrong one.
+   *
+   * Shared as a hook now, with the question it can raise: sessions that could
+   * not be uploaded are not deleted without asking.
    */
-  async function handleSignOut() {
-    if (signingOut) return
-    setSigningOut(true)
-    await signOutAndClearLocal()
-    onSignOut()
-  }
+  const guardedSignOut = useGuardedSignOut(onSignOut)
+  const signingOut = guardedSignOut.busy
+  const handleSignOut = () => void guardedSignOut.signOut()
 
   const initial = (name ?? email ?? '?').trim().charAt(0).toUpperCase()
   const editable = isSupabaseConfigured && !!user
@@ -352,6 +352,14 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
         <Stat label={t('account.sessions')} value={sessionCount.toLocaleString()} />
         <Stat label={t('account.achievements')} value={`${unlocked} / ${ALL_ACHIEVEMENTS.length}`} />
       </dl>
+      {guardedSignOut.unsavedCount !== null && (
+        <UnsavedSignOutDialog
+          count={guardedSignOut.unsavedCount}
+          busy={guardedSignOut.busy}
+          onStay={guardedSignOut.stay}
+          onSignOut={() => void guardedSignOut.signOutAnyway()}
+        />
+      )}
     </section>
   )
 }
@@ -697,6 +705,8 @@ function PreferencesSection() {
         testId="account-ambient-volume"
       />
       <p className="text-xs text-content/40">{t('account.devicePrefsHint')}</p>
+      {/* Nothing at all unless the browser is offering the install. */}
+      <InstallAppButton />
     </Section>
   )
 }

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { useAppStore, type AppMode } from './app-store'
+import { useAuthStore, isSupabaseConfigured } from './auth-store'
+import { loadLiveSession, summarize, type LiveSessionSummary } from '../services/casino-live-session'
 
 /**
  * Knows whether a training session is running, and stands between the user and
@@ -76,6 +78,23 @@ export interface LiveSessionState {
   activeMode: AppMode | null
   /** The navigation waiting on an answer, or null. */
   pending: PendingLeave | null
+  /**
+   * A casino table saved on this device that is not being played right now —
+   * left behind by a closed tab, a reload or a dead phone — or null.
+   *
+   * It is what the resume card shows. The store holds the few figures the card
+   * needs, not the table: that stays in storage until someone continues it.
+   * Kept current by `refreshSaved`, which every path that writes or removes
+   * the saved table calls, by a `storage` listener for other tabs, and by the
+   * subscription at the foot of this file whenever the signed-in account
+   * changes — a table is only ever shown to the account it belongs to.
+   */
+  saved: LiveSessionSummary | null
+  /**
+   * "Continue" was pressed on the resume card: the Casino Session, when it
+   * mounts, opens the saved table instead of the setup screen.
+   */
+  resumeRequested: boolean
 }
 
 export interface LiveSessionActions {
@@ -104,14 +123,23 @@ export interface LiveSessionActions {
   confirmLeave(): LeaveTarget | null
   /** The user chose to stay. */
   cancelLeave(): void
+  /** Read the saved table from the device again and publish what the card shows. */
+  refreshSaved(): void
+  /** Ask the Casino Session to open the saved table when it mounts. */
+  requestResume(): void
+  /** The request was taken up (or there was nothing to resume). */
+  clearResumeRequest(): void
 }
 
 export type LiveSessionStore = LiveSessionState & LiveSessionActions
 
-const EMPTY: LiveSessionState = { activeMode: null, pending: null }
+/** No session in flight. The saved table and a resume request are separate facts and outlive this. */
+const EMPTY: Pick<LiveSessionState, 'activeMode' | 'pending'> = { activeMode: null, pending: null }
 
 export const useLiveSessionStore = create<LiveSessionStore>((set, get) => ({
   ...EMPTY,
+  saved: null,
+  resumeRequested: false,
 
   beginSession(mode) {
     set({ activeMode: mode })
@@ -177,5 +205,40 @@ export const useLiveSessionStore = create<LiveSessionStore>((set, get) => ({
   cancelLeave() {
     set({ pending: null })
   },
+
+  refreshSaved() {
+    const session = loadLiveSession()
+    // `loadLiveSession` already refuses a table the device's owner record
+    // does not match. That record changes a moment after the account does
+    // (the sign-in sync writes it, the sign-out wipe removes it), so where
+    // there are accounts the signed-in user is asked as well: no user, or
+    // another one, and there is no table to offer.
+    const mine = session !== null
+      && (!isSupabaseConfigured || session.owner === (useAuthStore.getState().user?.id ?? null))
+    set({ saved: session && mine ? summarize(session) : null })
+  },
+
+  requestResume() {
+    set({ resumeRequested: true })
+  },
+
+  clearResumeRequest() {
+    if (get().resumeRequested) set({ resumeRequested: false })
+  },
 }))
 
+/*
+  The saved table follows the account.
+
+  `clearLocalAppData` wipes the key on sign-out but knows nothing of this
+  store (and a `storage` event does not fire in the tab that made the change),
+  so `saved` kept describing a table that was gone — or, signed in as someone
+  else, one that was never theirs. The auth store is the one thing every
+  change of account goes through: when its status or its user changes, the
+  device is read again.
+*/
+useAuthStore.subscribe((now, before) => {
+  if (now.status !== before.status || now.user?.id !== before.user?.id) {
+    useLiveSessionStore.getState().refreshSaved()
+  }
+})

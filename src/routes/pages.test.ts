@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import {
   routeFor, isAppPath,
-  LandingPage, LoginPage, TrainerApp, AccountPage, LearnPublicPage, LearnTopicPage, StrategyChartPublicPage,
+  LandingPage, LoginPage, TrainerApp, AccountPage, LearnPublicPage, LearnTopicPage, StrategyChartPublicPage, TryPage,
 } from './pages'
 import { PUBLIC_PATHS, unprefixedPath } from '../i18n/locales'
 
@@ -16,6 +16,7 @@ describe('routeFor', () => {
     expect(routeFor('/learn')).toBe(LearnPublicPage)
     expect(routeFor('/learn/true-count')).toBe(LearnTopicPage)
     expect(routeFor('/strategy-chart')).toBe(StrategyChartPublicPage)
+    expect(routeFor('/try')).toBe(TryPage)
   })
 
   it('forgives a trailing slash, which is how a prerendered directory is often requested', () => {
@@ -47,6 +48,7 @@ describe('routeFor', () => {
     expect(routeFor(unprefixedPath('/de'))).toBe(LandingPage)
     expect(routeFor(unprefixedPath('/de/learn/true-count'))).toBe(LearnTopicPage)
     expect(routeFor(unprefixedPath('/de/app'))).toBe(TrainerApp)
+    expect(routeFor(unprefixedPath('/de/try'))).toBe(TryPage)
   })
 })
 
@@ -72,6 +74,9 @@ describe('isAppPath', () => {
   })
 
   it('is false for every public page and for the forms in front of the app', () => {
+    // `/try` among them: the trial round is in front of the login, and must
+    // get neither the welcome loading screen nor the app's skeleton.
+    expect(PUBLIC_PATHS).toContain('/try')
     for (const p of [...PUBLIC_PATHS, '/login', '/reset-password', '/apple']) expect(isAppPath(p), p).toBe(false)
   })
 })

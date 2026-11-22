@@ -206,6 +206,14 @@ describe('SessionRecorder', () => {
     expect(recorder.getAnomalies()[0]).toContain('hit')
   })
 
+  it('no anomaly for a bot whose temperament is to play it wrong', () => {
+    // The timid bot stands on 13 against a 9 by design. Counted as an anomaly,
+    // that put a warning on the summary of nearly every session with bots.
+    recorder.start(mockConfig)
+    recorder.recordPlayerAction('bot:Sam', 'stand', 13, '9\u2663', 'hit', false, false, 1, false)
+    expect(recorder.getAnomalyCount()).toBe(0)
+  })
+
   it('no anomaly for correct bot play', () => {
     recorder.start(mockConfig)
     recorder.recordPlayerAction('bot:Sam', 'hit', 13, '9\u2663', 'hit', true, false, 1)

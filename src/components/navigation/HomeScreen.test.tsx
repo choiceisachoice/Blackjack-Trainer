@@ -5,6 +5,11 @@ import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
 import { CURRICULUM } from '../../services/curriculum'
 import type { TrainingSessionResult } from '../../services/stats-types'
+import { useLiveSessionStore } from '../../store/live-session-store'
+import { saveLiveSession } from '../../services/casino-live-session'
+import { savedTable } from '../casino-session/saved-table.fixture'
+import { useCasinoTrialStore } from '../../store/casino-trial-store'
+import { TRIAL_HANDS, setTrialHandsUsed } from '../../services/casino-trial'
 
 const proState = { isPro: true }
 vi.mock('../../store/entitlement-store', async importOriginal => ({
@@ -19,6 +24,7 @@ const precedes = (a: Element, b: Element) =>
 beforeEach(() => {
   localStorage.clear()
   proState.isPro = true
+  useCasinoTrialStore.getState().refresh()
   useAppStore.setState({ currentMode: 'home' })
   useStatsStore.setState({ sessions: [], lifetimeStats: null, loadStats: vi.fn().mockResolvedValue(undefined) })
 })
@@ -141,5 +147,102 @@ describe('HomeScreen — before the plan is showing', () => {
     fireEvent.click(screen.getByTestId('time-question-done'))
     expect(screen.getByRole('heading', { name: 'Training Modes' })).toBeInTheDocument()
     expect(screen.getByTestId('plan-up-next')).toBeInTheDocument()
+  })
+})
+
+/**
+ * A casino table left on the device is offered on the home screen: one card,
+ * above everything else, and nowhere a second time.
+ */
+describe('HomeScreen — a casino table left in progress', () => {
+  beforeEach(() => {
+    localStorage.setItem('bjt_welcome_seen', 'true')
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    useLiveSessionStore.setState({ activeMode: null, pending: null, saved: null, resumeRequested: false })
+  })
+
+  it('shows one card, before the plan and before the modes', () => {
+    saveLiveSession(savedTable([25, -25, 25]))
+    useLiveSessionStore.getState().refreshSaved()
+    render(<HomeScreen />)
+
+    const cards = screen.getAllByTestId('resume-session-card')
+    expect(cards).toHaveLength(1)
+    expect(cards[0]).toHaveTextContent('You have a session in progress')
+    expect(precedes(cards[0], screen.getByTestId('mode-card-casinoSession'))).toBe(true)
+    expect(precedes(cards[0], screen.getByRole('heading', { level: 1 }))).toBe(true)
+  })
+
+  it('offers continuing only to someone who may sit at the table', () => {
+    saveLiveSession(savedTable([25]))
+    useLiveSessionStore.getState().refreshSaved()
+    proState.isPro = false
+    render(<HomeScreen />)
+
+    expect(screen.queryByTestId('resume-card-continue')).toBeNull()
+    expect(screen.getByTestId('resume-card-cash-out')).toBeInTheDocument()
+  })
+
+  it('"Continue" goes to the table with the request to open the saved one', () => {
+    saveLiveSession(savedTable([25]))
+    useLiveSessionStore.getState().refreshSaved()
+    render(<HomeScreen />)
+    fireEvent.click(screen.getByTestId('resume-card-continue'))
+
+    expect(useAppStore.getState().currentMode).toBe('casinoSession')
+    expect(useLiveSessionStore.getState().resumeRequested).toBe(true)
+  })
+
+  it('shows nothing, and leaves no gap, when there is no such table', () => {
+    render(<HomeScreen />)
+    expect(screen.queryByTestId('resume-session-card')).toBeNull()
+  })
+})
+
+describe('the casino table\'s entry for an account without Pro', () => {
+  const card = () => screen.getByTestId('mode-card-casinoSession')
+
+  beforeEach(() => {
+    localStorage.setItem('bjt_placement', 'hi-lo')
+    localStorage.setItem('bjt_welcome_seen', 'true')
+    proState.isPro = false
+  })
+
+  it('offers the free hands where the lock would be', () => {
+    setTrialHandsUsed(0)
+    render(<HomeScreen />)
+
+    expect(within(card()).getByTestId('casino-trial-offer')).toHaveTextContent('Try 10 hands free')
+    expect(within(card()).queryByLabelText('Pro feature')).toBeNull()
+    // One entry: the other Pro modes keep their lock and get no offer.
+    expect(screen.getAllByTestId('casino-trial-offer')).toHaveLength(1)
+    expect(within(screen.getByTestId('mode-card-betSpread')).getByLabelText('Pro feature')).toBeInTheDocument()
+  })
+
+  it('counts down with the hands that were played', () => {
+    setTrialHandsUsed(7)
+    render(<HomeScreen />)
+    expect(within(card()).getByTestId('casino-trial-offer')).toHaveTextContent('Try 3 hands free')
+  })
+
+  it('is the lock again once the trial is used up', () => {
+    setTrialHandsUsed(TRIAL_HANDS)
+    render(<HomeScreen />)
+    expect(within(card()).queryByTestId('casino-trial-offer')).toBeNull()
+    expect(within(card()).getByLabelText('Pro feature')).toBeInTheDocument()
+  })
+
+  it('is the lock while the account\'s count has not arrived on this device', () => {
+    render(<HomeScreen />)
+    expect(within(card()).queryByTestId('casino-trial-offer')).toBeNull()
+    expect(within(card()).getByLabelText('Pro feature')).toBeInTheDocument()
+  })
+
+  it('shows neither to someone who has Pro', () => {
+    proState.isPro = true
+    setTrialHandsUsed(0)
+    render(<HomeScreen />)
+    expect(within(card()).queryByTestId('casino-trial-offer')).toBeNull()
+    expect(within(card()).queryByLabelText('Pro feature')).toBeNull()
   })
 })

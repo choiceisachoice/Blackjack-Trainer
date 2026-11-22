@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useLiveSessionStore } from './live-session-store'
 import { useAppStore, type AppMode } from './app-store'
+import { useAuthStore } from './auth-store'
+import { CasinoSessionEngine } from '../engine/casino-session/session-engine'
+import { CountingSystemId } from '../engine/counting/types'
+import { LIVE_SESSION_KEY, clearLiveSession, saveLiveSession } from '../services/casino-live-session'
 
 /**
  * The guard that stands between a misclick and half an hour of play.
@@ -15,7 +19,8 @@ const store = () => useLiveSessionStore.getState()
 const standingIn = (mode: AppMode) => useAppStore.setState({ currentMode: mode })
 
 beforeEach(() => {
-  useLiveSessionStore.setState({ activeMode: null, pending: null })
+  localStorage.clear()
+  useLiveSessionStore.setState({ activeMode: null, pending: null, saved: null, resumeRequested: false })
   standingIn('home')
 })
 
@@ -181,5 +186,98 @@ describe('leaving the app rather than switching mode', () => {
   it('does not ask when there is no session to lose', () => {
     expect(store().requestLeaveApp({ kind: 'signOut' })).toBe(true)
     expect(store().pending).toBeNull()
+  })
+})
+
+/**
+ * The table that was left behind. The store holds what the resume card shows
+ * about it — never the table itself — and the request to open it.
+ */
+describe('a table saved on the device', () => {
+  function save(id: string, bankrollChange: number) {
+    const engine = new CasinoSessionEngine({
+      sessionMode: 'unlimited', targetHands: 20, targetMinutes: 15, numBots: 1, playerSeatIndex: 3,
+      startingBankroll: 5000, minBet: 25, maxBet: 500, numDecks: 6, dealerHitsSoft17: false,
+      doubleAfterSplit: true, surrenderAllowed: true, blackjackPays: 1.5, penetration: 0.75,
+      maxSplitHands: 4, trainingMode: true, countCheckFrequency: 'never', showDeviationHints: true,
+      countingSystem: CountingSystemId.HiLo, casinoAmbience: false,
+    })
+    engine.updateHumanBankroll(bankrollChange)
+    const snapshot = engine.snapshot()
+    saveLiveSession({ id, snapshot, config: snapshot.config, elapsedSeconds: 90, savedAt: 1234, ui: { lastBets: [], keptPlaying: false } })
+  }
+
+  it('is unknown until the store has looked', () => {
+    save('t', 75)
+    expect(store().saved).toBeNull()
+  })
+
+  it('is published by a refresh, as the figures the card shows', () => {
+    save('t', 75)
+    store().refreshSaved()
+    expect(store().saved).toEqual({ id: 't', handNumber: 0, handsPlayed: 0, bankroll: 5075, savedAt: 1234, trial: false })
+  })
+
+  it('is withdrawn by a refresh once it is gone', () => {
+    save('t', 0)
+    store().refreshSaved()
+    clearLiveSession()
+    store().refreshSaved()
+    expect(store().saved).toBeNull()
+  })
+
+  it('is not published when it cannot be read', () => {
+    localStorage.setItem(LIVE_SESSION_KEY, '{"version":1')
+    store().refreshSaved()
+    expect(store().saved).toBeNull()
+  })
+
+  // `clearLocalAppData` removes the key and knows nothing of this store; the
+  // account changing is what makes the store look again.
+  it('is forgotten when the account signs out and the device has been wiped', () => {
+    useAuthStore.setState({ status: 'signedIn' })
+    save('t', 0)
+    store().refreshSaved()
+    expect(store().saved).not.toBeNull()
+
+    localStorage.clear()
+    expect(store().saved).not.toBeNull()
+    useAuthStore.setState({ status: 'signedOut', user: null, session: null })
+    expect(store().saved).toBeNull()
+  })
+
+  it('is looked for again when an account signs in', () => {
+    useAuthStore.setState({ status: 'signedOut' })
+    save('t', 0)
+    expect(store().saved).toBeNull()
+    useAuthStore.setState({ status: 'signedIn' })
+    expect(store().saved).toMatchObject({ id: 't' })
+  })
+
+  it('is not published for another owner of this device', () => {
+    localStorage.setItem('bjt_local_owner', 'user-a')
+    save('t', 0)
+    localStorage.setItem('bjt_local_owner', 'user-b')
+    store().refreshSaved()
+    expect(store().saved).toBeNull()
+  })
+
+  it('outlives the end of a session in this tab — ending one does not forget the other', () => {
+    save('t', 0)
+    store().refreshSaved()
+    store().beginSession('casinoSession')
+    store().endSession()
+    expect(store().saved).not.toBeNull()
+  })
+
+  it('carries the request to resume until the Casino Session takes it up', () => {
+    expect(store().resumeRequested).toBe(false)
+    store().requestResume()
+    expect(store().resumeRequested).toBe(true)
+    // Ending a session is not an answer to the request.
+    store().endSession()
+    expect(store().resumeRequested).toBe(true)
+    store().clearResumeRequest()
+    expect(store().resumeRequested).toBe(false)
   })
 })

@@ -47,6 +47,13 @@
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 
+	# The web app manifest, by its registered type. Caddy takes the type from
+	# the operating system's table, which may not know `.webmanifest`; the file
+	# would then go out as text/plain. Browsers read it regardless, but an
+	# install check that looks at the header does not.
+	@manifest path /manifest.webmanifest
+	header @manifest Content-Type "application/manifest+json"
+
 	# Everything else is asked about again on every visit. Without this line a
 	# page carried only Last-Modified, and a browser may then keep it fresh on
 	# its own guess (10 % of its age): Safari served the page from before a

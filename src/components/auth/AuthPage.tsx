@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PasswordInput } from './PasswordInput'
 import { Spade, Loader2 } from 'lucide-react'
 import { useAuthStore } from '../../store/auth-store'
 import { Input } from '../common/ui'
 import { Turnstile } from './Turnstile'
 import { isCaptchaConfigured } from '../../services/captcha'
+import { trackEvent } from '../../services/analytics/events'
 
 /**
  * `reset` is a third mode rather than a separate route.
@@ -21,7 +22,14 @@ type Mode = 'signin' | 'signup' | 'reset'
  * Login / registration screen shown when Supabase is configured and no user is
  * signed in. Dark-luxury styling to match the app shell.
  */
-export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
+export function AuthPage({ notice: initialNotice, initialMode = 'signin' }: {
+  notice?: string
+  /**
+   * Which side of the toggle the form opens on. A visitor who pressed "create
+   * a free account" should not have to find the register tab first.
+   */
+  initialMode?: 'signin' | 'signup'
+} = {}) {
   const { t } = useTranslation()
   const signIn = useAuthStore(s => s.signIn)
   const signUp = useAuthStore(s => s.signUp)
@@ -29,7 +37,12 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
   const error = useAuthStore(s => s.error)
   const clearError = useAuthStore(s => s.clearError)
 
-  const [mode, setMode] = useState<Mode>('signin')
+  const [mode, setMode] = useState<Mode>(initialMode)
+  // Opened on the register side by a link: that is a view of the sign-up form
+  // like one reached through the toggle, and is counted as the same event.
+  useEffect(() => {
+    if (initialMode === 'signup') void trackEvent('signup_view')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- the arrival, once
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
@@ -56,6 +69,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
 
   const switchMode = (m: Mode) => {
     setMode(m)
+    if (m === 'signup') void trackEvent('signup_view')
     clearError()
     setNotice(null)
   }
@@ -85,6 +99,7 @@ export function AuthPage({ notice: initialNotice }: { notice?: string } = {}) {
         // account is live immediately and the auth listener takes the learner
         // into the app, so a t('auth.checkInbox') notice would send them looking
         // for a message that will never arrive.
+        if (!error) void trackEvent('signup_done')
         if (!error && needsConfirmation) {
           setNotice(t('auth.accountCreated'))
         }

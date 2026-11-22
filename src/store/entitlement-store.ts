@@ -163,6 +163,31 @@ export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
   },
 }))
 
+/** localStorage switch for {@link devFreeTier}. Not under `bjt_`: it describes the build, not an account. */
+export const DEV_FREE_TIER_KEY = 'dev_free_tier'
+
+/**
+ * Development only: look at the app as an account without Pro.
+ *
+ * With no billing backend everything is unlocked, which is right for working
+ * on a feature and makes the free tier — the locks, the paywall, the casino
+ * table's trial — impossible to look at. Setting `dev_free_tier` to `1` in
+ * localStorage on the dev server turns the unlock off.
+ *
+ * It cannot reach a production bundle: `import.meta.env.DEV` is replaced by
+ * the literal `false` at build time, so this function is `return false` there
+ * and the key is never read. And it only ever takes Pro *away*, and only where
+ * Supabase is not configured — there is no state in which it grants anything.
+ */
+function devFreeTier(): boolean {
+  if (!import.meta.env.DEV) return false
+  try {
+    return localStorage.getItem(DEV_FREE_TIER_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 /**
  * Whether the current user has Pro access.
  *
@@ -172,7 +197,7 @@ export const useEntitlementStore = create<EntitlementStore>((set, get) => ({
  * of sync with Stripe.
  */
 export function selectIsPro(state: EntitlementState): boolean {
-  if (!isSupabaseConfigured) return true
+  if (!isSupabaseConfigured) return !devFreeTier()
   if (!PRO_STATUSES.has(state.status)) return false
   return state.currentPeriodEnd === null || state.currentPeriodEnd > Date.now()
 }

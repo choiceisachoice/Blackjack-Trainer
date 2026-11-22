@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle } from 'lucide-react'
 import { useLiveSessionStore } from '../../store/live-session-store'
-import { signOutAndClearLocal } from '../../services/supabase/cloud-sync'
+import { useGuardedSignOut } from '../../hooks/use-guarded-sign-out'
+import { UnsavedSignOutDialog } from '../common/UnsavedSignOutDialog'
 import { useAppStore } from '../../store/app-store'
 import { ModalBackdrop } from '../common/ModalBackdrop'
 
@@ -39,6 +40,7 @@ export function LeaveSessionDialog() {
   const setMode = useAppStore(s => s.setMode)
   const navigate = useNavigate()
   const stayRef = useRef<HTMLButtonElement>(null)
+  const guardedSignOut = useGuardedSignOut(() => void navigate('/'))
 
   // Escape closes it the safe way, and the focus starts on "stay".
   useEffect(() => {
@@ -48,7 +50,18 @@ export function LeaveSessionDialog() {
     return undefined
   }, [pending, cancelLeave])
 
-  if (!pending) return null
+  // Outlives this dialog: answering "leave" closes it, and the sign-out it
+  // started may come back with sessions that could not be uploaded.
+  const unsavedDialog = guardedSignOut.unsavedCount !== null ? (
+    <UnsavedSignOutDialog
+      count={guardedSignOut.unsavedCount}
+      busy={guardedSignOut.busy}
+      onStay={guardedSignOut.stay}
+      onSignOut={() => void guardedSignOut.signOutAnyway()}
+    />
+  ) : null
+
+  if (!pending) return unsavedDialog
 
   const leave = () => {
     const target = confirmLeave()
@@ -57,7 +70,7 @@ export function LeaveSessionDialog() {
     // what makes the second kind worth asking about in the first place.
     if (target.kind === 'mode') setMode(target.mode)
     else if (target.kind === 'route') void navigate(target.path)
-    else void signOutAndClearLocal().then(() => navigate('/'))
+    else void guardedSignOut.signOut()
   }
 
   return (

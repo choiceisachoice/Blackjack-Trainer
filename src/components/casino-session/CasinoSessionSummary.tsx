@@ -3,12 +3,18 @@ import type { CasinoSessionResult } from '../../engine/casino-session/types'
 import type { SessionRecorder } from '../../services/session-recorder'
 import { formatDollar, formatTime } from './helpers'
 import { ProgressBar } from '../common/ui'
+import { TRIAL_HANDS } from '../../services/casino-trial'
 
 interface CasinoSessionSummaryProps {
   result: CasinoSessionResult
   onPlayAgain: () => void
   onHome: () => void
   recorder: SessionRecorder | null
+  /**
+   * The session was played at the free trial table: how many trial hands the
+   * account has left. With none, "play again" leads to the paywall and says so.
+   */
+  trial?: { handsLeft: number }
 }
 
 /**
@@ -24,9 +30,11 @@ interface CasinoSessionSummaryProps {
  * still feeds the anomaly count below; what is gone is the invitation to
  * download its output.
  */
-export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: CasinoSessionSummaryProps) {
+export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder, trial }: CasinoSessionSummaryProps) {
   const { t } = useTranslation()
   const anomalyCount = recorder?.getAnomalyCount() ?? 0
+  /** The trial's hands are used up: the way on from here is Pro. */
+  const trialDone = trial !== undefined && trial.handsLeft === 0
   // In basic play the count never existed, so the rows that measure it would
   // report a phantom 100% for something the player was never asked to do.
   const basicPlay = result.config.playStyle === 'basic'
@@ -129,14 +137,26 @@ export function CasinoSessionSummary({ result, onPlayAgain, onHome, recorder }: 
           </div>
         )}
 
-        {/* Buttons */}
-        <div className="flex gap-3">
+        {/* The trial, in one line: what is left of it, or that this was it.
+            The result above is the same summary every session gets. */}
+        {trial && (
+          <p className="text-center text-sm text-content/60" data-testid="trial-summary-note">
+            {trial.handsLeft > 0
+              ? t('casino.trial.summaryLeft', { count: trial.handsLeft })
+              : t('casino.trial.summaryDone', { hands: TRIAL_HANDS })}
+          </p>
+        )}
+
+        {/* Buttons. Side by side — except the trial's last pair on a phone:
+            "Keep playing with Pro" is a sentence in most languages, and in
+            half of a 390px row it filled its button edge to edge. */}
+        <div className={`flex gap-3 ${trialDone ? 'max-sm:flex-col' : ''}`} data-testid="summary-actions">
           <button onClick={onPlayAgain} data-testid="play-again"
-            className="flex-1 py-3 rounded-xl bg-gold text-on-gold font-bold hover:bg-gold/90 transition-colors cursor-pointer">
-            {t('casino.summary.playAgain')}
+            className="flex-1 py-3 px-4 rounded-xl bg-gold text-on-gold font-bold hover:bg-gold/90 transition-colors cursor-pointer">
+            {trialDone ? t('casino.trial.toPro') : t('casino.summary.playAgain')}
           </button>
           <button onClick={onHome} data-testid="go-home"
-            className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-bold hover:bg-contrast/20 transition-colors cursor-pointer">
+            className="flex-1 py-3 px-4 rounded-xl bg-contrast/10 text-content font-bold hover:bg-contrast/20 transition-colors cursor-pointer">
             {t('casino.summary.home')}
           </button>
         </div>

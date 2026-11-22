@@ -1,6 +1,7 @@
 import type { Achievement, UnlockedAchievement } from '../achievements/achievement-types'
 import { achievementEngine } from '../achievements/achievement-engine'
 import { requireSupabase, isSupabaseConfigured } from './client'
+import { getLocalOwner } from '../storage/local-owner'
 
 /** A row of the `user_achievements` table (subset we select). */
 interface AchievementRow {
@@ -54,6 +55,10 @@ export async function syncAchievementsOnSignIn(): Promise<void> {
   const userId = await currentUserId()
   if (!userId) return
   const remote = await fetchCloud(userId)
+  // The answer may arrive for an account that is no longer here: a sign-out
+  // wiped the device while the request was out. Merging now would put that
+  // account's unlocks on a device the next person to sign in inherits.
+  if (getLocalOwner() !== userId) return
   const localOnly = achievementEngine.mergeUnlocked(remote)
   await pushRows(userId, localOnly)
 }

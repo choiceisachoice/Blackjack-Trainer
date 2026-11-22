@@ -178,10 +178,16 @@ export function WeekDots({ week }: { week: WeekPlan }) {
 export function TodayBlocks({
   day,
   week,
+  weekStreak = 0,
   onOpen,
 }: {
   day: DayPlan
   week: WeekPlan
+  /**
+   * Weeks in a row with the planned days kept. Shown from two — one kept week
+   * is "Week done", which the line already says.
+   */
+  weekStreak?: number
   /** Start a block: the screen it is done on, and the block itself. */
   onOpen: (mode: AppMode, block: PlanBlock) => void
 }) {
@@ -212,9 +218,20 @@ export function TodayBlocks({
         </div>
         <div className="flex items-center gap-3">
           <span className={`inline-flex items-center gap-1.5 text-xs tabular-nums ${week.met ? 'text-success' : 'text-content/50'}`}>
-            {week.met && <Flame size={13} />}
+            {/* One flame at a time: with a streak beside it, the streak has it. */}
+            {week.met && weekStreak < 2 && <Flame size={13} />}
             {week.met ? t('plan.week.met') : t('plan.week.days', { trained: week.trained, target: week.target })}
           </span>
+          {weekStreak >= 2 && (
+            <span
+              className="inline-flex items-center gap-1 text-xs tabular-nums text-gold"
+              data-testid="plan-week-streak"
+              title={t('xp.weekStreak.hint')}
+            >
+              <Flame size={13} aria-hidden="true" />
+              {t('xp.weekStreak.label', { count: weekStreak })}
+            </span>
+          )}
           <WeekDots week={week} />
         </div>
       </div>

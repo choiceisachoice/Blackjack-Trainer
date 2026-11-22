@@ -187,7 +187,8 @@
       "headline": "Ayakkabıyı yenen <1>avantajı</1> çalışın.",
       "chipStrategy": "Temel strateji",
       "chipRules": "S17 / H17",
-      "shoe": "6 destelik ayakkabı"
+      "shoe": "6 destelik ayakkabı",
+      "ctaTry": "Bir tur dene — hesap gerekmez"
     },
     "steps": {
       "heading": "Öğren. Çalış. Oyna.",
@@ -356,7 +357,15 @@
     "goProHeading": "Pro'ya geç",
     "goProSub": "Gelişmiş modları ve kart sayma avantajınızın tam resmini açın.",
     "alreadyPro": "Bu hesapta zaten Pro var. Hâlâ kilitli görünüyorsa sayfayı yenileyin.",
-    "saveAgainst": "Aylık {{monthly}} yerine {{saved}} tasarruf"
+    "saveAgainst": "Aylık {{monthly}} yerine {{saved}} tasarruf",
+    "personalFinished": "“{{stage}}” aşamasını tamamladınız.",
+    "personalAt": "Planınız “{{stage}}” aşamasında.",
+    "personalNextIsPro": "Planınızda sıradaki aşama: “{{stage}}” — Pro kapsamındadır.",
+    "personalThisIsPro": "Bu aşamanın alıştırmaları Pro kapsamındadır.",
+    "personalLaterIsPro": "Planınızın ilerisindeki “{{stage}}” aşaması Pro kapsamındadır.",
+    "trialLead_one": "Masada bir el oynadınız; temel stratejiye uygun kararlar: %{{pct}}.",
+    "trialLead_other": "Masada {{count}} el oynadınız; temel stratejiye uygun kararlar: %{{pct}}.",
+    "trialSupport": "Pro ile masa açık kalır: istediğiniz kadar el, count ve kendi kurallarınızla."
   },
   "contact": {
     "title": "İletişim",
@@ -715,7 +724,31 @@
       "keepPlaying": "Oynamaya devam et",
       "keepNote": "Bundan sonra sınır yok — istediğin zaman kasadan çık.",
       "timeTitle_one": "1 dakikan doldu",
-      "timeTitle_other": "{{count}} dakikan doldu"
+      "timeTitle_other": "{{count}} dakikan doldu",
+      "elsewhere": "Bu masada başka bir sekmede kasadan çıkıldı, bu yüzden burada da kapandı."
+    },
+    "resume": {
+      "title": "Devam eden bir oturumun var",
+      "status": "El {{hand}} · Bankroll {{bankroll}}",
+      "continue": "Devam et",
+      "cashOut": "Şimdi kasadan çık",
+      "proOnly": "Masa Pro’ya dahil. Bu oturum için yine de kasadan çıkabilirsin."
+    },
+    "trial": {
+      "entry_one": "{{count}} eli ücretsiz dene",
+      "entry_other": "{{count}} eli ücretsiz dene",
+      "introTitle_one": "Masada {{count}} ücretsiz el",
+      "introTitle_other": "Masada {{count}} ücretsiz el",
+      "introBody": "İki oyuncuyla birlikte tam masa. Her elden sonra, eli temel stratejiye göre oynayıp oynamadığını görürsün.",
+      "introNote": "Hesap başına bir kez. Sonrasında masa Pro’ya dahil.",
+      "start": "Masaya otur",
+      "left_one": "Deneme: {{count}} el kaldı",
+      "left_other": "Deneme: {{count}} el kaldı",
+      "lastPlayed": "Deneme: son el",
+      "summaryDone": "{{hands}} ücretsiz elin bunlardı.",
+      "summaryLeft_one": "{{count}} ücretsiz elin kaldı.",
+      "summaryLeft_other": "{{count}} ücretsiz elin kaldı.",
+      "toPro": "Pro ile devam et"
     }
   },
   "tracker": {
@@ -2276,6 +2309,10 @@
       "admin-analytics": {
         "title": "Site istatistikleri — Blackjack Card Counting Trainer",
         "description": "Ziyaretçiler, sayfa görüntülemeleri, oturum süresi, kayıtlar ve ödeme yapan müşteriler."
+      },
+      "try": {
+        "title": "Blackjack temel stratejisini dene — ücretsiz, kayıt yok",
+        "description": "Temel stratejiye göre on blackjack eli oyna; ücretsiz ve hesapsız. Sonunda puanını ve yanlış oynadığın her el için doğru hamleyi görürsün."
       }
     }
   },
@@ -2305,7 +2342,21 @@
       "achievements": "Başarımlar",
       "sessionCapped": "Antrenman oturumu — günlük sınıra ulaşıldı",
       "dailyCap": "Bu mod için günlük XP sınırına ulaşıldı",
-      "personalBest": "Antrenman oturumu — yeni kişisel rekor"
+      "personalBest": "Antrenman oturumu — yeni kişisel rekor",
+      "weekGoal": "Haftalık hedef tamam",
+      "weekStreak": "Üst üste {{n}} hafta"
+    },
+    "part": {
+      "correct": "Doğru cevaplar",
+      "accuracy": "İsabet bonusu",
+      "personalBest": "Yeni kişisel rekor",
+      "dailyCap": "Günlük sınıra ulaşıldı",
+      "other": "Diğer"
+    },
+    "weekStreak": {
+      "label_one": "{{count}} hafta",
+      "label_other": "{{count}} hafta",
+      "hint": "Planladığın antrenman günlerini tutturduğun üst üste haftalar"
     }
   },
   "simulator": {
@@ -2372,6 +2423,25 @@
       "yes": "Evet",
       "no": "Hayır",
       "note": "Bir satın alma veya hesap işlemindeki son 50 teknik hata, 90 gün saklanır; saatler sizin saat diliminizdedir. Cihaz çevrimdışıyken oluşan bir hata, ancak o ziyaretçinin bir sonraki ziyaretinde ulaşır; tabii böyle bir ziyaret olursa. Hiçbir şey sizi uyarmaz: bu liste yalnızca bu sayfayı açtığınızda görülür."
+    },
+    "funnel": {
+      "title": "Satın almaya giden yol",
+      "loading": "Satın almaya giden yol yükleniyor…",
+      "error": "Satın almaya giden yol yüklenemedi.",
+      "missingMigration": "Henüz hiçbir şey kaydedilmiyor: önce {{file}} migrasyonunun uygulanması gerekiyor.",
+      "share": "%{{percent}}",
+      "steps": {
+        "visitors": "Ziyaretçi",
+        "signupViews": "Kayıt formunu gördü",
+        "registrations": "Kayıt oldu",
+        "firstSessions": "İlk antrenman oturumu",
+        "paywallViews": "Pro teklifini gördü",
+        "checkoutStarts": "Ödemeyi başlattı",
+        "payingCustomers": "Ödeme yapan müşteri"
+      },
+      "note": "Her çubuk, seçilen aralıktaki bir adımdır; yüzde, o adımın bir önceki adıma oranıdır. Ziyaretçi, kayıt formu, ilk oturum, Pro teklifi ve ödeme adımlarında yalnızca çerezleri kabul eden ziyaretçiler sayılır. Kayıtlar her yeni hesabı sayar; bu yüzden o adım bir öncekinden büyük olabilir. Ödeme yapan müşteriler şu anda etkin olan aboneliklerdir ve aralığı izlemez. Her adım ayrı sayılır: baştan sona izlenen tek bir kişi grubu değildir.",
+      "since": "Adımlar {{date}} tarihinden beri kaydediliyor; o günden öncesine ait hiçbir şey yok.",
+      "sinceNone": "Henüz hiçbir adım kaydedilmedi: adımlar yalnızca migrasyonun uygulandığı günden itibaren vardır."
     }
   },
   "report": {
@@ -2465,5 +2535,39 @@
     "decline": "Reddet",
     "settings": "Çerez ayarları",
     "short": "Yalnızca kendi ziyaret istatistiğimiz için. Reklam yok, üçüncü taraf yok."
+  },
+  "offline": {
+    "notice": "Bağlantı yok — antrenmanın bu cihaza kaydedildi ve tekrar çevrimiçi olduğunda yüklenecek.",
+    "restored": "Tekrar çevrimiçi — her şey kaydedildi.",
+    "signOut": {
+      "title": "Henüz her şey yüklenmedi",
+      "body_one": "{{count}} antrenman henüz yüklenmedi. Şimdi çıkış yaparsan bu cihazdan silinir.",
+      "body_other": "{{count}} antrenman henüz yüklenmedi. Şimdi çıkış yaparsan bu cihazdan silinir.",
+      "stay": "Oturumu açık bırak",
+      "anyway": "Yine de çıkış yap"
+    }
+  },
+  "install": {
+    "button": "Uygulamayı yükle",
+    "description": "Antrenörü ana ekranına ekle ve bir uygulama gibi aç. Başlaması için yine de bağlantı gerekir."
+  },
+  "try": {
+    "eyebrow": "Ücretsiz · hesap gerekmez",
+    "title": "Bir tur temel strateji oyna",
+    "intro": "{{hands}} el. Kendi elini ve krupiyenin kartını görür, hamleni seçersin. Sonunda puanını ve yanlış oynadığın elleri görürsün.",
+    "start": "İlk eli dağıt",
+    "end": {
+      "eyebrow": "Tur tamamlandı",
+      "score": "{{total}} elden {{correct}} tanesi doğru",
+      "perfect": "Tek bir hata yok — her el kitabına uygun oynandı.",
+      "missedTitle": "Yanlış oynadığın eller",
+      "colHand": "El · krupiye",
+      "colYou": "Senin hamlen",
+      "colRight": "Doğru hamle",
+      "hand": "{{hand}} · krupiye {{dealer}}",
+      "keep": "Bu sonucu saklamak ve antrenman planını almak için ücretsiz bir hesap oluştur.",
+      "plan": "Ücretsiz bir hesap oluştur ve antrenman planını al.",
+      "cta": "Ücretsiz hesap oluştur"
+    }
   }
 }

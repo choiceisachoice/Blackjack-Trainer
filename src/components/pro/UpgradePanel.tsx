@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Check, Crown, Loader2, X } from 'lucide-react'
 import {
@@ -16,10 +16,22 @@ import { useEntitlementStore } from '../../store/entitlement-store'
 import { usePlanPriceStore, selectPlan } from '../../store/plan-price-store'
 import { logFailure } from '../../services/failure-log'
 import { LEGAL_META } from '../../pages/legal/legal-meta'
+import { trackEvent } from '../../services/analytics/events'
+import { useStatsStore } from '../../store/stats-store'
+import { usePlanState } from '../../hooks/use-plan-state'
+import { claimedStageIds } from '../../services/curriculum'
+import { paywallLine, trialPaywallLine, type PaywallSentence } from './paywall-line'
 
 interface UpgradePanelProps {
   /** Optional context line, e.g. the locked feature the user tried to open. */
   headline?: string
+  /**
+   * The panel stands where the casino table would be. Somebody who has played
+   * the free trial then reads what their own hands came to instead of where
+   * their plan stands — the table is what they just tried and what they are
+   * being asked to pay for.
+   */
+  atTable?: boolean
 }
 
 /**
@@ -31,7 +43,7 @@ interface UpgradePanelProps {
  * concrete, which a one-sided list of benefits never does. The yearly discount
  * is derived from the amounts (see `yearlySaving`) instead of written into copy.
  */
-export function UpgradePanel({ headline }: UpgradePanelProps) {
+export function UpgradePanel({ headline, atTable = false }: UpgradePanelProps) {
   const { t, i18n } = useTranslation()
   const [busy, setBusy] = useState<BillingPlan | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -45,6 +57,50 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
   const monthly = usePlanPriceStore(s => selectPlan(s, 'monthly'))
   const yearly = usePlanPriceStore(s => selectPlan(s, 'yearly'))
   useEffect(() => { void loadPrices() }, [loadPrices])
+
+  // The path to purchase: this panel was shown. Once per mount; the server
+  // stores it once per visitor and half hour, and nothing is sent without the
+  // visitor's consent.
+  useEffect(() => { void trackEvent('paywall_view') }, [])
+
+  /*
+    The line about this learner (see `paywall-line.ts`).
+
+    It is derived from the session history, so the history has to be there
+    first: a paywall opened by a deep link can mount before anything loaded
+    it. Until it has, the panel says the generic thing rather than something
+    about a learner it has not read yet — "your plan is at basic strategy" to
+    someone three stages past it would be worse than saying nothing.
+  */
+  const sessions = useStatsStore(s => s.sessions)
+  const loadStats = useStatsStore(s => s.loadStats)
+  const planState = usePlanState()
+  const [historyReady, setHistoryReady] = useState(() => {
+    const stats = useStatsStore.getState()
+    return stats.lifetimeStats !== null || stats.sessions.length > 0
+  })
+  useEffect(() => {
+    if (historyReady) return
+    let alive = true
+    // `loadStats` never rejects; the second handler is for a store that does.
+    const done = () => { if (alive) setHistoryReady(true) }
+    void loadStats().then(done, done)
+    return () => { alive = false }
+  }, [historyReady, loadStats])
+  const personal = useMemo(
+    () => (headline === undefined && historyReady
+      ? (atTable ? trialPaywallLine(sessions) : null) ?? paywallLine({
+        sessions,
+        placement: planState.placement,
+        readStages: planState.readStages,
+        claimed: claimedStageIds(),
+        goal: planState.profile?.goal,
+      })
+      : null),
+    [headline, atTable, historyReady, sessions, planState],
+  )
+  const sentence = (part: PaywallSentence) =>
+    t(part.key, { ...part.values, ...(part.stageTitleKey ? { stage: t(part.stageTitleKey) } : {}) })
 
   const isYearly = plan === 'yearly'
   // Only derivable once both amounts are in. Everything downstream treats a
@@ -89,9 +145,19 @@ export function UpgradePanel({ headline }: UpgradePanelProps) {
           <Crown size={26} />
         </span>
         <h2 className="text-2xl font-semibold text-gold-gradient">{t('paywall.goProHeading')}</h2>
-        <p className="text-sm text-content/60 max-w-sm">
-          {headline ?? t('paywall.goProSub')}
-        </p>
+        {/* One line about the learner and one about Pro, where the app knows
+            enough to say them; otherwise the line that is true for everyone.
+            A caller that names what was locked (`show(headline)`) wins. */}
+        {personal ? (
+          <div className="max-w-sm" data-testid="paywall-personal">
+            <p className="text-sm font-medium text-content/85" data-testid="paywall-personal-lead">{sentence(personal.lead)}</p>
+            <p className="text-sm text-content/60 mt-1" data-testid="paywall-personal-support">{sentence(personal.support)}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-content/60 max-w-sm" data-testid="paywall-sub">
+            {headline ?? t('paywall.goProSub')}
+          </p>
+        )}
       </div>
 
       {/* Billing period */}

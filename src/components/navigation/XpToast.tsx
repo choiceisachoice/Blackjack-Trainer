@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Zap } from 'lucide-react'
-import { useLevelStore } from '../../store/level-store'
+import { useLevelStore, awardLines } from '../../store/level-store'
 
 /** How long the toast stays before it clears itself. */
 const DISMISS_DELAY = 2800
+/** A list is more to read than a line. */
+const DISMISS_DELAY_LIST = 4200
 
 /**
  * Announces an XP payout the moment it lands.
@@ -31,6 +33,15 @@ const DISMISS_DELAY = 2800
  *
  * `aria-live="polite"` rather than `assertive`: this is a reward, not a
  * warning, and it must never interrupt a screen reader mid-sentence.
+ *
+ * ## One line, or the total and what it is made of
+ *
+ * A payout from one source is one line, as it always was. When several land
+ * together — the answers, the accuracy on top, a finished stage, a kept week —
+ * the toast shows the total and lists the parts beneath it: three lines at
+ * most (`awardLines` folds the rest into one), and they add up to the total.
+ * It is still the same small toast in the same corner and it still leaves on
+ * its own; it only stays a little longer when there is a list to read.
  */
 export function XpToast() {
   const { t } = useTranslation()
@@ -38,14 +49,59 @@ export function XpToast() {
   const levelUpOpen = useLevelStore(s => s.showLevelUp)
   const dismiss = useLevelStore(s => s.dismissXpAward)
   const id = award?.id
+  // One line when one line says everything; otherwise the total and its parts.
+  const single = !award || award.labelKey != null
 
   useEffect(() => {
     if (id == null || levelUpOpen) return
-    const timer = setTimeout(dismiss, DISMISS_DELAY)
+    const timer = setTimeout(dismiss, single ? DISMISS_DELAY : DISMISS_DELAY_LIST)
     return () => clearTimeout(timer)
-  }, [id, levelUpOpen, dismiss])
+  }, [id, levelUpOpen, dismiss, single])
 
   if (!award || levelUpOpen) return null
+
+  const shell = `rise-in pointer-events-none
+    flex gap-2.5 pl-3 pr-4 py-2.5 rounded-xl
+    border border-gold/35 bg-surface/95 backdrop-blur-sm
+    shadow-[0_14px_40px_-16px_var(--color-gold)]`
+  const icon = (
+    <span className="grid place-items-center w-7 h-7 rounded-lg bg-gold/12 text-gold shrink-0">
+      <Zap size={15} />
+    </span>
+  )
+
+  if (award.labelKey == null) {
+    return (
+      <div
+        key={award.id}
+        role="status"
+        aria-live="polite"
+        data-testid="xp-toast"
+        className={`${shell} items-start`}
+      >
+        {icon}
+        <div className="min-w-0">
+          <div className="text-sm font-bold text-gold tabular-nums leading-7" data-testid="xp-toast-total">
+            +{award.amount}&nbsp;XP
+          </div>
+          <ul className="flex flex-col gap-0.5 pb-0.5">
+            {awardLines(award).map((line, i) => (
+              <li
+                key={i}
+                data-testid="xp-toast-line"
+                className="flex items-baseline justify-between gap-5 text-xs text-content/55"
+              >
+                <span className="truncate max-w-[13rem]">{t(line.labelKey, line.labelParams)}</span>
+                {line.amount != null && (
+                  <span className="tabular-nums text-content/75 shrink-0">+{line.amount}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -53,14 +109,9 @@ export function XpToast() {
       role="status"
       aria-live="polite"
       data-testid="xp-toast"
-      className="rise-in pointer-events-none
-        flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-xl
-        border border-gold/35 bg-surface/95 backdrop-blur-sm
-        shadow-[0_14px_40px_-16px_var(--color-gold)]"
+      className={`${shell} items-center`}
     >
-      <span className="grid place-items-center w-7 h-7 rounded-lg bg-gold/12 text-gold shrink-0">
-        <Zap size={15} />
-      </span>
+      {icon}
       {/* A session past the day's limit pays nothing and still says why:
           "+0 XP" would read as a fault. */}
       {award.amount > 0 && (

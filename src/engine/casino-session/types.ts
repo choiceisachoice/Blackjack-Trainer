@@ -72,6 +72,14 @@ export interface CasinoSessionConfig {
 
   /** Whether to play casino ambient sound during the session. */
   casinoAmbience: boolean
+
+  /**
+   * This table is the free trial: a fixed setup an account without Pro may
+   * play a limited number of hands at. The engine does nothing with it — it
+   * is a label that travels with the table, into the saved copy and the
+   * session's record, so both can be told apart from a Pro table.
+   */
+  trial?: boolean
 }
 
 // ─── Bot Player ────────────────────────────────────────

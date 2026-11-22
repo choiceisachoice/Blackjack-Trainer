@@ -27,13 +27,17 @@ export function LoginPage() {
   const from = (state as { from?: unknown } | null)?.from
   const target = typeof from === 'string' && /^\/app(\/[a-z-]*)?$/.test(from) ? from : '/app'
 
+  // A link that says "create an account" (the end of the trial round) opens
+  // the form on that side.
+  const signup = (state as { mode?: unknown } | null)?.mode === 'signup'
+
   if (!isSupabaseConfigured || status === 'signedIn') {
     return <Navigate to={target} replace />
   }
 
   return (
     <div className="app-canvas h-screen flex flex-col">
-      <AuthPage notice={notice} />
+      <AuthPage notice={notice} initialMode={signup ? 'signup' : 'signin'} />
     </div>
   )
 }

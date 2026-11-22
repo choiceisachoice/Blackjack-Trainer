@@ -75,8 +75,9 @@ describe('App routing', () => {
 
   // Routes are lazy-loaded (code-split), so assertions await the chunk. The
   // dynamic import can take a beat under full-suite CPU load, so allow more than
-  // the 1s default.
-  const T = { timeout: 5000 }
+  // the 1s default. The trainer's chunk is the largest in the app; 5s was met
+  // alone and missed once in a full run on a busy machine.
+  const T = { timeout: 15000 }
 
   it('renders the public landing at /', async () => {
     renderAt('/')
@@ -91,7 +92,7 @@ describe('App routing', () => {
     // The home screen is the signed-in dashboard; its headline is the user's
     // level title, so assert a stable landmark instead.
     expect(await screen.findByRole('heading', { name: 'Training Modes' }, T)).toBeInTheDocument()
-  })
+  }, 20000)
 
   it('redirects unknown routes to the landing', async () => {
     renderAt('/does-not-exist')

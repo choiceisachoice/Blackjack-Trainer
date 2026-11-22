@@ -3,11 +3,13 @@ import { achievementEngine } from '../achievements/achievement-engine'
 import { hasSeenOnboarding, setOnboardingSeen } from '../onboarding'
 import { requireSupabase, isSupabaseConfigured } from './client'
 import { getClaimedStages, setClaimedStages } from '../stage-rewards'
+import { getClaimedRewards, setClaimedRewards, mergeClaimedRewards } from '../weekly-rewards'
 import { CURRICULUM, type StageId } from '../curriculum'
 import {
   readPlanState, parsePlanState, mergePlanState, writePlanState, type PlanState,
 } from '../plan-state'
 import { onPlanStateChanged } from '../plan-state-signal'
+import { setTrialHandsUsed, toTrialHands, trialHandsUsed } from '../casino-trial'
 
 const isStageId = (v: unknown): v is StageId =>
   typeof v === 'string' && CURRICULUM.some(s => s.id === v)
@@ -33,6 +35,20 @@ interface ProfileScalars {
    */
   claimedStages: StageId[]
   /**
+   * Kept weeks and week-streak milestones whose XP has already been paid
+   * (`weekly-rewards.ts`). The same kind of thing as the stages above — a set
+   * that only grows — and it travels the same way, as `settings.claimed_rewards`.
+   */
+  claimedRewards: string[]
+  /**
+   * Hands played of the casino table's free trial (`casino-trial.ts`), as
+   * `settings.casino_trial_hands`. A number that only grows, reconciled by
+   * max like the XP — but with no database trigger behind it: the client is
+   * the only thing keeping it, which is enough for a trial and is said so
+   * where the trial is defined.
+   */
+  trialHands: number
+  /**
    * The learner's answers to the plan — where it starts, what it aims for,
    * how much time there is, which greetings were seen. Null on the cloud side
    * until the first write. See `plan-state.ts` for why it travels at all.
@@ -54,39 +70,52 @@ function localScalars(): ProfileScalars {
     simBestEdge: achievementEngine.getBestSimEdge(),
     onboardingSeen: hasSeenOnboarding(),
     claimedStages: getClaimedStages(),
+    claimedRewards: getClaimedRewards(),
+    trialHands: trialHandsUsed(),
     plan: readPlanState(),
   }
 }
 
-/** Whatever else lives in `settings`, carried through an upsert untouched. */
-let cloudSettings: Record<string, unknown> = {}
+/** The profile row as the cloud holds it right now. */
+interface CloudProfile extends ProfileScalars {
+  /**
+   * The whole `settings` object, so a write can carry it back: it is a single
+   * jsonb value, and writing a fresh object would drop any key this module
+   * does not know about.
+   *
+   * Returned with each read and handed to the write that follows it. It used
+   * to be a module variable, which a read for one account could fill after
+   * another account had taken over the page.
+   */
+  settings: Record<string, unknown>
+}
 
 /** Fetch the user's progress scalars from the cloud (zeros if no row yet). */
-async function fetchCloud(userId: string): Promise<ProfileScalars> {
+async function fetchCloud(userId: string): Promise<CloudProfile> {
   const { data, error } = await requireSupabase()
     .from('profiles')
     .select('level_xp, sim_count, sim_best_edge, onboarding_seen, settings')
     .eq('id', userId)
     .maybeSingle()
   if (error) throw error
-  cloudSettings = {}
   if (!data) {
-    return { levelXp: 0, simCount: 0, simBestEdge: 0, onboardingSeen: false, claimedStages: [], plan: null }
+    return { levelXp: 0, simCount: 0, simBestEdge: 0, onboardingSeen: false, claimedStages: [], claimedRewards: [], trialHands: 0, plan: null, settings: {} }
   }
-  // Read the whole object so the upsert can write it back: `settings` is a
-  // single jsonb value, and upserting a fresh object would drop any key this
-  // module does not know about.
-  if (data.settings && typeof data.settings === 'object') {
-    cloudSettings = data.settings as Record<string, unknown>
-  }
-  const claimed = cloudSettings.claimed_stages
+  const settings: Record<string, unknown> = data.settings && typeof data.settings === 'object'
+    ? data.settings as Record<string, unknown>
+    : {}
+  const claimed = settings.claimed_stages
+  const rewards = settings.claimed_rewards
   return {
     levelXp: data.level_xp ?? 0,
     simCount: data.sim_count ?? 0,
     simBestEdge: data.sim_best_edge ?? 0,
     onboardingSeen: data.onboarding_seen ?? false,
     claimedStages: Array.isArray(claimed) ? (claimed.filter(isStageId) as StageId[]) : [],
-    plan: parsePlanState(cloudSettings.plan),
+    claimedRewards: Array.isArray(rewards) ? mergeClaimedRewards(rewards, []) : [],
+    trialHands: toTrialHands(settings.casino_trial_hands),
+    plan: parsePlanState(settings.plan),
+    settings,
   }
 }
 
@@ -105,8 +134,10 @@ async function fetchCloud(userId: string): Promise<ProfileScalars> {
  *
  * `.select('id')` plus a row check, for the same reason as everywhere else:
  * supabase-js does not report an update that matched nothing.
+ *
+ * @param settings The row's `settings` as just read, carried through under the keys written here
  */
-async function writeCloud(userId: string, s: ProfileScalars): Promise<void> {
+async function writeCloud(userId: string, s: ProfileScalars, settings: Record<string, unknown>): Promise<void> {
   const { data, error } = await requireSupabase()
     .from('profiles')
     .update({
@@ -114,15 +145,19 @@ async function writeCloud(userId: string, s: ProfileScalars): Promise<void> {
       sim_count: s.simCount,
       sim_best_edge: s.simBestEdge,
       onboarding_seen: s.onboardingSeen,
-      settings: { ...cloudSettings, claimed_stages: s.claimedStages, plan: s.plan },
+      settings: {
+        ...settings,
+        claimed_stages: s.claimedStages,
+        claimed_rewards: s.claimedRewards,
+        casino_trial_hands: s.trialHands,
+        plan: s.plan,
+      },
       updated_at: new Date().toISOString(),
     })
     .eq('id', userId)
     .select('id')
   if (error) throw error
   if (!data || data.length === 0) throw new Error(`profile row not found for user ${userId}`)
-  // What was just written is what the row holds now; the next write carries it.
-  cloudSettings = { ...cloudSettings, claimed_stages: s.claimedStages, plan: s.plan }
 }
 
 /**
@@ -135,6 +170,14 @@ async function writeCloud(userId: string, s: ProfileScalars): Promise<void> {
  * this; `settings` does not, so the guard is here.
  */
 let hasMerged = false
+
+/**
+ * Counts sign-outs and account changes (`resetProfileSync`). A read remembers
+ * the number it was issued under; if it has moved on by the time the answer
+ * arrives, the answer belongs to an account that is no longer on this device
+ * and nothing is done with it — neither written here nor sent back.
+ */
+let generation = 0
 
 /**
  * On sign-in: reconcile local and cloud progress by taking the max of each
@@ -150,8 +193,16 @@ export async function syncProfileOnSignIn(): Promise<void> {
   if (!isSupabaseConfigured) return
   const userId = await currentUserId()
   if (!userId) return
-  const local = localScalars()
+  const issued = generation
   const cloud = await fetchCloud(userId)
+  // Signed out, or another account, while the request was out: this is the
+  // previous account's level and its paid stages. Written to the device now,
+  // they would be merged into whoever signs in next.
+  if (issued !== generation) return
+  // Read after the fetch, not before: an award made while the request was in
+  // flight is in here, and a snapshot from before would write the level
+  // without it over the one with it.
+  const local = localScalars()
   const merged: ProfileScalars = {
     levelXp: Math.max(local.levelXp, cloud.levelXp),
     simCount: Math.max(local.simCount, cloud.simCount),
@@ -163,48 +214,93 @@ export async function syncProfileOnSignIn(): Promise<void> {
     // is paid. Missing this is what let a sign-out/sign-in cycle collect every
     // stage award again.
     claimedStages: Array.from(new Set([...local.claimedStages, ...cloud.claimedStages])),
+    // Union again: a week paid on either side is paid.
+    claimedRewards: mergeClaimedRewards(local.claimedRewards, cloud.claimedRewards),
+    // Max: a trial hand played on either side is played. A device that was
+    // wiped holds zero and must not hand the ten hands out again.
+    trialHands: Math.max(local.trialHands, cloud.trialHands),
     plan: mergePlanState(local.plan ?? readPlanState(), cloud.plan),
   }
   levelSystem.setTotalXP(merged.levelXp)
   achievementEngine.setSimCounters(merged.simCount, merged.simBestEdge)
   setOnboardingSeen(merged.onboardingSeen)
   setClaimedStages(merged.claimedStages)
+  setClaimedRewards(merged.claimedRewards)
+  // Written even at zero: the written count is what tells the device that the
+  // account's answer has arrived, and only then is the trial offered.
+  setTrialHandsUsed(merged.trialHands)
   if (merged.plan) writePlanState(merged.plan)
-  await writeCloud(userId, merged)
-  hasMerged = true
+  await writeCloud(userId, merged, cloud.settings)
+  if (issued === generation) hasMerged = true
+}
+
+/**
+ * Push the current local progress scalars to the cloud and wait for the
+ * answer. Rejects when the cloud did not take them — for the caller that has
+ * to know, the sign-out; everything else uses `pushProfileScalars`.
+ *
+ * The numbers are written as this device holds them, without the max-merge —
+ * the `protect_progress_columns` trigger on the row is what stops a device
+ * that has lost its local copy from writing a lower number over the cloud's.
+ *
+ * The two paid sets have no such trigger, so they are read first and written
+ * as a union. Before, every push after the first merge replaced `settings`
+ * with this device's copy: a tab left open since yesterday wrote its shorter
+ * list of paid weeks and stages over the one another device had extended,
+ * and the next sign-in anywhere found those rewards unpaid and paid them
+ * again. A sign-out while the read is out ends the push there: the device has
+ * been wiped, and its nothing is not written over the account's plan.
+ *
+ * Read-then-write, not atomic: a claim another device writes between this
+ * read and this write is still overwritten. That window is one round trip
+ * wide instead of as wide as the tab is old; closing it needs the union done
+ * in the database (a trigger or an RPC), which is a migration.
+ */
+export async function pushProfileScalarsNow(): Promise<void> {
+  if (!isSupabaseConfigured) return
+  const userId = await currentUserId()
+  if (!userId) return
+  // Not merged yet on this page load: merge instead of overwriting.
+  if (!hasMerged) {
+    await syncProfileOnSignIn()
+    return
+  }
+  const issued = generation
+  const cloud = await fetchCloud(userId)
+  if (issued !== generation) return
+  const local = localScalars()
+  // The trial count has no trigger either. Another device may have played
+  // hands since this one merged: the greater count is written, and kept here
+  // too, so the table on this device stops offering hands that are gone.
+  const trialHands = Math.max(local.trialHands, cloud.trialHands)
+  if (trialHands > local.trialHands) setTrialHandsUsed(trialHands)
+  await writeCloud(userId, {
+    ...local,
+    claimedStages: Array.from(new Set([...local.claimedStages, ...cloud.claimedStages])),
+    claimedRewards: mergeClaimedRewards(local.claimedRewards, cloud.claimedRewards),
+    trialHands,
+  }, cloud.settings)
 }
 
 /**
  * Push the current local progress scalars to the cloud. Fire-and-forget and
  * best-effort: a failed push is reconciled by the max-merge on the next
- * sign-in. Safe to call after any XP or simulation change.
- *
- * The local value is written as it is, without the max-merge — the
- * `protect_progress_columns` trigger on the row is what stops a device that
- * has lost its local copy from writing a lower number over the cloud's.
+ * sign-in. Safe to call after any XP or simulation change. See
+ * `pushProfileScalarsNow` for what is written.
  */
 export function pushProfileScalars(): void {
   if (!isSupabaseConfigured) return
-  void (async () => {
-    try {
-      const userId = await currentUserId()
-      if (!userId) return
-      // Not merged yet on this page load: merge instead of overwriting.
-      if (!hasMerged) await syncProfileOnSignIn()
-      else await writeCloud(userId, localScalars())
-    } catch (e) {
-      console.error('profile cloud push failed', e)
-    }
-  })()
+  pushProfileScalarsNow().catch(e => console.error('profile cloud push failed', e))
 }
 
 /**
  * Forget that a merge happened — on sign-out, so the next account's first
- * write on this page is a merge again and not an overwrite.
+ * write on this page is a merge again and not an overwrite. Anything still on
+ * its way back from the cloud for the previous account is disowned with it.
  */
 export function resetProfileSync(): void {
   hasMerged = false
-  cloudSettings = {}
+  generation++
 }
 
 /** A pending push of the plan answers, so a burst of taps is one write. */

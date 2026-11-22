@@ -19,15 +19,17 @@ vi.mock('./client', () => ({
   isSupabaseConfigured: true,
 }))
 
-import { syncProfileOnSignIn, pushProfileScalars, resetProfileSync } from './profiles-sync'
+import { syncProfileOnSignIn, pushProfileScalars, pushProfileScalarsNow, resetProfileSync } from './profiles-sync'
 import { levelSystem } from '../level-system'
 import { getClaimedStages, setClaimedStages } from '../stage-rewards'
+import { getClaimedRewards, setClaimedRewards } from '../weekly-rewards'
 import { readPlanState, type PlanState } from '../plan-state'
 import { onPlanStateChanged, planStateUpdatedAt } from '../plan-state-signal'
 import { getPlacement, setPlacement, markStageRead, getReadStages } from '../curriculum'
 import { getProfile, setProfile } from '../learner-profile'
 import { hasSeenWelcome, setWelcomeSeen } from '../onboarding'
 import { hasSeenTour } from '../recommendation'
+import { readTrialHandsUsed, setTrialHandsUsed } from '../casino-trial'
 
 const cloudRow = (overrides: Record<string, unknown> = {}) => ({
   level_xp: 0,
@@ -131,6 +133,48 @@ describe('profiles-sync', () => {
     const settings = lastWrite().settings as { claimed_stages: string[]; theme: string }
     expect(settings.theme).toBe('felt')
     expect(new Set(settings.claimed_stages)).toEqual(new Set(['rules', 'hi-lo']))
+  })
+
+  it('unions the paid weeks the same way, and writes them back under their own key', async () => {
+    maybeSingle.mockResolvedValue({
+      data: cloudRow({ settings: {
+        claimed_stages: ['rules'],
+        claimed_rewards: ['week:2026-11-09', 'weekstreak:2026-11-02:2', 'not-a-reward', 7],
+        theme: 'felt',
+      } }),
+      error: null,
+    })
+    setClaimedRewards(['week:2026-11-16', 'week:2026-11-09'])
+    await syncProfileOnSignIn()
+    const expected = new Set(['week:2026-11-09', 'week:2026-11-16', 'weekstreak:2026-11-02:2'])
+    // On the device: what either side had, and nothing that is not a reward.
+    expect(new Set(getClaimedRewards())).toEqual(expected)
+    const settings = lastWrite().settings as { claimed_rewards: string[]; claimed_stages: string[]; theme: string }
+    expect(new Set(settings.claimed_rewards)).toEqual(expected)
+    // And the keys beside it are still there.
+    expect(settings.claimed_stages).toEqual(['rules'])
+    expect(settings.theme).toBe('felt')
+  })
+
+  it('an empty device takes no paid week away from the account', async () => {
+    // The minute after a sign-in: nothing local, everything in the cloud. A
+    // week that vanished here would be paid a second time.
+    maybeSingle.mockResolvedValue({
+      data: cloudRow({ settings: { claimed_rewards: ['week:2026-11-09', 'week:2026-11-16'] } }),
+      error: null,
+    })
+    expect(getClaimedRewards()).toEqual([])
+    await syncProfileOnSignIn()
+    expect(getClaimedRewards()).toEqual(['week:2026-11-09', 'week:2026-11-16'])
+    expect((lastWrite().settings as { claimed_rewards: string[] }).claimed_rewards)
+      .toEqual(['week:2026-11-09', 'week:2026-11-16'])
+  })
+
+  it('an account that never had the key gets it from the device', async () => {
+    maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { theme: 'felt' } }), error: null })
+    setClaimedRewards(['week:2026-11-16'])
+    await syncProfileOnSignIn()
+    expect((lastWrite().settings as { claimed_rewards: string[] }).claimed_rewards).toEqual(['week:2026-11-16'])
   })
 
   it('treats a write that matched no row as a failure', async () => {
@@ -415,7 +459,11 @@ describe('profiles-sync', () => {
       expect(maybeSingle).toHaveBeenCalledTimes(2)
     })
 
-    it('is a plain write once a merge has happened: no second read', async () => {
+    it('still writes this device\u2019s numbers once a merge has happened — after reading the row again', async () => {
+      // Turned around on 22 Nov 2026. This used to pin "no second read": the
+      // later pushes wrote `settings` blind, and a device that had fallen
+      // behind took paid weeks and stages off the account (see "a push from
+      // a device that has fallen behind" below). Every push reads first now.
       await syncProfileOnSignIn()
       expect(maybeSingle).toHaveBeenCalledTimes(1)
 
@@ -423,7 +471,9 @@ describe('profiles-sync', () => {
       pushProfileScalars()
       await settled(2)
 
-      expect(maybeSingle).toHaveBeenCalledTimes(1)
+      expect(maybeSingle).toHaveBeenCalledTimes(2)
+      expect(maybeSingle.mock.invocationCallOrder[1]).toBeLessThan(update.mock.invocationCallOrder[1])
+      // The level is not max-merged here: the database trigger guards it.
       expect(lastWrite()).toMatchObject({ level_xp: 777 })
     })
 
@@ -542,5 +592,226 @@ describe('profiles-sync', () => {
     getSession.mockResolvedValue({ data: { session: null } })
     await syncProfileOnSignIn()
     expect(from).not.toHaveBeenCalled()
+  })
+})
+
+describe('profiles-sync: a push from a device that has fallen behind', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    levelSystem.reload()
+    resetProfileSync()
+    vi.useFakeTimers()
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } })
+    maybeSingle.mockResolvedValue({ data: cloudRow(), error: null })
+    writeSelect.mockResolvedValue({ data: [{ id: 'u1' }], error: null })
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
+  })
+
+  it('does not take paid weeks and stages off the account that another device added', async () => {
+    // This tab merged yesterday. Since then the phone has been paid a week,
+    // a streak and a stage. `settings` is one jsonb value: writing this
+    // device's copy replaced the phone's, and the next sign-in anywhere found
+    // those rewards unpaid and paid them again.
+    maybeSingle.mockResolvedValue({
+      data: cloudRow({ settings: { claimed_stages: ['rules'], claimed_rewards: ['week:2026-11-09'] } }),
+      error: null,
+    })
+    await syncProfileOnSignIn()
+
+    maybeSingle.mockResolvedValue({
+      data: cloudRow({ settings: {
+        claimed_stages: ['rules', 'hi-lo'],
+        claimed_rewards: ['week:2026-11-09', 'week:2026-11-16', 'weekstreak:2026-11-09:2'],
+        theme: 'felt',
+      } }),
+      error: null,
+    })
+    // And this tab earns something of its own.
+    setClaimedStages([...getClaimedStages(), 'basic-strategy'])
+    levelSystem.setTotalXP(900)
+
+    await pushProfileScalarsNow()
+
+    const settings = lastSettings()
+    expect(new Set(settings.claimed_stages as string[])).toEqual(new Set(['rules', 'hi-lo', 'basic-strategy']))
+    expect(new Set(settings.claimed_rewards as string[]))
+      .toEqual(new Set(['week:2026-11-09', 'week:2026-11-16', 'weekstreak:2026-11-09:2']))
+    // A key the other device added since is carried, not dropped.
+    expect(settings.theme).toBe('felt')
+    // The numbers still go up as this device holds them.
+    expect(lastWrite()).toMatchObject({ level_xp: 900 })
+  })
+
+  it('reads before every write, and writes nothing when the read fails', async () => {
+    await syncProfileOnSignIn()
+    maybeSingle.mockResolvedValue({ data: null, error: new Error('network down') })
+
+    await expect(pushProfileScalarsNow()).rejects.toThrow('network down')
+    expect(update).toHaveBeenCalledTimes(1)
+  })
+
+  it('pushProfileScalarsNow reports a refused write to the caller that waits for it', async () => {
+    await syncProfileOnSignIn()
+    writeSelect.mockResolvedValue({ data: null, error: new Error('permission denied') })
+    await expect(pushProfileScalarsNow()).rejects.toThrow('permission denied')
+  })
+
+  it('pushProfileScalarsNow resolves once the write has landed', async () => {
+    levelSystem.setTotalXP(450)
+    await expect(pushProfileScalarsNow()).resolves.toBeUndefined()
+    expect(lastWrite()).toMatchObject({ level_xp: 450 })
+  })
+})
+
+describe('profiles-sync: an answer that arrives for an account no longer here', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    levelSystem.reload()
+    resetProfileSync()
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } })
+    writeSelect.mockResolvedValue({ data: [{ id: 'u1' }], error: null })
+  })
+
+  /** Hold the next read open; returns the function that lets it answer. */
+  function holdRead(row: Record<string, unknown>): () => void {
+    let answer = () => {}
+    maybeSingle.mockImplementationOnce(() => new Promise(resolve => {
+      answer = () => resolve({ data: row, error: null })
+    }))
+    return () => answer()
+  }
+
+  it('the sign-in merge puts nothing on the device after a sign-out', async () => {
+    // A's row is still on its way when A signs out and the device is wiped.
+    // Written now, A's level and paid stages would sit in storage with no
+    // owner and be merged into whoever signs in next.
+    const answer = holdRead(cloudRow({ level_xp: 68000, settings: { claimed_stages: ['rules'], plan: CLOUD_PLAN } }))
+    const merge = syncProfileOnSignIn()
+    await vi.waitFor(() => expect(maybeSingle).toHaveBeenCalledTimes(1))
+
+    resetProfileSync()
+    answer()
+    await merge
+
+    expect(levelSystem.getTotalXP()).toBe(0)
+    expect(getClaimedStages()).toEqual([])
+    expect(getPlacement()).toBeNull()
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('a plain push writes nothing after a sign-out either', async () => {
+    maybeSingle.mockResolvedValueOnce({ data: cloudRow({ settings: { plan: CLOUD_PLAN } }), error: null })
+    await syncProfileOnSignIn()
+    expect(update).toHaveBeenCalledTimes(1)
+
+    const answer = holdRead(cloudRow({ settings: { plan: CLOUD_PLAN } }))
+    const push = pushProfileScalarsNow()
+    await vi.waitFor(() => expect(maybeSingle).toHaveBeenCalledTimes(2))
+
+    // The wipe: the device now holds nothing, and that nothing must not be
+    // written over the account's plan.
+    resetProfileSync()
+    localStorage.clear()
+    answer()
+    await push
+
+    expect(update).toHaveBeenCalledTimes(1)
+  })
+
+  it('counts an award made while the merge was reading', async () => {
+    // The device's numbers used to be read before the request left, so XP
+    // earned while it was out was set back to the older figure.
+    const answer = holdRead(cloudRow({ level_xp: 100 }))
+    const merge = syncProfileOnSignIn()
+    await vi.waitFor(() => expect(maybeSingle).toHaveBeenCalledTimes(1))
+
+    levelSystem.setTotalXP(250)
+    answer()
+    await merge
+
+    expect(levelSystem.getTotalXP()).toBe(250)
+    expect(lastWrite()).toMatchObject({ level_xp: 250 })
+  })
+})
+
+describe('profiles-sync: the casino trial count travels in settings.casino_trial_hands', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    levelSystem.reload()
+    resetProfileSync()
+    vi.useFakeTimers()
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } })
+    maybeSingle.mockResolvedValue({ data: cloudRow(), error: null })
+    writeSelect.mockResolvedValue({ data: [{ id: 'u1' }], error: null })
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
+  })
+
+  it('a wiped device gets the hands it played back, not ten new ones', async () => {
+    // Signed out and in again: the local count went with the wipe.
+    maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { casino_trial_hands: 10 } }), error: null })
+    expect(readTrialHandsUsed()).toBeNull()
+
+    await syncProfileOnSignIn()
+
+    expect(readTrialHandsUsed()).toBe(10)
+    expect(lastSettings().casino_trial_hands).toBe(10)
+  })
+
+  it('hands played here reach an account that has fewer', async () => {
+    maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { casino_trial_hands: 2, theme: 'felt' } }), error: null })
+    setTrialHandsUsed(6)
+
+    await syncProfileOnSignIn()
+
+    expect(readTrialHandsUsed()).toBe(6)
+    expect(lastSettings().casino_trial_hands).toBe(6)
+    expect(lastSettings().theme).toBe('felt')
+  })
+
+  it('an account that never played is known as zero after the merge', async () => {
+    await syncProfileOnSignIn()
+    // Written, not absent: this is what lets the trial be offered at all.
+    expect(readTrialHandsUsed()).toBe(0)
+    expect(lastSettings().casino_trial_hands).toBe(0)
+  })
+
+  it('leaves the count unknown when the merge could not read the account', async () => {
+    maybeSingle.mockResolvedValue({ data: null, error: new Error('offline') })
+    await expect(syncProfileOnSignIn()).rejects.toThrow()
+    expect(readTrialHandsUsed()).toBeNull()
+  })
+
+  it('a push from a tab that is behind does not give hands back', async () => {
+    await syncProfileOnSignIn()
+    setTrialHandsUsed(3)
+    // The phone played the rest meanwhile.
+    maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { casino_trial_hands: 10 } }), error: null })
+
+    await pushProfileScalarsNow()
+
+    expect(lastSettings().casino_trial_hands).toBe(10)
+    // And this tab learns it, so its table stops dealing.
+    expect(readTrialHandsUsed()).toBe(10)
+  })
+
+  it('reads a damaged cloud value as no hands, and a huge one as all of them', async () => {
+    maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { casino_trial_hands: 'many' } }), error: null })
+    await syncProfileOnSignIn()
+    expect(readTrialHandsUsed()).toBe(0)
+
+    maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { casino_trial_hands: 4000 } }), error: null })
+    await pushProfileScalarsNow()
+    expect(readTrialHandsUsed()).toBe(10)
   })
 })

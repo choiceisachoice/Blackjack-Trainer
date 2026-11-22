@@ -24,6 +24,8 @@ export const LearnPublicPage = lazyRoute(() => import('../pages/LearnPublicPage'
 export const LearnTopicPage = lazyRoute(() => import('../pages/LearnTopicPage').then(m => ({ default: m.LearnTopicPage })))
 // The chart without a login: the one piece of the product that earns a link.
 export const StrategyChartPublicPage = lazyRoute(() => import('../pages/StrategyChartPublicPage').then(m => ({ default: m.StrategyChartPublicPage })))
+// One round without an account: the product before the sign-up form.
+export const TryPage = lazyRoute(() => import('../pages/TryPage').then(m => ({ default: m.TryPage })))
 // The operator's numbers. Behind auth and the admin list; its own chunk, so
 // a visitor never downloads it.
 export const AdminAnalyticsPage = lazyRoute(() => import('../pages/AdminAnalyticsPage').then(m => ({ default: m.AdminAnalyticsPage })))
@@ -49,6 +51,7 @@ export function routeFor(path: string): PreloadableRoute | null {
   if (p === '/learn') return LearnPublicPage
   if (/^\/learn\/[^/]+$/.test(p)) return LearnTopicPage
   if (p === '/strategy-chart') return StrategyChartPublicPage
+  if (p === '/try') return TryPage
   if (p === '/terms') return TermsPage
   if (p === '/privacy') return PrivacyPage
   if (p === '/contact') return ContactPage

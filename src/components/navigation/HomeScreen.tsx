@@ -7,8 +7,9 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useAppStore } from '../../store/app-store'
-import { isProMode } from '../../services/pro-features'
+import { isProMode, isModeLocked } from '../../services/pro-features'
 import { useIsPro } from '../../store/entitlement-store'
+import { useTrialLeft } from '../../store/casino-trial-store'
 import type { AppMode } from '../../store/app-store'
 import { useAchievementStore } from '../../store/achievement-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
@@ -17,6 +18,7 @@ import { GuidedTour } from '../onboarding/GuidedTour'
 import { DailyChallengeCard } from './DailyChallengeCard'
 import { WeeklyChallengeCard } from './WeeklyChallengeCard'
 import { DashboardHeader } from './DashboardHeader'
+import { ResumeSessionCard } from '../casino-session/ResumeSessionCard'
 
 interface FeatureCard {
   mode: AppMode
@@ -64,6 +66,13 @@ export function HomeScreen() {
 
       {touring && <GuidedTour onClose={() => setTouring(false)} />}
 
+      {/* A casino table left open — by a closed tab, a reload, a dead phone —
+          is offered here, once, above everything: continue it or cash it out.
+          Renders nothing when there is none (the wrapper goes with it). */}
+      <div className="w-full max-w-3xl pt-4 empty:hidden">
+        <ResumeSessionCard />
+      </div>
+
       {/*
         The plan is the home screen now, and it owns what surrounds it.
 
@@ -98,6 +107,10 @@ function HomeSections() {
   const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
   const isPro = useIsPro()
+  // The casino table's free trial: while hands remain the card says so in
+  // place of its lock, and the click leads to the table instead of the paywall.
+  const trialLeft = useTrialLeft()
+  const tableLocked = isModeLocked('casinoSession', isPro, trialLeft > 0)
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
 
   return (
@@ -166,11 +179,21 @@ function HomeSections() {
             <Club size={24} className="fill-current" />
           </span>
           <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-gold flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gold flex flex-wrap items-center gap-x-2 gap-y-1">
               {t('modes.casinoSession')}
+              {/* Without Pro and with trial hands left: the offer, where the
+                  lock would be. One label, on the one card that leads there. */}
+              {!isPro && !tableLocked && (
+                <span
+                  className="text-[0.6875rem] font-semibold text-gold border border-gold/35 rounded-full px-2 py-0.5 leading-none"
+                  data-testid="casino-trial-offer"
+                >
+                  {t('casino.trial.entry', { count: trialLeft })}
+                </span>
+              )}
               {/* The most prominent card on the screen, presented as the thing
                   the product is for, with nothing to say it is gated. */}
-              {!isPro && (
+              {tableLocked && (
                 <span
                   className="flex items-center gap-1 text-[0.625rem] font-bold
                     tracking-[0.12em] uppercase text-gold/80"

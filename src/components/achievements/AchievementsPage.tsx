@@ -8,6 +8,7 @@ import { ALL_ACHIEVEMENTS, achievementName, achievementDescription } from '../..
 import { LEVELS } from '../../services/level-system'
 import type { Achievement, AchievementCategory, AchievementTier } from '../../services/achievements/achievement-types'
 import { ProgressBar, EmptyState } from '../common/ui'
+import { medalProgress } from './medal-progress'
 import { Lock, Trophy } from 'lucide-react'
 
 /** Filter options for the collection. */
@@ -438,6 +439,9 @@ function Medal({ achievement, unlocked, unlockedAt, progress, pinned, onToggle, 
     ? t('awards.unlockedOn', { name, desc, date: unlockedAt ? formatDate(unlockedAt, i18n.language) : '' })
     : t('awards.inProgress', { name, desc, pct: Math.round(progress) })
 
+  // How far along a locked award is, where that can be measured at all.
+  const ring = unlocked ? null : medalProgress(achievement, progress)
+
   const popoverId = useId()
   const buttonRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLSpanElement>(null)
@@ -504,7 +508,7 @@ function Medal({ achievement, unlocked, unlockedAt, progress, pinned, onToggle, 
       data-testid={`achievement-card-${achievement.id}`}
     >
       <span
-        className="grid w-14 h-14 mx-auto rounded-full place-items-center text-[1.5rem] border-2"
+        className="relative grid w-14 h-14 mx-auto rounded-full place-items-center text-[1.5rem] border-2"
         style={
           unlocked
             ? { borderColor: tc, background: `radial-gradient(circle at 50% 35%, color-mix(in srgb, ${tc} 22%, var(--color-surface)), var(--color-surface))`, boxShadow: `0 0 14px -4px color-mix(in srgb, ${tc} 55%, transparent)` }
@@ -512,6 +516,23 @@ function Medal({ achievement, unlocked, unlockedAt, progress, pinned, onToggle, 
         }
       >
         <span style={unlocked ? undefined : { filter: 'grayscale(1)', opacity: 0.45 }}>{achievement.icon}</span>
+        {/* The medal's own rim, filled as far as the award is earned. No
+            number: that stays in the description a tap opens. Decorative for
+            a screen reader, which is read the percentage below. */}
+        {ring != null && ring > 0 && (
+          <svg
+            aria-hidden="true"
+            data-testid={`medal-ring-${achievement.id}`}
+            data-percent={Math.round(ring)}
+            className="absolute -inset-0.5 -rotate-90 pointer-events-none"
+            viewBox="0 0 56 56"
+          >
+            <circle
+              cx="28" cy="28" r="27" fill="none" stroke={tc} strokeWidth="2" strokeLinecap="round"
+              pathLength={100} strokeDasharray={`${ring} 100`} opacity={0.9}
+            />
+          </svg>
+        )}
       </span>
       <span className={`block text-[0.6875rem] mt-1.5 leading-tight ${unlocked ? 'text-content/70' : 'text-content/35'}`}>
         {name}

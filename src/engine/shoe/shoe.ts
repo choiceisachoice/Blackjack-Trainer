@@ -1,5 +1,21 @@
-import type { Card, ShoeConfig } from './types'
+import type { Card, ShoeConfig, ShoeSnapshot } from './types'
 import { Rank, Suit } from './types'
+
+const SUITS: readonly Suit[] = Object.values(Suit)
+const RANKS: readonly Rank[] = Object.values(Rank)
+
+/** A card as one number, 0 to 51: what a snapshot stores instead of two strings. */
+function cardCode(card: Card): number {
+  return SUITS.indexOf(card.suit) * RANKS.length + RANKS.indexOf(card.rank)
+}
+
+/** The card a snapshot's number stands for. */
+function cardOf(code: number): Card {
+  return { rank: RANKS[code % RANKS.length], suit: SUITS[Math.floor(code / RANKS.length)] }
+}
+
+const isIndex = (value: unknown, max: number): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= max
 
 const MIN_PENETRATION = 0.65
 const MAX_PENETRATION = 0.85
@@ -52,7 +68,7 @@ export class Shoe {
    * @param penetrationVariance - Optional variance applied to penetration (default: 0, max: 0.05)
    * @throws Error if penetration is outside the 0.65–0.85 range
    */
-  constructor(config: ShoeConfig, penetrationVariance = 0) {
+  constructor(config: ShoeConfig, penetrationVariance = 0, restored?: ShoeSnapshot) {
     const penetration = config.penetration ?? DEFAULT_PENETRATION
 
     if (penetration < MIN_PENETRATION || penetration > MAX_PENETRATION) {
@@ -62,8 +78,58 @@ export class Shoe {
     }
 
     this.config = { numDecks: config.numDecks, penetration }
+    if (restored) {
+      // A shoe put back as it was: no shuffle, and no random number drawn —
+      // a restored table must go on exactly as the one that was saved.
+      this.cards = restored.cards.map(cardOf)
+      this.dealIndex = restored.dealIndex
+      this.cutCardIndex = restored.cutCardIndex
+      return
+    }
     this.buildAndShuffle()
     this.cutCardIndex = this.calculateCutCardIndex(penetrationVariance)
+  }
+
+  /**
+   * The shoe as plain data: every card in order (dealt ones included — the
+   * next shuffle starts from that order), where the deal stands, and the cut
+   * card.
+   * @returns A JSON-serialisable copy; the shoe is not changed
+   */
+  snapshot(): ShoeSnapshot {
+    return {
+      cards: this.cards.map(cardCode),
+      dealIndex: this.dealIndex,
+      cutCardIndex: this.cutCardIndex,
+    }
+  }
+
+  /**
+   * Rebuilds a shoe from `snapshot()`.
+   *
+   * Nothing about the input is trusted — it comes back out of storage. It must
+   * be a complete shoe for this many decks, every card present exactly once
+   * per deck.
+   *
+   * @param config - Decks and penetration of the table
+   * @param snapshot - What `snapshot()` returned, after any trip through JSON
+   * @returns The shoe, or null when the snapshot is not one
+   */
+  static restore(config: ShoeConfig, snapshot: unknown): Shoe | null {
+    if (!Number.isInteger(config.numDecks) || config.numDecks < 1 || config.numDecks > 8) return null
+    if (!(config.penetration >= MIN_PENETRATION && config.penetration <= MAX_PENETRATION)) return null
+    if (typeof snapshot !== 'object' || snapshot === null) return null
+    const { cards, dealIndex, cutCardIndex } = snapshot as Partial<ShoeSnapshot>
+    const size = config.numDecks * 52
+    if (!Array.isArray(cards) || cards.length !== size) return null
+    if (!isIndex(dealIndex, size) || !isIndex(cutCardIndex, size)) return null
+    const seen = new Array<number>(52).fill(0)
+    for (const code of cards) {
+      if (!isIndex(code, 51)) return null
+      seen[code]++
+    }
+    if (seen.some(n => n !== config.numDecks)) return null
+    return new Shoe(config, 0, { cards: [...cards], dealIndex, cutCardIndex })
   }
 
   /**
