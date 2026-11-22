@@ -1,4 +1,6 @@
-import { useState, useEffect, lazy, Suspense, type ReactNode } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense, type ReactNode } from 'react'
+import { PlaySection, PLAY_SECTION_ID, type PlaySectionHandle } from '../components/landing/PlaySection'
+import { preloadTrialRound } from '../components/landing/trial-round-loader'
 import { CookieSettingsLink } from '../components/common/CookieBanner'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
@@ -56,6 +58,18 @@ export function LandingPage() {
   usePageMeta('landing', '/')
   const signedIn = useAuthStore(s => s.status === 'signedIn')
   const authed = !isSupabaseConfigured || signedIn
+  /*
+    The play section is the trial round, and the trial is for a visitor
+    without an account: `/try` sends a signed-in one to the app. This page
+    redirects nobody, so for them the section is simply not there — the hero
+    and the bar above already say "Open app", and a third copy of that line
+    under the hero would be the only thing it could hold. Same condition as
+    `/try`, deliberately not `authed`: a build without a cloud has no accounts
+    to keep a round out of, and the prerender must not depend on which kind
+    of build it runs in.
+  */
+  const showPlay = !(isSupabaseConfigured && signedIn)
+  const play = useRef<PlaySectionHandle>(null)
   const hasSubscription = useHasSubscription()
   const navigate = useNavigate()
   const [plan, setPlan] = useState<BillingPlan>('yearly')
@@ -236,17 +250,24 @@ export function LandingPage() {
               </button>
               {/* Two actions, never three. A visitor without an account gets
                   the product itself as the second one: a round of flashcards
-                  before any form (`/try`, opened on its first hand). Someone
+                  before any form, on this page — the button brings the play
+                  section up and deals its first hand. It is a link to the
+                  section's anchor underneath, so it already works on the
+                  prerendered page, before this code has arrived (there it
+                  scrolls, and the section's own button deals). Someone
                   signed in has no use for a trial and keeps the way to the
                   prices, which everyone else still has in the bar above and
                   at the foot of the page. */}
               {authed ? (
                 <a href="#pricing" className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">{t('landing.hero.ctaSeePro')}</a>
               ) : (
-                <Link to="/try" state={{ autoStart: true }} data-testid="hero-try"
+                <a href={`#${PLAY_SECTION_ID}`} data-testid="hero-try"
+                  onClick={e => { e.preventDefault(); play.current?.start() }}
+                  onPointerEnter={() => void preloadTrialRound()}
+                  onFocus={() => void preloadTrialRound()}
                   className="rounded-xl px-6 py-3.5 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors">
                   {t('landing.hero.ctaTry')}
-                </Link>
+                </a>
               )}
             </div>
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-content/40">
@@ -255,6 +276,9 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* The trainer itself, before anything is said about it. */}
+      {showPlay && <PlaySection ref={play} />}
 
       {/* Credibility strip */}
       <div className="border-y border-white/8 py-4 bg-[rgba(7,8,9,.55)]">

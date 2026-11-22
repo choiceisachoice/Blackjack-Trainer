@@ -135,13 +135,24 @@ home and the same way in.
 
 ## The trial round (`/try`)
 
-One round of ten basic-strategy flashcards without an account, reached from
-the landing hero's second button (signed-out visitors only). It is the real
+One round of ten basic-strategy flashcards without an account. It is the real
 `DeviationTraining` with a `trial` prop that swaps the setup and the summary
-for the page's own two screens (`pages/TryPage.tsx`); the summary names the
-missed hands and offers one next step, the free account. Prerendered like the
-other public pages — the first screen is an intro that is the same for
-everyone; the landing's button skips it through router state.
+for the trial's own two screens; the summary names the missed hands and offers
+one next step, the free account. The round is one component,
+`components/trial/TrialRound.tsx`, and it is offered in two places:
+
+- **On the landing, directly under the hero** (`components/landing/PlaySection.tsx`,
+  anchor `#play`, 22 Nov 2026) — because the pages that rank for "blackjack
+  trainer" are trainers. The prerendered HTML carries an `<h2>`, one sentence
+  and the intro card (`components/trial/TrialIntro.tsx`); the round's code is
+  not in the landing's chunk and is fetched when the section nears the screen
+  or the hero's second button is hovered (`trial-round-loader.ts`). The stage
+  reserves a hand's height, so the swap moves nothing. The hero's second
+  button (signed-out visitors only) is a link to `#play` that scrolls there
+  and deals the first hand. A signed-in visitor does not get the section.
+- **At `/try`**, its own indexed page with its own canonical, linked from the
+  videos. Prerendered like the other public pages — the first screen is the
+  intro, with the page's `<h1>` in it.
 
 The round is recorded by the ordinary session recording, locally, and the
 sign-in merge uploads it to the account created afterwards. Three rules keep
@@ -150,7 +161,7 @@ in `services/supabase/guest-round-migration.test.tsx`): the trial stamps
 `bjt_guest_since`, and ownerless data carrying that stamp goes only to an
 account **created after** the stamp (five minutes of clock slack) — an older
 account signing in on that device gets it wiped instead; a signed-in visitor
-is redirected to `/app`; and on a device that still holds an account's data
+is redirected to `/app` (on the landing: the section is left out); and on a device that still holds an account's data
 (`bjt_local_owner` set, nobody signed in) the round is played but not
 recorded, and the summary does not promise to keep it. Not covered: a
 confirmation mail opened in a different browser than the one the round was

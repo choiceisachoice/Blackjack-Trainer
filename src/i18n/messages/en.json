@@ -300,7 +300,12 @@
       "running": "Running",
       "tcStand": "TC ≥ 0 → Stand"
     },
-    "brand": "Blackjack Trainer"
+    "brand": "Blackjack Trainer",
+    "play": {
+      "eyebrow": "Try the trainer",
+      "title": "Play a round of blackjack basic strategy — <1>right here</1>.",
+      "sub": "Ten hands, no account. After every hand you see the right play — in the same trainer you get inside the app."
+    }
   },
   "auth": {
     "signIn": "Sign In",

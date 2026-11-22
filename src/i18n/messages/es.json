@@ -300,7 +300,12 @@
       "running": "Corriente",
       "tcStand": "TC ≥ 0 → Plantarse"
     },
-    "brand": "Blackjack Trainer"
+    "brand": "Blackjack Trainer",
+    "play": {
+      "eyebrow": "Prueba el entrenador",
+      "title": "Juega una ronda de estrategia básica de blackjack — <1>aquí mismo</1>.",
+      "sub": "Diez manos, sin cuenta. Después de cada mano ves la jugada correcta, en el mismo entrenador que tienes dentro de la app."
+    }
   },
   "auth": {
     "signIn": "Iniciar sesión",

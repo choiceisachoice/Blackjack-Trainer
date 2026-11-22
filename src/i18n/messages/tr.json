@@ -300,7 +300,12 @@
       "running": "Yürüyen",
       "tcStand": "TC ≥ 0 → Dur"
     },
-    "brand": "Blackjack Trainer"
+    "brand": "Blackjack Trainer",
+    "play": {
+      "eyebrow": "Eğitmeni dene",
+      "title": "Bir tur blackjack temel stratejisi oyna — <1>hemen burada</1>.",
+      "sub": "On el, hesap gerekmez. Her elden sonra doğru hamleyi görürsün — uygulamadaki eğitmenin aynısında."
+    }
   },
   "auth": {
     "signIn": "Giriş yap",
