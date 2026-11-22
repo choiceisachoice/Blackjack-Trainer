@@ -183,7 +183,7 @@
       "noCard": "Zum Starten keine Karte nötig",
       "tags": "Illustrious 18 · Fab 4",
       "cancel": "Jederzeit kündbar",
-      "eyebrow": "Hi-Lo-Kartenzählen, richtig trainiert",
+      "eyebrow": "Blackjack-Trainer · Hi-Lo-Kartenzählen",
       "headline": "Trainiere den <1>Vorteil</1>, der den Schlitten schlägt.",
       "chipStrategy": "Basisstrategie",
       "chipRules": "S17 / H17",
@@ -2239,8 +2239,8 @@
     "statusDone": "Fertig"
   },
   "meta": {
-    "title": "Blackjack Kartenzählen lernen — Hi-Lo richtig trainieren",
-    "description": "Hi-Lo-Kartenzählen richtig trainieren: Übungen auf Zeit, jede Basisstrategie-Hand, die Illustrious 18, ein voller Casino-Tisch und eine Auswertung, die deine Schwächen findet.",
+    "title": "Blackjack Trainer — Hi-Lo-Kartenzählen & Basisstrategie üben",
+    "description": "Blackjack-Trainer, kostenlos starten: Basisstrategie und Hi-Lo-Kartenzählen üben, mit Übungen auf Zeit, Casino-Tisch und einer Auswertung deiner Schwächen.",
     "pages": {
       "learn": {
         "title": "Kartenzählen lernen — Hi-Lo, True Count, Basisstrategie, Illustrious 18",

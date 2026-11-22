@@ -183,7 +183,7 @@
       "noCard": "Başlamak için kart gerekmez",
       "tags": "Illustrious 18 · Fab 4",
       "cancel": "İstediğiniz zaman iptal",
-      "eyebrow": "Hi-Lo kart sayımı, hakkıyla çalışılmış",
+      "eyebrow": "Blackjack antrenörü · Hi-Lo kart sayımı",
       "headline": "Ayakkabıyı yenen <1>avantajı</1> çalışın.",
       "chipStrategy": "Temel strateji",
       "chipRules": "S17 / H17",
@@ -2239,7 +2239,7 @@
     "statusDone": "Hazır"
   },
   "meta": {
-    "title": "Blackjack kart sayma — Hi-Lo’yu doğru öğrenin",
+    "title": "Blackjack antrenörü — Hi-Lo kart sayma ve temel strateji",
     "description": "Hi-Lo kart saymayı doğru çalış: süreli alıştırmalar, her temel strateji eli, Illustrious 18, tam bir casino masası ve zayıf noktalarını bulan analizler.",
     "pages": {
       "learn": {

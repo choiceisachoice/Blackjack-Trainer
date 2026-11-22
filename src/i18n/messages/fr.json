@@ -183,7 +183,7 @@
       "noCard": "Aucune carte requise pour commencer",
       "tags": "Illustrious 18 · Fab 4",
       "cancel": "Résiliable à tout moment",
-      "eyebrow": "Le comptage Hi-Lo, travaillé sérieusement",
+      "eyebrow": "Entraîneur de blackjack · comptage Hi-Lo",
       "headline": "Travaillez l’<1>avantage</1> qui bat le sabot.",
       "chipStrategy": "Stratégie de base",
       "chipRules": "S17 / H17",
@@ -2239,7 +2239,7 @@
     "statusDone": "Terminé"
   },
   "meta": {
-    "title": "Blackjack : compter les cartes — apprendre le Hi-Lo",
+    "title": "Entraîneur de blackjack — compter les cartes en Hi-Lo",
     "description": "Entraîne-toi sérieusement au comptage Hi-Lo : exercices chronométrés, chaque main de stratégie de base, les Illustrious 18, une vraie table de casino et des analyses qui trouvent tes failles.",
     "pages": {
       "learn": {

@@ -183,7 +183,7 @@
       "noCard": "No card needed to start",
       "tags": "Illustrious 18 · Fab 4",
       "cancel": "Cancel anytime",
-      "eyebrow": "Hi-Lo card counting, trained properly",
+      "eyebrow": "Blackjack trainer · Hi-Lo card counting",
       "headline": "Train the <1>edge</1> that beats the shoe.",
       "chipStrategy": "Basic strategy",
       "chipRules": "S17 / H17",
@@ -2239,8 +2239,8 @@
     "statusDone": "Complete"
   },
   "meta": {
-    "title": "Blackjack Card Counting Trainer — Learn Hi-Lo Properly",
-    "description": "Train Hi-Lo card counting properly: timed drills, every basic-strategy hand, the Illustrious 18, a full casino table and analytics that find your leaks.",
+    "title": "Blackjack Trainer — Hi-Lo Card Counting & Basic Strategy",
+    "description": "Blackjack trainer, free to start: practise basic strategy and Hi-Lo card counting with timed drills, a full casino table and stats that find your leaks.",
     "pages": {
       "learn": {
         "title": "Learn Card Counting — Hi-Lo, True Count, Basic Strategy, Illustrious 18",

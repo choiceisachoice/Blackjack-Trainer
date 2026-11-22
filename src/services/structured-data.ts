@@ -90,6 +90,9 @@ export function siteJsonLd(t: Translate): Record<string, unknown> {
         '@id': `${SITE_ORIGIN}/#website`,
         url: `${SITE_ORIGIN}/`,
         name: t('landing.brand'),
+        // What else people call it. Google picks the site name shown above a
+        // result from these; without them it showed the bare domain.
+        alternateName: ['Blackjack Card Counting Trainer', 'black-jack-training.com'],
         description: t('meta.description'),
         inLanguage: ['en', 'de', 'fr', 'it', 'es', 'pt', 'tr'],
       },

@@ -210,12 +210,22 @@ export function LandingPage() {
         <HeroLayer />
         <div className="relative z-[5] w-full intro-enter max-sm:pt-10 max-sm:pb-8">
           <div className="max-w-6xl mx-auto px-6">
-            <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.hero.eyebrow')}</div>
-            <h1 className="mt-4 text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.02] text-balance max-w-[15ch]">
-              {/* Trans, not three concatenated keys: the accented word sits in
-                  different places in different languages, and fragments cannot
-                  be reordered by a translator. */}
-              <Trans i18nKey="landing.hero.headline" components={[<span key="0" />, <span key="1" className="text-gold-gradient" />]} />
+            {/* The small line is part of the heading, not a label above it: it
+                is the one place on the page that names the thing in the words
+                people type into a search box ("blackjack trainer"), and a
+                search engine reads the h1 as what the page is about. The big
+                line alone said "Train the edge that beats the shoe" — a good
+                line that contains none of those words. Two block spans, so
+                each keeps its own size; the measure (15ch) belongs to the big
+                one because a ch follows the font size. */}
+            <h1>
+              <span className="block text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.hero.eyebrow')}</span>
+              <span className="block mt-4 text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.02] text-balance max-w-[15ch]">
+                {/* Trans, not three concatenated keys: the accented word sits in
+                    different places in different languages, and fragments cannot
+                    be reordered by a translator. */}
+                <Trans i18nKey="landing.hero.headline" components={[<span key="0" />, <span key="1" className="text-gold-gradient" />]} />
+              </span>
             </h1>
             <p className="mt-5 text-lg text-content/60 max-w-[34em]">
               {t('landing.hero.subtitle')}
