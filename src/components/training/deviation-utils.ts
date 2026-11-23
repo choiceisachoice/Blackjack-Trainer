@@ -71,3 +71,32 @@ export function getDeviationAction(deviation: Deviation): Action {
 export function formatTC(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`
 }
+
+/** The key that answers with each play. Upper case; matched case-insensitively. */
+export const ACTION_SHORTCUT: Record<Action, string> = {
+  [Action.Hit]: 'H',
+  [Action.Stand]: 'S',
+  [Action.Double]: 'D',
+  [Action.Split]: 'P',
+  [Action.Surrender]: 'R',
+  [Action.Insurance]: 'I',
+}
+
+/**
+ * The play a key press answers with, or null.
+ *
+ * @param key - `KeyboardEvent.key`
+ */
+export function actionForKey(key: string): Action | null {
+  const k = key.toUpperCase()
+  return ALL_ACTIONS.find(a => ACTION_SHORTCUT[a] === k) ?? null
+}
+
+/** Percent in the reader's language: "80 %", "%80", "80%". */
+export function formatPercent(n: number, locale: string): string {
+  try {
+    return new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(n)
+  } catch {
+    return `${Math.round(n * 100)}%`
+  }
+}

@@ -65,14 +65,61 @@
    LEVEL-UP POPUP ANIMATIONS
    ═══════════════════════════════════════════════════════ */
 
-@keyframes levelFadeIn {
+/* Durations, delays and curves come from `level-up-motion.ts` and are set
+   inline; these are only the shapes. Most are `from`-only on purpose: the
+   element's own style is the settled state, so with the animation removed
+   (reduced motion) everything is simply where it belongs. Only transform and
+   opacity move, except the ring's arc, a 200px SVG stroke. */
+
+@keyframes lu-fade-in {
   from { opacity: 0; }
-  to { opacity: 1; }
 }
 
-@keyframes levelScaleIn {
-  from { transform: scale(0.5); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+@keyframes lu-card-rise {
+  from { transform: translateY(14px) scale(0.96); }
+}
+
+@keyframes lu-rise-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes lu-pop-in {
+  from { opacity: 0; transform: scale(0.94); }
+}
+
+/* The number strip rolls from the old level up to its resting offset. */
+@keyframes lu-roll {
+  from { transform: translateY(0); }
+}
+
+@keyframes lu-arc {
+  from { stroke-dashoffset: 100; }
+}
+
+@keyframes lu-pulse {
+  from { opacity: 0.55; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.22); }
+}
+
+/* Each spark sits in a wrapper already rotated to its angle; it only travels
+   outwards along its own x axis. */
+@keyframes lu-spark {
+  0% { opacity: 0; transform: translateX(var(--lu-from)) scale(0.4); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(var(--lu-to)) scale(1); }
+}
+
+@keyframes lu-sweep {
+  from { transform: translateX(-160%) skewX(-18deg); }
+  to { transform: translateX(360%) skewX(-18deg); }
+}
+
+/* Belt and braces: the component already leaves these out under reduced
+   motion. The global reset only shortens animations — their delays would
+   still hold parts of the popup invisible for half a second. */
+@media (prefers-reduced-motion: reduce) {
+  .lu-anim { animation: none !important; }
+  .lu-fx { display: none !important; }
 }
 
 /* ═══════════════════════════════════════════════════════

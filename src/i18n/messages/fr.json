@@ -466,7 +466,33 @@
       "focusHands": "Ces mains",
       "focusClear": "Travailler toutes les mains",
       "focusResults": "Par main",
-      "focusAgain": "Les retravailler"
+      "focusAgain": "Les retravailler",
+      "hardTotal": "{{n}} dur",
+      "softTotal": "{{n}} souple",
+      "pairOf": "Paire de {{rank}}",
+      "pairOfAces": "Paire d’as",
+      "anyHand": "N’importe quelle main",
+      "chartHint": "Votre réponse remplit cette case.",
+      "why": {
+        "stiffStand": "La carte du croupier est faible (2 à 6) et il brûle souvent. Restez et laissez-lui le risque.",
+        "stiffHit": "La carte du croupier est forte (7 à as) et il finit le plus souvent à 17 ou plus. Rester sur {{n}} perd plus que tirer.",
+        "twelveHit": "12 contre un 2 ou un 3 est l’exception : le croupier y brûle trop rarement, donc vous tirez.",
+        "hardStand": "Avec {{n}}, une carte de plus est trop risquée. Restez.",
+        "hardDouble": "Avec {{n}}, une seule carte donne souvent 19 à 21. Doublez tant que vous êtes devant.",
+        "hardHit": "{{n}} ne peut pas brûler, mais contre cette carte doubler ne rapporte pas. Tirez simplement.",
+        "softDouble": "Une main souple ne brûle pas avec une carte, et la carte du croupier est faible. Doublez.",
+        "softStand": "{{n}} souple suffit contre cette carte. Restez.",
+        "softHit": "{{n}} souple ne peut pas brûler avec une carte. Tirez-en une pour améliorer la main.",
+        "soft18Hit": "18 souple perd plus souvent qu’il ne gagne contre un 9, un 10 ou un as. Tirez — l’as vous empêche de brûler.",
+        "splitAlways": "Séparez toujours les as et les 8 : deux nouvelles mains valent mieux qu’une mauvaise.",
+        "split": "Contre cette carte, deux mains qui commencent par un {{rank}} gagnent plus qu’une main de {{n}}.",
+        "tensStand": "20 est la deuxième meilleure main possible. Ne la séparez jamais.",
+        "fivesAsTen": "Deux 5 font un 10 dur. Jouez-les comme tel.",
+        "pairAsTotal": "Séparer ne rapporte pas contre cette carte. Jouez la main comme un {{n}}.",
+        "surrender": "Contre cette carte, cette main perd bien plus d’une fois sur deux. Abandonner vous rend la moitié de la mise."
+      },
+      "previous": "Mains précédentes",
+      "previousEmpty": "Vos réponses s’affichent ici, la plus récente en haut."
     },
     "bet": {
       "title": "Bet Spread",
@@ -1861,14 +1887,17 @@
     },
     "jumped": "{{n}} niveaux d’un coup",
     "total": "Total",
-    "whatIsThis": "<b>Qu’est-ce que c’est ?</b> Votre niveau reflète le travail accompli. Vous gagnez des points pour les exercices terminés et les défis quotidiens — plus vous êtes précis, plus vous en gagnez. Les niveaux ne changent rien à l’entraînement lui-même ; chacun débloque une image de profil, rien de plus.",
     "abbr": "Niv.{{n}}",
     "levelUp": "Niveau supérieur",
     "hideExplainer": "Compris — ne plus afficher",
     "newPicture": "Nouvelle image de profil débloquée",
     "newPictures": "{{n}} nouvelles images de profil débloquées",
     "choosePicture": "L’utiliser comme image",
-    "maxReached": "{{xp}} XP — niveau maximum atteint"
+    "maxReached": "{{xp}} XP — niveau maximum atteint",
+    "explainer": "Votre niveau monte à mesure que vous vous entraînez. Chacun débloque une image de profil, rien de plus.",
+    "newTier": "Nouveau palier",
+    "xpEarned": "XP gagnés",
+    "choosePictures": "En choisir une comme image"
   },
   "chal": {
     "warm_up": {

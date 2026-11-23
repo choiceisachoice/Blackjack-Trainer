@@ -139,6 +139,16 @@ export function LevelGallery() {
       {/* A multi-level jump renders an extra line in the popup, and it is the
           case a fresh account actually hits — several levels in one burst. */}
       <div className="max-w-6xl mx-auto mt-8 flex flex-wrap gap-3">
+        {/* The case a brand-new account hits first: two levels in one burst,
+            two pictures — the shape the 23 Nov 2026 redesign started from. */}
+        <button
+          onClick={() => preview(LEVELS[2], 2)}
+          data-testid="level-jump2-preview"
+          className="px-4 py-2 rounded-xl border border-gold/40 text-gold text-sm font-semibold
+            hover:bg-gold/10 cursor-pointer transition-colors"
+        >
+          Preview a 2-level jump (1 &rarr; 3)
+        </button>
         <button
           onClick={() => preview(LEVELS[4], 4)}
           data-testid="level-jump-preview"

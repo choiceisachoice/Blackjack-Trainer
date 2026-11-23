@@ -466,7 +466,33 @@
       "focusHands": "Estas mãos",
       "focusClear": "Treinar antes todas as mãos",
       "focusResults": "Por mão",
-      "focusAgain": "Treinar outra vez"
+      "focusAgain": "Treinar outra vez",
+      "hardTotal": "{{n}} duro",
+      "softTotal": "{{n}} mole",
+      "pairOf": "Par de {{rank}}",
+      "pairOfAces": "Par de ases",
+      "anyHand": "Qualquer mão",
+      "chartHint": "A sua resposta preenche esta casa.",
+      "why": {
+        "stiffStand": "A carta do dealer é fraca (2 a 6) e rebenta muitas vezes. Fique e deixe o risco para o dealer.",
+        "stiffHit": "A carta do dealer é forte (7 a ás) e costuma chegar a 17 ou mais. Ficar com {{n}} perde mais do que pedir.",
+        "twelveHit": "12 contra 2 ou 3 é a exceção: aí o dealer rebenta raramente, por isso peça.",
+        "hardStand": "Com {{n}}, mais uma carta é arriscado demais. Fique.",
+        "hardDouble": "Com {{n}}, uma carta dá muitas vezes 19 a 21. Dobre enquanto está à frente.",
+        "hardHit": "Com {{n}} não rebenta, mas contra esta carta dobrar não compensa. Simplesmente peça.",
+        "softDouble": "Uma mão mole não rebenta com uma carta, e a carta do dealer é fraca. Dobre.",
+        "softStand": "{{n}} mole chega contra esta carta. Fique.",
+        "softHit": "{{n}} mole não rebenta com uma carta. Peça uma e melhore a mão.",
+        "soft18Hit": "18 mole perde contra 9, 10 ou ás mais vezes do que ganha. Peça — o ás protege-o de rebentar.",
+        "splitAlways": "Divida sempre ases e oitos: duas mãos novas valem mais do que uma má.",
+        "split": "Contra esta carta, duas mãos que começam com um {{rank}} ganham mais do que uma mão de {{n}}.",
+        "tensStand": "20 é a segunda melhor mão que existe. Nunca a divida.",
+        "fivesAsTen": "Dois cincos são um 10 duro. Jogue-os como tal.",
+        "pairAsTotal": "Dividir não compensa contra esta carta. Jogue a mão como {{n}}.",
+        "surrender": "Contra esta carta, esta mão perde bem mais de metade das vezes. Desistir devolve-lhe metade da aposta."
+      },
+      "previous": "Mãos anteriores",
+      "previousEmpty": "As suas respostas aparecem aqui, a mais recente no topo."
     },
     "bet": {
       "title": "Bet Spread",
@@ -1861,14 +1887,17 @@
     },
     "jumped": "{{n}} níveis de uma vez",
     "total": "Total",
-    "whatIsThis": "<b>O que é isto?</b> O seu nível mostra quanto treinou. Ganha pontos por exercícios concluídos e desafios diários — quanto mais preciso for, mais recebe. Os níveis não mudam o treino em si; cada um desbloqueia uma imagem de perfil, nada mais.",
     "abbr": "Nív.{{n}}",
     "levelUp": "Subiu de nível",
     "hideExplainer": "Percebi — não mostrar mais",
     "newPicture": "Nova imagem de perfil desbloqueada",
     "newPictures": "{{n}} novas imagens de perfil desbloqueadas",
     "choosePicture": "Usar como imagem",
-    "maxReached": "{{xp}} XP — nível máximo atingido"
+    "maxReached": "{{xp}} XP — nível máximo atingido",
+    "explainer": "O seu nível sobe à medida que treina. Cada um desbloqueia uma imagem de perfil, nada mais.",
+    "newTier": "Novo escalão",
+    "xpEarned": "XP ganhos",
+    "choosePictures": "Escolher uma como imagem"
   },
   "chal": {
     "warm_up": {

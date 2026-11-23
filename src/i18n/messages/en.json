@@ -466,7 +466,33 @@
       "focusHands": "These hands",
       "focusClear": "Drill everything instead",
       "focusResults": "Per hand",
-      "focusAgain": "Drill them again"
+      "focusAgain": "Drill them again",
+      "hardTotal": "Hard {{n}}",
+      "softTotal": "Soft {{n}}",
+      "pairOf": "Pair of {{rank}}s",
+      "pairOfAces": "Pair of aces",
+      "anyHand": "Any hand",
+      "chartHint": "Your answer fills this cell.",
+      "why": {
+        "stiffStand": "The dealer’s card is weak (2 to 6) and busts often. Stand and let the dealer take the risk.",
+        "stiffHit": "The dealer’s card is strong (7 to ace) and usually ends on 17 or more. Standing on {{n}} loses more than hitting.",
+        "twelveHit": "12 against a 2 or 3 is the exception: the dealer busts too rarely there, so you hit.",
+        "hardStand": "{{n}} is too high to risk another card. Stand.",
+        "hardDouble": "With {{n}}, one card often makes 19 to 21. Double while you are ahead.",
+        "hardHit": "{{n}} cannot bust, but against this card doubling does not pay. Just hit.",
+        "softDouble": "A soft hand cannot bust with one card, and the dealer’s card is weak. Double.",
+        "softStand": "Soft {{n}} is strong enough against this card. Stand.",
+        "softHit": "Soft {{n}} cannot bust with one card. Take one and improve it.",
+        "soft18Hit": "Soft 18 loses to a 9, 10 or ace more often than it wins. Hit — the ace keeps you from busting.",
+        "splitAlways": "Always split aces and eights: two fresh hands beat one bad one.",
+        "split": "Against this card, two hands that start with a {{rank}} win more than one hand of {{n}}.",
+        "tensStand": "20 is the second-best hand there is. Never break it up.",
+        "fivesAsTen": "Two fives make a hard 10. Play them like one.",
+        "pairAsTotal": "Splitting does not pay against this card. Play the hand as {{n}}.",
+        "surrender": "Against this card this hand loses well over half the time. Surrendering keeps half your bet."
+      },
+      "previous": "Previous hands",
+      "previousEmpty": "Your answers appear here, newest first."
     },
     "bet": {
       "title": "Bet Spread",
@@ -1861,14 +1887,17 @@
     },
     "jumped": "Jumped {{n}} levels",
     "total": "Total",
-    "whatIsThis": "<b>What is this?</b> Your level tracks how much you have trained. You earn points for finished drills and daily challenges — the more accurate you are, the more you get. Levels don’t change the training itself; each one unlocks a profile picture, and that is all.",
     "abbr": "Lv.{{n}}",
     "levelUp": "Level up",
     "hideExplainer": "Got it — don’t show this again",
     "newPicture": "New profile picture unlocked",
     "newPictures": "{{n}} new profile pictures unlocked",
     "choosePicture": "Use it as your picture",
-    "maxReached": "{{xp}} XP — max level reached"
+    "maxReached": "{{xp}} XP — max level reached",
+    "explainer": "Levels grow as you train. Each one unlocks a profile picture — nothing more.",
+    "newTier": "New tier",
+    "xpEarned": "XP earned",
+    "choosePictures": "Choose one as your picture"
   },
   "chal": {
     "warm_up": {

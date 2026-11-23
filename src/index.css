@@ -6,6 +6,10 @@
    left the felt a 131px strip (measured at 844 × 390, 16 Nov 2026). */
 @custom-variant short (@media (max-height: 520px) and (orientation: landscape));
 
+/* A small phone held upright — 360 × 740, an iPhone SE. The level-up card
+   lays its hero out sideways there so "Continue" stays on the first screen. */
+@custom-variant compact (@media (max-width: 767px) and (max-height: 760px) and (orientation: portrait));
+
 @theme {
   /* ── Static colors (same in both themes) ── */
   --color-wood: #4a2f18;

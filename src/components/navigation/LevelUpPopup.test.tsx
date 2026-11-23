@@ -228,4 +228,133 @@ describe('LevelUpPopup', () => {
     expect(list.textContent).toContain('Training session')  // en, from the test bundle
     expect(list.textContent).not.toContain('xp.source')      // never the raw key
   })
+
+  it('lists a single source as one line with its total, not a line and a total', () => {
+    show(1, 2, [{ labelKey: 'xp.source.session', amount: 40 }])
+    render(<LevelUpPopup />)
+    const list = screen.getByTestId('level-up-breakdown')
+    expect(list.textContent).toContain('Training session')
+    expect(list.textContent).toContain('+40 XP')
+    expect(list.textContent).not.toContain('Total')
+  })
+
+  it('folds a daily and a weekly challenge into one line', () => {
+    show(1, 3, [
+      { labelKey: 'xp.source.challenge', amount: 100 },
+      { labelKey: 'xp.source.challenge', amount: 300 },
+      { labelKey: 'xp.source.session', amount: 75 },
+    ])
+    render(<LevelUpPopup />)
+    const list = screen.getByTestId('level-up-breakdown')
+    expect(list.textContent!.match(/Challenge/g)).toHaveLength(1)
+    expect(list.textContent).toContain('+400')
+    expect(list.textContent).toContain('+475 XP')
+  })
+
+  it('draws the newest four pictures of a long burst and counts the rest', () => {
+    show(1, 8)
+    render(<LevelUpPopup />)
+    const block = screen.getByTestId('level-up-pictures')
+    expect(block).toHaveTextContent(/7 new profile pictures/i)
+    expect(block.querySelectorAll('svg[viewBox="0 0 64 64"]')).toHaveLength(4)
+    expect(block).toHaveTextContent('+3')
+  })
+
+  it('rolls the number through every level passed on the way', () => {
+    show(1, 4)
+    render(<LevelUpPopup />)
+    expect(screen.getByTestId('level-up-roll').textContent).toBe('1234')
+  })
+
+  it('times the roll from the shared timeline, so the budget test covers what is drawn', () => {
+    // jsdom has no matchMedia, so motion is on here; the reduced-motion half
+    // lives in its own file (the preference is read once per module).
+    show(1, 3)
+    render(<LevelUpPopup />)
+    expect(screen.getByTestId('level-up-roll').style.animation).toMatch(/^lu-roll 500ms .* 120ms both$/)
+  })
+})
+
+describe('LevelUpPopup — a tier change', () => {
+  it('is a moment of its own when the climb crosses into a new tier', () => {
+    show(5, 6) // beginner → mid
+    render(<LevelUpPopup />)
+    const tier = screen.getByTestId('level-up-tier-change')
+    expect(tier).toHaveTextContent('New tier')
+    expect(tier).toHaveTextContent('Beginner')
+    expect(tier).toHaveTextContent('Intermediate')
+    expect(screen.queryByTestId('level-up-tier')).toBeNull()
+  })
+
+  it('is a quiet label when the tier stays the same', () => {
+    show(2, 3)
+    render(<LevelUpPopup />)
+    expect(screen.getByTestId('level-up-tier')).toHaveTextContent('Beginner')
+    expect(screen.queryByTestId('level-up-tier-change')).toBeNull()
+  })
+})
+
+describe('LevelUpPopup — as a dialog', () => {
+  it('is a modal dialog named after the new level', () => {
+    show(1, 3)
+    render(<LevelUpPopup />)
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    expect(dialog).toHaveAccessibleName(/level 3, Card Player/i)
+  })
+
+  it('puts focus on Continue when it opens', () => {
+    show(1, 2)
+    render(<LevelUpPopup />)
+    expect(document.activeElement).toBe(screen.getByTestId('level-up-dismiss'))
+  })
+
+  it('gives focus back to where it was when it closes', () => {
+    render(<><button data-testid="opener">open</button><LevelUpPopup /></>)
+    screen.getByTestId('opener').focus()
+    act(() => show(1, 2))
+    expect(document.activeElement).toBe(screen.getByTestId('level-up-dismiss'))
+    fireEvent.click(screen.getByTestId('level-up-dismiss'))
+    expect(document.activeElement).toBe(screen.getByTestId('opener'))
+  })
+
+  it('closes on Escape', () => {
+    show(1, 2)
+    render(<LevelUpPopup />)
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(useLevelStore.getState().showLevelUp).toBe(false)
+  })
+
+  it('closes on Enter, but not when Enter is pressing one of its other buttons', () => {
+    // "Got it" and "Use it as your picture" must do their own thing; a global
+    // Enter that closed the card first swallowed both.
+    show(1, 2)
+    render(<LevelUpPopup />)
+    fireEvent.keyDown(screen.getByTestId('level-up-intro-hide'), { key: 'Enter' })
+    expect(useLevelStore.getState().showLevelUp).toBe(true)
+
+    fireEvent.keyDown(document.body, { key: 'Enter' })
+    expect(useLevelStore.getState().showLevelUp).toBe(false)
+  })
+
+  it('keeps Tab inside the card', () => {
+    show(1, 2)
+    render(<LevelUpPopup />)
+    const dialog = screen.getByRole('dialog')
+    const last = screen.getByTestId('level-up-dismiss')
+    const first = screen.getByTestId('level-up-intro-hide')
+    last.focus()
+    fireEvent.keyDown(dialog, { key: 'Tab' })
+    expect(document.activeElement).toBe(first)
+    fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(last)
+  })
+
+  it('holds the page still while open and lets it go afterwards', () => {
+    show(1, 2)
+    render(<LevelUpPopup />)
+    expect(document.body.style.overflow).toBe('hidden')
+    fireEvent.click(screen.getByTestId('level-up-dismiss'))
+    expect(document.body.style.overflow).toBe('')
+  })
 })

@@ -283,7 +283,7 @@ const SCENES = {
     for (let i = 0; i < 4; i++) {
       const hand = (await page.locator('[data-testid="player-hand"]').textContent()) ?? ''
       const tcText = (await page.locator('[data-testid="true-count"]').textContent().catch(() => '0')) ?? '0'
-      const tc = parseFloat(tcText.replace(/[^\d.+-]/g, '')) || 0
+      const tc = parseFloat(tcText.replace('−', '-').replace(/[^\d.+-]/g, '')) || 0
       // Two seconds of thinking, as the script asks for.
       await sleep(2000)
       // 16 v 10: stand from TC 0. Insurance: take it from +3. Otherwise a
@@ -314,7 +314,7 @@ const SCENES = {
       const hand = ((await page.locator('[data-testid="player-hand"]').textContent()) ?? '').trim()
       const dealer = ((await page.locator('[data-testid="dealer-card"]').textContent()) ?? '').trim()
       const tcText = (await page.locator('[data-testid="true-count"]').textContent().catch(() => '0')) ?? '0'
-      const tc = parseFloat(tcText.replace(/[^\d.+-]/g, '')) || 0
+      const tc = parseFloat(tcText.replace('−', '-').replace(/[^\d.+-]/g, '')) || 0
       await sleep(2400)
       const tensIndex = dealer === '6' ? 4 : dealer === '5' ? 5 : Infinity
       const action = /^10\s*,\s*10$/.test(hand) ? (tc >= tensIndex ? 'split' : 'stand')
@@ -614,7 +614,7 @@ async function findSeed(browser, storage, want = { hand: '16', dealer: '10' }) {
     const hand = (await page.locator('[data-testid="player-hand"]').textContent()) ?? ''
     const dealer = (await page.locator('[data-testid="dealer-card"]').textContent()) ?? ''
     const tcText = (await page.locator('[data-testid="true-count"]').textContent().catch(() => '0')) ?? '0'
-    const tc = parseFloat(tcText.replace(/[^\d.+-]/g, '')) || 0
+    const tc = parseFloat(tcText.replace('−', '-').replace(/[^\d.+-]/g, '')) || 0
     await context.close()
     if (process.env.SEED_TRACE) console.log(`seed ${seed}: ${hand.trim()} v ${dealer.trim()} @ ${tc}`)
     const handOk = want.handRe ? want.handRe.test(hand.trim()) : hand.trim() === want.hand

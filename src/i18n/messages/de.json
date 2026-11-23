@@ -466,7 +466,33 @@
       "focusHands": "Diese Hände",
       "focusClear": "Lieber alle Hände üben",
       "focusResults": "Pro Hand",
-      "focusAgain": "Noch einmal üben"
+      "focusAgain": "Noch einmal üben",
+      "hardTotal": "Hart {{n}}",
+      "softTotal": "Weich {{n}}",
+      "pairOf": "{{rank}}er-Paar",
+      "pairOfAces": "Ass-Paar",
+      "anyHand": "Beliebige Hand",
+      "chartHint": "Deine Antwort füllt dieses Feld.",
+      "why": {
+        "stiffStand": "Die Karte des Dealers ist schwach (2 bis 6), und er überkauft oft. Bleib stehen und lass ihn das Risiko tragen.",
+        "stiffHit": "Die Karte des Dealers ist stark (7 bis Ass), und er kommt meist auf 17 oder mehr. Auf {{n}} stehen zu bleiben verliert öfter als Ziehen.",
+        "twelveHit": "12 gegen 2 oder 3 ist die Ausnahme: Der Dealer überkauft dort zu selten, also ziehst du.",
+        "hardStand": "Mit {{n}} ist eine weitere Karte zu riskant. Bleib stehen.",
+        "hardDouble": "Mit {{n}} bringt dir eine Karte oft 19 bis 21. Verdopple, solange du vorne liegst.",
+        "hardHit": "Mit {{n}} kannst du nicht überkaufen, aber gegen diese Karte lohnt sich Verdoppeln nicht. Einfach ziehen.",
+        "softDouble": "Eine weiche Hand überkauft mit einer Karte nie, und die Karte des Dealers ist schwach. Verdopple.",
+        "softStand": "Weich {{n}} ist gegen diese Karte stark genug. Bleib stehen.",
+        "softHit": "Weich {{n}} überkauft mit einer Karte nie. Nimm eine und verbessere die Hand.",
+        "soft18Hit": "Weich 18 verliert gegen 9, 10 oder Ass öfter, als es gewinnt. Zieh — das Ass schützt dich vor dem Bust.",
+        "splitAlways": "Asse und Achten splittest du immer: Zwei neue Hände sind besser als eine schlechte.",
+        "split": "Gegen diese Karte gewinnen zwei Hände, die mit einer {{rank}} beginnen, mehr als eine Hand mit {{n}}.",
+        "tensStand": "20 ist die zweitbeste Hand überhaupt. Teile sie nie.",
+        "fivesAsTen": "Zwei Fünfer sind eine harte 10. Spiel sie auch so.",
+        "pairAsTotal": "Splitten lohnt sich gegen diese Karte nicht. Spiel die Hand als {{n}}.",
+        "surrender": "Gegen diese Karte verliert diese Hand weit mehr als jedes zweite Spiel. Aufgeben rettet dir den halben Einsatz."
+      },
+      "previous": "Letzte Hände",
+      "previousEmpty": "Deine Antworten erscheinen hier, die neueste zuoberst."
     },
     "bet": {
       "title": "Bet Spread",
@@ -1861,14 +1887,17 @@
     },
     "jumped": "{{n}} Level auf einmal",
     "total": "Gesamt",
-    "whatIsThis": "<b>Was ist das?</b> Dein Level zeigt, wie viel du trainiert hast. Punkte gibt es für abgeschlossene Übungen und Tagesaufgaben — je genauer du bist, desto mehr. Level ändern nichts am Training selbst; jedes schaltet ein Profilbild frei, mehr nicht.",
     "abbr": "Lv.{{n}}",
-    "levelUp": "Level auf",
+    "levelUp": "Level-Aufstieg",
     "hideExplainer": "Verstanden — nicht mehr anzeigen",
     "newPicture": "Neues Profilbild freigeschaltet",
     "newPictures": "{{n}} neue Profilbilder freigeschaltet",
     "choosePicture": "Als Profilbild nehmen",
-    "maxReached": "{{xp}} XP — höchstes Level erreicht"
+    "maxReached": "{{xp}} XP — höchstes Level erreicht",
+    "explainer": "Dein Level wächst mit dem Training. Jedes schaltet ein Profilbild frei — mehr nicht.",
+    "newTier": "Neue Stufe",
+    "xpEarned": "Verdiente XP",
+    "choosePictures": "Eines als Profilbild wählen"
   },
   "chal": {
     "warm_up": {

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { GraduationCap, Check, X, Target } from 'lucide-react'
+import { GraduationCap, Target } from 'lucide-react'
 import { Panel, Segmented, Button, StatCard } from '../common/ui'
 import { Action } from '../../engine/rules/types'
 import {
@@ -10,8 +10,14 @@ import {
   type FlashLevel,
   type FlashQuestion,
 } from '../../engine/strategy/flashcards'
-import { Trans, useTranslation } from 'react-i18next'
-import { ACTION_KEY, ALL_ACTIONS, formatTC } from './deviation-utils'
+import { useTranslation } from 'react-i18next'
+import { preloadCardImages } from '../cards/card-suits'
+import { dealQuestionCards, type QuestionCards } from './flash-scene'
+import { chartRowFor } from './flash-teach'
+import { FlashFelt } from './FlashFelt'
+import { FlashActionPad } from './FlashActionPad'
+import { actionForKey, formatPercent } from './deviation-utils'
+import { FlashChartRow, FlashHistory, FlashMisses, FlashNext, FlashProgress, FlashSituation, FlashVerdict, ResultTrail, type AnsweredHand } from './FlashPanel'
 import { useAppStore } from '../../store/app-store'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
@@ -29,11 +35,6 @@ const LEVEL_HELP: Record<FlashLevel, string> = {
   basic: 'training.flash.helpBasic',
   deviations: 'training.flash.helpDeviations',
   mixed: 'training.flash.helpMixed',
-}
-
-/** Display label for a hand. */
-function formatHand(q: FlashQuestion): string {
-  return q.hand === '*' ? 'Any' : q.hand
 }
 
 /**
@@ -78,7 +79,7 @@ function startingLevel(): FlashLevel {
 }
 
 export function DeviationTraining() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const dealerHitsSoft17 = useAppStore(s => s.selectedRules.dealerHitsSoft17)
 
   const [level, setLevel] = useState<FlashLevel>(startingLevel)
@@ -94,6 +95,9 @@ export function DeviationTraining() {
   }, [])
 
   const [session, setSession] = useState<FlashQuestion[]>([])
+  // The cards of every question, dealt once when the round starts, so a
+  // re-render never re-deals the hand someone is looking at.
+  const [hands, setHands] = useState<QuestionCards[]>([])
   const [qIndex, setQIndex] = useState(0)
   const question = session[qIndex] ?? null
 
@@ -104,6 +108,13 @@ export function DeviationTraining() {
   const [totalAttempts, setTotalAttempts] = useState(0)
   const [currentStreak, setCurrentStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
+  /** Every answer of the round, in order — the trail, the list of previous hands, the summary. */
+  const [answers, setAnswers] = useState<AnsweredHand[]>([])
+  const results = answers.map(a => a.correct)
+
+  // The card faces are images; fetch them while the setup screen is read, so
+  // the first hand is not dealt as white rectangles.
+  useEffect(() => { preloadCardImages() }, [])
 
   // Per-deviation results accumulated across the session and saved on unmount,
   // so Analytics' weakest-hands panel and deviation stats reflect real answers.
@@ -118,9 +129,11 @@ export function DeviationTraining() {
   const startSession = useCallback(() => {
     begin()
     perDeviationRef.current = {}
-    setSession(focus
+    const questions = focus
       ? buildFocusFlashSession(focus, numQuestions, dealerHitsSoft17)
-      : buildFlashSession(level, numQuestions, dealerHitsSoft17))
+      : buildFlashSession(level, numQuestions, dealerHitsSoft17)
+    setSession(questions)
+    setHands(questions.map(q => dealQuestionCards(q)))
     setQIndex(0)
     setSelectedAction(null)
     setIsCorrect(false)
@@ -128,6 +141,7 @@ export function DeviationTraining() {
     setTotalAttempts(0)
     setCurrentStreak(0)
     setBestStreak(0)
+    setAnswers([])
     setPhase('question')
   }, [focus, level, numQuestions, dealerHitsSoft17, begin])
 
@@ -154,6 +168,7 @@ export function DeviationTraining() {
     const newCorrect = totalCorrect + (correct ? 1 : 0)
     const newBestStreak = correct ? Math.max(bestStreak, currentStreak + 1) : bestStreak
 
+    setAnswers(prev => [...prev, { question, chosen: action, correct }])
     setTotalAttempts(newAttempts)
     if (correct) {
       soundEngine.correct()
@@ -185,13 +200,29 @@ export function DeviationTraining() {
     setPhase('question')
   }, [qIndex, session.length, finish])
 
-  // Keyboard: Enter → next in feedback
+  // Keyboard: the table's keys answer (H S D P R, and I for insurance);
+  // Enter goes on once answered.
   useEffect(() => {
-    if (phase !== 'feedback') return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Enter') handleNext() }
+    if (phase !== 'question' && phase !== 'feedback') return
+    const offered = question ? enabledActions(question) : null
+    const handler = (e: KeyboardEvent) => {
+      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return
+      if (phase === 'feedback') {
+        // The Next button presses itself on Enter when it has the focus; a
+        // second press from here would skip a question.
+        const onNext = e.target instanceof Element && e.target.closest('[data-testid=next-question]')
+        if (e.key === 'Enter' && !onNext) handleNext()
+        return
+      }
+      const action = actionForKey(e.key)
+      if (action && offered?.[action]) {
+        e.preventDefault()
+        handleAnswer(action)
+      }
+    }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [phase, handleNext])
+  }, [phase, question, handleNext, handleAnswer])
 
   const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
 
@@ -279,14 +310,27 @@ export function DeviationTraining() {
         })
       : []
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
-          <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">{t('training.common.sessionComplete')}</h3>
-          <div className="grid grid-cols-2 gap-3 w-full text-center">
-            <StatCard label={t('training.common.accuracy')} value={`${accuracy}%`} />
-            <StatCard label={t('training.common.correct')} value={`${totalCorrect}/${totalAttempts}`} />
-            <StatCard label={t('training.common.bestStreak')} value={bestStreak} accent className="col-span-2" />
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center px-4 py-6 pb-[calc(1.5rem+var(--cookie-bar,0px))]">
+        <div className="surface my-auto w-full max-w-xl p-6 md:p-8 flex flex-col items-center gap-6">
+          <h3 className="text-2xl font-extrabold text-gold-gradient" data-testid="summary-title">{t('training.common.sessionComplete')}</h3>
+          {/* The round as it went, in the same trail the question screen drew. */}
+          <div className="w-full flex flex-col items-center gap-3">
+            <div className="flex items-baseline gap-2">
+              <span className={`text-6xl font-extrabold tabular-nums leading-none ${accuracy >= 80 ? 'text-success' : accuracy >= 50 ? 'text-gold-bright' : 'text-error'}`}>
+                {formatPercent(accuracy / 100, i18n.language)}
+              </span>
+              <span className="text-sm text-content/55">{t('training.common.accuracy')}</span>
+            </div>
+            <ResultTrail total={results.length} results={results} index={null} className="w-full" />
           </div>
+          <div className="grid grid-cols-2 gap-3 w-full text-center">
+            <StatCard label={t('training.common.correct')} value={`${totalCorrect}/${totalAttempts}`} />
+            <StatCard label={t('training.common.bestStreak')} value={bestStreak} accent />
+          </div>
+          {/* Below the way on, not above it: a long round's list pushed the
+              button under the XP and award toasts that arrive with the
+              summary, on a laptop as on a phone. */}
+          <FlashMisses answers={answers} className="w-full order-last" />
           {focus && (
             <div className="w-full" data-testid="focus-results">
               <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.flash.focusResults')}</span>
@@ -305,7 +349,7 @@ export function DeviationTraining() {
           )}
           {focus ? (
             <div className="w-full flex flex-col gap-2">
-              <Button className="w-full" onClick={startSession} data-testid="focus-again">
+              <Button size="lg" className="w-full" onClick={startSession} data-testid="focus-again">
                 {t('training.flash.focusAgain')}
               </Button>
               <Button variant="ghost" className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
@@ -313,7 +357,7 @@ export function DeviationTraining() {
               </Button>
             </div>
           ) : (
-            <Button className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
+            <Button size="lg" className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
               {t('training.common.backToSettings')}
             </Button>
           )}
@@ -322,128 +366,97 @@ export function DeviationTraining() {
     )
   }
 
-  if (!question) return null
+  const cards = hands[qIndex]
+  if (!question || !cards) return null
   const enabled = enabledActions(question)
+  const answered = phase === 'feedback' && selectedAction !== null
+  const chartRow = chartRowFor(question, dealerHitsSoft17)
+  const prompt = t('training.flash.whatDoYouDo')
 
-  // ── Question Phase ──
-  if (phase === 'question') {
-    return (
-      // `short:` is a phone held sideways (390px tall): the hand goes left, the
-      // answers right, and the back bar gives up its row (`data-drill-run`),
-      // so the question and every answer are on screen without scrolling.
-      <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-2">
-        {/* Stats bar */}
-        <div className="flex items-center justify-between w-full max-w-md short:max-w-2xl px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
-          <span data-testid="question-progress">{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
-          <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
-          <span>{t('training.common.streakOf', { n: currentStreak })}</span>
-        </div>
-
-        {/* Situation card */}
-        <div className="surface p-6 max-w-md w-full short:max-w-2xl short:p-4 short:grid short:grid-cols-2 short:items-center short:gap-x-6">
-          <div className="space-y-3 mb-6 short:mb-0">
-            <div className="flex justify-between items-center">
-              <span className="text-content/60 text-sm">{t('training.flash.yourHand')}</span>
-              <span className="text-content font-bold text-lg" data-testid="player-hand">{formatHand(question)}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-content/60 text-sm">{t('training.flash.dealerShows')}</span>
-              <span className="text-content font-bold text-lg" data-testid="dealer-card">{question.dealer}</span>
-            </div>
-            {question.trueCount !== null && (
-              <div className="flex justify-between items-center">
-                <span className="text-content/60 text-sm">{t('training.flash.trueCount')}</span>
-                <span className="text-gold font-bold text-lg" data-testid="true-count">{formatTC(question.trueCount)}</span>
-              </div>
-            )}
-            {question.noSurrender && (
-              <p className="text-content/60 text-sm text-center pt-1" data-testid="no-surrender">{t('training.flash.noSurrender')}</p>
-            )}
-          </div>
-
-          <div className="contents short:block">
-          <p className="text-content font-medium text-center mb-4 short:mb-2">{t('training.flash.whatDoYouDo')}</p>
-
-          <div className="flex flex-wrap gap-2 justify-center short:grid short:grid-cols-2">
-            {ALL_ACTIONS.map(action => {
-              const on = enabled[action]
-              return (
-                <button
-                  key={action}
-                  onClick={() => on && handleAnswer(action)}
-                  disabled={!on}
-                  data-testid={`action-${action.toLowerCase()}`}
-                  className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-colors
-                    ${on ? 'bg-contrast/10 hover:bg-contrast/20 text-content cursor-pointer'
-                         : 'bg-contrast/5 text-content/20 cursor-not-allowed'}`}
-                >
-                  {t(ACTION_KEY[action])}
-                </button>
-              )
-            })}
-          </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Feedback Phase ──
-  const deviated = question.correctAction !== question.basicAction
+  // ── Question and feedback ──
+  //
+  // One grid, three shapes. Wide (lg): the felt and the answers on the left,
+  // a side panel on the right with the round, the spot, the chart row and —
+  // once answered — the verdict. A phone: the round as a strip, the felt, and
+  // under it the answers, which the verdict takes the place of. A phone held
+  // sideways (`short`): the felt on the left, everything else on the right.
+  //
+  // The side panel is `display: contents` below lg, so its parts become the
+  // grid's own items there and are placed by area name; each thing is drawn
+  // once at every size.
   return (
-    <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-2">
-      <div className="flex items-center justify-between w-full max-w-md short:max-w-2xl px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
-        <span>{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
-        <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
-        <span>{t('training.common.streakOf', { n: currentStreak })}</span>
-      </div>
+    // `data-drill-run`: on a phone held sideways the back bar gives its row to
+    // the question (see `BackToMenu`).
+    <div
+      data-drill-run
+      className="flex-1 min-h-0 flex flex-col px-3 sm:px-5 lg:px-8 pt-3 lg:pt-4 short:pt-2
+        pb-[calc(0.75rem+var(--cookie-bar,0px))] lg:pb-[calc(1.5rem+var(--cookie-bar,0px))] short:pb-[calc(0.5rem+var(--cookie-bar,0px))]"
+    >
+      <div
+        className={`mx-auto w-full max-w-[96rem] flex-1 min-h-0 grid ${answered ? 'gap-2.5 sm:gap-3' : 'gap-3 sm:gap-4'}
+          ${answered
+            ? `grid-rows-[auto_minmax(0,1fr)_auto_auto_auto] [grid-template-areas:'prog'_'felt'_'verdict'_'chart'_'next']
+               max-lg:short:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] max-lg:short:grid-rows-[auto_minmax(0,1fr)_auto_auto]
+               max-lg:short:[grid-template-areas:'felt_prog'_'felt_verdict'_'felt_chart'_'felt_next']`
+            : `grid-rows-[auto_minmax(0,1fr)_auto] [grid-template-areas:'prog'_'felt'_'acts']
+               max-lg:short:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] max-lg:short:grid-rows-[auto_auto_minmax(0,1fr)]
+               max-lg:short:[grid-template-areas:'felt_prog'_'felt_spot'_'felt_acts']`}
+          max-lg:short:gap-x-4 max-lg:short:gap-y-2
+          lg:grid-cols-[minmax(0,1fr)_clamp(20rem,26vw,26rem)] lg:grid-rows-[minmax(0,1fr)_auto]
+          lg:[grid-template-areas:'felt_panel'_'acts_panel'] lg:gap-x-6 lg:gap-y-5`}
+      >
+        <section className="[grid-area:felt] min-h-0 min-w-0">
+          <FlashFelt question={question} cards={cards} deal={qIndex} verdict={answered ? isCorrect : null} />
+        </section>
 
-      <div className="surface p-6 max-w-md w-full short:max-w-2xl short:p-4 short:grid short:grid-cols-[auto_minmax(0,1fr)] short:items-center short:gap-x-6">
-        <div className={`flex flex-col items-center text-center mb-4 short:mb-0 short:min-w-36 ${isCorrect ? 'text-success' : 'text-error'}`}>
-          <span className={`grid place-items-center w-12 h-12 rounded-full border
-            ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
-            {isCorrect ? <Check size={24} /> : <X size={24} />}
-          </span>
-          <h3 className="text-xl font-bold mt-2" data-testid="feedback-result">
-            {isCorrect ? t('training.common.correctBang') : t('training.common.wrongBang')}
-          </h3>
+        {/* The answers. On a phone the verdict takes their place once given;
+            on a wide screen they stay, marked right and wrong. */}
+        <div className={`[grid-area:acts] min-w-0 flex flex-col justify-end gap-2 ${answered ? 'max-lg:hidden' : ''}`}>
+          <p className="lg:hidden text-center text-sm font-semibold text-content/80">{prompt}</p>
+          <FlashActionPad
+            enabled={enabled}
+            onAnswer={handleAnswer}
+            answered={answered && selectedAction ? { chosen: selectedAction, correct: question.correctAction } : null}
+          />
         </div>
 
-        <div className="contents short:block">
-        <div className="bg-contrast/5 rounded-xl p-4 mb-4 short:p-3 short:mb-3 space-y-2">
-          {!isCorrect && selectedAction && (
-            <p className="text-content/70 text-sm">
-              <Trans
-                i18nKey="training.flash.youChose"
-                values={{ chosen: t(ACTION_KEY[selectedAction]), right: t(ACTION_KEY[question.correctAction]) }}
-                components={{
-                  w: <span className="text-error font-medium" />,
-                  r: <span className="text-success font-medium" />,
-                }}
-              />
-            </p>
-          )}
-          <p className="text-content/70 text-sm" data-testid="feedback-explanation">
-            <Trans
-              i18nKey={
-                question.trueCount === null ? 'training.flash.basicIs'
-                  : deviated ? 'training.flash.deviation'
-                  : 'training.flash.noDeviation'
-              }
-              values={{
-                action: t(ACTION_KEY[question.correctAction]),
-                basic: t(ACTION_KEY[question.basicAction]),
-                tc: question.trueCount === null ? '' : formatTC(question.trueCount),
-              }}
-              components={{ h: <span className="text-gold font-medium" /> }}
+        <aside className="contents lg:[grid-area:panel] lg:flex lg:flex-col lg:min-h-0 lg:gap-5 [@media(max-height:820px)]:lg:gap-3.5 lg:overflow-hidden surface lg:p-5 xl:p-6 [@media(max-height:820px)]:lg:py-4">
+          <FlashProgress
+            index={qIndex}
+            total={session.length}
+            results={results}
+            streak={currentStreak}
+            className="[grid-area:prog] shrink-0 max-lg:px-1"
+          />
+          <FlashSituation
+            question={question}
+            className={`[grid-area:spot] shrink-0 hidden lg:block ${answered ? '' : 'max-lg:short:block'}`}
+          />
+          {chartRow && (
+            <FlashChartRow
+              row={chartRow}
+              revealed={answered}
+              rules={dealerHitsSoft17 ? 'H17' : 'S17'}
+              deviation={question.isDeviation}
+              className={`[grid-area:chart] shrink-0 min-w-0 ${answered ? '' : 'hidden lg:block'}`}
             />
-          </p>
-        </div>
-
-        <Button onClick={handleNext} data-testid="next-question" className="w-full">
-          {qIndex + 1 >= session.length ? t('training.common.seeResults') : t('training.common.next')}
-        </Button>
-        </div>
+          )}
+          {/* Wide screens only: the round so far, in the room beside the felt. */}
+          <FlashHistory answers={answered ? answers.slice(0, -1) : answers} className={`hidden lg:flex lg:flex-1 lg:min-h-0 ${answered ? '[@media(max-height:820px)]:lg:hidden' : ''}`} />
+          {answered && selectedAction ? (
+            <>
+              <FlashVerdict
+                question={question}
+                isCorrect={isCorrect}
+                selected={selectedAction}
+                className="[grid-area:verdict] shrink-0 lg:mt-auto"
+              />
+              <FlashNext onNext={handleNext} last={qIndex + 1 >= session.length} className="[grid-area:next] shrink-0 max-lg:short:self-end" />
+            </>
+          ) : (
+            <p className="hidden lg:block shrink-0 text-xl font-bold text-content/90">{prompt}</p>
+          )}
+        </aside>
       </div>
     </div>
   )

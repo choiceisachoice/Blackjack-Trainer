@@ -466,7 +466,33 @@
       "focusHands": "Queste mani",
       "focusClear": "Allena invece tutte le mani",
       "focusResults": "Per mano",
-      "focusAgain": "Allenale di nuovo"
+      "focusAgain": "Allenale di nuovo",
+      "hardTotal": "{{n}} duro",
+      "softTotal": "{{n}} morbido",
+      "pairOf": "Coppia di {{rank}}",
+      "pairOfAces": "Coppia di assi",
+      "anyHand": "Qualsiasi mano",
+      "chartHint": "La tua risposta riempie questa casella.",
+      "why": {
+        "stiffStand": "La carta del banco è debole (da 2 a 6) e sballa spesso. Stai e lascia il rischio al banco.",
+        "stiffHit": "La carta del banco è forte (da 7 all’asso) e di solito arriva a 17 o più. Stare su {{n}} perde più che chiedere carta.",
+        "twelveHit": "12 contro 2 o 3 è l’eccezione: lì il banco sballa troppo di rado, quindi chiedi carta.",
+        "hardStand": "Con {{n}} un’altra carta è troppo rischiosa. Stai.",
+        "hardDouble": "Con {{n}}, una carta porta spesso a 19–21. Raddoppia finché sei in vantaggio.",
+        "hardHit": "Con {{n}} non puoi sballare, ma contro questa carta raddoppiare non conviene. Chiedi carta e basta.",
+        "softDouble": "Una mano morbida non sballa con una carta, e la carta del banco è debole. Raddoppia.",
+        "softStand": "{{n}} morbido basta contro questa carta. Stai.",
+        "softHit": "{{n}} morbido non sballa con una carta. Prendine una e migliora la mano.",
+        "soft18Hit": "18 morbido perde contro 9, 10 o asso più spesso di quanto vinca. Chiedi carta: l’asso ti protegge dallo sballo.",
+        "splitAlways": "Dividi sempre assi e otto: due mani nuove valgono più di una cattiva.",
+        "split": "Contro questa carta, due mani che partono da un {{rank}} vincono più di una mano da {{n}}.",
+        "tensStand": "20 è la seconda mano migliore che esista. Non dividerla mai.",
+        "fivesAsTen": "Due cinque fanno un 10 duro. Giocali come tale.",
+        "pairAsTotal": "Dividere non conviene contro questa carta. Gioca la mano come {{n}}.",
+        "surrender": "Contro questa carta questa mano perde ben più di una volta su due. Abbandonare ti restituisce metà della puntata."
+      },
+      "previous": "Mani precedenti",
+      "previousEmpty": "Le tue risposte compaiono qui, la più recente in alto."
     },
     "bet": {
       "title": "Bet Spread",
@@ -1861,14 +1887,17 @@
     },
     "jumped": "{{n}} livelli in un colpo",
     "total": "Totale",
-    "whatIsThis": "<b>Che cos’è?</b> Il livello misura quanto hai allenato. Guadagni punti per gli esercizi completati e le sfide giornaliere — più sei preciso, più ne prendi. I livelli non cambiano l’allenamento in sé: ognuno sblocca un’immagine del profilo, nient’altro.",
     "abbr": "Liv.{{n}}",
-    "levelUp": "Livello su",
+    "levelUp": "Nuovo livello",
     "hideExplainer": "Ho capito — non mostrare più",
     "newPicture": "Nuova immagine del profilo sbloccata",
     "newPictures": "{{n}} nuove immagini del profilo sbloccate",
     "choosePicture": "Usala come immagine",
-    "maxReached": "{{xp}} XP — livello massimo raggiunto"
+    "maxReached": "{{xp}} XP — livello massimo raggiunto",
+    "explainer": "Il livello sale mentre ti alleni. Ognuno sblocca un’immagine del profilo, nient’altro.",
+    "newTier": "Nuova fascia",
+    "xpEarned": "XP guadagnati",
+    "choosePictures": "Scegline una come immagine"
   },
   "chal": {
     "warm_up": {

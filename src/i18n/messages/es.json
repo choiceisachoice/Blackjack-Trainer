@@ -466,7 +466,33 @@
       "focusHands": "Estas manos",
       "focusClear": "Practicar todas las manos",
       "focusResults": "Por mano",
-      "focusAgain": "Practicarlas otra vez"
+      "focusAgain": "Practicarlas otra vez",
+      "hardTotal": "{{n}} duro",
+      "softTotal": "{{n}} blando",
+      "pairOf": "Pareja de {{rank}}",
+      "pairOfAces": "Pareja de ases",
+      "anyHand": "Cualquier mano",
+      "chartHint": "Tu respuesta llena esta casilla.",
+      "why": {
+        "stiffStand": "La carta del crupier es débil (2 a 6) y se pasa a menudo. Plántate y deja que él corra el riesgo.",
+        "stiffHit": "La carta del crupier es fuerte (7 a as) y suele llegar a 17 o más. Plantarse con {{n}} pierde más que pedir.",
+        "twelveHit": "12 contra 2 o 3 es la excepción: ahí el crupier se pasa demasiado poco, así que pides.",
+        "hardStand": "Con {{n}}, otra carta es demasiado riesgo. Plántate.",
+        "hardDouble": "Con {{n}}, una carta suele darte de 19 a 21. Dobla mientras vas por delante.",
+        "hardHit": "Con {{n}} no puedes pasarte, pero contra esta carta doblar no compensa. Simplemente pide.",
+        "softDouble": "Una mano blanda no se pasa con una carta, y la carta del crupier es débil. Dobla.",
+        "softStand": "{{n}} blando basta contra esta carta. Plántate.",
+        "softHit": "{{n}} blando no se pasa con una carta. Pide una y mejora la mano.",
+        "soft18Hit": "18 blando pierde contra 9, 10 o as más de lo que gana. Pide: el as te protege de pasarte.",
+        "splitAlways": "Divide siempre ases y ochos: dos manos nuevas valen más que una mala.",
+        "split": "Contra esta carta, dos manos que empiezan con un {{rank}} ganan más que una mano de {{n}}.",
+        "tensStand": "20 es la segunda mejor mano que existe. No la rompas nunca.",
+        "fivesAsTen": "Dos cincos son un 10 duro. Juégalos como tal.",
+        "pairAsTotal": "Dividir no compensa contra esta carta. Juega la mano como {{n}}.",
+        "surrender": "Contra esta carta, esta mano pierde bastante más de la mitad de las veces. Rendirte te devuelve la mitad de la apuesta."
+      },
+      "previous": "Manos anteriores",
+      "previousEmpty": "Tus respuestas aparecen aquí, la más reciente arriba."
     },
     "bet": {
       "title": "Bet Spread",
@@ -1861,14 +1887,17 @@
     },
     "jumped": "{{n}} niveles de golpe",
     "total": "Total",
-    "whatIsThis": "<b>¿Qué es esto?</b> Tu nivel refleja cuánto has entrenado. Ganas puntos por ejercicios terminados y retos diarios: cuanto más preciso eres, más consigues. Los niveles no cambian el entrenamiento en sí; cada uno desbloquea una imagen de perfil, nada más.",
     "abbr": "Niv.{{n}}",
     "levelUp": "Subes de nivel",
     "hideExplainer": "Entendido — no mostrar más",
     "newPicture": "Nueva imagen de perfil desbloqueada",
     "newPictures": "{{n}} imágenes de perfil nuevas desbloqueadas",
     "choosePicture": "Usarla como imagen",
-    "maxReached": "{{xp}} XP — nivel máximo alcanzado"
+    "maxReached": "{{xp}} XP — nivel máximo alcanzado",
+    "explainer": "Tu nivel sube a medida que entrenas. Cada uno desbloquea una imagen de perfil, nada más.",
+    "newTier": "Nueva categoría",
+    "xpEarned": "XP ganados",
+    "choosePictures": "Elegir una como imagen"
   },
   "chal": {
     "warm_up": {

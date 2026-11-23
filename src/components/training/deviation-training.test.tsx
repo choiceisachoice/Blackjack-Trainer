@@ -16,6 +16,17 @@ function correctForShownHand(): Action {
   return lookupBasicAction(hand, dealer, S17_STRATEGY)
 }
 
+/**
+ * The shown spot as the felt's attributes carry it ("16", "A,7", "8,8"; "*"
+ * for insurance) — the hand is drawn as cards, so this is what the new tests read.
+ */
+function shownSpot(): { hand: string; dealer: string } {
+  return {
+    hand: screen.getByTestId('player-hand').getAttribute('data-hand') ?? '',
+    dealer: screen.getByTestId('dealer-card').getAttribute('data-dealer') ?? '',
+  }
+}
+
 describe('DeviationTraining (Flashcards)', () => {
   beforeEach(() => {
     // Force S17 so the test can compute the expected basic action deterministically.
@@ -66,6 +77,42 @@ describe('DeviationTraining (Flashcards)', () => {
     fireEvent.click(screen.getByTestId(`action-${String(wrong).toLowerCase()}`))
     expect(screen.getByTestId('feedback-result')).toHaveTextContent('Wrong!')
     expect(screen.getByTestId('feedback-explanation')).toBeInTheDocument()
+  })
+
+  it('answers with the casino table’s keys and goes on with Enter', () => {
+    render(<DeviationTraining />)
+    fireEvent.click(within(screen.getByRole('group', { name: 'Number of questions' })).getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+
+    const correct = correctForShownHand()
+    const key = { Hit: 'h', Stand: 's', Double: 'd', Split: 'p', Surrender: 'r', Insurance: 'i' }[correct]
+    fireEvent.keyDown(window, { key })
+    expect(screen.getByTestId('feedback-result')).toHaveTextContent('Correct!')
+
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(screen.getByTestId('question-progress')).toHaveTextContent('Question 2/10')
+    expect(screen.queryByTestId('feedback-result')).not.toBeInTheDocument()
+  })
+
+  it('ignores the key of a play the hand does not offer', () => {
+    render(<DeviationTraining />)
+    fireEvent.click(screen.getByTestId('start-training'))
+    // A basic question at a dealer other than an ace never offers insurance.
+    for (let i = 0; i < 20 && shownSpot().dealer === 'A'; i++) {
+      fireEvent.click(screen.getByTestId('action-stand'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+    if (shownSpot().dealer === 'A') return
+    fireEvent.keyDown(window, { key: 'i' })
+    expect(screen.queryByTestId('feedback-result')).not.toBeInTheDocument()
+  })
+
+  it('after an answer, shows the hand’s row of the strategy chart', () => {
+    render(<DeviationTraining />)
+    fireEvent.click(screen.getByTestId('start-training'))
+    expect(screen.getByTestId('chart-row')).toHaveAttribute('data-revealed', 'false')
+    fireEvent.click(screen.getByTestId('action-stand'))
+    expect(screen.getByTestId('chart-row')).toHaveAttribute('data-revealed', 'true')
   })
 
   it('runs a finite session and ends in a summary', () => {
