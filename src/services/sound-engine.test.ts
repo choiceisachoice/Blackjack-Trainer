@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { soundEngine } from './sound-engine'
 
 describe('SoundEngine', () => {
@@ -74,5 +74,62 @@ describe('SoundEngine', () => {
     expect(soundEngine.enabled).toBe(false)
     soundEngine.enabled = true
     expect(soundEngine.enabled).toBe(true)
+  })
+})
+
+describe('SoundEngine.prime — the click that lets a timer play', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.resetModules()
+  })
+
+  /** A fresh engine (the module's singleton) over a stand-in AudioContext. */
+  async function engineWith(state: string, resume: () => Promise<void>) {
+    const made: unknown[] = []
+    class FakeContext {
+      state = state
+      resume = vi.fn(resume)
+      constructor() { made.push(this) }
+    }
+    vi.stubGlobal('AudioContext', FakeContext)
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('offline'))))
+    vi.resetModules()
+    const { soundEngine: fresh } = await import('./sound-engine')
+    return { fresh, made: made as FakeContext[] }
+  }
+
+  it('creates the context and wakes one the browser holds suspended', async () => {
+    const { fresh, made } = await engineWith('suspended', () => Promise.resolve())
+    fresh.enabled = true
+    fresh.prime()
+    expect(made).toHaveLength(1)
+    expect(made[0].resume).toHaveBeenCalledTimes(1)
+  })
+
+  it('leaves a running context alone', async () => {
+    const { fresh, made } = await engineWith('running', () => Promise.resolve())
+    fresh.prime()
+    expect(made[0].resume).not.toHaveBeenCalled()
+  })
+
+  it('makes nothing while sounds are switched off', async () => {
+    const { fresh, made } = await engineWith('suspended', () => Promise.resolve())
+    fresh.enabled = false
+    fresh.prime()
+    expect(made).toHaveLength(0)
+  })
+
+  it('does not throw when the browser refuses the audio', async () => {
+    const { fresh } = await engineWith('suspended', () => Promise.reject(new Error('NotAllowedError')))
+    expect(() => fresh.prime()).not.toThrow()
+    // The refused promise is caught, not left to surface as an unhandled rejection.
+    await Promise.resolve()
+  })
+
+  it('does nothing and does not throw without Web Audio at all', async () => {
+    vi.stubGlobal('AudioContext', undefined)
+    vi.resetModules()
+    const { soundEngine: fresh } = await import('./sound-engine')
+    expect(() => fresh.prime()).not.toThrow()
   })
 })

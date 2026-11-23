@@ -14,7 +14,7 @@ const auth = vi.hoisted(() => ({ status: 'signedOut' as string }))
 vi.mock('../store/auth-store', () => ({
   useAuthStore: Object.assign(
     (selector: (s: { status: string }) => unknown) => selector({ status: auth.status }),
-    { getState: () => ({ status: auth.status, user: null }), setState: vi.fn() },
+    { getState: () => ({ status: auth.status, user: null }), setState: vi.fn(), subscribe: () => () => {} },
   ),
   isSupabaseConfigured: true,
 }))
@@ -43,11 +43,16 @@ vi.mock('framer-motion', () => {
 })
 
 vi.mock('../services/sound-engine', () => ({
-  soundEngine: new Proxy({}, { get: () => () => {} }),
+  soundEngine: new Proxy({}, { get: () => () => {}, set: () => true }),
 }))
+vi.mock('../components/table/ShoeProgress', () => ({ ShoeHousing: () => <div />, DiscardTray: () => <div /> }))
 
+import { act } from '@testing-library/react'
 import { LandingPage } from './LandingPage'
 import { guestRoundSince } from '../services/guest-trial'
+import { useAppStore } from '../store/app-store'
+import { Shoe } from '../engine/shoe/shoe'
+import { Rank, Suit } from '../engine/shoe/types'
 
 function Where() {
   return <span data-testid="where">{useLocation().pathname}</span>
@@ -62,13 +67,29 @@ const renderPage = () => render(
 
 const scrollIntoView = vi.fn<(options?: ScrollIntoViewOptions) => void>()
 
+/** The round's code arrives as a dynamic import: let it, then let the deal run. */
+async function dealt() {
+  await act(async () => { await vi.dynamicImportSettled() })
+  await act(async () => { await vi.advanceTimersByTimeAsync(10_000) })
+}
+
 beforeEach(() => {
+  vi.useFakeTimers({ shouldAdvanceTime: true })
   auth.status = 'signedOut'
   localStorage.clear()
   scrollIntoView.mockClear()
   Element.prototype.scrollIntoView = scrollIntoView
+  useAppStore.setState({ dealingSpeed: 'fast' })
+  // 10,6 against a 10 that stands on 17: a hand that waits for a decision.
+  const shoe = [{ rank: Rank.Ten, suit: Suit.Spades }, { rank: Rank.Ten, suit: Suit.Hearts }, { rank: Rank.Six, suit: Suit.Spades }, { rank: Rank.Seven, suit: Suit.Hearts }]
+  let n = 0
+  vi.spyOn(Shoe.prototype, 'deal').mockImplementation(() => shoe[n++ % shoe.length])
 })
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
+  vi.useRealTimers()
+})
 
 describe('the landing hero, for a visitor without an account', () => {
   it('offers a round of the trainer next to the sign-up, and nothing third', () => {
@@ -87,22 +108,24 @@ describe('the landing hero, for a visitor without an account', () => {
 
   it('starts the round on this page: the section comes up, the first hand is dealt, nobody is sent anywhere', async () => {
     renderPage()
-    expect(screen.queryByTestId('question-progress')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('action-controls')).not.toBeInTheDocument()
     fireEvent.click(screen.getByTestId('hero-try'))
-    const progress = await screen.findByTestId('question-progress')
-    expect(progress).toHaveTextContent('Question 1/10')
-    expect(screen.getByTestId('play-stage')).toContainElement(progress)
     expect(scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ block: 'start' }))
     expect(screen.getByTestId('play-stage')).toHaveFocus()
+    await dealt()
+    const controls = screen.getByTestId('action-controls')
+    expect(screen.getByTestId('play-stage')).toContainElement(controls)
+    expect(screen.getByTestId('trial-status')).toHaveTextContent('Hand 1 / 10')
     expect(screen.getByTestId('where')).toHaveTextContent(/^\/$/)
-    expect(guestRoundSince()).not.toBeNull()
+    // The table is nobody's: nothing is stamped for a later account to take.
+    expect(guestRoundSince()).toBeNull()
   })
 
   it('puts the round directly under the hero, under a heading of its own, and keeps one h1', () => {
     renderPage()
     const section = screen.getByTestId('play-section')
     expect(section.previousElementSibling).toBe(document.querySelector('h1')?.closest('section'))
-    expect(within(section).getByRole('heading', { level: 2 })).toHaveTextContent('Play a round of blackjack basic strategy')
+    expect(within(section).getByRole('heading', { level: 2 })).toHaveTextContent('Play ten hands at the table')
     expect(within(section).getByTestId('try-start')).toBeInTheDocument()
     expect(document.querySelectorAll('h1')).toHaveLength(1)
   })
@@ -131,10 +154,12 @@ describe('the landing, signed in', () => {
   it('takes a round off the screen when the session turns out to be signed in, without filing it', async () => {
     const view = renderPage()
     fireEvent.click(screen.getByTestId('hero-try'))
-    await screen.findByTestId('question-progress')
+    await dealt()
+    expect(screen.getByTestId('action-controls')).toBeInTheDocument()
     auth.status = 'signedIn'
     view.rerender(<MemoryRouter><LandingPage /><Where /></MemoryRouter>)
     expect(screen.queryByTestId('play-section')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('question-progress')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('action-controls')).not.toBeInTheDocument()
+    expect(Object.keys(localStorage).filter(k => /casino|guest|session/.test(k))).toEqual([])
   })
 })

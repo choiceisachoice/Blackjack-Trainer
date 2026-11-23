@@ -1,19 +1,21 @@
 /**
- * The trial round at `/try`: what a visitor without an account leaves on the
- * device, and which account may take it over.
+ * The trial round without an account: how many hands it has, and which
+ * account may take over the round a visitor played before 23 Nov 2026.
  *
- * ## Why this exists
+ * ## What changed
  *
- * Until the trial, data with no owner could only come from a build without a
- * cloud. The sign-in merge therefore treats ownerless data as "a guest's,
- * about to become this account's" and uploads it. With a public trial every
- * visitor's device can hold such data — and on a shared computer the next
- * person to sign in is not necessarily the one who played. A round played by
- * one person must not be filed in the history of another.
+ * The round used to be ten flashcards, recorded like any session on the
+ * device and uploaded to the account created afterwards. Since 23 Nov 2026 it
+ * is ten hands at the casino table (`components/trial/TrialRound.tsx`), and
+ * that table records nothing — no session, nothing stamped. What remains here
+ * is the half that cannot go yet: devices that played the old round still
+ * hold it, stamped, and the sign-in merge must keep handing it only to the
+ * right account. The stamping (`markGuestRound`) and the "is it kept here"
+ * question (`guestRoundIsKept`) had no caller left and are gone.
  *
- * ## The rule
+ * ## The rule, for the rounds already on devices
  *
- * The trial stamps the moment it began. At sign-in, ownerless data that
+ * The old round stamped the moment it began. At sign-in, ownerless data that
  * carries the stamp is handed over only to an account **created after the
  * round began** — the visitor who played and then signed up. An account older
  * than the round is somebody who existed before it; for them the device is
@@ -24,10 +26,9 @@
  * get it. A lost trial round costs ten answers; a wrong one in someone's
  * analytics cannot be told from their own.
  *
- * A leaf module (it imports only the owner record), so the sign-in merge and
- * the page can both use it.
+ * A leaf module (it imports nothing), so the sign-in merge and the pages can
+ * both use it.
  */
-import { getLocalOwner } from './storage/local-owner'
 
 /** localStorage key holding when the first trial round on this device began (ms since epoch). */
 export const GUEST_SINCE_KEY = 'bjt_guest_since'
@@ -54,37 +55,11 @@ export function guestRoundSince(): number | null {
   }
 }
 
-/**
- * Stamp the start of a trial round. The earliest start is kept: a visitor who
- * plays on Monday and again on Friday and then signs up owns both rounds.
- *
- * @param now - The current time (ms since epoch); injectable for tests
- */
-export function markGuestRound(now: number = Date.now()): void {
-  if (guestRoundSince() !== null) return
-  try {
-    localStorage.setItem(GUEST_SINCE_KEY, String(now))
-  } catch { /* storage unavailable: nothing is recorded either */ }
-}
-
 /** Forget the stamp — the data it described now has an owner, or is gone. */
 export function clearGuestRound(): void {
   try {
     localStorage.removeItem(GUEST_SINCE_KEY)
   } catch { /* ignore */ }
-}
-
-/**
- * Whether a trial round played now will be kept for the account the visitor
- * creates afterwards.
- *
- * Only on a device that belongs to nobody. Where an account's data is still
- * present — a session that expired without a sign-out — the round would be
- * written into that account's local history and uploaded with it, so there it
- * is played and not recorded.
- */
-export function guestRoundIsKept(): boolean {
-  return getLocalOwner() === null
 }
 
 /**

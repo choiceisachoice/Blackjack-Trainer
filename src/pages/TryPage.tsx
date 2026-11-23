@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useLocation } from 'react-router-dom'
 import { PublicShell } from '../components/common/PublicShell'
@@ -12,15 +12,16 @@ export interface TryLocationState {
 }
 
 /**
- * `/try` — one round of flashcards without an account.
+ * `/try` — ten hands at the casino table without an account.
  *
  * ## Why this exists
  *
  * Some seven hundred visitors, one customer: the sign-up form was the first
  * thing the product asked of anyone, before they had touched it. Here a
- * visitor plays ten basic-strategy hands — the trainer's own questions and
- * feedback, not a demo of them — and is asked for an account once, at the
- * end, when there is a result worth keeping.
+ * visitor sits down at the table — the real felt, cards and deal, every
+ * decision theirs — and after each hand sees what basic strategy plays. They
+ * are asked for something once, at the end, when the ten hands have shown
+ * what the product is.
  *
  * The round itself is `TrialRound`, the same component the landing's play
  * section renders; this page is its own address for it (indexed, linked from
@@ -28,20 +29,15 @@ export interface TryLocationState {
  *
  * ## What it is careful about
  *
- * - **One next step.** The summary offers the account and, quietly, the way
- *   home. The shell's closing call to action is switched off so the page does
- *   not ask twice. Nothing interrupts the round.
- * - **The result is kept by the ordinary path.** The round is recorded like
- *   any session — locally, since nobody is signed in — and the sign-in merge
- *   uploads it to the account created afterwards (`services/guest-trial.ts`
- *   says which accounts may take it).
+ * - **One ask, at the end.** The summary offers Pro and the free account.
+ *   The shell's closing call to action is switched off so the page does not
+ *   ask twice. Nothing interrupts the round.
+ * - **Nothing is recorded**, so nothing is promised: the round belongs to no
+ *   account (see `TrialRound`).
  * - **A signed-in visitor has no business here** and is sent to the app.
- * - **A device that still holds an account's data** (a session that expired)
- *   plays the round without recording it, and the summary does not promise
- *   that the result will be kept.
  *
- * Prerendered in every language like the other public pages: the first
- * screen is the intro, which is the same for everyone.
+ * Prerendered in every language like the other public pages: the heading,
+ * the sentence and the empty table, which are the same for everyone.
  */
 export function TryPage() {
   const { t } = useTranslation()
@@ -49,33 +45,39 @@ export function TryPage() {
   const status = useAuthStore(s => s.status)
   const { state } = useLocation()
   const autoStart = (state as TryLocationState | null)?.autoStart === true
-  const [started, setStarted] = useState(autoStart)
+  const stage = useRef<HTMLDivElement>(null)
 
+  // The first hand belongs on screen whole: under the header, clear of the
+  // cookie bar — the heading above it has been read.
   const onStart = useCallback(() => {
-    setStarted(true)
-    // The start button may have been reached by scrolling (a phone held
-    // sideways, the cookie bar up). The first hand belongs at the top of
-    // the screen, not half under the header.
-    if (typeof window !== 'undefined' && window.scrollY > 0) window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    const el = stage.current
+    if (!el || typeof el.scrollIntoView !== 'function') return
+    const calm = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' })
   }, [])
 
   if (isSupabaseConfigured && status === 'signedIn') return <Navigate to="/app" replace />
 
   return (
     <PublicShell cta={false} testId="try-page">
-      {/* The intro and the summary carry the visible heading; in between the
-          card is the page, and the heading is for a screen reader only. */}
-      {started && <h1 className="sr-only">{t('try.title')}</h1>}
-      {/* Tall enough that the card sits in the middle of the first screen and
-          does not jump between a short question and a long one. A phone held
-          sideways has no height to give: there the card starts at the top.
-          The bottom padding is the cookie bar's height while it is up, so the
-          last row can always be scrolled clear of it. */}
-      <div
-        className="flex flex-col min-h-[min(30rem,calc(100dvh-13rem))] short:min-h-0 short:-mt-4"
-        style={{ paddingBottom: 'var(--cookie-bar, 0px)' }}
-      >
-        <TrialRound autoStart={autoStart} titled onStart={onStart} />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-[42em]">
+          <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('try.eyebrow')}</div>
+          <h1 id="try-title" className="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight leading-tight text-balance">{t('try.title')}</h1>
+          <p className="mt-3 text-content/60 text-base">{t('try.intro')}</p>
+        </div>
+        {/* The header is 4rem; `--stage-top` is that and some air, the
+            height the stage leaves above itself when it is scrolled to. */}
+        <div
+          ref={stage}
+          role="group"
+          aria-labelledby="try-title"
+          data-testid="try-stage"
+          className="mt-6 md:mt-8 -mx-4 sm:mx-0 scroll-mt-[4.5rem]"
+          style={{ scrollMarginBottom: 'calc(var(--cookie-bar, 0px) + 12px)', ['--stage-top' as string]: '4.5rem' }}
+        >
+          <TrialRound autoStart={autoStart} onStart={onStart} />
+        </div>
       </div>
     </PublicShell>
   )

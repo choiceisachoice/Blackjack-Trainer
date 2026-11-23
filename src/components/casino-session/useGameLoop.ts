@@ -64,13 +64,32 @@ export interface LiveTable {
  * another.
  */
 export interface TableHouse {
-  /** A hand was settled — called once per hand, at the moment it is recorded. */
-  onHandSettled?: () => void
+  /**
+   * A hand was settled — called once per hand, at the moment it is recorded.
+   *
+   * @param hand - The hand's record, as the review after it reads it
+   * @param hands - The player's hands as they lie on the table at the
+   *   settlement — one, or several after a split (the record holds the first)
+   */
+  onHandSettled?: (hand: PlayerHandRecord, hands: Card[][]) => void
   /**
    * Asked when the player leaves a finished hand: true ends the session
    * there, the way an empty bankroll does. Never asked in the middle of a hand.
    */
   isClosed?: () => boolean
+  /**
+   * A table that belongs to no account: the landing's and `/try`'s guest
+   * table. Read once, when the table opens.
+   *
+   * The other two ways out of the recording are the caller's already — no
+   * `recorder`, no `live` id (so nothing is saved to `bjt_casino_live`), an
+   * `onSessionEnd` that writes nothing. What only the loop can switch off is
+   * its own reach for the statistics: it announces the open table to the
+   * sign-out (`registerOpenTable`), which then records it, and its unmount
+   * hands an unfinished session to `onSessionEnd`. A guest table does
+   * neither. It ends when it is closed, and what was played on it is gone.
+   */
+  guest?: boolean
 }
 
 /** Seats at the table. */
@@ -217,6 +236,8 @@ export function useGameLoop(
   /** The house's callbacks as of the last render, for the callbacks below that outlive one. */
   const houseRef = useRef<TableHouse | undefined>(house)
   useEffect(() => { houseRef.current = house }, [house])
+  /** A guest table (see `TableHouse.guest`), decided when the table opens. */
+  const [guest] = useState(() => house?.guest === true)
   /** The player chose to play on past the target — mirrored for `persist`. */
   const keptPlayingRef = useRef(false)
   /**
@@ -749,6 +770,8 @@ export function useGameLoop(
       timeouts.forEach(clearTimeout)
       timeouts.clear()
       const engine = engineRef.current
+      // A guest table hands nothing on: there is nobody to hand it to.
+      if (guest) return
       // Not after a sign-out has wiped the device: see `stillOurs`. The
       // sign-out itself ended and recorded the table before it wiped.
       if (engine && !endedRef.current && stillOurs()) {
@@ -777,7 +800,7 @@ export function useGameLoop(
         useLiveSessionStore.getState().refreshSaved()
       }
     }
-  }, [onSessionEnd, liveId, stillOurs])
+  }, [onSessionEnd, liveId, stillOurs, guest])
 
   /**
    * A sign-out ends the table first, while the statistics still have an owner.
@@ -786,19 +809,23 @@ export function useGameLoop(
    * back, the session is recorded under the table's id, the saved copy goes
    * with it. `endedRef` then makes the unmount that follows the wipe a no-op.
    */
-  useEffect(() => registerOpenTable(() => {
-    const engine = engineRef.current
-    if (!engine || endedRef.current) return
-    endedRef.current = true
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
-    pendingTimeouts.current.forEach(clearTimeout)
-    pendingTimeouts.current.clear()
-    closeOpenHand(engine)
-    recordCasinoSession(
-      engine.calculateSessionResult(startTimeRef.current, sessionEndTime()),
-      { liveId: liveId ?? null },
-    )
-  }), [liveId])
+  useEffect(() => {
+    // A guest table is nobody's statistics: the sign-out has nothing to settle.
+    if (guest) return
+    return registerOpenTable(() => {
+      const engine = engineRef.current
+      if (!engine || endedRef.current) return
+      endedRef.current = true
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+      pendingTimeouts.current.forEach(clearTimeout)
+      pendingTimeouts.current.clear()
+      closeOpenHand(engine)
+      recordCasinoSession(
+        engine.calculateSessionResult(startTimeRef.current, sessionEndTime()),
+        { liveId: liveId ?? null },
+      )
+    })
+  }, [liveId, guest])
 
   // ─── Settlement ────────────────────────────────────
 
@@ -872,7 +899,7 @@ export function useGameLoop(
     }
 
     engine.recordHand(record)
-    houseRef.current?.onHandSettled?.()
+    houseRef.current?.onHandSettled?.(record, humanHandsRef.current)
     handRecordRef.current._built = record as unknown
     // The hand is settled: this is the moment it becomes safe from a closed
     // tab. Everything from here to the next bet only adds to it.

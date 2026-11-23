@@ -40,6 +40,21 @@ describe('prerender entry', () => {
     expect(meta.canonical).toBe('https://black-jack-training.com/')
   })
 
+  it('puts both landing photos in the HTML, lazy, with the alt text in the page’s language', async () => {
+    const { html } = await entry.render('/', 'en')
+    expect((html.match(/<picture>/g) ?? []).length).toBe(2)
+    expect((html.match(/type="image\/avif"/g) ?? []).length).toBe(2)
+    expect(html).toMatch(/dealer-cards-green-felt-1600[^"]*\.avif 1600w/)
+    expect(html).toMatch(/felt-hands-chips-800[^"]*\.avif 800w/)
+    expect((html.match(/loading="lazy"/g) ?? []).length).toBeGreaterThanOrEqual(2)
+    expect(html).toMatch(/alt="A dealer’s hands/)
+    // The closing photo is decoration: an empty alt, not a missing one.
+    expect(html).toMatch(/data-testid="closing-cta"[\s\S]*?<img[^>]*alt=""/)
+    const de = await entry.render('/', 'de', '/de')
+    expect(de.html).toMatch(/alt="Die Hände eines Dealers/)
+    expect(de.html).toMatch(/Das Vorbild: ein echter Casinotisch\./)
+  })
+
   it('renders the theory with every topic expanded', async () => {
     const { html, meta } = await entry.render('/learn', 'en')
     expect(html).toMatch(/Illustrious 18/)
@@ -77,9 +92,11 @@ describe('prerender entry', () => {
     const { html, meta } = await entry.render('/try', 'en')
     expect(html).toMatch(/<h1/)
     expect(html).toMatch(/data-testid="try-start"/)
-    // No hand in the HTML: a hand dealt at build time would be swapped for
+    // The empty table, drawn small enough for a phone before anything is measured.
+    expect(html).toMatch(/data-testid="felt-table"/)
+    // No card in the HTML: a hand dealt at build time would be swapped for
     // another one the moment the page starts.
-    expect(html).not.toMatch(/data-testid="player-hand"/)
+    expect(html).not.toMatch(/data-card=/)
     expect(meta.title).toMatch(/basic strategy/i)
     expect(meta.canonical).toBe('https://black-jack-training.com/try')
     const de = await entry.render('/try', 'de', '/de')

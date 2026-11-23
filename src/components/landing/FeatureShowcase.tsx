@@ -9,6 +9,8 @@ import {
   DeviationChartVisual,
   BankrollVisual,
 } from './FeatureVisuals'
+import { LandingPhoto } from './LandingPhoto'
+import { LANDING_PHOTOS } from './landing-photos'
 
 /**
  * The landing's feature showcase, told as a progression rather than a grid of
@@ -66,10 +68,20 @@ export function FeatureShowcase() {
           />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <Tile className="lg:col-span-2 flex flex-col">
-              <TileText
-                title={t('landing.showcase.t4title')}
-                body={t('landing.showcase.t4body')}
-              />
+              {/* The words, and beside them the real table the drawing below
+                  is of: photo first, trainer second, so "this is what it
+                  simulates" needs no sentence. Side by side from md, where
+                  the photo fills the room the short text leaves; stacked on
+                  a phone. Cropped to 2:1 everywhere (the 3:2 frame made the
+                  header twice as tall as its text), keeping the dealer's
+                  hands and the cards. */}
+              <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0"><TileText
+                  title={t('landing.showcase.t4title')}
+                  body={t('landing.showcase.t4body')}
+                /></div>
+                <CasinoPhoto />
+              </div>
               <div className="mt-6 flex-1"><FeltTableVisual /></div>
             </Tile>
 
@@ -91,6 +103,31 @@ export function FeatureShowcase() {
         </div>
       </Reveal>
     </div>
+  )
+}
+
+/**
+ * A real casino table, captioned as the original the drawing below copies.
+ *
+ * `sizes` follows the figure's width, measured: the full tile below md
+ * (viewport less 136px of section, band and tile padding — 254px on a
+ * 390px phone), then a fixed column of 13rem / 15rem, which the fluid root
+ * size makes 228px (768–1279) and 262–300px (1280 up). A 3× phone thus
+ * takes the 800px file, as does a desktop at 1×.
+ */
+function CasinoPhoto() {
+  const { t } = useTranslation()
+  return (
+    <figure className="shrink-0 md:w-52 xl:w-60" data-testid="casino-photo">
+      <LandingPhoto
+        photo={LANDING_PHOTOS.dealerCards}
+        alt={t('landing.photos.casinoAlt')}
+        sizes="(min-width: 1280px) 300px, (min-width: 768px) 230px, calc(100vw - 136px)"
+        position="50% 70%"
+        className="block w-full h-auto aspect-[2/1] object-cover rounded-xl border border-gold/15"
+      />
+      <figcaption className="mt-2 text-xs text-content/60">{t('landing.photos.casinoCaption')}</figcaption>
+    </figure>
   )
 }
 

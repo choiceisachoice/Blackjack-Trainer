@@ -255,6 +255,10 @@
       "t6title": "Bankroll tools",
       "t6body": "Log your real-money sessions and see what your play actually wins or loses over time."
     },
+    "photos": {
+      "casinoAlt": "A dealer’s hands turning cards on a green felt casino table, with the players’ cards and chips on the felt.",
+      "casinoCaption": "The original: a real casino table."
+    },
     "manifesto": {
       "eyebrow": "Why counters win",
       "p1": "Counting isn’t a secret system, and it isn’t a trick the casinos haven’t noticed. It’s a small, measurable edge — a percent or two — that shows up only over hundreds of hands, and only if you play it perfectly.",
@@ -303,8 +307,8 @@
     "brand": "Blackjack Trainer",
     "play": {
       "eyebrow": "Try the trainer",
-      "title": "Play a round of blackjack basic strategy — <1>right here</1>.",
-      "sub": "Ten hands, no account. After every hand you see the right play — in the same trainer you get inside the app."
+      "title": "Play ten hands at the table — <1>right here</1>.",
+      "sub": "Real cards, play money, no account. You make every decision; after each hand you see what basic strategy plays."
     }
   },
   "auth": {
@@ -2316,8 +2320,8 @@
         "description": "Visitors, page views, session length, registrations and paying customers."
       },
       "try": {
-        "title": "Try a Round of Blackjack Basic Strategy — Free, No Signup",
-        "description": "Play ten blackjack hands against basic strategy, free and without an account. See your score and the right play for every hand you missed."
+        "title": "Play Blackjack Basic Strategy at the Table — Free",
+        "description": "Ten hands of blackjack at a real table, free and without an account. You decide every hand; after each one you see the basic-strategy play, at the end your score."
       }
     }
   },
@@ -2558,21 +2562,44 @@
   },
   "try": {
     "eyebrow": "Free · no account",
-    "title": "Play a round of basic strategy",
-    "intro": "{{hands}} hands. You see your hand and the dealer’s card and pick the play. At the end you get your score and the hands you missed.",
+    "title": "Play ten hands of blackjack at the table",
+    "intro": "Real cards, play money, no account. You make every decision — after each hand you see the basic-strategy play, and at the end your score.",
     "start": "Deal the first hand",
     "end": {
       "eyebrow": "Round complete",
-      "score": "{{correct}} of {{total}} hands played right",
       "perfect": "Not one mistake — every hand played by the book.",
       "missedTitle": "The hands you missed",
       "colHand": "Hand vs. dealer",
       "colYou": "Your play",
       "colRight": "Right play",
       "hand": "{{hand}} vs. {{dealer}}",
-      "keep": "Create a free account to keep this result and get your training plan.",
-      "plan": "Create a free account and get your training plan.",
       "cta": "Create free account"
+    },
+    "table": {
+      "introNote": "Play money, {{bet}} a hand. After every hand you see the right play.",
+      "hand": "Hand {{n}} / {{total}}",
+      "playMoney": "Play money",
+      "right": "Right play — that is basic strategy.",
+      "wrong": "{{spot}}: the right play was {{action}}.",
+      "wrongInsurance": "Insurance: basic strategy never takes it.",
+      "noneBlackjack": "Blackjack — nothing to decide.",
+      "noneDealer": "The dealer has blackjack — nothing to decide.",
+      "none": "Nothing to decide this hand.",
+      "toResult": "See your result",
+      "score_one": "{{correct}} of {{count}} decision played right",
+      "score_other": "{{correct}} of {{count}} decisions played right",
+      "noDecisions": "No decision came up in these hands.",
+      "record": "Won {{won}} · lost {{lost}} · push {{pushed}}",
+      "money": "Play money {{amount}}",
+      "noInsurance": "No insurance",
+      "endedEarly_one": "The play money ran out after {{count}} hand.",
+      "endedEarly_other": "The play money ran out after {{count}} hands.",
+      "proLine": "Pro keeps the table open: as many hands as you like, with the count and your own rules.",
+      "proAfterSignup": "You create your account first — checkout opens right after.",
+      "freeLine": "Free: your training plan, and ten hands at the full table.",
+      "again": "Play another round",
+      "moreMisses_one": "And {{count}} more.",
+      "moreMisses_other": "And {{count}} more."
     }
   }
 }

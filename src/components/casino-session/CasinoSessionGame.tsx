@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'framer-motion'
-import { getHandValue, isBust, isPair } from '../../engine/rules/hand-utils'
 import { Action } from '../../engine/rules/types'
 import { casinoAmbient } from '../../services/casino-ambient'
 import type { CasinoSessionConfig, CasinoSessionResult } from '../../engine/casino-session/types'
@@ -13,7 +12,8 @@ import { useIsPro } from '../../store/entitlement-store'
 import { useCasinoTrialStore, selectTrialLeft, useTrialLeft } from '../../store/casino-trial-store'
 import { MAX_PLAYER_HANDS } from '../../engine/casino-session/types'
 import { CasinoTable } from './CasinoTable'
-import { ActionButtons } from './ActionButtons'
+import { ActionButtons, InsurancePrompt } from './ActionButtons'
+import { turnOptions, useAutoStand } from './table-turn'
 import { BettingControls } from './BettingControls'
 import { formatDollar, formatTime, BET_SECONDS, DECISION_SECONDS } from './helpers'
 import { ProgressBar, Input } from '../common/ui'
@@ -177,21 +177,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
   const canCashOut = state.gameStep === 'betting'
 
   // Auto-stand at 21 — only for a hand that would otherwise wait for a click.
-  // A doubled hand already moves on by itself, and split aces are dealt and
-  // stood by their own sequence; standing those a second time used to move on
-  // twice, dealing the next hand twice or playing the bots and the dealer again.
-  useEffect(() => {
-    if (state.gameStep !== 'human_playing') return
-    const cards = state.humanHands[state.activeHandIndex] ?? []
-    if (cards.length < 2) return
-    if (isBust(cards)) return
-    if (state.handDoubled.has(state.activeHandIndex)) return
-    if ((state.humanHandInfo[state.activeHandIndex]?.split ?? false) && cards[0].rank === 'A') return
-    if (getHandValue(cards).best === 21) {
-      const t = setTimeout(() => actions.handleAction(Action.Stand), 500)
-      return () => clearTimeout(t)
-    }
-  }, [state.gameStep, state.humanHands, state.humanHandInfo, state.activeHandIndex, state.handDoubled, actions])
+  useAutoStand(state, actions.handleAction)
 
   /*
    * The betting clock. It runs while the table is waiting for a bet and
@@ -292,23 +278,8 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     return () => window.removeEventListener('keydown', handler)
   }, [state.gameStep, state.isPaused, actions])
 
-  // Derived play state
-  const humanCards = state.humanHands[state.activeHandIndex] ?? []
-  const isFirstAction = humanCards.length === 2
-  // The rules follow the hand in play, not how many the player holds: a
-  // second box is an ordinary hand; one out of a split is not.
-  const activeInfo = state.humanHandInfo[state.activeHandIndex] ?? { box: 0, split: false }
-  const handsInBox = state.humanHandInfo.filter(h => h.box === activeInfo.box).length
-  const canSplitNow = isFirstAction && isPair(humanCards) && handsInBox < config.maxSplitHands && bankroll >= state.currentBet
-  const canDoubleNow = isFirstAction && bankroll >= state.currentBet && (!activeInfo.split || config.doubleAfterSplit)
-  const canSurrenderNow = isFirstAction && config.surrenderAllowed && !activeInfo.split && !state.surrenderedHands.has(state.activeHandIndex)
-  const humanBusted = humanCards.length > 0 && isBust(humanCards)
-  // The buttons mirror the rules `handleAction` enforces: a doubled hand is
-  // done, and a split ace takes one card — its only choice is a second ace
-  // (split again or stand).
-  const handDone = state.handDoubled.has(state.activeHandIndex)
-  const splitAce = activeInfo.split && humanCards[0]?.rank === 'A'
-  const aceReSplitOffer = splitAce && humanCards.length === 2 && humanCards[1].rank === 'A'
+  // What the hand in play offers: the buttons mirror the rules `handleAction` enforces.
+  const turn = turnOptions(state, config, bankroll)
   const isDealPhase = state.gameStep === 'dealing'
   // How many hands the bankroll and the table allow, and whether they carry
   // different bets (then Deal names each of them).
@@ -706,35 +677,17 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
 
         {/* Insurance */}
         {state.gameStep === 'insurance' && (
-          <div className="flex flex-col items-center gap-3" data-testid="insurance-controls">
-            <span className="text-sm text-content" data-testid="insurance-ask">
-              {state.humanHands.length > 1 && state.insuranceBox >= 0
-                ? t('casino.hud.insuranceAskHand', { n: state.insuranceBox + 1 })
-                : t('casino.hud.insuranceAsk')}
-            </span>
-            <div className="flex gap-3">
-              <button onClick={() => actions.handleInsurance(true)} data-testid="insurance-yes"
-                className="px-6 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
-                {t('casino.hud.yes')}
-              </button>
-              <button onClick={() => actions.handleInsurance(false)} data-testid="insurance-no"
-                className="px-6 py-2 bg-contrast/10 text-content rounded-xl font-bold hover:bg-contrast/20 cursor-pointer">
-                {t('casino.hud.no')}
-              </button>
-            </div>
-          </div>
+          <InsurancePrompt
+            hand={state.humanHands.length > 1 && state.insuranceBox >= 0 ? state.insuranceBox : null}
+            onAnswer={actions.handleInsurance}
+          />
         )}
 
         {/* Human Playing */}
         {state.gameStep === 'human_playing' && (
           <ActionButtons
             onAction={actions.handleAction}
-            canDouble={canDoubleNow && !splitAce && !handDone}
-            canSplit={canSplitNow}
-            canSurrender={canSurrenderNow}
-            humanBusted={humanBusted}
-            canHit={!splitAce && !handDone}
-            canStand={!handDone && (!splitAce || aceReSplitOffer)}
+            {...turn}
             secondsLeft={decisionSeconds}
             secondsTotal={DECISION_SECONDS}
           />

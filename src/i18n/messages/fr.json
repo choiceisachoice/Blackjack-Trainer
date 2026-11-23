@@ -255,6 +255,10 @@
       "t6title": "Outils de bankroll",
       "t6body": "Enregistrez vos sessions en argent réel et voyez ce que votre jeu gagne ou perd réellement au fil du temps."
     },
+    "photos": {
+      "casinoAlt": "Les mains d’un croupier retournent des cartes sur une table de casino en feutre vert, avec les cartes et les jetons des joueurs.",
+      "casinoCaption": "L’original : une vraie table de casino."
+    },
     "manifesto": {
       "eyebrow": "Pourquoi les compteurs gagnent",
       "p1": "Le comptage n’est pas un système secret, ni une astuce que les casinos auraient ratée. C’est un avantage petit et mesurable — un ou deux pour cent — qui n’apparaît qu’au bout de centaines de mains, et seulement si vous le jouez parfaitement.",
@@ -303,8 +307,8 @@
     "brand": "Blackjack Trainer",
     "play": {
       "eyebrow": "Essaie l’entraîneur",
-      "title": "Joue une partie de stratégie de base au blackjack — <1>ici même</1>.",
-      "sub": "Dix mains, sans compte. Après chaque main, tu vois le bon coup — dans le même entraîneur que celui de l’application."
+      "title": "Joue dix mains à la table — <1>ici même</1>.",
+      "sub": "De vraies cartes, de l’argent fictif, sans compte. Tu prends chaque décision ; après chaque main, tu vois ce que joue la stratégie de base."
     }
   },
   "auth": {
@@ -2316,8 +2320,8 @@
         "description": "Visiteurs, pages vues, durée des sessions, inscriptions et clients payants."
       },
       "try": {
-        "title": "Essayer la stratégie de base au blackjack — gratuit, sans inscription",
-        "description": "Joue dix mains de blackjack selon la stratégie de base, gratuitement et sans compte. À la fin, tu vois ton score et le bon coup pour chaque main manquée."
+        "title": "Joue la stratégie de base au blackjack à la table — gratuit",
+        "description": "Dix mains de blackjack à une vraie table, gratuitement et sans compte. Tu décides chaque main ; ensuite tu vois le coup de la stratégie de base, et à la fin ton score."
       }
     }
   },
@@ -2558,21 +2562,44 @@
   },
   "try": {
     "eyebrow": "Gratuit · sans compte",
-    "title": "Joue une partie de stratégie de base",
-    "intro": "{{hands}} mains. Tu vois ta main et la carte du croupier, et tu choisis le coup. À la fin, tu obtiens ton score et les mains que tu as manquées.",
+    "title": "Joue dix mains de blackjack à la table",
+    "intro": "De vraies cartes, de l’argent fictif, sans compte. Tu prends chaque décision : après chaque main, tu vois le coup de la stratégie de base, et à la fin ton score.",
     "start": "Distribuer la première main",
     "end": {
       "eyebrow": "Partie terminée",
-      "score": "{{correct}} mains sur {{total}} bien jouées",
       "perfect": "Aucune erreur — chaque main jouée dans les règles de l’art.",
       "missedTitle": "Les mains que tu as manquées",
       "colHand": "Main contre croupier",
       "colYou": "Ton coup",
       "colRight": "Bon coup",
       "hand": "{{hand}} contre {{dealer}}",
-      "keep": "Crée un compte gratuit pour garder ce résultat et recevoir ton plan d’entraînement.",
-      "plan": "Crée un compte gratuit et reçois ton plan d’entraînement.",
       "cta": "Créer un compte gratuit"
+    },
+    "table": {
+      "introNote": "Argent fictif, {{bet}} par main. Après chaque main, tu vois le bon coup.",
+      "hand": "Main {{n}} / {{total}}",
+      "playMoney": "Argent fictif",
+      "right": "Bon coup — c’est la stratégie de base.",
+      "wrong": "{{spot}} : le bon coup était {{action}}.",
+      "wrongInsurance": "Assurance : la stratégie de base ne la prend jamais.",
+      "noneBlackjack": "Blackjack — rien à décider.",
+      "noneDealer": "Le croupier a un blackjack — rien à décider.",
+      "none": "Rien à décider dans cette main.",
+      "toResult": "Voir ton résultat",
+      "score_one": "{{correct}} sur {{count}} décision bien jouée",
+      "score_other": "{{correct}} sur {{count}} décisions bien jouées",
+      "noDecisions": "Rien à décider dans ces mains.",
+      "record": "Gagnées {{won}} · perdues {{lost}} · égalité {{pushed}}",
+      "money": "Argent fictif {{amount}}",
+      "noInsurance": "Pas d’assurance",
+      "endedEarly_one": "L’argent fictif était épuisé après {{count}} main.",
+      "endedEarly_other": "L’argent fictif était épuisé après {{count}} mains.",
+      "proLine": "Avec Pro, la table reste ouverte : autant de mains que tu veux, avec le count et tes propres règles.",
+      "proAfterSignup": "Tu crées d’abord ton compte — le paiement s’ouvre juste après.",
+      "freeLine": "Gratuit : ton plan d’entraînement et dix mains à la table complète.",
+      "again": "Rejouer une partie",
+      "moreMisses_one": "Et {{count}} autre.",
+      "moreMisses_other": "Et {{count}} autres."
     }
   }
 }

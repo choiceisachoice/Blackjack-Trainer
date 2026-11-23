@@ -42,6 +42,46 @@ export function trialTableConfig(countingSystem: CountingSystemId = DEFAULT_CONF
   }
 }
 
+/** The guest table's one bet, in play money: every hand, the same. */
+export const GUEST_TABLE_BET = 100
+/** What the guest table starts with, in play money. Ten bets, and room for a split doubled twice. */
+export const GUEST_TABLE_BANKROLL = 1000
+
+/**
+ * The guest table: the landing's play section and `/try`, for a visitor
+ * without an account.
+ *
+ * The trial table's rules (six decks, S17, 3:2, late surrender, double after
+ * split, basic strategy graded) with three things taken away, each a decision
+ * the visitor has not come to make:
+ *
+ * - **The other players** (`numBots: 0`). They make a table feel alive, and
+ *   they make a stranger wait: a seated player thinks for two seconds before
+ *   every card, and ten hands with two of them run a minute longer. On a phone
+ *   they are also a second row of cards above the visitor's own. The empty
+ *   circles on the felt still say "table".
+ * - **The bet** (`minBet` = `maxBet` = `GUEST_TABLE_BET`). The first thing
+ *   the real table asks is a chip; here the first thing is the first card.
+ * - **The review step** (`trainingMode: false`). The guest table says what
+ *   the right play was at the settlement itself, under the result on the
+ *   felt, so a hand takes one press to leave instead of two.
+ *
+ * No ambience either: a page somebody is reading does not start a casino
+ * crowd. The dealt cards and the chips make their usual sounds.
+ */
+export function guestTableConfig(): CasinoSessionConfig {
+  return {
+    ...trialTableConfig(),
+    trial: false,
+    numBots: 0,
+    startingBankroll: GUEST_TABLE_BANKROLL,
+    minBet: GUEST_TABLE_BET,
+    maxBet: GUEST_TABLE_BET,
+    trainingMode: false,
+    casinoAmbience: false,
+  }
+}
+
 /**
  * Whether a table is being played as the trial: it was dealt as one, and the
  * account still has no Pro. Somebody who subscribes in the middle of their

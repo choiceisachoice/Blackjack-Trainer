@@ -10,12 +10,13 @@ let pending: Promise<TrialRoundComponent | null> | null = null
 /**
  * Fetch the trial round's code ahead of the click that needs it.
  *
- * The round is the real trainer (`TrialRound` → `DeviationTraining`, the
- * engine's strategy tables, the session recording). None of that belongs in
- * the landing's chunk, which every visitor waits for and most never play
- * with. It is fetched when the play section nears the screen or a visitor
- * shows intent (the hero's button under the pointer), and kept for the
- * page's life.
+ * The round is the real casino table at play (`TrialRound` → the game loop,
+ * the session engine and its shoe, the strategy tables the verdicts come
+ * from). None of that belongs in the landing's chunk, which every visitor
+ * waits for and most never play with — the chunk carries only the empty
+ * felt the intro shows. It is fetched when the play section nears the screen
+ * or a visitor shows intent (the hero's button under the pointer), and kept
+ * for the page's life.
  *
  * @returns The component, or null when the chunk could not be loaded (the
  *   next call tries again)

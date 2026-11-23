@@ -255,6 +255,10 @@
       "t6title": "Ferramentas de bankroll",
       "t6body": "Registe as suas sessões com dinheiro real e veja quanto o seu jogo realmente ganha ou perde ao longo do tempo."
     },
+    "photos": {
+      "casinoAlt": "As mãos de um croupier a virar cartas numa mesa de casino de feltro verde, com as cartas e as fichas dos jogadores.",
+      "casinoCaption": "O original: uma verdadeira mesa de casino."
+    },
     "manifesto": {
       "eyebrow": "Porque é que os contadores ganham",
       "p1": "Contar não é um sistema secreto, nem um truque que os casinos não tenham notado. É uma vantagem pequena e mensurável — um ou dois por cento — que só aparece ao fim de centenas de mãos, e só se a jogar na perfeição.",
@@ -303,8 +307,8 @@
     "brand": "Blackjack Trainer",
     "play": {
       "eyebrow": "Experimenta o treinador",
-      "title": "Joga uma ronda de estratégia básica de blackjack — <1>aqui mesmo</1>.",
-      "sub": "Dez mãos, sem conta. Depois de cada mão vês a jogada certa — no mesmo treinador que tens dentro da app."
+      "title": "Joga dez mãos à mesa — <1>aqui mesmo</1>.",
+      "sub": "Cartas reais, dinheiro de jogo, sem conta. Tomas todas as decisões; depois de cada mão vês o que joga a estratégia básica."
     }
   },
   "auth": {
@@ -2316,8 +2320,8 @@
         "description": "Visitantes, visualizações, duração das sessões, registos e clientes pagantes."
       },
       "try": {
-        "title": "Experimenta a estratégia básica de blackjack — grátis, sem registo",
-        "description": "Joga dez mãos de blackjack segundo a estratégia básica, grátis e sem conta. No fim vês o teu resultado e a jogada certa para cada mão falhada."
+        "title": "Joga a estratégia básica de blackjack à mesa — grátis",
+        "description": "Dez mãos de blackjack numa mesa a sério, grátis e sem conta. Decides cada mão; depois vês a jogada da estratégia básica e, no fim, o teu resultado."
       }
     }
   },
@@ -2558,21 +2562,44 @@
   },
   "try": {
     "eyebrow": "Grátis · sem conta",
-    "title": "Joga uma ronda de estratégia básica",
-    "intro": "{{hands}} mãos. Vês a tua mão e a carta do dealer e escolhes a jogada. No fim recebes o teu resultado e as mãos que falhaste.",
+    "title": "Joga dez mãos de blackjack à mesa",
+    "intro": "Cartas reais, dinheiro de jogo, sem conta. Tomas todas as decisões: depois de cada mão vês a jogada da estratégia básica e, no fim, o teu resultado.",
     "start": "Dar a primeira mão",
     "end": {
       "eyebrow": "Ronda concluída",
-      "score": "{{correct}} de {{total}} mãos bem jogadas",
       "perfect": "Nem um erro — todas as mãos jogadas como manda o livro.",
       "missedTitle": "As mãos que falhaste",
       "colHand": "Mão contra dealer",
       "colYou": "A tua jogada",
       "colRight": "Jogada certa",
       "hand": "{{hand}} contra {{dealer}}",
-      "keep": "Cria uma conta gratuita para guardar este resultado e receber o teu plano de treino.",
-      "plan": "Cria uma conta gratuita e recebe o teu plano de treino.",
       "cta": "Criar conta gratuita"
+    },
+    "table": {
+      "introNote": "Dinheiro de jogo, {{bet}} por mão. Depois de cada mão vês a jogada certa.",
+      "hand": "Mão {{n}} / {{total}}",
+      "playMoney": "Dinheiro de jogo",
+      "right": "Jogada certa — é a estratégia básica.",
+      "wrong": "{{spot}}: a jogada certa era {{action}}.",
+      "wrongInsurance": "Seguro: a estratégia básica nunca o aceita.",
+      "noneBlackjack": "Blackjack — nada a decidir.",
+      "noneDealer": "O dealer tem blackjack — nada a decidir.",
+      "none": "Nesta mão não havia nada a decidir.",
+      "toResult": "Ver o teu resultado",
+      "score_one": "{{correct}} de {{count}} decisão bem jogada",
+      "score_other": "{{correct}} de {{count}} decisões bem jogadas",
+      "noDecisions": "Nestas mãos não houve nada a decidir.",
+      "record": "Ganhas {{won}} · perdidas {{lost}} · empate {{pushed}}",
+      "money": "Dinheiro de jogo {{amount}}",
+      "noInsurance": "Sem seguro",
+      "endedEarly_one": "O dinheiro de jogo acabou ao fim de {{count}} mão.",
+      "endedEarly_other": "O dinheiro de jogo acabou ao fim de {{count}} mãos.",
+      "proLine": "Com o Pro a mesa continua aberta: as mãos que quiseres, com o count e as tuas próprias regras.",
+      "proAfterSignup": "Primeiro crias a tua conta — logo a seguir abre-se o pagamento.",
+      "freeLine": "Grátis: o teu plano de treino e dez mãos na mesa completa.",
+      "again": "Jogar outra ronda",
+      "moreMisses_one": "E mais {{count}}.",
+      "moreMisses_other": "E mais {{count}}."
     }
   }
 }

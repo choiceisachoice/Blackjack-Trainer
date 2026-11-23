@@ -135,37 +135,49 @@ home and the same way in.
 
 ## The trial round (`/try`)
 
-One round of ten basic-strategy flashcards without an account. It is the real
-`DeviationTraining` with a `trial` prop that swaps the setup and the summary
-for the trial's own two screens; the summary names the missed hands and offers
-one next step, the free account. The round is one component,
-`components/trial/TrialRound.tsx`, and it is offered in two places:
+Ten hands at the casino table without an account (23 Nov 2026; until then ten
+flashcards, which a stranger found dull). It is the real table — `CasinoTable`,
+the same cards, chips, deal animations and sounds, the same game loop
+(`useGameLoop`) and engine — seated for a guest by `guestTableConfig`
+(`casino-session/trial-table.ts`): the trial table's rules (6 decks, S17, 3:2,
+DAS, late surrender, basic strategy graded), no other players, one fixed bet
+of $100 in play money on a $1,000 bankroll, no review step. The visitor plays
+every decision, insurance included; after each hand one line under the felt
+says "right play" or names the spot and what was right
+(`components/trial/trial-verdict.ts`, from the same hand record the casino
+table's review reads). After the tenth: decisions right, won/lost, the play
+money, the misses with the right play, then **Pro** (price from Stripe via the
+plan-price store; a signed-out buyer goes through `/login` sign-up and
+`setPendingCheckout`, so checkout opens on its own after sign-in), the free
+account (what it gives: the plan and ten hands at the full table) and another
+round. The round is one component, `components/trial/TrialRound.tsx`, framed
+by `TrialStage` (one height for intro, every hand and the verdicts, held to
+the screen below the header and above the cookie bar — `--stage-top`,
+`--cookie-bar`), and it is offered in two places:
 
 - **On the landing, directly under the hero** (`components/landing/PlaySection.tsx`,
-  anchor `#play`, 22 Nov 2026) — because the pages that rank for "blackjack
-  trainer" are trainers. The prerendered HTML carries an `<h2>`, one sentence
-  and the intro card (`components/trial/TrialIntro.tsx`); the round's code is
-  not in the landing's chunk and is fetched when the section nears the screen
-  or the hero's second button is hovered (`trial-round-loader.ts`). The stage
-  reserves a hand's height, so the swap moves nothing. The hero's second
-  button (signed-out visitors only) is a link to `#play` that scrolls there
-  and deals the first hand. A signed-in visitor does not get the section.
+  anchor `#play`) — because the pages that rank for "blackjack trainer" are
+  trainers. Words above, the table full width below. The prerendered HTML
+  carries the `<h2>`, one sentence and the empty felt with "Deal the first
+  hand" (`components/trial/TrialIntro.tsx`, drawn small — `PRERENDER_FIT` —
+  until the script measures). The felt is `CasinoTable`, already in the
+  landing's chunk for the feature tiles; the game is not, and is fetched when
+  the section nears the screen or the hero's second button is hovered
+  (`trial-round-loader.ts`). The hero's second button (signed-out visitors
+  only) scrolls there and deals. A signed-in visitor does not get the section.
 - **At `/try`**, its own indexed page with its own canonical, linked from the
-  videos. Prerendered like the other public pages — the first screen is the
-  intro, with the page's `<h1>` in it.
+  videos: `<h1>` and a sentence above the same stage.
 
-The round is recorded by the ordinary session recording, locally, and the
-sign-in merge uploads it to the account created afterwards. Three rules keep
-it out of anyone else's history (`services/guest-trial.ts`, tested end to end
-in `services/supabase/guest-round-migration.test.tsx`): the trial stamps
-`bjt_guest_since`, and ownerless data carrying that stamp goes only to an
-account **created after** the stamp (five minutes of clock slack) — an older
-account signing in on that device gets it wiped instead; a signed-in visitor
-is redirected to `/app` (on the landing: the section is left out); and on a device that still holds an account's data
-(`bjt_local_owner` set, nobody signed in) the round is played but not
-recorded, and the summary does not promise to keep it. Not covered: a
-confirmation mail opened in a different browser than the one the round was
-played in — the round stays behind there.
+**The guest table records nothing**: no recorder, no live id (so no
+`bjt_casino_live`), not the account trial counter, no XP, no request, and
+`TableHouse.guest` keeps the loop from announcing the table to the sign-out
+and from handing an unfinished session on at unmount. The summary does not
+promise to keep the result. The only isolation rule left for the host pages:
+a signed-in visitor is redirected to `/app` (on the landing: the section is
+left out). `services/guest-trial.ts` keeps the other half for flashcard rounds
+already on devices: ownerless data stamped with `bjt_guest_since` goes only to
+an account created after the stamp (tested in
+`services/supabase/guest-round-migration.test.tsx`).
 
 ## Demo recordings
 

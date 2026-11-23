@@ -76,6 +76,20 @@ describe('FeatureShowcase', () => {
     expect(within(proBand).getAllByRole('heading').length).toBeGreaterThanOrEqual(3)
   })
 
+  it('shows a real casino table beside the drawn one, described and captioned as the original', () => {
+    stubReducedMotion()
+    render(<FeatureShowcase />)
+    const proBand = bandFor('Full Casino Session')
+    // A photo, not decoration: it carries the claim "this is what the trainer
+    // simulates", so it is described to a screen reader as well.
+    const photo = within(proBand).getByRole('img', { name: /dealer’s hands .* green felt casino table/i })
+    expect(photo).toHaveAttribute('loading', 'lazy')
+    expect(within(proBand).getByText('The original: a real casino table.')).toBeInTheDocument()
+    expect(photo.closest('figure')?.querySelector('figcaption')).toHaveTextContent('The original')
+    // One photo on the showcase, not a gallery.
+    expect(screen.getAllByRole('img')).toHaveLength(1)
+  })
+
   it('marks the product visuals as decorative', () => {
     stubReducedMotion()
     const { container } = render(<FeatureShowcase />)

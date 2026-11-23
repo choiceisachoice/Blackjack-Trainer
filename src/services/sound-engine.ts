@@ -107,6 +107,27 @@ class SoundEngine {
     return true
   }
 
+  /**
+   * Make sure the next sounds can be heard, from inside a click. Plays nothing.
+   *
+   * A table's sounds are played from timers — the deal runs card by card
+   * after the click that started it. Chrome lets a context made then play,
+   * since the page has been clicked; Safari on an iPhone keeps a context made
+   * outside a click silent until one is resumed inside a click. The casino
+   * table creates its context in the click on Deal by placing a chip; a
+   * table that deals without a chip (the guest table) calls this in its own
+   * click instead. Does nothing while sounds are switched off, and never
+   * throws: a page with audio blocked plays on in silence.
+   */
+  prime(): void {
+    if (!this._enabled) return
+    const ctx = this.getContext()
+    if (!ctx || ctx.state !== 'suspended') return
+    try {
+      void ctx.resume().catch(() => { /* blocked: silence, not an error */ })
+    } catch { /* an old engine without resume(): nothing to wake */ }
+  }
+
   /** Whether sounds are enabled. */
   get enabled(): boolean {
     return this._enabled

@@ -255,6 +255,10 @@
       "t6title": "Bankroll-Werkzeuge",
       "t6body": "Erfasse deine Echtgeld-Sessions und sieh, was dein Spiel über die Zeit wirklich gewinnt oder verliert."
     },
+    "photos": {
+      "casinoAlt": "Die Hände eines Dealers decken an einem grünen Filztisch im Casino Karten auf, davor die Karten und Chips der Spieler.",
+      "casinoCaption": "Das Vorbild: ein echter Casinotisch."
+    },
     "manifesto": {
       "eyebrow": "Warum Zähler gewinnen",
       "p1": "Zählen ist kein Geheimsystem, und es ist kein Trick, den die Casinos übersehen haben. Es ist ein kleiner, messbarer Vorteil — ein bis zwei Prozent — der sich erst über Hunderte von Händen zeigt, und nur, wenn du ihn perfekt spielst.",
@@ -303,8 +307,8 @@
     "brand": "Blackjack Trainer",
     "play": {
       "eyebrow": "Trainer ausprobieren",
-      "title": "Spiel eine Runde Blackjack-Basisstrategie — <1>gleich hier</1>.",
-      "sub": "Zehn Hände, ohne Konto. Nach jeder Hand siehst du den richtigen Zug — im selben Trainer, den du in der App bekommst."
+      "title": "Spiel zehn Hände am Tisch — <1>gleich hier</1>.",
+      "sub": "Echte Karten, Spielgeld, kein Konto. Du triffst jede Entscheidung — nach jeder Hand siehst du, was die Basisstrategie spielt."
     }
   },
   "auth": {
@@ -2316,8 +2320,8 @@
         "description": "Besucher, Seitenaufrufe, Sitzungsdauer, Registrierungen und zahlende Kunden."
       },
       "try": {
-        "title": "Blackjack-Basisstrategie ausprobieren — kostenlos, ohne Anmeldung",
-        "description": "Spiel zehn Blackjack-Hände nach der Basisstrategie, kostenlos und ohne Konto. Am Ende siehst du dein Ergebnis und den richtigen Zug für jede Hand, die du falsch gespielt hast."
+        "title": "Blackjack-Basisstrategie am Tisch spielen — kostenlos",
+        "description": "Zehn Hände Blackjack an einem echten Tisch, kostenlos und ohne Konto. Du entscheidest jede Hand; danach siehst du den Zug der Basisstrategie, am Ende dein Ergebnis."
       }
     }
   },
@@ -2558,21 +2562,44 @@
   },
   "try": {
     "eyebrow": "Kostenlos · ohne Konto",
-    "title": "Spiel eine Runde Basisstrategie",
-    "intro": "{{hands}} Hände. Du siehst deine Hand und die Karte des Dealers und wählst den Zug. Am Ende bekommst du dein Ergebnis und die Hände, die du falsch gespielt hast.",
+    "title": "Spiel zehn Hände Blackjack am Tisch",
+    "intro": "Echte Karten, Spielgeld, kein Konto. Du triffst jede Entscheidung — nach jeder Hand siehst du den Zug der Basisstrategie, am Ende dein Ergebnis.",
     "start": "Erste Hand austeilen",
     "end": {
       "eyebrow": "Runde geschafft",
-      "score": "{{correct}} von {{total}} Händen richtig gespielt",
       "perfect": "Kein einziger Fehler — jede Hand wie aus dem Lehrbuch.",
       "missedTitle": "Diese Hände waren falsch",
       "colHand": "Hand gegen Dealer",
       "colYou": "Dein Zug",
       "colRight": "Richtiger Zug",
       "hand": "{{hand}} gegen {{dealer}}",
-      "keep": "Erstelle ein kostenloses Konto, damit dein Ergebnis bleibt und du deinen Trainingsplan bekommst.",
-      "plan": "Erstelle ein kostenloses Konto und hol dir deinen Trainingsplan.",
       "cta": "Kostenloses Konto erstellen"
+    },
+    "table": {
+      "introNote": "Spielgeld, {{bet}} pro Hand. Nach jeder Hand siehst du den richtigen Zug.",
+      "hand": "Hand {{n}} / {{total}}",
+      "playMoney": "Spielgeld",
+      "right": "Richtig gespielt — das ist Basisstrategie.",
+      "wrong": "{{spot}}: Richtig wäre {{action}} gewesen.",
+      "wrongInsurance": "Versicherung: Die Basisstrategie nimmt sie nie.",
+      "noneBlackjack": "Blackjack — nichts zu entscheiden.",
+      "noneDealer": "Der Dealer hat Blackjack — nichts zu entscheiden.",
+      "none": "In dieser Hand gab es nichts zu entscheiden.",
+      "toResult": "Zu deinem Ergebnis",
+      "score_one": "{{correct}} von {{count}} Entscheidung richtig",
+      "score_other": "{{correct}} von {{count}} Entscheidungen richtig",
+      "noDecisions": "In diesen Händen gab es nichts zu entscheiden.",
+      "record": "{{won}} gewonnen · {{lost}} verloren · {{pushed}} Push",
+      "money": "Spielgeld {{amount}}",
+      "noInsurance": "Keine Versicherung",
+      "endedEarly_one": "Das Spielgeld war nach {{count}} Hand aufgebraucht.",
+      "endedEarly_other": "Das Spielgeld war nach {{count}} Händen aufgebraucht.",
+      "proLine": "Mit Pro bleibt der Tisch offen: so viele Hände, wie du willst, mit Count und eigenen Regeln.",
+      "proAfterSignup": "Zuerst erstellst du dein Konto — danach öffnet sich direkt die Kasse.",
+      "freeLine": "Kostenlos: dein Trainingsplan und zehn Hände am vollen Tisch.",
+      "again": "Noch eine Runde spielen",
+      "moreMisses_one": "Und {{count}} weitere.",
+      "moreMisses_other": "Und {{count}} weitere."
     }
   }
 }

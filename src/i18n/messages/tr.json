@@ -255,6 +255,10 @@
       "t6title": "Kasa araçları",
       "t6body": "Gerçek parayla oynadığınız oturumları kaydedin ve oyununuzun zaman içinde gerçekte ne kazandırıp kaybettirdiğini görün."
     },
+    "photos": {
+      "casinoAlt": "Yeşil çuhalı bir kumarhane masasında kartları açan bir krupiyenin elleri; masada oyuncuların kartları ve fişleri.",
+      "casinoCaption": "Asıl örnek: gerçek bir kumarhane masası."
+    },
     "manifesto": {
       "eyebrow": "Sayıcılar neden kazanır",
       "p1": "Sayım gizli bir sistem değil, kumarhanelerin gözden kaçırdığı bir numara da değil. Küçük ve ölçülebilir bir avantaj — yüzde bir iki — ve ancak yüzlerce el sonunda, o da mükemmel oynarsanız ortaya çıkar.",
@@ -303,8 +307,8 @@
     "brand": "Blackjack Trainer",
     "play": {
       "eyebrow": "Eğitmeni dene",
-      "title": "Bir tur blackjack temel stratejisi oyna — <1>hemen burada</1>.",
-      "sub": "On el, hesap gerekmez. Her elden sonra doğru hamleyi görürsün — uygulamadaki eğitmenin aynısında."
+      "title": "Masada on el oyna — <1>hemen burada</1>.",
+      "sub": "Gerçek kartlar, oyun parası, hesap yok. Her kararı sen verirsin; her elden sonra temel stratejinin ne oynadığını görürsün."
     }
   },
   "auth": {
@@ -2316,8 +2320,8 @@
         "description": "Ziyaretçiler, sayfa görüntülemeleri, oturum süresi, kayıtlar ve ödeme yapan müşteriler."
       },
       "try": {
-        "title": "Blackjack temel stratejisini dene — ücretsiz, kayıt yok",
-        "description": "Temel stratejiye göre on blackjack eli oyna; ücretsiz ve hesapsız. Sonunda puanını ve yanlış oynadığın her el için doğru hamleyi görürsün."
+        "title": "Blackjack temel stratejisini masada oyna — ücretsiz",
+        "description": "Gerçek bir masada on el blackjack, ücretsiz ve hesapsız. Her eli sen kararlaştırırsın; ardından temel stratejinin hamlesini, sonunda puanını görürsün."
       }
     }
   },
@@ -2558,21 +2562,44 @@
   },
   "try": {
     "eyebrow": "Ücretsiz · hesap gerekmez",
-    "title": "Bir tur temel strateji oyna",
-    "intro": "{{hands}} el. Kendi elini ve krupiyenin kartını görür, hamleni seçersin. Sonunda puanını ve yanlış oynadığın elleri görürsün.",
+    "title": "Masada on el blackjack oyna",
+    "intro": "Gerçek kartlar, oyun parası, hesap yok. Her kararı sen verirsin: her elden sonra temel stratejinin hamlesini, sonunda da puanını görürsün.",
     "start": "İlk eli dağıt",
     "end": {
       "eyebrow": "Tur tamamlandı",
-      "score": "{{total}} elden {{correct}} tanesi doğru",
       "perfect": "Tek bir hata yok — her el kitabına uygun oynandı.",
       "missedTitle": "Yanlış oynadığın eller",
       "colHand": "El · krupiye",
       "colYou": "Senin hamlen",
       "colRight": "Doğru hamle",
       "hand": "{{hand}} · krupiye {{dealer}}",
-      "keep": "Bu sonucu saklamak ve antrenman planını almak için ücretsiz bir hesap oluştur.",
-      "plan": "Ücretsiz bir hesap oluştur ve antrenman planını al.",
       "cta": "Ücretsiz hesap oluştur"
+    },
+    "table": {
+      "introNote": "Oyun parası, el başına {{bet}}. Her elden sonra doğru hamleyi görürsün.",
+      "hand": "El {{n}} / {{total}}",
+      "playMoney": "Oyun parası",
+      "right": "Doğru hamle — temel strateji bu.",
+      "wrong": "{{spot}}: doğru hamle {{action}} olurdu.",
+      "wrongInsurance": "Sigorta: temel strateji onu asla almaz.",
+      "noneBlackjack": "Blackjack — karar verilecek bir şey yok.",
+      "noneDealer": "Krupiyenin blackjack’i var — karar verilecek bir şey yok.",
+      "none": "Bu elde karar verilecek bir şey yoktu.",
+      "toResult": "Sonucunu gör",
+      "score_one": "{{count}} karardan {{correct}} tanesi doğru",
+      "score_other": "{{count}} karardan {{correct}} tanesi doğru",
+      "noDecisions": "Bu ellerde karar verilecek bir şey çıkmadı.",
+      "record": "Kazanılan {{won}} · kaybedilen {{lost}} · berabere {{pushed}}",
+      "money": "Oyun parası {{amount}}",
+      "noInsurance": "Sigorta yok",
+      "endedEarly_one": "Oyun parası {{count}} elden sonra bitti.",
+      "endedEarly_other": "Oyun parası {{count}} elden sonra bitti.",
+      "proLine": "Pro ile masa açık kalır: istediğin kadar el, count ve kendi kurallarınla.",
+      "proAfterSignup": "Önce hesabını oluşturursun — ödeme hemen ardından açılır.",
+      "freeLine": "Ücretsiz: antrenman planın ve tam masada on el.",
+      "again": "Bir tur daha oyna",
+      "moreMisses_one": "Ve {{count}} tane daha.",
+      "moreMisses_other": "Ve {{count}} tane daha."
     }
   }
 }

@@ -1,19 +1,29 @@
+import React from 'react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 /**
- * The trial round, from the first hand to the new account's history.
+ * The trial round and the accounts that come after it.
+ *
+ * Until 23 Nov 2026 the trial was ten flashcards, recorded on the device and
+ * handed to the account created afterwards; this file followed that round
+ * from the first hand to the new account's history. The trial is now ten
+ * hands at the casino table, and the table records nothing - so the first
+ * half of the file is turned around: a table round leaves nothing on the
+ * device and sends nothing anywhere, and a new account starts clean.
+ *
+ * The second half stays, because devices that played the old round still
+ * hold it, stamped. Those rounds are seeded here the way the old round left
+ * them (a flashcards session written by the ordinary recording, plus the
+ * stamp), and the sign-in merge must still give them only to the account
+ * created after them.
  *
  * Everything between the click and the cloud runs for real: the page, the
- * flashcards component, the session recording, the stats store, the storage
- * facade, the sign-in merge and the Supabase storage service. Only the
- * Supabase client is a stand-in — a table in a Map, keyed by id the way the
- * real one is — and the auth store, which says who is signed in.
- *
- * What this cannot show: that the real Supabase behaves like the stand-in,
- * and that the browser a confirmation mail is opened in is the browser the
- * round was played in.
+ * table, the stats store, the storage facade, the sign-in merge and the
+ * Supabase storage service. Only the Supabase client is a stand-in - a table
+ * in a Map, keyed by id the way the real one is - and the auth store, which
+ * says who is signed in.
  */
 
 type Row = { id: string; user_id: string } & Record<string, unknown>
@@ -73,6 +83,8 @@ vi.mock('../../store/auth-store', () => ({
         signOut: async () => {},
       }),
       setState: vi.fn(),
+      // The table's saved-session store listens for sign-outs when it loads.
+      subscribe: () => () => {},
     },
   ),
   isSupabaseConfigured: true,
@@ -91,10 +103,23 @@ vi.mock('./achievements-sync', () => ({
 }))
 // The sounds of a right and a wrong answer; jsdom has no audio to play them on.
 vi.mock('../sound-engine', () => ({
-  // Every sound the round can make — an answer, a streak, the level reached
-  // with the first session's XP — as a no-op.
-  soundEngine: new Proxy({}, { get: () => () => {} }),
+  // Every sound the table can make, as a no-op.
+  soundEngine: new Proxy({}, { get: () => () => {}, set: () => true }),
 }))
+vi.mock('framer-motion', async () => {
+  const strip = (props: Record<string, unknown>) =>
+    Object.fromEntries(Object.entries(props).filter(([k]) => k.startsWith('data-') || k.startsWith('aria-') || ['className', 'style', 'onClick', 'id', 'role'].includes(k)))
+  return {
+    motion: new Proxy({}, {
+      get: (_t, tag: string) => ({ children, ...p }: React.PropsWithChildren<Record<string, unknown>>) =>
+        React.createElement(tag, strip(p), children),
+    }),
+    AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
+    MotionConfig: ({ children }: React.PropsWithChildren) => <>{children}</>,
+    useReducedMotion: () => false,
+  }
+})
+vi.mock('../../components/table/ShoeProgress', () => ({ ShoeHousing: () => <div />, DiscardTray: () => <div /> }))
 
 import { TryPage } from '../../pages/TryPage'
 import { useStatsStore } from '../../store/stats-store'
@@ -103,19 +128,52 @@ import { levelSystem } from '../level-system'
 import { localStorageService } from '../storage/storage-service'
 import { resetPendingSessions } from '../storage/pending-sessions'
 import { getLocalOwner, setLocalOwner } from '../storage/local-owner'
-import { guestRoundSince, GUEST_ROUND_HANDS } from '../guest-trial'
+import { guestRoundSince, GUEST_ROUND_HANDS, GUEST_SINCE_KEY } from '../guest-trial'
 import { handleSignedIn, signOutAndClearLocal } from './cloud-sync'
 import { useCloudSyncStore } from '../../store/cloud-sync-store'
+import { useAppStore } from '../../store/app-store'
+import { usePlanPriceStore } from '../../store/plan-price-store'
+import { Shoe } from '../../engine/shoe/shoe'
+import { Rank, Suit, type Card } from '../../engine/shoe/types'
 
-/** Play the whole round as a visitor: any answer, then on to the next hand. */
-function playRound() {
+const c = (rank: Rank, suit: Suit = Suit.Spades): Card => ({ rank, suit })
+/** 10,6 against a 10 that stands on 17, every hand. */
+const SIXTEEN_VS_TEN = [c(Rank.Ten), c(Rank.Ten, Suit.Hearts), c(Rank.Six), c(Rank.Seven, Suit.Hearts)]
+const tick = () => act(() => { vi.advanceTimersByTime(10_000) })
+
+/** Sit down at /try as a visitor and play all ten hands to the summary. */
+function playTable() {
+  vi.useFakeTimers()
+  let n = 0
+  vi.spyOn(Shoe.prototype, 'deal').mockImplementation(() => SIXTEEN_VS_TEN[n++ % SIXTEEN_VS_TEN.length])
   render(<MemoryRouter initialEntries={['/try']}><TryPage /></MemoryRouter>)
   fireEvent.click(screen.getByTestId('try-start'))
   for (let i = 0; i < GUEST_ROUND_HANDS; i++) {
-    fireEvent.click(screen.getByTestId('action-hit'))
-    fireEvent.click(screen.getByTestId('next-question'))
+    tick()
+    fireEvent.click(screen.getByTestId('action-stand'))
+    tick()
+    fireEvent.click(screen.getByTestId('next-hand'))
   }
+  tick()
   expect(screen.getByTestId('try-summary')).toBeInTheDocument()
+  vi.useRealTimers()
+}
+
+/**
+ * The flashcard round as it was left on devices before 23 Nov 2026: a
+ * session written by the ordinary recording, with nobody signed in, and the
+ * stamp of when the round began.
+ */
+async function oldRoundOnDevice(at = Date.now()) {
+  localStorage.setItem(GUEST_SINCE_KEY, String(at))
+  await useStatsStore.getState().recordSession({
+    mode: 'deviationFlashCards',
+    startTime: at,
+    totalQuestions: GUEST_ROUND_HANDS,
+    correctAnswers: 8,
+    bestStreak: 5,
+    details: { type: 'deviationFlashCards', deviationSet: 'all', perDeviation: {} },
+  })
 }
 
 /** The visitor signs up (or somebody signs in) and the app runs its sign-in merge. */
@@ -141,6 +199,8 @@ beforeEach(async () => {
   useLevelStore.getState().refresh()
   useStatsStore.setState({ sessions: [], lifetimeStats: null, isLoading: false })
   useCloudSyncStore.setState({ status: 'idle' })
+  useAppStore.setState({ dealingSpeed: 'fast' })
+  usePlanPriceStore.setState({ status: 'error', plans: [], load: async () => {} })
   cloud.rows.clear()
   cloud.upserts.length = 0
   vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -152,19 +212,35 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('a trial round, then a new account', () => {
-  it('is recorded on the device without a single request', async () => {
-    playRound()
-    const sessions = await localSessions()
-    expect(sessions).toHaveLength(1)
-    expect(sessions[0]).toMatchObject({ mode: 'deviationFlashCards', totalQuestions: GUEST_ROUND_HANDS })
+describe('a round at the guest table', () => {
+  it('leaves nothing on the device and sends nothing anywhere', async () => {
+    playTable()
+    expect(await localSessions()).toHaveLength(0)
     expect(cloud.upserts).toHaveLength(0)
     expect(getLocalOwner()).toBeNull()
-    expect(guestRoundSince()).not.toBeNull()
+    expect(guestRoundSince()).toBeNull()
   })
 
-  it('arrives in the account created afterwards — once', async () => {
-    playRound()
+  it('gives the account created afterwards a clean start - the summary promised nothing else', async () => {
+    playTable()
+    await signInAs('new-user', minutesFromNow(3))
+    expect(cloud.rows.size).toBe(0)
+    expect(useStatsStore.getState().sessions).toHaveLength(0)
+    expect(getLocalOwner()).toBe('new-user')
+  })
+
+  it('leaves nothing for an account whose data is still on the device', async () => {
+    setLocalOwner('previous-user')
+    playTable()
+    expect(await localSessions()).toHaveLength(0)
+    await signInAs('previous-user', daysAgo(90))
+    expect(cloud.rows.size).toBe(0)
+  })
+})
+
+describe('a flashcard round played before the table, then a new account', () => {
+  it('arrives in the account created afterwards - once', async () => {
+    await oldRoundOnDevice()
     const [played] = await localSessions()
 
     await signInAs('new-user', minutesFromNow(3))
@@ -172,7 +248,6 @@ describe('a trial round, then a new account', () => {
     expect(cloud.rows.size).toBe(1)
     expect(cloud.rows.get(played.id)).toMatchObject({ user_id: 'new-user', mode: 'deviationFlashCards' })
     expect(getLocalOwner()).toBe('new-user')
-    // The new account's history shows the round it was promised.
     expect(useStatsStore.getState().sessions.map(s => s.id)).toEqual([played.id])
     // Claimed: the stamp has done its work.
     expect(guestRoundSince()).toBeNull()
@@ -182,13 +257,11 @@ describe('a trial round, then a new account', () => {
     expect(cloud.rows.size).toBe(1)
     expect(useStatsStore.getState().sessions).toHaveLength(1)
   })
-})
 
-describe('a trial round on a device that is not the new customer’s alone', () => {
   it('is not filed in an account that existed before it was played', async () => {
-    // A shared computer: a visitor plays, leaves, and somebody else signs in
+    // A shared computer: a visitor played, left, and somebody else signs in
     // to the account they have had for a year.
-    playRound()
+    await oldRoundOnDevice()
     expect(await localSessions()).toHaveLength(1)
 
     await signInAs('old-user', daysAgo(365))
@@ -199,27 +272,5 @@ describe('a trial round on a device that is not the new customer’s alone', () 
     expect(useStatsStore.getState().sessions).toHaveLength(0)
     expect(getLocalOwner()).toBe('old-user')
     expect(guestRoundSince()).toBeNull()
-  })
-
-  it('is played but not recorded where an account’s data is still on the device', async () => {
-    // A session that expired without a sign-out: the owner record and the
-    // account's local history are still here, and nobody is signed in.
-    setLocalOwner('previous-user')
-    playRound()
-
-    expect(await localSessions()).toHaveLength(0)
-    expect(guestRoundSince()).toBeNull()
-
-    // That account signing in again uploads nothing it did not play…
-    await signInAs('previous-user', daysAgo(90))
-    expect(cloud.rows.size).toBe(0)
-  })
-
-  it('…and a new account on that device gets a clean one', async () => {
-    setLocalOwner('previous-user')
-    playRound()
-    await signInAs('new-user', minutesFromNow(3))
-    expect(cloud.rows.size).toBe(0)
-    expect(getLocalOwner()).toBe('new-user')
   })
 })

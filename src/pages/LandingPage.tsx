@@ -20,6 +20,8 @@ import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
 import { FeatureShowcase } from '../components/landing/FeatureShowcase'
+import { LandingPhoto } from '../components/landing/LandingPhoto'
+import { LANDING_PHOTOS } from '../components/landing/landing-photos'
 import { QrRewardWelcome } from '../components/landing/QrRewardWelcome'
 import { isQrArrival, rememberQrReward, hasQrReward, withoutRefParam, qrWelcomeShown, markQrWelcomeShown } from '../services/qr-reward'
 
@@ -36,6 +38,19 @@ const HeroCanvas = lazy(() => import('../components/landing/HeroCanvas').then(m 
  * the page look grainy (see `.app-canvas`).
  */
 const SCRIM = 'radial-gradient(58% 62% at 28% 54%, rgba(7,8,9,.97) 44%, rgba(7,8,9,.6) 66%, transparent 86%), linear-gradient(180deg, transparent 58%, var(--color-casino-bg) 97%)'
+
+/*
+ * Over the closing photo: the surface colour, darkest in the middle where the
+ * headline and buttons sit, letting the felt and the hands show at the edges.
+ * Measured, not judged by eye: every pixel of photo-under-scrim inside each
+ * line of text, against that text's colour, at 390, 768, 1024 and 1440 wide
+ * (23 Nov 2026, worst points: eyebrow 6.4:1, headline 13:1, "See Pro" 13.4:1).
+ *
+ * The photo itself is cropped by the box — a strip of the 16:9 frame on a
+ * desktop, a portrait slice on a phone, which is why `sizes` says 760px
+ * there: a 340px-wide box 430px tall draws the photo about 765px wide.
+ */
+const CLOSING_SCRIM = 'radial-gradient(62% 78% at 50% 50%, rgba(13,15,19,.9) 35%, rgba(13,15,19,.76) 100%)'
 
 export function LandingPage() {
   const { t, i18n } = useTranslation()
@@ -449,9 +464,21 @@ export function LandingPage() {
         </Reveal>
       </section>
 
-      {/* Final CTA */}
-      <section className="max-w-6xl mx-auto px-6 pb-20">
-        <Reveal className="rounded-3xl border border-white/8 py-14 px-6 text-center bg-surface">
+      {/* Final CTA, over a real table: players' hands and chips on the felt,
+          held far down under CLOSING_SCRIM so the words stay the subject.
+          The photo is atmosphere only — empty alt, nothing for a screen
+          reader to announce. `isolate` keeps the two layers behind the text
+          and inside the rounded box. */}
+      <section className="max-w-6xl mx-auto px-6 pb-20" data-testid="closing-cta">
+        <Reveal className="relative isolate overflow-hidden rounded-3xl border border-white/8 py-14 px-6 text-center bg-surface">
+          <LandingPhoto
+            photo={LANDING_PHOTOS.feltHandsChips}
+            alt=""
+            sizes="(min-width: 640px) calc(100vw - 48px), 760px"
+            position="50% 40%"
+            className="absolute inset-0 -z-10 w-full h-full object-cover"
+          />
+          <div aria-hidden className="absolute inset-0 -z-10" style={{ background: CLOSING_SCRIM }} />
           <div className="text-xs font-semibold tracking-[0.18em] uppercase text-gold">{t('landing.closing.eyebrow')}</div>
           <h2 className="mt-3.5 text-3xl md:text-4xl font-extrabold tracking-tight max-w-[16em] mx-auto text-balance">{t('landing.closing.title')}</h2>
           <div className="mt-7 flex justify-center gap-3.5 flex-wrap">

@@ -29,12 +29,16 @@ const TABLE_GUTTER = 8
  * screen drawn at a fixed design size.
  *
  * @param seats - Seats at the table; more seats need a wider scene
+ * @param initial - The fit to draw before the box has been measured (see
+ *   `CasinoTableProps.initialFit`)
  */
-function useTableFit(seats: number, bots: number, boxes: number): { ref: React.RefObject<HTMLDivElement | null>; fit: TableFit; stacked: boolean } {
+function useTableFit(seats: number, bots: number, boxes: number, initial?: InitialTableFit): { ref: React.RefObject<HTMLDivElement | null>; fit: TableFit; stacked: boolean } {
   const ref = useRef<HTMLDivElement>(null)
-  const [fit, setFit] = useState<TableFit>(() => ({ scale: 1, sceneWidth: TABLE_DESIGN.width, sceneHeight: TABLE_DESIGN.height }))
+  const [fit, setFit] = useState<TableFit>(() => initial
+    ? { scale: initial.scale, sceneWidth: initial.sceneWidth, sceneHeight: initial.sceneHeight }
+    : { scale: 1, sceneWidth: TABLE_DESIGN.width, sceneHeight: TABLE_DESIGN.height })
   // An upright phone gets two rows of seats instead of one (see `isStackedBox`).
-  const [stacked, setStacked] = useState(false)
+  const [stacked, setStacked] = useState(initial?.stacked ?? false)
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -83,7 +87,24 @@ interface SeatLayoutEntry {
   seatIndex: number
 }
 
+/** A fit to draw with before the table's box is measured, and whether it is the upright layout. */
+export interface InitialTableFit extends TableFit {
+  stacked: boolean
+}
+
 interface CasinoTableProps {
+  /**
+   * The fit for the very first render, before the box is measured.
+   *
+   * On the client the measurement runs before the first paint and this is
+   * never seen. A prerendered page is drawn without a measurement at all, and
+   * without this the scene is its design size, 1120px wide — on a phone the
+   * HTML showed the middle third of a felt. A page whose HTML matters passes
+   * a small fit that holds on any screen.
+   */
+  initialFit?: InitialTableFit
+  /** What the dealer's empty place says before a deal (see `DealerView`). */
+  dealerPrompt?: string | null
   dealerCards: Card[]
   dealerHoleRevealed: boolean
   gameStep: GameStep
@@ -142,6 +163,8 @@ interface CasinoTableProps {
  * keep a single readable size — even when a hand is split or runs long.
  */
 export function CasinoTable({
+  initialFit,
+  dealerPrompt,
   dealerCards,
   dealerHoleRevealed,
   gameStep,
@@ -207,7 +230,7 @@ export function CasinoTable({
   // The table has six seats and shows all six, taken or not.
   const slots = TABLE_SEATS
   const botCount = seatLayout.length - 1
-  const { ref: fitRef, fit, stacked } = useTableFit(slots, botCount, boxCount)
+  const { ref: fitRef, fit, stacked } = useTableFit(slots, botCount, boxCount, initialFit)
 
   // Nothing here scrolls, and nothing needs to: `fitTable` never returns a
   // scene larger than the box. The wrapper used to keep `overflow-y-auto` for
@@ -285,7 +308,7 @@ export function CasinoTable({
           <div className="justify-self-start" style={stacked ? { zoom: STACKED_RAIL_ZOOM } : undefined}>
             <DiscardTray cardCount={discardCount} totalCards={totalCards} pxPerCard={0.42} width={108} />
           </div>
-          <DealerView dealerCards={dealerCards} dealerHoleRevealed={dealerHoleRevealed} />
+          <DealerView dealerCards={dealerCards} dealerHoleRevealed={dealerHoleRevealed} emptyLabel={dealerPrompt} />
           <div className="justify-self-end" style={stacked ? { zoom: STACKED_RAIL_ZOOM } : undefined}>
             <ShoeHousing cardCount={cardsRemaining} totalCards={totalCards} penetration={penetration} />
           </div>

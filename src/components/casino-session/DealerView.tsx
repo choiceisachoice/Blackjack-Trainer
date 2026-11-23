@@ -6,6 +6,11 @@ import { handValueStr, DEALER_CARD } from './helpers'
 interface DealerViewProps {
   dealerCards: Card[]
   dealerHoleRevealed: boolean
+  /**
+   * What the empty dealer's place says before the deal; "Place your bet to
+   * deal" when omitted, nothing when null (a table without a bet to place).
+   */
+  emptyLabel?: string | null
 }
 
 /**
@@ -13,8 +18,9 @@ interface DealerViewProps {
  * revealed) and running total. The shoe and discard tray live in the table's
  * top rail, not here, so a long dealer hand never collides with them.
  */
-export function DealerView({ dealerCards, dealerHoleRevealed }: DealerViewProps) {
+export function DealerView({ dealerCards, dealerHoleRevealed, emptyLabel }: DealerViewProps) {
   const { t } = useTranslation()
+  const placeholder = emptyLabel === undefined ? t('casino.table.placeBetToDeal') : emptyLabel
   return (
     <div className="relative flex flex-col items-center gap-1">
       <span className="text-sm text-white/50 uppercase tracking-widest font-semibold">{t('casino.table.dealer')}</span>
@@ -24,8 +30,8 @@ export function DealerView({ dealerCards, dealerHoleRevealed }: DealerViewProps)
           The hand used to be a centred row that re-centred on every draw. */}
       <div className="flex flex-col items-center mt-1">
         <div className="relative" style={{ width: DEALER_CARD.width + DEALER_CARD.step, height: DEALER_CARD.height }}>
-          {dealerCards.length === 0 && (
-            <span className="absolute inset-0 grid place-items-center text-center text-white/25 text-sm italic whitespace-nowrap">{t('casino.table.placeBetToDeal')}</span>
+          {dealerCards.length === 0 && placeholder && (
+            <span className="absolute inset-0 grid place-items-center text-center text-white/25 text-sm italic whitespace-nowrap">{placeholder}</span>
           )}
           {dealerCards.map((c, i) => (
             <div key={`dealer-${i}`} className="absolute top-0" style={{ zIndex: i, left: i * DEALER_CARD.step }}>

@@ -255,6 +255,10 @@
       "t6title": "Strumenti di bankroll",
       "t6body": "Registra le tue sessioni con denaro reale e vedi quanto il tuo gioco vince o perde davvero nel tempo."
     },
+    "photos": {
+      "casinoAlt": "Le mani di un croupier girano le carte su un tavolo da casinò in panno verde, con le carte e le fiches dei giocatori.",
+      "casinoCaption": "L’originale: un vero tavolo da casinò."
+    },
     "manifesto": {
       "eyebrow": "Perché i contatori vincono",
       "p1": "Il conteggio non è un sistema segreto, e non è un trucco che i casinò non hanno notato. È un vantaggio piccolo e misurabile — uno o due per cento — che emerge solo su centinaia di mani, e solo se lo giochi alla perfezione.",
@@ -303,8 +307,8 @@
     "brand": "Blackjack Trainer",
     "play": {
       "eyebrow": "Prova l’allenatore",
-      "title": "Gioca una partita di strategia di base del blackjack — <1>proprio qui</1>.",
-      "sub": "Dieci mani, senza account. Dopo ogni mano vedi la mossa giusta — nello stesso allenatore che trovi nell’app."
+      "title": "Gioca dieci mani al tavolo — <1>proprio qui</1>.",
+      "sub": "Carte vere, soldi finti, nessun account. Prendi tu ogni decisione; dopo ogni mano vedi cosa gioca la strategia di base."
     }
   },
   "auth": {
@@ -2316,8 +2320,8 @@
         "description": "Visitatori, pagine viste, durata delle sessioni, registrazioni e clienti paganti."
       },
       "try": {
-        "title": "Prova la strategia di base del blackjack — gratis, senza registrazione",
-        "description": "Gioca dieci mani di blackjack secondo la strategia di base, gratis e senza account. Alla fine vedi il tuo punteggio e la mossa giusta per ogni mano sbagliata."
+        "title": "Gioca la strategia di base del blackjack al tavolo — gratis",
+        "description": "Dieci mani di blackjack a un vero tavolo, gratis e senza account. Decidi ogni mano; poi vedi la mossa della strategia di base e, alla fine, il tuo punteggio."
       }
     }
   },
@@ -2558,21 +2562,44 @@
   },
   "try": {
     "eyebrow": "Gratis · senza account",
-    "title": "Gioca una partita di strategia di base",
-    "intro": "{{hands}} mani. Vedi la tua mano e la carta del banco e scegli la mossa. Alla fine ricevi il tuo punteggio e le mani che hai sbagliato.",
+    "title": "Gioca dieci mani di blackjack al tavolo",
+    "intro": "Carte vere, soldi finti, nessun account. Prendi tu ogni decisione: dopo ogni mano vedi la mossa della strategia di base e, alla fine, il tuo punteggio.",
     "start": "Distribuisci la prima mano",
     "end": {
       "eyebrow": "Partita finita",
-      "score": "{{correct}} mani su {{total}} giocate bene",
       "perfect": "Nessun errore — ogni mano giocata da manuale.",
       "missedTitle": "Le mani che hai sbagliato",
       "colHand": "Mano contro banco",
       "colYou": "La tua mossa",
       "colRight": "Mossa giusta",
       "hand": "{{hand}} contro {{dealer}}",
-      "keep": "Crea un account gratuito per conservare questo risultato e ricevere il tuo piano di allenamento.",
-      "plan": "Crea un account gratuito e ricevi il tuo piano di allenamento.",
       "cta": "Crea un account gratuito"
+    },
+    "table": {
+      "introNote": "Soldi finti, {{bet}} a mano. Dopo ogni mano vedi la mossa giusta.",
+      "hand": "Mano {{n}} / {{total}}",
+      "playMoney": "Soldi finti",
+      "right": "Mossa giusta — è la strategia di base.",
+      "wrong": "{{spot}}: la mossa giusta era {{action}}.",
+      "wrongInsurance": "Assicurazione: la strategia di base non la prende mai.",
+      "noneBlackjack": "Blackjack — niente da decidere.",
+      "noneDealer": "Il banco ha blackjack — niente da decidere.",
+      "none": "In questa mano non c’era niente da decidere.",
+      "toResult": "Vedi il tuo risultato",
+      "score_one": "{{correct}} su {{count}} decisione giocata bene",
+      "score_other": "{{correct}} su {{count}} decisioni giocate bene",
+      "noDecisions": "In queste mani non c’era niente da decidere.",
+      "record": "Vinte {{won}} · perse {{lost}} · pareggi {{pushed}}",
+      "money": "Soldi finti {{amount}}",
+      "noInsurance": "Niente assicurazione",
+      "endedEarly_one": "I soldi finti sono finiti dopo {{count}} mano.",
+      "endedEarly_other": "I soldi finti sono finiti dopo {{count}} mani.",
+      "proLine": "Con Pro il tavolo resta aperto: tutte le mani che vuoi, con il count e le tue regole.",
+      "proAfterSignup": "Prima crei il tuo account — subito dopo si apre il pagamento.",
+      "freeLine": "Gratis: il tuo piano di allenamento e dieci mani al tavolo completo.",
+      "again": "Gioca un’altra partita",
+      "moreMisses_one": "E {{count}} altra.",
+      "moreMisses_other": "E altre {{count}}."
     }
   }
 }

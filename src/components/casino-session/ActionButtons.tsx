@@ -65,7 +65,7 @@ export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, hum
     return false
   }
 
-  const touch = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
+  const touch = isTouch()
   return (
     <div className="flex flex-col items-center gap-2" data-testid="action-controls">
       {/* The decision clock, as at an online table: a bar that runs down, red
@@ -105,9 +105,53 @@ export function ActionButtons({ onAction, canDouble, canSplit, canSurrender, hum
           >
             {/* "(H)" is a key on a keyboard. On a touch screen it is noise that
                 pushes five buttons into three rows. */}
-            {touch ? t(labelKey).replace(/\s*\([^)]*\)\s*$/, '') : t(labelKey)}
+            {touch ? withoutKeyHint(t(labelKey)) : t(labelKey)}
           </button>
         ))}
+      </div>
+    </div>
+  )
+}
+
+/** Whether the screen is worked with a finger: then a button's "(H)" names a key there is none of. */
+function isTouch(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches
+}
+
+/** A label without its trailing key hint: "Hit (H)" → "Hit". */
+function withoutKeyHint(label: string): string {
+  return label.replace(/\s*\([^)]*\)\s*$/, '')
+}
+
+/**
+ * The insurance question with its two answers, under the felt.
+ *
+ * It was markup inside the casino table's controls until the guest table
+ * (`components/trial`) asked the same question; one question, one place.
+ * On a touch screen the answers lose their key hint, like the five actions.
+ *
+ * @param hand - Which hand is asked about when the player holds several
+ *   (from 0), or null for the one hand
+ * @param onAnswer - true takes insurance, false declines it
+ */
+export function InsurancePrompt({ hand, onAnswer }: { hand: number | null; onAnswer: (take: boolean) => void }) {
+  const { t } = useTranslation()
+  const touch = isTouch()
+  const label = (key: string) => (touch ? withoutKeyHint(t(key)) : t(key))
+  return (
+    <div className="flex flex-col items-center gap-3" data-testid="insurance-controls">
+      <span className="text-sm text-content" data-testid="insurance-ask">
+        {hand !== null ? t('casino.hud.insuranceAskHand', { n: hand + 1 }) : t('casino.hud.insuranceAsk')}
+      </span>
+      <div className="flex gap-3">
+        <button onClick={() => onAnswer(true)} data-testid="insurance-yes"
+          className="px-6 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
+          {label('casino.hud.yes')}
+        </button>
+        <button onClick={() => onAnswer(false)} data-testid="insurance-no"
+          className="px-6 py-2 bg-contrast/10 text-content rounded-xl font-bold hover:bg-contrast/20 cursor-pointer">
+          {label('casino.hud.no')}
+        </button>
       </div>
     </div>
   )

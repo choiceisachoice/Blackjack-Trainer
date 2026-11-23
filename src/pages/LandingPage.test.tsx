@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, cleanup, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
@@ -284,5 +284,28 @@ describe('coming back to the landing page in the same visit', () => {
     first.unmount()
     renderPage()
     expect(screen.queryByTestId('qr-reward')).toBeNull()
+  })
+})
+
+describe('the closing call to action', () => {
+  it('sits on a photo that is decoration only, loaded when it is needed', () => {
+    renderPage()
+    const box = screen.getByTestId('closing-cta')
+    const img = box.querySelector('img')
+    expect(img).toHaveAttribute('alt', '')
+    expect(img).toHaveAttribute('loading', 'lazy')
+    expect(img).toHaveAttribute('decoding', 'async')
+    expect([...box.querySelectorAll('source')].map(s => s.getAttribute('type'))).toEqual(['image/avif', 'image/webp'])
+    // Nothing for a screen reader to announce in it — the words are the subject.
+    expect(within(box).queryByRole('img')).toBeNull()
+    expect(within(box).getByRole('heading', { level: 2 })).toHaveTextContent('Turn the count into an edge you can feel.')
+  })
+
+  it('keeps the photo and its scrim behind the words', () => {
+    renderPage()
+    const box = screen.getByTestId('closing-cta')
+    const img = box.querySelector('img')
+    expect(img?.className).toMatch(/-z-10/)
+    expect(img?.parentElement?.parentElement?.className).toMatch(/\bisolate\b/)
   })
 })

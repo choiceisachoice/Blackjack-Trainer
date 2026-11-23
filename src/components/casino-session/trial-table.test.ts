@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { trialTableConfig, isTrialTable } from './trial-table'
+import { trialTableConfig, isTrialTable, guestTableConfig, GUEST_TABLE_BET, GUEST_TABLE_BANKROLL } from './trial-table'
 import { DEFAULT_CONFIG } from './helpers'
 import { CasinoSessionEngine } from '../../engine/casino-session/session-engine'
 import { parseSnapshot } from '../../engine/casino-session/session-snapshot'
@@ -47,6 +47,43 @@ describe('trialTableConfig', () => {
     const raw = JSON.parse(JSON.stringify(new CasinoSessionEngine(config).snapshot())) as { config: Record<string, unknown> }
     raw.config.trial = 'yes'
     expect(parseSnapshot(raw)).toBeNull()
+  })
+})
+
+describe('guestTableConfig', () => {
+  const config = guestTableConfig()
+
+  it('plays by the trial table’s rules', () => {
+    const trial = trialTableConfig()
+    for (const key of ['numDecks', 'dealerHitsSoft17', 'blackjackPays', 'surrenderAllowed', 'doubleAfterSplit', 'maxSplitHands', 'penetration'] as const) {
+      expect(config[key], key).toBe(trial[key])
+    }
+    expect(config.playStyle).toBe('basic')
+    expect(config.countCheckFrequency).toBe('never')
+  })
+
+  it('seats the visitor alone, at one fixed bet the bankroll covers ten times', () => {
+    expect(config.numBots).toBe(0)
+    expect(config.minBet).toBe(GUEST_TABLE_BET)
+    expect(config.maxBet).toBe(GUEST_TABLE_BET)
+    expect(config.startingBankroll).toBeGreaterThanOrEqual(GUEST_TABLE_BET * 10)
+    expect(config.multiHand).toBe(false)
+  })
+
+  it('is not the account’s trial and plays no crowd', () => {
+    // `trial` labels the account's ten hands; this table counts nobody's.
+    expect(isTrialTable(config, false)).toBe(false)
+    expect(config.casinoAmbience).toBe(false)
+  })
+
+  it('reviews at the settlement, not in a step of its own', () => {
+    expect(config.trainingMode).toBe(false)
+  })
+
+  it('seats a table the engine accepts', () => {
+    const engine = new CasinoSessionEngine(config)
+    expect(engine.getSeats().filter(Boolean)).toHaveLength(0)
+    expect(engine.getHumanBankroll()).toBe(GUEST_TABLE_BANKROLL)
   })
 })
 
