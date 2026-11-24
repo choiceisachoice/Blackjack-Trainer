@@ -157,3 +157,27 @@ describe('BetSpread — marks a running drill for the sideways-phone layout', ()
     expect(container.querySelector('[data-drill-run]')).not.toBeNull()
   })
 })
+
+/**
+ * The setup screen is taller than a short laptop window (683px of panel in a
+ * 595px box at 2000×720), and the app shell does not scroll for this mode. It
+ * was centred inside `overflow-hidden`, so the title went under the back bar
+ * and the start button 19px off the screen, unreachable. jsdom has no layout:
+ * what is pinned is the structure that makes it reachable.
+ */
+describe('BetSpread — the setup screen can always reach its start button', () => {
+  it('puts the panel in its own scrolling box inside a frame that may shrink', () => {
+    render(<BetSpread />)
+    const scroller = screen.getByTestId('bet-settings-scroller')
+    expect(scroller.className).toMatch(/\boverflow-y-auto\b/)
+    expect(scroller.className).toMatch(/\bmin-h-0\b/)
+    // The frame around it must be allowed to be shorter than its content, or
+    // the scroller never gets a height to scroll within.
+    expect(scroller.parentElement!.className).toMatch(/\bmin-h-0\b/)
+    // Centred with auto margins, not `justify-center`, which overflows at
+    // both ends and leaves the top out of reach.
+    expect(scroller.className).not.toMatch(/\bjustify-center\b/)
+    expect(scroller.contains(screen.getByTestId('start-training'))).toBe(true)
+    expect(scroller.contains(screen.getByText('Bet Spread Reference'))).toBe(true)
+  })
+})

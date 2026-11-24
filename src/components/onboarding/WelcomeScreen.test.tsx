@@ -102,3 +102,22 @@ describe('WelcomeScreen', () => {
     }
   })
 })
+
+describe('WelcomeScreen — the road, previewed', () => {
+  it('shows the seven stages the three steps lead to, labelled as an example', () => {
+    render(<WelcomeScreen isPro={false} onStart={vi.fn()} />)
+    const preview = screen.getByTestId('welcome-path-preview')
+    expect(preview.querySelectorAll('[data-testid^="path-node-"]')).toHaveLength(7)
+    expect(preview.querySelector('[data-testid="example-tag"]')).toHaveTextContent('Example')
+  })
+
+  it('is a picture, not a second way in: hidden from assistive tech, inert, no link', () => {
+    render(<WelcomeScreen isPro={false} onStart={vi.fn()} />)
+    const preview = screen.getByTestId('welcome-path-preview')
+    expect(preview).toHaveAttribute('aria-hidden', 'true')
+    expect(preview).toHaveAttribute('inert')
+    expect(preview.querySelector('[data-testid="plan-path-open"]')).toBeNull()
+    // The one action of the screen stays the one action.
+    expect(screen.getAllByRole('button')).toHaveLength(1)
+  })
+})

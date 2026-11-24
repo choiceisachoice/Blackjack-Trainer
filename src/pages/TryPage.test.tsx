@@ -35,6 +35,7 @@ vi.mock('framer-motion', async () => {
 vi.mock('../components/table/ShoeProgress', () => ({ ShoeHousing: () => <div />, DiscardTray: () => <div /> }))
 
 import { TryPage } from './TryPage'
+import { TRY_WIDE_QUERY } from '../components/trial/stage-layout'
 import { useAppStore } from '../store/app-store'
 import { useStatsStore } from '../store/stats-store'
 import { usePlanPriceStore } from '../store/plan-price-store'
@@ -218,5 +219,86 @@ describe('TryPage — who it is not for', () => {
     expect(screen.getByTestId('try-score')).toHaveTextContent('10/10')
     view.unmount()
     expect(recordSession).not.toHaveBeenCalled()
+  })
+})
+
+/**
+ * The stage on arrival, from md up.
+ *
+ * It was sized for the moment it is scrolled to, and arrived under the heading
+ * at that size: at 2000×720 the deal button sat at 835px, under the fold. jsdom
+ * has no layout, so the browser's answers are stood in for: a 2000×720 window
+ * with a 19.8px root font, the stage 269px down the page and 431px tall.
+ */
+describe('TryPage — the stage fits the first screen from md up', () => {
+  let restore: (() => void) | null = null
+
+  /** A window from md up; `columns` says whether it is also wide and low (`TRY_WIDE_QUERY`). */
+  function desktop720({ columns = false }: { columns?: boolean } = {}) {
+    const had = Object.getOwnPropertyDescriptor(window, 'matchMedia')
+    const innerHeight = Object.getOwnPropertyDescriptor(window, 'innerHeight')
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: (query: string) => ({
+        matches: query === '(min-width: 768px)' || (columns && query === TRY_WIDE_QUERY), media: query,
+        addEventListener: () => {}, removeEventListener: () => {},
+      }),
+    })
+    Object.defineProperty(window, 'innerHeight', { configurable: true, value: 720 })
+    document.documentElement.style.fontSize = '19.8px'
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+      const stage = this.dataset.testid === 'try-stage'
+      const top = stage ? 269 : 0
+      const height = stage ? 431 : 0
+      return { top, bottom: top + height, height, left: 0, right: 0, width: 0, x: 0, y: top, toJSON: () => ({}) } as DOMRect
+    })
+    restore = () => {
+      if (had) Object.defineProperty(window, 'matchMedia', had)
+      else Reflect.deleteProperty(window, 'matchMedia')
+      if (innerHeight) Object.defineProperty(window, 'innerHeight', innerHeight)
+      document.documentElement.style.fontSize = ''
+    }
+  }
+
+  afterEach(() => { restore?.(); restore = null })
+
+  it('counts the stage’s height from where it stands under the heading', () => {
+    desktop720()
+    open()
+    expect(screen.getByTestId('try-stage').style.getPropertyValue('--stage-top')).toBe('269px')
+  })
+
+  it('keeps the scrolled-to height on a phone, where the table is worth a scroll', () => {
+    open()
+    const stage = screen.getByTestId('try-stage')
+    // Nothing measured, nothing inline: the class's 4.5rem — the header and
+    // some air — is the height's starting point, as in the prerendered page.
+    expect(stage.style.getPropertyValue('--stage-top')).toBe('')
+    expect(stage.className.split(/\s+/)).toContain('[--stage-top:4.5rem]')
+  })
+
+  it('puts the words beside the stage on a wide, low window, and lets CSS size it', () => {
+    // At 2000×720 the stacked page left the table 558×239 under its heading.
+    desktop720({ columns: true })
+    open()
+    const layout = screen.getByTestId('try-layout').className.split(/\s+/)
+    expect(layout).toContain('try-wide:grid')
+    expect(layout.some(c => c.startsWith('try-wide:grid-cols-['))).toBe(true)
+    // A row as tall as the screen under the header, less the cookie bar.
+    expect(layout.some(c => c.startsWith('try-wide:min-h-[') && c.includes('100dvh') && c.includes('--cookie-bar'))).toBe(true)
+    const stage = screen.getByTestId('try-stage')
+    // No measurement in this layout: the header and the row's padding, by class.
+    expect(stage.style.getPropertyValue('--stage-top')).toBe('')
+    expect(stage.className.split(/\s+/).some(c => c.startsWith('try-wide:[--stage-top:'))).toBe(true)
+    // Still one page heading, in the words' column, naming the stage.
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(stage.getAttribute('aria-labelledby')).toBe('try-title')
+  })
+
+  it('does not move the page when the first hand is dealt onto a stage already whole on screen', () => {
+    desktop720()
+    open()
+    fireEvent.click(screen.getByTestId('try-start'))
+    expect(scrollIntoView).not.toHaveBeenCalled()
   })
 })

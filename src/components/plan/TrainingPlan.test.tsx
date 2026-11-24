@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import i18next from 'i18next'
+import type { ReactNode } from 'react'
 import { render, screen, cleanup, fireEvent, within, act } from '@testing-library/react'
 import { TrainingPlan } from './TrainingPlan'
 import { useAppStore } from '../../store/app-store'
@@ -532,6 +533,8 @@ describe('TrainingPlan', () => {
     // Latest attempt against the Hi-Lo stage's 90% bar.
     expect(within(form).getByText(/95%/)).toBeInTheDocument()
     expect(within(form).getByText(/90%/)).toBeInTheDocument()
+    // ...and the second figure says it is the bar.
+    expect(within(form).getByText(/bar 90%/)).toBeInTheDocument()
   })
 
   it('hides recent form until there is something to show', () => {
@@ -1439,6 +1442,139 @@ describe('TrainingPlan', () => {
         render(<TrainingPlan embedded />)
         expect(screen.queryByTestId('how-it-works')).toBeNull()
       })
+    })
+  })
+
+  describe('with a rail — the home screen in two columns', () => {
+    beforeEach(() => {
+      localStorage.setItem('bjt_placement', 'hi-lo')
+    })
+
+    const renderWithRail = () => {
+      const rail = vi.fn(({ week, path }: { week: ReactNode; path: ReactNode }) => (
+        <>
+          <div data-testid="rail-week">{week}</div>
+          <div data-testid="rail-path">{path}</div>
+        </>
+      ))
+      render(<TrainingPlan embedded rail={rail} before={<h1>Hi</h1>} after={<div data-testid="slot-after" />} />)
+      return rail
+    }
+
+    it('hands the rail the week and the road, and draws it beside the plan', () => {
+      renderWithRail()
+      const rail = screen.getByTestId('home-rail')
+      expect(within(within(rail).getByTestId('rail-week')).getByTestId('week-summary')).toBeInTheDocument()
+      expect(within(within(rail).getByTestId('rail-path')).getByTestId('plan-path')).toBeInTheDocument()
+      // The road stands up in the rail: one line per stage, no strip under the plan.
+      expect(screen.getAllByTestId('plan-path')).toHaveLength(1)
+    })
+
+    it('draws the week once — in the rail, not again in today’s list', () => {
+      renderWithRail()
+      expect(screen.getAllByTestId('plan-week')).toHaveLength(1)
+      expect(within(screen.getByTestId('plan-up-next')).queryByTestId('plan-week')).toBeNull()
+    })
+
+    it('keeps the start button in "up next", ahead of the list of blocks', () => {
+      renderWithRail()
+      const upNext = screen.getByTestId('plan-up-next')
+      const start = within(upNext).getByTestId('plan-today-start')
+      const firstRow = within(upNext).getAllByTestId(/^plan-block-/)[0]
+      expect(start.compareDocumentPosition(firstRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(within(screen.getByTestId('home-rail')).queryByTestId('plan-today-start')).toBeNull()
+    })
+
+    it('orders the page: plan, then rail, then what the page puts after', () => {
+      renderWithRail()
+      const upNext = screen.getByTestId('plan-up-next')
+      const rail = screen.getByTestId('home-rail')
+      const after = screen.getByTestId('slot-after')
+      expect(upNext.compareDocumentPosition(rail) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(rail.compareDocumentPosition(after) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it('puts the page’s greeting and the plan’s standing in one header row', () => {
+      renderWithRail()
+      const header = screen.getByRole('heading', { level: 1, name: 'Hi' }).closest('header')!
+      expect(header).toHaveTextContent('2 of 7 stages complete')
+      expect(within(header).getByTestId('plan-goal')).toBeInTheDocument()
+      expect(within(header).getByTestId('plan-pace')).toBeInTheDocument()
+    })
+
+    it('leaves the reason for the stage to the plan’s own page', () => {
+      renderWithRail()
+      const why = i18next.t(CURRICULUM.find(s => s.id === 'hi-lo')!.whyKey)
+      expect(within(screen.getByTestId('plan-up-next')).queryByText(why)).toBeNull()
+      cleanup()
+      render(<TrainingPlan />)
+      expect(within(screen.getByTestId('plan-up-next')).getByText(why)).toBeInTheDocument()
+    })
+  })
+
+  describe('the card’s foot', () => {
+    it('shows a labelled example of recent form before a stage is drilled', () => {
+      localStorage.setItem('bjt_placement', 'hi-lo')
+      render(<TrainingPlan />)
+      const example = screen.getByTestId('plan-stage-form-example')
+      expect(within(example).getByTestId('example-tag')).toHaveTextContent('Example')
+      expect(screen.queryByTestId('plan-stage-form')).toBeNull()
+    })
+
+    it('replaces the example with the real form once there is some', () => {
+      localStorage.setItem('bjt_placement', 'hi-lo')
+      useStatsStore.setState({ sessions: many(2, 'speedDrill', 0.8) })
+      render(<TrainingPlan />)
+      expect(screen.getByTestId('plan-stage-form')).toBeInTheDocument()
+      expect(screen.queryByTestId('plan-stage-form-example')).toBeNull()
+    })
+
+    it('says nothing of XP or form on a reading stage, which has neither', () => {
+      localStorage.setItem('bjt_placement', 'rules')
+      render(<TrainingPlan />)
+      const upNext = screen.getByTestId('plan-up-next')
+      expect(within(upNext).queryByText(/0 XP/)).toBeNull()
+      expect(within(upNext).queryByTestId('plan-stage-form-example')).toBeNull()
+    })
+
+    it('offers the reading once on a reading stage: the start button opens it, "mark as read" stays', () => {
+      localStorage.setItem('bjt_placement', 'rules')
+      render(<TrainingPlan />)
+      const upNext = screen.getByTestId('plan-up-next')
+      expect(within(upNext).getByTestId('plan-today-start')).toBeInTheDocument()
+      expect(within(upNext).getByTestId('plan-mark-read-rules')).toBeInTheDocument()
+      const readLabel = i18next.t(CURRICULUM.find(s => s.id === 'rules')!.read!.labelKey)
+      expect(within(upNext).queryByRole('button', { name: readLabel })).toBeNull()
+    })
+  })
+
+  describe('the plan’s own page', () => {
+    beforeEach(() => {
+      localStorage.setItem('bjt_placement', 'hi-lo')
+    })
+
+    it('opens with a one-line header and a bar for the stages done', () => {
+      render(<TrainingPlan />)
+      const h1 = screen.getByRole('heading', { level: 1 })
+      const header = h1.closest('header')!
+      expect(header).toHaveTextContent('2 of 7 stages complete')
+      const bar = screen.getByRole('progressbar', { name: '2 of 7 stages complete' })
+      expect(bar).toHaveAttribute('aria-valuenow', String(Math.round((2 / 7) * 100)))
+      // The bar comes right after the header, before "up next".
+      expect(header.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(bar.compareDocumentPosition(screen.getByTestId('plan-up-next')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it('draws a finished stage as one line, with what it took and a way back in', () => {
+      useStatsStore.setState({ sessions: finishing('hi-lo', 'speedDrill', 0.95) })
+      render(<TrainingPlan />)
+      const row = screen.getByTestId('plan-stage-hi-lo')
+      expect(row).toHaveAttribute('data-done', 'true')
+      expect(within(row).queryByText(i18next.t(CURRICULUM.find(s => s.id === 'hi-lo')!.goalKey))).toBeNull()
+      expect(within(row).getByTestId('plan-drill-hi-lo')).toBeInTheDocument()
+      // A stage still ahead keeps its description.
+      const ahead = screen.getByTestId('plan-stage-deviations')
+      expect(within(ahead).getByText(i18next.t(CURRICULUM.find(s => s.id === 'deviations')!.goalKey))).toBeInTheDocument()
     })
   })
 

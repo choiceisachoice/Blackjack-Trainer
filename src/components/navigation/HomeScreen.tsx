@@ -12,6 +12,7 @@ import { useIsPro } from '../../store/entitlement-store'
 import { useTrialLeft } from '../../store/casino-trial-store'
 import type { AppMode } from '../../store/app-store'
 import { useAchievementStore } from '../../store/achievement-store'
+import { useStatsStore } from '../../store/stats-store'
 import { ALL_ACHIEVEMENTS } from '../../services/achievements/achievement-list'
 import { TrainingPlan } from '../plan/TrainingPlan'
 import { GuidedTour } from '../onboarding/GuidedTour'
@@ -35,7 +36,15 @@ const TRAINING_CARDS: FeatureCard[] = [
   { mode: 'deviationTraining', icon: GraduationCap, titleKey: 'modes.deviationFlashCards', descKey: 'home.desc.deviationTraining' },
   { mode: 'betSpread', icon: Coins, titleKey: 'modes.betSpread', descKey: 'home.desc.betSpread' },
   { mode: 'deckEstimation', icon: Layers, titleKey: 'modes.deckEstimation', descKey: 'home.desc.deckEstimation' },
+]
+
+// The two logs that belong to the table: real casino results and the
+// training table's own sessions. They used to sit one among the drills and
+// one under the table, and their names ("Bankroll Tracker", "Casino Session
+// Tracker") then read as swapped. Beside the table they explain each other.
+const RECORD_CARDS: FeatureCard[] = [
   { mode: 'bankrollSim', icon: Wallet, titleKey: 'modes.bankrollTracker', descKey: 'home.desc.bankrollSim' },
+  { mode: 'casinoSessionTracker', icon: ClipboardList, titleKey: 'home.trackerTitle', descKey: 'home.desc.tracker' },
 ]
 
 const TOOL_CARDS: FeatureCard[] = [
@@ -45,11 +54,27 @@ const TOOL_CARDS: FeatureCard[] = [
   { mode: 'achievements', icon: Trophy, titleKey: 'modes.achievements', descKey: 'home.desc.achievements' },
 ]
 
+const TOOL_TEST_ID: Partial<Record<AppMode, string>> = {
+  learn: 'learn-button',
+  analytics: 'analytics-button',
+  strategyChart: 'strategy-chart-button',
+  achievements: 'achievements-button',
+}
+
 /**
- * Home screen — the signed-in dashboard: your progress, your challenges, and
- * the way back into every training mode. The marketing pitch lives on the
- * public landing page; a returning user gets their own numbers instead.
- * The app focuses on the Hi-Lo system; navigation lives in the global NavBar.
+ * Home screen — the signed-in dashboard. It answers two questions on the first
+ * screen: what do I do now, and how am I doing.
+ *
+ * From 1280px wide it is two columns. On the left, one greeting row, then the
+ * plan's "up next" with today's start button, then everything to browse. On
+ * the right, a rail: the level and the learner's figures with the week, the
+ * day's and the week's challenges, and the road as a list of stages. Before
+ * this the page was one 950px column, and on the owner's 2000x720 screen
+ * today's start button sat at y≈1200, two scrolls down.
+ *
+ * Narrower, the same parts stack in the order that matters: greeting, up next
+ * (start first), the rail's cards, then the modes. The marketing pitch lives
+ * on the public landing page; a returning user gets their own numbers.
  */
 export function HomeScreen() {
   // The tour is owned here rather than by the card that launches it: it points
@@ -69,40 +94,60 @@ export function HomeScreen() {
       {/* A casino table left open — by a closed tab, a reload, a dead phone —
           is offered here, once, above everything: continue it or cash it out.
           Renders nothing when there is none (the wrapper goes with it). */}
-      <div className="w-full max-w-3xl pt-4 empty:hidden">
+      <div className="w-full max-w-3xl lg:max-w-5xl xl:max-w-[96rem] pt-4 empty:hidden">
         <ResumeSessionCard />
       </div>
 
       {/*
-        The plan is the home screen now, and it owns what surrounds it.
+        The plan is the home screen, and it owns what surrounds it.
 
-        Before this, three things competed to answer "what do I do?" — eight
-        equal-weight mode tiles, two challenge cards and an onboarding checklist.
-        Now there is one answer, and browsing lives underneath it.
-
-        The `before`/`after` slots render only once the plan itself is showing:
-        a brand-new account gets the welcome and the questionnaire on a clean
-        screen, with no mode grid underneath to shrug at. That decision lives
-        inside TrainingPlan because that is where the state lives.
+        The `before`/`after`/`rail` parts render only once the plan itself is
+        showing: a brand-new account gets the welcome and the questionnaire on
+        a clean screen, with no mode grid underneath to shrug at. That decision
+        lives inside TrainingPlan because that is where the state lives.
       */}
       <TrainingPlan
         embedded
         onTour={() => setTouring(true)}
-        before={
-          // Who you are and how far you have come, in one compact row, then
-          // straight to today. The product's name is in the bar above; a
-          // second, larger copy of it pushed the day's training down the page.
-          <div className="w-full max-w-3xl flex flex-col items-center pt-6 md:pt-8">
-            <DashboardHeader />
-          </div>
-        }
+        before={<Greeting />}
+        rail={({ week, path }) => (
+          <>
+            <DashboardHeader week={week} />
+            {/* Today's nudge and the week's, side by side on a tablet. Under
+                the plan's start, never above it: they are not the destination. */}
+            <section
+              data-testid="home-challenges"
+              className="grid gap-3 content-start md:order-last md:col-span-2 md:grid-cols-2
+                xl:order-none xl:col-span-1 xl:grid-cols-1"
+            >
+              <DailyChallengeCard />
+              <WeeklyChallengeCard />
+            </section>
+            <div className="surface rounded-2xl p-5">{path}</div>
+          </>
+        )}
         after={<HomeSections />}
       />
     </div>
   )
 }
 
-/** Everything below the plan: the daily loop, then the browsable modes. */
+/**
+ * The page's one heading: a greeting, slim. Who the learner is — level, title,
+ * figures — is the rail's job, beside it; a 30px level title up here pushed
+ * the day's training down the page.
+ */
+function Greeting() {
+  const { t } = useTranslation()
+  const played = useStatsStore(s => (s.lifetimeStats?.totalSessions ?? 0) > 0 || s.sessions.length > 0)
+  return (
+    <h1 className="text-2xl md:text-[1.75rem] font-bold tracking-tight leading-tight">
+      {played ? t('common.welcomeBack') : t('common.welcome')}
+    </h1>
+  )
+}
+
+/** Everything below the plan: the browsable modes, the table, the tools. */
 function HomeSections() {
   const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
@@ -114,24 +159,19 @@ function HomeSections() {
   const totalUnlocked = useAchievementStore(s => s.totalUnlocked)
 
   return (
-    <div className="relative z-10 w-full max-w-3xl flex flex-col items-center mt-12">
-      {/* Challenges sit under the plan, not above it: they are today's nudge,
-          not the destination. */}
-      <section className="relative z-10 w-full max-w-5xl mb-10 space-y-3">
-        <DailyChallengeCard />
-        <WeeklyChallengeCard />
-      </section>
-
-      {/* Training modes */}
-      <section className="relative z-10 w-full max-w-5xl mb-10">
-        <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-4 px-1">{t('home.trainingModes')}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="relative z-10 w-full flex flex-col mt-4 xl:mt-3">
+      {/* The drills — four to a row on a wide screen, a list on a phone. Every
+          grid on this page has the same four columns, so the rows line up. */}
+      <section className="relative z-10 w-full mb-8">
+        <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-3 px-1">{t('home.trainingModes')}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {TRAINING_CARDS.map(({ mode, icon: Icon, titleKey, descKey }) => (
             <button
               key={mode}
               onClick={() => setMode(mode)}
               data-testid={`mode-card-${mode}`}
-              className="surface lift-glow group relative flex flex-col items-start p-5 text-left cursor-pointer overflow-hidden"
+              className="surface lift-glow group relative flex items-start gap-3.5 p-4 text-left cursor-pointer overflow-hidden
+                lg:flex-col lg:gap-0"
             >
               {/* The lock the nav bar has always drawn, and this grid did not.
                   Same modes, same app, two different answers to "can I open
@@ -141,7 +181,7 @@ function HomeSections() {
                   at a locked door. */}
               {!isPro && isProMode(mode) && (
                 <span
-                  className="absolute top-5 right-5 flex items-center gap-1 text-[0.625rem]
+                  className="absolute top-4 right-4 flex items-center gap-1 text-[0.625rem]
                     font-bold tracking-[0.12em] uppercase text-gold/80"
                   aria-label={t('nav.proFeature')}
                 >
@@ -149,30 +189,36 @@ function HomeSections() {
                   {t('pricing.pro')}
                 </span>
               )}
-              <span className="grid place-items-center w-11 h-11 rounded-xl mb-4 text-gold
-                bg-gold/10 border border-gold/20 transition-all duration-200
-                group-hover:bg-gold/15 group-hover:border-gold/40">
-                <Icon size={22} />
+              <span className="grid place-items-center w-10 h-10 rounded-xl shrink-0 text-gold
+                bg-gold/10 border border-gold/20 transition-colors duration-150
+                group-hover:bg-gold/15 group-hover:border-gold/40 lg:mb-3.5">
+                <Icon size={20} />
               </span>
-              <h3 className="text-base font-semibold text-content mb-1">{t(titleKey)}</h3>
-              <p className="text-sm text-content/50 leading-snug">{t(descKey)}</p>
+              <div className="min-w-0 pr-8 lg:pr-0">
+                <h3 className="text-[0.9375rem] font-semibold text-content leading-snug">{t(titleKey)}</h3>
+                <p className="mt-1 text-[0.8125rem] text-content/50 leading-snug">{t(descKey)}</p>
+              </div>
               <ArrowRight
                 size={16}
-                className="absolute top-5 right-5 text-content/20 -translate-x-1 opacity-0
-                  transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-gold"
+                className="absolute top-4 right-4 text-content/20 -translate-x-1 opacity-0
+                  transition-[opacity,transform,color] duration-150 ease-out group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-gold"
               />
             </button>
           ))}
         </div>
       </section>
 
-      {/* Casino Session — hero feature */}
-      <section className="relative z-10 w-full max-w-5xl mb-10 space-y-3">
+      {/* Casino Session — the thing the product is for — with its two logs
+          beside it, under a heading of their own: under "Training modes" the
+          two logs read as drills. */}
+      <section className="relative z-10 w-full mb-8">
+        <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-3 px-1">{t('plan.today.kind.table')}</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <button
           onClick={() => setMode('casinoSession')}
           data-testid="mode-card-casinoSession"
           className="lift-glow group relative flex items-center gap-4 w-full p-5 rounded-2xl text-left cursor-pointer
-            border border-gold/30 overflow-hidden
+            border border-gold/30 overflow-hidden sm:col-span-2
             bg-[linear-gradient(110deg,color-mix(in_srgb,var(--color-gold)_12%,var(--color-surface)),var(--color-surface))]"
         >
           <span className="grid place-items-center w-12 h-12 rounded-xl text-gold bg-gold/15 border border-gold/30 shrink-0">
@@ -206,51 +252,33 @@ function HomeSections() {
             </h3>
             <p className="text-sm text-content/55">{t('home.desc.casinoSession')}</p>
           </div>
-          <ArrowRight size={18} className="ml-auto text-gold/60 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight size={18} className="ml-auto shrink-0 text-gold/60 group-hover:translate-x-1 transition-transform duration-150 ease-out" />
         </button>
 
-        <button
-          onClick={() => setMode('casinoSessionTracker')}
-          data-testid="mode-card-casinoSessionTracker"
-          className="surface lift-glow group flex items-center gap-4 w-full p-5 text-left cursor-pointer"
-        >
-          <span className="grid place-items-center w-11 h-11 rounded-xl text-content/70 bg-contrast/5 border border-contrast/10 shrink-0">
-            <ClipboardList size={22} />
-          </span>
-          <div className="min-w-0">
-            <h3 className="text-base font-semibold text-content">{t('home.trackerTitle')}</h3>
-            <p className="text-sm text-content/50">{t('home.desc.tracker')}</p>
-          </div>
-        </button>
+        {RECORD_CARDS.map(card => (
+          <SmallCard
+            key={card.mode}
+            card={card}
+            testId={`mode-card-${card.mode}`}
+            locked={!isPro && isProMode(card.mode)}
+            onOpen={() => setMode(card.mode)}
+          />
+        ))}
+        </div>
       </section>
 
       {/* Tools */}
-      <section className="relative z-10 w-full max-w-5xl mb-12">
-        <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-4 px-1">{t('home.toolsProgress')}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {TOOL_CARDS.map(({ mode, icon: Icon, titleKey, descKey }) => (
-            <button
-              key={mode}
-              onClick={() => setMode(mode)}
-              data-testid={mode === 'learn' ? 'learn-button' : mode === 'analytics' ? 'analytics-button' : mode === 'strategyChart' ? 'strategy-chart-button' : 'achievements-button'}
-              className="surface lift-glow group flex items-start gap-3 p-4 text-left cursor-pointer"
-            >
-              <span className="grid place-items-center w-10 h-10 rounded-lg text-gold bg-gold/10 border border-gold/20 shrink-0
-                transition-all duration-200 group-hover:bg-gold/15">
-                <Icon size={19} />
-              </span>
-              <div className="min-w-0">
-                <h3 className="text-sm font-semibold text-content">
-                  {t(titleKey)}
-                  {mode === 'achievements' && (
-                    <span className="ml-1.5 text-xs font-normal text-content/45">
-                      ({totalUnlocked}/{ALL_ACHIEVEMENTS.length})
-                    </span>
-                  )}
-                </h3>
-                <p className="text-xs text-content/50 mt-0.5 leading-snug">{t(descKey)}</p>
-              </div>
-            </button>
+      <section className="relative z-10 w-full mb-10">
+        <h2 className="text-xs font-semibold tracking-[0.2em] text-content/40 uppercase mb-3 px-1">{t('home.toolsProgress')}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {TOOL_CARDS.map(card => (
+            <SmallCard
+              key={card.mode}
+              card={card}
+              testId={TOOL_TEST_ID[card.mode]}
+              onOpen={() => setMode(card.mode)}
+              suffix={card.mode === 'achievements' ? `(${totalUnlocked}/${ALL_ACHIEVEMENTS.length})` : undefined}
+            />
           ))}
         </div>
       </section>
@@ -258,7 +286,52 @@ function HomeSections() {
       {/* Scroll-end breathing room. A real box is used (not padding/margin),
           because browsers exclude a scroll container's trailing padding and the
           last child's bottom margin from the scrollable overflow area. */}
-      <div aria-hidden className="w-full h-20 md:h-24 shrink-0" />
+      <div aria-hidden className="w-full h-12 md:h-16 shrink-0" />
     </div>
+  )
+}
+
+/** A compact way into one screen: icon, name, one line — the tools and the table's logs. */
+function SmallCard({ card, testId, onOpen, locked = false, suffix }: {
+  card: FeatureCard
+  testId?: string
+  onOpen: () => void
+  /** A Pro screen, for an account without Pro: say so on the card. */
+  locked?: boolean
+  /** A small figure after the name, e.g. awards unlocked. */
+  suffix?: string
+}) {
+  const { t } = useTranslation()
+  const { icon: Icon, titleKey, descKey } = card
+  return (
+    <button
+      onClick={onOpen}
+      data-testid={testId}
+      className="surface lift-glow group relative flex items-start gap-3 p-4 text-left cursor-pointer"
+    >
+      <span className="grid place-items-center w-10 h-10 rounded-lg text-gold bg-gold/10 border border-gold/20 shrink-0
+        transition-colors duration-150 group-hover:bg-gold/15">
+        <Icon size={19} />
+      </span>
+      <div className="min-w-0">
+        <h3 className="text-sm font-semibold text-content">
+          {t(titleKey)}
+          {suffix && <span className="ml-1.5 text-xs font-normal text-content/45">{suffix}</span>}
+          {/* Inline after the name: a corner badge took a column of the
+              card's width and broke its name in two. */}
+          {locked && (
+            <span
+              className="ml-2 inline-flex items-center gap-1 align-[1px] text-[0.625rem]
+                font-bold tracking-[0.12em] uppercase text-gold/80"
+              aria-label={t('nav.proFeature')}
+            >
+              <Lock size={10} />
+              {t('pricing.pro')}
+            </span>
+          )}
+        </h3>
+        <p className="text-xs text-content/50 mt-0.5 leading-snug">{t(descKey)}</p>
+      </div>
+    </button>
   )
 }

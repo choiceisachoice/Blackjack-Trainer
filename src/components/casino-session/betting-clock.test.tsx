@@ -116,14 +116,16 @@ describe('the betting clock', () => {
    * looked away for thirty seconds on 16 against a 9 did not "stand on 16":
    * the hand is played out, and nothing goes into the play accuracy.
    *
-   * Read off the summary after the cash-out, which prints the graded plays as
-   * "correct/total" — the same figures the saved session carries.
+   * Read off the summary after the cash-out: each category row carries its
+   * graded answers as `data-correct` / `data-total` — the same figures the
+   * saved session carries. (It used to print them as "n/m", which these tests
+   * scraped; the summary now writes "1 of 1" in the reader's language.)
    */
   describe('a stand made by the clock is not graded', () => {
-    /** Every "n/m" on the summary: in plain blackjack, the play row and the insurance row. */
+    /** Every category on the summary: in plain blackjack, the play row and the insurance row. */
     const gradedCounts = () =>
-      [...(screen.getByTestId('play-again').closest('.max-w-2xl')?.textContent ?? '').matchAll(/(\d+)\/(\d+)/g)]
-        .map(m => ({ correct: Number(m[1]), total: Number(m[2]) }))
+      screen.getAllByTestId(/^summary-category-/)
+        .map(el => ({ correct: Number(el.dataset.correct), total: Number(el.dataset.total) }))
 
     const betAndDeal = () => {
       fireEvent.click(screen.getByText('+$25'))

@@ -262,8 +262,14 @@ export class AchievementEngine {
       case 'daily_streak':
         return Math.min(100, (this.getDailyStreak() / req.value) * 100)
 
-      case 'reach_level':
-        return Math.min(100, (this.getCurrentLevel() / req.value) * 100)
+      case 'reach_level': {
+        // Counted from level 1, where everyone starts — not from zero. Level
+        // over target read a new learner with 0 XP as "20 % of the way to
+        // level 5": a ring a fifth full for something nobody had done yet.
+        if (req.value <= 1) return 0
+        const climbed = this.getCurrentLevel() - 1
+        return Math.min(100, Math.max(0, (climbed / (req.value - 1)) * 100))
+      }
 
       case 'total_hands':
         return Math.min(100, (stats.totalQuestions / req.value) * 100)

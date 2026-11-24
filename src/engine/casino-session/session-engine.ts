@@ -21,6 +21,7 @@ import type {
 import type { SessionEventRecorder } from '../../services/session-recorder'
 import { MAX_PLAYER_HANDS } from './types'
 import { CASINO_SNAPSHOT_VERSION, parseSnapshot } from './session-snapshot'
+import { gradeForScore } from './session-scores'
 import type { CasinoSessionSnapshot } from './session-snapshot'
 
 /** Money to the cent, so a payout never carries floating-point dust. */
@@ -492,6 +493,11 @@ export class CasinoSessionEngine {
     return this.config.playStyle === 'basic'
   }
 
+  /**
+   * The play the hand is graded against: basic strategy, or the index play
+   * the true count calls for. `basicAction` is always the chart's play, so a
+   * review can show both where they differ.
+   */
   getCorrectAction(
     playerCards: Card[],
     dealerUpCard: Card,
@@ -499,7 +505,7 @@ export class CasinoSessionEngine {
     canSplit: boolean,
     canDouble: boolean,
     canSurrender: boolean,
-  ): { action: Action; isDeviation: boolean; deviationName?: string } {
+  ): { action: Action; isDeviation: boolean; deviationName?: string; basicAction: Action } {
     const graded = this.correctActionRaw(playerCards, dealerUpCard, trueCount, canSplit, canDouble, canSurrender)
     // An index play that says "double" on a hand that cannot double (split at
     // a no-DAS table, no money for it) is a hit — the move the player can make.
@@ -514,7 +520,7 @@ export class CasinoSessionEngine {
     canSplit: boolean,
     canDouble: boolean,
     canSurrender: boolean,
-  ): { action: Action; isDeviation: boolean; deviationName?: string } {
+  ): { action: Action; isDeviation: boolean; deviationName?: string; basicAction: Action } {
     // The table allowing surrender is not enough: a split hand or a third card
     // takes it away, and grading against a button that is greyed out would mark
     // every answer wrong. The same holds for a split the hand cannot make (hand
@@ -525,7 +531,7 @@ export class CasinoSessionEngine {
     // mark a correct basic-strategy decision wrong every time a deviation
     // situation came up — the one thing this mode must never do.
     if (this.isBasicPlay()) {
-      return { action: bsAction, isDeviation: false }
+      return { action: bsAction, isDeviation: false, basicAction: bsAction }
     }
 
     // Pairs: if BS says Split, always split (hard-total deviations like
@@ -538,10 +544,10 @@ export class CasinoSessionEngine {
       if (pairMatch) {
         const devAction = getDeviationAction(playerCards, dealerUpCard, trueCount, pairDevs)
         if (devAction !== null && devAction !== bsAction) {
-          return { action: devAction, isDeviation: true, deviationName: pairMatch.name }
+          return { action: devAction, isDeviation: true, deviationName: pairMatch.name, basicAction: bsAction }
         }
       }
-      return { action: Action.Split, isDeviation: false }
+      return { action: Action.Split, isDeviation: false, basicAction: bsAction }
     }
 
     // Non-pair hands: check ALL matching deviations (I18 first, then Fab4)
@@ -555,7 +561,7 @@ export class CasinoSessionEngine {
       if (trueCount >= dev.trueCountThreshold) {
         // Standard deviation: the index action applies at/above the threshold.
         if (dev.actionAbove !== bsAction) {
-          return { action: dev.actionAbove, isDeviation: true, deviationName: dev.name }
+          return { action: dev.actionAbove, isDeviation: true, deviationName: dev.name, basicAction: bsAction }
         }
       } else {
         // Reversed deviation (e.g. 12 vs 4/5/6, 13 vs 2/3): Basic Strategy is
@@ -564,13 +570,13 @@ export class CasinoSessionEngine {
         // above-side equals BS, so a normal deviation's placeholder actionBelow
         // is never mistaken for a real reversed deviation.
         if (dev.actionAbove === bsAction && dev.actionBelow !== bsAction) {
-          return { action: dev.actionBelow, isDeviation: true, deviationName: dev.name }
+          return { action: dev.actionBelow, isDeviation: true, deviationName: dev.name, basicAction: bsAction }
         }
       }
       // Don't break — a later deviation (e.g., Fab4) might fire
     }
 
-    return { action: bsAction, isDeviation: false }
+    return { action: bsAction, isDeviation: false, basicAction: bsAction }
   }
 
   /** The table's rules with surrender switched off when this hand cannot surrender. */
@@ -1336,13 +1342,9 @@ export class CasinoSessionEngine {
   }
 
   private calculateGrade(score: number): { grade: string; gradeColor: string } {
-    if (score >= 95) return { grade: 'A+', gradeColor: '#22c55e' }
-    if (score >= 90) return { grade: 'A', gradeColor: '#22c55e' }
-    if (score >= 85) return { grade: 'B+', gradeColor: '#84cc16' }
-    if (score >= 80) return { grade: 'B', gradeColor: '#eab308' }
-    if (score >= 70) return { grade: 'C', gradeColor: '#f97316' }
-    if (score >= 60) return { grade: 'D', gradeColor: '#ef4444' }
-    return { grade: 'F', gradeColor: '#dc2626' }
+    // One table for the stored grade and the summary's (`session-scores.ts`).
+    const { letter, color } = gradeForScore(score)
+    return { grade: letter, gradeColor: color }
   }
 
   // ─── Deviation Detection ─────────────────────────────

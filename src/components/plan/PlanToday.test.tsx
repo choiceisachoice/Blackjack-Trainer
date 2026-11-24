@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
-import { TimeBudgetPicker, TimeQuestion, WeekDots, TodayBlocks, PathStrip, HowItWorks } from './PlanToday'
+import { TimeBudgetPicker, TimeQuestion, WeekDots, TodayBlocks, TodayStart, WeekSummary, PathStrip, HowItWorks } from './PlanToday'
 import { CURRICULUM, deriveCurriculum, type StageId } from '../../services/curriculum'
 import { DAY_OPTIONS, MINUTE_OPTIONS, type TimeBudget } from '../../services/learner-profile'
 import type { BlockKind, DayPlan, PlanBlock, WeekPlan } from '../../services/daily-plan'
@@ -529,5 +529,145 @@ describe('HowItWorks', () => {
   it('offers no tour where there is none', () => {
     render(<HowItWorks onDismiss={vi.fn()} />)
     expect(screen.queryByTestId('how-it-works-tour')).toBeNull()
+  })
+})
+
+// ── TodayBlocks, split for the home screen ──────────────────────────
+
+describe('TodayBlocks — parts left to the page', () => {
+  it('leaves the start button out when the page places it itself', () => {
+    render(<TodayBlocks day={day([block('warmup'), block('work')])} week={week()} onOpen={vi.fn()} hideStart />)
+    expect(screen.queryByTestId('plan-today-start')).toBeNull()
+    expect(screen.getAllByTestId(/^plan-block-/)).toHaveLength(2)
+  })
+
+  it('leaves the week out when the page shows it elsewhere', () => {
+    render(<TodayBlocks day={day([block('work')])} week={week()} onOpen={vi.fn()} hideWeek />)
+    expect(screen.queryByTestId('plan-week')).toBeNull()
+    expect(screen.queryByText('1 of 3 days')).toBeNull()
+    // Today's own figure stays.
+    expect(screen.getByTestId('plan-today-minutes')).toBeInTheDocument()
+  })
+})
+
+// ── TodayStart ───────────────────────────────────────────────────────
+
+describe('TodayStart', () => {
+  it('starts the first open block, by name', () => {
+    const onOpen = vi.fn()
+    render(<TodayStart day={day([block('warmup', true), block('work')])} onOpen={onOpen} />)
+    const start = screen.getByTestId('plan-today-start')
+    expect(start).toHaveTextContent('Next: Today’s work · The Hi-Lo count')
+    fireEvent.click(start)
+    expect(onOpen).toHaveBeenCalledExactlyOnceWith('speedDrill', expect.objectContaining({ kind: 'work' }))
+  })
+
+  it('says the day is done once every block is', () => {
+    render(<TodayStart day={day([block('warmup', true)])} onOpen={vi.fn()} />)
+    expect(screen.queryByTestId('plan-today-start')).toBeNull()
+    expect(screen.getByTestId('plan-today-complete')).toHaveTextContent('Today’s session is done.')
+  })
+
+  it('renders nothing for a day with nothing in it', () => {
+    const { container } = render(<TodayStart day={day([])} onOpen={vi.fn()} />)
+    expect(container).toBeEmptyDOMElement()
+  })
+})
+
+// ── WeekSummary ──────────────────────────────────────────────────────
+
+describe('WeekSummary', () => {
+  it('names the week, counts the days and draws the seven dots', () => {
+    render(<WeekSummary week={week()} />)
+    const summary = screen.getByTestId('week-summary')
+    expect(summary).toHaveTextContent('This week')
+    expect(summary).toHaveTextContent('1 of 3 days')
+    expect(within(summary).getByTestId('plan-week').querySelectorAll('[data-trained]')).toHaveLength(7)
+  })
+
+  it('says the week is done once the planned days are in', () => {
+    render(<WeekSummary week={week({ trained: 3, met: true, days: [true, true, true, false, false, false, false] })} />)
+    expect(screen.getByTestId('week-summary')).toHaveTextContent('Week done')
+  })
+
+  it('shows the run of kept weeks from two on, and not before', () => {
+    const { unmount } = render(<WeekSummary week={week()} weekStreak={1} />)
+    expect(screen.queryByTestId('plan-week-streak')).toBeNull()
+    unmount()
+    render(<WeekSummary week={week()} weekStreak={3} />)
+    expect(screen.getByTestId('plan-week-streak')).toHaveTextContent('3 weeks')
+  })
+})
+
+// ── PathStrip, standing up ───────────────────────────────────────────
+
+describe('PathStrip — column layout', () => {
+  const progress = () => deriveCurriculum([], [], true)
+  const stateOf = (id: StageId) => screen.getByTestId(`path-node-${id}`).getAttribute('data-state')
+
+  it('lists every stage in order, one per line, with the same states as the strip', () => {
+    render(<PathStrip progress={progress()} activeId="hi-lo" entryIndex={2} goalIndex={6} onOpen={vi.fn()} layout="column" />)
+    const nodes = within(screen.getByTestId('plan-path')).getAllByTestId(/^path-node-/)
+    expect(nodes.map(n => n.getAttribute('data-testid'))).toEqual(CURRICULUM.map(s => `path-node-${s.id}`))
+    expect(CURRICULUM.map(s => stateOf(s.id)))
+      .toEqual(['done', 'done', 'active', 'ahead', 'ahead', 'ahead', 'ahead'])
+  })
+
+  it('marks the current stage as up next, with its sessions and days', () => {
+    const drill = CURRICULUM.find(s => s.id === 'hi-lo')!.drill!
+    render(<PathStrip progress={progress()} activeId="hi-lo" entryIndex={2} goalIndex={6} onOpen={vi.fn()} layout="column" />)
+    const node = screen.getByTestId('path-node-hi-lo')
+    expect(node).toHaveTextContent('Up next')
+    expect(node).toHaveTextContent(`0/${drill.minSessions} · 0/${drill.minDays} days`)
+    expect(screen.getByTestId('path-node-true-count')).not.toHaveTextContent('Up next')
+  })
+
+  it('numbers open stages, locks Pro ones, and fades what lies beyond the goal', () => {
+    render(<PathStrip progress={deriveCurriculum([], [], false)} activeId="hi-lo" entryIndex={2} goalIndex={3} onOpen={vi.fn()} layout="column" />)
+    expect(screen.getByTestId('path-node-hi-lo')).toHaveTextContent(/^3/)
+    expect(screen.getByTestId('path-node-true-count').textContent).not.toMatch(/^4/)
+    const faint = CURRICULUM.filter(s => screen.getByTestId(`path-node-${s.id}`).className.includes('opacity-40'))
+    expect(faint.map(s => s.id)).toEqual(['deviations', 'bet-spread', 'table'])
+  })
+
+  it('carries a summary line where it is given one, and opens the full plan', () => {
+    const onOpen = vi.fn()
+    render(
+      <PathStrip progress={progress()} activeId="hi-lo" entryIndex={2} goalIndex={6} onOpen={onOpen} layout="column" summary="2 of 7" />,
+    )
+    expect(screen.getByTestId('plan-path')).toHaveTextContent('2 of 7')
+    fireEvent.click(screen.getByTestId('plan-path-open'))
+    expect(onOpen).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('PathStrip — column layout, a locked stage on turn', () => {
+  it('says Pro, not "up next", on a stage the learner cannot open', () => {
+    const progress = deriveCurriculum([], [], false)
+    render(<PathStrip progress={progress} activeId="true-count" entryIndex={3} goalIndex={6} onOpen={vi.fn()} layout="column" />)
+    const node = screen.getByTestId('path-node-true-count')
+    expect(node).toHaveAttribute('data-state', 'active')
+    expect(node).toHaveTextContent('Pro')
+    expect(node).not.toHaveTextContent('Up next')
+  })
+
+  it('draws no link where none is wanted, and a badge in its place', () => {
+    render(
+      <PathStrip
+        progress={deriveCurriculum([], [], true)} activeId="rules" entryIndex={0} goalIndex={6}
+        layout="column" badge={<span data-testid="badge" />}
+      />,
+    )
+    expect(screen.queryByTestId('plan-path-open')).toBeNull()
+    expect(screen.getByTestId('badge')).toBeInTheDocument()
+  })
+})
+
+describe('WeekDots — days gone by', () => {
+  it('tells a missed day apart from a day still to come', () => {
+    // Today is Thursday; Monday trained, Tuesday and Wednesday missed.
+    render(<WeekDots week={week({ todayIndex: 3, days: [true, false, false, false, false, false, false] })} />)
+    const dots = [...screen.getByTestId('plan-week').querySelectorAll('[data-trained]')]
+    expect(dots.map(d => d.getAttribute('data-past'))).toEqual(['false', 'true', 'true', 'false', 'false', 'false', 'false'])
   })
 })

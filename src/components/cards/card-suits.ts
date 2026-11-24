@@ -42,9 +42,21 @@ export function cardImageUrl(rank: string, suit: string): string {
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const
 const SUITS: CardSuitName[] = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
 let preloaded = false
+/**
+ * The preloaded images, kept for the life of the page.
+ *
+ * Fetching alone was not enough. The faces are served `no-cache` (the
+ * Caddyfile asks about everything outside `/assets` again), and the browser
+ * reuses an image without asking only while the page still holds one: once
+ * an unreferenced `Image` was garbage-collected, the next card with that face
+ * went back to the server first. Measured on 24 Nov 2026: the first eight
+ * cards of a run were ready the moment they were shown, every card after
+ * them was not — on a phone that is a round trip on a card shown for 500 ms.
+ */
+const retained: HTMLImageElement[] = []
 
 /**
- * Fetch all 52 card faces ahead of use, once per page load.
+ * Fetch all 52 card faces ahead of use, once per page load, and keep them.
  *
  * A card that is shown for 600 ms in the Speed Drill, or dealt at the table,
  * must not arrive as a white rectangle that fills in later: its image has to
@@ -59,6 +71,7 @@ export function preloadCardImages(): void {
       const img = new Image()
       img.decoding = 'async'
       img.src = cardImageUrl(rank, suit)
+      retained.push(img)
     }
   }
 }

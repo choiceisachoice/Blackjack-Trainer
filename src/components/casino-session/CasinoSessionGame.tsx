@@ -20,6 +20,9 @@ import { ProgressBar, Input } from '../common/ui'
 import { ArrowLeft, Volume2, VolumeX } from 'lucide-react'
 import { useCompactTable } from '../../hooks/useCompactTable'
 import { useLiveSessionStore } from '../../store/live-session-store'
+import { HandReview, ReviewNext } from './HandReview'
+import { reviewSide, useReviewPlacement, useSheetRoom, useSideDock } from './review-placement'
+import { handVerdict, reviewHand } from './hand-review-model'
 
 interface CasinoSessionGameProps {
   config: CasinoSessionConfig
@@ -83,6 +86,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     totalCards,
     bankroll,
     handNum,
+    handHistory,
     initSession,
   } = useGameLoop(config, recorder, onSessionEnd, live, house)
 
@@ -288,6 +292,30 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
     ? Math.max(1, Math.min(MAX_PLAYER_HANDS, state.freeSeats.length, Math.floor(bankroll / config.minBet)))
     : 1
   const betsDiffer = state.boxBets.some(b => b !== state.boxBets[0])
+
+  /*
+    The review after a hand (config.trainingMode). Worked out from the hand's
+    record and the hands as they lie on the felt; the trail is every hand of
+    the session, graded the same way.
+  */
+  const basicPlay = config.playStyle === 'basic'
+  const review = state.gameStep === 'hand_review' && state.handReview
+    ? reviewHand(state.handReview, config, state.humanHands)
+    : null
+  const trail = review ? handHistory.map(h => handVerdict(h, basicPlay)) : []
+  const placement = useReviewPlacement()
+  const side = review
+    ? reviewSide(state.boxSeats, seatLayout.flatMap(e => (e.type === 'bot' ? [e.seatIndex] : [])))
+    : 'right'
+  const playAreaRef = useRef<HTMLDivElement>(null)
+  const sideStyle = useSideDock(playAreaRef, side, review !== null && placement === 'side')
+  const sheetRoom = useSheetRoom(playAreaRef, review !== null && placement === 'sheet')
+  const reviewProps = review && {
+    review,
+    rules: config.dealerHitsSoft17 ? 'H17' : 'S17',
+    trail,
+    target: config.sessionMode === 'hands' ? config.targetHands : undefined,
+  }
 
   // The ground under the table follows the theme. It used to be a hard
   // `#0c0c0c` while every label inside uses `text-content`, which does flip —
@@ -583,7 +611,7 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
 
       {/* The table and its controls: one under the other, and side by side on
           a phone held sideways, where the height is what is scarce. */}
-      <div className="flex-1 min-h-0 flex flex-col short:flex-row" data-testid="table-and-controls">
+      <div ref={playAreaRef} className="relative flex-1 min-h-0 flex flex-col short:flex-row" data-testid="table-and-controls">
       {/* Casino Table */}
       <CasinoTable
         dealerCards={state.dealerCards}
@@ -732,60 +760,16 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
           </div>
         )}
 
-        {/* Hand Review */}
-        {state.gameStep === 'hand_review' && state.handReview && (
-          <div className="flex flex-col items-center gap-2" data-testid="hand-review">
-            <div className="flex flex-wrap gap-4 justify-center text-xs">
-              <span className={state.handReview.betCorrect ? 'text-success' : 'text-error'}>
-                {t('casino.review.betLabel')} {state.handReview.betCorrect ? t('casino.review.correct') : t('casino.review.wrongShould', { value: formatDollar(state.handReview.correctBet) })}
-              </span>
-              {state.handReview.wasDeviationSituation && (
-                <span className={state.handReview.playerFollowedDeviation ? 'text-success' : 'text-error'}>
-                  {t('casino.review.devLabel')} {state.handReview.playerFollowedDeviation ? t('casino.review.followed') : t('casino.review.missed', { name: state.handReview.deviationName })}
-                </span>
-              )}
-            </div>
-            {(() => {
-              const decisions = state.handReview.decisions ?? []
-              const handIndices = [...new Set(decisions.map(d => (d as { handIndex?: number }).handIndex ?? 0))]
-              const isSplitReview = handIndices.length > 1
-
-              if (isSplitReview) {
-                return (
-                  <div className="flex flex-col gap-1 text-xs text-center">
-                    {handIndices.map(hi => {
-                      const hDecisions = decisions.filter(d => ((d as { handIndex?: number }).handIndex ?? 0) === hi)
-                      const actionsStr = hDecisions.map(d => d.action).join(', ')
-                      const allCorrect = hDecisions.every(d => d.isCorrect)
-                      const lastVal = hDecisions[hDecisions.length - 1]?.handValueAfter ?? 0
-                      return (
-                        <span key={hi} className={allCorrect ? 'text-success' : 'text-error'}>
-                          {t('casino.review.handNo', { n: hi + 1 })} {actionsStr} ({lastVal}) {allCorrect ? '\u2713' : `\u2717 ${t('casino.review.wrongShould', { value: hDecisions.find(d => !d.isCorrect)?.correctAction })}`}
-                        </span>
-                      )
-                    })}
-                  </div>
-                )
-              }
-
-              // The whole hand, not its first move. Hitting a hard 18 into a
-              // bust after a correct first hit was reviewed as "Play: correct"
-              // (audit, 18 Nov 2026): only the first decision was looked at,
-              // while the split branch above already read all of them.
-              const firstWrong = decisions.find(d => !d.isCorrect)
-              const playCorrect = decisions.length > 0 ? !firstWrong : state.handReview.firstActionCorrect
-              const should = firstWrong?.correctAction ?? state.handReview.correctFirstAction
-              return (
-                <span className={`text-xs ${playCorrect ? 'text-success' : 'text-error'}`} data-testid="review-play" data-correct={playCorrect}>
-                  {t('casino.review.playLabel')} {playCorrect ? t('casino.review.correct') : t('casino.review.wrongShould', { value: should })}
-                </span>
-              )
-            })()}
-            <button onClick={actions.nextHand} data-testid="next-hand"
-              className="px-6 py-2 bg-gold text-on-gold rounded-xl font-bold hover:bg-gold/90 cursor-pointer">
-              {t('casino.hud.nextHand')}
-            </button>
+        {/* Hand Review. Beside the felt on a desktop (the way on stays here),
+            in this column on a phone held sideways. On an upright phone the
+            sheet below holds it, and this area keeps its height under it. */}
+        {reviewProps && placement === 'side' && (
+          <div className="flex justify-center">
+            <ReviewNext onNext={actions.nextHand} className="max-w-sm" />
           </div>
+        )}
+        {reviewProps && placement === 'column' && (
+          <HandReview {...reviewProps} placement="column" className="h-full -mx-2 -my-2" next={<ReviewNext onNext={actions.nextHand} />} />
         )}
 
         {/* Settlement */}
@@ -806,6 +790,34 @@ export function CasinoSessionGame({ config, recorder, soundEnabled, onSessionEnd
           <div className="h-10" />
         )}
       </div>
+      {/* The review beside the felt (a desktop): in the room left and right
+          of the table where there is enough of it, over the edge of the felt
+          away from the player's own seat where there is not; a long hand may
+          take it down past the felt, beside the controls. Its way on stays in
+          the controls, where the player's hand just was. */}
+      {reviewProps && placement === 'side' && (
+        <HandReview
+          {...reviewProps}
+          placement="side"
+          side={side}
+          // Until the felt is measured (and where it cannot be: no layout in
+          // a test), a plain dock at the edge.
+          style={sideStyle ?? { position: 'absolute', top: 14, [side]: 14, width: 368 }}
+          className="z-30 surface shadow-[0_24px_60px_-20px_rgba(0,0,0,0.85)] backdrop-blur-md"
+        />
+      )}
+      {/* The review on an upright phone: a sheet over the controls, reaching
+          up to just under the player's cards and no further. */}
+      {reviewProps && placement === 'sheet' && (
+        <HandReview
+          {...reviewProps}
+          placement="sheet"
+          style={{ maxHeight: sheetRoom }}
+          className="absolute inset-x-0 bottom-0 z-30 rounded-t-2xl border-t border-x border-contrast/12 bg-surface-2/95 backdrop-blur-md shadow-[0_-18px_40px_-18px_rgba(0,0,0,0.9)]
+            pb-[var(--cookie-bar,0px)]"
+          next={<ReviewNext onNext={actions.nextHand} />}
+        />
+      )}
       </div>
     </div>
   )

@@ -332,8 +332,9 @@ describe('CasinoSession', () => {
       fireEvent.click(screen.getByTestId('pause-button'))
       fireEvent.click(screen.getByTestId('quit-session'))
 
-      // Should show summary with grade
-      expect(screen.getByText(/Overall Score/)).toBeTruthy()
+      // The summary. No hand was played, so it gives no grade and says from
+      // how many hands it would (it used to print "Overall Score" over an F).
+      expect(screen.getByTestId('summary-no-grade')).toBeTruthy()
       expect(screen.getByTestId('play-again')).toBeTruthy()
       expect(screen.getByTestId('go-home')).toBeTruthy()
     })
@@ -350,18 +351,21 @@ describe('CasinoSession', () => {
       fireEvent.click(screen.getByTestId('quit-session'))
     }
 
-    it('shows grade and overall score', () => {
+    it('gives no grade for a session without a hand, and says why', () => {
       goToSummary()
 
-      expect(screen.getByText(/Overall Score/)).toBeTruthy()
+      // A letter needs ten hands (session-scores.ts); zero hands is not a
+      // session to grade, so there is no "Overall Score" over an F.
+      expect(screen.getByTestId('summary-no-grade')).toHaveTextContent('A grade from 10 hands on')
+      expect(screen.queryByText(/Overall/)).toBeNull()
     })
 
-    it('shows bankroll summary', () => {
+    it('shows the bankroll result', () => {
       goToSummary()
 
-      expect(screen.getByText('Bankroll')).toBeTruthy()
-      expect(screen.getByText('Starting:')).toBeTruthy()
-      expect(screen.getByText('Final:')).toBeTruthy()
+      // The money is one figure now — the net, with start → end under it.
+      expect(screen.getByText('Net')).toBeTruthy()
+      expect(screen.getByTestId('summary-net')).toHaveTextContent('$0')
     })
 
     it('shows accuracy breakdown', () => {
@@ -375,9 +379,9 @@ describe('CasinoSession', () => {
     it('shows session stats', () => {
       goToSummary()
 
-      expect(screen.getByText('Session Stats')).toBeTruthy()
-      expect(screen.getByText('Hands:')).toBeTruthy()
-      expect(screen.getByText('Duration:')).toBeTruthy()
+      // Beside the result rather than in a box of their own, without the colon.
+      expect(screen.getByText('Hands')).toBeTruthy()
+      expect(screen.getByText('Duration')).toBeTruthy()
     })
 
     it('play again returns to config', () => {

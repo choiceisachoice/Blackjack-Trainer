@@ -1,6 +1,7 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import i18next from 'i18next'
 import { CasinoSessionTracker } from './CasinoSessionTracker'
 import { useCasinoSessionTrackerStore, type TrackedCasinoSession } from '../../store/casino-session-tracker-store'
 import { useAppStore } from '../../store/app-store'
@@ -54,6 +55,20 @@ function setupWithSessions() {
 
 describe('CasinoSessionTracker', () => {
   beforeEach(resetStore)
+
+  it('shows the bankroll example without an English thousands separator', async () => {
+    // "10,000" on a German screen; and "10.000" would be worse — the field is
+    // a number input, which reads "." as a decimal point in every language.
+    await i18next.changeLanguage('de')
+    try {
+      render(<CasinoSessionTracker />)
+      const example = screen.getByTestId('onboarding-bankroll-input').getAttribute('placeholder') ?? ''
+      expect(example).not.toMatch(/[.,\s\u00a0\u202f']/)
+      expect(Number(example)).toBe(10000)
+    } finally {
+      await i18next.changeLanguage('en')
+    }
+  })
 
   // ── Onboarding ──
 

@@ -28,6 +28,7 @@ import type {
   CasinoSessionConfig,
   CasinoSessionResult,
   PlayerHandRecord,
+  PlayDecision,
   BotPlayer,
   BotRoundResult,
   BotTurnHandView,
@@ -275,7 +276,7 @@ export function useGameLoop(
   const pauseStartRef = useRef(0)
   const dealResultRef = useRef<DealResult | null>(null)
   const handRecordRef = useRef<Partial<PlayerHandRecord> & { _built?: unknown }>({})
-  const decisionsRef = useRef<{ action: string; correctAction: string; isCorrect: boolean; cardReceived?: Card; handValueAfter: number; handIndex?: number }[]>([])
+  const decisionsRef = useRef<PlayDecision[]>([])
 
   // Shadow refs for stale closure avoidance
   const boxBetsRef = useRef<number[]>([0])
@@ -872,6 +873,9 @@ export function useGameLoop(
       betCorrect: handRecordRef.current.betCorrect ?? false,
       betError: handRecordRef.current.betError ?? 0,
       playerCards,
+      // Every hand as it lies: the review and the summary name the spot of
+      // each decision from these, split hands included.
+      playerHands: humanHandsRef.current.map(h => [...h]),
       dealerUpCard: dr?.dealerUpCard ?? finalDealerCards[0],
       dealerHoleCard: dr?.dealerHoleCard ?? finalDealerCards[1],
       dealerFinalCards: finalDealerCards,
@@ -1848,7 +1852,7 @@ export function useGameLoop(
     if (action === Action.Surrender && !canSurrenderNow) return
 
     const tc = engine.getTrueCount()
-    const { action: correctAction, isDeviation, deviationName } = engine.getCorrectAction(
+    const { action: correctAction, isDeviation, deviationName, basicAction } = engine.getCorrectAction(
       cards,
       dr.dealerUpCard,
       tc,
@@ -1865,13 +1869,19 @@ export function useGameLoop(
     // seconds on 11 against a 6 did not "stand on 11": the hand is played,
     // and nothing is written into the accuracy or the hand review.
     const forced = action === Action.Stand && (timedOut || getHandValue(cards).best === 21)
-    const decision = {
+    // What the review after the hand shows beside the verdict: the count it
+    // was graded at, and — where the count overrode the chart — the chart's
+    // play and the index rule that replaced it.
+    const indexPlay = isDeviation && correctAction !== basicAction
+    const decision: PlayDecision = {
       action: action.toString(),
       correctAction: correctAction.toString(),
       isCorrect,
-      cardReceived: undefined as Card | undefined,
+      cardReceived: undefined,
       handValueAfter: getHandValue(cards).best,
       handIndex: activeHandIndex,
+      ...(engine.isBasicPlay() ? {} : { trueCount: tc }),
+      ...(indexPlay ? { basicAction: basicAction.toString(), deviationName } : {}),
     }
 
     if (!forced && decisionsRef.current.length === 0) {
@@ -2284,6 +2294,8 @@ export function useGameLoop(
     totalCards,
     bankroll: engineRef.current?.getHumanBankroll() ?? 0,
     handNum: engineRef.current?.getCurrentHandNumber() ?? 0,
+    /** Every hand settled at this table so far, oldest first (a resumed table's included). */
+    handHistory: engineRef.current?.getHandHistory() ?? [],
     discardCount,
     initSession,
   }

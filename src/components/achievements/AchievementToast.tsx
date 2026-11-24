@@ -20,10 +20,11 @@ const TIER_CONFIG: Record<AchievementTier, { badge: string; borderColor: string;
 /**
  * Global toast notification for newly unlocked achievements.
  *
- * Slides up with a fade, auto-dismisses after four seconds, queues multiples,
- * and plays the streak sound on each. Positioning belongs to the shared toast
- * layer in `TrainerApp` — this used to place itself on exactly the same
- * coordinates as `XpToast`, and the two fire on the same event.
+ * Slides down into place with a fade, auto-dismisses after four seconds,
+ * queues multiples, and plays the streak sound on each. Positioning belongs to
+ * the shared toast layer (`ToastLayer`, under the header) — this used to place
+ * itself on exactly the same coordinates as `XpToast`, and the two fire on the
+ * same event.
  *
  * ## Why it waits for the level-up popup
  *
@@ -100,7 +101,7 @@ export function AchievementToast() {
         transition-all duration-300 ease-out
         ${visible
           ? 'opacity-100 translate-y-0'
-          : 'opacity-0 translate-y-4'
+          : 'opacity-0 -translate-y-4'
         }
       `}
     >
@@ -117,7 +118,9 @@ export function AchievementToast() {
           {t('awards.unlockedBang')}
         </p>
         <p className="text-base font-bold text-content truncate">{achievementName(current, t)}</p>
-        <p className="text-xs text-content/60 truncate">{achievementDescription(current, t)}</p>
+        {/* Two lines rather than one cut short: on a phone the toast is the
+            screen's width, and "90 %+ accuracy in Flashcards" lost its end. */}
+        <p className="text-xs text-content/60 line-clamp-2">{achievementDescription(current, t)}</p>
       </div>
 
       {/* Tier badge */}

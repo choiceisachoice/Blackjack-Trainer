@@ -358,6 +358,19 @@ describe('AchievementEngine', () => {
       expect(engine.getCurrentLevel()).toBe(5)
     })
 
+    it('reach_level counts from level 1, so a new learner has made no progress', () => {
+      // "Aufsteiger — 20 % geschafft" for a level-1 learner with 0 XP: level
+      // over target counted the level everyone starts at as progress.
+      const reachFive = ALL_ACHIEVEMENTS.find(a => a.id === 'level_5')!
+      expect(reachFive.requirement).toMatchObject({ type: 'reach_level', value: 5 })
+      expect(engine.getProgress(reachFive, makeStats(), 0, [])).toBe(0)
+
+      // Level 3 is two of the four steps from 1 to 5.
+      localStorage.setItem('bjt_level_xp', '200')
+      expect(engine.getCurrentLevel()).toBe(3)
+      expect(engine.getProgress(reachFive, makeStats(), 0, [])).toBe(50)
+    })
+
     it('total_hands checks stats.totalQuestions', () => {
       const session = makeSession()
       const stats = makeStats({ totalSessions: 1, totalQuestions: 5000 })
@@ -792,6 +805,27 @@ describe('AchievementEngine — balance-pass requirement types', () => {
     engine.checkAfterSession(makeSession({ bestStreak: 20, accuracy: 1, totalQuestions: 20, correctAnswers: 20 }), makeStats({ byMode: allModes(0.95), totalSessions: 5 }), 5, [makeSession()])
     const progress = engine.getProgress(hunter, makeStats(), 0, [])
     expect(progress).toBeGreaterThan(0)
+  })
+})
+
+/**
+ * Nothing done, nothing shown. A ring that is partly full on an award nobody
+ * has worked towards says "you are on your way" to someone who has not
+ * started — the empty awards page showed four of them, all level awards.
+ */
+describe('AchievementEngine — a learner with nothing behind them', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('has made no progress towards any award', () => {
+    const engine = new AchievementEngine()
+    const nothing = makeStats({
+      totalSessions: 0, totalQuestions: 0, totalCorrect: 0, totalPracticeSeconds: 0,
+      overallAccuracy: 0, bestStreak: 0, byMode: {}, dailyStats: [],
+    })
+    const started = ALL_ACHIEVEMENTS
+      .map(a => ({ id: a.id, progress: engine.getProgress(a, nothing, 0, []) }))
+      .filter(x => x.progress !== 0)
+    expect(started).toEqual([])
   })
 })
 

@@ -6,7 +6,8 @@ import { TrainingBackdrop } from '../training/TrainingBackdrop'
 import { Field, Segmented, Toggle, Input, Slider } from '../common/ui'
 import { useAppStore } from '../../store/app-store'
 import { casinoAmbient } from '../../services/casino-ambient'
-import { playableLimits } from './helpers'
+import { formatDollar, playableLimits } from './helpers'
+import type { Translate } from '../../i18n/translate'
 
 interface CasinoSessionConfigProps {
   initialConfig: CasinoSessionConfig
@@ -91,6 +92,27 @@ function NumberField({ value, min, max, step = 1, onChange, prefix, label }: {
       />
     </div>
   )
+}
+
+/**
+ * The chosen table in one line, for the bar beside Start: play style, length,
+ * decks, the dealer's soft-17 rule, the blackjack payout, the other players
+ * and the betting limits — "Card counting · 20 hands · 6 decks · S17 · 3:2 ·
+ * 2 other players · $25–$500".
+ */
+function setupLine(config: CasinoSessionConfig, t: Translate): string {
+  const length = config.sessionMode === 'hands' ? t('casino.setup.lineHands', { count: config.targetHands })
+    : config.sessionMode === 'time' ? t('casino.setup.lineMinutes', { count: config.targetMinutes })
+    : t('casino.setup.unlimited')
+  return [
+    config.playStyle === 'basic' ? t('casino.setup.styleBasic') : t('casino.setup.styleCounting'),
+    length,
+    t('casino.setup.lineDecks', { count: config.numDecks }),
+    config.dealerHitsSoft17 ? 'H17' : 'S17',
+    config.blackjackPays === 1.2 ? '6:5' : '3:2',
+    t('casino.setup.lineBots', { count: config.numBots }),
+    `${formatDollar(config.minBet)}–${formatDollar(config.maxBet)}`,
+  ].join(' · ')
 }
 
 /**
@@ -306,20 +328,33 @@ export function CasinoSessionConfigView({ initialConfig, onStart, notice }: Casi
           </Panel>
         </div>
 
-        {/* Start */}
-        <button
-          onClick={() => onStart(playableLimits(config))}
-          data-testid="start-session"
-          // On a phone the form is three screens long: the way to start stays
-          // in reach at the bottom instead of waiting under all of it.
-          className="lift-glow mt-8 w-full py-3.5 rounded-xl font-semibold text-black
-            max-sm:sticky max-sm:bottom-[calc(0.75rem+var(--cookie-bar,0px))] max-sm:z-20
-            bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
-            flex items-center justify-center gap-2 shadow-[0_10px_30px_-12px_var(--color-gold)]"
+        {/*
+          Start, in a bar held at the foot of the screen on every size. The
+          form is two screens tall on a 720px desktop and three on a phone, and
+          Start waited under all of it. The bar says in one line what table is
+          about to open, so the choice can be checked without scrolling back
+          up. It stands above the cookie bar while that is showing.
+        */}
+        <div
+          className="sticky bottom-[calc(0.75rem+var(--cookie-bar,0px))] z-20 mt-6
+            flex items-center gap-3 sm:gap-5 p-2.5 sm:p-3 sm:pl-5 rounded-2xl
+            bg-surface-2/90 backdrop-blur-md border border-contrast/12 shadow-[0_18px_40px_-16px_rgba(0,0,0,0.9)]"
+          data-testid="setup-action-bar"
         >
-          <Play size={18} className="fill-current" />
-          {t('casino.setup.start')}
-        </button>
+          <p className="max-sm:hidden min-w-0 flex-1 truncate text-sm text-content/70 tabular-nums" data-testid="setup-summary">
+            {setupLine(config, t)}
+          </p>
+          <button
+            onClick={() => onStart(playableLimits(config))}
+            data-testid="start-session"
+            className="lift-glow max-sm:flex-1 sm:min-w-[14rem] h-12 px-6 rounded-xl font-semibold text-on-gold shrink-0
+              bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
+              flex items-center justify-center gap-2 shadow-[0_10px_30px_-12px_var(--color-gold)]"
+          >
+            <Play size={18} className="fill-current" />
+            {t('casino.setup.start')}
+          </button>
+        </div>
       </div>
       </div>
     </div>

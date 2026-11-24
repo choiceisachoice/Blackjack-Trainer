@@ -1,5 +1,6 @@
 import { useLevelStore } from '../../store/level-store'
 import { useTranslation } from 'react-i18next'
+import { activeLocale } from '../../i18n'
 
 /**
  * Compact level badge displayed on the HomeScreen.
@@ -62,7 +63,7 @@ export function LevelBadge() {
 
       {/* Total XP (subtle) */}
       <span className="text-xs text-content/30">
-        {totalXP.toLocaleString()} XP
+        {totalXP.toLocaleString(activeLocale())} XP
       </span>
     </div>
   )

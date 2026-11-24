@@ -20,7 +20,13 @@ function mulberry32(seed) {
   }
 }
 
-const rand = mulberry32(20260924)
+const SEED = 20260924
+// Reset at the start of every `buildDemoStorage()` call. A generator made once
+// at import kept running between calls, so the second call in a process got a
+// different learner: seven casino sessions on seven days instead of one, which
+// finishes the "table" stage and paid a "+450 XP — stage complete" toast at
+// every load of every context after the first.
+let rand = mulberry32(SEED)
 const between = (lo, hi) => lo + rand() * (hi - lo)
 const pick = arr => arr[Math.floor(rand() * arr.length)]
 const id = n => `demo-${String(n).padStart(3, '0')}-0000-4000-8000-000000000000`
@@ -114,6 +120,14 @@ const ACHIEVEMENTS = [
   'first_hand', 'card_sharp', 'data_driven', 'on_fire', 'week_warrior', 'dedicated_student',
   'century', 'sharp_eye', 'quick_counter', 'count_rookie', 'deviation_student',
   'casino_first_session', 'casino_passing_grade', 'level_5', 'level_10', 'first_daily',
+  // Already earned by the history above (a 90 % Flashcards session), so the
+  // app would award it after the first round of any drill and pop its toast
+  // in the middle of a take.
+  'illustrious_18',
+  // A session after midnight. Whether the history has one depends on the hour
+  // the fixture is built (timestamps count back from now), and a take filmed
+  // late at night is one: either way it popped mid-take on some nights only.
+  'night_owl',
 ]
 
 /**
@@ -122,6 +136,7 @@ const ACHIEVEMENTS = [
  * @returns Map of key → string value, as `localStorage.setItem` wants it
  */
 export function buildDemoStorage() {
+  rand = mulberry32(SEED)
   const sessions = buildSessions()
   const unlocked = ACHIEVEMENTS.map((achievementId, i) => ({
     achievementId,

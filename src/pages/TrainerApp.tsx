@@ -17,9 +17,8 @@ import { StrategyChart } from '../components/strategy-chart/StrategyChart'
 import { CasinoSessionTracker } from '../components/training/CasinoSessionTracker'
 import { LearnPage } from '../components/learn/LearnPage'
 import { TrainingPlan } from '../components/plan/TrainingPlan'
-import { AchievementToast } from '../components/achievements/AchievementToast'
 import { LeaveSessionDialog } from '../components/navigation/LeaveSessionDialog'
-import { XpToast } from '../components/navigation/XpToast'
+import { ToastLayer } from '../components/navigation/ToastLayer'
 import { LevelUpPopup } from '../components/navigation/LevelUpPopup'
 import { ErrorBoundary } from '../components/common/ErrorBoundary'
 import { UpgradePanel } from '../components/pro/UpgradePanel'
@@ -216,20 +215,9 @@ export function TrainerApp() {
           mode you are leaving, and a boundary keyed on `currentMode` would tear
           it down at the exact moment it is needed. */}
       <LeaveSessionDialog />
-      {/* One layer for both toasts.
-
-          They used to position themselves independently, on identical
-          coordinates and the same z-index — and they fire on the same event: a
-          session ends, pays XP and unlocks an award. Whoever painted last won.
-          Stacking them here keeps each component ignorant of the other and
-          still guarantees they cannot land on top of each other. `flex-col`
-          with the XP toast first means whichever shows alone still sits exactly
-          where it always did, at the bottom edge. */}
-      <div className="fixed left-1/2 bottom-6 z-50 -translate-x-1/2
-        flex flex-col items-center gap-2.5 pointer-events-none">
-        <XpToast />
-        <AchievementToast />
-      </div>
+      {/* One layer for both toasts, under the header and clear of every
+          screen's main button (see `ToastLayer`). */}
+      <ToastLayer />
       <LevelUpPopup />
       <UpgradeModalHost />
     </div>

@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { motion, useReducedMotion } from 'framer-motion'
-import { Zap, Play, Check, X, RotateCcw, Minus, Plus } from 'lucide-react'
+import { Zap, Play } from 'lucide-react'
 import { Shoe } from '../../engine/shoe/shoe'
 import { CountingEngine } from '../../engine/counting/counting-engine'
 import { getSystemById } from '../../engine/counting/counting-systems'
+import { CountingSystemId } from '../../types'
 import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
 import { useIsPro } from '../../store/entitlement-store'
@@ -12,34 +12,18 @@ import { CURRICULUM, stageIndex, deriveStageProgress, getReadStages, claimedStag
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { Card } from '../../engine/shoe/types'
-import { cardImageUrl, preloadCardImages } from '../cards/card-suits'
-import { Suit } from '../../engine/shoe/types'
+import { preloadCardImages } from '../cards/card-suits'
 import type { SpeedDrillDetails } from '../../services/stats-types'
 import { TrainingBackdrop } from './TrainingBackdrop'
-import { ProgressBar, Input, StatCard } from '../common/ui'
+import { Panel, Segmented, Button } from '../common/ui'
+import { CARD_COUNTS, SPEED_OPTIONS, cardTags, missHint, nextStep, parseCount, quickPicks, secondsPerCard, speedBest } from './speed-drill-model'
+import { SpeedFelt, SpeedRunStage } from './SpeedFelt'
+import { SpeedCountEntry } from './SpeedCountEntry'
+import { SpeedReview } from './SpeedReview'
+import { HiLoLegend, SpeedBestBlock, SpeedBestLine, SpeedHint, SpeedNext, SpeedProgress, SpeedRoundInfo, SpeedSitting, SpeedVerdict } from './SpeedPanel'
 
 type Phase = 'settings' | 'drill' | 'input' | 'result'
 
-const CARD_COUNTS = [10, 20, 30, 52] as const
-const SPEED_OPTIONS = [
-  { labelKey: 'training.speed.slow', ms: 2000 },
-  { labelKey: 'training.speed.normal', ms: 1000 },
-  { labelKey: 'training.speed.fast', ms: 500 },
-] as const
-
-const SUIT_SYMBOL: Record<string, string> = {
-  [Suit.Hearts]: '\u2665',
-  [Suit.Diamonds]: '\u2666',
-  [Suit.Clubs]: '\u2663',
-  [Suit.Spades]: '\u2660',
-}
-
-/**
- * Speed Drill training mode.
- *
- * Flashes cards one at a time, then asks the player for the running count.
- * Tracks streaks and accuracy across attempts.
- */
 /**
  * The three Hi-Lo values, on the screen that asks you to use them.
  *
@@ -71,7 +55,7 @@ function HiLoPrimer() {
   ]
 
   return (
-    <div className="mb-6 rounded-xl border border-gold/25 bg-gold/[.04] overflow-hidden" data-testid="hilo-primer">
+    <div className="rounded-xl border border-gold/25 bg-gold/[.04] overflow-hidden" data-testid="hilo-primer">
       <button
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
@@ -103,21 +87,41 @@ function HiLoPrimer() {
   )
 }
 
+/**
+ * Speed Drill training mode.
+ *
+ * Deals cards one at a time onto the felt at a set speed, then asks for the
+ * running count. Each round ends on the cards laid out again with the true
+ * count under every one, so a wrong answer can be traced; the personal best
+ * per speed is read from the recorded sessions.
+ *
+ * ## One session, one setting
+ *
+ * The attempts of a sitting accumulate until the player steps out — back to
+ * the setup, or one notch harder with "Faster". Both end the session, because
+ * a session records one speed and one round size (`SpeedDrillDetails`), and
+ * the awards read that speed: rounds at two speeds in one record would credit
+ * the slow ones at the fast speed.
+ */
 export function SpeedDrill() {
   // The faces are fetched while the setup is on screen, so the first card of
   // a run is already there when it is shown.
   useEffect(() => { preloadCardImages() }, [])
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const selectedSystem = useAppStore(s => s.selectedSystem)
   const selectedRules = useAppStore(s => s.selectedRules)
+  const sessions = useStatsStore(s => s.sessions)
 
-  const reduced = useReducedMotion()
   const [phase, setPhase] = useState<Phase>('settings')
   const [cardCount, setCardCount] = useState(20)
   const [speedMs, setSpeedMs] = useState(1000)
 
   // Drill state
   const [cards, setCards] = useState<Card[]>([])
+  /** The running count after each card, from the engine that dealt them. */
+  const [runningAfter, setRunningAfter] = useState<number[]>([])
+  /** The running count before the first card (0 for a balanced system). */
+  const [startCount, setStartCount] = useState(0)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [correctRC, setCorrectRC] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -134,21 +138,26 @@ export function SpeedDrill() {
   const drillStartedAt = useRef(0)
   const countdownRef = useRef<HTMLDivElement | null>(null)
 
-  // Input state
-  const [userAnswer, setUserAnswer] = useState(0)
+  // Input state: the text as typed (see `SpeedCountEntry` for why not a number).
+  const [draft, setDraft] = useState('')
 
   // Result state
   const [isCorrect, setIsCorrect] = useState(false)
+  const [answer, setAnswer] = useState(0)
 
   // Session stats (persist across attempts)
   const [streak, setStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
   const [totalCorrect, setTotalCorrect] = useState(0)
   const [totalAttempts, setTotalAttempts] = useState(0)
+  /** Every round of the session: right or wrong, and the count error. */
+  const [sittingResults, setSittingResults] = useState<boolean[]>([])
+  const [sittingErrors, setSittingErrors] = useState<number[]>([])
 
   // Whether the counting system uses fractional values (Wong Halves)
   const systemConfig = getSystemById(selectedSystem)
-  const isFractional = selectedSystem === 'WongHalves'
+  const isFractional = selectedSystem === CountingSystemId.WongHalves
+  const tolerance = isFractional ? 0.5 : 0
 
   // ── Session stats persistence ──
   const rcErrorsRef = useRef<number[]>([])
@@ -166,22 +175,28 @@ export function SpeedDrill() {
     }
   }, [])
 
-  const startDrill = useCallback(() => {
+  /** Deals a round of `count` cards (the current setting unless a step up changes it in the same click). */
+  const startDrill = useCallback((count: number = cardCount) => {
     begin()
     const shoe = new Shoe({ numDecks: selectedRules.numDecks, penetration: selectedRules.penetration })
     const engine = new CountingEngine(systemConfig, selectedRules.numDecks)
+    const start = engine.getRunningCount()
 
     const dealt: Card[] = []
-    for (let i = 0; i < cardCount; i++) {
+    const after: number[] = []
+    for (let i = 0; i < count; i++) {
       const card = shoe.deal()
       dealt.push(card)
       engine.processCard(card)
+      after.push(engine.getRunningCount())
     }
 
     setCards(dealt)
+    setRunningAfter(after)
+    setStartCount(start)
     setCorrectRC(engine.getRunningCount())
     setCurrentIndex(0)
-    setUserAnswer(0)
+    setDraft('')
     setPhase('drill')
   }, [cardCount, selectedRules, systemConfig, begin])
 
@@ -247,11 +262,14 @@ export function SpeedDrill() {
   }, [phase, speedMs])
 
   const handleSubmit = useCallback(() => {
-    const tolerance = isFractional ? 0.5 : 0
-    const error = Math.abs(userAnswer - correctRC)
+    const given = parseCount(draft)
+    const error = Math.abs(given - correctRC)
     const correct = error <= tolerance
+    setAnswer(given)
     setIsCorrect(correct)
     setTotalAttempts(prev => prev + 1)
+    setSittingResults(prev => [...prev, correct])
+    setSittingErrors(prev => [...prev, error])
 
     // Track RC error for session save
     rcErrorsRef.current.push(error)
@@ -277,7 +295,31 @@ export function SpeedDrill() {
     }
 
     setPhase('result')
-  }, [userAnswer, correctRC, isFractional, totalAttempts, totalCorrect, bestStreak, streak, statsRef])
+  }, [draft, correctRC, tolerance, totalAttempts, totalCorrect, bestStreak, streak, statsRef])
+
+  /**
+   * The session boundary: record what was played and clear the totals.
+   *
+   * The totals belong to the session that just ended. They used to carry
+   * over: three shoes, back, one shoe, back, one shoe, back recorded 3/3,
+   * then 4/4, then 5/5 — three "sessions" from five shoes, a curriculum
+   * stage closed and its XP paid on work that was counted three times.
+   *
+   * The stats ref is cleared too: a session below the three-round minimum is
+   * not recorded, and its figures must not be the start of the next one.
+   */
+  const closeSession = useCallback(() => {
+    stopTimer()
+    finish()
+    statsRef.current = { totalQuestions: 0, correctAnswers: 0, bestStreak: 0 }
+    setTotalAttempts(0)
+    setTotalCorrect(0)
+    setStreak(0)
+    setBestStreak(0)
+    setSittingResults([])
+    setSittingErrors([])
+    rcErrorsRef.current = []
+  }, [stopTimer, finish, statsRef])
 
   /**
    * Leaving the drill ends the session.
@@ -287,315 +329,225 @@ export function SpeedDrill() {
    * That step is the session boundary, and it is where the payout belongs.
    */
   const endSession = useCallback(() => {
-    stopTimer()
-    finish()
-    // The totals belong to the session that just ended. They used to carry
-    // over: three shoes, back, one shoe, back, one shoe, back recorded 3/3,
-    // then 4/4, then 5/5 — three "sessions" from five shoes, a curriculum
-    // stage closed and its XP paid on work that was counted three times.
-    setTotalAttempts(0)
-    setTotalCorrect(0)
-    setStreak(0)
-    setBestStreak(0)
-    rcErrorsRef.current = []
+    closeSession()
     setPhase('settings')
-  }, [stopTimer, finish])
+  }, [closeSession])
   const handleAbort = endSession
 
-  // Keyboard: Enter submits in input phase, Escape aborts drill
+  const step = nextStep(speedMs, cardCount, isCorrect)
+  /** The step after a round: a new session at the next speed (either way), or with more cards at the fastest. */
+  const stepUp = useCallback(() => {
+    if (!step) return
+    closeSession()
+    if (step.kind === 'faster' || step.kind === 'slower') {
+      setSpeedMs(step.speedMs)
+      startDrill()
+    } else {
+      setCardCount(step.cards)
+      startDrill(step.cards)
+    }
+  }, [step, closeSession, startDrill])
+
+  // Keyboard: Escape stops a running round; Enter answers, and on the result
+  // starts the next round.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (phase === 'drill') handleAbort()
         return
       }
-      if (phase === 'input' && e.key === 'Enter') {
+      if (e.key !== 'Enter' || e.repeat) return
+      if (phase === 'input') {
+        // From the field, a chip or a step button alike: the press answers
+        // with what is in the field, and does not also press the button.
+        e.preventDefault()
         handleSubmit()
+      } else if (phase === 'result') {
+        // A focused button presses itself on Enter; a second action from
+        // here would start a round on top of it.
+        if (e.target instanceof Element && e.target.closest('button')) return
+        e.preventDefault()
+        startDrill()
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [phase, handleSubmit, handleAbort])
+  }, [phase, handleSubmit, handleAbort, startDrill])
+
+  // ── The personal best at this speed ──
+  // Recorded sessions plus this session's rounds, which are recorded only when
+  // it ends. `before` leaves out the round just answered, to tell a new best.
+  const best = useMemo(
+    () => speedBest(sessions, speedMs, { cards: cardCount, errors: sittingErrors }, tolerance),
+    [sessions, speedMs, cardCount, sittingErrors, tolerance],
+  )
+  const bestBefore = useMemo(
+    () => speedBest(sessions, speedMs, { cards: cardCount, errors: sittingErrors.slice(0, -1) }, tolerance),
+    [sessions, speedMs, cardCount, sittingErrors, tolerance],
+  )
 
   // ── Settings Phase ──
   if (phase === 'settings') {
+    const setupBest = best
     return (
-      <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
+      // Centred while it fits, scrolled from the top when it does not (a phone
+      // held sideways): `safe` centring never pushes the title off the top.
+      <div className="relative isolate overflow-x-hidden overflow-y-auto flex-1 min-h-0 flex flex-col items-center justify-center-safe px-4 py-4">
         <TrainingBackdrop mode="speedDrill" showRails />
-        <div className="surface w-full max-w-xl p-7 md:p-8">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-7">
-            <span className="grid place-items-center w-11 h-11 rounded-xl text-gold bg-gold/10 border border-gold/20">
-              <Zap size={22} />
-            </span>
-            <div>
-              <h2 className="text-xl font-bold text-content">{t('training.speed.title')}</h2>
-              <p className="text-sm text-content/50">{t('training.speed.sub')}</p>
-            </div>
-          </div>
-
+        <Panel icon={Zap} title={t('training.speed.title')} subtitle={t('training.speed.sub')} className="w-full max-w-xl">
           <HiLoPrimer />
 
           {/* Card count */}
-          <div className="mb-5">
+          <div>
             <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.speed.numberOfCards')}</span>
-            <div className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
-              {CARD_COUNTS.map(n => (
-                <button
-                  key={n}
-                  onClick={() => setCardCount(n)}
-                  aria-pressed={cardCount === n}
-                  className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer
-                    ${cardCount === n ? 'bg-gold text-on-gold shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              fluid
+              ariaLabel={t('training.speed.numberOfCards')}
+              value={cardCount}
+              onChange={setCardCount}
+              options={CARD_COUNTS.map(n => ({ label: String(n), value: n }))}
+            />
           </div>
 
           {/* Speed */}
-          <div className="mb-7">
+          <div>
             <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.speed.speed')}</span>
-            <div className="inline-flex w-full p-0.5 rounded-lg bg-contrast/5 border border-contrast/10">
-              {SPEED_OPTIONS.map(s => (
-                <button
-                  key={s.labelKey}
-                  onClick={() => setSpeedMs(s.ms)}
-                  aria-pressed={speedMs === s.ms}
-                  className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all cursor-pointer
-                    ${speedMs === s.ms ? 'bg-gold text-on-gold shadow-[0_2px_10px_-4px_var(--color-gold)]' : 'text-content/60 hover:text-content'}`}
-                >
-                  {t(s.labelKey)}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              fluid
+              ariaLabel={t('training.speed.speed')}
+              value={speedMs}
+              onChange={setSpeedMs}
+              options={SPEED_OPTIONS.map(s => ({ label: t(s.labelKey), value: s.ms }))}
+            />
+            <p className="text-xs text-content/45 mt-2" data-testid="speed-help">
+              {t('training.speed.speedHelp', { s: secondsPerCard(speedMs, i18n.language) })}
+              <span className="block">
+                {setupBest.bestCards === null
+                  ? t('training.speed.bestNone')
+                  : t('training.speed.bestOnSetup', { n: setupBest.bestCards })}
+              </span>
+            </p>
           </div>
 
-          <button
-            onClick={startDrill}
-            data-testid="start-drill"
-            className="lift-glow w-full py-3 rounded-xl font-semibold text-black flex items-center justify-center gap-2
-              bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
-              shadow-[0_10px_30px_-12px_var(--color-gold)]"
-          >
-            <Play size={18} className="fill-current" />
+          <Button size="lg" className="w-full mt-1" onClick={() => startDrill()} data-testid="start-drill">
+            <Play size={18} className="fill-current" aria-hidden />
             {t('training.speed.start')}
-          </button>
-        </div>
+          </Button>
+        </Panel>
       </div>
     )
   }
 
-  // ── Drill Phase ──
-  if (phase === 'drill') {
-    const card = cards[currentIndex]
-    const isRed = card.suit === Suit.Hearts || card.suit === Suit.Diamonds
-    const progress = ((currentIndex + 1) / cards.length) * 100
+  const answered = phase === 'result'
+  const hint = answered
+    ? missHint({ runningAfter, startCount, answer, tolerance, hiLo: selectedSystem === CountingSystemId.HiLo })
+    : null
+  const tags = answered ? cardTags(runningAfter, startCount) : []
+  const isNewBest = answered && isCorrect && (bestBefore.bestCards ?? 0) < cardCount
 
-    return (
-      // Neutral ground, not felt green: this is a counting drill, not a table.
-      // The felt belongs to the Casino Session, where it means something.
-      //
-      // `short:` is a phone held sideways (390px tall), where the 350px card
-      // ran from y 164 to 514 and Stop sat at 571. There the card is fitted to
-      // the height and stands left; progress, countdown and Stop stack beside
-      // it, and the back bar gives up its row (`data-drill-run`).
-      <div
-        data-drill-run
-        className="app-canvas flex-1 flex flex-col items-center justify-center gap-6 px-4
-          short:grid short:grid-cols-[auto_minmax(0,22rem)] short:content-center short:justify-center short:gap-x-10 short:gap-y-4"
-      >
-        {/* Progress */}
-        <div className="w-full max-w-sm short:col-start-2 short:row-start-1">
-          <div className="flex justify-between text-xs text-content/50 mb-1">
-            <span>{t('training.speed.cardProgress', { n: currentIndex + 1, total: cards.length })}</span>
-            <span>{Math.round(progress)}%</span>
-          </div>
-          <ProgressBar height={6} value={progress} active />
-        </div>
-
-        {/*
-          Card Display
-
-          The card is the drill: the whole task is to read a rank before it goes
-          away. So its arrival may decorate that, never gate it.
-
-          Two things were wrong here and both had the same consequence. It
-          entered from `opacity: 0`, so a frozen animation — a backgrounded tab
-          restored, a stalled frame loop, a device under load — left it
-          invisible while the timer kept counting down. And `AnimatePresence
-          mode="wait"` made the next card's *arrival* conditional on the
-          previous card's exit reporting completion, which is the same
-          dependency inversion that once left a black panel over the whole app.
-
-          Now: no exit, no presence wrapper, and the entrance moves on transform
-          alone. Scale degrades to "slightly small and perfectly readable"; the
-          old opacity degraded to "gone".
-        */}
-        <div className="contents short:block short:col-start-1 short:row-start-1 short:row-span-3">
-        <motion.div
-          key={currentIndex}
-          initial={reduced ? false : { scale: 0.94 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.1 }}
-          className={`relative w-[250px] h-[350px] short:h-[calc(100dvh-7rem)] short:w-[calc((100dvh-7rem)*5/7)]
-            short:max-h-[350px] short:max-w-[250px] rounded-2xl bg-white border-2 border-gray-300
-            shadow-2xl flex flex-col justify-between p-4 overflow-hidden ${isRed ? 'text-red-600' : 'text-gray-900'}`}
-          data-testid="drill-card"
-        >
-          {/* The standard card, on top of the drawn one. The drawn card stays
-              underneath on purpose: if an image is late or fails, the rank is
-              still there to be read — the drill never waits for a picture. */}
-          <img
-            src={cardImageUrl(card.rank, card.suit)}
-            alt=""
-            aria-hidden
-            draggable={false}
-            className="absolute inset-0 w-full h-full select-none"
-          />
-          <div className="flex flex-col leading-none">
-            <span className="text-4xl font-bold">{card.rank}</span>
-            <span className="text-3xl">{SUIT_SYMBOL[card.suit]}</span>
-          </div>
-          <div className="flex items-center justify-center">
-            <span className="text-7xl opacity-20">{SUIT_SYMBOL[card.suit]}</span>
-          </div>
-          <div className="flex flex-col items-end leading-none rotate-180">
-            <span className="text-4xl font-bold">{card.rank}</span>
-            <span className="text-3xl">{SUIT_SYMBOL[card.suit]}</span>
-          </div>
-        </motion.div>
-        </div>
-
-        {/* Countdown bar. Position is written by the frame loop above. */}
-        <div className="w-[250px] h-1 bg-contrast/10 rounded-full overflow-hidden short:w-full short:col-start-2 short:row-start-2">
-          <div
-            ref={countdownRef}
-            data-testid="drill-countdown"
-            className="h-full w-full bg-gold/70 rounded-full origin-left"
-            // `scaleX`, not `width`: width forces layout on every frame, and this
-            // one runs continuously for the length of the drill.
-            style={{ transform: 'scaleX(1)', willChange: 'transform' }}
-          />
-        </div>
-
-        <button
-          onClick={handleAbort}
-          className="inline-flex items-center justify-center min-h-10 px-4 text-sm text-content/40 hover:text-content/70 transition-colors cursor-pointer
-            short:col-start-2 short:row-start-3 short:justify-self-center"
-        >
-          {t('training.speed.stopEsc')}
-        </button>
-      </div>
-    )
-  }
-
-  // ── Input Phase ──
-  if (phase === 'input') {
-    return (
-      <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-4">
-        <h2 className="text-xl font-bold text-content">{t('training.speed.question')}</h2>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setUserAnswer(prev => prev - 1)}
-            aria-label={t('training.speed.decrease')}
-            className="grid place-items-center w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20
-              text-content transition-colors cursor-pointer"
-          >
-            <Minus size={22} />
-          </button>
-          <Input
-            type="number"
-            value={userAnswer}
-            onChange={(e) => setUserAnswer(Number(e.target.value) || 0)}
-            inputMode="numeric" data-testid="count-input"
-            className="w-24 h-16 text-center text-3xl font-bold bg-contrast/10 border border-contrast/20
-              rounded-xl text-content focus:border-gold/60
-              [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          />
-          <button
-            onClick={() => setUserAnswer(prev => prev + 1)}
-            aria-label={t('training.speed.increase')}
-            className="grid place-items-center w-14 h-14 rounded-full bg-contrast/10 hover:bg-contrast/20
-              text-content transition-colors cursor-pointer"
-          >
-            <Plus size={22} />
-          </button>
-        </div>
-
-        {isFractional && (
-          <p className="text-xs text-content/40">{t('training.speed.wongHalves')}</p>
-        )}
-
-        <button
-          onClick={handleSubmit}
-          data-testid="submit-answer"
-          className="lift-glow px-8 py-3 rounded-xl font-semibold text-black
-            bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
-            shadow-[0_10px_30px_-12px_var(--color-gold)]"
-        >
-          {t('training.speed.submit')}
-        </button>
-      </div>
-    )
-  }
-
-  // ── Result Phase ──
-  const formatCount = (n: number) => (n >= 0 ? `+${n}` : `${n}`)
-  const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
+  // One grid, three shapes, as in Flashcards. Wide (lg): the felt left, the
+  // panel right. A phone: a strip above the felt (and, answered, the verdict
+  // above and the pointer and the way on below). A phone held sideways
+  // (`short`): the felt left, the rest beside it. The panel is `display:
+  // contents` below lg, so its parts are placed by area name and each is
+  // drawn once at every size.
+  const areas = answered
+    ? `grid-rows-[auto_minmax(0,1fr)_auto_auto_auto] [grid-template-areas:'verdict'_'felt'_'hint'_'best'_'next']
+       max-lg:short:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] max-lg:short:grid-rows-[auto_auto_auto_minmax(0,1fr)]
+       max-lg:short:[grid-template-areas:'felt_verdict'_'felt_hint'_'felt_best'_'felt_next']`
+    : `grid-rows-[auto_minmax(0,1fr)] [grid-template-areas:'prog'_'felt']
+       max-lg:short:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] max-lg:short:grid-rows-[auto_auto_minmax(0,1fr)]
+       max-lg:short:[grid-template-areas:'felt_prog'_'felt_info'_'felt_best']`
 
   return (
-    // Sideways phone: the verdict left, the figures and the two ways on right.
-    // This screen has its own way back, so the back bar's row goes to it too.
-    <div data-drill-run className="flex-1 flex flex-col items-center justify-center px-4">
-      <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6 short:max-w-3xl short:flex-row short:p-4">
-        {/* Result banner */}
-        <div className="flex flex-col items-center text-center gap-3 short:flex-1">
-          <span className={`grid place-items-center w-16 h-16 rounded-full border
-            ${isCorrect ? 'text-success bg-success/10 border-success/30' : 'text-error bg-error/10 border-error/30'}`}>
-            {isCorrect ? <Check size={32} /> : <X size={32} />}
-          </span>
-          <h2 className={`text-xl font-bold ${isCorrect ? 'text-success' : 'text-error'}`}>
-            {isCorrect
-              ? t('training.speed.correctRc', { rc: formatCount(correctRC) })
-              : t('training.speed.wrongRc', { rc: formatCount(correctRC) })}
-          </h2>
-          {!isCorrect && (
-            <p className="text-sm text-content/50">{t('training.speed.youSaid', { value: formatCount(userAnswer) })}</p>
+    // `data-drill-run`: on a phone held sideways the back bar gives its row to
+    // the round (see `BackToMenu`).
+    <div
+      data-drill-run
+      className="flex-1 min-h-0 flex flex-col px-3 sm:px-5 lg:px-8 pt-3 lg:pt-4 short:pt-2
+        pb-[calc(0.75rem+var(--cookie-bar,0px))] lg:pb-[calc(1.5rem+var(--cookie-bar,0px))] short:pb-[calc(0.5rem+var(--cookie-bar,0px))]"
+    >
+      <div
+        className={`mx-auto w-full max-w-[96rem] flex-1 min-h-0 grid gap-3 sm:gap-4 ${areas}
+          max-lg:short:gap-x-4 max-lg:short:gap-y-3
+          lg:grid-cols-[minmax(0,1fr)_clamp(20rem,26vw,26rem)] lg:grid-rows-[minmax(0,1fr)]
+          lg:[grid-template-areas:'felt_panel'] lg:gap-x-6`}
+      >
+        <section className="[grid-area:felt] min-h-0 min-w-0">
+          <SpeedFelt verdict={answered ? isCorrect : null}>
+            {phase === 'drill' && cards[currentIndex] && (
+              <SpeedRunStage card={cards[currentIndex]} index={currentIndex} countdownRef={countdownRef} />
+            )}
+            {phase === 'input' && (
+              <div className="relative flex-1 min-h-0">
+                <SpeedCountEntry
+                  draft={draft}
+                  onDraft={setDraft}
+                  onSubmit={handleSubmit}
+                  picks={quickPicks(cards.length, startCount)}
+                  fractional={isFractional}
+                />
+              </div>
+            )}
+            {answered && <SpeedReview cards={cards} runningAfter={runningAfter} marked={hint?.marked} />}
+          </SpeedFelt>
+        </section>
+
+        <aside className="contents lg:[grid-area:panel] lg:flex lg:flex-col lg:min-h-0 lg:gap-5 [@media(max-height:820px)]:lg:gap-3 lg:overflow-hidden surface lg:p-5 xl:p-6 [@media(max-height:820px)]:lg:py-4">
+          {!answered ? (
+            <>
+              <SpeedProgress
+                index={currentIndex}
+                total={cards.length}
+                done={phase === 'input'}
+                onStop={phase === 'drill' ? handleAbort : undefined}
+                className="[grid-area:prog] shrink-0 max-lg:px-1"
+              />
+              <SpeedRoundInfo speedMs={speedMs} cards={cards.length} className="[grid-area:info] shrink-0 hidden lg:block max-lg:short:block" />
+              <SpeedBestBlock best={best} speedMs={speedMs} className="[grid-area:best] shrink-0 hidden lg:block max-lg:short:block" />
+              {/* The session so far — empty before its first round says
+                  where it will show — in the room the round does not need. */}
+              <SpeedSitting results={sittingResults} streak={streak} bestStreak={bestStreak} className="shrink-0 hidden lg:block" />
+              {/* The rule at the foot of the panel in both phases, so the
+                  panel stays put when the cards end; only Stop leaves. */}
+              <div className="hidden lg:flex flex-col gap-4 mt-auto">
+                <HiLoLegend />
+                {phase === 'drill' && (
+                  <button
+                    type="button"
+                    onClick={handleAbort}
+                    data-testid="stop-drill"
+                    className="w-full min-h-10 rounded-xl text-sm text-content/55 hover:text-content border border-contrast/12 hover:border-contrast/25 transition-colors duration-150 cursor-pointer"
+                  >
+                    {t('training.speed.stopEsc')}
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <SpeedVerdict correct={isCorrect} count={correctRC} answer={answer} results={sittingResults} isNewBest={isNewBest} className="[grid-area:verdict] shrink-0 max-lg:px-1" />
+              {hint && (
+                <SpeedHint
+                  hint={hint}
+                  lastCard={cards[cards.length - 1] ?? null}
+                  lastTag={tags[tags.length - 1] ?? 0}
+                  className="[grid-area:hint] shrink-0 max-lg:px-1 max-lg:short:text-xs max-lg:short:leading-snug"
+                />
+              )}
+              <SpeedBestBlock best={best} speedMs={speedMs} isNew={isNewBest} className="shrink-0 hidden lg:block" />
+              <SpeedBestLine best={best} speedMs={speedMs} className="[grid-area:best] shrink-0 px-1 -mt-1 lg:hidden" />
+              <SpeedSitting results={sittingResults} streak={streak} bestStreak={bestStreak} className="shrink-0 hidden lg:block" />
+              <SpeedNext
+                onAgain={() => startDrill()}
+                step={step}
+                onStep={stepUp}
+                onSettings={endSession}
+                className="[grid-area:next] shrink-0 lg:mt-auto max-lg:short:self-end"
+              />
+            </>
           )}
-        </div>
-
-        <div className="contents short:flex short:flex-1 short:flex-col short:gap-3">
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 w-full text-center">
-          <StatCard label={t('training.common.streak')} value={streak} />
-          <StatCard label={t('training.common.bestStreak')} value={bestStreak} accent />
-          <StatCard label={t('training.common.accuracy')} value={`${totalCorrect}/${totalAttempts} (${accuracy}%)`} className="col-span-2" />
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-3 w-full">
-          <button
-            onClick={startDrill}
-            data-testid="try-again"
-            className="lift-glow flex-1 py-3 rounded-xl font-semibold text-black flex items-center justify-center gap-2
-              bg-gradient-to-b from-gold-bright to-gold border border-gold/50 cursor-pointer
-              shadow-[0_10px_30px_-12px_var(--color-gold)]"
-          >
-            <RotateCcw size={17} />
-            {t('training.common.tryAgain')}
-          </button>
-          <button
-            onClick={endSession}
-            className="flex-1 py-3 rounded-xl bg-contrast/10 text-content font-medium
-              hover:bg-contrast/15 transition-colors cursor-pointer"
-          >
-            {t('training.common.backToMenu')}
-          </button>
-        </div>
-        </div>
+        </aside>
       </div>
     </div>
   )

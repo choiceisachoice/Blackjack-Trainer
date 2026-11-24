@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, within } from '@testing-library/react'
 import { DashboardHeader } from './DashboardHeader'
 import { useAppStore } from '../../store/app-store'
 import { useStatsStore } from '../../store/stats-store'
@@ -51,21 +51,55 @@ afterEach(() => {
 })
 
 describe('DashboardHeader — first run', () => {
-  it('greets a new user without a wall of zeros', () => {
+  /*
+    The greeting moved to the home screen's heading row (HomeScreen.test pins
+    "Welcome" / "Welcome back"); this card is the rail's "how am I doing".
+
+    "No invented figures" still holds, in the form the owner asked for on
+    24 Nov 2026: an empty learner sees a preview of what will appear, and every
+    sample figure sits inside a block labelled as an example and hidden from
+    assistive tech — none is presented as the learner's own.
+  */
+  it('shows a new user a labelled example instead of a wall of zeros', () => {
     useStatsStore.setState({ lifetimeStats: { ...STATS, totalSessions: 0 } })
     render(<DashboardHeader />)
 
-    expect(screen.getByText('Welcome')).toBeInTheDocument()
-    expect(screen.queryByText('Welcome back')).not.toBeInTheDocument()
-    // No invented figures before there is anything to report.
-    expect(screen.queryByText(/\d+% accuracy/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/-day streak/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/Awards/)).not.toBeInTheDocument()
-    // And no paragraph in their place. "Nothing tracked yet — play a session"
+    const example = screen.getByTestId('stats-example')
+    expect(within(example).getByTestId('example-tag')).toHaveTextContent('Example')
+    expect(example).toHaveTextContent('Your own figures after your first session')
+    // Every figure on the card is the example's — nothing outside it.
+    for (const pattern of [/\d+% accuracy/, /-day streak/, /Awards/]) {
+      const hits = screen.queryAllByText(pattern)
+      expect(hits.length, String(pattern)).toBeGreaterThan(0)
+      hits.forEach(el => expect(example.contains(el), String(pattern)).toBe(true))
+    }
+    // ...and the sample figures are not read out as the learner's.
+    expect(example.querySelector('[aria-hidden="true"]')).toHaveTextContent(/\d+% accuracy/)
+    // No paragraph in their place. "Nothing tracked yet — play a session"
     // sat directly above the plan's own start button and said the same thing
-    // less precisely; with no history the card is the level and nothing else.
+    // less precisely.
     expect(screen.queryByText(/Nothing tracked yet/)).not.toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
+  })
+
+  it('never shows the example to someone with sessions on record', () => {
+    useStatsStore.setState({ lifetimeStats: STATS, sessions: [session('speedDrill')] })
+    render(<DashboardHeader />)
+    expect(screen.queryByTestId('stats-example')).toBeNull()
+    expect(screen.queryByTestId('example-tag')).toBeNull()
+  })
+
+  it('shows the level, its title and the XP to the next level', () => {
+    useStatsStore.setState({ lifetimeStats: { ...STATS, totalSessions: 0 } })
+    render(<DashboardHeader />)
+    expect(screen.getByTestId('level-ring')).toHaveTextContent('1')
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('Rookie')
+    expect(screen.getByText(/XP to Beginner/)).toBeInTheDocument()
+  })
+
+  it('draws the week it is handed under the figures', () => {
+    render(<DashboardHeader week={<div data-testid="week-slot" />} />)
+    expect(within(screen.getByTestId('progress-card')).getByTestId('week-slot')).toBeInTheDocument()
   })
 
   /**
@@ -96,9 +130,8 @@ describe('DashboardHeader — returning user', () => {
     useStatsStore.setState({ lifetimeStats: STATS, sessions: [session('speedDrill')] })
   })
 
-  it('welcomes them back and reports only derived figures', () => {
+  it('reports only derived figures', () => {
     render(<DashboardHeader />)
-    expect(screen.getByText('Welcome back')).toBeInTheDocument()
     // overallAccuracy is a 0..1 fraction — it must render as a percentage.
     expect(screen.getByText('87% accuracy')).toBeInTheDocument()
     expect(screen.getByText('2h 5m')).toBeInTheDocument()
@@ -165,5 +198,23 @@ describe('DashboardHeader — hydration', () => {
     useStatsStore.setState({ lifetimeStats: STATS, loadStats })
     render(<DashboardHeader />)
     expect(loadStats).not.toHaveBeenCalled()
+  })
+})
+
+describe('DashboardHeader — labels that cannot contradict', () => {
+  it('names no tier above the title, where it collided with the level names', () => {
+    useStatsStore.setState({ lifetimeStats: { ...STATS, totalSessions: 0 } })
+    render(<DashboardHeader />)
+    // Level 1's tier is "Beginner", and so is level 2's name: "Beginner" over
+    // "XP to Beginner" read as a contradiction.
+    expect(screen.getByTestId('progress-card')).not.toHaveTextContent(/^Beginner/)
+    expect(screen.getAllByText(/Beginner/)).toHaveLength(1)
+  })
+
+  it('says what the practice time is', () => {
+    useStatsStore.setState({ lifetimeStats: STATS, sessions: [session('speedDrill')] })
+    render(<DashboardHeader />)
+    const time = screen.getByText('2h 5m')
+    expect(time.parentElement).toHaveTextContent('2h 5m trained')
   })
 })

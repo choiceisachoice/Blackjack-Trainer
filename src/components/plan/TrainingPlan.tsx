@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { usePlanState, useAwaitingAccount } from '../../hooks/use-plan-state'
 import { buildDayPlan, deriveWeek, weeksToGoal } from '../../services/daily-plan'
 import { todayKey } from '../../services/date-utils'
-import { TimeBudgetPicker, TimeQuestion, TodayBlocks, PathStrip, HowItWorks } from './PlanToday'
+import { TimeBudgetPicker, TimeQuestion, TodayBlocks, TodayStart, WeekSummary, PathStrip, HowItWorks } from './PlanToday'
+import { ExampleTag } from '../common/ExampleTag'
 import { Trans, useTranslation } from 'react-i18next'
 import { Check, Lock, BookOpen, Play, Route, RotateCcw, Zap, ChevronRight, Flag, CalendarClock, Pencil, X, TrendingUp, ClipboardList, Timer } from 'lucide-react'
 import { Sparkline } from '../analytics/AnalyticsCharts'
@@ -62,6 +63,14 @@ import { ProgressBar } from '../common/ui'
  */
 const FALLBACK_PROFILE: LearnerProfile = profileForLevel()
 
+/** What the plan hands to the home screen's rail. */
+export interface PlanRailParts {
+  /** This week's training days, the run of kept weeks and the seven dots. */
+  week: ReactNode
+  /** The road, standing up: every stage, the current one marked. */
+  path: ReactNode
+}
+
 /**
  * The training plan: one ordered path, entered at the stage the placement test
  * put you at, with progress measured from real sessions.
@@ -75,6 +84,7 @@ export function TrainingPlan({
   before,
   after,
   onTour,
+  rail,
 }: {
   /**
    * Rendered inside a page that already owns the scroll and the page title.
@@ -93,6 +103,16 @@ export function TrainingPlan({
   after?: ReactNode
   /** Starts the guided tour, where the page embedding the plan has one. */
   onTour?: () => void
+  /**
+   * The home screen's side column, composed by the page from parts only the
+   * plan can draw. Given, the embedded plan lays itself out in two columns
+   * from 1280px — the plan and `after` on the left, this on the right — and
+   * stacks it between the two on anything narrower.
+   *
+   * A render prop rather than a slot because the week and the road are
+   * derived here; the page decides where they sit among its own cards.
+   */
+  rail?: (parts: PlanRailParts) => ReactNode
 }) {
   const { t } = useTranslation()
   const setMode = useAppStore(s => s.setMode)
@@ -285,400 +305,519 @@ export function TrainingPlan({
   }
   const updateBudget = (b: TimeBudget) => updateProfile({ ...b, commitment: commitmentFor(b) })
 
-  return (
-    <div
-      className={
-        embedded
-          // Centring lives here rather than in the slot content. The slots are
-          // handed `max-w-*` blocks, and a max-width inside a plain full-width
-          // parent is left-aligned, not centred — so the title and the
-          // recommendation sat hard left while the plan below them (which has
-          // its own `mx-auto`) was centred. Making the wrapper a centring
-          // column fixes every slot at once instead of one component at a time.
-          ? 'w-full flex flex-col items-center'
-          : 'app-canvas flex-1 overflow-y-auto p-4 md:p-6'
-      }
-      data-testid="training-plan"
-    >
-      {before}
-      {embedded && !plan.recommendationDone && sessions.length === 0 && (
-        <HowItWorks
-          onDismiss={() => setRecommendationDone()}
-          onTour={onTour && (() => { setRecommendationDone(); onTour() })}
-        />
+  const stageNumber = active ? stageIndex(active.stage.id) + 1 : 0
+  // On the home screen the week is drawn in the rail beside the level, so the
+  // card leaves it out rather than showing it twice on one screen.
+  const railMode = embedded && rail != null
+
+  /** Goal and time, one line each, both opening the settings. */
+  const goalChips = (
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        onClick={() => setEditing(v => !v)}
+        data-testid="plan-goal"
+        aria-expanded={editing}
+        className="group inline-flex items-center gap-2 rounded-lg border border-contrast/10 bg-contrast/[.03]
+          px-3 py-1.5 text-left cursor-pointer hover:border-gold/35 transition-colors duration-100"
+      >
+        <Flag size={13} className="shrink-0 text-gold/80" />
+        <span className="text-[0.625rem] font-bold tracking-[0.14em] uppercase text-content/40">{t('plan.yourGoal')}</span>
+        <span className="text-sm font-semibold">{t(CURRICULUM[goalIndex].titleKey)}</span>
+        <Pencil size={11} className="shrink-0 text-content/30 group-hover:text-gold transition-colors duration-100" />
+      </button>
+      <button
+        onClick={() => setEditing(v => !v)}
+        data-testid="plan-pace"
+        aria-expanded={editing}
+        className="group inline-flex items-center gap-2 rounded-lg border border-contrast/10 bg-contrast/[.03]
+          px-3 py-1.5 text-left cursor-pointer hover:border-gold/35 transition-colors duration-100"
+      >
+        <Timer size={13} className="shrink-0 text-gold/80" />
+        <span className="text-[0.625rem] font-bold tracking-[0.14em] uppercase text-content/40">{t('plan.time.label')}</span>
+        <span className="text-sm font-semibold tabular-nums">
+          {t('plan.time.value', { count: budget.daysPerWeek, minutes: budget.minutesPerDay })}
+        </span>
+        <Pencil size={11} className="shrink-0 text-content/30 group-hover:text-gold transition-colors duration-100" />
+      </button>
+    </div>
+  )
+
+  /** "5 of 7 stages complete · About 2 weeks to your goal" — one line. */
+  const standingLine = (
+    <p className="text-sm text-content/55">
+      {t('plan.stagesComplete', { done: doneCount, count: totalCount })}
+      {weeksLeft > 0 && (
+        <span className="text-content/40" data-testid="plan-forecast"> · {t('plan.forecast', { count: weeksLeft })}</span>
       )}
-      <div className={embedded ? 'w-full max-w-3xl mx-auto' : 'max-w-3xl mx-auto py-6'}>
-        <header className={embedded ? 'flex flex-wrap items-end justify-between gap-x-6 gap-y-3' : 'text-center'}>
-          {/* Embedded, the page already carries the product name and a greeting —
-              a second big title stacked on the first is the clutter this move
-              was supposed to remove. */}
+    </p>
+  )
+
+  const takeTest = !placed && (
+    <button
+      onClick={retake}
+      data-testid="plan-take-test"
+      className="mt-5 w-full text-left rounded-2xl border border-gold/35 p-4 md:p-5
+        bg-[linear-gradient(180deg,var(--color-warm-wash),var(--color-surface))]
+        hover:border-gold/55 cursor-pointer transition-colors"
+    >
+      <div className="flex items-center gap-3.5">
+        <span className="grid place-items-center w-9 h-9 rounded-lg shrink-0 text-gold bg-gold/10 border border-gold/25">
+          <ClipboardList size={17} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold">{t('plan.findStart')}</div>
+          <div className="mt-0.5 text-sm text-content/50 leading-snug">
+            {t('plan.findStartSub')}
+          </div>
+        </div>
+        <ChevronRight size={16} className="shrink-0 text-content/30" />
+      </div>
+    </button>
+  )
+
+  const settings = editing && (
+    <PlanSettings
+      profile={profile ?? FALLBACK_PROFILE}
+      isPro={isPro}
+      budget={budget}
+      onBudget={updateBudget}
+      onChange={updateProfile}
+      onClose={() => setEditing(false)}
+    />
+  )
+
+  /* Time passed. A plan notices; a to-do list does not. */
+  const rhythmNotice = rhythmText && (
+    <div
+      className={`mt-5 rounded-2xl p-4 md:p-5 border ${
+        rhythm.kind === 'rusty' ? 'border-gold/35 bg-gold/[.05]' : 'border-contrast/12'
+      }`}
+      data-testid="plan-rhythm"
+    >
+      <div className="flex items-start gap-3.5">
+        <span className="grid place-items-center w-9 h-9 rounded-lg shrink-0 text-gold bg-gold/10 border border-gold/20">
+          <CalendarClock size={17} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-content/70 leading-relaxed max-w-[58ch] text-left">
+            {rhythmText}
+          </p>
+          {refresh && !refresh.locked && refresh.stage.drill && (
+            <button
+              onClick={() => setMode(refresh.stage.drill!.mode)}
+              data-testid="plan-warm-up"
+              className="mt-3.5 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
+                border border-gold/40 text-gold hover:bg-gold/10 cursor-pointer transition-colors"
+            >
+              <RotateCcw size={15} />
+              {t('plan.warmUp', { stage: t(refresh.stage.titleKey) })}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+
+  /*
+    Up next — the single most important thing on this screen.
+
+    Two columns once the card is wide enough (a container query, so it answers
+    to the card's own width on the home screen and on the plan page alike):
+    the stage and its start button on the left, the day's blocks on the right.
+    Narrow, the same order stacks — and the start button still comes before
+    the list, so on a phone it is on the first screen.
+  */
+  const upNext = active ? (
+    <div
+      className="@container mt-5 rounded-2xl border border-gold/40 p-5 md:p-6
+        bg-[linear-gradient(180deg,var(--color-warm-wash),var(--color-surface))]"
+      data-testid="plan-up-next"
+    >
+      <div className="grid gap-x-8 gap-y-5 @2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)]">
+        <div className="min-w-0 flex flex-col items-start">
+          <div className="text-xs font-bold tracking-[0.16em] uppercase text-gold">
+            {t('plan.upNext')}
+            <span className="text-content/35"> · {t('plan.path.stageOf', { n: stageNumber, total: CURRICULUM.length })}</span>
+          </div>
+          <h2 className="mt-2 text-xl md:text-2xl font-bold tracking-tight">{t(active.stage.titleKey)}</h2>
+          <p className="mt-2 text-sm text-content/70 leading-relaxed max-w-[54ch]">{t(active.stage.goalKey)}</p>
+          {/* The reason is read once; on the home screen, seen every day, the
+              goal line is enough and the plan's own page keeps the why. */}
           {!embedded && (
-            <>
-              <span className="grid place-items-center w-12 h-12 mx-auto rounded-xl text-gold bg-gold/10 border border-gold/20 mb-4">
-                <Route size={22} />
-              </span>
-              <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">
-                {t('plan.title')}
-              </h1>
-            </>
-          )}
-          <div className={embedded ? 'text-left' : ''}>
-            {embedded && (
-              <h2 className="text-xs font-bold tracking-[0.16em] uppercase text-content/40">{t('plan.title')}</h2>
-            )}
-            <p className={`text-sm text-content/55 ${embedded ? 'mt-1' : 'mt-2'}`}>
-              {t('plan.stagesComplete', { done: doneCount, count: totalCount })}
-              {embedded && weeksLeft > 0 && (
-                <span className="text-content/40" data-testid="plan-forecast"> · {t('plan.forecast', { count: weeksLeft })}</span>
-              )}
-            </p>
-          </div>
-
-          {/* The destination, stated every time rather than once on the result
-              screen. A plan whose end you have to remember is a to-do list. */}
-          <div className={embedded ? 'flex flex-wrap items-stretch gap-2.5' : 'mt-5 flex flex-wrap items-stretch justify-center gap-2.5'}>
-            <button
-              onClick={() => setEditing(v => !v)}
-              data-testid="plan-goal"
-              className="group surface rounded-xl px-4 py-3 text-left cursor-pointer
-                border border-transparent hover:border-gold/35 transition-colors"
-            >
-              <div className="flex items-center gap-1.5 text-[0.6875rem] font-bold tracking-[0.14em] uppercase text-content/40">
-                <Flag size={12} /> {t('plan.yourGoal')}
-                <Pencil size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <div className="mt-1 text-sm font-semibold">{t(CURRICULUM[goalIndex].titleKey)}</div>
-            </button>
-
-            <button
-              onClick={() => setEditing(v => !v)}
-              data-testid="plan-pace"
-              className="group surface rounded-xl px-4 py-3 text-left cursor-pointer
-                border border-transparent hover:border-gold/35 transition-colors"
-            >
-              <div className="flex items-center gap-1.5 text-[0.6875rem] font-bold tracking-[0.14em] uppercase text-content/40">
-                <Timer size={12} /> {t('plan.time.label')}
-                <Pencil size={11} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <div className="mt-1 text-sm font-semibold tabular-nums">
-                {t('plan.time.value', { count: budget.daysPerWeek, minutes: budget.minutesPerDay })}
-              </div>
-            </button>
-          </div>
-          {!embedded && weeksLeft > 0 && (
-            <p className="mt-3 text-xs text-content/45" data-testid="plan-forecast">
-              {t('plan.forecast', { count: weeksLeft })}
-            </p>
-          )}
-        </header>
-
-        {!placed && (
-          <button
-            onClick={retake}
-            data-testid="plan-take-test"
-            className="mt-6 w-full text-left rounded-2xl border border-gold/35 p-4 md:p-5
-              bg-[linear-gradient(180deg,var(--color-warm-wash),var(--color-surface))]
-              hover:border-gold/55 cursor-pointer transition-colors"
-          >
-            <div className="flex items-center gap-3.5">
-              <span className="grid place-items-center w-9 h-9 rounded-lg shrink-0 text-gold bg-gold/10 border border-gold/25">
-                <ClipboardList size={17} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="font-semibold">{t('plan.findStart')}</div>
-                <div className="mt-0.5 text-sm text-content/50 leading-snug">
-                  {t('plan.findStartSub')}
-                </div>
-              </div>
-              <ChevronRight size={16} className="shrink-0 text-content/30" />
-            </div>
-          </button>
-        )}
-
-        {editing && (
-          <PlanSettings
-            profile={profile ?? FALLBACK_PROFILE}
-            isPro={isPro}
-            budget={budget}
-            onBudget={updateBudget}
-            onChange={updateProfile}
-            onClose={() => setEditing(false)}
-          />
-        )}
-
-        {/* Time passed. A plan notices; a to-do list does not. */}
-        {rhythmText && (
-          <div
-            className={`mt-7 rounded-2xl p-4 md:p-5 border ${
-              rhythm.kind === 'rusty' ? 'border-gold/35 bg-gold/[.05]' : 'border-contrast/12'
-            }`}
-            data-testid="plan-rhythm"
-          >
-            <div className="flex items-start gap-3.5">
-              <span className="grid place-items-center w-9 h-9 rounded-lg shrink-0 text-gold bg-gold/10 border border-gold/20">
-                <CalendarClock size={17} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-content/70 leading-relaxed max-w-[58ch] text-left">
-                  {rhythmText}
-                </p>
-                {refresh && !refresh.locked && refresh.stage.drill && (
-                  <button
-                    onClick={() => setMode(refresh.stage.drill!.mode)}
-                    data-testid="plan-warm-up"
-                    className="mt-3.5 inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
-                      border border-gold/40 text-gold hover:bg-gold/10 cursor-pointer transition-colors"
-                  >
-                    <RotateCcw size={15} />
-                    {t('plan.warmUp', { stage: t(refresh.stage.titleKey) })}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Up next — the single most important thing on this screen */}
-        {active ? (
-          <div
-            className={`${embedded ? 'mt-5' : 'mt-8'} rounded-2xl border border-gold/40 p-5 md:p-6
-              bg-[linear-gradient(180deg,var(--color-warm-wash),var(--color-surface))]`}
-            data-testid="plan-up-next"
-          >
-            <div className="text-xs font-bold tracking-[0.16em] uppercase text-gold">{t('plan.upNext')}</div>
-            <h2 className="mt-2 text-xl md:text-2xl font-bold tracking-tight">{t(active.stage.titleKey)}</h2>
-            <p className="mt-2 text-sm text-content/70 leading-relaxed max-w-[54ch]">{t(active.stage.goalKey)}</p>
             <p className="mt-2 text-sm text-content/50 leading-relaxed max-w-[54ch]">{t(active.stage.whyKey)}</p>
+          )}
 
-            <StageStanding effort={stageEffort(active)} target={active.target} />
+          <StageStanding effort={stageEffort(active)} target={active.target} />
 
-            {day.lockedFocus && (
-              <p className="mt-3.5 text-sm text-gold/90 max-w-[54ch]" data-testid="plan-locked-focus">
-                {t('plan.today.lockedFocus', { stage: t(active.stage.titleKey) })}
-              </p>
-            )}
-
-            <TodayBlocks day={day} week={week} weekStreak={weekStreak} onOpen={openBlock} />
-
-            {/* What the list of blocks cannot do: tick a reading stage, or
-                open the paywall for a stage that is behind it. */}
-            {(active.readOnly || active.locked) && (
-              <StageActions
-                p={active}
-                setMode={setMode}
-                onRead={confirmRead}
-                showUpgrade={showUpgrade}
-                primary
-              />
-            )}
-
-            <div className="mt-5 pt-4 border-t border-contrast/10 flex flex-wrap items-center justify-between gap-4">
-              <span className="inline-flex items-center gap-2 text-sm">
-                <Zap size={15} className="text-gold shrink-0" />
-                <span className="text-content/55">
-                  <Trans
-                    i18nKey="plan.worthXp"
-                    values={{ xp: stageXP(active.stage.id) }}
-                    components={{ b: <b className="text-gold font-semibold tabular-nums" /> }}
-                  />
-                </span>
-              </span>
-              <StageForm trend={trend} onOpenAnalytics={() => setMode('analytics')} />
-            </div>
-          </div>
-        ) : (
-          <div className="mt-8 surface rounded-2xl p-6 text-center" data-testid="plan-complete">
-            <h2 className="text-xl font-bold text-gold-gradient">
-              {harder ? t('plan.reachedGoal') : t('plan.walkedPath')}
-            </h2>
-            <p className="mt-2 text-sm text-content/60 max-w-[48ch] mx-auto">
-              {harder
-                ? t('plan.reachedGoalBody', { stage: t(CURRICULUM[stageIndex(goalStage(harder))].titleKey) })
-                : t('plan.walkedPathBody')}
+          {day.lockedFocus && (
+            <p className="mt-3.5 text-sm text-gold/90 max-w-[54ch]" data-testid="plan-locked-focus">
+              {t('plan.today.lockedFocus', { stage: t(active.stage.titleKey) })}
             </p>
+          )}
 
-            {/* Reaching the goal used to end in a compliment and nothing else.
-                The one thing a finished learner needs is somewhere to go. */}
-            <div className="text-left">
-              <TodayBlocks day={day} week={week} weekStreak={weekStreak} onOpen={openBlock} />
-            </div>
+          <TodayStart day={day} onOpen={openBlock} className="mt-5" />
 
-            {harder && (
-              <button
-                onClick={() => updateProfile({ goal: harder })}
-                data-testid="plan-extend-goal"
-                className="mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold
-                  bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer"
-              >
-                <TrendingUp size={16} />
-                {t('plan.aimFor', { stage: t(CURRICULUM[stageIndex(goalStage(harder))].titleKey) })}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* A free learner can hit a Pro stage with a free one right behind it.
-            Say so, rather than leaving the plan pointing at a locked door. */}
-        {openInstead && (
-          <div
-            className="mt-4 surface rounded-2xl p-4 md:p-5 border border-contrast/10"
-            data-testid="plan-open-instead"
-          >
-            <div className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
-              {t('plan.openInstead')}
-            </div>
-            <h3 className="mt-1.5 font-semibold">{t(openInstead.stage.titleKey)}</h3>
-            <p className="mt-1 text-sm text-content/55 leading-snug max-w-[52ch]">
-              {t(openInstead.stage.goalKey)}
-            </p>
+          {/* What the list of blocks cannot do: tick a reading stage, or
+              open the paywall for a stage that is behind it. With a start
+              button above, these are the second move and look it. */}
+          {(active.readOnly || active.locked) && (
             <StageActions
-              p={openInstead}
+              p={active}
               setMode={setMode}
               onRead={confirmRead}
               showUpgrade={showUpgrade}
+              primary
+              quiet={day.next != null}
+              hideRead={day.next?.kind === 'read' && day.next.stage === active.stage.id}
             />
+          )}
+        </div>
+
+        <TodayBlocks
+          day={day}
+          week={week}
+          weekStreak={weekStreak}
+          onOpen={openBlock}
+          hideStart
+          hideWeek={railMode}
+          className={day.blocks.length <= 1 ? '@2xl:self-center' : ''}
+        />
+      </div>
+
+      {(stageXP(active.stage.id) > 0 || active.stage.drill) && (
+      <div className="mt-5 pt-4 border-t border-contrast/10 flex flex-wrap items-center justify-between gap-4">
+        {/* A reading stage pays nothing; "worth 0 XP" is not worth saying. */}
+        {stageXP(active.stage.id) > 0 ? (
+          <span className="inline-flex items-center gap-2 text-sm">
+            <Zap size={15} className="text-gold shrink-0" />
+            <span className="text-content/55">
+              <Trans
+                i18nKey="plan.worthXp"
+                values={{ xp: stageXP(active.stage.id) }}
+                components={{ b: <b className="text-gold font-semibold tabular-nums" /> }}
+              />
+            </span>
+          </span>
+        ) : <span />}
+        {trend && trend.points.length > 0
+          ? <StageForm trend={trend} onOpenAnalytics={() => setMode('analytics')} />
+          : active.stage.drill && <StageFormExample />}
+      </div>
+      )}
+    </div>
+  ) : (
+    <div className="mt-5 surface rounded-2xl p-6 text-center" data-testid="plan-complete">
+      <h2 className="text-xl font-bold text-gold-gradient">
+        {harder ? t('plan.reachedGoal') : t('plan.walkedPath')}
+      </h2>
+      <p className="mt-2 text-sm text-content/60 max-w-[48ch] mx-auto">
+        {harder
+          ? t('plan.reachedGoalBody', { stage: t(CURRICULUM[stageIndex(goalStage(harder))].titleKey) })
+          : t('plan.walkedPathBody')}
+      </p>
+
+      {/* Reaching the goal used to end in a compliment and nothing else.
+          The one thing a finished learner needs is somewhere to go. */}
+      <div className="text-left">
+        <TodayBlocks day={day} week={week} weekStreak={weekStreak} onOpen={openBlock} hideWeek={railMode} />
+      </div>
+
+      {harder && (
+        <button
+          onClick={() => updateProfile({ goal: harder })}
+          data-testid="plan-extend-goal"
+          className="mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold
+            bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer"
+        >
+          <TrendingUp size={16} />
+          {t('plan.aimFor', { stage: t(CURRICULUM[stageIndex(goalStage(harder))].titleKey) })}
+        </button>
+      )}
+    </div>
+  )
+
+  /* A free learner can hit a Pro stage with a free one right behind it.
+     Say so, rather than leaving the plan pointing at a locked door. */
+  const openInsteadCard = openInstead && (
+    <div
+      className="mt-4 surface rounded-2xl p-4 md:p-5 border border-contrast/10"
+      data-testid="plan-open-instead"
+    >
+      <div className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
+        {t('plan.openInstead')}
+      </div>
+      <h3 className="mt-1.5 font-semibold">{t(openInstead.stage.titleKey)}</h3>
+      <p className="mt-1 text-sm text-content/55 leading-snug max-w-[52ch]">
+        {t(openInstead.stage.goalKey)}
+      </p>
+      <StageActions
+        p={openInstead}
+        setMode={setMode}
+        onRead={confirmRead}
+        showUpgrade={showUpgrade}
+      />
+    </div>
+  )
+
+  const howItWorks = embedded && !plan.recommendationDone && sessions.length === 0 && (
+    <HowItWorks
+      className="mt-4"
+      onDismiss={() => setRecommendationDone()}
+      onTour={onTour && (() => { setRecommendationDone(); onTour() })}
+    />
+  )
+
+  const pathProps = {
+    progress,
+    activeId: active?.stage.id ?? null,
+    entryIndex: from,
+    goalIndex,
+    onOpen: () => setMode('plan'),
+  }
+
+  // ── Embedded: the home screen ──
+  if (embedded) {
+    const top = (
+      <div className="min-w-0 xl:col-start-1 xl:row-start-1">
+        {/* The page's greeting and where the learner stands on the road, in
+            one row with the two answers that shape the plan. Before, these
+            were a 190px card and a 140px header stacked above "up next". */}
+        <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+          <div className="min-w-0">
+            {before}
+            <div className={before ? 'mt-1' : ''}>{standingLine}</div>
           </div>
-        )}
+          {goalChips}
+        </header>
+        {takeTest}
+        {settings}
+        {rhythmNotice}
+        {upNext}
+        {howItWorks}
+        {openInsteadCard}
+        {!railMode && <PathStrip {...pathProps} />}
+      </div>
+    )
 
-        {/* Today's challenge, chosen to fit this stage — the daily loop and the
-            plan are the same journey, so the plan says so. */}
-        {/* Not on the home screen: the full daily and weekly cards follow a
-            few hundred pixels further down there, and the same task was shown
-            twice on one page under two different headings. */}
-        {active && !embedded && (
-          <button
-            onClick={() => setMode(
-              (challenge.requiredMode && screenForMode(challenge.requiredMode))
-                || active.stage.drill?.mode
-                || 'learn',
-            )}
-            data-testid="plan-daily-challenge"
-            className="mt-4 w-full text-left surface rounded-2xl p-4 md:p-5 hover:border-gold/35
-              border border-transparent transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-3.5">
-              <span className="text-xl shrink-0" aria-hidden>{challenge.icon}</span>
-              <div className="min-w-0 flex-1">
-                <div className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
-                  {t('plan.todaysChallenge')}
-                </div>
-                <div className="mt-0.5 font-semibold truncate">{t(challenge.titleKey)}</div>
-              </div>
-              <span className="shrink-0 text-sm font-semibold text-gold tabular-nums">
-                +{CHALLENGE_XP[challenge.difficulty]} XP
-              </span>
-            </div>
-            <ProgressBar
-              className="mt-3"
-              height={6}
-              value={Math.min(challengeState.progress, challenge.target)}
-              max={Math.max(challenge.target, 1)}
-            />
-          </button>
-        )}
+    return (
+      <div className="w-full pt-5 md:pt-6" data-testid="training-plan">
+        <div
+          className={`w-full mx-auto grid gap-5 items-start ${
+            railMode
+              ? 'max-w-3xl lg:max-w-5xl xl:max-w-[96rem] xl:gap-x-8 xl:grid-cols-[minmax(0,1fr)_clamp(21rem,25vw,26rem)] xl:grid-rows-[auto_1fr]'
+              : 'max-w-3xl'
+          }`}
+        >
+          {top}
+          {/* The rail: how the learner is doing, what can be earned, where the
+              road goes. Beside the plan from 1280px; under "up next" (and
+              above the modes) on anything narrower, two cards to a row on a
+              tablet. */}
+          {railMode && (
+            <aside
+              data-testid="home-rail"
+              className="min-w-0 grid gap-4 content-start md:grid-cols-2 xl:grid-cols-1 xl:col-start-2 xl:row-start-1 xl:row-span-2"
+            >
+              {rail({
+                week: <WeekSummary week={week} weekStreak={weekStreak} />,
+                path: <PathStrip {...pathProps} layout="column" />,
+              })}
+            </aside>
+          )}
+          {after && <div className="min-w-0 xl:col-start-1 xl:row-start-2">{after}</div>}
+        </div>
+      </div>
+    )
+  }
 
-        {embedded && (
-          <PathStrip
-            progress={progress}
-            activeId={active?.stage.id ?? null}
-            entryIndex={from}
-            goalIndex={goalIndex}
-            onOpen={() => setMode('plan')}
+  // ── The plan's own page ──
+  return (
+    <div className="app-canvas flex-1 overflow-y-auto px-4 pb-4 pt-3 md:px-6 md:pb-6 md:pt-4" data-testid="training-plan">
+      <div className="max-w-3xl xl:max-w-[96rem] mx-auto">
+        {/* One line and a bar. It used to be an icon, a centred title, two
+            cards and a forecast — 450px before the first thing to do. */}
+        <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 min-w-0">
+            <h1 className="flex items-center gap-2.5 text-xl md:text-2xl font-extrabold text-gold-gradient leading-tight pb-0.5">
+              <Route size={20} className="shrink-0 text-gold" aria-hidden />
+              {t('plan.title')}
+            </h1>
+            <p className="text-sm text-content/55">{t('plan.stagesComplete', { done: doneCount, count: totalCount })}</p>
+          </div>
+          {goalChips}
+        </header>
+        {/* The forecast sits at the end of the bar it forecasts, which keeps the
+            header to one line on a laptop. */}
+        <div className="mt-3 flex flex-col items-start gap-y-1.5 sm:flex-row sm:items-center sm:gap-x-4">
+          <ProgressBar
+            className="sm:flex-1"
+            height={6}
+            value={doneCount}
+            max={Math.max(totalCount, 1)}
+            label={t('plan.stagesComplete', { done: doneCount, count: totalCount })}
           />
-        )}
+          {weeksLeft > 0 && (
+            <span className="shrink-0 text-xs text-content/45" data-testid="plan-forecast">
+              {t('plan.forecast', { count: weeksLeft })}
+            </span>
+          )}
+        </div>
 
-        {/* The full path */}
-        {!embedded && <>
-        <h3 className="mt-10 mb-3 text-xs font-bold tracking-[0.16em] uppercase text-content/40">
-          {t('plan.fullPath')}
-        </h3>
-        <ol className="flex flex-col gap-2.5">
-          {progress.map((p, i) => {
-            const before = i < from
-            const beyond = isBeyondGoal(p.stage.id, goal)
-            const isActive = active?.stage.id === p.stage.id
-            return (
-              <li
-                key={p.stage.id}
-                data-testid={`plan-stage-${p.stage.id}`}
-                className={`surface rounded-2xl p-4 md:p-5 ${isActive ? 'border border-gold/35' : ''} ${
-                  (before && !p.done) || beyond ? 'opacity-55' : ''
-                }`}
+        <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(24rem,34rem)] xl:gap-x-8 xl:items-start">
+          <div className="min-w-0">
+            {takeTest}
+            {settings}
+            {rhythmNotice}
+            {upNext}
+            {openInsteadCard}
+
+            {/* Today's challenge, chosen to fit this stage — the daily loop and
+                the plan are the same journey, so the plan says so. (Not on the
+                home screen: its rail carries the daily and weekly cards.) */}
+            {active && (
+              <button
+                onClick={() => setMode(
+                  (challenge.requiredMode && screenForMode(challenge.requiredMode))
+                    || active.stage.drill?.mode
+                    || 'learn',
+                )}
+                data-testid="plan-daily-challenge"
+                className="mt-4 w-full text-left surface rounded-2xl p-4 md:p-5 hover:border-gold/35
+                  border border-transparent transition-colors cursor-pointer"
               >
-                <div className="flex items-start gap-3.5">
-                  <span
-                    className={`grid place-items-center w-7 h-7 rounded-full shrink-0 text-xs font-bold border ${
-                      p.done
-                        ? 'bg-gold border-gold text-on-gold'
-                        : isActive
-                          ? 'border-gold text-gold'
-                          : 'border-contrast/20 text-content/40'
+                <div className="flex items-center gap-3.5">
+                  <span className="text-xl shrink-0" aria-hidden>{challenge.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
+                      {t('plan.todaysChallenge')}
+                    </div>
+                    <div className="mt-0.5 font-semibold truncate">{t(challenge.titleKey)}</div>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold text-gold tabular-nums">
+                    +{CHALLENGE_XP[challenge.difficulty]} XP
+                  </span>
+                </div>
+                <ProgressBar
+                  className="mt-3"
+                  height={6}
+                  value={Math.min(challengeState.progress, challenge.target)}
+                  max={Math.max(challenge.target, 1)}
+                />
+              </button>
+            )}
+          </div>
+
+          {/* The full path — beside "up next" on a wide screen, under it otherwise. */}
+          <section className="min-w-0">
+            <h3 className="mt-8 xl:mt-5 mb-3 text-xs font-bold tracking-[0.16em] uppercase text-content/40">
+              {t('plan.fullPath')}
+            </h3>
+            <ol className="flex flex-col gap-2.5">
+              {progress.map((p, i) => {
+                const behind = i < from
+                const beyond = isBeyondGoal(p.stage.id, goal)
+                const isActive = active?.stage.id === p.stage.id
+                return (
+                  <li
+                    key={p.stage.id}
+                    data-testid={`plan-stage-${p.stage.id}`}
+                    data-done={p.done}
+                    className={`surface rounded-2xl ${p.done ? 'px-4 py-3 md:px-5' : 'p-4 md:p-5'} ${isActive ? 'border border-gold/35' : ''} ${
+                      (behind && !p.done) || beyond ? 'opacity-55' : ''
                     }`}
                   >
-                    {p.done ? <Check size={14} strokeWidth={3} /> : i + 1}
-                  </span>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`font-semibold ${p.done ? 'text-content/55' : 'text-content'}`}>
-                        {t(p.stage.titleKey)}
+                    <div className={`flex gap-3.5 ${p.done ? 'items-center' : 'items-start'}`}>
+                      <span
+                        className={`grid place-items-center w-7 h-7 rounded-full shrink-0 text-xs font-bold border ${
+                          p.done
+                            ? 'bg-gold border-gold text-on-gold'
+                            : isActive
+                              ? 'border-gold text-gold'
+                              : 'border-contrast/20 text-content/40'
+                        }`}
+                      >
+                        {p.done ? <Check size={14} strokeWidth={3} /> : i + 1}
                       </span>
-                      {p.locked && (
-                        <span className="inline-flex items-center gap-1 text-[0.7rem] font-bold tracking-wider
-                          text-gold border border-gold/40 bg-gold/10 rounded-full px-2 py-0.5">
-                          <Lock size={11} /> PRO
-                        </span>
-                      )}
-                      {placed && before && !p.done && (
-                        <span className="text-[0.7rem] text-content/40">{t('plan.skippedByPlacement')}</span>
-                      )}
-                      {beyond && (
-                        <span className="text-[0.7rem] text-content/40">{t('plan.beyondGoal')}</span>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`font-semibold ${p.done ? 'text-content/55' : 'text-content'}`}>
+                            {t(p.stage.titleKey)}
+                          </span>
+                          {p.locked && (
+                            <span className="inline-flex items-center gap-1 text-[0.7rem] font-bold tracking-wider
+                              text-gold border border-gold/40 bg-gold/10 rounded-full px-2 py-0.5">
+                              <Lock size={11} /> PRO
+                            </span>
+                          )}
+                          {placed && behind && !p.done && (
+                            <span className="text-[0.7rem] text-content/40">{t('plan.skippedByPlacement')}</span>
+                          )}
+                          {beyond && (
+                            <span className="text-[0.7rem] text-content/40">{t('plan.beyondGoal')}</span>
+                          )}
+                        </div>
+                        {/* What it took, small, under the name. */}
+                        {p.done && p.stage.drill && (
+                          <div className="mt-0.5 text-[0.7rem] text-content/40 tabular-nums">
+                            {p.current}/{p.target} · {t('plan.daysProgress', { days: p.days, target: p.targetDays })}
+                          </div>
+                        )}
+                        {/* A finished stage is one line: its name, its tick and a way back
+                            in. Its description and counts were five cards of reading
+                            between the learner and the stage they are on. */}
+                        {!p.done && <p className="mt-1 text-sm text-content/55 leading-snug">{t(p.stage.goalKey)}</p>}
+
+                        {p.stage.drill && !p.done && (
+                          <>
+                            <div className="mt-2 flex items-center gap-2.5">
+                              <div className="w-28 shrink-0"><ProgressBar height={6} value={p.current} max={Math.max(p.target, 1)} /></div>
+                              <span className="text-xs text-content/45 tabular-nums">
+                                {p.current}/{p.target} · {t('plan.daysProgress', { days: p.days, target: p.targetDays })} — {drillDescription(p.stage.drill, t)}
+                              </span>
+                            </div>
+                            <EffortLine effort={stageEffort(p)} />
+                          </>
+                        )}
+                      </div>
+                      {p.done && !isActive && (
+                        <StageActions
+                          p={p}
+                          setMode={setMode}
+                          onRead={confirmRead}
+                          showUpgrade={showUpgrade}
+                          compact
+                        />
                       )}
                     </div>
-                    <p className="mt-1 text-sm text-content/55 leading-snug">{t(p.stage.goalKey)}</p>
 
-                    {p.stage.drill && (
-                      <>
-                        <div className="mt-2 flex items-center gap-2.5">
-                          <ProgressBar className="w-28" height={6} value={p.current} max={Math.max(p.target, 1)} />
-                          <span className="text-xs text-content/45 tabular-nums">
-                            {p.current}/{p.target} · {t('plan.daysProgress', { days: p.days, target: p.targetDays })} — {drillDescription(p.stage.drill, t)}
-                          </span>
-                        </div>
-                        <EffortLine effort={stageEffort(p)} />
-                      </>
+                    {!isActive && !p.done && (
+                      <StageActions
+                        p={p}
+                        setMode={setMode}
+                        onRead={confirmRead}
+                        showUpgrade={showUpgrade}
+                      />
                     )}
-                  </div>
-                </div>
+                  </li>
+                )
+              })}
+            </ol>
 
-                {!isActive && (
-                  <StageActions
-                    p={p}
-                    setMode={setMode}
-                    onRead={confirmRead}
-                    showUpgrade={showUpgrade}
-                  />
-                )}
-              </li>
-            )
-          })}
-        </ol>
+            <button
+              onClick={retake}
+              data-testid="plan-retake"
+              className="mt-6 inline-flex items-center gap-2 text-sm text-content/50 hover:text-content cursor-pointer"
+            >
+              {/* No longer a "test" — it is one question, and calling it a test
+                  makes it sound like something worth avoiding. */}
+              <RotateCcw size={15} /> {placed ? t('plan.changeStart') : t('plan.chooseStart')}
+            </button>
+          </section>
+        </div>
 
-        <button
-          onClick={retake}
-          data-testid="plan-retake"
-          className="mt-8 inline-flex items-center gap-2 text-sm text-content/50 hover:text-content cursor-pointer"
-        >
-          {/* No longer a "test" — it is one question, and calling it a test
-              makes it sound like something worth avoiding. */}
-          <RotateCcw size={15} /> {placed ? t('plan.changeStart') : t('plan.chooseStart')}
-        </button>
-        </>}
-
-        {!embedded && <div aria-hidden className="w-full h-16 shrink-0" />}
+        <div aria-hidden className="w-full h-16 shrink-0" />
       </div>
-      {after}
     </div>
   )
 }
@@ -862,12 +1001,41 @@ function StageForm({ trend, onOpenAnalytics }: { trend: StageTrend | null; onOpe
         <span className={`block text-sm font-semibold tabular-nums ${
           last >= trend.floor ? 'text-success' : 'text-content/70'
         }`}>
-          {last}% <span className="text-content/35 font-normal">/ {trend.floor}%</span>
+          {/* The second figure is the bar, and says so: "90% / 85%" left the
+              reader to guess what the 85 was. */}
+          {last}% <span className="text-content/40 font-normal">· {t('plan.formBar', { pct: trend.floor })}</span>
         </span>
       </span>
       <Sparkline data={trend.points} />
       <ChevronRight size={15} className="text-content/25 group-hover:text-gold transition-colors" />
     </button>
+  )
+}
+
+/** Made-up runs for the example below: a learner closing in on the bar. */
+const EXAMPLE_FORM = [64, 71, 69, 78, 84]
+
+/**
+ * What "recent form" will look like, before there is any.
+ *
+ * The space on the right of the card's foot stood empty for every stage not yet
+ * drilled. A faint sparkline, plainly marked as an example, says what will
+ * appear there — and that the first run is what puts it there.
+ */
+function StageFormExample() {
+  const { t } = useTranslation()
+  return (
+    <div className="inline-flex items-center gap-3" data-testid="plan-stage-form-example">
+      <span className="text-right leading-tight">
+        <span className="flex items-center justify-end gap-1.5">
+          <ExampleTag />
+        </span>
+        <span className="mt-1 block text-[0.6875rem] text-content/45 max-w-[22ch]">{t('plan.formPreview')}</span>
+      </span>
+      <span aria-hidden className="opacity-35 grayscale-[35%]">
+        <Sparkline data={EXAMPLE_FORM} />
+      </span>
+    </div>
   )
 }
 
@@ -883,23 +1051,41 @@ function StageActions({
   onRead,
   showUpgrade,
   primary = false,
+  quiet = false,
+  hideRead = false,
+  compact = false,
 }: {
   p: StageProgress
   setMode: (m: ReturnType<typeof useAppStore.getState>['currentMode']) => void
   onRead: (id: StageProgress['stage']['id']) => void
   showUpgrade: (headline?: string) => void
   primary?: boolean
+  /**
+   * Another button on the card is the one to press first (today's start), so
+   * none of these is drawn gold: one primary action per card.
+   */
+  quiet?: boolean
+  /** The card's start button already opens this stage's reading. */
+  hideRead?: boolean
+  /** Small buttons, no indent — beside a finished stage's name. */
+  compact?: boolean
 }) {
   const { t } = useTranslation()
   const { stage } = p
-  const base = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors'
-  const gold = `${base} bg-gradient-to-b from-gold-bright to-gold text-on-gold`
-  const ghost = `${base} border border-contrast/15 text-content hover:border-gold/45`
+  const base = compact
+    ? 'inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold cursor-pointer transition-colors duration-100'
+    : 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors'
+  // Beside a finished stage the ways back in are quiet text: five rows of
+  // outlined buttons read as five things to do, and none of them is.
+  const ghost = compact
+    ? `${base} text-content/55 hover:text-gold hover:bg-contrast/5`
+    : `${base} border border-contrast/15 text-content hover:border-gold/45`
+  const gold = quiet ? ghost : `${base} bg-gradient-to-b from-gold-bright to-gold text-on-gold`
 
   return (
-    <div className={`flex flex-wrap gap-2.5 ${primary ? 'mt-5' : 'mt-3.5 pl-[2.6rem]'}`}>
-      {stage.read && (
-        <button onClick={() => setMode(stage.read!.mode)} className={primary ? ghost : ghost}>
+    <div className={`flex flex-wrap ${compact ? 'gap-1.5 shrink-0 justify-end' : 'gap-2.5'} ${compact ? '' : primary ? (quiet ? 'mt-3' : 'mt-5') : 'mt-3.5 pl-[2.6rem]'}`}>
+      {stage.read && !hideRead && (
+        <button onClick={() => setMode(stage.read!.mode)} className={ghost}>
           <BookOpen size={15} /> {t(stage.read.labelKey)}
         </button>
       )}

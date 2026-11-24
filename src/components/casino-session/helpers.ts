@@ -2,6 +2,7 @@ import { getHandValue, isBlackjack } from '../../engine/rules/hand-utils'
 import { CountingSystemId } from '../../engine/counting/types'
 import type { Card } from '../../engine/shoe/types'
 import type { CasinoSessionConfig } from '../../engine/casino-session/types'
+import { activeLocale } from '../../i18n'
 
 // ─── Types ───────────────────────────────────────────
 
@@ -329,8 +330,8 @@ export function formatDollar(n: number): string {
   // Whole dollars as they always were; anything else to the cent. A surrender
   // on $25 used to read "$4,987.5".
   const text = Number.isInteger(abs)
-    ? abs.toLocaleString()
-    : abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    ? abs.toLocaleString(activeLocale())
+    : abs.toLocaleString(activeLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   return `${sign}$${text}`
 }
 

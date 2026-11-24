@@ -40,10 +40,10 @@ describe('HomeScreen — a placed learner', () => {
     localStorage.setItem('bjt_placement', 'hi-lo')
   })
 
-  it('puts who you are above the plan, and the plan above everything to browse', () => {
+  it('puts the greeting above the plan, and the plan above everything to browse', () => {
     render(<HomeScreen />)
 
-    // The level card is the page's one h1...
+    // The greeting is the page's one h1...
     const header = screen.getByRole('heading', { level: 1 })
     const upNext = screen.getByTestId('plan-up-next')
     const modes = screen.getByRole('heading', { name: 'Training Modes' })
@@ -97,15 +97,62 @@ describe('HomeScreen — a placed learner', () => {
     expect(useAppStore.getState().currentMode).toBe('plan')
   })
 
-  it('keeps the challenges under the plan and above the modes', () => {
+  /*
+    The challenges moved from a full-width strip under the plan into the rail
+    beside it. What this pinned still holds: they come after the plan's start
+    (never above it — they are the nudge, not the destination) and before the
+    modes, in reading order, which is the order a phone stacks them in.
+  */
+  it('keeps the challenges after the plan’s start and before the modes', () => {
     render(<HomeScreen />)
-    const path = screen.getByTestId('plan-path')
+    const start = screen.getByTestId('plan-today-start')
     const modes = screen.getByRole('heading', { name: 'Training Modes' })
-    const challenges = modes.closest('section')!.previousElementSibling!
-    // Two cards, one above the other.
+    const challenges = screen.getByTestId('home-challenges')
+    // Two cards: the day's and the week's.
     expect(challenges.children).toHaveLength(2)
-    expect(precedes(path, challenges)).toBe(true)
+    expect(within(challenges).getByTestId('daily-challenge-card')).toBeInTheDocument()
+    expect(within(challenges).getByTestId('weekly-challenge-card')).toBeInTheDocument()
+    expect(precedes(start, challenges)).toBe(true)
     expect(precedes(challenges, modes)).toBe(true)
+  })
+
+  it('puts the level, the week, the challenges and the road in one rail', () => {
+    render(<HomeScreen />)
+    const rail = screen.getByTestId('home-rail')
+    expect(within(rail).getByTestId('level-ring')).toBeInTheDocument()
+    expect(within(rail).getByTestId('week-summary')).toBeInTheDocument()
+    expect(within(rail).getByTestId('home-challenges')).toBeInTheDocument()
+    expect(within(rail).getByTestId('plan-path')).toBeInTheDocument()
+    // The week is drawn once on the page: in the rail, not again in today's list.
+    expect(screen.getAllByTestId('plan-week')).toHaveLength(1)
+    // The start button is not in the rail; it stays with the plan.
+    expect(within(rail).queryByTestId('plan-today-start')).toBeNull()
+  })
+
+  it('greets a learner with no history with a plain welcome', () => {
+    render(<HomeScreen />)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^Welcome$/)
+  })
+
+  it('welcomes back a learner who has trained', () => {
+    useStatsStore.setState({
+      sessions: [{
+        id: 'a', mode: 'speedDrill', timestamp: new Date().toISOString(), durationSeconds: 60,
+        totalQuestions: 20, correctAnswers: 18, accuracy: 0.9, bestStreak: 4,
+      } as unknown as TrainingSessionResult],
+    })
+    render(<HomeScreen />)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Welcome back')
+  })
+
+  it('groups the table with its two logs, and the drills on their own', () => {
+    render(<HomeScreen />)
+    const table = screen.getByTestId('mode-card-casinoSession').closest('section')!
+    expect(within(table).getByTestId('mode-card-bankrollSim')).toBeInTheDocument()
+    expect(within(table).getByTestId('mode-card-casinoSessionTracker')).toBeInTheDocument()
+    const drills = screen.getByRole('heading', { name: 'Training Modes' }).closest('section')!
+    expect(within(drills).getAllByTestId(/^mode-card-/).map(el => el.getAttribute('data-testid')))
+      .toEqual(['mode-card-speedDrill', 'mode-card-deviationTraining', 'mode-card-betSpread', 'mode-card-deckEstimation'])
   })
 
   it('still lets every mode be opened from its card', () => {

@@ -188,6 +188,24 @@ export interface PlayDecision {
   cardReceived?: Card
   /** The hand value after this decision. */
   handValueAfter: number
+  /**
+   * Which of the player's hands it was made on, as they lie at the
+   * settlement (0 for the first; a split or a second box adds more).
+   * Optional: decisions recorded before the field existed have none.
+   */
+  handIndex?: number
+  /**
+   * The true count the decision was graded at. Only at a counting table — in
+   * basic play there is no count, and nothing is stored.
+   */
+  trueCount?: number
+  /**
+   * The basic-strategy play here, stored only when the count overrode it:
+   * `correctAction` is then the index play and this is what the chart says.
+   */
+  basicAction?: string
+  /** The index play that applied (e.g. "16 vs 10"), with `basicAction`. */
+  deviationName?: string
 }
 
 // ─── Human Player Hand Record ──────────────────────────
@@ -222,6 +240,12 @@ export interface PlayerHandRecord {
   // Cards
   /** Cards dealt to the player. */
   playerCards: Card[]
+  /**
+   * Every hand of the player's as it lay at the settlement — one, or several
+   * after a split or with more than one box. `playerCards` holds only the
+   * first. Optional: records from before the field existed have none.
+   */
+  playerHands?: Card[][]
   /** The dealer's face-up card. */
   dealerUpCard: Card
   /** The dealer's face-down card. */
@@ -343,6 +367,12 @@ export interface CasinoSessionResult {
   worstDrawdown: number
 
   // Accuracy Scores (0–100)
+  //
+  // Each reads 100 for a category the session gave nothing to grade (no
+  // count check, no deviation spot, no insurance offer). Kept that way for the
+  // records already stored and for the achievement checks, which test the
+  // category's count first. For display, `sessionScores` says "no data" as
+  // null instead.
   /** Betting accuracy score. */
   betAccuracy: number
   /** Play accuracy score. */

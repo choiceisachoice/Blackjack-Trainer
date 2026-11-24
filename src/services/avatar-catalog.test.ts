@@ -7,6 +7,7 @@ import {
   LEVEL_AVATAR_LEVELS,
   achievementAvatarTier,
   countUnlocked,
+  fallbackAvatar,
   isAvatarId,
   isAvatarUnlocked,
   resolveAvatar,
@@ -90,5 +91,16 @@ describe('unlocking', () => {
   it('counts what has been unlocked', () => {
     expect(countUnlocked(fresh)).toBe(12)
     expect(countUnlocked(veteran)).toBe(12 + 13 + 1)
+  })
+
+  it('falls back to a picture the learner already has, never a placeholder', () => {
+    expect(fallbackAvatar(1)).toBe('spade')
+    expect(fallbackAvatar(12)).toBe('level-12')
+    expect(fallbackAvatar(25)).toBe('level-25')
+    expect(fallbackAvatar(40)).toBe('level-25')
+    expect(fallbackAvatar(Number.NaN)).toBe('spade')
+    for (const level of [1, 2, 7, 12, 25]) {
+      expect(isAvatarUnlocked(fallbackAvatar(level), { level, unlockedAchievementIds: [] })).toBe(true)
+    }
   })
 })

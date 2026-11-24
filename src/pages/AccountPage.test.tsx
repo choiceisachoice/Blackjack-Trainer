@@ -1,6 +1,6 @@
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 /**
  * Billing failures on `/account` have to be said out loud.
@@ -30,6 +30,7 @@ import { AccountPage } from './AccountPage'
 import { useEntitlementStore } from '../store/entitlement-store'
 import { LEGAL_META } from './legal/legal-meta'
 import { markSessionPending, resetPendingSessions } from '../services/storage/pending-sessions'
+import { useStatsStore } from '../store/stats-store'
 
 /** Supabase is unconfigured under test, so everything is unlocked and the
  *  Pro "Manage subscription" path is the one on screen. */
@@ -253,5 +254,43 @@ describe('a subscription that has been cancelled', () => {
     renderPage()
 
     expect(manageButton()).toBeEnabled()
+  })
+})
+
+/**
+ * The profile header, when `/account` is the first page opened.
+ *
+ * It is its own route, outside the app shell, and the stats store is filled
+ * by the screens that show statistics — so opened directly or refreshed, the
+ * header read "Sessions 0" for a learner with a history. And with no name or
+ * address to take a letter from (the offline app, the demo recordings), the
+ * profile tile was a "?".
+ */
+describe('the profile header on a direct visit', () => {
+  const realLoadStats = useStatsStore.getState().loadStats
+  afterEach(() => useStatsStore.setState({ loadStats: realLoadStats, lifetimeStats: null, sessions: [] }))
+
+  it('loads the session count instead of showing zero', async () => {
+    const loadStats = vi.fn(async () => {
+      useStatsStore.setState({
+        sessions: [],
+        lifetimeStats: {
+          totalSessions: 41, totalQuestions: 800, totalCorrect: 700, totalPracticeSeconds: 9000,
+          overallAccuracy: 0.875, bestStreak: 12, byMode: {}, dailyStats: [],
+        },
+      })
+    })
+    useStatsStore.setState({ sessions: [], lifetimeStats: null, loadStats })
+    renderPage()
+    const stats = screen.getByTestId('account-stats')
+    await waitFor(() => expect(within(stats).getByText('41')).toBeInTheDocument(), T)
+    expect(loadStats).toHaveBeenCalledTimes(1)
+  })
+
+  it('draws a picture, not a question mark, when there is no letter to draw', () => {
+    renderPage()
+    const profile = screen.getByTestId('account-profile')
+    expect(within(profile).queryByText('?')).toBeNull()
+    expect(profile.querySelector('svg[viewBox="0 0 64 64"]')).not.toBeNull()
   })
 })

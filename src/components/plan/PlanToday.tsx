@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, BookOpen, Check, Club, Flame, Lock, Play, RotateCcw, Timer, X } from 'lucide-react'
-import { CURRICULUM, stageIndex, type StageId, type StageProgress } from '../../services/curriculum'
+import { ProgressBar } from '../common/ui'
+import { CURRICULUM, drillDescription, stageIndex, type StageId, type StageProgress } from '../../services/curriculum'
 import {
   DAY_OPTIONS,
   MINUTE_OPTIONS,
@@ -141,22 +142,35 @@ export function TimeQuestion({
 }
 
 /** Monday to Sunday as seven dots: trained, today, still to come. */
-export function WeekDots({ week }: { week: WeekPlan }) {
+export function WeekDots({ week, fluid = false }: {
+  week: WeekPlan
+  /** Spread across the available width with larger dots — the rail version. */
+  fluid?: boolean
+}) {
   const { t } = useTranslation()
   const names = t('plan.week.dayNames', { returnObjects: true }) as string[]
   return (
-    <div className="flex items-center gap-1.5" data-testid="plan-week" aria-label={t('plan.week.days', { trained: week.trained, target: week.target })}>
+    <div
+      className={`flex items-center ${fluid ? 'justify-between' : 'gap-1.5'}`}
+      data-testid="plan-week"
+      aria-label={t('plan.week.days', { trained: week.trained, target: week.target })}
+    >
       {week.days.map((trained, i) => (
         <span key={i} className="flex flex-col items-center gap-1">
           <span
-            className={`grid place-items-center w-6 h-6 rounded-full border text-[0.625rem] ${
+            className={`grid place-items-center ${fluid ? 'w-7 h-7' : 'w-6 h-6'} rounded-full border text-[0.625rem] ${
               trained
                 ? 'bg-gold border-gold text-on-gold'
                 : i === week.todayIndex
                   ? 'border-gold/70 text-gold'
-                  : 'border-contrast/15 text-transparent'
+                  // A day gone by without training is not a day still to come:
+                  // a faint fill, where the days ahead stay open rings.
+                  : i < week.todayIndex
+                    ? 'border-transparent bg-contrast/[.07] text-transparent'
+                    : 'border-contrast/15 text-transparent'
             }`}
             data-trained={trained}
+            data-past={!trained && i < week.todayIndex}
           >
             {trained ? <Check size={12} strokeWidth={3} /> : '·'}
           </span>
@@ -180,6 +194,9 @@ export function TodayBlocks({
   week,
   weekStreak = 0,
   onOpen,
+  hideStart = false,
+  hideWeek = false,
+  className = 'mt-5',
 }: {
   day: DayPlan
   week: WeekPlan
@@ -190,10 +207,19 @@ export function TodayBlocks({
   weekStreak?: number
   /** Start a block: the screen it is done on, and the block itself. */
   onOpen: (mode: AppMode, block: PlanBlock) => void
+  /**
+   * Leave the start button (and the "day done" note) to the caller, which
+   * places `TodayStart` itself — on the home screen it sits beside the stage
+   * name, where it is seen before the list, not under it.
+   */
+  hideStart?: boolean
+  /** Leave the week out, where the page shows it elsewhere (the home rail). */
+  hideWeek?: boolean
+  /** Spacing above the section; the side-by-side card wants none. */
+  className?: string
 }) {
   const { t } = useTranslation()
   const title = useStageTitle()
-  const name = (b: PlanBlock) => `${t(`plan.today.kind.${b.kind}`)} · ${title(b.stage)}`
 
   // Four runs of one drill are one line that says "4", not four identical
   // lines. Grouped wherever they sit in the day, in order of first appearance.
@@ -206,7 +232,7 @@ export function TodayBlocks({
   }
 
   return (
-    <section className="mt-5" data-testid="plan-today">
+    <section className={className} data-testid="plan-today">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div>
           <div className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
@@ -216,24 +242,26 @@ export function TodayBlocks({
             {t('plan.today.doneOf', { done: day.doneMinutes, total: day.minutes })}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className={`inline-flex items-center gap-1.5 text-xs tabular-nums ${week.met ? 'text-success' : 'text-content/50'}`}>
-            {/* One flame at a time: with a streak beside it, the streak has it. */}
-            {week.met && weekStreak < 2 && <Flame size={13} />}
-            {week.met ? t('plan.week.met') : t('plan.week.days', { trained: week.trained, target: week.target })}
-          </span>
-          {weekStreak >= 2 && (
-            <span
-              className="inline-flex items-center gap-1 text-xs tabular-nums text-gold"
-              data-testid="plan-week-streak"
-              title={t('xp.weekStreak.hint')}
-            >
-              <Flame size={13} aria-hidden="true" />
-              {t('xp.weekStreak.label', { count: weekStreak })}
+        {!hideWeek && (
+          <div className="flex items-center gap-3">
+            <span className={`inline-flex items-center gap-1.5 text-xs tabular-nums ${week.met ? 'text-success' : 'text-content/50'}`}>
+              {/* One flame at a time: with a streak beside it, the streak has it. */}
+              {week.met && weekStreak < 2 && <Flame size={13} />}
+              {week.met ? t('plan.week.met') : t('plan.week.days', { trained: week.trained, target: week.target })}
             </span>
-          )}
-          <WeekDots week={week} />
-        </div>
+            {weekStreak >= 2 && (
+              <span
+                className="inline-flex items-center gap-1 text-xs tabular-nums text-gold"
+                data-testid="plan-week-streak"
+                title={t('xp.weekStreak.hint')}
+              >
+                <Flame size={13} aria-hidden="true" />
+                {t('xp.weekStreak.label', { count: weekStreak })}
+              </span>
+            )}
+            <WeekDots week={week} />
+          </div>
+        )}
       </div>
 
       {day.blocks.length === 0 ? (
@@ -302,26 +330,115 @@ export function TodayBlocks({
         </ol>
       )}
 
-      {day.next ? (
-        <button
-          onClick={() => onOpen(day.next!.mode, day.next!)}
-          data-testid="plan-today-start"
-          className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold
-            bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer"
-        >
-          <Play size={16} />
-          {t(day.doneMinutes > 0 ? 'plan.today.next' : 'plan.today.start', { block: name(day.next) })}
-        </button>
-      ) : day.complete ? (
-        <div className="mt-4 rounded-xl border border-success/30 bg-success/[.06] px-4 py-3" data-testid="plan-today-complete">
-          <div className="flex items-center gap-2 font-semibold text-success">
-            <Check size={16} strokeWidth={3} /> {t('plan.today.complete')}
-          </div>
-          <p className="mt-1 text-sm text-content/55 max-w-[58ch]">{t('plan.today.completeSub')}</p>
-        </div>
-      ) : null}
+      {!hideStart && <TodayStart day={day} onOpen={onOpen} />}
     </section>
   )
+}
+
+/**
+ * The one button that starts the next open block of the day — or, once every
+ * block is covered, the note that the day is done.
+ *
+ * Its own component so a page can put it where it is seen first: the home
+ * screen sets it under the stage name, ahead of the list of blocks, so on a
+ * 720px-high window it is on the first screen rather than two scrolls down.
+ */
+export function TodayStart({
+  day,
+  onOpen,
+  className = 'mt-4',
+}: {
+  day: DayPlan
+  onOpen: (mode: AppMode, block: PlanBlock) => void
+  className?: string
+}) {
+  const { t } = useTranslation()
+  const title = useStageTitle()
+  // A no-break space before the dot: wrapped on a phone, the second line
+  // starts with the stage, not with "· True count".
+  const name = (b: PlanBlock) => `${t(`plan.today.kind.${b.kind}`)}\u00a0· ${title(b.stage)}`
+
+  if (day.next) {
+    const next = day.next
+    return (
+      <button
+        onClick={() => onOpen(next.mode, next)}
+        data-testid="plan-today-start"
+        className={`${className} inline-flex items-center gap-2 rounded-xl px-5 py-3 font-semibold text-left
+          max-sm:w-full max-sm:justify-center [text-wrap:balance]
+          bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer
+          shadow-[0_10px_28px_-14px_var(--color-gold)] hover:shadow-[0_14px_34px_-14px_var(--color-gold)]
+          transition-shadow duration-150 ease-out`}
+      >
+        <Play size={16} className="shrink-0" />
+        {t(day.doneMinutes > 0 ? 'plan.today.next' : 'plan.today.start', { block: name(next) })}
+      </button>
+    )
+  }
+  if (!day.complete) return null
+  return (
+    <div className={`${className} rounded-xl border border-success/30 bg-success/[.06] px-4 py-3`} data-testid="plan-today-complete">
+      <div className="flex items-center gap-2 font-semibold text-success">
+        <Check size={16} strokeWidth={3} /> {t('plan.today.complete')}
+      </div>
+      <p className="mt-1 text-sm text-content/55 max-w-[58ch]">{t('plan.today.completeSub')}</p>
+    </div>
+  )
+}
+
+/**
+ * The week as its own small block: days trained against days planned, the
+ * run of kept weeks, and the seven dots.
+ *
+ * For the home screen's rail, where the week sits with the level and the
+ * figures — "how am I doing" in one place — instead of inside today's list.
+ */
+export function WeekSummary({ week, weekStreak = 0 }: { week: WeekPlan; weekStreak?: number }) {
+  const { t } = useTranslation()
+  return (
+    <div data-testid="week-summary">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">
+          {t('plan.week.label')}
+        </span>
+        <span className="flex items-center gap-3 text-xs tabular-nums">
+          <span className={`inline-flex items-center gap-1.5 ${week.met ? 'text-success font-semibold' : 'text-content/60'}`}>
+            {week.met && weekStreak < 2 && <Flame size={13} aria-hidden="true" />}
+            {week.met ? t('plan.week.met') : t('plan.week.days', { trained: week.trained, target: week.target })}
+          </span>
+          {weekStreak >= 2 && (
+            <span
+              className="inline-flex items-center gap-1 text-gold font-semibold"
+              data-testid="plan-week-streak"
+              title={t('xp.weekStreak.hint')}
+            >
+              <Flame size={13} aria-hidden="true" />
+              {t('xp.weekStreak.label', { count: weekStreak })}
+            </span>
+          )}
+        </span>
+      </div>
+      <div className="mt-3">
+        <WeekDots week={week} fluid />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * How one point of the road is drawn.
+ *
+ * The road is walked in order. A stage finished ahead of the one on turn is
+ * finished and stays counted — but drawn like the stages behind, it made a
+ * road with a gap in it: "done" after "not done". It gets an outlined tick,
+ * "done already", until the road reaches it.
+ */
+function nodeState(progress: readonly StageProgress[], entryIndex: number, i: number) {
+  const p = progress[i]
+  const reached = progress.slice(entryIndex, i).every(q => q.done)
+  const early = i >= entryIndex && p.done && !reached
+  const known = (p.done || i < entryIndex) && !early
+  return { known, early }
 }
 
 /**
@@ -337,6 +454,9 @@ export function PathStrip({
   entryIndex,
   goalIndex,
   onOpen,
+  layout = 'row',
+  summary,
+  badge,
 }: {
   progress: readonly StageProgress[]
   activeId: StageId | null
@@ -344,10 +464,114 @@ export function PathStrip({
   entryIndex: number
   /** Index of the last stage the goal needs; later ones are drawn faint. */
   goalIndex: number
-  onOpen: () => void
+  /**
+   * Opens the plan's own page. Left out (column layout only), the road is a
+   * picture with no link — the welcome screen's preview.
+   */
+  onOpen?: () => void
+  /** Top right in place of the link, when there is none — an "example" tag. */
+  badge?: ReactNode
+  /**
+   * `row`: seven points on one line, under the plan. `column`: the same road
+   * standing up, one stage per line — for the home screen's narrow rail, where
+   * seven labels side by side would be cut to two words each.
+   */
+  layout?: 'row' | 'column'
+  /** One line under the title in the column layout: stages done, weeks left. */
+  summary?: ReactNode
 }) {
   const { t } = useTranslation()
   const activeIndex = activeId ? stageIndex(activeId) : -1
+
+  if (layout === 'column') {
+    return (
+      <section data-testid="plan-path">
+        <div className="flex items-baseline justify-between gap-4">
+          <h3 className="text-[0.6875rem] font-bold tracking-[0.16em] uppercase text-content/40">{t('plan.path.title')}</h3>
+          {onOpen ? (
+            <button
+              onClick={onOpen}
+              data-testid="plan-path-open"
+              className="inline-flex items-center gap-1.5 text-xs text-content/55 hover:text-gold cursor-pointer transition-colors duration-100"
+            >
+              {t('plan.path.open')} <ArrowRight size={13} />
+            </button>
+          ) : badge}
+        </div>
+        {summary && <p className="mt-1 text-xs text-content/45 leading-snug">{summary}</p>}
+
+        <ol className="mt-4 flex flex-col">
+          {progress.map((p, i) => {
+            const { known, early } = nodeState(progress, entryIndex, i)
+            const isActive = i === activeIndex
+            const beyond = i > goalIndex
+            return (
+              <li
+                key={p.stage.id}
+                className={`relative flex items-start gap-3 pb-3.5 last:pb-0 ${beyond ? 'opacity-40' : ''}`}
+                data-testid={`path-node-${p.stage.id}`}
+                data-state={known ? 'done' : early ? 'early' : isActive ? 'active' : 'ahead'}
+              >
+                {/* The rail down to the next point. */}
+                {i < progress.length - 1 && (
+                  <span
+                    aria-hidden
+                    className={`absolute left-[11px] top-[23px] bottom-0 w-px ${known ? 'bg-gold/60' : 'bg-contrast/12'}`}
+                  />
+                )}
+                <span
+                  className={`relative z-10 grid place-items-center w-[23px] h-[23px] shrink-0 rounded-full text-[0.6875rem] font-bold border ${
+                    known
+                      ? 'bg-gold border-gold text-on-gold'
+                      : early
+                        ? 'bg-casino-bg border-gold/60 text-gold'
+                        : isActive
+                          ? 'bg-casino-bg border-gold text-gold shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-gold)_18%,transparent)]'
+                          : 'bg-casino-bg border-contrast/20 text-content/40'
+                  }`}
+                >
+                  {known || early ? <Check size={12} strokeWidth={3} /> : p.locked ? <Lock size={10} /> : i + 1}
+                </span>
+                <span className="min-w-0 flex-1 pt-[3px]">
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className={`text-[0.8125rem] leading-snug ${
+                      isActive ? 'text-content font-semibold' : known ? 'text-content/55' : 'text-content/45'
+                    }`}>
+                      {t(p.stage.titleKey)}
+                    </span>
+                    {/* The stage on turn says so — unless it is behind Pro, which is
+                        what the learner needs to know about it first. */}
+                    {isActive && (
+                      <span className="shrink-0 inline-flex items-center gap-1 text-[0.625rem] font-bold tracking-[0.12em] uppercase text-gold">
+                        {p.locked ? <><Lock size={10} aria-hidden="true" /> {t('pricing.pro')}</> : t('plan.upNext')}
+                      </span>
+                    )}
+                  </span>
+                  {isActive && !p.readOnly && (
+                    <span
+                      className="mt-1.5 flex items-center gap-2.5"
+                      title={p.stage.drill ? drillDescription(p.stage.drill, t) : undefined}
+                    >
+                      <ProgressBar className="flex-1" height={5} value={p.current} max={Math.max(p.target, 1)} />
+                      <span className={`shrink-0 text-[0.6875rem] tabular-nums ${p.locked ? 'text-content/45' : 'text-gold'}`}>
+                        {p.current}/{p.target} · {t('plan.daysProgress', { days: p.days, target: p.targetDays })}
+                      </span>
+                    </span>
+                  )}
+                  {/* What "2/8 · 2/4 days" counts, said once, under it. */}
+                  {isActive && !p.readOnly && p.stage.drill && (
+                    <span className="mt-1 block text-[0.6875rem] text-content/40 leading-snug">
+                      {drillDescription(p.stage.drill, t)}
+                    </span>
+                  )}
+                </span>
+              </li>
+            )
+          })}
+        </ol>
+      </section>
+    )
+  }
 
   return (
     <section className="mt-8" data-testid="plan-path">
@@ -364,13 +588,7 @@ export function PathStrip({
 
       <ol className="mt-4 grid grid-cols-7 gap-0">
         {progress.map((p, i) => {
-          // The road is walked in order. A stage finished ahead of the one on
-          // turn is finished and stays counted — but drawn like the stages
-          // behind, it made a road with a gap in it: "done" after "not done".
-          // It gets an outlined tick, "done already", until the road reaches it.
-          const reached = progress.slice(entryIndex, i).every(q => q.done)
-          const early = i >= entryIndex && p.done && !reached
-          const known = (p.done || i < entryIndex) && !early
+          const { known, early } = nodeState(progress, entryIndex, i)
           const isActive = i === activeIndex
           const beyond = i > goalIndex
           return (
@@ -429,11 +647,16 @@ export function PathStrip({
  * is all this, and what am I supposed to do with it. Dismissed once, gone for
  * the account.
  */
-export function HowItWorks({ onDismiss, onTour }: { onDismiss: () => void; onTour?: () => void }) {
+export function HowItWorks({ onDismiss, onTour, className = 'max-w-3xl mx-auto mb-6' }: {
+  onDismiss: () => void
+  onTour?: () => void
+  /** Width and spacing, which depend on where the page puts it. */
+  className?: string
+}) {
   const { t } = useTranslation()
   return (
     <section
-      className="relative w-full max-w-3xl mx-auto mb-6 surface rounded-2xl p-5 md:p-6 border border-gold/20"
+      className={`relative w-full surface rounded-2xl p-5 md:p-6 border border-gold/20 ${className}`}
       data-testid="how-it-works"
     >
       <button

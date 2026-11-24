@@ -244,10 +244,19 @@ export function BetSpread() {
 
   // ── Settings Phase ──
   if (phase === 'settings') {
+    // The tallest setup screen of the drills (the ladder plus two choices):
+    // 683px against 595px at 2000×720, and the shell does not scroll for this
+    // mode. Centred with `justify-center` inside `overflow-hidden`, the panel
+    // was cut at both ends — the title under the back bar, the start button
+    // 19px below the screen, no way to reach either. The backdrop stays on the
+    // frame (`overflow-hidden`, so the big suits do not spill); the panel
+    // scrolls in its own box, and `my-auto` centres it while it fits without
+    // pushing its top out of reach when it does not.
     return (
-      <div className="relative isolate overflow-hidden flex-1 flex flex-col items-center justify-center px-4">
+      <div className="relative isolate overflow-hidden flex-1 min-h-0 flex flex-col">
         <TrainingBackdrop mode="betSpread" showRails />
-        <Panel icon={Coins} title={t('training.bet.title')} subtitle={t('training.bet.sub')} className="w-full max-w-xl">
+        <div className="relative flex-1 min-h-0 overflow-y-auto flex flex-col items-center px-4 py-4" data-testid="bet-settings-scroller">
+        <Panel icon={Coins} title={t('training.bet.title')} subtitle={t('training.bet.sub')} className="w-full max-w-xl my-auto">
           {/* Bet Spread Reference (multiplier ladder) */}
           <div className="rounded-xl p-4 bg-contrast/5 border border-contrast/10">
             <p className="text-xs font-semibold tracking-widest uppercase text-content/40 mb-3 text-center">{t('training.bet.reference')}</p>
@@ -302,6 +311,7 @@ export function BetSpread() {
             {t('training.flash.start')}
           </Button>
         </Panel>
+        </div>
       </div>
     )
   }

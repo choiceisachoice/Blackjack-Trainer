@@ -17,6 +17,7 @@ import { fetchClientFailures, CLIENT_FAILURES_MIGRATION, type ClientFailure } fr
 import { fetchFunnel, funnelSteps, FUNNEL_MIGRATION, type Funnel, type FunnelStepId } from '../services/analytics/funnel'
 import { DailyBars, type DailyMetric } from '../components/analytics-web/WebAnalyticsCharts'
 import { Segmented, EmptyState } from '../components/common/ui'
+import { activeLocale } from '../i18n'
 
 /** `YYYY-MM-DD` of a local date, for the date inputs. */
 function dayString(d: Date): string {
@@ -77,7 +78,7 @@ function RankedList({ rows, testId }: { rows: { label: string; count: number; ke
             style={{ width: `${(r.count / max) * 100}%`, background: 'color-mix(in srgb, var(--color-gold) 14%, transparent)' }}
           />
           <span className="relative truncate text-content/85">{r.label}</span>
-          <span className="relative font-semibold tabular-nums text-content">{r.count.toLocaleString()}</span>
+          <span className="relative font-semibold tabular-nums text-content">{r.count.toLocaleString(activeLocale())}</span>
         </li>
       ))}
     </ol>

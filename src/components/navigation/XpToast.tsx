@@ -60,7 +60,9 @@ export function XpToast() {
 
   if (!award || levelUpOpen) return null
 
-  const shell = `rise-in pointer-events-none
+  // `drop-in`, not `rise-in`: the layer hangs from the top of the screen now
+  // (`ToastLayer`), so the toast arrives from above.
+  const shell = `drop-in pointer-events-none
     flex gap-2.5 pl-3 pr-4 py-2.5 rounded-xl
     border border-gold/35 bg-surface/95 backdrop-blur-sm
     shadow-[0_14px_40px_-16px_var(--color-gold)]`
@@ -80,7 +82,7 @@ export function XpToast() {
         className={`${shell} items-start`}
       >
         {icon}
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="text-sm font-bold text-gold tabular-nums leading-7" data-testid="xp-toast-total">
             +{award.amount}&nbsp;XP
           </div>
@@ -91,7 +93,7 @@ export function XpToast() {
                 data-testid="xp-toast-line"
                 className="flex items-baseline justify-between gap-5 text-xs text-content/55"
               >
-                <span className="truncate max-w-[13rem]">{t(line.labelKey, line.labelParams)}</span>
+                <span className="truncate min-w-0">{t(line.labelKey, line.labelParams)}</span>
                 {line.amount != null && (
                   <span className="tabular-nums text-content/75 shrink-0">+{line.amount}</span>
                 )}
@@ -115,11 +117,11 @@ export function XpToast() {
       {/* A session past the day's limit pays nothing and still says why:
           "+0 XP" would read as a fault. */}
       {award.amount > 0 && (
-        <span className="text-sm font-bold text-gold tabular-nums">
+        <span className="text-sm font-bold text-gold tabular-nums whitespace-nowrap">
           +{award.amount}&nbsp;XP
         </span>
       )}
-      <span className="text-sm text-content/55">
+      <span className="text-sm text-content/55 min-w-0">
         {t(award.labelKey, award.labelParams)}
       </span>
     </div>

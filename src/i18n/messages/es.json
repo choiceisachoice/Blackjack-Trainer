@@ -15,7 +15,8 @@
     "continueMode": "Continuar {{mode}}",
     "confirm": "Confirmar",
     "edit": "Editar",
-    "dismiss": "Cerrar"
+    "dismiss": "Cerrar",
+    "example": "Ejemplo"
   },
   "nav": {
     "home": "Inicio",
@@ -432,7 +433,41 @@
       "submit": "Enviar",
       "correctRc": "¡Correcto! RC = {{rc}}",
       "wrongRc": "¡Incorrecto! RC = {{rc}}",
-      "youSaid": "Dijiste {{value}}"
+      "youSaid": "Dijiste {{value}}",
+      "toGo": "faltan {{n}}",
+      "allDealt": "Repartidas las {{total}} cartas",
+      "thisRound": "Esta ronda",
+      "cards": "Cartas",
+      "perCard": "{{s}} s por carta",
+      "secondsShort": "{{s}} s",
+      "speedHelp": "{{s}} s por carta.",
+      "bestTitle": "Tu récord · {{speed}}",
+      "bestCards": "{{n}} cartas",
+      "bestCaption": "ronda más larga contada sin error",
+      "bestRounds": "{{exact}} de {{rounds}} rondas exactas",
+      "bestNone": "Aún no hay ninguna ronda exacta a esta velocidad.",
+      "bestNew": "Nuevo récord",
+      "bestOnSetup": "Tu récord a esta velocidad: {{n}} cartas contadas sin error.",
+      "entryHint": "Escribe el número o elígelo. Intro envía.",
+      "quickPicks": "Selección rápida",
+      "reviewTitle": "El count tras cada carta",
+      "tooHigh": "{{n}} de más",
+      "tooLow": "{{n}} de menos",
+      "hint": {
+        "exact": "Tu count final es correcto.",
+        "lastCard": "Tu número es el count antes de la última carta ({{card}}, {{tag}}). La última carta es la más fácil de perder: está marcada en la mesa.",
+        "oneHigh": "Normalmente una carta del 10 al as sin su −1, o una carta baja sumada dos veces. Vuelve a contar la fila para encontrarla.",
+        "oneLow": "Normalmente una carta baja (2–6) sin su +1, o un diez restado dos veces. Vuelve a contar la fila para encontrarla.",
+        "twoHigh": "A menudo una carta del 10 al as contada como +1 en vez de −1, o dos cartas perdidas. Vuelve a contar la fila para encontrarla.",
+        "twoLow": "A menudo una carta baja (2–6) contada como −1 en vez de +1, o dos cartas perdidas. Vuelve a contar la fila para encontrarla.",
+        "far": "Se te escapó más de una carta. Vuelve a contar la fila para encontrar dónde se separó tu count."
+      },
+      "faster": "Más rápido",
+      "moreCards": "Más cartas",
+      "sitting": "Esta sesión",
+      "slower": "Más lento",
+      "stop": "Parar",
+      "sittingEmpty": "Tus rondas aparecen aquí."
     },
     "primer": {
       "title": "Los valores Hi-Lo",
@@ -639,7 +674,16 @@
       "unlimited": "Ilimitado",
       "unlimitedHint": "Juega todo lo que quieras y cobra cuando quieras. La sesión se guarda en tu registro.",
       "multiHand": "Jugar varias manos",
-      "multiHandHint": "Cada asiento libre de la mesa muestra un +. Puedes abrir hasta {{count}} manos."
+      "multiHandHint": "Cada asiento libre de la mesa muestra un +. Puedes abrir hasta {{count}} manos.",
+      "lineHands_one": "{{count}} mano",
+      "lineHands_other": "{{count}} manos",
+      "lineMinutes_one": "{{count}} minuto",
+      "lineMinutes_other": "{{count}} minutos",
+      "lineDecks_one": "{{count}} baraja",
+      "lineDecks_other": "{{count}} barajas",
+      "lineBots_zero": "Solo en la mesa",
+      "lineBots_one": "{{count}} jugador más",
+      "lineBots_other": "{{count}} jugadores más"
     },
     "table": {
       "you": "TÚ",
@@ -714,28 +758,47 @@
       "counting": "Conteo",
       "deviations": "Desviaciones",
       "insurance": "Seguro",
-      "stats": "Datos de la sesión",
       "handsLabel": "Manos:",
       "duration": "Duración:",
       "avgRcError": "Error RC medio:",
       "avgTcError": "Error TC medio:",
-      "missedDeviations": "Desviaciones falladas",
       "playAgain": "Jugar otra vez",
       "home": "Inicio",
-      "overallScore": "Puntuación global: {{pct}} %",
       "anomalies": "Anomalías detectadas durante la sesión: {{count}}",
-      "basicMode": "Solo Blackjack · evaluado por estrategia básica"
+      "basicMode": "Solo Blackjack · evaluado por estrategia básica",
+      "eyebrow": "Sesión terminada",
+      "countingMode": "Conteo de cartas · apuestas, juego y count evaluados",
+      "overall": "Puntuación global",
+      "noGrade": "Nota a partir de {{min}} manos",
+      "noGradeHands_one": "Esta sesión tuvo {{count}} mano.",
+      "noGradeHands_other": "Esta sesión tuvo {{count}} manos.",
+      "ofTotal": "{{n}} de {{total}}",
+      "emptyCount": "Sin comprobación del count en esta sesión",
+      "emptyDeviations": "No se presentó ninguna desviación",
+      "emptyInsurance": "No se ofreció en esta sesión"
     },
     "review": {
       "correct": "Correcto",
       "wrongActual": "Incorrecto (en realidad: {{value}})",
-      "wrongShould": "Incorrecto (debía ser: {{value}})",
-      "betLabel": "Apuesta:",
-      "devLabel": "Desv.:",
-      "playLabel": "Jugada:",
-      "followed": "Seguida",
-      "missed": "Fallada ({{name}})",
-      "handNo": "Mano {{n}}:"
+      "title": "Mano {{n}}",
+      "allRight": "Todo correcto",
+      "mistakes_one": "{{count}} error",
+      "mistakes_other": "{{count}} errores",
+      "nothingGraded": "Nada que evaluar",
+      "you": "Tú",
+      "deviation": "Desviación",
+      "chartSays": "Estrategia básica: {{action}}",
+      "betAt": "Apuesta con TC {{tc}}",
+      "session": "Esta sesión",
+      "handsRight_one": "Manos correctas: {{right}}/{{count}}",
+      "handsRight_other": "Manos correctas: {{right}}/{{count}}",
+      "next": "Siguiente mano",
+      "right": "Correcto",
+      "yes": "Sí",
+      "no": "No",
+      "handsRightShort": "{{right}}/{{count}} correctas",
+      "basic": "Estrategia básica",
+      "actual": "Real"
     },
     "name": "Sesión de casino",
     "bot": {
@@ -1068,7 +1131,9 @@
       "s3": "Cada respuesta correcta da XP. Los niveles, premios y retos salen del propio entrenamiento.",
       "dismiss": "Entendido"
     },
-    "loading": "Cargando tu plan"
+    "loading": "Cargando tu plan",
+    "formPreview": "Aquí aparecerán tus últimas rondas",
+    "formBar": "listón {{pct}} %"
   },
   "recommend": {
     "startTraining": "Empezar a entrenar",
@@ -1810,8 +1875,10 @@
     "tagline": "Hi-Lo, practicado hasta que el conteo sale solo.",
     "stat": {
       "streak": "Racha de {{count}} d",
-      "accuracy": "{{pct}} % de acierto"
-    }
+      "accuracy": "{{pct}} % de acierto",
+      "timeLabel": "de entrenamiento"
+    },
+    "statsPreview": "Tus propias cifras tras tu primera sesión"
   },
   "startLevel": {
     "never": {
@@ -2005,7 +2072,9 @@
     "weekStreak": "racha de {{n}} semanas",
     "xpEarned": "¡+{{xp}} XP ganados!",
     "msTarget": "{{done}} / objetivo {{target}} ms",
-    "complete": "Completado"
+    "complete": "Completado",
+    "toGo_one": "falta {{count}}",
+    "toGo_other": "faltan {{count}}"
   },
   "wchal": {
     "weekly_grinder": {

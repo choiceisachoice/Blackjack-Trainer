@@ -27,6 +27,20 @@ function fmtDate(dateStr: string): string {
   return d.toLocaleDateString(activeLocale(), { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+/**
+ * The starting-bankroll field's example: 10000 in the reader's digits and,
+ * deliberately, without a thousands separator.
+ *
+ * It read "10,000" — an English separator on every language's screen.
+ * Grouped for German it would read "10.000", and this is a number input,
+ * which takes "." as the decimal point whatever the language: someone copying
+ * the example would start a real-money log at $10. Plain digits are the one
+ * form the field reads the same everywhere.
+ */
+function exampleBankroll(): string {
+  return (10_000).toLocaleString(activeLocale(), { useGrouping: false })
+}
+
 function winRateGlow(rate: number): string {
   if (rate > 0.55) return '0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.08)'
   if (rate >= 0.45) return '0 0 20px rgba(234, 179, 8, 0.2), 0 0 40px rgba(234, 179, 8, 0.05)'
@@ -263,7 +277,7 @@ export function BankrollSimulator() {
                   type="number"
                   value={onboardingBankroll}
                   onChange={e => setOnboardingBankroll(e.target.value)}
-                  placeholder="10,000"
+                  placeholder={exampleBankroll()}
                   data-testid="onboarding-bankroll-input"
                   className="w-full pl-7 pr-3 py-3 rounded-xl text-lg text-center"
                 />

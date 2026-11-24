@@ -15,7 +15,8 @@
     "continueMode": "Continue {{mode}}",
     "confirm": "Confirm",
     "edit": "Edit",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "example": "Example"
   },
   "nav": {
     "home": "Home",
@@ -432,7 +433,41 @@
       "submit": "Submit",
       "correctRc": "Correct! RC = {{rc}}",
       "wrongRc": "Wrong! RC = {{rc}}",
-      "youSaid": "You said {{value}}"
+      "youSaid": "You said {{value}}",
+      "toGo": "{{n}} to go",
+      "allDealt": "All {{total}} cards dealt",
+      "thisRound": "This round",
+      "cards": "Cards",
+      "perCard": "{{s}} s per card",
+      "secondsShort": "{{s}} s",
+      "speedHelp": "{{s}} s per card.",
+      "bestTitle": "Your best · {{speed}}",
+      "bestCards": "{{n}} cards",
+      "bestCaption": "longest round counted exactly",
+      "bestRounds": "{{exact}} of {{rounds}} rounds exact",
+      "bestNone": "No exact round at this speed yet.",
+      "bestNew": "New best",
+      "bestOnSetup": "Your best at this speed: {{n}} cards counted exactly.",
+      "entryHint": "Type it or pick it. Enter submits.",
+      "quickPicks": "Quick picks",
+      "reviewTitle": "The count after every card",
+      "tooHigh": "{{n}} too high",
+      "tooLow": "{{n}} too low",
+      "hint": {
+        "exact": "Your final count is right.",
+        "lastCard": "Your number is the count before the last card ({{card}}, {{tag}}). The last card is the easiest one to lose — it is ringed on the felt.",
+        "oneHigh": "Usually a card from 10 to ace that never got its −1, or a low card counted twice. Count along the row to look for it.",
+        "oneLow": "Usually a low card (2–6) that never got its +1, or a ten taken off twice. Count along the row to look for it.",
+        "twoHigh": "Often a card from 10 to ace counted +1 instead of −1, or two cards slipped. Count along the row to look for it.",
+        "twoLow": "Often a low card (2–6) counted −1 instead of +1, or two cards slipped. Count along the row to look for it.",
+        "far": "More than one card slipped. Count along the row to find where yours parted from it."
+      },
+      "faster": "Faster",
+      "moreCards": "More cards",
+      "sitting": "This session",
+      "slower": "Slower",
+      "stop": "Stop",
+      "sittingEmpty": "Your rounds appear here."
     },
     "primer": {
       "title": "The Hi-Lo values",
@@ -639,7 +674,16 @@
       "unlimited": "Unlimited",
       "unlimitedHint": "Play as long as you like and cash out whenever you want. The session is saved to your tracker.",
       "multiHand": "Play several hands",
-      "multiHandHint": "Every free seat at the table shows a +. You can open up to {{count}} hands."
+      "multiHandHint": "Every free seat at the table shows a +. You can open up to {{count}} hands.",
+      "lineHands_one": "{{count}} hand",
+      "lineHands_other": "{{count}} hands",
+      "lineMinutes_one": "{{count}} minute",
+      "lineMinutes_other": "{{count}} minutes",
+      "lineDecks_one": "{{count}} deck",
+      "lineDecks_other": "{{count}} decks",
+      "lineBots_zero": "Alone at the table",
+      "lineBots_one": "{{count}} other player",
+      "lineBots_other": "{{count}} other players"
     },
     "table": {
       "you": "YOU",
@@ -714,28 +758,47 @@
       "counting": "Counting",
       "deviations": "Deviations",
       "insurance": "Insurance",
-      "stats": "Session Stats",
       "handsLabel": "Hands:",
       "duration": "Duration:",
       "avgRcError": "Avg RC Error:",
       "avgTcError": "Avg TC Error:",
-      "missedDeviations": "Missed Deviations",
       "playAgain": "Play Again",
       "home": "Home",
-      "overallScore": "Overall Score: {{pct}}%",
       "anomalies": "Anomalies detected during the session: {{count}}",
-      "basicMode": "Just Blackjack · graded on basic strategy"
+      "basicMode": "Just Blackjack · graded on basic strategy",
+      "eyebrow": "Session complete",
+      "countingMode": "Card counting · bets, play and count graded",
+      "overall": "Overall score",
+      "noGrade": "A grade from {{min}} hands on",
+      "noGradeHands_one": "This session had {{count}} hand.",
+      "noGradeHands_other": "This session had {{count}} hands.",
+      "ofTotal": "{{n}} of {{total}}",
+      "emptyCount": "No count check this session",
+      "emptyDeviations": "No deviation spot came up",
+      "emptyInsurance": "Not offered this session"
     },
     "review": {
       "correct": "Correct",
       "wrongActual": "Wrong (actual: {{value}})",
-      "wrongShould": "Wrong (should: {{value}})",
-      "betLabel": "Bet:",
-      "devLabel": "Dev:",
-      "playLabel": "Play:",
-      "followed": "Followed",
-      "missed": "Missed ({{name}})",
-      "handNo": "Hand {{n}}:"
+      "title": "Hand {{n}}",
+      "allRight": "All right",
+      "mistakes_one": "{{count}} mistake",
+      "mistakes_other": "{{count}} mistakes",
+      "nothingGraded": "Nothing to grade",
+      "you": "You",
+      "deviation": "Deviation",
+      "chartSays": "Basic strategy: {{action}}",
+      "betAt": "Bet at TC {{tc}}",
+      "session": "This session",
+      "handsRight_one": "{{right}} of {{count}} hand right",
+      "handsRight_other": "{{right}} of {{count}} hands right",
+      "next": "Next hand",
+      "right": "Right",
+      "yes": "Yes",
+      "no": "No",
+      "handsRightShort": "{{right}}/{{count}} right",
+      "basic": "Basic strategy",
+      "actual": "Actual"
     },
     "name": "Casino Session",
     "bot": {
@@ -1068,7 +1131,9 @@
       "s3": "Every correct answer earns XP. Levels, awards and challenges all follow from the training itself.",
       "dismiss": "Got it"
     },
-    "loading": "Loading your plan"
+    "loading": "Loading your plan",
+    "formPreview": "Your last runs will show up here",
+    "formBar": "bar {{pct}}%"
   },
   "recommend": {
     "startTraining": "Start training",
@@ -1810,8 +1875,10 @@
     "tagline": "Hi-Lo, drilled until the count comes without thinking.",
     "stat": {
       "streak": "{{count}}-day streak",
-      "accuracy": "{{pct}}% accuracy"
-    }
+      "accuracy": "{{pct}}% accuracy",
+      "timeLabel": "trained"
+    },
+    "statsPreview": "Your own figures after your first session"
   },
   "startLevel": {
     "never": {
@@ -2005,7 +2072,9 @@
     "weekStreak": "{{n}} week streak",
     "xpEarned": "+{{xp}} XP earned!",
     "msTarget": "{{done}} / {{target}}ms target",
-    "complete": "Complete"
+    "complete": "Complete",
+    "toGo_one": "{{count}} to go",
+    "toGo_other": "{{count}} to go"
   },
   "wchal": {
     "weekly_grinder": {

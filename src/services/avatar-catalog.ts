@@ -153,6 +153,24 @@ export function resolveAvatar(id: AvatarId | null, progress: AvatarProgress): Av
   return isAvatarUnlocked(id, progress) ? id : null
 }
 
+/**
+ * The picture to draw when there is no chosen picture and no letter to draw
+ * instead — an account without a name or an address, as in the offline app
+ * and the demo recordings, where the profile tile used to show a "?".
+ *
+ * The learner's own level picture (every level from 2 hands one out, and it
+ * is theirs by definition), or the spade before the first level-up: always a
+ * picture they already have, so the picker never disagrees with it.
+ *
+ * @param level - Current level, 1-based
+ */
+export function fallbackAvatar(level: number): AvatarId {
+  const top = LEVEL_AVATAR_LEVELS[LEVEL_AVATAR_LEVELS.length - 1]
+  const whole = Math.floor(level)
+  if (!(whole >= LEVEL_AVATAR_LEVELS[0])) return 'spade'
+  return levelAvatarId(Math.min(top, whole))
+}
+
 /** How many of the catalogue a person has unlocked. */
 export function countUnlocked(progress: AvatarProgress): number {
   return AVATAR_CATALOG.filter(d => isAvatarUnlocked(d.id, progress)).length

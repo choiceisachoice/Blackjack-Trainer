@@ -15,7 +15,8 @@
     "continueMode": "{{mode}} devam",
     "confirm": "Onayla",
     "edit": "Düzenle",
-    "dismiss": "Kapat"
+    "dismiss": "Kapat",
+    "example": "Örnek"
   },
   "nav": {
     "home": "Ana sayfa",
@@ -432,7 +433,41 @@
       "submit": "Gönder",
       "correctRc": "Doğru! RC = {{rc}}",
       "wrongRc": "Yanlış! RC = {{rc}}",
-      "youSaid": "{{value}} dediniz"
+      "youSaid": "{{value}} dediniz",
+      "toGo": "{{n}} kaldı",
+      "allDealt": "{{total}} kartın hepsi dağıtıldı",
+      "thisRound": "Bu tur",
+      "cards": "Kartlar",
+      "perCard": "Kart başına {{s}} sn",
+      "secondsShort": "{{s}} sn",
+      "speedHelp": "Kart başına {{s}} sn.",
+      "bestTitle": "Rekorunuz · {{speed}}",
+      "bestCards": "{{n}} kart",
+      "bestCaption": "hatasız sayılan en uzun tur",
+      "bestRounds": "{{rounds}} turun {{exact}} tanesi tam doğru",
+      "bestNone": "Bu hızda henüz tam doğru bir tur yok.",
+      "bestNew": "Yeni rekor",
+      "bestOnSetup": "Bu hızdaki rekorunuz: hatasız sayılan {{n}} kart.",
+      "entryHint": "Sayıyı yazın ya da seçin. Enter gönderir.",
+      "quickPicks": "Hızlı seçim",
+      "reviewTitle": "Her karttan sonraki count",
+      "tooHigh": "{{n}} fazla",
+      "tooLow": "{{n}} eksik",
+      "hint": {
+        "exact": "Son count’unuz doğru.",
+        "lastCard": "Sayınız son karttan önceki count ({{card}}, {{tag}}). Son kart en kolay kaçan karttır; masada işaretlendi.",
+        "oneHigh": "Çoğu zaman 10’dan asa kadar bir kart −1’ini almamıştır ya da düşük bir kart iki kez eklenmiştir. Bulmak için sırayı yeniden sayın.",
+        "oneLow": "Çoğu zaman düşük bir kart (2–6) +1’ini almamıştır ya da bir onlu iki kez çıkarılmıştır. Bulmak için sırayı yeniden sayın.",
+        "twoHigh": "Çoğu zaman 10’dan asa kadar bir kart −1 yerine +1 sayılmıştır ya da iki kart kaçmıştır. Bulmak için sırayı yeniden sayın.",
+        "twoLow": "Çoğu zaman düşük bir kart (2–6) +1 yerine −1 sayılmıştır ya da iki kart kaçmıştır. Bulmak için sırayı yeniden sayın.",
+        "far": "Birden fazla kart kaçmış. Sizinkinin nerede ayrıldığını bulmak için sırayı yeniden sayın."
+      },
+      "faster": "Daha hızlı",
+      "moreCards": "Daha çok kart",
+      "sitting": "Bu oturum",
+      "slower": "Daha yavaş",
+      "stop": "Durdur",
+      "sittingEmpty": "Turlarınız burada görünür."
     },
     "primer": {
       "title": "Hi-Lo değerleri",
@@ -639,7 +674,16 @@
       "unlimited": "Sınırsız",
       "unlimitedHint": "İstediğin kadar oyna, istediğin zaman kasadan çık. Oturum takipçine kaydedilir.",
       "multiHand": "Birden fazla el oyna",
-      "multiHandHint": "Masadaki her boş yer bir + gösterir. En fazla {{count}} el açabilirsin."
+      "multiHandHint": "Masadaki her boş yer bir + gösterir. En fazla {{count}} el açabilirsin.",
+      "lineHands_one": "{{count}} el",
+      "lineHands_other": "{{count}} el",
+      "lineMinutes_one": "{{count}} dakika",
+      "lineMinutes_other": "{{count}} dakika",
+      "lineDecks_one": "{{count}} deste",
+      "lineDecks_other": "{{count}} deste",
+      "lineBots_zero": "Masada yalnız",
+      "lineBots_one": "{{count}} oyuncu daha",
+      "lineBots_other": "{{count}} oyuncu daha"
     },
     "table": {
       "you": "SİZ",
@@ -714,28 +758,47 @@
       "counting": "Sayım",
       "deviations": "Sapmalar",
       "insurance": "Sigorta",
-      "stats": "Oturum verileri",
       "handsLabel": "El:",
       "duration": "Süre:",
       "avgRcError": "Ort. RC hatası:",
       "avgTcError": "Ort. TC hatası:",
-      "missedDeviations": "Kaçırılan sapmalar",
       "playAgain": "Tekrar oyna",
       "home": "Ana sayfa",
-      "overallScore": "Genel puan: %{{pct}}",
       "anomalies": "Oturum sırasında saptanan anormallik: {{count}}",
-      "basicMode": "Sadece Blackjack · temel stratejiye göre değerlendirildi"
+      "basicMode": "Sadece Blackjack · temel stratejiye göre değerlendirildi",
+      "eyebrow": "Oturum bitti",
+      "countingMode": "Kart sayma · bahis, oyun ve count değerlendirildi",
+      "overall": "Genel puan",
+      "noGrade": "Not, {{min}} elden itibaren verilir",
+      "noGradeHands_one": "Bu oturum: {{count}} el.",
+      "noGradeHands_other": "Bu oturum: {{count}} el.",
+      "ofTotal": "{{total}} içinde {{n}}",
+      "emptyCount": "Bu oturumda count kontrolü yok",
+      "emptyDeviations": "Hiç sapma durumu çıkmadı",
+      "emptyInsurance": "Bu oturumda teklif edilmedi"
     },
     "review": {
       "correct": "Doğru",
       "wrongActual": "Yanlış (gerçekte: {{value}})",
-      "wrongShould": "Yanlış (olması gereken: {{value}})",
-      "betLabel": "Bahis:",
-      "devLabel": "Sapma:",
-      "playLabel": "Oyun:",
-      "followed": "Uyuldu",
-      "missed": "Kaçırıldı ({{name}})",
-      "handNo": "El {{n}}:"
+      "title": "El {{n}}",
+      "allRight": "Hepsi doğru",
+      "mistakes_one": "{{count}} hata",
+      "mistakes_other": "{{count}} hata",
+      "nothingGraded": "Değerlendirilecek bir şey yok",
+      "you": "Sen",
+      "deviation": "Sapma",
+      "chartSays": "Temel strateji: {{action}}",
+      "betAt": "TC {{tc}} iken bahis",
+      "session": "Bu oturum",
+      "handsRight_one": "Doğru eller: {{right}}/{{count}}",
+      "handsRight_other": "Doğru eller: {{right}}/{{count}}",
+      "next": "Sonraki el",
+      "right": "Doğru",
+      "yes": "Evet",
+      "no": "Hayır",
+      "handsRightShort": "{{right}}/{{count}} doğru",
+      "basic": "Temel strateji",
+      "actual": "Gerçek"
     },
     "name": "Casino oturumu",
     "bot": {
@@ -1068,7 +1131,9 @@
       "s3": "Her doğru cevap XP kazandırır. Seviyeler, ödüller ve görevler antrenmanın kendisinden doğar.",
       "dismiss": "Anladım"
     },
-    "loading": "Planın yükleniyor"
+    "loading": "Planın yükleniyor",
+    "formPreview": "Son turların burada görünecek",
+    "formBar": "eşik %{{pct}}"
   },
   "recommend": {
     "startTraining": "Antrenmana başla",
@@ -1810,8 +1875,10 @@
     "tagline": "Hi-Lo — sayım kendiliğinden gelene kadar çalışılmış.",
     "stat": {
       "streak": "{{count}} günlük seri",
-      "accuracy": "%{{pct}} isabet"
-    }
+      "accuracy": "%{{pct}} isabet",
+      "timeLabel": "antrenman"
+    },
+    "statsPreview": "İlk turundan sonra kendi rakamların"
   },
   "startLevel": {
     "never": {
@@ -2005,7 +2072,9 @@
     "weekStreak": "{{n}} haftalık seri",
     "xpEarned": "+{{xp}} XP kazanıldı!",
     "msTarget": "{{done}} / hedef {{target}} ms",
-    "complete": "Tamamlandı"
+    "complete": "Tamamlandı",
+    "toGo_one": "{{count}} kaldı",
+    "toGo_other": "{{count}} kaldı"
   },
   "wchal": {
     "weekly_grinder": {

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CalendarCheck } from 'lucide-react'
+import { CalendarCheck, Check, Flame } from 'lucide-react'
 import { useChallengeStore } from '../../store/challenge-store'
 import { CHALLENGE_XP } from '../../services/challenges/challenge-types'
-import { ProgressBar } from '../common/ui'
+import { challengeMeter } from './challenge-meter'
+import { ChallengeMeterView } from './ChallengeMeterView'
 
 /** Format seconds as HH:MM:SS. */
 function formatCountdown(totalSeconds: number): string {
@@ -22,9 +23,11 @@ function secondsUntilMidnight(): number {
 }
 
 /**
- * Daily Challenge card displayed on the HomeScreen.
+ * Daily Challenge card in the home screen's rail.
  *
- * Shows today's challenge with progress bar, XP reward, streak, and countdown.
+ * Compact: which challenge and its countdown on one line, the task and its
+ * reward on the next, then a meter that says what filling it takes — one slot
+ * per unit for a small tally, and how many are left.
  */
 export function DailyChallengeCard() {
   const { t } = useTranslation()
@@ -81,91 +84,78 @@ export function DailyChallengeCard() {
   }, [justCompleted, dismissCompletion])
 
   const xp = CHALLENGE_XP[challenge.difficulty]
-  const progressPct = challenge.type === 'speed_time'
-    ? (state.completed ? 100 : state.progress > 0 ? Math.min(99, Math.round((challenge.target / state.progress) * 100)) : 0)
-    : Math.min(100, Math.round((state.progress / challenge.target) * 100))
+  const meter = challengeMeter({
+    type: challenge.type,
+    progress: state.progress,
+    target: challenge.target,
+    completed: state.completed,
+  })
+
+  const label = state.completed ? (
+    <span className="inline-flex items-center gap-1 text-success font-semibold">
+      <Check size={13} strokeWidth={3} aria-hidden="true" /> {t('chal.complete')}
+    </span>
+  ) : challenge.type === 'speed_time' ? (
+    t('chal.msTarget', { done: state.progress > 0 ? `${state.progress}ms` : '—', target: challenge.target })
+  ) : (
+    <>
+      <span className="text-content/80 font-semibold">{Math.min(state.progress, challenge.target)}</span> / {challenge.target}
+      {meter.remaining != null && meter.remaining > 0 && state.progress > 0 && (
+        <span className="text-content/40"> · {t('chal.toGo', { count: meter.remaining })}</span>
+      )}
+    </>
+  )
 
   return (
     <div
       data-testid="daily-challenge-card"
-      className={`w-full rounded-xl border p-4 transition-all duration-300 ${
+      className={`w-full rounded-xl border p-3.5 transition-colors duration-300 ${
         state.completed
-          ? 'bg-green-900/20 border-green-500/40'
+          ? 'bg-success/[.06] border-success/35'
           : justCompleted
             ? 'bg-gold/10 border-gold/60 shadow-lg shadow-gold/10'
-            : 'bg-contrast/5 border-contrast/10'
+            : 'bg-contrast/[.03] border-contrast/10'
       }`}
     >
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="grid place-items-center w-9 h-9 rounded-lg text-gold bg-gold/10 border border-gold/20 shrink-0">
-            <CalendarCheck size={18} />
-          </span>
-          <div>
-            <h3 className="text-sm font-semibold text-content">
-              {t('chal.daily')}
-            </h3>
-            <p className="text-xs text-content/40">
-              {t('chal.remaining', { time: formatCountdown(countdown) })}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
+      {/* Which challenge, and how long it has left */}
+      <div className="flex items-center justify-between gap-3 text-[0.6875rem]">
+        <span className="inline-flex items-center gap-1.5 font-bold tracking-[0.12em] uppercase text-content/45">
+          <CalendarCheck size={13} className="text-gold/80" aria-hidden="true" />
+          {t('chal.daily')}
+        </span>
+        <span className="flex items-center gap-2 tabular-nums text-content/40">
           {streak > 0 && (
             <span
               data-testid="streak-badge"
-              className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400"
+              className="inline-flex items-center gap-1 font-semibold text-orange-400"
             >
+              <Flame size={11} aria-hidden="true" />
               {t('chal.dayStreak', { n: streak })}
             </span>
           )}
-          <span className="text-xs font-bold text-gold">
-            +{xp} XP
-          </span>
+          {state.completed ? t('chal.comeBack') : t('chal.remaining', { time: formatCountdown(countdown) })}
+        </span>
+      </div>
+
+      {/* The task, and what it pays */}
+      <div className="mt-2 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-content leading-snug">{t(challenge.titleKey)}</h3>
+          <p className="mt-0.5 text-xs text-content/50 leading-snug">{t(challenge.descKey)}</p>
         </div>
+        <span
+          className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-bold tabular-nums ${
+            state.completed ? 'border-success/30 text-success' : 'border-gold/30 bg-gold/10 text-gold'
+          }`}
+          data-testid="challenge-reward"
+        >
+          +{xp} XP
+        </span>
       </div>
 
-      {/* Challenge info */}
-      <h4 className="text-base font-semibold text-content mb-0.5">
-        {t(challenge.titleKey)}
-      </h4>
-      <p className="text-sm text-content/50 mb-3">
-        {t(challenge.descKey)}
-      </p>
+      <ChallengeMeterView meter={meter} done={state.completed} label={label} />
 
-      {/* Progress bar */}
-      <ProgressBar
-        className="mb-1"
-        height={8}
-        value={progressPct}
-        testId="progress-bar"
-        fill={state.completed ? 'linear-gradient(180deg, #4ade80, var(--color-success))' : undefined}
-      />
-
-      {/* Progress text */}
-      <div className="flex items-center justify-between text-xs">
-        {state.completed ? (
-          <span className="text-green-400 font-semibold flex items-center gap-1">
-            {t('chal.complete')}
-          </span>
-        ) : challenge.type === 'speed_time' ? (
-          <span className="text-content/40">
-            {t('chal.msTarget', { done: state.progress > 0 ? `${state.progress}ms` : '—', target: challenge.target })}
-          </span>
-        ) : (
-          <span className="text-content/40">
-            {state.progress} / {challenge.target}
-          </span>
-        )}
-        {state.completed && (
-          <span className="text-content/30">
-            {t('chal.comeBack')}
-          </span>
-        )}
-      </div>
-
-      {/* Just-completed celebration overlay */}
+      {/* Just-completed celebration */}
       {justCompleted && (
         <div className="mt-2 text-center text-gold font-bold text-sm animate-pulse">
           {t('chal.xpEarned', { xp })}

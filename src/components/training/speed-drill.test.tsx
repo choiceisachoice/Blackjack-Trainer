@@ -93,9 +93,9 @@ describe('SpeedDrill', () => {
     // by submitting 0 and checking for either Correct or Wrong
     fireEvent.click(screen.getByTestId('submit-answer'))
 
-    // Should be in result phase
+    // Should be in result phase: another round, or back to the setup
     expect(screen.getByText('Try Again')).toBeInTheDocument()
-    expect(screen.getByText('Back to Menu')).toBeInTheDocument()
+    expect(screen.getByText('Back to Settings')).toBeInTheDocument()
   })
 
   it('wrong answer shows error with correct count', () => {
@@ -229,5 +229,182 @@ describe('SpeedDrill — marks a running drill for the sideways-phone layout', (
     fireEvent.click(screen.getByTestId('submit-answer'))
     expect(screen.getByTestId('try-again')).toBeInTheDocument()
     expect(container.querySelector('[data-drill-run]')).not.toBeNull()
+  })
+})
+
+/** A seeded `Math.random`, so the shoe deals the same cards every run. */
+function seededRandom(seed: number): () => number {
+  let a = seed >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0
+    let t = a
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+const HI_LO = (rank: string) => (['2', '3', '4', '5', '6'].includes(rank) ? 1 : ['7', '8', '9'].includes(rank) ? 0 : -1)
+
+/** Runs the round on screen to its end, reading each card off the felt; returns its true count. */
+function runRound(cards: number, speedMs = 1000): number {
+  let rc = 0
+  for (let i = 0; i < cards; i++) {
+    rc += HI_LO(screen.getByTestId('drill-card').dataset.rank ?? '')
+    act(() => { vi.advanceTimersByTime(speedMs) })
+  }
+  return rc
+}
+
+/** A recorded Speed Drill session. */
+const recorded = (speedMs: number, cardsPerRound: number, rcErrors: number[]) => ({
+  id: crypto.randomUUID(), mode: 'speedDrill', timestamp: '2026-11-01T10:00:00.000Z', countingSystem: CountingSystemId.HiLo,
+  durationSeconds: 60, totalQuestions: rcErrors.length, correctAnswers: rcErrors.filter(e => e === 0).length,
+  accuracy: 1, bestStreak: 1, details: { type: 'speedDrill', cardsPerRound, speedMs, rcErrors },
+})
+
+describe('SpeedDrill — the round, the answer and the result', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockImplementation(seededRandom(20261124))
+    useAppStore.setState({ currentMode: 'speedDrill', selectedSystem: CountingSystemId.HiLo, selectedRules: DEFAULT_RULES })
+    useStatsStore.setState({ sessions: [] })
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+    useStatsStore.setState({ sessions: [] })
+  })
+
+  const start = (cards = '10') => {
+    render(<SpeedDrill />)
+    fireEvent.click(screen.getByText(cards))
+    fireEvent.click(screen.getByTestId('start-drill'))
+  }
+
+  it('shows no count anywhere while the cards run — the count is the test', () => {
+    start()
+    act(() => { vi.advanceTimersByTime(3000) })
+    expect(screen.queryByTestId('review-count')).not.toBeInTheDocument()
+    expect(document.body.textContent).not.toMatch(/RC =/)
+  })
+
+  it('lays the round out again on the result, the true count under every card', () => {
+    start()
+    const rc = runRound(10)
+    fireEvent.click(screen.getByTestId('submit-answer'))
+    expect(screen.getAllByTestId('review-card')).toHaveLength(10)
+    const counts = screen.getAllByTestId('review-count')
+    expect(counts.at(-1)!.textContent).toBe(rc > 0 ? `+${rc}` : rc < 0 ? `−${-rc}` : '0')
+  })
+
+  it('takes a typed negative count as negative', () => {
+    // The number field used to turn the "-" into "0" before the digit arrived,
+    // so a negative count could not be typed: "-1" was recorded as "+1".
+    start()
+    let rc = runRound(10)
+    for (let tries = 0; rc >= 0 && tries < 20; tries++) {
+      fireEvent.click(screen.getByTestId('submit-answer'))
+      fireEvent.click(screen.getByTestId('try-again'))
+      rc = runRound(10)
+    }
+    expect(rc).toBeLessThan(0)
+    fireEvent.change(screen.getByTestId('count-input'), { target: { value: String(rc) } })
+    fireEvent.click(screen.getByTestId('submit-answer'))
+    expect(screen.getByTestId('speed-verdict')).toHaveTextContent(/^Correct!/)
+  })
+
+  it('answers with Enter, and Enter on the result deals the next round', () => {
+    start()
+    const rc = runRound(10)
+    fireEvent.change(screen.getByTestId('count-input'), { target: { value: String(rc) } })
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(screen.getByTestId('speed-verdict')).toHaveTextContent(/^Correct!/)
+    expect(screen.getByTestId('speed-hint')).toHaveAttribute('data-hint', 'exact')
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(screen.getByText('Card 1 / 10')).toBeInTheDocument()
+  })
+
+  it('points honestly at a near miss', () => {
+    start()
+    const rc = runRound(10)
+    fireEvent.change(screen.getByTestId('count-input'), { target: { value: String(rc + 1) } })
+    fireEvent.click(screen.getByTestId('submit-answer'))
+    expect(['oneHigh', 'lastCard']).toContain(screen.getByTestId('speed-hint').dataset.hint)
+    expect(screen.getByText(/1 too high/)).toBeInTheDocument()
+  })
+
+  it('reads the personal best for the round’s speed from the recorded sessions', () => {
+    useStatsStore.setState({ sessions: [recorded(1000, 30, [0, 2]), recorded(500, 52, [0])] as never })
+    render(<SpeedDrill />)
+    expect(screen.getByTestId('speed-help')).toHaveTextContent('Your best at this speed: 30 cards counted exactly.')
+    fireEvent.click(screen.getByTestId('start-drill'))
+    expect(screen.getByTestId('speed-best-cards')).toHaveTextContent('30 cards')
+    expect(screen.getByText('1 of 2 rounds exact')).toBeInTheDocument()
+  })
+
+  it('calls a first exact round at a speed a new best', () => {
+    start()
+    const rc = runRound(10)
+    fireEvent.change(screen.getByTestId('count-input'), { target: { value: String(rc) } })
+    fireEvent.click(screen.getByTestId('submit-answer'))
+    expect(screen.getByTestId('speed-best-new')).toBeInTheDocument()
+    expect(screen.getByTestId('speed-best-cards')).toHaveTextContent('10 cards')
+  })
+
+  it('goes faster as a new session: the rounds so far are recorded at their own speed', () => {
+    start()
+    for (let i = 0; i < 3; i++) {
+      const rc = runRound(10)
+      // Faster is offered after an exact round.
+      fireEvent.change(screen.getByTestId('count-input'), { target: { value: String(rc) } })
+      fireEvent.click(screen.getByTestId('submit-answer'))
+      if (i < 2) fireEvent.click(screen.getByTestId('try-again'))
+    }
+    fireEvent.click(screen.getByTestId('speed-faster'))
+    const sessions = useStatsStore.getState().sessions
+    expect(sessions).toHaveLength(1)
+    expect(sessions[0].details).toMatchObject({ type: 'speedDrill', speedMs: 1000, cardsPerRound: 10 })
+    expect((sessions[0].details as { rcErrors: number[] }).rcErrors).toHaveLength(3)
+    // The new round runs at the faster speed, from card 1.
+    expect(screen.getByText('Card 1 / 10')).toBeInTheDocument()
+    expect(screen.getByTestId('speed-round-info')).toHaveTextContent('Fast')
+    act(() => { vi.advanceTimersByTime(500) })
+    expect(screen.getByText('Card 2 / 10')).toBeInTheDocument()
+  })
+
+  it('offers more cards at the fastest speed', () => {
+    render(<SpeedDrill />)
+    fireEvent.click(screen.getByText('10'))
+    fireEvent.click(screen.getByText('Fast'))
+    fireEvent.click(screen.getByTestId('start-drill'))
+    const rc = runRound(10, 500)
+    fireEvent.change(screen.getByTestId('count-input'), { target: { value: String(rc) } })
+    fireEvent.click(screen.getByTestId('submit-answer'))
+    expect(screen.queryByTestId('speed-faster')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('speed-more-cards'))
+    expect(screen.getByText('Card 1 / 20')).toBeInTheDocument()
+  })
+
+  it('never offers more speed after a miss — one notch slower instead', () => {
+    start()
+    const rc = runRound(10)
+    fireEvent.change(screen.getByTestId('count-input'), { target: { value: String(rc + 3) } })
+    fireEvent.click(screen.getByTestId('submit-answer'))
+    expect(screen.queryByTestId('speed-faster')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('speed-slower'))
+    expect(screen.getByTestId('speed-round-info')).toHaveTextContent('Slow')
+    act(() => { vi.advanceTimersByTime(1000) })
+    expect(screen.getByText('Card 1 / 10')).toBeInTheDocument()
+    act(() => { vi.advanceTimersByTime(1000) })
+    expect(screen.getByText('Card 2 / 10')).toBeInTheDocument()
+  })
+
+  it('goes back to the setup from the result', () => {
+    start()
+    runRound(10)
+    fireEvent.click(screen.getByTestId('submit-answer'))
+    fireEvent.click(screen.getByTestId('back-to-settings'))
+    expect(screen.getByTestId('start-drill')).toBeInTheDocument()
   })
 })

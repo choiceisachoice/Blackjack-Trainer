@@ -36,13 +36,17 @@ export interface FlashProgressProps {
 /**
  * One segment per question: green right, red wrong, gold the one being asked.
  * The round at a glance — which a line of "Correct: 3/4 (75%)" is not.
+ *
+ * `null` is an item that is done but had nothing to grade (a casino hand that
+ * was a blackjack): a lighter grey than the ones still to come.
  */
-export function ResultTrail({ total, results, index, className = '' }: { total: number; results: boolean[]; index: number | null; className?: string }) {
+export function ResultTrail({ total, results, index, className = '' }: { total: number; results: readonly (boolean | null)[]; index: number | null; className?: string }) {
   return (
     <div className={`flex gap-[3px] ${className}`} aria-hidden data-testid="result-trail">
       {Array.from({ length: total }, (_, i) => {
         const r = results[i]
         const tone = r === true ? 'bg-success' : r === false ? 'bg-error'
+          : r === null ? 'bg-contrast/35'
           : i === index ? 'bg-gold-bright/90' : 'bg-contrast/12'
         return <span key={i} className={`h-1.5 flex-1 min-w-0 rounded-full transition-colors duration-150 ${tone}`} />
       })}

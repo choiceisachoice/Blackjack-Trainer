@@ -82,3 +82,34 @@ describe('CasinoSessionConfigView — amounts', () => {
     expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ startingBankroll: DEFAULT_CONFIG.startingBankroll + 100 }))
   })
 })
+
+/**
+ * Start used to wait under the whole form — two scrolls down on a 720px
+ * desktop. It is now in a bar held at the foot of the screen on every size,
+ * with the chosen table in one line beside it, above the cookie bar.
+ */
+describe('CasinoSessionConfigView — the start bar', () => {
+  it('holds Start at the foot of the screen, above the cookie bar, on every size', () => {
+    setup()
+    const bar = screen.getByTestId('setup-action-bar')
+    expect(bar).toContainElement(screen.getByTestId('start-session'))
+    expect(bar.className).toMatch(/(^|\s)sticky(\s|$)/)
+    expect(bar.className).not.toMatch(/max-sm:sticky/)
+    expect(bar.className).toContain('var(--cookie-bar')
+  })
+
+  it('says in one line which table is about to open', () => {
+    setup()
+    expect(screen.getByTestId('setup-summary')).toHaveTextContent(
+      'Card counting · 20 hands · 6 decks · S17 · 3:2 · 2 other players · $25–$500',
+    )
+  })
+
+  it('follows the choices made above it', () => {
+    setup()
+    fireEvent.click(screen.getByRole('button', { name: 'Just Blackjack' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Unlimited' }))
+    fireEvent.click(screen.getByRole('button', { name: '0' }))
+    expect(screen.getByTestId('setup-summary')).toHaveTextContent(/^Just Blackjack · Unlimited · 6 decks · S17 · 3:2 · Alone at the table/)
+  })
+})

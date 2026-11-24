@@ -20,7 +20,7 @@ import {
 } from '../services/supabase/profile-name'
 import { avatarLabelKey, avatarOf, updateAvatar, type AvatarId } from '../services/supabase/profile-avatar'
 import {
-  AVATAR_CATALOG, countUnlocked, isAvatarUnlocked, resolveAvatar,
+  AVATAR_CATALOG, countUnlocked, fallbackAvatar, isAvatarUnlocked, resolveAvatar,
   type AvatarDef, type AvatarProgress,
 } from '../services/avatar-catalog'
 import { getAchievementById, achievementName } from '../services/achievements/achievement-list'
@@ -37,6 +37,7 @@ import { Field, Input, Segmented, Slider, Toggle } from '../components/common/ui
 import { logFailure } from '../services/failure-log'
 import { usePageMeta } from '../hooks/use-page-meta'
 import { LEGAL_META } from './legal/legal-meta'
+import { activeLocale } from '../i18n'
 
 /**
  * Human-readable label + tone for a subscription status.
@@ -301,6 +302,18 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
   const level = useLevelStore(s => s.level)
   const totalXP = useLevelStore(s => s.totalXP)
   const sessionCount = useStatsStore(s => s.lifetimeStats?.totalSessions ?? s.sessions.length)
+  const statsLoaded = useStatsStore(s => s.lifetimeStats != null)
+  const loadStats = useStatsStore(s => s.loadStats)
+  /*
+    `/account` is its own route, outside the app shell, and the stats store is
+    filled by the screens that show statistics. Opened directly or refreshed,
+    nothing had loaded it, and the header read "Sessions 0" for a learner with
+    forty. Loaded here the way the home screen's header does it: once, when
+    nothing is there yet.
+  */
+  useEffect(() => {
+    if (!statsLoaded) void loadStats()
+  }, [statsLoaded, loadStats])
   const unlocked = useAchievementStore(s => s.totalUnlocked)
   const unlockedIds = useAchievementStore(s => s.unlockedIds)
   const progress: AvatarProgress = { level: level.level, unlockedAchievementIds: unlockedIds }
@@ -320,13 +333,18 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
   const signingOut = guardedSignOut.busy
   const handleSignOut = () => void guardedSignOut.signOut()
 
-  const initial = (name ?? email ?? '?').trim().charAt(0).toUpperCase()
+  const letter = (name ?? email ?? '').trim().charAt(0).toUpperCase()
+  const initial = letter || '?'
   const editable = isSupabaseConfigured && !!user
+  const chosen = resolveAvatar(avatarOf(user), progress)
+  // With no name and no address there is no letter to draw, and the profile
+  // tile showed a "?". It shows the learner's own level picture instead.
+  const shown = chosen ?? (letter === '' ? fallbackAvatar(level.level) : null)
 
   return (
     <section className="surface rounded-2xl p-6 mt-6" data-testid="account-profile">
       <div className="flex items-start gap-5 flex-wrap">
-        <AvatarPicker current={resolveAvatar(avatarOf(user), progress)} progress={progress} initial={initial} editable={editable} />
+        <AvatarPicker current={chosen} shown={shown} progress={progress} initial={initial} editable={editable} />
         <div className="min-w-0 flex-1">
           <NameEditor current={name} editable={editable} />
           {email && <div className="text-sm text-content/60 truncate">{email}</div>}
@@ -348,8 +366,8 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
 
       <dl className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="account-stats">
         <Stat label={t('awards.level')} value={String(level.level)} sub={t(level.titleKey)} accent />
-        <Stat label={t('account.xp')} value={totalXP.toLocaleString()} />
-        <Stat label={t('account.sessions')} value={sessionCount.toLocaleString()} />
+        <Stat label={t('account.xp')} value={totalXP.toLocaleString(activeLocale())} />
+        <Stat label={t('account.sessions')} value={sessionCount.toLocaleString(activeLocale())} />
         <Stat label={t('account.achievements')} value={`${unlocked} / ${ALL_ACHIEVEMENTS.length}`} />
       </dl>
       {guardedSignOut.unsavedCount !== null && (
@@ -374,8 +392,11 @@ function ProfileHeader({ onSignOut }: { onSignOut: () => void }) {
  * see is not something to aim for. Choosing writes to the auth metadata, and
  * the header redraws from the `USER_UPDATED` event like the name does.
  */
-function AvatarPicker({ current, progress, initial, editable }: {
+function AvatarPicker({ current, shown, progress, initial, editable }: {
+  /** The picture chosen and earned, or null for the initial — what the catalogue marks as selected. */
   current: AvatarId | null
+  /** What the tile draws: the choice, or a picture in place of a missing initial. */
+  shown: AvatarId | null
   progress: AvatarProgress
   initial: string
   editable: boolean
@@ -403,7 +424,7 @@ function AvatarPicker({ current, progress, initial, editable }: {
     }
   }
 
-  if (!editable) return <Avatar id={current} initial={initial} size={64} className="rounded-2xl" />
+  if (!editable) return <Avatar id={shown} initial={initial} size={64} className="rounded-2xl" />
 
   /** What a picture is called, and — if locked — what earns it. */
   const describe = (def: AvatarDef | null): { name: string; lockedBy: string | null } => {
@@ -444,7 +465,7 @@ function AvatarPicker({ current, progress, initial, editable }: {
         data-testid="account-avatar-button"
         className="group relative block rounded-2xl cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
       >
-        <Avatar id={current} initial={initial} size={64} className="rounded-2xl" />
+        <Avatar id={shown} initial={initial} size={64} className="rounded-2xl" />
         <span
           aria-hidden
           className="absolute -bottom-1 -right-1 grid place-items-center w-6 h-6 rounded-lg bg-surface border border-contrast/15 text-content/60

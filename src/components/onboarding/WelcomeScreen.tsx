@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Spade, ArrowRight, Crown } from 'lucide-react'
 import { buildWelcomeCopy } from './welcome-content'
+import { PathStrip } from '../plan/PlanToday'
+import { ExampleTag } from '../common/ExampleTag'
+import { CURRICULUM, deriveCurriculum } from '../../services/curriculum'
 
 /**
  * Staggered entrance, done in CSS rather than with an animation library.
@@ -46,7 +49,11 @@ export function WelcomeScreen({ isPro, onStart }: { isPro: boolean; onStart: () 
         off the only call to action. Fit when you can, scroll when you cannot,
         never clip.
       */}
-      <div className="w-full max-w-3xl px-5 md:px-6 py-[clamp(1.5rem,4vh,3.5rem)]">
+      <div
+        className="w-full max-w-3xl xl:max-w-6xl px-5 md:px-6 py-[clamp(1.5rem,4vh,3.5rem)]
+          xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(17rem,21rem)] xl:gap-16 xl:items-center"
+      >
+        <div className="min-w-0">
         <div {...rise(0, 'flex items-center gap-3')}>
           <span className="grid place-items-center w-11 h-11 rounded-xl text-gold bg-gold/10 border border-gold/25">
             {isPro ? <Crown size={20} /> : <Spade size={20} className="fill-current" />}
@@ -62,13 +69,13 @@ export function WelcomeScreen({ isPro, onStart }: { isPro: boolean; onStart: () 
         <h1
           {...rise(
             0.08,
-            'mt-6 text-[clamp(1.65rem,4.2vh,2.9rem)] font-extrabold text-gold-gradient leading-[1.08] tracking-tight text-balance pb-1',
+            'mt-6 xl:mt-4 text-[clamp(1.65rem,4.2vh,2.9rem)] font-extrabold text-gold-gradient leading-[1.08] tracking-tight text-balance pb-1',
           )}
         >
           {copy.headline}
         </h1>
 
-        <p {...rise(0.16, 'mt-4 text-[1.0625rem] text-content/60 leading-relaxed max-w-[58ch]')}>
+        <p {...rise(0.16, 'mt-4 xl:mt-3 text-[1.0625rem] text-content/60 leading-relaxed max-w-[58ch]')}>
           {copy.subhead}
         </p>
 
@@ -125,6 +132,31 @@ export function WelcomeScreen({ isPro, onStart }: { isPro: boolean; onStart: () 
             </p>
           )}
         </div>
+        </div>
+
+        {/* What the three steps lead to, on a screen wide enough to show it:
+            the real road of seven stages, drawn as the home screen draws it.
+            Where the learner starts on it is the answer to the question this
+            button asks, so the marked stage is an example — and labelled one.
+            A picture, not a second way in: inert, and hidden from assistive
+            tech, which already has the three steps in words. */}
+        <aside
+          className="hidden xl:block"
+          aria-hidden="true"
+          inert
+          data-testid="welcome-path-preview"
+        >
+          <div {...rise(0.34, 'surface rounded-2xl p-6')}>
+            <PathStrip
+              progress={deriveCurriculum([], [], isPro)}
+              activeId={CURRICULUM[0].id}
+              entryIndex={0}
+              goalIndex={CURRICULUM.length - 1}
+              layout="column"
+              badge={<ExampleTag />}
+            />
+          </div>
+        </aside>
       </div>
     </div>
   )
