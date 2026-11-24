@@ -375,7 +375,17 @@
     "personalLaterIsPro": "Più avanti nel tuo piano, «{{stage}}» fa parte di Pro.",
     "trialLead_one": "La tua mano al tavolo: {{pct}}% delle tue decisioni secondo la strategia di base.",
     "trialLead_other": "Le tue {{count}} mani al tavolo: {{pct}}% delle tue decisioni secondo la strategia di base.",
-    "trialSupport": "Con Pro il tavolo resta aperto: tutte le mani che vuoi, con il count e le tue regole."
+    "trialSupport": "Con Pro il tavolo resta aperto: tutte le mani che vuoi, con il count e le tue regole.",
+    "addsHeading": "Cosa aggiunge Pro",
+    "addTableTitle": "Il tavolo da casinò completo",
+    "addTableBody": "Bot, split e pagamenti, con il count e le tue regole.",
+    "addDeviationsBody": "Illustrious 18 e Fab 4: quando il count prevale sulla strategia di base.",
+    "addDrillsTitle": "Bet spread e stima dei mazzi",
+    "addDrillsBody": "Adegua la puntata al true count e stima i mazzi rimasti nel sabot.",
+    "compareAll": "Confronta Gratuito e Pro",
+    "included": "Incluso",
+    "notIncluded": "Non incluso",
+    "addDeviationsTitle": "Deviazioni"
   },
   "contact": {
     "title": "Contatti",
@@ -398,7 +408,6 @@
       "streak": "Serie",
       "bestStreak": "Serie migliore",
       "accuracy": "Precisione",
-      "correct": "Corrette",
       "tryAgain": "Riprova",
       "backToMenu": "Torna al menu",
       "backToSettings": "Torna alle impostazioni",
@@ -410,7 +419,6 @@
       "hide": "Nascondi",
       "correctBang": "Corretto!",
       "wrongBang": "Sbagliato!",
-      "sessionComplete": "Sessione completata!",
       "questionProgress": "Domanda {{n}}/{{total}}",
       "correctOf": "Corrette: {{n}}/{{total}} ({{pct}}%)",
       "streakOf": "Serie: {{n}}"
@@ -555,7 +563,25 @@
       "tcYouSaid": "TC: hai detto {{said}}, la risposta giusta era <h>{{right}}</h> (RC {{rc}} / {{decks}} mazzi)",
       "betExplain": "TC {{tc}} → {{mult}}× × ${{min}} di minimo = <h>${{bet}}</h>",
       "youChoseBet": " — hai scelto ${{bet}}",
-      "spreadOf": "Bet spread (× ${{min}})"
+      "spreadOf": "Bet spread (× ${{min}})",
+      "yourBet": "La tua puntata",
+      "rightBet": "Giusta",
+      "placeBet": "Punta {{amount}}",
+      "placeEmpty": "Metti le fiche",
+      "chipsBelow": "Punta con le fiche",
+      "undo": "Riprendi l’ultima fiche",
+      "rampHint": "Dopo la puntata la tabella si riempie e illumina il gradino giusto.",
+      "keysHint": "Tasti: 1–5 fiche · Backspace ne riprende una · Invio punta",
+      "historySpot": "TC {{tc}} · tavolo da {{min}}",
+      "spotRc": "RC {{rc}} · {{decks}} mazzi",
+      "tcRight": "True count {{tc}} — giusto",
+      "oneUnit": "1 unità",
+      "previous": "Puntate precedenti",
+      "reason_one": "{{tc}} → {{step}}: {{count}} unità × {{min}} = <h>{{bet}}</h>",
+      "reasonPlain_one": "{{tc}}: {{count}} unità × {{min}} = <h>{{bet}}</h>",
+      "reason_other": "{{tc}} → {{step}}: {{count}} unità × {{min}} = <h>{{bet}}</h>",
+      "reasonPlain_other": "{{tc}}: {{count}} unità × {{min}} = <h>{{bet}}</h>",
+      "tcWorked": "Hai detto {{said}} · RC {{rc}} ÷ {{decks}} mazzi = <h>{{right}}</h>"
     },
     "deck": {
       "title": "Stima dei mazzi",
@@ -569,10 +595,6 @@
       "normal": "Normale",
       "quickFire": "Fuoco rapido",
       "quickFireHint": "{{rounds}} round da {{secs}} s",
-      "quickFireComplete": "Fuoco rapido completato!",
-      "correctLabel": "Corrette:",
-      "avgErrorLabel": "Errore medio:",
-      "bestStreakLabel": "Serie migliore:",
       "avgErrorValue": "±{{v}} mazzi",
       "avgErrorInline": "Errore medio: ±{{v}} mazzi",
       "round": "Round {{n}}/{{total}}",
@@ -583,7 +605,16 @@
       "remaining": "~{{n}} mazzi rimasti",
       "youSaid": " (hai detto {{v}})",
       "offBy": "Sbagliato di {{v}} mazzi",
-      "numRoundsAria": "Numero di round"
+      "numRoundsAria": "Numero di round",
+      "markTrue": "Restano {{v}}",
+      "markYou": "Tu {{v}}",
+      "rulerCaption": "Mazzi rimasti",
+      "avgErrorTitle": "Errore medio",
+      "previous": "Risposte precedenti",
+      "previousEmpty": "Le tue risposte compaiono qui, la più recente in alto.",
+      "tcHigh": "I tuoi true count risulterebbero troppo alti del {{pct}} (÷ {{guess}} invece di ÷ {{actual}}).",
+      "tcLow": "I tuoi true count risulterebbero troppo bassi del {{pct}} (÷ {{guess}} invece di ÷ {{actual}}).",
+      "tcExact": "I tuoi true count sarebbero esatti."
     },
     "rail": {
       "speedDrill": {
@@ -632,7 +663,63 @@
     "shoe": "Shoe",
     "discard": "Scarti",
     "deckShoeTray": "Shoe da {{n}} mazzi · Vassoio scarti",
-    "betSpreadUnit": "{{mult}}× ({{amount}})"
+    "betSpreadUnit": "{{mult}}× ({{amount}})",
+    "summary": {
+      "title": "Round completato",
+      "verdict": {
+        "perfect": "Perfetto",
+        "excellent": "Eccellente",
+        "strong": "Ottimo",
+        "solid": "Solido",
+        "practice": "Continua così"
+      },
+      "rightOf": "{{n}} su {{total}} giuste",
+      "best": {
+        "new": "Nuovo record — {{gain}} punti sopra il {{previous}}",
+        "equal": "Pari al tuo record",
+        "below_one": "A {{count}} punto dal tuo record",
+        "below_other": "A {{count}} punti dal tuo record",
+        "first": "Il tuo primo round valutato. È il segno da battere.",
+        "short": "Troppe poche risposte per confrontarle con il tuo record di {{previous}}",
+        "shortNone": "Troppe poche risposte per un punteggio"
+      },
+      "earned": "Guadagnato in questo round",
+      "xpAmount": "+{{n}} XP",
+      "xpNone": "Nessun XP in questo round — gli XP premiano le risposte giuste.",
+      "level": "Liv. {{n}}",
+      "levelUp": "Livello {{n}} raggiunto",
+      "toNext": "{{xp}} XP al livello {{n}}",
+      "topLevel": "Livello massimo",
+      "levelBar": "Progresso del livello",
+      "stage": {
+        "title": "Piano · {{stage}}",
+        "count": "{{n}} round su {{total}} sopra il {{bar}}",
+        "counted": "Questo round conta",
+        "done": "Tappa completata",
+        "days": "in {{days}} giorni su {{total}}"
+      },
+      "award": {
+        "title": "Prossimo traguardo",
+        "gain": "+{{n}} in questo round"
+      },
+      "missesTitle": "Errori",
+      "missesCount_one": "{{count}} errore · la risposta giusta",
+      "missesCount_other": "{{count}} errori · le risposte giuste",
+      "noMisses": "Nessun errore",
+      "noMissesSub": "Ogni risposta di questo round era giusta.",
+      "moreMisses_one": "e {{count}} altro",
+      "moreMisses_other": "e altri {{count}}",
+      "again": "Ancora",
+      "back": "Cambia impostazioni",
+      "drillMisses_one": "Allena questa mano",
+      "drillMisses_other": "Allena queste {{count}} mani",
+      "thisRound": "Questo round",
+      "yourBest": "Il tuo record",
+      "unlocked_one": "{{count}} traguardo sbloccato",
+      "unlocked_other": "{{count}} traguardi sbloccati",
+      "moreUnlocked_one": "e {{count}} altro",
+      "moreUnlocked_other": "e altri {{count}}"
+    }
   },
   "casino": {
     "setup": {

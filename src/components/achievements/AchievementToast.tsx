@@ -42,13 +42,15 @@ export function AchievementToast() {
   const newlyUnlocked = useAchievementStore(s => s.newlyUnlocked)
   const dismissNewAchievement = useAchievementStore(s => s.dismissNewAchievement)
   const levelUpOpen = useLevelStore(s => s.showLevelUp)
+  // The round summary names the awards the round unlocked: no toast over it.
+  const inPlace = useAchievementStore(s => s.unlocksInPlace)
   const [visible, setVisible] = useState(false)
   /** The post-exit-animation dismissal timer, tracked so it can be cancelled. */
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Nothing is current while the popup has the screen, so the timers below
   // never start and the queue is still intact when it closes.
-  const current = levelUpOpen ? null : (newlyUnlocked[0] ?? null)
+  const current = levelUpOpen || inPlace ? null : (newlyUnlocked[0] ?? null)
 
   // Animate in when a new achievement appears
   useEffect(() => {

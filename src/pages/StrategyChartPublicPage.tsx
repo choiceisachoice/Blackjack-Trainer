@@ -45,7 +45,7 @@ export function StrategyChartPublicPage() {
           )}
         </p>
       </div>
-      <UpgradeModalHost />
+      <UpgradeModalHost subject="deviations" />
     </PublicShell>
   )
 }

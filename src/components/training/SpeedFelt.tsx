@@ -20,10 +20,12 @@ export interface SpeedFeltProps {
   verdict: boolean | null
   children: ReactNode
   className?: string
+  /** The felt's test id; another drill drawn on this felt names its own. */
+  testId?: string
 }
 
 /** The felt, with a green or red line around it once the round is answered. */
-export function SpeedFelt({ verdict, children, className = '' }: SpeedFeltProps) {
+export function SpeedFelt({ verdict, children, className = '', testId = 'speed-felt' }: SpeedFeltProps) {
   return (
     <div
       className={`relative h-full min-h-0 flex flex-col rounded-[22px] sm:rounded-[28px] p-3 sm:p-5 short:p-2.5 ${className}`}
@@ -36,7 +38,7 @@ export function SpeedFelt({ verdict, children, className = '' }: SpeedFeltProps)
         border: '6px solid var(--color-wood)',
         boxShadow: '0 0 0 1px #6b4423, 0 18px 50px -18px rgba(0,0,0,0.8), inset 0 0 70px rgba(0,0,0,0.25)',
       }}
-      data-testid="speed-felt"
+      data-testid={testId}
     >
       {/* An opacity change (150 ms effect): no layout, no paint of the felt. */}
       <span

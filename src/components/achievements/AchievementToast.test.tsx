@@ -118,7 +118,7 @@ describe('AchievementToast', () => {
 describe('AchievementToast and the level-up popup', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    useAchievementStore.setState({ newlyUnlocked: [] })
+    useAchievementStore.setState({ newlyUnlocked: [], unlocksInPlace: false })
     useLevelStore.setState({ showLevelUp: false })
   })
   afterEach(() => {
@@ -145,5 +145,41 @@ describe('AchievementToast and the level-up popup', () => {
     rerender(<AchievementToast />)
     act(() => { vi.advanceTimersByTime(100) })
     expect(screen.getByTestId('achievement-toast')).toBeInTheDocument()
+  })
+})
+
+/**
+ * The round summary names the awards a round unlocked. The toast must not
+ * cover it with the same news, and must not announce them again afterwards —
+ * while still announcing anything the summary did not show.
+ */
+describe('AchievementToast and the round summary', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    useAchievementStore.setState({ newlyUnlocked: [], unlocksInPlace: false })
+    useLevelStore.setState({ showLevelUp: false })
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    useAchievementStore.setState({ newlyUnlocked: [], unlocksInPlace: false })
+  })
+
+  it('holds while the unlocks are shown in place, and keeps the queue', () => {
+    useAchievementStore.getState().holdUnlocksInPlace()
+    useAchievementStore.setState({ newlyUnlocked: [mockAchievement] })
+    render(<AchievementToast />)
+    act(() => { vi.advanceTimersByTime(10_000) })
+    expect(screen.queryByTestId('achievement-toast')).toBeNull()
+    expect(useAchievementStore.getState().newlyUnlocked).toHaveLength(1)
+  })
+
+  it('drops what the summary showed on release and announces the rest', () => {
+    useAchievementStore.getState().holdUnlocksInPlace()
+    useAchievementStore.setState({ newlyUnlocked: [mockAchievement, mockAchievement2] })
+    render(<AchievementToast />)
+    act(() => { useAchievementStore.getState().releaseUnlocksInPlace([mockAchievement.id]) })
+    act(() => { vi.advanceTimersByTime(100) })
+    expect(screen.getByTestId('achievement-toast')).toHaveTextContent('Sharp Eye')
+    expect(useAchievementStore.getState().newlyUnlocked.map(a => a.id)).toEqual([mockAchievement2.id])
   })
 })

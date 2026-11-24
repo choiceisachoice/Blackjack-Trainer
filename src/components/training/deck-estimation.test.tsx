@@ -1,20 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, fireEvent, act, within } from '@testing-library/react'
 import { DeckEstimation } from './DeckEstimation'
 import { useLevelStore } from '../../store/level-store'
 import { levelSystem } from '../../services/level-system'
 
 // Mock framer-motion to avoid animation issues in tests
-vi.mock('framer-motion', () => ({
-  motion: {
-    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
-      const { initial, animate, exit, transition, onAnimationComplete, ...rest } = props
-      return <div {...rest}>{children}</div>
-    },
-  },
-  // Components ask for the motion preference directly; a mock without it
-  // renders `undefined` where a hook's result is expected.
-  useReducedMotion: () => false,
+// Only the motion preference is pinned. The mock used to replace `motion.div`
+// with a plain div as well; the round summary the drill ends on drives its XP
+// bar with motion values, which a plain div cannot take.
+vi.mock('framer-motion', async importOriginal => ({
+  ...(await importOriginal<typeof import('framer-motion')>()),
+  useReducedMotion: () => true,
 }))
 
 // Deterministic random values
@@ -185,7 +181,87 @@ describe('DeckEstimation', () => {
       fireEvent.click(screen.getByTestId('next-question'))
     }
 
-    expect(screen.getByTestId('summary-title')).toHaveTextContent('Quick Fire Complete!')
+    // The shared round summary since 24 Nov 2026, one title for both modes.
+    // This used to assert the old screen's own "Quick Fire Complete!".
+    expect(screen.getByTestId('round-summary')).toBeInTheDocument()
+    expect(screen.getByTestId('summary-title')).toHaveTextContent('Round complete')
+    // 172 cards → 3.31 decks; "3" is inside the tolerance every time.
+    expect(screen.getByTestId('summary-score')).toHaveTextContent('100%')
+    expect(screen.getByTestId('summary-no-misses')).toBeInTheDocument()
+  })
+
+  it('ends on the round summary: wrong estimates with what was left, the average error, Again starts clean', () => {
+    setMockRandom(Array.from({ length: 60 }, () => 0.5))
+
+    render(<DeckEstimation />)
+    fireEvent.click(screen.getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+
+    // 172 cards → 3.31 decks each round: "1" is wrong (three times), "3" is right.
+    for (let i = 0; i < 10; i++) {
+      fireEvent.click(screen.getByTestId(i < 3 ? 'deck-1' : 'deck-3'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+
+    expect(screen.getByTestId('summary-score')).toHaveTextContent('70%')
+    const rows = screen.getAllByTestId('summary-miss')
+    expect(rows).toHaveLength(3)
+    // The verdict's own wording for the spot, then guess → what was left.
+    expect(rows[0]).toHaveTextContent('~3.3 decks remaining')
+    expect(within(rows[0]).getByText('1').tagName).toBe('S')
+    expect(within(rows[0]).getByText('3.3')).toBeInTheDocument()
+    // (3 × 2.31 + 7 × 0.31) / 10 = 0.91
+    expect(screen.getByTestId('avg-error')).toHaveTextContent('±0.9 decks')
+    expect(screen.queryByTestId('drill-misses')).toBeNull()
+    // The summary shows the XP itself, so the toast is held back.
+    expect(useLevelStore.getState().awardInPlace).toBe(true)
+
+    fireEvent.click(screen.getByTestId('summary-again'))
+    expect(screen.queryByTestId('round-summary')).toBeNull()
+    expect(screen.getByText('Round 1/10')).toBeInTheDocument()
+    for (let i = 0; i < 10; i++) {
+      fireEvent.click(screen.getByTestId('deck-3'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+    // Nothing of the last round is carried over.
+    expect(screen.getByTestId('summary-score')).toHaveTextContent('100%')
+    expect(screen.getByTestId('avg-error')).toHaveTextContent('±0.3 decks')
+  })
+
+  it('lists a round the clock ended as "Time’s up!" in the summary', () => {
+    vi.useFakeTimers()
+    setMockRandom(Array.from({ length: 60 }, () => 0.5))
+
+    render(<DeckEstimation />)
+    fireEvent.click(screen.getByTestId('quick-fire-toggle'))
+    fireEvent.click(screen.getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+
+    act(() => { vi.advanceTimersByTime(3000) })
+    expect(screen.getByTestId('feedback-result')).toHaveTextContent('Time’s up!')
+    fireEvent.click(screen.getByTestId('next-question'))
+    for (let i = 1; i < 10; i++) {
+      fireEvent.click(screen.getByTestId('deck-3'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+
+    const rows = screen.getAllByTestId('summary-miss')
+    expect(rows).toHaveLength(1)
+    expect(within(rows[0]).getByText('Time’s up!').tagName).toBe('S')
+    expect(rows[0]).toHaveTextContent('3.3')
+  })
+
+  it('goes back to the settings from the summary', () => {
+    setMockRandom(Array.from({ length: 60 }, () => 0.5))
+    render(<DeckEstimation />)
+    fireEvent.click(screen.getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+    for (let i = 0; i < 10; i++) {
+      fireEvent.click(screen.getByTestId('deck-3'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+    fireEvent.click(screen.getByTestId('back-to-settings'))
+    expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 
   /**
@@ -234,6 +310,22 @@ describe('DeckEstimation', () => {
     unmount()
     expect(addSessionXP).toHaveBeenCalledTimes(1)
     expect(levelSystem.getTotalXP()).toBe(paid)
+  })
+
+  it('moves on with Enter after an answer, once per press', () => {
+    setMockRandom(Array.from({ length: 60 }, () => 0.5))
+    render(<DeckEstimation />)
+    fireEvent.click(screen.getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+    fireEvent.click(screen.getByTestId('deck-3'))
+    expect(screen.getByText('Round 1/10')).toBeInTheDocument()
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(screen.getByText('How many decks remain?')).toBeInTheDocument()
+    expect(screen.getByText('Round 2/10')).toBeInTheDocument()
+    // A press on a focused button is that button's own: the window does not act twice.
+    fireEvent.click(screen.getByTestId('deck-3'))
+    fireEvent.keyDown(screen.getByTestId('next-question'), { key: 'Enter' })
+    expect(screen.getByTestId('feedback-result')).toBeInTheDocument()
   })
 
   it('ends the untimed mode too — it used to run forever', () => {

@@ -375,7 +375,17 @@
     "personalLaterIsPro": "Más adelante en tu plan, «{{stage}}» forma parte de Pro.",
     "trialLead_one": "Tu mano en la mesa: {{pct}} % de tus decisiones según la estrategia básica.",
     "trialLead_other": "Tus {{count}} manos en la mesa: {{pct}} % de tus decisiones según la estrategia básica.",
-    "trialSupport": "Con Pro la mesa sigue abierta: tantas manos como quieras, con el count y tus propias reglas."
+    "trialSupport": "Con Pro la mesa sigue abierta: tantas manos como quieras, con el count y tus propias reglas.",
+    "addsHeading": "Lo que añade Pro",
+    "addTableTitle": "La mesa de casino completa",
+    "addTableBody": "Bots, splits y pagos, con el count y tus propias reglas.",
+    "addDeviationsBody": "Illustrious 18 y Fab 4: cuándo el count se impone a la estrategia básica.",
+    "addDrillsTitle": "Bet spread y estimación de barajas",
+    "addDrillsBody": "Ajusta la apuesta al true count y calcula las barajas que quedan en el zapato.",
+    "compareAll": "Comparar Gratis y Pro",
+    "included": "Incluido",
+    "notIncluded": "No incluido",
+    "addDeviationsTitle": "Desviaciones"
   },
   "contact": {
     "title": "Contacto",
@@ -398,7 +408,6 @@
       "streak": "Racha",
       "bestStreak": "Mejor racha",
       "accuracy": "Precisión",
-      "correct": "Correctas",
       "tryAgain": "Otra vez",
       "backToMenu": "Volver al menú",
       "backToSettings": "Volver a los ajustes",
@@ -410,7 +419,6 @@
       "hide": "Ocultar",
       "correctBang": "¡Correcto!",
       "wrongBang": "¡Incorrecto!",
-      "sessionComplete": "¡Sesión completada!",
       "questionProgress": "Pregunta {{n}}/{{total}}",
       "correctOf": "Correctas: {{n}}/{{total}} ({{pct}} %)",
       "streakOf": "Racha: {{n}}"
@@ -555,7 +563,25 @@
       "tcYouSaid": "TC: dijiste {{said}}; lo correcto era <h>{{right}}</h> (RC {{rc}} / {{decks}} barajas)",
       "betExplain": "TC {{tc}} → {{mult}}× × ${{min}} de mínimo = <h>${{bet}}</h>",
       "youChoseBet": " — elegiste ${{bet}}",
-      "spreadOf": "Bet spread (× ${{min}})"
+      "spreadOf": "Bet spread (× ${{min}})",
+      "yourBet": "Tu apuesta",
+      "rightBet": "Correcta",
+      "placeBet": "Apostar {{amount}}",
+      "placeEmpty": "Coloca fichas",
+      "chipsBelow": "Apuesta con las fichas",
+      "undo": "Retirar la última ficha",
+      "rampHint": "Al apostar, la tabla se completa y marca el escalón correcto.",
+      "keysHint": "Teclas: 1–5 fichas · Retroceso retira una · Intro apuesta",
+      "historySpot": "TC {{tc}} · mesa de {{min}}",
+      "spotRc": "RC {{rc}} · {{decks}} mazos",
+      "tcRight": "True count {{tc}} — correcto",
+      "oneUnit": "1 unidad",
+      "previous": "Apuestas anteriores",
+      "reason_one": "{{tc}} → {{step}}: {{count}} unidad × {{min}} = <h>{{bet}}</h>",
+      "reasonPlain_one": "{{tc}}: {{count}} unidad × {{min}} = <h>{{bet}}</h>",
+      "reason_other": "{{tc}} → {{step}}: {{count}} unidades × {{min}} = <h>{{bet}}</h>",
+      "reasonPlain_other": "{{tc}}: {{count}} unidades × {{min}} = <h>{{bet}}</h>",
+      "tcWorked": "Dijiste {{said}} · RC {{rc}} ÷ {{decks}} mazos = <h>{{right}}</h>"
     },
     "deck": {
       "title": "Estimación de barajas",
@@ -569,10 +595,6 @@
       "normal": "Normal",
       "quickFire": "Contrarreloj",
       "quickFireHint": "{{rounds}} rondas de {{secs}} s",
-      "quickFireComplete": "¡Contrarreloj completado!",
-      "correctLabel": "Correctas:",
-      "avgErrorLabel": "Error medio:",
-      "bestStreakLabel": "Mejor racha:",
       "avgErrorValue": "±{{v}} barajas",
       "avgErrorInline": "Error medio: ±{{v}} barajas",
       "round": "Ronda {{n}}/{{total}}",
@@ -583,7 +605,16 @@
       "remaining": "~{{n}} barajas restantes",
       "youSaid": " (dijiste {{v}})",
       "offBy": "Te has desviado {{v}} barajas",
-      "numRoundsAria": "Número de rondas"
+      "numRoundsAria": "Número de rondas",
+      "markTrue": "Quedan {{v}}",
+      "markYou": "Tú {{v}}",
+      "rulerCaption": "Barajas restantes",
+      "avgErrorTitle": "Error medio",
+      "previous": "Respuestas anteriores",
+      "previousEmpty": "Tus respuestas aparecen aquí, la más reciente arriba.",
+      "tcHigh": "Tus true counts saldrían un {{pct}} demasiado altos (÷ {{guess}} en vez de ÷ {{actual}}).",
+      "tcLow": "Tus true counts saldrían un {{pct}} demasiado bajos (÷ {{guess}} en vez de ÷ {{actual}}).",
+      "tcExact": "Tus true counts serían exactos."
     },
     "rail": {
       "speedDrill": {
@@ -632,7 +663,63 @@
     "shoe": "Zapato",
     "discard": "Descarte",
     "deckShoeTray": "Zapato de {{n}} barajas · Bandeja de descarte",
-    "betSpreadUnit": "{{mult}}× ({{amount}})"
+    "betSpreadUnit": "{{mult}}× ({{amount}})",
+    "summary": {
+      "title": "Ronda completada",
+      "verdict": {
+        "perfect": "Perfecto",
+        "excellent": "Excelente",
+        "strong": "Muy bien",
+        "solid": "Sólido",
+        "practice": "Sigue practicando"
+      },
+      "rightOf": "{{n}} de {{total}} correctas",
+      "best": {
+        "new": "Nuevo récord — {{gain}} puntos sobre tu {{previous}}",
+        "equal": "Igual a tu récord",
+        "below_one": "A {{count}} punto de tu récord",
+        "below_other": "A {{count}} puntos de tu récord",
+        "first": "Tu primera ronda puntuada. Esta es la marca a batir.",
+        "short": "Muy pocas respuestas para compararlas con tu récord de {{previous}}",
+        "shortNone": "Muy pocas respuestas para puntuar"
+      },
+      "earned": "Ganado en esta ronda",
+      "xpAmount": "+{{n}} XP",
+      "xpNone": "Sin XP en esta ronda — la XP premia las respuestas correctas.",
+      "level": "Nv. {{n}}",
+      "levelUp": "Nivel {{n}} alcanzado",
+      "toNext": "{{xp}} XP para el nivel {{n}}",
+      "topLevel": "Nivel máximo",
+      "levelBar": "Progreso del nivel",
+      "stage": {
+        "title": "Plan · {{stage}}",
+        "count": "{{n}} de {{total}} rondas por encima del {{bar}}",
+        "counted": "Esta ronda cuenta",
+        "done": "Etapa completada",
+        "days": "en {{days}} de {{total}} días"
+      },
+      "award": {
+        "title": "Próximo logro",
+        "gain": "+{{n}} en esta ronda"
+      },
+      "missesTitle": "Fallos",
+      "missesCount_one": "{{count}} fallo · la respuesta correcta",
+      "missesCount_other": "{{count}} fallos · las respuestas correctas",
+      "noMisses": "Sin fallos",
+      "noMissesSub": "Todas las respuestas de esta ronda fueron correctas.",
+      "moreMisses_one": "y {{count}} más",
+      "moreMisses_other": "y {{count}} más",
+      "again": "Otra vez",
+      "back": "Cambiar ajustes",
+      "drillMisses_one": "Practicar esta mano",
+      "drillMisses_other": "Practicar estas {{count}} manos",
+      "thisRound": "Esta ronda",
+      "yourBest": "Tu récord",
+      "unlocked_one": "{{count}} logro desbloqueado",
+      "unlocked_other": "{{count}} logros desbloqueados",
+      "moreUnlocked_one": "y {{count}} más",
+      "moreUnlocked_other": "y {{count}} más"
+    }
   },
   "casino": {
     "setup": {

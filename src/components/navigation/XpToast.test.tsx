@@ -26,7 +26,7 @@ const awardOf = (parts: { labelKey: string; amount: number; labelParams?: Record
   })
 
 beforeEach(() => {
-  useLevelStore.setState({ lastAward: null, showLevelUp: false, levelUpData: null })
+  useLevelStore.setState({ lastAward: null, showLevelUp: false, levelUpData: null, awardInPlace: false, awardSeenId: 0 })
 })
 afterEach(() => vi.useRealTimers())
 
@@ -184,5 +184,32 @@ describe('XpToast', () => {
       rerender(<XpToast />)
       expect(screen.queryByTestId('xp-toast')).toBeNull()
     })
+  })
+})
+
+/**
+ * The round summary draws the award itself. The toast must not announce the
+ * same XP in the corner, then or after the summary is left.
+ */
+describe('XpToast — an award shown in place', () => {
+  it('stays quiet while a screen shows the award, and does not clear it', () => {
+    vi.useFakeTimers()
+    useLevelStore.getState().holdAwardInPlace()
+    award(40)
+    render(<XpToast />)
+    expect(screen.queryByTestId('xp-toast')).toBeNull()
+    act(() => { vi.advanceTimersByTime(10_000) })
+    // Still there for the screen that shows it.
+    expect(useLevelStore.getState().lastAward?.amount).toBe(40)
+  })
+
+  it('does not replay that award once the screen is gone, and announces the next one', () => {
+    useLevelStore.getState().holdAwardInPlace()
+    award(40, 'xp.source.session', 3)
+    render(<XpToast />)
+    act(() => { useLevelStore.getState().releaseAwardInPlace() })
+    expect(screen.queryByTestId('xp-toast')).toBeNull()
+    act(() => { award(25, 'xp.source.challenge', 4) })
+    expect(screen.getByTestId('xp-toast')).toHaveTextContent('+25')
   })
 })

@@ -128,7 +128,11 @@ describe('upgrading from the account page', () => {
 
     const modal = await screen.findByTestId('upgrade-modal', {}, T)
     expect(modal.textContent).not.toMatch(/8[.,]90/)
-    expect(within(modal).getByTestId('paywall-price-pending')).toBeInTheDocument()
+    // A failed fetch used to leave the loading placeholder pulsing for ever.
+    // It now says, as the landing does, that the price is shown at checkout:
+    // still no figure, but a sentence instead of a gap.
+    expect(within(modal).getByTestId('paywall-price-unavailable')).toBeInTheDocument()
+    expect(within(modal).queryByTestId('paywall-price-pending')).not.toBeInTheDocument()
     // The way out is still open — it just does not quote a price.
     expect(within(modal).getByTestId('upgrade-yearly')).toBeInTheDocument()
   })

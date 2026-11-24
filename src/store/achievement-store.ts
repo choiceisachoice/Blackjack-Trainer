@@ -14,6 +14,15 @@ export interface AchievementStoreState {
   newlyUnlocked: Achievement[]
   /** Total number of unlocked achievements. */
   totalUnlocked: number
+  /**
+   * A screen is showing the awards a round unlocked, by name, so the toast
+   * holds back. The round summary is the moment that earned them; a toast
+   * over its right panel for four seconds said the same thing twice and hid
+   * the misses. Held entries stay in the queue until the screen releases
+   * them (`releaseUnlocksInPlace`), which drops the ones it showed — so a
+   * held award is neither lost nor announced again later.
+   */
+  unlocksInPlace: boolean
 }
 
 /** Actions for the achievement store. */
@@ -37,6 +46,15 @@ export interface AchievementStoreActions {
   /** Remove the first achievement from the toast queue. */
   dismissNewAchievement(): void
 
+  /** A screen shows the coming unlocks itself: hold the toast. Call before the round is recorded. */
+  holdUnlocksInPlace(): void
+
+  /**
+   * The screen is gone: let the toast speak again. `shown` are the ids the
+   * screen showed; they leave the queue, anything else in it is still announced.
+   */
+  releaseUnlocksInPlace(shown: readonly string[]): void
+
   /** Reload achievement state from the engine. */
   loadAchievements(): void
 
@@ -55,6 +73,7 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
   unlockedIds: achievementEngine.getUnlocked().map(u => u.achievementId),
   newlyUnlocked: [],
   totalUnlocked: achievementEngine.getUnlockedCount(),
+  unlocksInPlace: false,
 
   checkAchievements(session, stats, dayStreak, allSessions) {
     const newAchievements = achievementEngine.checkAfterSession(
@@ -87,6 +106,17 @@ export const useAchievementStore = create<AchievementStore>((set) => ({
   dismissNewAchievement() {
     set(state => ({
       newlyUnlocked: state.newlyUnlocked.slice(1),
+    }))
+  },
+
+  holdUnlocksInPlace() {
+    set({ unlocksInPlace: true })
+  },
+
+  releaseUnlocksInPlace(shown) {
+    set(state => ({
+      unlocksInPlace: false,
+      newlyUnlocked: state.newlyUnlocked.filter(a => !shown.includes(a.id)),
     }))
   },
 

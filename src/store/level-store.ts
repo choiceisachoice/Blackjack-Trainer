@@ -41,6 +41,27 @@ export interface LevelStoreState {
    * would announce once.
    */
   lastAward: XpAward | null
+
+  /**
+   * A screen is showing the latest award itself, so the toast stays quiet.
+   *
+   * The round summary draws the XP a round earned inside the moment that
+   * earned it — on the level bar, beside the score. A toast saying the same
+   * thing in the corner at the same time is the announcement twice. The
+   * screen claims the award *before* the round is paid
+   * (`holdAwardInPlace`), so the toast never renders for a frame, and hands
+   * it back on leaving (`releaseAwardInPlace`), which marks it seen
+   * (`awardSeenId`). Achievement toasts are not affected: an unlocked award
+   * is news the summary does not carry.
+   */
+  awardInPlace: boolean
+  /**
+   * The id of the last award a screen showed in place. The toast does not
+   * announce it again once that screen is gone; any later payout has a new id
+   * and is announced as usual. An id rather than clearing `lastAward`, so a
+   * screen that mounts twice (StrictMode) still finds its award.
+   */
+  awardSeenId: number
 }
 
 /**
@@ -150,6 +171,10 @@ export interface LevelStoreActions {
   dismissLevelUp(): void
   /** Dismiss the XP toast. */
   dismissXpAward(): void
+  /** A screen shows the coming award itself: hold the toast back. Call before the payout. */
+  holdAwardInPlace(): void
+  /** The screen is gone: let the toast speak again, and count the award it showed as seen. */
+  releaseAwardInPlace(): void
   /** Refresh all state from the engine. */
   refresh(): void
 }
@@ -283,6 +308,8 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
   showLevelUp: false,
   levelUpData: null,
   lastAward: null,
+  awardInPlace: false,
+  awardSeenId: 0,
 
   addSessionXP(session, earlier = []) {
     const xp = sessionXP(session, earlier)
@@ -333,6 +360,16 @@ export const useLevelStore = create<LevelStore>((set, get) => ({
 
   dismissXpAward() {
     set({ lastAward: null })
+  },
+
+  holdAwardInPlace() {
+    set({ awardInPlace: true })
+  },
+
+  releaseAwardInPlace() {
+    const { awardInPlace, lastAward, awardSeenId } = get()
+    if (!awardInPlace) return
+    set({ awardInPlace: false, awardSeenId: lastAward?.id ?? awardSeenId })
   },
 
   refresh() {

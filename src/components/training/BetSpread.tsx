@@ -1,21 +1,23 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { Trans, useTranslation } from 'react-i18next'
-import { Coins, Check, X, Minus, Plus } from 'lucide-react'
-import { Panel, Segmented, Button, Input, StatCard } from '../common/ui'
+import { useTranslation } from 'react-i18next'
+import { Coins } from 'lucide-react'
+import { Panel, Segmented, Button } from '../common/ui'
 import { calculateTrueCount } from '../../engine/counting/counting-engine'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
 import type { BetSpreadDetails } from '../../services/stats-types'
 import { TrainingBackdrop } from './TrainingBackdrop'
-import { BET_SPREAD, rand, getMultiplier, getCorrectBet, buildBracketSequence } from './bet-spread-math'
-import { activeLocale } from '../../i18n'
+import { BET_SPREAD, rand, getCorrectBet, buildBracketSequence } from './bet-spread-math'
+import { BET_CAP, chipForKey, money, signed, type BetAnswer, type BetQuestion, type BetQuestionType } from './bet-model'
+import { BetFelt } from './BetFelt'
+import { BetHistory, BetKeys, BetRamp, BetSpot } from './BetPanel'
+import { FlashProgress } from './FlashPanel'
+import { RoundSummary, type SummaryMiss } from './RoundSummary'
+import { captureRound, type RoundCapture } from './round-capture'
 
-type QuestionType = 'A' | 'B' | 'C'
+type QuestionType = BetQuestionType
 type QuestionMode = 'A' | 'B' | 'C' | 'random'
 type Phase = 'settings' | 'question' | 'feedback' | 'summary'
-
-/** Bet multipliers shown as options: the ramp's own steps (1–16 spread). */
-const MULTIPLIERS = BET_SPREAD.map(row => row.multiplier)
 
 /** Realistic table minimums (the "unit"). Varies per question for realism. */
 const TABLE_MINIMUMS = [5, 10, 15, 25, 50, 100]
@@ -23,37 +25,9 @@ const TABLE_MINIMUMS = [5, 10, 15, 25, 50, 100]
 const REMAINING_DECKS_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
 const QUESTION_COUNTS = [10, 20, 30, 50]
 
-/**
- * A number the way the reader's language writes it: "1.5" and "1,600" in
- * English, "1,5" and "1.600" in German.
- *
- * Template strings print a JavaScript number, which is always the English
- * form — so a German drill asked about "~1.5" decks and offered "$1600".
- */
-function num(n: number): string {
-  return n.toLocaleString(activeLocale(), { maximumFractionDigits: 2 })
-}
-
-/** A dollar amount: the sign, then the number in the reader's format. */
-function money(n: number): string {
-  return `$${num(n)}`
-}
-
-/** Format TC as "+N" or "N". */
-function formatTC(n: number): string {
-  return n >= 0 ? `+${num(n)}` : num(n)
-}
-
 function pick<T>(arr: readonly T[]): T { return arr[Math.floor(rand() * arr.length)] }
 
-interface Question {
-  type: QuestionType
-  tableMin: number
-  rc: number
-  remainingDecks: number
-  tc: number
-  correctBet: number
-}
+type Question = BetQuestion
 
 /**
  * Picks a representative integer TC inside a bracket (adds variety).
@@ -89,8 +63,11 @@ function makeQuestion(bracketIdx: number, type: QuestionType, prev: Question | n
     rc = Math.round(targetTC * remainingDecks)
     tc = calculateTrueCount(rc, remainingDecks)
   }
+  // The shoe on the felt: the question's decks, or — with the true count
+  // given — any level, since the drawing then tells nothing the question does not.
+  const shoeDecks = type === 'B' ? pick(REMAINING_DECKS_OPTIONS) : remainingDecks
 
-  return { type, tableMin, rc, remainingDecks, tc, correctBet: getCorrectBet(tc, tableMin) }
+  return { type, tableMin, rc, remainingDecks, shoeDecks, tc, correctBet: getCorrectBet(tc, tableMin) }
 }
 
 /** Builds a full, non-repeating session of questions. */
@@ -110,9 +87,12 @@ function buildSession(mode: QuestionMode, count: number): Question[] {
 /**
  * Bet Spread training mode.
  *
- * Realistic scenarios: each question uses a different table minimum, and the
- * player picks the correct bet from that table's 1–16 spread. Sessions are a
- * fixed length with no repeated questions, then show a summary.
+ * Realistic scenarios: each question is asked at a table — a different table
+ * minimum each time, the shoe and the discard tray on the felt — and the
+ * player puts the bet down in chips, as at the casino table. Sessions are a
+ * fixed length with no repeated questions, then end on the shared round
+ * summary (`RoundSummary`): the score against the best, what the round earned
+ * and the bets that were wrong with the right ones.
  */
 export function BetSpread() {
   const { t } = useTranslation()
@@ -125,11 +105,12 @@ export function BetSpread() {
   const [qIndex, setQIndex] = useState(0)
   const question = session[qIndex] ?? null
 
-  // Answer state
+  // Answer state: the true count entered (type C) and the chips placed, in order.
   const [tcAnswer, setTcAnswer] = useState(0)
-  const [selectedBet, setSelectedBet] = useState<number | null>(null)
-  const [isCorrect, setIsCorrect] = useState(false)
-  const [tcCorrect, setTcCorrect] = useState(true)
+  const [placed, setPlaced] = useState<number[]>([])
+  const bet = placed.reduce((sum, c) => sum + c, 0)
+  /** Every answer of the round, in order — the trail, the list of previous bets, the feedback. */
+  const [answers, setAnswers] = useState<BetAnswer[]>([])
 
   // Stats
   const [totalCorrect, setTotalCorrect] = useState(0)
@@ -151,14 +132,17 @@ export function BetSpread() {
     betTotal: betTotalRef.current,
   }))
 
+  /** What the summary compares the round against, taken as it ended. */
+  const [capture, setCapture] = useState<RoundCapture | null>(null)
+
   const startSession = useCallback(() => {
     begin()
+    setCapture(null)
     setSession(buildSession(questionMode, numQuestions))
     setQIndex(0)
     setTcAnswer(0)
-    setSelectedBet(null)
-    setIsCorrect(false)
-    setTcCorrect(true)
+    setPlaced([])
+    setAnswers([])
     setTotalCorrect(0)
     setTotalAttempts(0)
     setCurrentStreak(0)
@@ -171,7 +155,7 @@ export function BetSpread() {
   }, [questionMode, numQuestions, begin])
 
   const handleSubmitBet = useCallback((bet: number) => {
-    if (!question) return
+    if (!question || phase !== 'question') return
 
     const betOk = bet === question.correctBet
     let correct = betOk
@@ -187,9 +171,7 @@ export function BetSpread() {
       correct = correct && tcOk
     }
 
-    setSelectedBet(bet)
-    setIsCorrect(correct)
-    setTcCorrect(tcOk)
+    setAnswers(prev => [...prev, { question, bet, tcAnswer: question.type === 'C' ? tcAnswer : null, correct }])
 
     const newAttempts = totalAttempts + 1
     const newCorrect = totalCorrect + (correct ? 1 : 0)
@@ -213,34 +195,70 @@ export function BetSpread() {
     }
 
     setPhase('feedback')
-  }, [question, tcAnswer, totalAttempts, totalCorrect, bestStreak, currentStreak, statsRef])
+  }, [question, phase, tcAnswer, totalAttempts, totalCorrect, bestStreak, currentStreak, statsRef])
 
   const handleNext = useCallback(() => {
     if (qIndex + 1 >= session.length) {
       soundEngine.sessionComplete()
       // Pay out at the summary, not on unmount — this is the moment the player
-      // is looking for the reward.
-      finish()
+      // is looking for the reward. The summary shows that reward itself, so
+      // the XP toast for it stays quiet (`captureRound`).
+      setCapture(captureRound(finish))
       setPhase('summary')
       return
     }
     setQIndex(qIndex + 1)
     setTcAnswer(0)
-    setSelectedBet(null)
-    setIsCorrect(false)
-    setTcCorrect(true)
+    setPlaced([])
     setPhase('question')
   }, [qIndex, session.length, finish])
 
-  // Keyboard: Enter → next in feedback
+  // ── Building the bet ──
+  const addChip = useCallback((value: number) => {
+    if (!question) return
+    setPlaced(prev => {
+      const total = prev.reduce((sum, c) => sum + c, 0)
+      return total + value > BET_CAP ? prev : [...prev, value]
+    })
+    soundEngine.chipPlace()
+  }, [question])
+  const undoChip = useCallback(() => setPlaced(prev => prev.slice(0, -1)), [])
+  const clearBet = useCallback(() => setPlaced([]), [])
+  const placeBet = useCallback(() => {
+    if (bet > 0) handleSubmitBet(bet)
+  }, [bet, handleSubmitBet])
+
+  // Keyboard: 1–5 put a chip down (smallest to largest), Backspace takes the
+  // last one back, Escape clears, Enter places the bet; once answered, Enter
+  // goes on. Typing in the true-count field keeps its own digits and
+  // Backspace; Enter from there places the bet like anywhere else.
   useEffect(() => {
-    if (phase !== 'feedback') return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Enter') handleNext() }
+    if (phase !== 'question' && phase !== 'feedback') return
+    const handler = (e: KeyboardEvent) => {
+      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return
+      const target = e.target instanceof Element ? e.target : null
+      if (phase === 'feedback') {
+        // The Next button presses itself on Enter when it has the focus; a
+        // second press from here would skip a question.
+        if (e.key === 'Enter' && !target?.closest('[data-testid=next-question]')) handleNext()
+        return
+      }
+      if (e.key === 'Enter') {
+        // A focused chip or button presses itself; only the bet is placed here.
+        if (target?.closest('button')) return
+        e.preventDefault()
+        placeBet()
+        return
+      }
+      if (target?.closest('input, textarea')) return
+      const chip = chipForKey(e.key)
+      if (chip !== null) { e.preventDefault(); addChip(chip); return }
+      if (e.key === 'Backspace') { e.preventDefault(); undoChip(); return }
+      if (e.key === 'Escape') clearBet()
+    }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [phase, handleNext])
-
-  const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
+  }, [phase, handleNext, placeBet, addChip, undoChip, clearBet])
 
   // ── Settings Phase ──
   if (phase === 'settings') {
@@ -318,208 +336,99 @@ export function BetSpread() {
 
   // ── Summary Phase ──
   if (phase === 'summary') {
+    // The spot is worded as in the panel's "previous bets". A wrong bet shows
+    // the bet and the right one; a right bet on a wrong true count (type C)
+    // shows the two true counts, since the bet is not what went wrong.
+    const misses: SummaryMiss[] = answers.flatMap((a, i) => {
+      if (a.correct) return []
+      const spot = t('training.bet.historySpot', { tc: signed(a.question.tc), min: money(a.question.tableMin) })
+      const betWrong = a.bet !== a.question.correctBet
+      return [{
+        id: String(i),
+        spot,
+        chosen: betWrong ? money(a.bet) : a.tcAnswer !== null ? `TC ${signed(a.tcAnswer)}` : undefined,
+        right: betWrong ? money(a.question.correctBet) : `TC ${signed(a.question.tc)}`,
+      }]
+    })
     return (
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="surface w-full max-w-xl p-7 md:p-8 flex flex-col items-center gap-6">
-          <h3 className="text-xl font-bold text-gold-gradient" data-testid="summary-title">{t('training.common.sessionComplete')}</h3>
-          <div className="grid grid-cols-2 gap-3 w-full text-center">
-            <StatCard label={t('training.common.accuracy')} value={`${accuracy}%`} testId="summary-accuracy" />
-            <StatCard label={t('training.common.correct')} value={`${totalCorrect}/${totalAttempts}`} />
-            <StatCard label={t('training.common.bestStreak')} value={bestStreak} accent className="col-span-2" />
-          </div>
-          <Button className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
-            {t('training.common.backToSettings')}
-          </Button>
-        </div>
-      </div>
+      <RoundSummary
+        mode="betSpread"
+        score={{ correct: totalCorrect, total: totalAttempts }}
+        capture={capture}
+        trail={answers.map(a => a.correct)}
+        figures={[{ label: t('training.common.bestStreak'), value: bestStreak }]}
+        misses={misses}
+        onAgain={startSession}
+        onBack={() => setPhase('settings')}
+      />
     )
   }
 
   if (!question) return null
-  const betOptions = MULTIPLIERS.map(m => m * question.tableMin)
+  const answered = phase === 'feedback' && answers.length > 0 ? answers[answers.length - 1] : null
+  const results = answers.map(a => a.correct)
 
-  // ── Question Phase ──
-  if (phase === 'question') {
-    return (
-      // `short:` is a phone held sideways (390px tall): the situation goes left,
-      // everything that is answered goes right, and the back bar gives up its
-      // row (`data-drill-run`) — the bets used to sit at y 506–602 of 390.
-      <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-2">
-        {/* Stats bar */}
-        <div className="flex items-center justify-between w-full max-w-md short:max-w-3xl px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
-          <span data-testid="question-progress">{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
-          <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
-          <span>{t('training.common.streakOf', { n: currentStreak })}</span>
-        </div>
-
-        {/* Situation card */}
-        <div className="surface p-6 max-w-md w-full short:max-w-3xl short:p-3 short:grid short:grid-cols-2 short:items-center short:gap-x-6">
-          <div className="contents short:block">
-          {/* Table minimum — always shown (realistic scenario) */}
-          <div className="flex justify-between items-center pb-3 mb-3 border-b border-contrast/10">
-            <span className="text-content/60 text-sm">{t('training.bet.tableMinimum')}</span>
-            <span className="text-gold font-bold text-lg" data-testid="table-min">{money(question.tableMin)}</span>
-          </div>
-
-          <div className="space-y-3 mb-6 short:mb-0">
-            {(question.type === 'A' || question.type === 'C') && (
-              <>
-                <div className="flex justify-between items-center">
-                  <span className="text-content/60 text-sm">{t('training.bet.runningCount')}</span>
-                  <span className="text-content font-bold text-lg" data-testid="running-count">{formatTC(question.rc)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-content/60 text-sm">{t('training.bet.remainingDecks')}</span>
-                  <span className="text-content font-bold text-lg" data-testid="remaining-decks">~{num(question.remainingDecks)}</span>
-                </div>
-              </>
-            )}
-
-            {question.type === 'B' && (
-              <div className="flex justify-between items-center">
-                <span className="text-content/60 text-sm">{t('training.flash.trueCount')}</span>
-                <span className="text-gold font-bold text-lg" data-testid="true-count">{formatTC(question.tc)}</span>
-              </div>
-            )}
-          </div>
-
-          </div>
-
-          <div className="contents short:block">
-          {/* Type C: TC input */}
-          {question.type === 'C' && (
-            <div className="mb-6 short:mb-2">
-              <p className="text-content/70 text-sm mb-2 text-center">{t('training.bet.whatIsTc')}</p>
-              <div className="flex items-center justify-center gap-3">
-                <button
-                  onClick={() => setTcAnswer(prev => prev - 0.5)}
-                  aria-label={t('training.bet.decreaseTc')}
-                  className="grid place-items-center w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-content transition-colors cursor-pointer"
-                >
-                  <Minus size={18} />
-                </button>
-                <Input
-                  type="number"
-                  step="0.5"
-                  value={tcAnswer}
-                  onChange={(e) => setTcAnswer(Number(e.target.value) || 0)}
-                  data-testid="tc-input"
-                  className="w-20 h-12 text-center text-xl font-bold bg-contrast/10 border border-contrast/20
-                    rounded-xl text-content focus:border-gold/60
-                    [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button
-                  onClick={() => setTcAnswer(prev => prev + 0.5)}
-                  aria-label={t('training.bet.increaseTc')}
-                  className="grid place-items-center w-10 h-10 rounded-full bg-contrast/10 hover:bg-contrast/20 text-content transition-colors cursor-pointer"
-                >
-                  <Plus size={18} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          <p className="text-content font-medium text-center mb-4 short:mb-2">{t('training.bet.whatIsBet')}</p>
-
-          <div className="flex flex-wrap gap-2 justify-center">
-            {betOptions.map(bet => (
-              <button
-                key={bet}
-                onClick={() => handleSubmitBet(bet)}
-                data-testid={`bet-${bet}`}
-                className="px-5 py-2.5 bg-contrast/10 hover:bg-contrast/20 text-content font-medium
-                  rounded-xl transition-colors cursor-pointer text-sm min-w-[70px]"
-              >
-                {money(bet)}
-              </button>
-            ))}
-          </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // ── Feedback Phase ──
-  const multiplier = getMultiplier(question.tc)
-
+  // ── Question and feedback ──
+  //
+  // One grid, as in Flashcards and the Speed Drill. Wide (lg): the felt left,
+  // a side panel right with the round, the spot, the ramp and the bets so far.
+  // Below lg the round is a strip above the felt and the felt carries the
+  // rest; once answered, a phone held upright gets the ramp under the felt.
+  // The panel is `display: contents` below lg, so its parts are placed by
+  // area name and each is drawn once at every size.
   return (
-    // Sideways phone: verdict and the ramp left, the explanation and the way
-    // on right — placed on the grid, so the markup keeps its reading order.
-    <div data-drill-run className="flex-1 flex flex-col items-center justify-center gap-6 px-4 short:gap-2">
-      {/* Stats bar */}
-      <div className="flex items-center justify-between w-full max-w-md short:max-w-3xl px-4 py-1.5 bg-contrast/10 text-xs text-content/50 rounded-lg">
-        <span>{t('training.common.questionProgress', { n: qIndex + 1, total: session.length })}</span>
-        <span>{t('training.common.correctOf', { n: totalCorrect, total: totalAttempts, pct: accuracy })}</span>
-        <span>{t('training.common.streakOf', { n: currentStreak })}</span>
-      </div>
+    // `data-drill-run`: on a phone held sideways the back bar gives its row to
+    // the question (see `BackToMenu`).
+    <div
+      data-drill-run
+      className="flex-1 min-h-0 flex flex-col px-3 sm:px-5 lg:px-8 pt-3 lg:pt-4 short:pt-2
+        pb-[calc(0.75rem+var(--cookie-bar,0px))] lg:pb-[calc(1.5rem+var(--cookie-bar,0px))] short:pb-[calc(0.5rem+var(--cookie-bar,0px))]"
+    >
+      <div
+        className={`mx-auto w-full max-w-[96rem] flex-1 min-h-0 grid gap-3 sm:gap-4
+          ${answered
+            ? `grid-rows-[auto_minmax(0,1fr)_auto] [grid-template-areas:'prog'_'felt'_'ramp']
+               max-lg:short:grid-rows-[auto_minmax(0,1fr)] max-lg:short:[grid-template-areas:'prog'_'felt']`
+            : `grid-rows-[auto_minmax(0,1fr)] [grid-template-areas:'prog'_'felt']`}
+          max-lg:short:gap-y-1.5
+          lg:grid-cols-[minmax(0,1fr)_clamp(20rem,26vw,26rem)] lg:grid-rows-[minmax(0,1fr)]
+          lg:[grid-template-areas:'felt_panel'] lg:gap-x-6`}
+      >
+        <section className="[grid-area:felt] min-h-0 min-w-0">
+          <BetFelt
+            key={qIndex}
+            question={question}
+            bet={bet}
+            placed={placed}
+            onChip={addChip}
+            onUndo={undoChip}
+            onClear={clearBet}
+            onPlace={placeBet}
+            tcAnswer={tcAnswer}
+            onTcAnswer={setTcAnswer}
+            answer={answered}
+            onNext={handleNext}
+            last={qIndex + 1 >= session.length}
+          />
+        </section>
 
-      {/* Result card */}
-      <div className="surface p-6 max-w-md w-full short:max-w-3xl short:p-4 short:grid short:grid-cols-2 short:items-start short:gap-x-6 short:gap-y-2">
-        <div className={`flex flex-col items-center text-center mb-4 short:mb-0 short:flex-row short:justify-center short:gap-3
-          short:col-start-1 short:row-start-1 ${isCorrect ? 'text-success' : 'text-error'}`}>
-          <span className={`grid place-items-center w-12 h-12 short:w-9 short:h-9 rounded-full border
-            ${isCorrect ? 'bg-success/10 border-success/30' : 'bg-error/10 border-error/30'}`}>
-            {isCorrect ? <Check size={24} /> : <X size={24} />}
-          </span>
-          <h3 className="text-xl font-bold mt-2 short:mt-0" data-testid="feedback-result">
-            {isCorrect ? t('training.common.correctBang') : t('training.common.wrongBang')}
-          </h3>
-        </div>
-
-        {/* Explanation */}
-        <div className="bg-contrast/5 rounded-xl p-4 mb-4 space-y-2 short:p-3 short:mb-0 short:col-start-2 short:row-start-1 short:row-span-2">
-          {question.type === 'C' && !tcCorrect && (
-            <p className="text-content/70 text-sm">
-              <Trans
-                i18nKey="training.bet.tcYouSaid"
-                values={{
-                  said: formatTC(tcAnswer),
-                  right: formatTC(question.tc),
-                  rc: formatTC(question.rc),
-                  decks: num(question.remainingDecks),
-                }}
-                components={{ h: <span className="text-gold font-medium" /> }}
-              />
-            </p>
-          )}
-          <p className="text-content/70 text-sm" data-testid="feedback-explanation">
-            <Trans
-              i18nKey="training.bet.betExplain"
-              values={{ tc: formatTC(question.tc), mult: multiplier, min: num(question.tableMin), bet: num(question.correctBet) }}
-              components={{ h: <span className="text-gold font-medium" /> }}
-            />
-            {selectedBet !== null && selectedBet !== question.correctBet && (
-              <span className="text-error">{t('training.bet.youChoseBet', { bet: num(selectedBet) })}</span>
-            )}
-          </p>
-        </div>
-
-        {/* Bet spread reference with highlight */}
-        <div className="bg-contrast/5 rounded-xl p-3 mb-4 short:mb-0 short:col-start-1 short:row-start-2 short:row-span-2">
-          <p className="text-xs text-content/40 mb-2 text-center">{t('training.bet.spreadOf', { min: num(question.tableMin) })}</p>
-          <div className="space-y-0.5">
-            {BET_SPREAD.map((row, i) => {
-              const isHighlighted = Math.floor(question.tc) >= row.minTC && Math.floor(question.tc) <= row.maxTC
-              return (
-                <div key={i} className={`flex justify-between text-xs px-2 py-0.5 rounded ${
-                  isHighlighted ? 'bg-gold/20 text-gold font-medium' : 'text-content/50'
-                }`}>
-                  <span>{row.label}</span>
-                  <span>{t('training.betSpreadUnit', { mult: row.multiplier, amount: money(row.multiplier * question.tableMin) })}</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        <Button
-          onClick={handleNext}
-          data-testid="next-question"
-          className="w-full short:col-start-2 short:row-start-3 short:self-end"
-        >
-          {qIndex + 1 >= session.length ? t('training.common.seeResults') : t('training.common.next')}
-        </Button>
+        <aside className="contents lg:[grid-area:panel] lg:flex lg:flex-col lg:min-h-0 lg:gap-5 [@media(max-height:820px)]:lg:gap-3.5 lg:overflow-hidden surface lg:p-5 xl:p-6 [@media(max-height:820px)]:lg:py-4">
+          <FlashProgress
+            index={qIndex}
+            total={session.length}
+            results={results}
+            streak={currentStreak}
+            className="[grid-area:prog] shrink-0 max-lg:px-1"
+          />
+          <BetSpot question={question} className="shrink-0 hidden lg:block" />
+          <BetRamp
+            question={question}
+            placed={answered ? answered.bet : null}
+            className={`[grid-area:ramp] shrink-0 min-w-0 ${answered ? 'max-lg:short:hidden compact:hidden' : 'hidden lg:block'}`}
+          />
+          <BetHistory answers={answered ? answers.slice(0, -1) : answers} className="hidden lg:flex lg:flex-1 lg:min-h-0" />
+          <BetKeys className="hidden lg:block shrink-0" />
+        </aside>
       </div>
     </div>
   )

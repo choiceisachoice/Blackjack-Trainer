@@ -375,7 +375,17 @@
     "personalLaterIsPro": "Planınızın ilerisindeki “{{stage}}” aşaması Pro kapsamındadır.",
     "trialLead_one": "Masada bir el oynadınız; temel stratejiye uygun kararlar: %{{pct}}.",
     "trialLead_other": "Masada {{count}} el oynadınız; temel stratejiye uygun kararlar: %{{pct}}.",
-    "trialSupport": "Pro ile masa açık kalır: istediğiniz kadar el, count ve kendi kurallarınızla."
+    "trialSupport": "Pro ile masa açık kalır: istediğiniz kadar el, count ve kendi kurallarınızla.",
+    "addsHeading": "Pro’nun kattıkları",
+    "addTableTitle": "Tam kumarhane masası",
+    "addTableBody": "Botlar, bölmeler ve ödemeler; count ve kendi kurallarınızla.",
+    "addDeviationsBody": "Illustrious 18 ve Fab 4: count’un temel stratejinin önüne geçtiği anlar.",
+    "addDrillsTitle": "Bet spread ve deste tahmini",
+    "addDrillsBody": "Bahsinizi true count’a göre ayarlayın ve ayakkabıda kalan desteleri tahmin edin.",
+    "compareAll": "Ücretsiz ve Pro’yu karşılaştır",
+    "included": "Dahil",
+    "notIncluded": "Dahil değil",
+    "addDeviationsTitle": "Sapmalar"
   },
   "contact": {
     "title": "İletişim",
@@ -398,7 +408,6 @@
       "streak": "Seri",
       "bestStreak": "En iyi seri",
       "accuracy": "İsabet",
-      "correct": "Doğru",
       "tryAgain": "Tekrar dene",
       "backToMenu": "Menüye dön",
       "backToSettings": "Ayarlara dön",
@@ -410,7 +419,6 @@
       "hide": "Gizle",
       "correctBang": "Doğru!",
       "wrongBang": "Yanlış!",
-      "sessionComplete": "Oturum tamamlandı!",
       "questionProgress": "Soru {{n}}/{{total}}",
       "correctOf": "Doğru: {{n}}/{{total}} (%{{pct}})",
       "streakOf": "Seri: {{n}}"
@@ -555,7 +563,25 @@
       "tcYouSaid": "TC: {{said}} dediniz, doğrusu <h>{{right}}</h> idi (RC {{rc}} / {{decks}} deste)",
       "betExplain": "TC {{tc}} → {{mult}}× × ${{min}} minimum = <h>${{bet}}</h>",
       "youChoseBet": " — ${{bet}} seçtiniz",
-      "spreadOf": "Bet spread (× ${{min}})"
+      "spreadOf": "Bet spread (× ${{min}})",
+      "yourBet": "Bahsiniz",
+      "rightBet": "Doğrusu",
+      "placeBet": "{{amount}} bahis",
+      "placeEmpty": "Fiş koyun",
+      "chipsBelow": "Fişlerle bahis yapın",
+      "undo": "Son fişi geri al",
+      "rampHint": "Bahsinizden sonra tablo dolar ve doğru basamağı gösterir.",
+      "keysHint": "Tuşlar: 1–5 fiş · Geri silme birini geri alır · Enter bahis yapar",
+      "historySpot": "TC {{tc}} · {{min}} masa",
+      "spotRc": "RC {{rc}} · {{decks}} deste",
+      "tcRight": "True count {{tc}} — doğru",
+      "oneUnit": "1 birim",
+      "previous": "Önceki bahisler",
+      "reason_one": "{{tc}} → {{step}}: {{count}} birim × {{min}} = <h>{{bet}}</h>",
+      "reasonPlain_one": "{{tc}}: {{count}} birim × {{min}} = <h>{{bet}}</h>",
+      "reason_other": "{{tc}} → {{step}}: {{count}} birim × {{min}} = <h>{{bet}}</h>",
+      "reasonPlain_other": "{{tc}}: {{count}} birim × {{min}} = <h>{{bet}}</h>",
+      "tcWorked": "{{said}} dediniz · RC {{rc}} ÷ {{decks}} deste = <h>{{right}}</h>"
     },
     "deck": {
       "title": "Deste tahmini",
@@ -569,10 +595,6 @@
       "normal": "Normal",
       "quickFire": "Hızlı tur",
       "quickFireHint": "{{rounds}} tur, her biri {{secs}} sn",
-      "quickFireComplete": "Hızlı tur tamamlandı!",
-      "correctLabel": "Doğru:",
-      "avgErrorLabel": "Ort. sapma:",
-      "bestStreakLabel": "En iyi seri:",
       "avgErrorValue": "±{{v}} deste",
       "avgErrorInline": "Ort. sapma: ±{{v}} deste",
       "round": "Tur {{n}}/{{total}}",
@@ -583,7 +605,16 @@
       "remaining": "~{{n}} deste kaldı",
       "youSaid": " ({{v}} dediniz)",
       "offBy": "{{v}} deste sapma",
-      "numRoundsAria": "Tur sayısı"
+      "numRoundsAria": "Tur sayısı",
+      "markTrue": "Kalan {{v}}",
+      "markYou": "Siz {{v}}",
+      "rulerCaption": "Kalan deste",
+      "avgErrorTitle": "Ort. sapma",
+      "previous": "Önceki cevaplar",
+      "previousEmpty": "Cevaplarınız burada görünür, en yenisi en üstte.",
+      "tcHigh": "True count’larınız {{pct}} fazla yüksek çıkardı (÷ {{actual}} yerine ÷ {{guess}}).",
+      "tcLow": "True count’larınız {{pct}} fazla düşük çıkardı (÷ {{actual}} yerine ÷ {{guess}}).",
+      "tcExact": "True count’larınız tam doğru olurdu."
     },
     "rail": {
       "speedDrill": {
@@ -632,7 +663,63 @@
     "shoe": "Ayakkabı",
     "discard": "Iskarta",
     "deckShoeTray": "{{n}} destelik ayakkabı · Iskarta tepsisi",
-    "betSpreadUnit": "{{mult}}× ({{amount}})"
+    "betSpreadUnit": "{{mult}}× ({{amount}})",
+    "summary": {
+      "title": "Tur tamamlandı",
+      "verdict": {
+        "perfect": "Kusursuz",
+        "excellent": "Mükemmel",
+        "strong": "Çok iyi",
+        "solid": "Sağlam",
+        "practice": "Çalışmaya devam"
+      },
+      "rightOf": "{{total}} sorudan {{n}} doğru",
+      "best": {
+        "new": "Yeni kişisel rekor — {{previous}} rekorundan {{gain}} puan yukarıda",
+        "equal": "Rekorunla aynı",
+        "below_one": "Rekoruna {{count}} puan kaldı",
+        "below_other": "Rekoruna {{count}} puan kaldı",
+        "first": "Puanlanan ilk turun. Geçilecek çıta bu.",
+        "short": "{{previous}} rekorunla karşılaştırmak için çok az cevap",
+        "shortNone": "Puanlamak için çok az cevap"
+      },
+      "earned": "Bu turda kazanılan",
+      "xpAmount": "+{{n}} XP",
+      "xpNone": "Bu turda XP yok — XP doğru cevaplar için verilir.",
+      "level": "Sv. {{n}}",
+      "levelUp": "Seviye {{n}} açıldı",
+      "toNext": "Seviye {{n}} için {{xp}} XP",
+      "topLevel": "En yüksek seviye",
+      "levelBar": "Seviye ilerlemesi",
+      "stage": {
+        "title": "Plan · {{stage}}",
+        "count": "{{total}} turdan {{n}} tanesi {{bar}} çıtasının üstünde",
+        "counted": "Bu tur sayılır",
+        "done": "Aşama tamamlandı",
+        "days": "{{total}} günün {{days}} gününde"
+      },
+      "award": {
+        "title": "Sıradaki ödül",
+        "gain": "Bu turda +{{n}}"
+      },
+      "missesTitle": "Hatalar",
+      "missesCount_one": "{{count}} hata · doğru cevap",
+      "missesCount_other": "{{count}} hata · doğru cevaplar",
+      "noMisses": "Hata yok",
+      "noMissesSub": "Bu turdaki her cevap doğruydu.",
+      "moreMisses_one": "ve {{count}} tane daha",
+      "moreMisses_other": "ve {{count}} tane daha",
+      "again": "Tekrar",
+      "back": "Ayarları değiştir",
+      "drillMisses_one": "Bu eli çalış",
+      "drillMisses_other": "Bu {{count}} eli çalış",
+      "thisRound": "Bu tur",
+      "yourBest": "Rekorun",
+      "unlocked_one": "{{count}} ödül açıldı",
+      "unlocked_other": "{{count}} ödül açıldı",
+      "moreUnlocked_one": "ve {{count}} tane daha",
+      "moreUnlocked_other": "ve {{count}} tane daha"
+    }
   },
   "casino": {
     "setup": {

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { GraduationCap, Target } from 'lucide-react'
-import { Panel, Segmented, Button, StatCard } from '../common/ui'
+import { Panel, Segmented, Button } from '../common/ui'
 import { Action } from '../../engine/rules/types'
 import {
   buildFlashSession,
@@ -12,12 +12,15 @@ import {
 } from '../../engine/strategy/flashcards'
 import { useTranslation } from 'react-i18next'
 import { preloadCardImages } from '../cards/card-suits'
-import { dealQuestionCards, type QuestionCards } from './flash-scene'
+import { dealQuestionCards, handName, type QuestionCards } from './flash-scene'
 import { chartRowFor } from './flash-teach'
 import { FlashFelt } from './FlashFelt'
 import { FlashActionPad } from './FlashActionPad'
-import { actionForKey, formatPercent } from './deviation-utils'
-import { FlashChartRow, FlashHistory, FlashMisses, FlashNext, FlashProgress, FlashSituation, FlashVerdict, ResultTrail, type AnsweredHand } from './FlashPanel'
+import { ACTION_KEY, actionForKey, formatPercent } from './deviation-utils'
+import { FlashChartRow, FlashHistory, FlashNext, FlashProgress, FlashSituation, FlashVerdict, type AnsweredHand } from './FlashPanel'
+import { formatTC } from '../strategy-chart/chart-primitives'
+import { RoundSummary, type SummaryMiss } from './RoundSummary'
+import { captureRound, type RoundCapture } from './round-capture'
 import { useAppStore } from '../../store/app-store'
 import { useSessionSave } from '../../hooks/useSessionSave'
 import { soundEngine } from '../../services/sound-engine'
@@ -126,11 +129,15 @@ export function DeviationTraining() {
     perDeviation: perDeviationRef.current,
   }))
 
-  const startSession = useCallback(() => {
+  /** What the summary compares the round against, taken as it ended. */
+  const [capture, setCapture] = useState<RoundCapture | null>(null)
+
+  /** Deals a round; `hands` makes it a focus round on those deviation names. */
+  const startSession = useCallback((hands: string[] | null = focus) => {
     begin()
     perDeviationRef.current = {}
-    const questions = focus
-      ? buildFocusFlashSession(focus, numQuestions, dealerHitsSoft17)
+    const questions = hands
+      ? buildFocusFlashSession(hands, numQuestions, dealerHitsSoft17)
       : buildFlashSession(level, numQuestions, dealerHitsSoft17)
     setSession(questions)
     setHands(questions.map(q => dealQuestionCards(q)))
@@ -142,6 +149,7 @@ export function DeviationTraining() {
     setCurrentStreak(0)
     setBestStreak(0)
     setAnswers([])
+    setCapture(null)
     setPhase('question')
   }, [focus, level, numQuestions, dealerHitsSoft17, begin])
 
@@ -189,8 +197,9 @@ export function DeviationTraining() {
     if (qIndex + 1 >= session.length) {
       soundEngine.sessionComplete()
       // Pay out at the summary, not on unmount — this is the moment the player
-      // is looking for the reward.
-      finish()
+      // is looking for the reward. The summary shows that reward itself, so
+      // the snapshot is taken (and the toast told) before the payout.
+      setCapture(captureRound(finish))
       setPhase('summary')
       return
     }
@@ -223,8 +232,6 @@ export function DeviationTraining() {
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [phase, question, handleNext, handleAnswer])
-
-  const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0
 
   // ── Settings Phase ──
   if (phase === 'settings') {
@@ -281,7 +288,7 @@ export function DeviationTraining() {
             />
           </div>
 
-          <Button size="lg" className="w-full mt-1" onClick={startSession} data-testid="start-training">
+          <Button size="lg" className="w-full mt-1" onClick={() => startSession()} data-testid="start-training">
             {focus ? t('analytics.drillTheseHands') : t('training.flash.start')}
           </Button>
           {focus && (
@@ -309,60 +316,58 @@ export function DeviationTraining() {
           return { name, correct: r.correct, total, pct: total > 0 ? Math.round((r.correct / total) * 100) : 0 }
         })
       : []
+    const misses: SummaryMiss[] = answers.flatMap((a, i) => {
+      if (a.correct) return []
+      const name = handName(a.question)
+      return [{
+        id: String(i),
+        spot: t('try.end.hand', { hand: t(name.key, name.values), dealer: a.question.dealer }),
+        tag: a.question.trueCount !== null ? `TC ${formatTC(a.question.trueCount)}` : undefined,
+        chosen: t(ACTION_KEY[a.chosen]),
+        right: t(ACTION_KEY[a.question.correctAction]),
+      }]
+    })
+    // "Drill these" exists only where the focus drill can deal them: count
+    // deviations. A missed basic-strategy hand has no drill of its own.
+    const missedDeviations = drillableDeviationNames(
+      answers.filter(a => !a.correct && a.question.isDeviation && a.question.deviationName).map(a => a.question.deviationName as string),
+    )
     return (
-      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col items-center px-4 py-6 pb-[calc(1.5rem+var(--cookie-bar,0px))]">
-        <div className="surface my-auto w-full max-w-xl p-6 md:p-8 flex flex-col items-center gap-6">
-          <h3 className="text-2xl font-extrabold text-gold-gradient" data-testid="summary-title">{t('training.common.sessionComplete')}</h3>
-          {/* The round as it went, in the same trail the question screen drew. */}
-          <div className="w-full flex flex-col items-center gap-3">
-            <div className="flex items-baseline gap-2">
-              <span className={`text-6xl font-extrabold tabular-nums leading-none ${accuracy >= 80 ? 'text-success' : accuracy >= 50 ? 'text-gold-bright' : 'text-error'}`}>
-                {formatPercent(accuracy / 100, i18n.language)}
-              </span>
-              <span className="text-sm text-content/55">{t('training.common.accuracy')}</span>
-            </div>
-            <ResultTrail total={results.length} results={results} index={null} className="w-full" />
+      <RoundSummary
+        mode="deviationFlashCards"
+        score={{ correct: totalCorrect, total: totalAttempts }}
+        capture={capture}
+        trail={results}
+        figures={[{ label: t('training.common.bestStreak'), value: bestStreak }]}
+        misses={misses}
+        aside={focus ? (
+          <div data-testid="focus-results">
+            <span className="block text-[0.6875rem] font-semibold tracking-[0.14em] uppercase text-content/50 mb-1.5">{t('training.flash.focusResults')}</span>
+            <ul className="divide-y divide-contrast/8 rounded-xl border border-contrast/10 overflow-hidden">
+              {perHand.map(h => (
+                <li key={h.name} className="flex items-center justify-between px-3 py-2 text-sm tabular-nums">
+                  <span className="font-semibold text-content">{h.name}</span>
+                  <span className="flex items-center gap-3">
+                    <span className="text-content/50">{h.correct}/{h.total}</span>
+                    <span className={`font-bold ${h.pct >= 80 ? 'text-success' : h.pct >= 50 ? 'text-gold' : 'text-error'}`}>{formatPercent(h.pct / 100, i18n.language)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <div className="grid grid-cols-2 gap-3 w-full text-center">
-            <StatCard label={t('training.common.correct')} value={`${totalCorrect}/${totalAttempts}`} />
-            <StatCard label={t('training.common.bestStreak')} value={bestStreak} accent />
-          </div>
-          {/* Below the way on, not above it: a long round's list pushed the
-              button under the XP and award toasts that arrive with the
-              summary, on a laptop as on a phone. */}
-          <FlashMisses answers={answers} className="w-full order-last" />
-          {focus && (
-            <div className="w-full" data-testid="focus-results">
-              <span className="block text-xs font-semibold tracking-widest uppercase text-content/40 mb-2">{t('training.flash.focusResults')}</span>
-              <ul className="divide-y divide-contrast/10 rounded-xl border border-contrast/10 overflow-hidden">
-                {perHand.map(h => (
-                  <li key={h.name} className="flex items-center justify-between px-4 py-2.5 text-sm tabular-nums">
-                    <span className="font-semibold text-content">{h.name}</span>
-                    <span className="flex items-center gap-3">
-                      <span className="text-content/50">{h.correct}/{h.total}</span>
-                      <span className={`font-bold ${h.pct >= 80 ? 'text-success' : h.pct >= 50 ? 'text-gold' : 'text-error'}`}>{h.pct}%</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {focus ? (
-            <div className="w-full flex flex-col gap-2">
-              <Button size="lg" className="w-full" onClick={startSession} data-testid="focus-again">
-                {t('training.flash.focusAgain')}
-              </Button>
-              <Button variant="ghost" className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
-                {t('training.common.backToSettings')}
-              </Button>
-            </div>
-          ) : (
-            <Button size="lg" className="w-full" onClick={() => setPhase('settings')} data-testid="back-to-settings">
-              {t('training.common.backToSettings')}
-            </Button>
-          )}
-        </div>
-      </div>
+        ) : undefined}
+        drill={missedDeviations.length > 0 ? {
+          label: t('training.summary.drillMisses', { count: missedDeviations.length }),
+          onDrill: () => {
+            setFocus(missedDeviations)
+            startSession(missedDeviations)
+          },
+        } : null}
+        onAgain={() => startSession()}
+        againLabel={focus ? t('training.flash.focusAgain') : undefined}
+        againTestId={focus ? 'focus-again' : undefined}
+        onBack={() => setPhase('settings')}
+      />
     )
   }
 

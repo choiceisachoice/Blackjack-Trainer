@@ -47,18 +47,23 @@ export function XpToast() {
   const { t } = useTranslation()
   const award = useLevelStore(s => s.lastAward)
   const levelUpOpen = useLevelStore(s => s.showLevelUp)
+  // A screen is showing this award in place (the round summary): no toast,
+  // and no timer either — the award must still be there for that screen.
+  // Once that screen is gone, the award it showed is not announced again.
+  const seenId = useLevelStore(s => s.awardSeenId)
+  const inPlace = useLevelStore(s => s.awardInPlace) || (award != null && award.id === seenId)
   const dismiss = useLevelStore(s => s.dismissXpAward)
   const id = award?.id
   // One line when one line says everything; otherwise the total and its parts.
   const single = !award || award.labelKey != null
 
   useEffect(() => {
-    if (id == null || levelUpOpen) return
+    if (id == null || levelUpOpen || inPlace) return
     const timer = setTimeout(dismiss, single ? DISMISS_DELAY : DISMISS_DELAY_LIST)
     return () => clearTimeout(timer)
-  }, [id, levelUpOpen, dismiss, single])
+  }, [id, levelUpOpen, inPlace, dismiss, single])
 
-  if (!award || levelUpOpen) return null
+  if (!award || levelUpOpen || inPlace) return null
 
   // `drop-in`, not `rise-in`: the layer hangs from the top of the screen now
   // (`ToastLayer`), so the toast arrives from above.

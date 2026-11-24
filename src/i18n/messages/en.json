@@ -375,7 +375,17 @@
     "personalLaterIsPro": "Further along your plan, “{{stage}}” is part of Pro.",
     "trialLead_one": "Your hand at the table: {{pct}}% of your decisions followed basic strategy.",
     "trialLead_other": "Your {{count}} hands at the table: {{pct}}% of your decisions followed basic strategy.",
-    "trialSupport": "With Pro the table stays open: as many hands as you like, with the count and your own rules."
+    "trialSupport": "With Pro the table stays open: as many hands as you like, with the count and your own rules.",
+    "addsHeading": "What Pro adds",
+    "addTableTitle": "The full casino table",
+    "addTableBody": "Bots, splits and payouts, with the count and your own rules.",
+    "addDeviationsBody": "Illustrious 18 and Fab 4: when the count overrides basic strategy.",
+    "addDrillsTitle": "Bet Spread & Deck Estimation",
+    "addDrillsBody": "Size your bet to the true count and judge the decks left in the shoe.",
+    "compareAll": "Compare Free and Pro",
+    "included": "Included",
+    "notIncluded": "Not included",
+    "addDeviationsTitle": "Deviations"
   },
   "contact": {
     "title": "Contact",
@@ -398,7 +408,6 @@
       "streak": "Streak",
       "bestStreak": "Best Streak",
       "accuracy": "Accuracy",
-      "correct": "Correct",
       "tryAgain": "Try Again",
       "backToMenu": "Back to Menu",
       "backToSettings": "Back to Settings",
@@ -410,7 +419,6 @@
       "hide": "Hide",
       "correctBang": "Correct!",
       "wrongBang": "Wrong!",
-      "sessionComplete": "Session Complete!",
       "questionProgress": "Question {{n}}/{{total}}",
       "correctOf": "Correct: {{n}}/{{total}} ({{pct}}%)",
       "streakOf": "Streak: {{n}}"
@@ -555,7 +563,25 @@
       "tcYouSaid": "TC: You said {{said}}, correct was <h>{{right}}</h> (RC {{rc}} / {{decks}} decks)",
       "betExplain": "TC {{tc}} → {{mult}}× × ${{min}} min = <h>${{bet}}</h>",
       "youChoseBet": " — you chose ${{bet}}",
-      "spreadOf": "Bet Spread (× ${{min}})"
+      "spreadOf": "Bet Spread (× ${{min}})",
+      "yourBet": "Your bet",
+      "rightBet": "Right bet",
+      "placeBet": "Bet {{amount}}",
+      "placeEmpty": "Place chips",
+      "chipsBelow": "Bet with the chips",
+      "undo": "Take back the last chip",
+      "rampHint": "Once you bet, the ramp fills in and lights the right step.",
+      "keysHint": "Keys: 1–5 chips · Backspace takes one back · Enter bets",
+      "historySpot": "TC {{tc}} · {{min}} table",
+      "spotRc": "RC {{rc}} · {{decks}} decks",
+      "tcRight": "True count {{tc}} — right",
+      "oneUnit": "1 unit",
+      "previous": "Previous bets",
+      "reason_one": "{{tc}} → {{step}}: {{count}} unit × {{min}} = <h>{{bet}}</h>",
+      "reasonPlain_one": "{{tc}}: {{count}} unit × {{min}} = <h>{{bet}}</h>",
+      "reason_other": "{{tc}} → {{step}}: {{count}} units × {{min}} = <h>{{bet}}</h>",
+      "reasonPlain_other": "{{tc}}: {{count}} units × {{min}} = <h>{{bet}}</h>",
+      "tcWorked": "You said {{said}} · RC {{rc}} ÷ {{decks}} decks = <h>{{right}}</h>"
     },
     "deck": {
       "title": "Deck Estimation",
@@ -569,10 +595,6 @@
       "normal": "Normal",
       "quickFire": "Quick Fire",
       "quickFireHint": "{{rounds}} rounds, {{secs}}s each",
-      "quickFireComplete": "Quick Fire Complete!",
-      "correctLabel": "Correct:",
-      "avgErrorLabel": "Avg Error:",
-      "bestStreakLabel": "Best Streak:",
       "avgErrorValue": "±{{v}} decks",
       "avgErrorInline": "Avg Error: ±{{v}} decks",
       "round": "Round {{n}}/{{total}}",
@@ -583,7 +605,16 @@
       "remaining": "~{{n}} decks remaining",
       "youSaid": " (you said {{v}})",
       "offBy": "Off by {{v}} decks",
-      "numRoundsAria": "Number of rounds"
+      "numRoundsAria": "Number of rounds",
+      "markTrue": "Actual {{v}}",
+      "markYou": "You {{v}}",
+      "rulerCaption": "Decks left",
+      "avgErrorTitle": "Avg Error",
+      "previous": "Previous answers",
+      "previousEmpty": "Your answers appear here, newest first.",
+      "tcHigh": "Your true counts would read {{pct}} too high (÷ {{guess}} instead of ÷ {{actual}}).",
+      "tcLow": "Your true counts would read {{pct}} too low (÷ {{guess}} instead of ÷ {{actual}}).",
+      "tcExact": "Your true counts would be spot on."
     },
     "rail": {
       "speedDrill": {
@@ -632,7 +663,63 @@
     "shoe": "Shoe",
     "discard": "Discard",
     "deckShoeTray": "{{n}}-Deck Shoe · Discard Tray",
-    "betSpreadUnit": "{{mult}}× ({{amount}})"
+    "betSpreadUnit": "{{mult}}× ({{amount}})",
+    "summary": {
+      "title": "Round complete",
+      "verdict": {
+        "perfect": "Perfect",
+        "excellent": "Excellent",
+        "strong": "Strong",
+        "solid": "Solid",
+        "practice": "Keep practising"
+      },
+      "rightOf": "{{n}} of {{total}} right",
+      "best": {
+        "new": "New personal best — up {{gain}} points from {{previous}}",
+        "equal": "Level with your best",
+        "below_one": "{{count}} point short of your best",
+        "below_other": "{{count}} points short of your best",
+        "first": "Your first scored round. This is the mark to beat.",
+        "short": "Too few answers to set against your best of {{previous}}",
+        "shortNone": "Too few answers to count as a score"
+      },
+      "earned": "Earned this round",
+      "xpAmount": "+{{n}} XP",
+      "xpNone": "No XP this round — XP is paid for right answers.",
+      "level": "Lv {{n}}",
+      "levelUp": "Level {{n}} reached",
+      "toNext": "{{xp}} XP to level {{n}}",
+      "topLevel": "Top level",
+      "levelBar": "Level progress",
+      "stage": {
+        "title": "Plan · {{stage}}",
+        "count": "{{n}} of {{total}} rounds above the {{bar}} mark",
+        "counted": "This round counts",
+        "done": "Stage complete",
+        "days": "on {{days}} of {{total}} days"
+      },
+      "award": {
+        "title": "Next award",
+        "gain": "+{{n}} this round"
+      },
+      "missesTitle": "Misses",
+      "missesCount_one": "{{count}} miss · the right answer",
+      "missesCount_other": "{{count}} misses · the right answers",
+      "noMisses": "No misses",
+      "noMissesSub": "Every answer this round was right.",
+      "moreMisses_one": "and {{count}} more",
+      "moreMisses_other": "and {{count}} more",
+      "again": "Again",
+      "back": "Change settings",
+      "drillMisses_one": "Drill this hand",
+      "drillMisses_other": "Drill these {{count}} hands",
+      "thisRound": "This round",
+      "yourBest": "Your best",
+      "unlocked_one": "{{count}} award unlocked",
+      "unlocked_other": "{{count}} awards unlocked",
+      "moreUnlocked_one": "and {{count}} more",
+      "moreUnlocked_other": "and {{count}} more"
+    }
   },
   "casino": {
     "setup": {

@@ -157,6 +157,49 @@ describe('DeviationTraining (Flashcards)', () => {
     expect(totalRecorded).toBe(4)
   })
 
+  it('ends on the round summary: misses with the right play, Again, and "Drill these" for missed deviations', () => {
+    render(<DeviationTraining />)
+    fireEvent.click(within(screen.getByRole('group', { name: 'Level' })).getByText('Deviations'))
+    fireEvent.click(within(screen.getByRole('group', { name: 'Number of questions' })).getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+
+    let wrong = 0
+    for (let i = 0; i < 10; i++) {
+      fireEvent.click(screen.getByTestId('action-stand'))
+      if (screen.getByTestId('feedback-result').textContent === 'Wrong!') wrong++
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+
+    expect(screen.getByTestId('round-summary')).toBeInTheDocument()
+    expect(screen.getByTestId('summary-score')).toHaveTextContent(`${(10 - wrong) * 10}%`)
+    if (wrong === 0) {
+      expect(screen.getByTestId('summary-no-misses')).toBeInTheDocument()
+      expect(screen.queryByTestId('drill-misses')).toBeNull()
+    } else {
+      // Every miss of a deviations round is a count deviation, which the focus drill can deal.
+      expect(screen.getAllByTestId('summary-miss').length).toBe(Math.min(wrong, 6))
+      fireEvent.click(screen.getByTestId('drill-misses'))
+      expect(screen.getByTestId('question-progress')).toHaveTextContent('Question 1/10')
+      return
+    }
+    fireEvent.click(screen.getByTestId('summary-again'))
+    expect(screen.getByTestId('question-progress')).toHaveTextContent('Question 1/10')
+  })
+
+  it('offers no "Drill these" for basic-strategy misses — there is no drill for them', () => {
+    render(<DeviationTraining />)
+    fireEvent.click(within(screen.getByRole('group', { name: 'Number of questions' })).getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+    for (let i = 0; i < 10; i++) {
+      const right = correctForShownHand()
+      const wrongAction = right === Action.Hit ? 'action-stand' : 'action-hit'
+      fireEvent.click(screen.getByTestId(wrongAction))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+    expect(screen.getAllByTestId('summary-miss').length).toBe(6)
+    expect(screen.queryByTestId('drill-misses')).toBeNull()
+  })
+
   describe('focus drill from Analytics', () => {
     const FOCUS = ['16 vs 10', 'Insurance']
 

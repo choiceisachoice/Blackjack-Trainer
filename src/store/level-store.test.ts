@@ -375,3 +375,27 @@ describe('useLevelStore', () => {
     })
   })
 })
+
+describe('useLevelStore — an award shown in place', () => {
+  beforeEach(() => {
+    useLevelStore.setState({ lastAward: null, awardInPlace: false, awardSeenId: 0 })
+  })
+
+  it('holds the toast back until released, and remembers the award as seen', () => {
+    const store = useLevelStore.getState()
+    store.holdAwardInPlace()
+    expect(useLevelStore.getState().awardInPlace).toBe(true)
+    useLevelStore.setState({ lastAward: { id: 12, amount: 30, parts: [{ labelKey: 'xp.part.correct', amount: 30 }], at: Date.now() } })
+    store.releaseAwardInPlace()
+    expect(useLevelStore.getState().awardInPlace).toBe(false)
+    expect(useLevelStore.getState().awardSeenId).toBe(12)
+    // The award itself stays: a screen mounting again (StrictMode) still finds it.
+    expect(useLevelStore.getState().lastAward?.id).toBe(12)
+  })
+
+  it('a release without a hold changes nothing', () => {
+    useLevelStore.setState({ lastAward: { id: 5, amount: 10, parts: [], at: 0 } })
+    useLevelStore.getState().releaseAwardInPlace()
+    expect(useLevelStore.getState().awardSeenId).toBe(0)
+  })
+})

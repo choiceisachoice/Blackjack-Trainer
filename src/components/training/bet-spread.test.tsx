@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { BetSpread } from './BetSpread'
+import { useLevelStore } from '../../store/level-store'
 import { getMultiplier, getCorrectBet, buildBracketSequence } from './bet-spread-math'
 
 /** Expected 1–16 bet multiplier for a given TC (mirrors the component). */
@@ -17,6 +18,23 @@ function expectedMultiplier(tc: number): number {
 /** Reads the numeric value out of a `$123` / `+2` style testid element. */
 function num(testId: string): number {
   return parseFloat((screen.getByTestId(testId).textContent ?? '').replace(/[$+]/g, ''))
+}
+
+/**
+ * Puts a bet down as a player would at the table: the chips that make it,
+ * largest first, then the bet button. Every bet the drill asks for is a sum
+ * of the rack's chips.
+ */
+function placeBet(amount: number) {
+  let left = amount
+  for (const chip of [1000, 500, 100, 25, 5]) {
+    while (left >= chip) {
+      fireEvent.click(screen.getByTestId(`chip-${chip}`))
+      left -= chip
+    }
+  }
+  expect(left).toBe(0)
+  fireEvent.click(screen.getByTestId('place-bet'))
 }
 
 describe('BetSpread — pure helpers', () => {
@@ -66,7 +84,7 @@ describe('BetSpread — UI', () => {
     expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 
-  it('"Bet from TC" shows the True Count, table minimum and a full bet ramp', () => {
+  it('"Bet from TC" shows the True Count, table minimum and a rack that can build every ramp bet', () => {
     render(<BetSpread />)
     fireEvent.click(screen.getByText('Bet from TC'))
     fireEvent.click(screen.getByTestId('start-training'))
@@ -76,9 +94,13 @@ describe('BetSpread — UI', () => {
     expect(screen.queryByTestId('running-count')).not.toBeInTheDocument()
 
     const tableMin = num('table-min')
-    // All five ramp options are present and scale by the table minimum
+    // All five ramp bets can be put down exactly with the rack's chips.
+    const chips = [1000, 500, 100, 25, 5]
+    for (const c of chips) expect(screen.getByTestId(`chip-${c}`)).toBeInTheDocument()
     for (const m of [1, 2, 4, 8, 16]) {
-      expect(screen.getByTestId(`bet-${m * tableMin}`)).toBeInTheDocument()
+      let left = m * tableMin
+      for (const c of chips) left %= c
+      expect(left).toBe(0)
     }
   })
 
@@ -101,7 +123,7 @@ describe('BetSpread — UI', () => {
     const tableMin = num('table-min')
     const correctBet = expectedMultiplier(tc) * tableMin
 
-    fireEvent.click(screen.getByTestId(`bet-${correctBet}`))
+    placeBet(correctBet)
     expect(screen.getByTestId('feedback-result')).toHaveTextContent('Correct!')
   })
 
@@ -116,7 +138,7 @@ describe('BetSpread — UI', () => {
     // Choose a definitely-different option
     const wrongBet = correctBet === tableMin * 16 ? tableMin * 1 : tableMin * 16
 
-    fireEvent.click(screen.getByTestId(`bet-${wrongBet}`))
+    placeBet(wrongBet)
     expect(screen.getByTestId('feedback-result')).toHaveTextContent('Wrong!')
     expect(screen.getByTestId('feedback-explanation')).toBeInTheDocument()
   })
@@ -130,12 +152,73 @@ describe('BetSpread — UI', () => {
     for (let i = 0; i < 10; i++) {
       expect(screen.getByTestId('question-progress')).toHaveTextContent(`Question ${i + 1}/10`)
       const tableMin = num('table-min')
-      fireEvent.click(screen.getByTestId(`bet-${tableMin}`)) // 1× option always exists
+      placeBet(tableMin) // one unit can always be put down
       fireEvent.click(screen.getByTestId('next-question'))
     }
 
+    // The shared round summary since 24 Nov 2026. This used to look for the
+    // old stat boxes (`summary-accuracy`); the accuracy is the summary's score now.
+    expect(screen.getByTestId('round-summary')).toBeInTheDocument()
     expect(screen.getByTestId('summary-title')).toBeInTheDocument()
-    expect(screen.getByTestId('summary-accuracy')).toBeInTheDocument()
+    expect(screen.getByTestId('summary-score')).toHaveTextContent('%')
+  })
+
+  it('ends on the round summary: wrong bets with the right ones, XP shown in place, Again starts clean', () => {
+    render(<BetSpread />)
+    fireEvent.click(screen.getByText('Bet from TC'))
+    fireEvent.click(screen.getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+
+    // Wrong on the first three, right on the rest.
+    const wrongs: { tc: number; tableMin: number; bet: number; right: number }[] = []
+    for (let i = 0; i < 10; i++) {
+      const tc = num('true-count')
+      const tableMin = num('table-min')
+      const right = expectedMultiplier(tc) * tableMin
+      const bet = i < 3 ? (right === tableMin * 16 ? tableMin : tableMin * 16) : right
+      if (i < 3) wrongs.push({ tc, tableMin, bet, right })
+      placeBet(bet)
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+
+    expect(screen.getByTestId('summary-score')).toHaveTextContent('70%')
+    const rows = screen.getAllByTestId('summary-miss')
+    expect(rows).toHaveLength(3)
+    const usd = (n: number) => `$${n.toLocaleString('en')}`
+    wrongs.forEach((w, i) => {
+      // The spot as the panel's "previous bets" words it, then bet → right bet.
+      expect(rows[i]).toHaveTextContent(`TC ${w.tc >= 0 ? '+' : ''}${w.tc} · ${usd(w.tableMin)} table`)
+      expect(within(rows[i]).getByText(usd(w.bet)).tagName).toBe('S')
+      expect(rows[i]).toHaveTextContent(usd(w.right))
+    })
+    // Neither mode can deal only its misses.
+    expect(screen.queryByTestId('drill-misses')).toBeNull()
+    // The summary shows the XP itself, so the toast is held back.
+    expect(useLevelStore.getState().awardInPlace).toBe(true)
+    expect(screen.getByTestId('summary-xp')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('summary-again'))
+    expect(screen.getByTestId('question-progress')).toHaveTextContent('Question 1/10')
+    expect(screen.queryByTestId('round-summary')).toBeNull()
+    // Nothing of the last round is carried over: finish it clean.
+    for (let i = 0; i < 10; i++) {
+      placeBet(expectedMultiplier(num('true-count')) * num('table-min'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+    expect(screen.getByTestId('summary-score')).toHaveTextContent('100%')
+    expect(screen.getByTestId('summary-no-misses')).toBeInTheDocument()
+  })
+
+  it('goes back to the settings from the summary', () => {
+    render(<BetSpread />)
+    fireEvent.click(screen.getByText('10'))
+    fireEvent.click(screen.getByTestId('start-training'))
+    for (let i = 0; i < 10; i++) {
+      placeBet(num('table-min'))
+      fireEvent.click(screen.getByTestId('next-question'))
+    }
+    fireEvent.click(screen.getByTestId('back-to-settings'))
+    expect(screen.getByTestId('start-training')).toBeInTheDocument()
   })
 })
 
@@ -152,7 +235,7 @@ describe('BetSpread — marks a running drill for the sideways-phone layout', ()
     fireEvent.click(screen.getByTestId('start-training'))
     expect(container.querySelector('[data-drill-run]')).not.toBeNull()
 
-    fireEvent.click(container.querySelector('button[data-testid^="bet-"]')!)
+    placeBet(num('table-min'))
     expect(screen.getByTestId('next-question')).toBeInTheDocument()
     expect(container.querySelector('[data-drill-run]')).not.toBeNull()
   })
@@ -179,5 +262,71 @@ describe('BetSpread — the setup screen can always reach its start button', () 
     expect(scroller.className).not.toMatch(/\bjustify-center\b/)
     expect(scroller.contains(screen.getByTestId('start-training'))).toBe(true)
     expect(scroller.contains(screen.getByText('Bet Spread Reference'))).toBe(true)
+  })
+})
+
+/**
+ * The bet is built in chips, as at the casino table, and can be corrected
+ * before it is placed; the keyboard reaches all of it.
+ */
+describe('BetSpread — building the bet', () => {
+  function start() {
+    render(<BetSpread />)
+    fireEvent.click(screen.getByText('Bet from TC'))
+    fireEvent.click(screen.getByTestId('start-training'))
+  }
+
+  it('cannot be placed before a chip is down', () => {
+    start()
+    expect(screen.getByTestId('place-bet')).toBeDisabled()
+    fireEvent.click(screen.getByTestId('chip-25'))
+    expect(screen.getByTestId('place-bet')).toBeEnabled()
+    expect(screen.getByTestId('place-bet')).toHaveTextContent('$25')
+  })
+
+  it('takes the last chip back, and clears all of them', () => {
+    start()
+    fireEvent.click(screen.getByTestId('chip-100'))
+    fireEvent.click(screen.getByTestId('chip-25'))
+    expect(screen.getByTestId('place-bet')).toHaveTextContent('$125')
+    fireEvent.click(screen.getByTestId('undo-chip'))
+    expect(screen.getByTestId('place-bet')).toHaveTextContent('$100')
+    fireEvent.click(screen.getByTestId('clear-bet'))
+    expect(screen.getByTestId('place-bet')).toBeDisabled()
+  })
+
+  it('answers from the keyboard: 1–5 chips, Backspace undoes, Enter bets and goes on', () => {
+    start()
+    const tc = num('true-count')
+    const tableMin = num('table-min')
+    const correctBet = expectedMultiplier(tc) * tableMin
+    // A wrong chip first, taken back with Backspace.
+    fireEvent.keyDown(window, { key: '5' })
+    fireEvent.keyDown(window, { key: 'Backspace' })
+    let left = correctBet
+    const keys: Record<number, string> = { 1000: '5', 500: '4', 100: '3', 25: '2', 5: '1' }
+    for (const chip of [1000, 500, 100, 25, 5]) {
+      while (left >= chip) { fireEvent.keyDown(window, { key: keys[chip] }); left -= chip }
+    }
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(screen.getByTestId('feedback-result')).toHaveTextContent('Correct!')
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(screen.getByTestId('question-progress')).toHaveTextContent('Question 2/')
+  })
+
+  it('a wrong bet puts the right one beside it and lights the right step of the ramp', () => {
+    start()
+    const tc = num('true-count')
+    const tableMin = num('table-min')
+    const correctBet = expectedMultiplier(tc) * tableMin
+    const wrongBet = correctBet === tableMin * 16 ? tableMin : tableMin * 16
+    placeBet(wrongBet)
+    expect(screen.getByTestId('your-bet')).toHaveTextContent(`$${wrongBet.toLocaleString('en-US')}`)
+    expect(screen.getByTestId('right-bet')).toHaveTextContent(`$${correctBet.toLocaleString('en-US')}`)
+    const ramp = screen.getByTestId('bet-ramp')
+    expect(ramp.getAttribute('data-revealed')).toBe('true')
+    const lit = ramp.querySelector('[data-lit="true"]')
+    expect(lit?.textContent).toContain(`${expectedMultiplier(tc)}×`)
+    expect(ramp.querySelector('[data-chosen="true"]')).not.toBeNull()
   })
 })
