@@ -1,5 +1,6 @@
 import type { TrackedSession } from '../../store/bankroll-tracker-store'
 import { requireSupabase, isSupabaseConfigured } from './client'
+import { getLocalOwner } from '../storage/local-owner'
 
 /** A row of the `bankroll_sessions` table (subset we read/write). */
 interface BankrollRow {
@@ -36,6 +37,19 @@ export function mergeById(local: TrackedSession[], cloud: TrackedSession[]): Tra
 async function currentUserId(): Promise<string | null> {
   const { data } = await requireSupabase().auth.getSession()
   return data.session?.user.id ?? null
+}
+
+/**
+ * The signed-in user, but only if this device's tracker is theirs — the test
+ * `runSessionPush` applies. The upsert files a row under the *session's* user
+ * id, so a tab still holding the previous account's log (signed out in
+ * another tab, someone else signed in) would put real-money figures into a
+ * stranger's account. Before the sign-in merge claims the device the push is
+ * skipped; the merge sends the local log itself.
+ */
+async function owningUserId(): Promise<string | null> {
+  const userId = await currentUserId()
+  return userId && getLocalOwner() === userId ? userId : null
 }
 
 /** Map a tracked session to a DB row for the given user. */
@@ -89,7 +103,7 @@ export function pushSession(session: TrackedSession): void {
   if (!isSupabaseConfigured) return
   void (async () => {
     try {
-      const userId = await currentUserId()
+      const userId = await owningUserId()
       if (userId) await upsertCloudSessions(userId, [session])
     } catch (e) {
       console.error('bankroll session cloud push failed', e)
@@ -102,7 +116,7 @@ export function removeCloudSession(id: string): void {
   if (!isSupabaseConfigured) return
   void (async () => {
     try {
-      const userId = await currentUserId()
+      const userId = await owningUserId()
       if (!userId) return
       const { error } = await requireSupabase()
         .from('bankroll_sessions')

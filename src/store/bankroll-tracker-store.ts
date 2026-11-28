@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useAchievementStore } from './achievement-store'
 import { pushSession, removeCloudSession } from '../services/supabase/bankroll-sync'
+import { pushProfileScalars } from '../services/supabase/profiles-sync'
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -57,12 +58,20 @@ const EMPTY_RECORDS: PersonalRecords = {
 interface BankrollTrackerStore {
   sessions: TrackedSession[]
   startingBankroll: number
+  /**
+   * When the starting bankroll was last set by hand (ms; 0 = never, or before
+   * this was tracked). It travels with the figure in `profiles.settings` and
+   * decides which side wins the merge — see `mergeStartingBankroll`.
+   */
+  startingBankrollUpdatedAt: number
 
   // Actions
   addSession(session: Omit<TrackedSession, 'id' | 'createdAt'>): void
   editSession(id: string, updates: Partial<Omit<TrackedSession, 'id' | 'createdAt'>>): void
   deleteSession(id: string): void
   setStartingBankroll(amount: number): void
+  /** Put the account's starting bankroll on this device (from the cloud merge; sends nothing). */
+  hydrateStartingBankroll(amount: number, updatedAt: number): void
   /** Replace all sessions (used when hydrating the merged set from the cloud). */
   hydrate(sessions: TrackedSession[]): void
 
@@ -111,6 +120,7 @@ export const useBankrollTrackerStore = create<BankrollTrackerStore>()(
     (set, get) => ({
       sessions: [],
       startingBankroll: 0,
+      startingBankrollUpdatedAt: 0,
 
       addSession(session) {
         const newSession: TrackedSession = {
@@ -143,7 +153,14 @@ export const useBankrollTrackerStore = create<BankrollTrackerStore>()(
       },
 
       setStartingBankroll(amount) {
-        set({ startingBankroll: amount })
+        // Kept only here, it was wiped by every sign-out while the sessions
+        // came back from the cloud — the bankroll then read as 0 + results.
+        set({ startingBankroll: amount, startingBankrollUpdatedAt: Date.now() })
+        pushProfileScalars()
+      },
+
+      hydrateStartingBankroll(amount, updatedAt) {
+        set({ startingBankroll: amount, startingBankrollUpdatedAt: updatedAt })
       },
 
       hydrate(sessions) {

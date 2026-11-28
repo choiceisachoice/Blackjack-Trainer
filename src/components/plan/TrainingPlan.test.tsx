@@ -12,7 +12,7 @@ import { getPlacement, getReadStages, hasSkippedPlacement, CURRICULUM, type Stag
 import { getProfile, commitmentFor } from '../../services/learner-profile'
 import { readPlanState, writePlanState, type PlanState } from '../../services/plan-state'
 import { isRecommendationDone } from '../../services/recommendation'
-import { shiftDayKey, weekStartKey } from '../../services/date-utils'
+import { dayKey, dayKeyOffset, parseDayKey, shiftDayKey, weekStartKey } from '../../services/date-utils'
 import type { TrainingMode, TrainingSessionResult } from '../../services/stats-types'
 
 // Pro state is the one input the plan cannot derive from sessions, so it is the
@@ -23,12 +23,20 @@ vi.mock('../../store/entitlement-store', async importOriginal => ({
   useIsPro: () => proState.isPro,
 }))
 
-/** A session `daysAgo` before now — the plan reads the real clock. */
+/**
+ * A session `daysAgo` local days before today — the plan reads the real clock.
+ *
+ * At noon of that day, not `now − n × 24 h`: across a DST change a day is 23
+ * or 25 hours long, and at 23:xx two of those landed on the same local day,
+ * which failed two tests one night a year. Today's session is now, so it is
+ * never in the future.
+ */
+function agedTimestamp(daysAgo: number): string {
+  return daysAgo === 0 ? new Date().toISOString() : parseDayKey(dayKeyOffset(-daysAgo)).toISOString()
+}
+
 function agedSession(daysAgo: number, mode: TrainingMode, accuracy: number): TrainingSessionResult {
-  return {
-    ...session(mode, accuracy),
-    timestamp: new Date(Date.now() - daysAgo * 86_400_000).toISOString(),
-  }
+  return { ...session(mode, accuracy), timestamp: agedTimestamp(daysAgo) }
 }
 
 const manyAged = (n: number, daysAgo: number, mode: TrainingMode, accuracy: number) =>
@@ -1584,5 +1592,27 @@ describe('TrainingPlan', () => {
 
     fireEvent.click(screen.getByTestId('plan-retake'))
     expect(screen.getByTestId('starting-point')).toBeInTheDocument()
+  })
+})
+
+describe('agedSession across a DST change', () => {
+  // 30 days before 24 Nov 2026 23:30 in Zurich is the night clocks went back
+  // (25 Oct). With 24-hour steps, 30 and 31 days ago both fell on 25 Oct.
+  const tz = process.env.TZ
+  beforeEach(() => {
+    process.env.TZ = 'Europe/Zurich'
+    vi.setSystemTime(new Date('2026-11-24T23:30:00+01:00'))
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    if (tz === undefined) delete process.env.TZ
+    else process.env.TZ = tz
+  })
+
+  it('puts every day back on its own local day', () => {
+    expect(dayKey(new Date())).toBe('2026-11-24')
+    for (let n = 0; n <= 60; n++) {
+      expect(dayKey(agedTimestamp(n)), `${n} days ago`).toBe(dayKeyOffset(-n))
+    }
   })
 })

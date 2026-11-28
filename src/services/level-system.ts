@@ -321,6 +321,10 @@ export class LevelSystem {
    * @returns Info about whether a level-up occurred.
    */
   addXP(amount: number): AddXPResult {
+    // Read-modify-write against storage, not against the cached number: a
+    // second tab adds XP to the same key, and adding to a copy loaded when this
+    // tab opened wrote the other tab's award away.
+    this.syncFromStorage()
     const oldLevel = this.getLevel()
     this.totalXP += amount
     this.save()
@@ -345,8 +349,11 @@ export class LevelSystem {
 
   /** Clear all level data. */
   resetAll(): void {
-    localStorage.removeItem(STORAGE_KEY)
+    try {
+      localStorage.removeItem(STORAGE_KEY)
+    } catch { /* storage unavailable — nothing persisted */ }
     this.totalXP = 0
+    this.seen = null
   }
 
   /** Reload XP from localStorage. */
@@ -356,13 +363,46 @@ export class LevelSystem {
 
   // ── Private ─────────────────────────────────────────────
 
+  /**
+   * The stored value as this instance last read or wrote it. Lets `addXP` tell
+   * "another tab wrote since" (adopt theirs) from "our own write failed" (keep
+   * ours) — re-reading blindly would drop XP a full quota kept from landing.
+   */
+  private seen: string | null = null
+
+  /**
+   * Never throws. A full quota or blocked storage used to throw out of
+   * `addXP`, which runs before the session is saved: the session, its
+   * challenge progress and its cloud push were lost over a cached number.
+   * The XP still counts for this run, and the next sign-in merge sends it.
+   */
   private save(): void {
-    localStorage.setItem(STORAGE_KEY, String(this.totalXP))
+    const value = String(this.totalXP)
+    try {
+      localStorage.setItem(STORAGE_KEY, value)
+      this.seen = value
+    } catch (e) {
+      console.error('level XP could not be persisted; it still counts for this run', e)
+    }
+  }
+
+  private readStored(): string | null {
+    try {
+      return localStorage.getItem(STORAGE_KEY)
+    } catch {
+      return this.seen
+    }
   }
 
   private load(): void {
-    const saved = localStorage.getItem(STORAGE_KEY)
+    const saved = this.readStored()
+    this.seen = saved
     this.totalXP = saved ? (parseInt(saved, 10) || 0) : 0
+  }
+
+  /** Adopt the stored total if someone else (another tab, a wipe) changed it. */
+  private syncFromStorage(): void {
+    if (this.readStored() !== this.seen) this.load()
   }
 }
 

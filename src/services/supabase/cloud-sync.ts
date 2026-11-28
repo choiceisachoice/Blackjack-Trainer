@@ -1,5 +1,6 @@
 import { localStorageService } from '../storage/storage-service'
 import { clearLocalAppData, getLocalOwner, setLocalOwner } from '../storage/local-reset'
+import { LOCAL_OWNER_KEY } from '../storage/local-owner'
 import { SupabaseStorageService } from './supabase-storage'
 import { useAuthStore } from '../../store/auth-store'
 import { syncAchievementsOnSignIn } from './achievements-sync'
@@ -148,6 +149,7 @@ export async function signOutAndClearLocal(
   syncRun++
   signInSync = null
   clearLocalAppData()
+  knownOwner = null
   resetProfileSync()
   useCloudSyncStore.getState().set('idle')
 
@@ -326,6 +328,68 @@ export function installReconnectSync(): () => void {
 installReconnectSync()
 
 /**
+ * Whose data this tab's memory holds, as far as this tab knows: read when the
+ * page loaded, moved only by this tab's own claim and wipe.
+ */
+let knownOwner: string | null = getLocalOwner()
+
+/**
+ * Set once another tab has changed whose data this device holds. From then on
+ * this tab's in-memory engines and stores (level XP, achievements, the
+ * bankroll log) describe nobody's storage, and nothing may be merged from
+ * them — only a reload clears them.
+ */
+let memoryIsStale = false
+
+/** The reload, as an object so tests can stand in for it (jsdom cannot navigate). */
+export const tabReload = { reload: (): void => { window.location.reload() } }
+
+/**
+ * Reload this tab when another tab changes whose data the device holds.
+ *
+ * Signing out in tab A wipes storage and reloads A's engines; tab B kept the
+ * previous account's XP, achievements and bankroll log in memory. When the
+ * next account signed in, B received SIGNED_IN, found storage ownerless — so
+ * not foreign — and merged its memory into that account: the XP by max (made
+ * permanent by the database trigger) and the real-money log by upsert.
+ *
+ * Two ways to learn of it: a `storage` event on the owner key (fired only in
+ * the *other* tabs, which is exactly "a change this tab did not start"; a key
+ * of null is `localStorage.clear()`), and a page restored from the back-forward
+ * cache, which missed every event while it was frozen. A reload is the one
+ * thing that resets every singleton at once.
+ *
+ * Returns the function that removes the listeners (for tests).
+ */
+export function installForeignOwnerReload(): () => void {
+  if (!isSupabaseConfigured || typeof window === 'undefined') return () => {}
+
+  const goStale = () => {
+    memoryIsStale = true
+    // A merge already running speaks for the account that left.
+    syncRun++
+    signInSync = null
+    tabReload.reload()
+  }
+  const onStorage = (e: StorageEvent) => {
+    if (e.storageArea && e.storageArea !== localStorage) return
+    if (e.key === null || (e.key === LOCAL_OWNER_KEY && e.oldValue !== e.newValue)) goStale()
+  }
+  const onPageShow = (e: PageTransitionEvent) => {
+    if (e.persisted && getLocalOwner() !== knownOwner) goStale()
+  }
+
+  window.addEventListener('storage', onStorage)
+  window.addEventListener('pageshow', onPageShow)
+  return () => {
+    window.removeEventListener('storage', onStorage)
+    window.removeEventListener('pageshow', onPageShow)
+  }
+}
+
+installForeignOwnerReload()
+
+/**
  * How long one network step of the sign-in merge may take. Without a limit a
  * request that never answers held the whole merge — and every screen waiting
  * for `done` — for good.
@@ -401,6 +465,14 @@ async function runSignInSync(run: number): Promise<void> {
     const userId = data.session?.user.id
     if (!userId || !current()) return
 
+    // This tab's memory belongs to an account another tab has since signed
+    // out (see `installForeignOwnerReload`). Merging it would hand that
+    // account's level and bankroll log to this one; the reload is on its way.
+    if (memoryIsStale) {
+      tabReload.reload()
+      return
+    }
+
     // Account isolation. `null` owner means guest data that has never belonged
     // to an account — that is the legitimate one-time migration, so keep it.
     //
@@ -419,6 +491,8 @@ async function runSignInSync(run: number): Promise<void> {
       resetProfileSync()
     }
     setLocalOwner(userId)
+    // Read back, not assumed: a write storage refused leaves the owner as it was.
+    knownOwner = getLocalOwner()
     // Claimed or wiped: either way the stamp has done its work.
     clearGuestRound()
 

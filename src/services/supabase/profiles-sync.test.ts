@@ -30,6 +30,8 @@ import { getProfile, setProfile } from '../learner-profile'
 import { hasSeenWelcome, setWelcomeSeen } from '../onboarding'
 import { hasSeenTour } from '../recommendation'
 import { readTrialHandsUsed, setTrialHandsUsed } from '../casino-trial'
+import { mergeStartingBankroll } from './profiles-sync'
+import { useBankrollTrackerStore } from '../../store/bankroll-tracker-store'
 
 const cloudRow = (overrides: Record<string, unknown> = {}) => ({
   level_xp: 0,
@@ -661,6 +663,33 @@ describe('profiles-sync: a push from a device that has fallen behind', () => {
     await expect(pushProfileScalarsNow()).rejects.toThrow('permission denied')
   })
 
+  it('does not write its older plan answers over newer ones another device gave', async () => {
+    // This tab answered the plan long ago and merged then.
+    setPlacement('bet-spread')
+    await syncProfileOnSignIn()
+    const stale = readPlanState()
+    // Since then the phone re-took the placement; its answers are newer.
+    const newer: PlanState = { ...CLOUD_PLAN, updatedAt: stale.updatedAt + 60_000 }
+    maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { plan: newer } }), error: null })
+
+    await pushProfileScalarsNow()
+
+    expect(lastPlan()).toMatchObject({ placement: 'true-count', updatedAt: newer.updatedAt })
+    // And this tab takes them, so it does not try again on the next push.
+    expect(getPlacement()).toBe('true-count')
+  })
+
+  it('leaves this tab’s answers alone when the account holds the same ones', async () => {
+    setPlacement('bet-spread')
+    await syncProfileOnSignIn()
+    maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { plan: lastPlan() } }), error: null })
+    const heard: string[] = []
+    const off = onPlanStateChanged(origin => { heard.push(origin) })
+    await pushProfileScalarsNow()
+    off()
+    expect(heard).toEqual([])
+  })
+
   it('pushProfileScalarsNow resolves once the write has landed', async () => {
     levelSystem.setTotalXP(450)
     await expect(pushProfileScalarsNow()).resolves.toBeUndefined()
@@ -813,5 +842,90 @@ describe('profiles-sync: the casino trial count travels in settings.casino_trial
     maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { casino_trial_hands: 4000 } }), error: null })
     await pushProfileScalarsNow()
     expect(readTrialHandsUsed()).toBe(10)
+  })
+})
+
+describe('profiles-sync: the tracker’s starting bankroll travels in settings.starting_bankroll', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    levelSystem.reload()
+    resetProfileSync()
+    useBankrollTrackerStore.setState({ sessions: [], startingBankroll: 0, startingBankrollUpdatedAt: 0 })
+    getSession.mockResolvedValue({ data: { session: { user: { id: 'u1' } } } })
+    maybeSingle.mockResolvedValue({ data: cloudRow(), error: null })
+    writeSelect.mockResolvedValue({ data: [{ id: 'u1' }], error: null })
+  })
+
+  it('a wiped device gets the account’s figure back, so the bankroll is not 0 + results', async () => {
+    maybeSingle.mockResolvedValue({
+      data: cloudRow({ settings: { starting_bankroll: { amount: 5000, updatedAt: 1_700_000_000_000 } } }),
+      error: null,
+    })
+    useBankrollTrackerStore.getState().hydrate([
+      { id: 's1', date: '2026-11-01', casino: '', result: -1200, hoursPlayed: 3, notes: '', createdAt: 1 },
+    ])
+
+    await syncProfileOnSignIn()
+
+    expect(useBankrollTrackerStore.getState().startingBankroll).toBe(5000)
+    expect(useBankrollTrackerStore.getState().getCurrentBankroll()).toBe(3800)
+  })
+
+  it('a figure set on this device reaches an account that has none', async () => {
+    useBankrollTrackerStore.setState({ startingBankroll: 2500, startingBankrollUpdatedAt: 0 })
+    await syncProfileOnSignIn()
+    expect(lastSettings().starting_bankroll).toEqual({ amount: 2500, updatedAt: 0 })
+  })
+
+  it('setting it by hand stamps it and pushes it, and the later edit wins over the cloud', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(new Date('2026-11-28T12:00:00Z'))
+      await syncProfileOnSignIn()
+      maybeSingle.mockResolvedValue({
+        data: cloudRow({ settings: { starting_bankroll: { amount: 5000, updatedAt: Date.parse('2026-11-01T00:00:00Z') } } }),
+        error: null,
+      })
+      useBankrollTrackerStore.getState().setStartingBankroll(4000)
+      await settled(2)
+      expect(lastSettings().starting_bankroll).toEqual({ amount: 4000, updatedAt: Date.parse('2026-11-28T12:00:00Z') })
+      expect(useBankrollTrackerStore.getState().startingBankroll).toBe(4000)
+    } finally {
+      vi.clearAllTimers()
+      vi.useRealTimers()
+    }
+  })
+
+  it('an older figure on a tab that fell behind does not overwrite a newer one', async () => {
+    useBankrollTrackerStore.setState({ startingBankroll: 1000, startingBankrollUpdatedAt: 10 })
+    await syncProfileOnSignIn()
+    maybeSingle.mockResolvedValue({
+      data: cloudRow({ settings: { starting_bankroll: { amount: 6000, updatedAt: 20 } } }),
+      error: null,
+    })
+    await pushProfileScalarsNow()
+    expect(lastSettings().starting_bankroll).toEqual({ amount: 6000, updatedAt: 20 })
+    expect(useBankrollTrackerStore.getState().startingBankroll).toBe(6000)
+  })
+
+  it('without a figure on either side, writes no key at all', async () => {
+    await syncProfileOnSignIn()
+    expect(lastSettings()).not.toHaveProperty('starting_bankroll')
+  })
+
+  it('merge rule: cloud wins unless the device set it later; garbage is no figure', () => {
+    expect(mergeStartingBankroll(null, null)).toBeNull()
+    expect(mergeStartingBankroll({ amount: 1, updatedAt: 5 }, null)).toEqual({ amount: 1, updatedAt: 5 })
+    expect(mergeStartingBankroll(null, { amount: 2, updatedAt: 0 })).toEqual({ amount: 2, updatedAt: 0 })
+    expect(mergeStartingBankroll({ amount: 1, updatedAt: 5 }, { amount: 2, updatedAt: 5 })).toEqual({ amount: 2, updatedAt: 5 })
+    expect(mergeStartingBankroll({ amount: 1, updatedAt: 6 }, { amount: 2, updatedAt: 5 })).toEqual({ amount: 1, updatedAt: 6 })
+  })
+
+  it('reads a damaged cloud value as no figure and keeps the device’s', async () => {
+    useBankrollTrackerStore.setState({ startingBankroll: 3000, startingBankrollUpdatedAt: 0 })
+    maybeSingle.mockResolvedValue({ data: cloudRow({ settings: { starting_bankroll: { amount: 'lots' } } }), error: null })
+    await syncProfileOnSignIn()
+    expect(useBankrollTrackerStore.getState().startingBankroll).toBe(3000)
   })
 })

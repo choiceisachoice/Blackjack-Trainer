@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { LevelSystem, LEVELS } from './level-system'
 import i18next from 'i18next'
 
@@ -250,6 +250,42 @@ describe('LevelSystem', () => {
       expect(system.getTotalXP()).toBe(0)
       system.setTotalXP(123.9)
       expect(system.getTotalXP()).toBe(123)
+    })
+  })
+
+  describe('two tabs, one key', () => {
+    it('adds to what another tab stored, not to its own stale copy', () => {
+      const tabA = new LevelSystem()
+      const tabB = new LevelSystem()
+      tabA.addXP(100)
+      tabB.addXP(40)
+      expect(tabB.getTotalXP()).toBe(140)
+      expect(new LevelSystem().getTotalXP()).toBe(140)
+    })
+
+    it('follows a wipe made by another tab instead of writing the old total back', () => {
+      const tabB = new LevelSystem()
+      tabB.addXP(500)
+      localStorage.removeItem('bjt_level_xp') // tab A signed out
+      tabB.addXP(10)
+      expect(tabB.getTotalXP()).toBe(10)
+    })
+  })
+
+  describe('storage that refuses writes', () => {
+    afterEach(() => vi.restoreAllMocks())
+
+    it('does not throw on a full quota, and keeps the XP for this run', () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new DOMException('full', 'QuotaExceededError')
+      })
+      expect(() => system.addXP(30)).not.toThrow()
+      expect(system.getTotalXP()).toBe(30)
+      // The failed write is not mistaken for another tab's change.
+      system.addXP(20)
+      expect(system.getTotalXP()).toBe(50)
+      expect(() => system.setTotalXP(80)).not.toThrow()
     })
   })
 })
