@@ -53,12 +53,23 @@ describe('BankrollTracker', () => {
 
   // ── Onboarding ──
 
-  it('shows onboarding when no starting bankroll and no sessions', () => {
+  it('shows the first screen when no starting bankroll and no sessions', () => {
     render(<BankrollSimulator />)
 
-    expect(screen.getByText('Start Tracking Your Bankroll')).toBeInTheDocument()
+    expect(screen.getByText('Your real-money sessions, and where your bankroll stands')).toBeInTheDocument()
     expect(screen.getByTestId('onboarding-bankroll-input')).toBeInTheDocument()
     expect(screen.getByTestId('start-tracking-btn')).toBeInTheDocument()
+    // The example is labelled as one, so nobody takes it for their own numbers.
+    expect(screen.getByTestId('tracker-intro-example')).toHaveTextContent('Example')
+  })
+
+  it('offers a starting bankroll, so the one action works without typing', () => {
+    render(<BankrollSimulator />)
+
+    expect(screen.getByTestId('onboarding-bankroll-input')).toHaveValue(10000)
+    expect(screen.getByTestId('start-tracking-btn')).toBeEnabled()
+    fireEvent.click(screen.getByTestId('start-tracking-btn'))
+    expect(useBankrollTrackerStore.getState().startingBankroll).toBe(10000)
   })
 
   it('onboarding sets starting bankroll and shows tracker', () => {
@@ -75,6 +86,7 @@ describe('BankrollTracker', () => {
     render(<BankrollSimulator />)
 
     const btn = screen.getByTestId('start-tracking-btn')
+    fireEvent.change(screen.getByTestId('onboarding-bankroll-input'), { target: { value: '' } })
     expect(btn).toBeDisabled()
 
     fireEvent.change(screen.getByTestId('onboarding-bankroll-input'), { target: { value: '0' } })
@@ -309,10 +321,10 @@ describe('BankrollTracker', () => {
 
   // ── TopBar ──
 
-  it('TopBar shows "Bankroll Tracker" for bankrollSim mode', () => {
+  it('TopBar shows "Real casino log" for bankrollSim mode', () => {
     useAppStore.setState({ currentMode: 'bankrollSim' })
     render(<TopBar />)
-    expect(screen.getByText('Bankroll Tracker')).toBeInTheDocument()
+    expect(screen.getByText('Real casino log')).toBeInTheDocument()
   })
 
   // ── Stat card glow ──

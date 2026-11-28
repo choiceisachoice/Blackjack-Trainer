@@ -59,6 +59,15 @@ const ACTION_EXPLAIN_KEY: Record<ChartAction, string> = {
 }
 
 /**
+ * The chart's columns. Under `sm` the whole chart fits a 390px phone: a 40px
+ * hand column and ten columns sharing the rest (about 31px each), so every
+ * dealer card from 2 to A is on screen at once. It used to keep 616px and
+ * scroll each section sideways, with 7 to A behind a fade. From `sm` up it is
+ * the chart it was.
+ */
+const CHART_COLUMNS = 'grid-cols-[40px_repeat(10,minmax(0,1fr))] sm:grid-cols-[72px_repeat(10,minmax(0,1fr))]'
+
+/**
  * The hand column: pinned to the left edge of the scroll box, on the page's
  * own ground so the cells pass under it, and above a hovered cell (z-index 10).
  * The negative margin and the padding cover the scroll box's 8px of padding,
@@ -66,7 +75,7 @@ const ACTION_EXPLAIN_KEY: Record<ChartAction, string> = {
  * same colour closes the gap between two rows, through which the deviation
  * badges of the cells underneath showed as dashes.
  */
-const STICKY_HAND = 'sticky left-0 z-20 -ml-2 pl-2 bg-casino-bg shadow-[0_0_0_1px_var(--color-casino-bg)] text-xs font-semibold flex items-center justify-center p-1'
+const STICKY_HAND = 'sticky left-0 z-20 -ml-2 pl-2 bg-casino-bg shadow-[0_0_0_1px_var(--color-casino-bg)] text-[0.6875rem] sm:text-xs font-semibold flex items-center justify-center p-0.5 sm:p-1 whitespace-nowrap'
 
 interface CellInfo {
   hand: string
@@ -245,7 +254,7 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
         {/* The padding is on the content, not on the scroll box: a sticky
             column pins to the box's padding edge, and with the padding out
             there the cells showed through an 8px strip to its left. */}
-        <div className="p-2" style={{ minWidth: '616px' }}>
+        <div className="p-2 sm:min-w-[616px]">
           {sections.map(section => (
             <div key={section.title} className="mb-5">
               {/* The title and the hand column stay put while the dealer
@@ -254,17 +263,14 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
               <h3 className="sticky left-0 w-max text-sm font-semibold text-gold mb-2">{section.title}</h3>
 
               {/* Header row */}
-              <div
-                className="grid gap-px mb-px"
-                style={{ gridTemplateColumns: '72px repeat(10, 1fr)' }}
-              >
+              <div className={`grid gap-px mb-px ${CHART_COLUMNS}`}>
                 <div className={`${STICKY_HAND} text-content/50`}>
                   {t('chart.handHeader')}
                 </div>
                 {DEALER_KEYS.map(dk => (
                   <div
                     key={dk}
-                    className="text-xs font-semibold text-content/70 flex items-center justify-center p-1 bg-contrast/10 rounded"
+                    className="text-[0.6875rem] sm:text-xs font-semibold text-content/80 sm:text-content/70 flex items-center justify-center p-1 bg-contrast/10 rounded"
                   >
                     {dk}
                   </div>
@@ -273,11 +279,7 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
 
               {/* Data rows */}
               {section.rows.map(row => (
-                <div
-                  key={row.label}
-                  className="grid gap-px mb-px"
-                  style={{ gridTemplateColumns: '72px repeat(10, 1fr)' }}
-                >
+                <div key={row.label} className={`grid gap-px mb-px ${CHART_COLUMNS}`}>
                   <div className={`${STICKY_HAND} text-content/70`} data-testid="chart-hand">
                     {row.label}
                   </div>
@@ -290,12 +292,11 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
                         key={dealer}
                         onClick={() => setSelected({ hand: row.label, dealer, action })}
                         data-testid="chart-cell"
-                        className="relative flex items-center justify-center rounded text-xs font-bold cursor-pointer transition-all duration-100
-                          [@media(pointer:coarse)]:min-h-8"
+                        className="relative flex items-center justify-center rounded text-[0.6875rem] sm:text-xs font-bold cursor-pointer transition-all duration-100
+                          min-h-8 sm:min-h-0 py-1 sm:py-1.5 px-0 sm:px-0.5 [@media(pointer:coarse)]:min-h-8"
                         style={{
                           backgroundColor: ACTION_COLORS[action],
                           color: ACTION_INK,
-                          padding: '6px 2px',
                           outline: isSelected ? '2px solid white' : 'none',
                           outlineOffset: '-1px',
                           boxShadow: dev ? 'inset 0 0 0 2px #f0cd82' : undefined,
@@ -314,11 +315,9 @@ export function StrategyChart({ heading: Heading = 'h2' }: { heading?: 'h1' | 'h
                         {action}
                         {dev && (
                           <span
-                            className="absolute -top-1 -right-1 grid place-items-center rounded-full font-extrabold text-black leading-none"
-                            style={{
-                              minWidth: '16px', height: '16px', padding: '0 2px', fontSize: '10px',
-                              backgroundColor: '#f0cd82', boxShadow: '0 0 6px rgba(240,205,130,0.7)',
-                            }}
+                            className="absolute -top-1 -right-1 grid place-items-center rounded-full font-extrabold text-black leading-none
+                              min-w-[13px] h-[13px] text-[8px] sm:min-w-4 sm:h-4 sm:text-[10px] px-px sm:px-0.5"
+                            style={{ backgroundColor: '#f0cd82', boxShadow: '0 0 6px rgba(240,205,130,0.7)' }}
                           >
                             {dev.index}
                           </span>

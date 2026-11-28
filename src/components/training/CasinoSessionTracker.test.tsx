@@ -72,12 +72,21 @@ describe('CasinoSessionTracker', () => {
 
   // ── Onboarding ──
 
-  it('shows onboarding when no starting bankroll and no sessions', () => {
+  it('shows the first screen when no starting bankroll and no sessions', () => {
     render(<CasinoSessionTracker />)
 
-    expect(screen.getByText('Start Tracking Your Casino Sessions')).toBeInTheDocument()
+    expect(screen.getByText('Every table you play, kept in one place')).toBeInTheDocument()
     expect(screen.getByTestId('onboarding-bankroll-input')).toBeInTheDocument()
     expect(screen.getByTestId('start-tracking-btn')).toBeInTheDocument()
+    expect(screen.getByTestId('tracker-intro-example')).toHaveTextContent('Example')
+  })
+
+  it('leads to the casino table, because this log fills itself', () => {
+    useAppStore.setState({ currentMode: 'casinoSessionTracker' })
+    render(<CasinoSessionTracker />)
+
+    fireEvent.click(screen.getByTestId('cs-tracker-play'))
+    expect(useAppStore.getState().currentMode).toBe('casinoSession')
   })
 
   it('onboarding sets starting bankroll and shows tracker', () => {
@@ -94,6 +103,7 @@ describe('CasinoSessionTracker', () => {
     render(<CasinoSessionTracker />)
 
     const btn = screen.getByTestId('start-tracking-btn')
+    fireEvent.change(screen.getByTestId('onboarding-bankroll-input'), { target: { value: '' } })
     expect(btn).toBeDisabled()
 
     fireEvent.change(screen.getByTestId('onboarding-bankroll-input'), { target: { value: '0' } })
@@ -261,10 +271,10 @@ describe('CasinoSessionTracker', () => {
 
   // ── TopBar ──
 
-  it('TopBar shows "Casino Session Tracker" for casinoSessionTracker mode', () => {
+  it('TopBar shows "Table history" for casinoSessionTracker mode', () => {
     useAppStore.setState({ currentMode: 'casinoSessionTracker' })
     render(<TopBar />)
-    expect(screen.getByText('Casino Session Tracker')).toBeInTheDocument()
+    expect(screen.getByText('Table history')).toBeInTheDocument()
   })
 
   // ── Personal Records ──

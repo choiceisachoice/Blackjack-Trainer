@@ -32,8 +32,8 @@
       "analytics": "Análises",
       "strategyChart": "Estratégia",
       "achievements": "Prémios",
-      "bankrollSim": "Bankroll",
-      "casinoSessionTracker": "Registo"
+      "bankrollSim": "Diário de casino real",
+      "casinoSessionTracker": "Histórico da mesa"
     },
     "goPro": "Obter Pro",
     "accountAndBilling": "Conta e faturação",
@@ -369,7 +369,7 @@
     "r5": "Tabela de estratégia",
     "r6": "Desvios Illustrious 18 & Fab 4",
     "r7": "Análises — tendência, mapa de calor, radar, mãos mais fracas",
-    "r8": "Registo de bankroll",
+    "r8": "Diário de casino real",
     "r9": "Conquistas, níveis & o guia",
     "basics": "bases",
     "goProHeading": "Obter Pro",
@@ -769,7 +769,7 @@
       "styleBasic": "Só Blackjack",
       "styleBasicHint": "Sem running count nem true count — apenas joga. Só a estratégia básica é avaliada e continuas a ganhar XP.",
       "unlimited": "Ilimitado",
-      "unlimitedHint": "Jogue o tempo que quiser e levante quando quiser. A sessão fica guardada no seu registo.",
+      "unlimitedHint": "Jogue o tempo que quiser e levante quando quiser. A sessão fica guardada no seu histórico da mesa.",
       "multiHand": "Jogar várias mãos",
       "multiHandHint": "Cada lugar livre na mesa mostra um +. Podes abrir até {{count}} mãos.",
       "lineHands_one": "{{count}} mão",
@@ -947,13 +947,9 @@
     }
   },
   "tracker": {
-    "onboardTitle": "Acompanhe as suas sessões de casino",
-    "onboardBody": "Defina a sua bankroll inicial para começar.",
-    "onboardNote": "Os resultados são registados automaticamente após cada sessão.",
     "startingBankroll": "Bankroll inicial",
-    "startTracking": "Começar a acompanhar",
-    "title": "Registo de sessões",
-    "sub": "As suas sessões jogadas, resultados e notas.",
+    "title": "Histórico da mesa",
+    "sub": "Cada sessão que levantou na mesa de treino: resultado, nota e precisão.",
     "currentBankroll": "Bankroll atual",
     "startingPrefix": "Inicial:",
     "save": "Guardar",
@@ -988,7 +984,18 @@
     "playPct": "Jogo: {{pct}}%",
     "betPct": "Aposta: {{pct}}%",
     "countPct": "Contagem: {{pct}}%",
-    "streaks": "Sequências"
+    "streaks": "Sequências",
+    "intro": {
+      "title": "Cada mesa que joga, guardada num só lugar",
+      "body": "Jogue uma sessão na mesa de treino e levante. Aparece aqui sozinha, sem escrever nada.",
+      "point1": "O seu bankroll ao longo das sessões, em curva",
+      "point2": "Cada sessão com a nota e a precisão de jogo, aposta e contagem",
+      "point3": "Recordes: melhor sessão, melhor nota, maior série",
+      "play": "Jogar na mesa de casino",
+      "bankrollLabel": "Bankroll inicial (opcional)",
+      "setBankroll": "Definir",
+      "bankrollNote": "Se deixar em branco, usa-se o bankroll da primeira mesa."
+    }
   },
   "welcome": {
     "stepOne": {
@@ -1428,6 +1435,38 @@
     "hand": {
       "soft": "{{n}} mole",
       "bust": "{{n}} — rebenta"
+    },
+    "hub": {
+      "sub": "Nove capítulos, das regras do jogo à escala de apostas. Leia um e depois pratique.",
+      "colStart": "Comece aqui",
+      "colCount": "Contagem",
+      "basicsTitle": "Como funciona o blackjack",
+      "sum": {
+        "basics": "As regras, o valor das cartas, mãos suaves e duras: a base de tudo o resto.",
+        "what-is-counting": "Porque as cartas que restam no sabot decidem quem tem a vantagem.",
+        "hi-lo": "+1, 0 ou −1 por carta: a contagem corrente numa só regra.",
+        "true-count": "Divida pelos baralhos restantes para a contagem valer o mesmo em qualquer sabot.",
+        "basic-strategy": "A jogada certa para cada mão contra cada carta do dealer.",
+        "deviations": "Quando a contagem manda sair da tabela, e a partir de que número.",
+        "i18-fab4": "As 22 jogadas por contagem que vale a pena aprender, cada uma com o seu número.",
+        "bet-spread": "Apostar mais quando a contagem é alta, e quão larga deve ser a escala.",
+        "deck-estimation": "Leia o tabuleiro de descartes para saber quantos baralhos restam.",
+        "faq": "É legal, quanto tempo leva, qual é a vantagem?",
+        "modes": "O que cada modo de treino desenvolve, e quando o usar."
+      },
+      "progress": "{{done}} de {{total}} capítulos praticados",
+      "minutes": "{{n}} min de leitura",
+      "practised": "Praticado {{n}}×",
+      "notYet": "Ainda não praticado",
+      "reference": "Consulta",
+      "chapterN": "Capítulo {{n}}",
+      "back": "Todos os capítulos",
+      "next": "Seguinte",
+      "prev": "Anterior",
+      "practiseTitle": "Pratique",
+      "planBody": "O seu plano sabe qual é o próximo passo.",
+      "contents": "Capítulos",
+      "minutesShort": "{{n}} min"
     }
   },
   "basics": {
@@ -1923,7 +1962,7 @@
       "milestones": "Marcos",
       "extreme": "Desafios extremos",
       "counting_mastery": "Domínio da contagem",
-      "bankrollTracker": "Registo de bankroll"
+      "bankrollTracker": "Diário de casino real"
     },
     "all": "Todos",
     "maxLevel": "Nível máximo atingido",
@@ -1943,26 +1982,26 @@
     "casinoSession": "Sessão de casino",
     "tableCounting": "Contagem na mesa",
     "deviationTable": "Desvio (mesa)",
-    "bankrollTracker": "Registo de bankroll",
+    "bankrollTracker": "Diário de casino real",
     "learn": "Aprender",
     "analytics": "Análises",
     "strategyChart": "Tabela de estratégia básica",
     "achievements": "Prémios",
     "deviationTraining": "Treino de desvios",
-    "casinoSessionTracker": "Registo de sessões"
+    "casinoSessionTracker": "Histórico da mesa"
   },
   "home": {
     "trainingModes": "Modos de treino",
     "toolsProgress": "Ferramentas e progresso",
-    "trackerTitle": "Registo de sessões",
+    "trackerTitle": "Histórico da mesa",
     "desc": {
       "speedDrill": "Treine a sua velocidade de contagem com cartas que passam",
       "deviationTraining": "Treine cada mão — e quando desviar",
       "betSpread": "Pratique o valor ótimo segundo o true count",
       "deckEstimation": "Estime os baralhos que restam no sabot",
       "casinoSession": "Jogue uma sessão completa numa mesa realista",
-      "bankrollSim": "Acompanhe os seus resultados reais de casino",
-      "tracker": "Acompanhe os resultados das suas sessões de treino",
+      "bankrollSim": "Registe as suas sessões num casino real, com dinheiro real",
+      "tracker": "Cada sessão na mesa de treino, guardada automaticamente",
       "learn": "Como funciona a contagem — para iniciantes",
       "analytics": "Veja os seus dados, tendências e progresso",
       "strategyChart": "Veja a tabela de estratégia completa",
@@ -2327,10 +2366,8 @@
     "unlockedCount": "{{n}} desbloqueados"
   },
   "sim": {
-    "onboardTitle": "Acompanhe a sua bankroll",
-    "onboardBody": "Registe as suas sessões reais de casino para ver a evolução.",
-    "title": "Registo de bankroll",
-    "sub": "Acompanhe as suas sessões reais de casino e os resultados.",
+    "title": "Diário de casino real",
+    "sub": "As suas sessões em casinos reais, com dinheiro real.",
     "chartEmpty": "Adicione a primeira sessão para ver o gráfico",
     "hoursPlayed": "Horas jogadas",
     "notesPlaceholder": "Boa penetração, 6 baralhos, S17…",
@@ -2373,7 +2410,18 @@
     "winPlus": "Ganho +",
     "hoursShort": "{{n}} h",
     "emptySessions": "Ainda sem sessões. Adicione a sua primeira visita ao casino!",
-    "nSessions": "{{n}} sessões"
+    "nSessions": "{{n}} sessões",
+    "intro": {
+      "title": "As suas sessões a dinheiro real, e como está o seu bankroll",
+      "body": "Depois de uma noite num casino real, acrescente uma linha: onde, quanto tempo, ganho ou perda. O diário faz o resto.",
+      "point1": "O seu bankroll em curva desde a primeira entrada",
+      "point2": "Taxa de vitória e dólares por hora",
+      "point3": "Melhor casino, melhor sessão e séries",
+      "start": "Começar o meu diário",
+      "note": "Pode alterar o bankroll inicial mais tarde.",
+      "venue1": "Casino do Rio",
+      "venue2": "Casino Grande Hotel"
+    }
   },
   "chart": {
     "title": "Tabela de estratégia básica",
@@ -2809,5 +2857,10 @@
     "free2": "As estatísticas de cada exercício, em todos os dispositivos",
     "free3": "Dez mãos na mesa de casino completa",
     "freeStrip": "Grátis: o seu plano, as suas estatísticas e dez mãos na mesa completa. Sem cartão."
+  },
+  "trackerIntro": {
+    "example": "Exemplo",
+    "exampleCaption": "Assim fica esta página quando estiver preenchida",
+    "exampleAria": "Exemplo de página preenchida"
   }
 }

@@ -10,12 +10,18 @@ import {
   Area,
   AreaChart,
 } from 'recharts'
-import { ClipboardList } from 'lucide-react'
+import { ArrowRight, ClipboardList, Club, LineChart, ListChecks, Lock, Trophy } from 'lucide-react'
 import {
   useCasinoSessionTrackerStore,
   type TrackedCasinoSession,
 } from '../../store/casino-session-tracker-store'
 import { Input } from '../common/ui'
+import { TrackerIntro } from '../simulator/TrackerIntro'
+import { axisDollars } from '../simulator/tracker-format'
+import { useAppStore } from '../../store/app-store'
+import { useIsPro } from '../../store/entitlement-store'
+import { useTrialLeft } from '../../store/casino-trial-store'
+import { isModeLocked } from '../../services/pro-features'
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -42,6 +48,20 @@ function fmtDate(dateStr: string): string {
  */
 function exampleBankroll(): string {
   return (10_000).toLocaleString(activeLocale(), { useGrouping: false })
+}
+
+/** The starting bankroll the first screen offers. Plain digits: a number input reads them in every language. */
+const DEFAULT_BANKROLL = '10000'
+
+/**
+ * A day a few days back, short, in the reader's language — for the example
+ * rows of the first screen.
+ *
+ * @param daysAgo - How many days before today
+ */
+function sampleDay(daysAgo: number): string {
+  const d = new Date(Date.now() - daysAgo * 86_400_000)
+  return d.toLocaleDateString(activeLocale(), { month: 'short', day: 'numeric' })
 }
 
 function fmtDuration(seconds: number): string {
@@ -131,7 +151,11 @@ export function CasinoSessionTracker() {
   const getTotalHands = useCasinoSessionTrackerStore(s => s.getTotalHands)
 
   // ── Onboarding state ──
-  const [onboardingBankroll, setOnboardingBankroll] = useState('')
+  const [onboardingBankroll, setOnboardingBankroll] = useState(DEFAULT_BANKROLL)
+  const setMode = useAppStore(s => s.setMode)
+  const isPro = useIsPro()
+  const trialLeft = useTrialLeft()
+  const tableLocked = isModeLocked('casinoSession', isPro, trialLeft > 0)
   const isOnboarding = startingBankroll === 0 && sessions.length === 0
 
   // ── Delete confirmation ──
@@ -195,285 +219,332 @@ export function CasinoSessionTracker() {
     setStartingBankroll(amount)
   }, [onboardingBankroll, setStartingBankroll])
 
-  // ── Onboarding Screen ──
+  // ── First screen: no table played yet ──
+  // This log fills itself — every cashed-out table lands here — so the one
+  // action is to go and play. The starting bankroll stays settable, quietly:
+  // without it the first table's own bankroll is used (record-session.ts).
   if (isOnboarding) {
+    const amount = parseFloat(onboardingBankroll)
+    const valid = !isNaN(amount) && amount > 0
     return (
-      <div className="flex-1 overflow-y-auto p-4 md:p-6" data-testid="cs-tracker">
-        <div className="max-w-md mx-auto mt-16 text-center">
-          <span className="grid place-items-center w-16 h-16 mx-auto mb-4 rounded-2xl text-gold bg-gold/10 border border-gold/20">
-            <ClipboardList size={30} />
-          </span>
-          <h2 className="text-2xl font-bold text-content mb-3">{t('tracker.onboardTitle')}</h2>
-          <p className="text-content/50 mb-2">
-            {t('tracker.onboardBody')}
-          </p>
-          <p className="text-content/40 text-sm mb-8">
-            {t('tracker.onboardNote')}
-          </p>
-          <div className="flex flex-col items-center gap-4">
-            <label className="w-full max-w-xs">
-              <span className="text-sm text-content/60 block mb-2">{t('tracker.startingBankroll')}</span>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
-                <Input
-                  type="number"
-                  value={onboardingBankroll}
-                  onChange={e => setOnboardingBankroll(e.target.value)}
-                  placeholder={exampleBankroll()}
-                  data-testid="onboarding-bankroll-input"
-                  className="w-full pl-7 pr-3 py-3 rounded-xl text-lg text-center"
-                />
-              </div>
-            </label>
+      <TrackerIntro
+        testId="cs-tracker"
+        icon={ClipboardList}
+        kicker={t('tracker.title')}
+        title={t('tracker.intro.title')}
+        body={t('tracker.intro.body')}
+        points={[
+          { icon: LineChart, text: t('tracker.intro.point1') },
+          { icon: ListChecks, text: t('tracker.intro.point2') },
+          { icon: Trophy, text: t('tracker.intro.point3') },
+        ]}
+        sample={{
+          stats: [
+            { label: t('tracker.sessions'), value: '8' },
+            { label: t('tracker.avgScore'), value: '86%', tone: 'up' },
+            { label: t('tracker.hands'), value: (612).toLocaleString(activeLocale()) },
+          ],
+          curve: [1000, 1120, 860, 1200, 1120, 1530, 1590, 2110, 1930],
+          rows: [
+            { primary: `${sampleDay(2)} · ${t('tracker.deckMin', { decks: 6, min: '$10' })}`, secondary: t('tracker.nHands', { n: 84 }), amount: -180, tag: 'B', tagClass: gradeColor('B') },
+            { primary: `${sampleDay(6)} · ${t('tracker.deckMin', { decks: 6, min: '$10' })}`, secondary: t('tracker.nHands', { n: 102 }), amount: 520, tag: 'A+', tagClass: gradeColor('A+') },
+            { primary: `${sampleDay(9)} · ${t('tracker.deckMin', { decks: 8, min: '$25' })}`, secondary: t('tracker.nHands', { n: 75 }), amount: 60, tag: 'B+', tagClass: gradeColor('B+') },
+          ],
+        }}
+      >
+        <div className="flex flex-col gap-4 max-w-md">
+          <button
+            type="button"
+            onClick={() => setMode('casinoSession')}
+            data-testid="cs-tracker-play"
+            className="lift-glow self-start h-12 px-6 rounded-xl inline-flex items-center justify-center gap-2.5 text-base font-bold text-on-gold whitespace-nowrap
+              bg-gradient-to-b from-gold-bright to-gold border border-gold/50 shadow-[0_10px_30px_-12px_var(--color-gold)] cursor-pointer"
+          >
+            {tableLocked ? <Lock size={16} aria-hidden /> : <Club size={17} aria-hidden />}
+            {t('tracker.intro.play')}
+            <ArrowRight size={17} aria-hidden />
+          </button>
+          <form
+            className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-content/50"
+            onSubmit={e => { e.preventDefault(); handleStartTracking() }}
+          >
+            <label htmlFor="cs-onboarding-bankroll">{t('tracker.intro.bankrollLabel')}</label>
+            <span className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-content/45">$</span>
+              <Input
+                id="cs-onboarding-bankroll"
+                type="number"
+                inputMode="decimal"
+                min="1"
+                value={onboardingBankroll}
+                onChange={e => setOnboardingBankroll(e.target.value)}
+                placeholder={exampleBankroll()}
+                data-testid="onboarding-bankroll-input"
+                className="w-28 h-9 pl-6 pr-2 tabular-nums"
+              />
+            </span>
             <button
-              onClick={handleStartTracking}
+              type="submit"
               data-testid="start-tracking-btn"
-              disabled={!onboardingBankroll || parseFloat(onboardingBankroll) <= 0}
-              className="px-8 py-3 rounded-xl bg-gold text-on-gold font-semibold text-lg hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={!valid}
+              className="h-9 px-3 rounded-lg text-xs font-semibold text-content/80 bg-contrast/8 border border-contrast/15 hover:bg-contrast/12 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {t('tracker.startTracking')}
+              {t('tracker.intro.setBankroll')}
             </button>
-          </div>
+            <span className="basis-full">{t('tracker.intro.bankrollNote')}</span>
+          </form>
         </div>
-      </div>
+      </TrackerIntro>
     )
   }
 
   // ── Main Tracker View ──
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="cs-tracker">
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:px-8 space-y-6" data-testid="cs-tracker">
       {/* Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">{t('tracker.title')}</h1>
         <p className="text-sm text-content/50">{t('tracker.sub')}</p>
       </div>
 
-      {/* ── Section A: Overview ── */}
-      <section data-testid="overview-section">
-        <div className="text-center mb-4">
-          <p className="text-xs text-content/40 mb-1">{t('tracker.currentBankroll')}</p>
-          <p className={`text-4xl font-bold ${currentBankroll >= startingBankroll ? 'text-green-400' : 'text-red-400'}`}
-            data-testid="current-bankroll">
-            {fmtDollar(currentBankroll)}
-          </p>
-          <div className="text-sm text-content/50 mt-1 flex items-center justify-center gap-1 flex-wrap" data-testid="overview-summary">
-            {isEditingStart ? (
-              <span className="inline-flex items-center gap-1.5">
-                <span>{t('tracker.startingPrefix')} $</span>
-                <Input
-                  type="number"
-                  value={editStartValue}
-                  onChange={e => setEditStartValue(e.target.value)}
-                  data-testid="edit-starting-input"
-                  className="w-24 px-2 py-0.5 text-center"
-                  autoFocus
-                />
-                <button
-                  onClick={() => {
-                    const amount = parseFloat(editStartValue)
-                    if (!isNaN(amount) && amount > 0) setStartingBankroll(amount)
-                    setIsEditingStart(false)
-                  }}
-                  data-testid="save-starting-btn"
-                  className="text-xs text-green-400 hover:text-green-300 cursor-pointer font-semibold"
-                >
-                  {t('tracker.save')}
-                </button>
-                <button
-                  onClick={() => setIsEditingStart(false)}
-                  data-testid="cancel-starting-btn"
-                  className="text-xs text-content/40 hover:text-content cursor-pointer"
-                >
-                  {t('tracker.cancel')}
-                </button>
-              </span>
-            ) : (
-              <span>
-                {t('tracker.startingPrefix')} {fmtDollar(startingBankroll)}
-                <button
-                  onClick={() => { setEditStartValue(String(startingBankroll)); setIsEditingStart(true) }}
-                  data-testid="edit-starting-btn"
-                  className="ml-1 text-xs text-content/30 hover:text-gold cursor-pointer"
-                  title={t('tracker.editStarting')}
-                >
-                  {'\u270F\uFE0F'}
-                </button>
-              </span>
-            )}
-            {' \u2502 '}
-            {t('tracker.profit')} <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
-            {' \u2502 '}
-            {t('tracker.roi')} <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="stat-cards">
-          {/* Sessions */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
-            <p className="text-xs text-content/50">{t('tracker.sessions')}</p>
-            <p className="text-xl font-bold text-content" data-testid="stat-sessions">{sessionCount}</p>
-          </div>
-
-          {/* Win Rate */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
-            style={{ boxShadow: sessionCount > 0 ? winRateGlow(winRate) : 'none' }}>
-            <p className="text-xs text-content/50">{t('tracker.winRate')}</p>
-            <p className={`text-xl font-bold ${winRate > 0.55 ? 'text-green-400' : winRate >= 0.45 ? 'text-yellow-400' : 'text-red-400'}`}
-              data-testid="stat-winrate">
-              {sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014'}
-            </p>
-          </div>
-
-          {/* Avg Score */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
-            style={{ boxShadow: sessionCount > 0 ? profitGlow(avgScore > 80 ? 1 : avgScore > 60 ? 0 : -1) : 'none' }}>
-            <p className="text-xs text-content/50">{t('tracker.avgScore')}</p>
-            <p className={`text-xl font-bold ${avgScore >= 80 ? 'text-green-400' : avgScore >= 60 ? 'text-yellow-400' : 'text-red-400'}`}
-              data-testid="stat-avg-score">
-              {sessionCount > 0 ? `${avgScore.toFixed(0)}%` : '\u2014'}
-            </p>
-          </div>
-
-          {/* Total Hands */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
-            <p className="text-xs text-content/50">{t('tracker.hands')}</p>
-            <p className="text-xl font-bold text-content" data-testid="stat-hands">
-              {totalHands > 0 ? totalHands.toLocaleString(activeLocale()) : '\u2014'}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Section B: Chart ── */}
-      <section data-testid="chart-section">
-        <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.bankrollHistory')}</h2>
-        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
-          {sessions.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
-                <defs>
-                  <linearGradient id="csTrackerGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0.2} />
-                    <stop offset="95%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 11 }}
-                  axisLine
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(val: number) => `$${(val / 1000).toFixed(0)}k`}
-                  axisLine={false}
-                  tickLine={false}
-                  width={50}
-                />
-                <Tooltip content={<ChartTooltip />} />
-                <ReferenceLine
-                  y={startingBankroll}
-                  stroke="currentColor"
-                  strokeDasharray="4 4"
-                  label={{ value: t('simulator.startLine'), fontSize: 10, position: 'right' }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="bankroll"
-                  stroke={totalProfit >= 0 ? '#22c55e' : '#ef4444'}
-                  strokeWidth={2}
-                  fill="url(#csTrackerGradient)"
-                  dot={{ r: 3, fill: totalProfit >= 0 ? '#22c55e' : '#ef4444', strokeWidth: 0 }}
-                  activeDot={{ r: 5, strokeWidth: 0 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-48 flex items-center justify-center text-content/30 text-sm">
-              {t('tracker.chartEmpty')}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Section C: Personal Records ── */}
-      {sessionCount > 0 && <PersonalRecordsSection />}
-
-      {/* ── Section D: Session List ── */}
-      <section data-testid="session-section">
-        <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.sessions')}</h2>
-
-        {sortedSessions.length > 0 ? (
-          <div className="space-y-2" data-testid="session-list">
-            {sortedSessions.map(session => (
-              <SessionRow
-                key={session.id}
-                session={session}
-                confirmDeleteId={confirmDeleteId}
-                onDelete={handleDelete}
-                onConfirmDelete={setConfirmDeleteId}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-content/30 text-sm py-8" data-testid="empty-sessions">
-            {t('tracker.listEmpty')}
-          </div>
-        )}
-      </section>
-
-      {/* ── Section E: Highlights ── */}
-      {sessionCount > 0 && (
-        <section data-testid="additional-stats">
-          <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.highlights')}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Best Session */}
-            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
-              style={{ boxShadow: bestSession ? profitGlow(bestSession.profit) : 'none' }}>
-              <p className="text-xs text-content/50 mb-1">{'\uD83C\uDFC6'} {t('tracker.bestSession')}</p>
-              {bestSession && (
-                <>
-                  <p className="text-xl font-bold text-green-400" data-testid="best-session-result">
-                    {fmtDollar(bestSession.profit, true)}
-                  </p>
-                  <p className="text-xs text-content/50">{t('tracker.gradeShort', { grade: bestSession.grade, pct: bestSession.overallScore.toFixed(0) })}</p>
-                  <p className="text-xs text-content/40">{fmtDate(bestSession.date)}</p>
-                </>
-              )}
-            </div>
-
-            {/* Worst Session */}
-            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
-              style={{ boxShadow: worstSession ? profitGlow(worstSession.profit) : 'none' }}>
-              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDE22'} {t('tracker.worstSession')}</p>
-              {worstSession && (
-                <>
-                  <p className="text-xl font-bold text-red-400" data-testid="worst-session-result">
-                    {fmtDollar(worstSession.profit, true)}
-                  </p>
-                  <p className="text-xs text-content/50">{t('tracker.gradeShort', { grade: worstSession.grade, pct: worstSession.overallScore.toFixed(0) })}</p>
-                  <p className="text-xs text-content/40">{fmtDate(worstSession.date)}</p>
-                </>
-              )}
-            </div>
-
-            {/* Streaks */}
-            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center">
-              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDD25'} {t('tracker.streaks')}</p>
-              <div className="flex justify-center gap-4 mt-1">
-                <div>
-                  <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
-                  <p className="text-[0.6875rem] text-content/40">{t('tracker.win')}</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-red-400" data-testid="losing-streak">{losingStreak}</p>
-                  <p className="text-[0.6875rem] text-content/40">{t('tracker.loss')}</p>
-                </div>
+      {/* Wide, the log is a dashboard: the figures, the curve and the records
+          on the left, the sessions beside them — it used to be one 1,900px-wide
+          stack, every row a date on the far left and a bin on the far right. */}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] xl:items-start">
+        <div className="min-w-0 space-y-6">
+    {/* ── Section A: Overview ── */}
+          <section data-testid="overview-section">
+            <div className="text-center mb-4">
+              <p className="text-xs text-content/40 mb-1">{t('tracker.currentBankroll')}</p>
+              <p className={`text-4xl font-bold ${currentBankroll >= startingBankroll ? 'text-green-400' : 'text-red-400'}`}
+                data-testid="current-bankroll">
+                {fmtDollar(currentBankroll)}
+              </p>
+              <div className="text-sm text-content/50 mt-1 flex items-center justify-center gap-1 flex-wrap" data-testid="overview-summary">
+                {isEditingStart ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span>{t('tracker.startingPrefix')} $</span>
+                    <Input
+                      type="number"
+                      value={editStartValue}
+                      onChange={e => setEditStartValue(e.target.value)}
+                      data-testid="edit-starting-input"
+                      className="w-24 px-2 py-0.5 text-center"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => {
+                        const amount = parseFloat(editStartValue)
+                        if (!isNaN(amount) && amount > 0) setStartingBankroll(amount)
+                        setIsEditingStart(false)
+                      }}
+                      data-testid="save-starting-btn"
+                      className="text-xs text-green-400 hover:text-green-300 cursor-pointer font-semibold"
+                    >
+                      {t('tracker.save')}
+                    </button>
+                    <button
+                      onClick={() => setIsEditingStart(false)}
+                      data-testid="cancel-starting-btn"
+                      className="text-xs text-content/40 hover:text-content cursor-pointer"
+                    >
+                      {t('tracker.cancel')}
+                    </button>
+                  </span>
+                ) : (
+                  <span>
+                    {t('tracker.startingPrefix')} {fmtDollar(startingBankroll)}
+                    <button
+                      onClick={() => { setEditStartValue(String(startingBankroll)); setIsEditingStart(true) }}
+                      data-testid="edit-starting-btn"
+                      className="ml-1 text-xs text-content/30 hover:text-gold cursor-pointer"
+                      title={t('tracker.editStarting')}
+                    >
+                      {'\u270F\uFE0F'}
+                    </button>
+                  </span>
+                )}
+                {' \u2502 '}
+                {t('tracker.profit')} <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
+                {' \u2502 '}
+                {t('tracker.roi')} <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
               </div>
             </div>
-          </div>
-        </section>
-      )}
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="stat-cards">
+              {/* Sessions */}
+              <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
+                <p className="text-xs text-content/50">{t('tracker.sessions')}</p>
+                <p className="text-xl font-bold text-content" data-testid="stat-sessions">{sessionCount}</p>
+              </div>
+
+              {/* Win Rate */}
+              <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
+                style={{ boxShadow: sessionCount > 0 ? winRateGlow(winRate) : 'none' }}>
+                <p className="text-xs text-content/50">{t('tracker.winRate')}</p>
+                <p className={`text-xl font-bold ${winRate > 0.55 ? 'text-green-400' : winRate >= 0.45 ? 'text-yellow-400' : 'text-red-400'}`}
+                  data-testid="stat-winrate">
+                  {sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014'}
+                </p>
+              </div>
+
+              {/* Avg Score */}
+              <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
+                style={{ boxShadow: sessionCount > 0 ? profitGlow(avgScore > 80 ? 1 : avgScore > 60 ? 0 : -1) : 'none' }}>
+                <p className="text-xs text-content/50">{t('tracker.avgScore')}</p>
+                <p className={`text-xl font-bold ${avgScore >= 80 ? 'text-green-400' : avgScore >= 60 ? 'text-yellow-400' : 'text-red-400'}`}
+                  data-testid="stat-avg-score">
+                  {sessionCount > 0 ? `${avgScore.toFixed(0)}%` : '\u2014'}
+                </p>
+              </div>
+
+              {/* Total Hands */}
+              <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
+                <p className="text-xs text-content/50">{t('tracker.hands')}</p>
+                <p className="text-xl font-bold text-content" data-testid="stat-hands">
+                  {totalHands > 0 ? totalHands.toLocaleString(activeLocale()) : '\u2014'}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Section B: Chart ── */}
+          <section data-testid="chart-section">
+            <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.bankrollHistory')}</h2>
+            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+              {sessions.length > 0 ? (
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
+                    <defs>
+                      <linearGradient id="csTrackerGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0.2} />
+                        <stop offset="95%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fontSize: 11 }}
+                      axisLine
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={axisDollars}
+                      axisLine={false}
+                      tickLine={false}
+                      width={50}
+                    />
+                    <Tooltip content={<ChartTooltip />} />
+                    <ReferenceLine
+                      y={startingBankroll}
+                      stroke="currentColor"
+                      strokeDasharray="4 4"
+                      label={{ value: t('simulator.startLine'), fontSize: 10, position: 'insideTopRight' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="bankroll"
+                      stroke={totalProfit >= 0 ? '#22c55e' : '#ef4444'}
+                      strokeWidth={2}
+                      fill="url(#csTrackerGradient)"
+                      dot={{ r: 3, fill: totalProfit >= 0 ? '#22c55e' : '#ef4444', strokeWidth: 0 }}
+                      activeDot={{ r: 5, strokeWidth: 0 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-48 flex items-center justify-center text-content/30 text-sm">
+                  {t('tracker.chartEmpty')}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* ── Section C: Personal Records ── */}
+          {sessionCount > 0 && <PersonalRecordsSection />}
+
+          {/* ── Section E: Highlights ── */}
+          {sessionCount > 0 && (
+            <section data-testid="additional-stats">
+              <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.highlights')}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Best Session */}
+                <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
+                  style={{ boxShadow: bestSession ? profitGlow(bestSession.profit) : 'none' }}>
+                  <p className="text-xs text-content/50 mb-1">{'\uD83C\uDFC6'} {t('tracker.bestSession')}</p>
+                  {bestSession && (
+                    <>
+                      <p className="text-xl font-bold text-green-400" data-testid="best-session-result">
+                        {fmtDollar(bestSession.profit, true)}
+                      </p>
+                      <p className="text-xs text-content/50">{t('tracker.gradeShort', { grade: bestSession.grade, pct: bestSession.overallScore.toFixed(0) })}</p>
+                      <p className="text-xs text-content/40">{fmtDate(bestSession.date)}</p>
+                    </>
+                  )}
+                </div>
+
+                {/* Worst Session */}
+                <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
+                  style={{ boxShadow: worstSession ? profitGlow(worstSession.profit) : 'none' }}>
+                  <p className="text-xs text-content/50 mb-1">{'\uD83D\uDE22'} {t('tracker.worstSession')}</p>
+                  {worstSession && (
+                    <>
+                      <p className="text-xl font-bold text-red-400" data-testid="worst-session-result">
+                        {fmtDollar(worstSession.profit, true)}
+                      </p>
+                      <p className="text-xs text-content/50">{t('tracker.gradeShort', { grade: worstSession.grade, pct: worstSession.overallScore.toFixed(0) })}</p>
+                      <p className="text-xs text-content/40">{fmtDate(worstSession.date)}</p>
+                    </>
+                  )}
+                </div>
+
+                {/* Streaks */}
+                <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center">
+                  <p className="text-xs text-content/50 mb-1">{'\uD83D\uDD25'} {t('tracker.streaks')}</p>
+                  <div className="flex justify-center gap-4 mt-1">
+                    <div>
+                      <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
+                      <p className="text-[0.6875rem] text-content/40">{t('tracker.win')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-red-400" data-testid="losing-streak">{losingStreak}</p>
+                      <p className="text-[0.6875rem] text-content/40">{t('tracker.loss')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+      
+        </div>
+        <div className="min-w-0 xl:sticky xl:top-0" data-testid="session-column">
+    {/* ── Section D: Session List ── */}
+          <section data-testid="session-section">
+            <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.sessions')}</h2>
+
+            {sortedSessions.length > 0 ? (
+              <div className="space-y-2 xl:max-h-[calc(100dvh-14rem)] xl:overflow-y-auto xl:pr-1" data-testid="session-list">
+                {sortedSessions.map(session => (
+                  <SessionRow
+                    key={session.id}
+                    session={session}
+                    confirmDeleteId={confirmDeleteId}
+                    onDelete={handleDelete}
+                    onConfirmDelete={setConfirmDeleteId}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center text-content/30 text-sm py-8" data-testid="empty-sessions">
+                {t('tracker.listEmpty')}
+              </div>
+            )}
+          </section>
+
+      
+        </div>
+      </div>
 
       {/* Bottom padding */}
       <div className="pb-8" />

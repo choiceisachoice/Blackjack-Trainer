@@ -32,8 +32,8 @@
       "analytics": "Analizler",
       "strategyChart": "Strateji",
       "achievements": "Ödüller",
-      "bankrollSim": "Kasa",
-      "casinoSessionTracker": "Kayıt"
+      "bankrollSim": "Gerçek casino günlüğü",
+      "casinoSessionTracker": "Masa geçmişi"
     },
     "goPro": "Pro'ya geç",
     "accountAndBilling": "Hesap ve faturalandırma",
@@ -369,7 +369,7 @@
     "r5": "Strateji tablosu",
     "r6": "Illustrious 18 & Fab 4 sapmaları",
     "r7": "Analiz — eğri, ısı haritası, beceri radarı, en zayıf eller",
-    "r8": "Bankroll takibi",
+    "r8": "Gerçek casino günlüğü",
     "r9": "Başarımlar, seviyeler & rehber",
     "basics": "temel",
     "goProHeading": "Pro'ya geç",
@@ -769,7 +769,7 @@
       "styleBasic": "Sadece Blackjack",
       "styleBasicHint": "Running count yok, true count yok — sadece oyna. Yalnızca temel strateji değerlendirilir ve yine de XP kazanırsın.",
       "unlimited": "Sınırsız",
-      "unlimitedHint": "İstediğin kadar oyna, istediğin zaman kasadan çık. Oturum takipçine kaydedilir.",
+      "unlimitedHint": "İstediğin kadar oyna, istediğin zaman kasadan çık. Oturum masa geçmişine kaydedilir.",
       "multiHand": "Birden fazla el oyna",
       "multiHandHint": "Masadaki her boş yer bir + gösterir. En fazla {{count}} el açabilirsin.",
       "lineHands_one": "{{count}} el",
@@ -947,13 +947,9 @@
     }
   },
   "tracker": {
-    "onboardTitle": "Casino oturumlarınızı takip edin",
-    "onboardBody": "Başlamak için başlangıç bankroll’unuzu belirleyin.",
-    "onboardNote": "Sonuçlar her oturumdan sonra otomatik olarak kaydedilir.",
     "startingBankroll": "Başlangıç bankroll’u",
-    "startTracking": "Takibi başlat",
-    "title": "Oturum takibi",
-    "sub": "Oynadığınız oturumlar, sonuçlar ve notlar.",
+    "title": "Masa geçmişi",
+    "sub": "Antrenman masasında bozdurduğunuz her oturum: sonuç, not ve doğruluk.",
     "currentBankroll": "Güncel bankroll",
     "startingPrefix": "Başlangıç:",
     "save": "Kaydet",
@@ -988,7 +984,18 @@
     "playPct": "Oyun: %{{pct}}",
     "betPct": "Bahis: %{{pct}}",
     "countPct": "Sayım: %{{pct}}",
-    "streaks": "Seriler"
+    "streaks": "Seriler",
+    "intro": {
+      "title": "Oynadığınız her masa tek bir yerde",
+      "body": "Antrenman masasında bir oturum oynayın ve bozdurun. Kendiliğinden buraya gelir, yazmanız gerekmez.",
+      "point1": "Oturumlar boyunca bankroll’unuz, bir eğri olarak",
+      "point2": "Her oturum notu ve oyun, bahis ve sayma doğruluğuyla",
+      "point3": "Rekorlar: en iyi oturum, en iyi not, en uzun seri",
+      "play": "Casino masasında oyna",
+      "bankrollLabel": "Başlangıç bankroll’u (isteğe bağlı)",
+      "setBankroll": "Ayarla",
+      "bankrollNote": "Boş bırakırsanız ilk masanın bankroll’u kullanılır."
+    }
   },
   "welcome": {
     "stepOne": {
@@ -1428,6 +1435,38 @@
     "hand": {
       "soft": "yumuşak {{n}}",
       "bust": "{{n}} — battı"
+    },
+    "hub": {
+      "sub": "Oyunun kurallarından bahis aralığına dokuz bölüm. Birini okuyun, sonra pratik yapın.",
+      "colStart": "Buradan başlayın",
+      "colCount": "Sayma",
+      "basicsTitle": "Blackjack nasıl oynanır",
+      "sum": {
+        "basics": "Kurallar, kart değerleri, yumuşak ve sert eller: geri kalan her şeyin temeli.",
+        "what-is-counting": "Kutuda kalan kartlar avantajın kimde olduğunu neden belirler.",
+        "hi-lo": "Her kart için +1, 0 ya da −1: tek kuralla running count.",
+        "true-count": "Kalan desteye bölün; sayım her kutuda aynı anlama gelsin.",
+        "basic-strategy": "Krupiyenin her kartına karşı her elin doğru hamlesi.",
+        "deviations": "Sayım tablodan ne zaman ve hangi sayıda sapmanızı söyler.",
+        "i18-fab4": "Öğrenmeye değer 22 sayım hamlesi, her biri kendi sayısıyla.",
+        "bet-spread": "Sayım yüksekken daha çok bahis ve aralığın ne kadar geniş olması gerektiği.",
+        "deck-estimation": "Kaç deste kaldığını atılan kart kutusundan okuyun.",
+        "faq": "Yasal mı, ne kadar sürer, avantaj ne kadar büyük?",
+        "modes": "Her antrenman modunun neyi geliştirdiği ve ne zaman kullanılacağı."
+      },
+      "progress": "{{total}} bölümden {{done}} tanesi çalışıldı",
+      "minutes": "{{n}} dk okuma",
+      "practised": "{{n}}× çalışıldı",
+      "notYet": "Henüz çalışılmadı",
+      "reference": "Başvuru",
+      "chapterN": "Bölüm {{n}}",
+      "back": "Tüm bölümler",
+      "next": "Sonraki",
+      "prev": "Önceki",
+      "practiseTitle": "Pratik yapın",
+      "planBody": "Planınız sıradaki adımı bilir.",
+      "contents": "Bölümler",
+      "minutesShort": "{{n}} dk"
     }
   },
   "basics": {
@@ -1923,7 +1962,7 @@
       "milestones": "Kilometre taşları",
       "extreme": "Uç görevler",
       "counting_mastery": "Sayım ustalığı",
-      "bankrollTracker": "Bankroll takibi"
+      "bankrollTracker": "Gerçek casino günlüğü"
     },
     "all": "Tümü",
     "maxLevel": "En yüksek seviyeye ulaşıldı",
@@ -1943,26 +1982,26 @@
     "casinoSession": "Casino oturumu",
     "tableCounting": "Masada sayım",
     "deviationTable": "Sapma (masa)",
-    "bankrollTracker": "Bankroll takibi",
+    "bankrollTracker": "Gerçek casino günlüğü",
     "learn": "Öğren",
     "analytics": "Analizler",
     "strategyChart": "Temel strateji tablosu",
     "achievements": "Ödüller",
     "deviationTraining": "Sapma antrenmanı",
-    "casinoSessionTracker": "Casino turu takibi"
+    "casinoSessionTracker": "Masa geçmişi"
   },
   "home": {
     "trainingModes": "Antrenman modları",
     "toolsProgress": "Araçlar ve ilerleme",
-    "trackerTitle": "Oturum takibi",
+    "trackerTitle": "Masa geçmişi",
     "desc": {
       "speedDrill": "Hızla geçen kartlarla sayma hızınızı çalışın",
       "deviationTraining": "Her eli çalışın — ve ne zaman sapmanız gerektiğini",
       "betSpread": "True count’a göre en uygun bahsi çalışın",
       "deckEstimation": "Ayakkabıda kalan desteyi tahmin edin",
       "casinoSession": "Gerçekçi bir masada tam bir oturum oynayın",
-      "bankrollSim": "Gerçek casino sonuçlarınızı takip edin",
-      "tracker": "Antrenman turlarınızın sonuçlarını takip edin",
+      "bankrollSim": "Gerçek bir casinodaki oturumlarınızı, gerçek parayla kaydedin",
+      "tracker": "Antrenman masasındaki her oturum, kendiliğinden kaydedilir",
       "learn": "Kart sayma nasıl işler — yeni başlayanlar için",
       "analytics": "İstatistiklerinizi, eğilimlerinizi ve ilerlemenizi görün",
       "strategyChart": "Tam strateji tablosunu görün",
@@ -2327,10 +2366,8 @@
     "unlockedCount": "{{n}} açıldı"
   },
   "sim": {
-    "onboardTitle": "Bankroll’unuzu takip edin",
-    "onboardBody": "Zaman içindeki performansınızı görmek için gerçek casino oturumlarınızı kaydedin.",
-    "title": "Bankroll takibi",
-    "sub": "Gerçek casino oturumlarınızı ve sonuçlarınızı takip edin.",
+    "title": "Gerçek casino günlüğü",
+    "sub": "Gerçek casinolardaki oturumlarınız, gerçek parayla.",
     "chartEmpty": "Grafiği görmek için ilk oturumunuzu ekleyin",
     "hoursPlayed": "Oynanan saat",
     "notesPlaceholder": "İyi penetrasyon, 6 deste, S17…",
@@ -2369,11 +2406,22 @@
     "loss": "Kayıp",
     "roi": "ROI:",
     "perHour": "$/sa",
-    "addSession": "+ Tur ekle",
+    "addSession": "+ Oturum ekle",
     "winPlus": "Kazanç +",
     "hoursShort": "{{n}} sa",
-    "emptySessions": "Henüz tur yok. İlk casino ziyaretinizi ekleyin!",
-    "nSessions": "{{n}} tur"
+    "emptySessions": "Henüz oturum yok. İlk casino ziyaretinizi ekleyin!",
+    "nSessions": "{{n}} tur",
+    "intro": {
+      "title": "Gerçek paralı oturumlarınız ve bankroll’unuzun durumu",
+      "body": "Gerçek bir casinoda geçen bir akşamdan sonra bir satır ekleyin: nerede, ne kadar, kazanç ya da kayıp. Gerisini günlük yapar.",
+      "point1": "İlk kayıttan itibaren bankroll’unuz bir eğri olarak",
+      "point2": "Kazanma oranı ve saat başına dolar",
+      "point3": "En iyi casino, en iyi oturum ve seriler",
+      "start": "Günlüğümü başlat",
+      "note": "Başlangıç bankroll’unu sonra değiştirebilirsiniz.",
+      "venue1": "Nehir Casino",
+      "venue2": "Grand Otel Casino"
+    }
   },
   "chart": {
     "title": "Temel strateji tablosu",
@@ -2809,5 +2857,10 @@
     "free2": "Her alıştırmadaki istatistiklerin, her cihazda",
     "free3": "Tam casino masasında on el",
     "freeStrip": "Ücretsiz: planın, istatistiklerin ve tam masada on el. Kart gerekmez."
+  },
+  "trackerIntro": {
+    "example": "Örnek",
+    "exampleCaption": "Sayfa dolduğunda böyle görünür",
+    "exampleAria": "Dolu bir sayfa örneği"
   }
 }

@@ -10,9 +10,11 @@ import {
   Area,
   AreaChart,
 } from 'recharts'
-import { Wallet } from 'lucide-react'
+import { ArrowRight, Clock, LineChart, MapPin, Wallet } from 'lucide-react'
 import { useBankrollTrackerStore, type TrackedSession } from '../../store/bankroll-tracker-store'
 import { Input } from '../common/ui'
+import { TrackerIntro } from './TrackerIntro'
+import { axisDollars, introDollars } from './tracker-format'
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -51,6 +53,20 @@ function profitGlow(profit: number): string {
   if (profit > 0) return '0 0 20px rgba(34, 197, 94, 0.25), 0 0 40px rgba(34, 197, 94, 0.08)'
   if (profit < 0) return '0 0 20px rgba(239, 68, 68, 0.2), 0 0 40px rgba(239, 68, 68, 0.05)'
   return 'none'
+}
+
+/** The starting bankroll the first screen offers. Plain digits: a number input reads them in every language. */
+const DEFAULT_BANKROLL = '10000'
+
+/**
+ * A day a few days back, short, in the reader's language — for the example
+ * rows of the first screen, so they read like recent entries.
+ *
+ * @param daysAgo - How many days before today
+ */
+function sampleDay(daysAgo: number): string {
+  const d = new Date(Date.now() - daysAgo * 86_400_000)
+  return d.toLocaleDateString(activeLocale(), { month: 'short', day: 'numeric' })
 }
 
 function todayString(): string {
@@ -110,7 +126,9 @@ export function BankrollSimulator() {
   const getLosingStreak = useBankrollTrackerStore(s => s.getLosingStreak)
 
   // ── Onboarding state ──
-  const [onboardingBankroll, setOnboardingBankroll] = useState('')
+  // Prefilled: the field is the one thing between a newcomer and the log,
+  // and an empty field behind a disabled button read as a wall.
+  const [onboardingBankroll, setOnboardingBankroll] = useState(DEFAULT_BANKROLL)
   const isOnboarding = startingBankroll === 0 && sessions.length === 0
 
   // ── Form state ──
@@ -256,476 +274,514 @@ export function BankrollSimulator() {
     setStartingBankroll(amount)
   }, [onboardingBankroll, setStartingBankroll])
 
-  // ── Onboarding Screen ──
+  // ── First screen: nothing logged yet ──
   if (isOnboarding) {
+    const amount = parseFloat(onboardingBankroll)
+    const valid = !isNaN(amount) && amount > 0
     return (
-      <div className="flex-1 overflow-y-auto p-4 md:p-6" data-testid="bankroll-tracker">
-        <div className="max-w-md mx-auto mt-16 text-center">
-          <span className="grid place-items-center w-16 h-16 mx-auto mb-4 rounded-2xl text-gold bg-gold/10 border border-gold/20">
-            <Wallet size={30} />
-          </span>
-          <h2 className="text-2xl font-bold text-content mb-3">{t('sim.onboardTitle')}</h2>
-          <p className="text-content/50 mb-8">
-            {t('sim.onboardBody')}
-          </p>
-          <div className="flex flex-col items-center gap-4">
-            <label className="w-full max-w-xs">
-              <span className="text-sm text-content/60 block mb-2">{t('tracker.startingBankroll')}</span>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
-                <Input
-                  type="number"
-                  value={onboardingBankroll}
-                  onChange={e => setOnboardingBankroll(e.target.value)}
-                  placeholder={exampleBankroll()}
-                  data-testid="onboarding-bankroll-input"
-                  className="w-full pl-7 pr-3 py-3 rounded-xl text-lg text-center"
-                />
-              </div>
-            </label>
+      <TrackerIntro
+        testId="bankroll-tracker"
+        icon={Wallet}
+        kicker={t('sim.title')}
+        title={t('sim.intro.title')}
+        body={t('sim.intro.body')}
+        points={[
+          { icon: LineChart, text: t('sim.intro.point1') },
+          { icon: Clock, text: t('sim.intro.point2') },
+          { icon: MapPin, text: t('sim.intro.point3') },
+        ]}
+        sample={{
+          stats: [
+            { label: t('tracker.sessions'), value: '10' },
+            { label: t('tracker.winRate'), value: '60%', tone: 'up' },
+            { label: t('sim.perHour'), value: introDollars(47, true), tone: 'up' },
+          ],
+          curve: [5000, 5350, 4930, 5540, 5390, 6270, 5970, 6210, 6730, 6120, 6520],
+          rows: [
+            { primary: `${sampleDay(4)} · ${t('sim.intro.venue1')}`, secondary: t('sim.hoursShort', { n: 3 }), amount: 400 },
+            { primary: `${sampleDay(11)} · ${t('sim.intro.venue2')}`, secondary: t('sim.hoursShort', { n: 2 }), amount: -610 },
+            { primary: `${sampleDay(17)} · ${t('sim.intro.venue1')}`, secondary: t('sim.hoursShort', { n: 4 }), amount: 520 },
+          ],
+        }}
+      >
+        <form
+          className="flex flex-col gap-2 max-w-md"
+          onSubmit={e => { e.preventDefault(); handleStartTracking() }}
+        >
+          <label htmlFor="onboarding-bankroll" className="text-sm font-medium text-content/75">{t('tracker.startingBankroll')}</label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-content/45">$</span>
+              <Input
+                id="onboarding-bankroll"
+                type="number"
+                inputMode="decimal"
+                min="1"
+                value={onboardingBankroll}
+                onChange={e => setOnboardingBankroll(e.target.value)}
+                placeholder={exampleBankroll()}
+                data-testid="onboarding-bankroll-input"
+                className="w-full h-12 pl-8 pr-3 rounded-xl text-lg tabular-nums"
+              />
+            </div>
             <button
-              onClick={handleStartTracking}
+              type="submit"
               data-testid="start-tracking-btn"
-              disabled={!onboardingBankroll || parseFloat(onboardingBankroll) <= 0}
-              className="px-8 py-3 rounded-xl bg-gold text-on-gold font-semibold text-lg hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              disabled={!valid}
+              className="lift-glow h-12 px-6 rounded-xl inline-flex items-center justify-center gap-2 text-base font-bold text-on-gold whitespace-nowrap
+                bg-gradient-to-b from-gold-bright to-gold border border-gold/50 shadow-[0_10px_30px_-12px_var(--color-gold)] cursor-pointer
+                disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {t('tracker.startTracking')}
+              {t('sim.intro.start')} <ArrowRight size={17} aria-hidden />
             </button>
           </div>
-        </div>
-      </div>
+          <p className="text-xs text-content/45">{t('sim.intro.note')}</p>
+        </form>
+      </TrackerIntro>
     )
   }
 
   // ── Main Tracker View ──
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6" data-testid="bankroll-tracker">
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:px-8 space-y-6" data-testid="bankroll-tracker">
       {/* Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-gold-gradient">{t('sim.title')}</h1>
         <p className="text-sm text-content/50">{t('sim.sub')}</p>
       </div>
 
-      {/* ── Section A: Overview ── */}
-      <section data-testid="overview-section">
-        <div className="text-center mb-4">
-          <p className="text-xs text-content/40 mb-1">{t('tracker.currentBankroll')}</p>
-          <p className={`text-4xl font-bold ${currentBankroll >= startingBankroll ? 'text-green-400' : 'text-red-400'}`}
-            data-testid="current-bankroll">
-            {fmtDollar(currentBankroll)}
-          </p>
-          <div className="text-sm text-content/50 mt-1 flex items-center justify-center gap-1 flex-wrap" data-testid="overview-summary">
-            {isEditingStart ? (
-              <span className="inline-flex items-center gap-1.5">
-                <span>{t('tracker.startingPrefix')} $</span>
-                <Input
-                  type="number"
-                  value={editStartValue}
-                  onChange={e => setEditStartValue(e.target.value)}
-                  data-testid="edit-starting-input"
-                  className="w-24 px-2 py-0.5 text-center"
-                  autoFocus
-                />
-                <button
-                  onClick={() => {
-                    const amount = parseFloat(editStartValue)
-                    if (!isNaN(amount) && amount > 0) setStartingBankroll(amount)
-                    setIsEditingStart(false)
-                  }}
-                  data-testid="save-starting-btn"
-                  className="text-xs text-green-400 hover:text-green-300 cursor-pointer font-semibold"
-                >
-                  {t('tracker.save')}
-                </button>
-                <button
-                  onClick={() => setIsEditingStart(false)}
-                  data-testid="cancel-starting-btn"
-                  className="text-xs text-content/40 hover:text-content cursor-pointer"
-                >
-                  {t('common.cancel')}
-                </button>
-              </span>
-            ) : (
-              <span>
-                {t('tracker.startingPrefix')} {fmtDollar(startingBankroll)}
-                <button
-                  onClick={() => { setEditStartValue(String(startingBankroll)); setIsEditingStart(true) }}
-                  data-testid="edit-starting-btn"
-                  className="ml-1 text-xs text-content/30 hover:text-gold cursor-pointer"
-                  title={t('tracker.editStarting')}
-                >
-                  {'\u270F\uFE0F'}
-                </button>
-              </span>
-            )}
-            {' \u2502 '}
-            {t('tracker.profit')} <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
-            {' \u2502 '}
-            {t('sim.roi')} <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="stat-cards">
-          {/* Sessions */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
-            <p className="text-xs text-content/50">{t('tracker.sessions')}</p>
-            <p className="text-xl font-bold text-content" data-testid="stat-sessions">{sessionCount}</p>
-          </div>
-
-          {/* Win Rate */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
-            style={{ boxShadow: sessionCount > 0 ? winRateGlow(winRate) : 'none' }}>
-            <p className="text-xs text-content/50">{t('tracker.winRate')}</p>
-            <p className={`text-xl font-bold ${winRate > 0.55 ? 'text-green-400' : winRate >= 0.45 ? 'text-yellow-400' : 'text-red-400'}`}
-              data-testid="stat-winrate">
-              {sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014'}
-            </p>
-          </div>
-
-          {/* $/hr */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
-            style={{ boxShadow: sessionCount > 0 ? profitGlow(avgPerHour) : 'none' }}>
-            <p className="text-xs text-content/50">{t('sim.perHour')}</p>
-            <p className={`text-xl font-bold ${avgPerHour >= 0 ? 'text-green-400' : 'text-red-400'}`}
-              data-testid="stat-per-hour">
-              {sessionCount > 0 ? `$${avgPerHour.toFixed(2)}` : '\u2014'}
-            </p>
-          </div>
-
-          {/* Total Hours */}
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
-            <p className="text-xs text-content/50">{t('sim.hours')}</p>
-            <p className="text-xl font-bold text-content" data-testid="stat-hours">
-              {totalHours > 0 ? `${totalHours.toFixed(1)}h` : '\u2014'}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Section B: Chart ── */}
-      <section data-testid="chart-section">
-        <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.bankrollHistory')}</h2>
-        <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
-          {sessions.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
-                <defs>
-                  <linearGradient id="bankrollGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0.2} />
-                    <stop offset="95%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 11 }}
-                  axisLine
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(val: number) => `$${(val / 1000).toFixed(0)}k`}
-                  axisLine={false}
-                  tickLine={false}
-                  width={50}
-                />
-                <Tooltip content={<ChartTooltip />} />
-                <ReferenceLine
-                  y={startingBankroll}
-                  stroke="currentColor"
-                  strokeDasharray="4 4"
-                  label={{ value: t('simulator.startLine'), fontSize: 10, position: 'right' }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="bankroll"
-                  stroke={totalProfit >= 0 ? '#22c55e' : '#ef4444'}
-                  strokeWidth={2}
-                  fill="url(#bankrollGradient)"
-                  dot={{ r: 3, fill: totalProfit >= 0 ? '#22c55e' : '#ef4444', strokeWidth: 0 }}
-                  activeDot={{ r: 5, strokeWidth: 0 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-48 flex items-center justify-center text-content/30 text-sm">
-              {t('sim.chartEmpty')}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ── Section B2: Personal Records ── */}
-      {sessionCount > 0 && <PersonalRecordsSection />}
-
-      {/* ── Section C: Session List + Form ── */}
-      <section data-testid="session-section">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-content">{t('sim.sessionsHeading')}</h2>
-          {!showForm && (
-            <button
-              onClick={openAddForm}
-              data-testid="add-session-btn"
-              className="px-4 py-2 rounded-xl bg-gold text-on-gold font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer"
-            >
-              {t('sim.addSession')}
-            </button>
-          )}
-        </div>
-
-        {/* ── Session Form ── */}
-        {showForm && (
-          <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 mb-4" data-testid="session-form">
-            <h3 className="text-sm font-semibold text-content mb-3">
-              {editingId ? t('simulator.editSession') : `+ ${t('simulator.newSession')}`}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Date */}
-              <label className="block">
-                <span className="text-xs text-content/60">{t('sim.date')}</span>
-                <Input
-                  type="date"
-                  value={formDate}
-                  onChange={e => setFormDate(e.target.value)}
-                  data-testid="form-date"
-                  className="w-full mt-1"
-                />
-              </label>
-
-              {/* Casino */}
-              <label className="block relative" ref={casinoInputRef}>
-                <span className="text-xs text-content/60">{t('sim.casino')}</span>
-                <Input
-                  type="text"
-                  value={formCasino}
-                  onChange={e => { setFormCasino(e.target.value); setShowCasinoDropdown(true) }}
-                  onFocus={() => setShowCasinoDropdown(true)}
-                  placeholder="e.g. Bellagio"
-                  data-testid="form-casino"
-                  className="w-full mt-1"
-                />
-                {showCasinoDropdown && filteredCasinos.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-casino-bg border border-contrast/20 rounded-lg shadow-lg max-h-32 overflow-y-auto"
-                    data-testid="casino-dropdown">
-                    {filteredCasinos.map(name => (
-                      <button
-                        key={name}
-                        onClick={() => { setFormCasino(name); setShowCasinoDropdown(false) }}
-                        className="w-full text-left px-3 py-2 text-sm text-content/70 hover:bg-contrast/10 cursor-pointer"
-                      >
-                        {name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </label>
-
-              {/* Result */}
-              <div>
-                <span className="text-xs text-content/60 block">{t('sim.result')}</span>
-                <div className="flex gap-2 mt-1">
-                  <button
-                    onClick={() => setFormIsWin(true)}
-                    data-testid="form-win-btn"
-                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                      formIsWin
-                        ? 'bg-green-500/20 border border-green-500/50 text-green-400'
-                        : 'bg-contrast/5 border border-contrast/20 text-content/50'
-                    }`}
-                  >
-                    {t('sim.winPlus')}
-                  </button>
-                  <button
-                    onClick={() => setFormIsWin(false)}
-                    data-testid="form-loss-btn"
-                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-                      !formIsWin
-                        ? 'bg-red-500/20 border border-red-500/50 text-red-400'
-                        : 'bg-contrast/5 border border-contrast/20 text-content/50'
-                    }`}
-                  >
-                    {t('sim.loss')} -
-                  </button>
-                  <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
+      {/* Wide, the log is a dashboard: the figures, the curve and the records
+          on the left, the sessions beside them — it used to be one 1,900px-wide
+          stack, every row a date on the far left and a bin on the far right. */}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] xl:items-start">
+        <div className="min-w-0 space-y-6">
+    {/* ── Section A: Overview ── */}
+          <section data-testid="overview-section">
+            <div className="text-center mb-4">
+              <p className="text-xs text-content/40 mb-1">{t('tracker.currentBankroll')}</p>
+              <p className={`text-4xl font-bold ${currentBankroll >= startingBankroll ? 'text-green-400' : 'text-red-400'}`}
+                data-testid="current-bankroll">
+                {fmtDollar(currentBankroll)}
+              </p>
+              <div className="text-sm text-content/50 mt-1 flex items-center justify-center gap-1 flex-wrap" data-testid="overview-summary">
+                {isEditingStart ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span>{t('tracker.startingPrefix')} $</span>
                     <Input
                       type="number"
-                      value={formAmount}
-                      onChange={e => setFormAmount(e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      data-testid="form-amount"
-                      className={`w-full pl-7 pr-3 py-2 rounded-lg bg-input-bg text-content text-sm border ${
-                        formIsWin
-                          ? 'border-green-500/30 focus:border-green-500/60'
-                          : 'border-red-500/30 focus:border-red-500/60'
-                      }`}
+                      value={editStartValue}
+                      onChange={e => setEditStartValue(e.target.value)}
+                      data-testid="edit-starting-input"
+                      className="w-24 px-2 py-0.5 text-center"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => {
+                        const amount = parseFloat(editStartValue)
+                        if (!isNaN(amount) && amount > 0) setStartingBankroll(amount)
+                        setIsEditingStart(false)
+                      }}
+                      data-testid="save-starting-btn"
+                      className="text-xs text-green-400 hover:text-green-300 cursor-pointer font-semibold"
+                    >
+                      {t('tracker.save')}
+                    </button>
+                    <button
+                      onClick={() => setIsEditingStart(false)}
+                      data-testid="cancel-starting-btn"
+                      className="text-xs text-content/40 hover:text-content cursor-pointer"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                  </span>
+                ) : (
+                  <span>
+                    {t('tracker.startingPrefix')} {fmtDollar(startingBankroll)}
+                    <button
+                      onClick={() => { setEditStartValue(String(startingBankroll)); setIsEditingStart(true) }}
+                      data-testid="edit-starting-btn"
+                      className="ml-1 text-xs text-content/30 hover:text-gold cursor-pointer"
+                      title={t('tracker.editStarting')}
+                    >
+                      {'\u270F\uFE0F'}
+                    </button>
+                  </span>
+                )}
+                {' \u2502 '}
+                {t('tracker.profit')} <span className={totalProfit >= 0 ? 'text-green-400' : 'text-red-400'}>{fmtDollar(totalProfit, true)}</span>
+                {' \u2502 '}
+                {t('sim.roi')} <span className={roi >= 0 ? 'text-green-400' : 'text-red-400'}>{roi >= 0 ? '+' : ''}{(roi * 100).toFixed(1)}%</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="stat-cards">
+              {/* Sessions */}
+              <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
+                <p className="text-xs text-content/50">{t('tracker.sessions')}</p>
+                <p className="text-xl font-bold text-content" data-testid="stat-sessions">{sessionCount}</p>
+              </div>
+
+              {/* Win Rate */}
+              <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
+                style={{ boxShadow: sessionCount > 0 ? winRateGlow(winRate) : 'none' }}>
+                <p className="text-xs text-content/50">{t('tracker.winRate')}</p>
+                <p className={`text-xl font-bold ${winRate > 0.55 ? 'text-green-400' : winRate >= 0.45 ? 'text-yellow-400' : 'text-red-400'}`}
+                  data-testid="stat-winrate">
+                  {sessionCount > 0 ? `${Math.round(winRate * 100)}%` : '\u2014'}
+                </p>
+              </div>
+
+              {/* $/hr */}
+              <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center transition-shadow"
+                style={{ boxShadow: sessionCount > 0 ? profitGlow(avgPerHour) : 'none' }}>
+                <p className="text-xs text-content/50">{t('sim.perHour')}</p>
+                <p className={`text-xl font-bold ${avgPerHour >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                  data-testid="stat-per-hour">
+                  {sessionCount > 0 ? `$${avgPerHour.toFixed(2)}` : '\u2014'}
+                </p>
+              </div>
+
+              {/* Total Hours */}
+              <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-3 text-center">
+                <p className="text-xs text-content/50">{t('sim.hours')}</p>
+                <p className="text-xl font-bold text-content" data-testid="stat-hours">
+                  {totalHours > 0 ? `${totalHours.toFixed(1)}h` : '\u2014'}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Section B: Chart ── */}
+          <section data-testid="chart-section">
+            <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.bankrollHistory')}</h2>
+            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4">
+              {sessions.length > 0 ? (
+                <ResponsiveContainer width="100%" height={280}>
+                  <AreaChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 10 }}>
+                    <defs>
+                      <linearGradient id="bankrollGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0.2} />
+                        <stop offset="95%" stopColor={totalProfit >= 0 ? '#22c55e' : '#ef4444'} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fontSize: 11 }}
+                      axisLine
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={axisDollars}
+                      axisLine={false}
+                      tickLine={false}
+                      width={50}
+                    />
+                    <Tooltip content={<ChartTooltip />} />
+                    <ReferenceLine
+                      y={startingBankroll}
+                      stroke="currentColor"
+                      strokeDasharray="4 4"
+                      label={{ value: t('simulator.startLine'), fontSize: 10, position: 'insideTopRight' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="bankroll"
+                      stroke={totalProfit >= 0 ? '#22c55e' : '#ef4444'}
+                      strokeWidth={2}
+                      fill="url(#bankrollGradient)"
+                      dot={{ r: 3, fill: totalProfit >= 0 ? '#22c55e' : '#ef4444', strokeWidth: 0 }}
+                      activeDot={{ r: 5, strokeWidth: 0 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-48 flex items-center justify-center text-content/30 text-sm">
+                  {t('sim.chartEmpty')}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* ── Section B2: Personal Records ── */}
+          {sessionCount > 0 && <PersonalRecordsSection />}
+
+          {/* ── Section D: Additional Stats ── */}
+          {sessionCount > 0 && (
+            <section data-testid="additional-stats">
+              <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.highlights')}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Best Session */}
+                <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
+                  style={{ boxShadow: bestSession ? profitGlow(bestSession.result) : 'none' }}>
+                  <p className="text-xs text-content/50 mb-1">{'\uD83C\uDFC6'} {t('tracker.bestSession')}</p>
+                  {bestSession && (
+                    <>
+                      <p className="text-xl font-bold text-green-400" data-testid="best-session-result">
+                        {fmtDollar(bestSession.result, true)}
+                      </p>
+                      <p className="text-xs text-content/50">{bestSession.casino}</p>
+                      <p className="text-xs text-content/40">{fmtDate(bestSession.date)}</p>
+                    </>
+                  )}
+                </div>
+
+                {/* Worst Session */}
+                <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
+                  style={{ boxShadow: worstSession ? profitGlow(worstSession.result) : 'none' }}>
+                  <p className="text-xs text-content/50 mb-1">{'\uD83D\uDE22'} {t('tracker.worstSession')}</p>
+                  {worstSession && (
+                    <>
+                      <p className="text-xl font-bold text-red-400" data-testid="worst-session-result">
+                        {fmtDollar(worstSession.result, true)}
+                      </p>
+                      <p className="text-xs text-content/50">{worstSession.casino}</p>
+                      <p className="text-xs text-content/40">{fmtDate(worstSession.date)}</p>
+                    </>
+                  )}
+                </div>
+
+                {/* Streaks */}
+                <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center">
+                  <p className="text-xs text-content/50 mb-1">{'\uD83D\uDD25'} {t('tracker.streaks')}</p>
+                  <div className="flex justify-center gap-4 mt-1">
+                    <div>
+                      <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
+                      <p className="text-[0.6875rem] text-content/40">{t('tracker.win')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-red-400" data-testid="losing-streak">{losingStreak}</p>
+                      <p className="text-[0.6875rem] text-content/40">{t('tracker.loss')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+      
+        </div>
+        <div className="min-w-0 xl:sticky xl:top-0" data-testid="session-column">
+    {/* ── Section C: Session List + Form ── */}
+          <section data-testid="session-section">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-content">{t('sim.sessionsHeading')}</h2>
+              {!showForm && (
+                <button
+                  onClick={openAddForm}
+                  data-testid="add-session-btn"
+                  className="px-4 py-2 rounded-xl bg-gold text-on-gold font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer"
+                >
+                  {t('sim.addSession')}
+                </button>
+              )}
+            </div>
+
+            {/* ── Session Form ── */}
+            {showForm && (
+              <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 mb-4" data-testid="session-form">
+                <h3 className="text-sm font-semibold text-content mb-3">
+                  {editingId ? t('simulator.editSession') : `+ ${t('simulator.newSession')}`}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Date */}
+                  <label className="block">
+                    <span className="text-xs text-content/60">{t('sim.date')}</span>
+                    <Input
+                      type="date"
+                      value={formDate}
+                      onChange={e => setFormDate(e.target.value)}
+                      data-testid="form-date"
+                      className="w-full mt-1"
+                    />
+                  </label>
+
+                  {/* Casino */}
+                  <label className="block relative" ref={casinoInputRef}>
+                    <span className="text-xs text-content/60">{t('sim.casino')}</span>
+                    <Input
+                      type="text"
+                      value={formCasino}
+                      onChange={e => { setFormCasino(e.target.value); setShowCasinoDropdown(true) }}
+                      onFocus={() => setShowCasinoDropdown(true)}
+                      placeholder="e.g. Bellagio"
+                      data-testid="form-casino"
+                      className="w-full mt-1"
+                    />
+                    {showCasinoDropdown && filteredCasinos.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-casino-bg border border-contrast/20 rounded-lg shadow-lg max-h-32 overflow-y-auto"
+                        data-testid="casino-dropdown">
+                        {filteredCasinos.map(name => (
+                          <button
+                            key={name}
+                            onClick={() => { setFormCasino(name); setShowCasinoDropdown(false) }}
+                            className="w-full text-left px-3 py-2 text-sm text-content/70 hover:bg-contrast/10 cursor-pointer"
+                          >
+                            {name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </label>
+
+                  {/* Result */}
+                  <div>
+                    <span className="text-xs text-content/60 block">{t('sim.result')}</span>
+                    <div className="flex gap-2 mt-1">
+                      <button
+                        onClick={() => setFormIsWin(true)}
+                        data-testid="form-win-btn"
+                        className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                          formIsWin
+                            ? 'bg-green-500/20 border border-green-500/50 text-green-400'
+                            : 'bg-contrast/5 border border-contrast/20 text-content/50'
+                        }`}
+                      >
+                        {t('sim.winPlus')}
+                      </button>
+                      <button
+                        onClick={() => setFormIsWin(false)}
+                        data-testid="form-loss-btn"
+                        className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                          !formIsWin
+                            ? 'bg-red-500/20 border border-red-500/50 text-red-400'
+                            : 'bg-contrast/5 border border-contrast/20 text-content/50'
+                        }`}
+                      >
+                        {t('sim.loss')} -
+                      </button>
+                      <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-content/40">$</span>
+                        <Input
+                          type="number"
+                          value={formAmount}
+                          onChange={e => setFormAmount(e.target.value)}
+                          placeholder="0"
+                          min="0"
+                          data-testid="form-amount"
+                          className={`w-full pl-7 pr-3 py-2 rounded-lg bg-input-bg text-content text-sm border ${
+                            formIsWin
+                              ? 'border-green-500/30 focus:border-green-500/60'
+                              : 'border-red-500/30 focus:border-red-500/60'
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hours */}
+                  <label className="block">
+                    <span className="text-xs text-content/60">{t('sim.hoursPlayed')}</span>
+                    <Input
+                      type="number"
+                      value={formHours}
+                      onChange={e => setFormHours(e.target.value)}
+                      min="0.5"
+                      step="0.5"
+                      data-testid="form-hours"
+                      className="w-full mt-1"
+                    />
+                  </label>
+
+                  {/* Notes */}
+                  <div className="sm:col-span-2">
+                    <span className="text-xs text-content/60 block">{t('sim.notes')}</span>
+                    <textarea
+                      value={formNotes}
+                      onChange={e => setFormNotes(e.target.value)}
+                      placeholder={t('sim.notesPlaceholder')}
+                      rows={2}
+                      data-testid="form-notes"
+                      className="w-full mt-1 resize-none"
                     />
                   </div>
                 </div>
+
+                <div className="flex justify-end gap-3 mt-4">
+                  <button
+                    onClick={resetForm}
+                    data-testid="form-cancel"
+                    className="px-4 py-2 rounded-lg text-sm text-content/60 hover:text-content transition-colors cursor-pointer"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    data-testid="form-save"
+                    disabled={!formAmount || parseFloat(formAmount) < 0 || !formHours || parseFloat(formHours) <= 0}
+                    className="px-6 py-2 rounded-lg bg-gold text-on-gold font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {editingId ? t('simulator.saveChanges') : t('simulator.saveSession')}
+                  </button>
+                </div>
               </div>
+            )}
 
-              {/* Hours */}
-              <label className="block">
-                <span className="text-xs text-content/60">{t('sim.hoursPlayed')}</span>
-                <Input
-                  type="number"
-                  value={formHours}
-                  onChange={e => setFormHours(e.target.value)}
-                  min="0.5"
-                  step="0.5"
-                  data-testid="form-hours"
-                  className="w-full mt-1"
-                />
-              </label>
-
-              {/* Notes */}
-              <div className="sm:col-span-2">
-                <span className="text-xs text-content/60 block">{t('sim.notes')}</span>
-                <textarea
-                  value={formNotes}
-                  onChange={e => setFormNotes(e.target.value)}
-                  placeholder={t('sim.notesPlaceholder')}
-                  rows={2}
-                  data-testid="form-notes"
-                  className="w-full mt-1 resize-none"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-4">
-              <button
-                onClick={resetForm}
-                data-testid="form-cancel"
-                className="px-4 py-2 rounded-lg text-sm text-content/60 hover:text-content transition-colors cursor-pointer"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={handleSave}
-                data-testid="form-save"
-                disabled={!formAmount || parseFloat(formAmount) < 0 || !formHours || parseFloat(formHours) <= 0}
-                className="px-6 py-2 rounded-lg bg-gold text-on-gold font-semibold text-sm hover:bg-gold/90 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {editingId ? t('simulator.saveChanges') : t('simulator.saveSession')}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Session List ── */}
-        {sortedSessions.length > 0 ? (
-          <div className="space-y-2" data-testid="session-list">
-            {sortedSessions.map(session => (
-              <div key={session.id} className="bg-contrast/5 border border-contrast/10 rounded-xl p-3" data-testid={`session-${session.id}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-xs text-content/50 shrink-0">{fmtDate(session.date)}</span>
-                    <span className="text-sm text-content/70 truncate">{session.casino}</span>
-                    <span className={`text-sm font-bold shrink-0 ${session.result >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {fmtDollar(session.result, true)}
-                    </span>
-                    <span className="text-xs text-content/40 shrink-0">{t('sim.hoursShort', { n: session.hoursPlayed })}</span>
-                  </div>
-                  <div className="flex items-center gap-2 ml-2 shrink-0">
-                    <button
-                      onClick={() => openEditForm(session)}
-                      data-testid={`edit-${session.id}`}
-                      className="text-xs text-content/40 hover:text-gold transition-colors cursor-pointer"
-                    >
-                      {t('common.edit')}
-                    </button>
-                    {confirmDeleteId === session.id ? (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleDelete(session.id)}
-                          data-testid={`confirm-delete-${session.id}`}
-                          className="text-xs text-red-400 hover:text-red-300 cursor-pointer font-semibold"
-                        >
-                          {t('common.confirm')}
-                        </button>
-                        <button
-                          onClick={() => setConfirmDeleteId(null)}
-                          className="text-xs text-content/40 hover:text-content cursor-pointer"
-                        >
-                          {t('common.cancel')}
-                        </button>
+            {/* ── Session List ── */}
+            {sortedSessions.length > 0 ? (
+              <div className="space-y-2 xl:max-h-[calc(100dvh-14rem)] xl:overflow-y-auto xl:pr-1" data-testid="session-list">
+                {sortedSessions.map(session => (
+                  <div key={session.id} className="bg-contrast/5 border border-contrast/10 rounded-xl p-3" data-testid={`session-${session.id}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <span className="text-xs text-content/50 shrink-0">{fmtDate(session.date)}</span>
+                        <span className="text-sm text-content/70 truncate">{session.casino}</span>
+                        <span className={`text-sm font-bold shrink-0 ${session.result >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {fmtDollar(session.result, true)}
+                        </span>
+                        <span className="text-xs text-content/40 shrink-0">{t('sim.hoursShort', { n: session.hoursPlayed })}</span>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => setConfirmDeleteId(session.id)}
-                        data-testid={`delete-${session.id}`}
-                        className="text-xs text-content/40 hover:text-red-400 transition-colors cursor-pointer"
-                      >
-                        {'\uD83D\uDDD1\uFE0F'}
-                      </button>
+                      <div className="flex items-center gap-2 ml-2 shrink-0">
+                        <button
+                          onClick={() => openEditForm(session)}
+                          data-testid={`edit-${session.id}`}
+                          className="text-xs text-content/40 hover:text-gold transition-colors cursor-pointer"
+                        >
+                          {t('common.edit')}
+                        </button>
+                        {confirmDeleteId === session.id ? (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleDelete(session.id)}
+                              data-testid={`confirm-delete-${session.id}`}
+                              className="text-xs text-red-400 hover:text-red-300 cursor-pointer font-semibold"
+                            >
+                              {t('common.confirm')}
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="text-xs text-content/40 hover:text-content cursor-pointer"
+                            >
+                              {t('common.cancel')}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDeleteId(session.id)}
+                            data-testid={`delete-${session.id}`}
+                            className="text-xs text-content/40 hover:text-red-400 transition-colors cursor-pointer"
+                          >
+                            {'\uD83D\uDDD1\uFE0F'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {session.notes && (
+                      <p className="text-xs text-content/40 mt-1 truncate">{session.notes}</p>
                     )}
                   </div>
-                </div>
-                {session.notes && (
-                  <p className="text-xs text-content/40 mt-1 truncate">{session.notes}</p>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center text-content/30 text-sm py-8" data-testid="empty-sessions">
-            {t('sim.emptySessions')}
-          </div>
-        )}
-      </section>
-
-      {/* ── Section D: Additional Stats ── */}
-      {sessionCount > 0 && (
-        <section data-testid="additional-stats">
-          <h2 className="text-lg font-semibold text-content mb-3">{t('tracker.highlights')}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Best Session */}
-            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
-              style={{ boxShadow: bestSession ? profitGlow(bestSession.result) : 'none' }}>
-              <p className="text-xs text-content/50 mb-1">{'\uD83C\uDFC6'} {t('tracker.bestSession')}</p>
-              {bestSession && (
-                <>
-                  <p className="text-xl font-bold text-green-400" data-testid="best-session-result">
-                    {fmtDollar(bestSession.result, true)}
-                  </p>
-                  <p className="text-xs text-content/50">{bestSession.casino}</p>
-                  <p className="text-xs text-content/40">{fmtDate(bestSession.date)}</p>
-                </>
-              )}
-            </div>
-
-            {/* Worst Session */}
-            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center"
-              style={{ boxShadow: worstSession ? profitGlow(worstSession.result) : 'none' }}>
-              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDE22'} {t('tracker.worstSession')}</p>
-              {worstSession && (
-                <>
-                  <p className="text-xl font-bold text-red-400" data-testid="worst-session-result">
-                    {fmtDollar(worstSession.result, true)}
-                  </p>
-                  <p className="text-xs text-content/50">{worstSession.casino}</p>
-                  <p className="text-xs text-content/40">{fmtDate(worstSession.date)}</p>
-                </>
-              )}
-            </div>
-
-            {/* Streaks */}
-            <div className="bg-contrast/5 border border-contrast/10 rounded-xl p-4 text-center">
-              <p className="text-xs text-content/50 mb-1">{'\uD83D\uDD25'} {t('tracker.streaks')}</p>
-              <div className="flex justify-center gap-4 mt-1">
-                <div>
-                  <p className="text-xl font-bold text-green-400" data-testid="winning-streak">{winningStreak}</p>
-                  <p className="text-[0.6875rem] text-content/40">{t('tracker.win')}</p>
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-red-400" data-testid="losing-streak">{losingStreak}</p>
-                  <p className="text-[0.6875rem] text-content/40">{t('tracker.loss')}</p>
-                </div>
+            ) : (
+              <div className="text-center text-content/30 text-sm py-8" data-testid="empty-sessions">
+                {t('sim.emptySessions')}
               </div>
-            </div>
-          </div>
-        </section>
-      )}
+            )}
+          </section>
+
+      
+        </div>
+      </div>
 
       {/* Bottom padding */}
       <div className="pb-8" />

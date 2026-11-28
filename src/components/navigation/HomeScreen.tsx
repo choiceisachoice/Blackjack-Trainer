@@ -38,13 +38,14 @@ const TRAINING_CARDS: FeatureCard[] = [
   { mode: 'deckEstimation', icon: Layers, titleKey: 'modes.deckEstimation', descKey: 'home.desc.deckEstimation' },
 ]
 
-// The two logs that belong to the table: real casino results and the
-// training table's own sessions. They used to sit one among the drills and
-// one under the table, and their names ("Bankroll Tracker", "Casino Session
-// Tracker") then read as swapped. Beside the table they explain each other.
+// The two logs that belong to the table: the training table's own sessions
+// and real casino results. Their old names ("Casino Session Tracker",
+// "Bankroll Tracker") read as swapped — the first logged the training table,
+// the second real money — so they are now "Table history" and "Real casino
+// log", the table's own history first, right beside the table.
 const RECORD_CARDS: FeatureCard[] = [
-  { mode: 'bankrollSim', icon: Wallet, titleKey: 'modes.bankrollTracker', descKey: 'home.desc.bankrollSim' },
   { mode: 'casinoSessionTracker', icon: ClipboardList, titleKey: 'home.trackerTitle', descKey: 'home.desc.tracker' },
+  { mode: 'bankrollSim', icon: Wallet, titleKey: 'modes.bankrollTracker', descKey: 'home.desc.bankrollSim' },
 ]
 
 const TOOL_CARDS: FeatureCard[] = [

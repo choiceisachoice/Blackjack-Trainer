@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { ChevronDown, BookOpen, Sigma, Grid3x3, Coins, Zap, GraduationCap, Layers, Club, Spade, ArrowRight } from 'lucide-react'
+import { ChevronDown, BookOpen, Sigma, Grid3x3, Coins, Spade, ArrowRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { BlackjackBasics } from './BlackjackBasics'
-import { DeviationTables } from './DeviationTables'
+import { TopicChapter } from './TopicChapter'
+import { BODY_TAGS, MODE_GUIDE } from './learn-content'
 import { FAQ_COUNT } from '../../services/structured-data'
 import { learnTopicById, learnTopicPath } from '../../services/learn-topics'
+
+// The public chapter pages import the chapter from here, as they always have.
+export { TopicChapter }
 
 interface Topic {
   /** Doubles as the accordion's identity and the stem of its message keys. */
@@ -47,51 +51,8 @@ const SECTIONS: Section[] = [
   },
 ]
 
-/** The two emphasis tags every topic body may use. */
-const BODY_TAGS = {
-  g: <span className="text-gold font-medium" />,
-  c: <span className="text-content font-medium" />,
-}
-
-// The mode names reuse the keys the modes themselves use, so the guide can
-// never call a screen something the screen does not call itself.
-const MODE_GUIDE: { icon: LucideIcon; nameKey: string; textKey: string }[] = [
-  { icon: Zap, nameKey: 'training.speed.title', textKey: 'learn.mode.speed' },
-  { icon: GraduationCap, nameKey: 'training.flash.title', textKey: 'learn.mode.flash' },
-  { icon: Coins, nameKey: 'training.bet.title', textKey: 'learn.mode.bet' },
-  { icon: Layers, nameKey: 'training.deck.title', textKey: 'learn.mode.deck' },
-  { icon: Club, nameKey: 'casino.name', textKey: 'learn.mode.casino' },
-]
-
 /** Every topic id, in page order. */
 const ALL_TOPICS = SECTIONS.flatMap(s => s.topics.map(t => t.id))
-
-/** Every topic carries four chapter paragraphs under `more`. */
-const CHAPTER_PARAGRAPHS = ['p1', 'p2', 'p3', 'p4'] as const
-
-/**
- * The chapter proper: four paragraphs with the worked numbers, and the
- * deviation tables where the chapter is about them.
- *
- * Shared by the accordion inside the app and by the chapter's own public
- * page, so the two cannot drift. The short `body` above it is the summary a
- * returning reader wants; these are for the first time — and for a search
- * engine, which ranks a paragraph, not a sentence.
- *
- * @param id - The topic's message-key stem
- */
-export function TopicChapter({ id }: { id: string }) {
-  return (
-    <>
-      {CHAPTER_PARAGRAPHS.map(p => (
-        <p key={p}>
-          <Trans i18nKey={`learn.topics.${id}.more.${p}`} components={BODY_TAGS} />
-        </p>
-      ))}
-      {id === 'i18-fab4' && <DeviationTables />}
-    </>
-  )
-}
 
 /**
  * Learn / theory page — explains card counting for beginners.
@@ -99,9 +60,11 @@ export function TopicChapter({ id }: { id: string }) {
  * @param openAll - Start with every topic expanded. The public `/learn` page
  *   passes this: a collapsed topic is not in the DOM, and what is not in the
  *   DOM is not indexed — a crawler would see eight headings and one paragraph.
- *   Inside the app the accordion starts with the first topic open, as before.
- * @param chapters - `inline` keeps the whole chapter in the accordion (the
- *   app). `linked` shows the summary and a link to the chapter's own page
+ *   Without it the accordion starts with the first topic open. (The app no
+ *   longer renders this page: it shows the chapter overview, `LearnChapters`,
+ *   which renders the same chapters.)
+ * @param chapters - `inline` keeps the whole chapter in the accordion.
+ *   `linked` shows the summary and a link to the chapter's own page
  *   (the public hub): the same text on two URLs would have each competing
  *   with the other, so the public site carries every chapter exactly once.
  */

@@ -40,6 +40,17 @@ describe('StrategyChart', () => {
     expect(screen.getByText(/Your Hand:/)).toBeInTheDocument()
   })
 
+  it('fits a phone: no fixed width below sm, all ten dealer columns in one grid', () => {
+    render(<StrategyChart />)
+    const content = screen.getByTestId('chart-scroll').firstElementChild as HTMLElement
+    // The 616px floor applies from `sm` up only; on a phone the chart shrinks to fit.
+    expect(content.style.minWidth).toBe('')
+    expect(content.className).toContain('sm:min-w-[616px]')
+    const firstRow = screen.getAllByTestId('chart-hand')[0].parentElement as HTMLElement
+    expect(firstRow.className).toContain('grid-cols-[40px_repeat(10,minmax(0,1fr))]')
+    expect(firstRow.querySelectorAll('[data-testid="chart-cell"]')).toHaveLength(10)
+  })
+
   it('switches the strategy table when H17 is selected', () => {
     render(<StrategyChart />)
     expect(screen.getByText(/6 Deck/).textContent).toMatch(/S17/)

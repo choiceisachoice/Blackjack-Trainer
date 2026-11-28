@@ -32,8 +32,8 @@
       "analytics": "Analytics",
       "strategyChart": "Strategy",
       "achievements": "Awards",
-      "bankrollSim": "Bankroll",
-      "casinoSessionTracker": "Tracker"
+      "bankrollSim": "Real casino log",
+      "casinoSessionTracker": "Table history"
     },
     "goPro": "Go Pro",
     "accountAndBilling": "Account & billing",
@@ -369,7 +369,7 @@
     "r5": "Strategy Chart",
     "r6": "Illustrious 18 & Fab 4 deviations",
     "r7": "Analytics — trend, heatmap, skill radar, weakest hands",
-    "r8": "Bankroll Tracker",
+    "r8": "Real casino log",
     "r9": "Awards, levels & the Learn guide",
     "basics": "basics",
     "goProHeading": "Go Pro",
@@ -769,7 +769,7 @@
       "styleBasic": "Just Blackjack",
       "styleBasicHint": "No running count, no true count — just play. Only basic strategy is graded, and you still earn XP.",
       "unlimited": "Unlimited",
-      "unlimitedHint": "Play as long as you like and cash out whenever you want. The session is saved to your tracker.",
+      "unlimitedHint": "Play as long as you like and cash out whenever you want. The session is saved to your table history.",
       "multiHand": "Play several hands",
       "multiHandHint": "Every free seat at the table shows a +. You can open up to {{count}} hands.",
       "lineHands_one": "{{count}} hand",
@@ -947,13 +947,9 @@
     }
   },
   "tracker": {
-    "onboardTitle": "Start Tracking Your Casino Sessions",
-    "onboardBody": "Set your starting bankroll to begin.",
-    "onboardNote": "Results will be tracked automatically after each Casino Session.",
     "startingBankroll": "Starting Bankroll",
-    "startTracking": "Start Tracking",
-    "title": "Casino Session Tracker",
-    "sub": "Your played casino sessions, results, and grades.",
+    "title": "Table history",
+    "sub": "Every session you cashed out at the training table: result, grade and accuracy.",
     "currentBankroll": "Current Bankroll",
     "startingPrefix": "Starting:",
     "save": "Save",
@@ -988,7 +984,18 @@
     "playPct": "Play: {{pct}}%",
     "betPct": "Bet: {{pct}}%",
     "countPct": "Count: {{pct}}%",
-    "streaks": "Streaks"
+    "streaks": "Streaks",
+    "intro": {
+      "title": "Every table you play, kept in one place",
+      "body": "Play a session at the training table and cash out. It lands here by itself, no typing.",
+      "point1": "Your bankroll across sessions, as a curve",
+      "point2": "Each session with its grade and play, bet and count accuracy",
+      "point3": "Records: best session, best grade, longest streak",
+      "play": "Play at the casino table",
+      "bankrollLabel": "Starting bankroll (optional)",
+      "setBankroll": "Set",
+      "bankrollNote": "Leave it, and the first table’s bankroll is used."
+    }
   },
   "welcome": {
     "stepOne": {
@@ -1428,6 +1435,38 @@
     "hand": {
       "soft": "soft {{n}}",
       "bust": "{{n}} — bust"
+    },
+    "hub": {
+      "sub": "Nine chapters, from the rules of the game to the bet spread. Read one, then practise it.",
+      "colStart": "Start here",
+      "colCount": "Counting",
+      "basicsTitle": "How blackjack works",
+      "sum": {
+        "basics": "The rules, the card values, soft and hard hands: everything the rest builds on.",
+        "what-is-counting": "Why the cards left in the shoe decide who has the edge.",
+        "hi-lo": "+1, 0 or −1 for every card: the running count in one rule.",
+        "true-count": "Divide by the decks left, so the count means the same in every shoe.",
+        "basic-strategy": "The right play for every hand against every dealer card.",
+        "deviations": "When the count tells you to leave the chart, and at which number.",
+        "i18-fab4": "The 22 count plays worth learning, each with its number.",
+        "bet-spread": "Bet more when the count is high, and how wide the spread should be.",
+        "deck-estimation": "Read the discard tray to know how many decks are left.",
+        "faq": "Is it legal, how long does it take, how big is the edge?",
+        "modes": "What each training mode builds, and when to use it."
+      },
+      "progress": "{{done}} of {{total}} chapters practised",
+      "minutes": "{{n}} min read",
+      "practised": "Practised {{n}}×",
+      "notYet": "Not practised yet",
+      "reference": "Reference",
+      "chapterN": "Chapter {{n}}",
+      "back": "All chapters",
+      "next": "Next",
+      "prev": "Previous",
+      "practiseTitle": "Practise this",
+      "planBody": "Your plan knows which step comes next.",
+      "contents": "Chapters",
+      "minutesShort": "{{n}} min"
     }
   },
   "basics": {
@@ -1923,7 +1962,7 @@
       "milestones": "Milestones",
       "extreme": "Extreme Challenges",
       "counting_mastery": "Counting Mastery",
-      "bankrollTracker": "Bankroll Tracker"
+      "bankrollTracker": "Real casino log"
     },
     "all": "All",
     "maxLevel": "Max level reached",
@@ -1943,26 +1982,26 @@
     "casinoSession": "Casino Session",
     "tableCounting": "Table Counting",
     "deviationTable": "Deviation (Table)",
-    "bankrollTracker": "Bankroll Tracker",
+    "bankrollTracker": "Real casino log",
     "learn": "Learn",
     "analytics": "Analytics",
     "strategyChart": "Basic Strategy Chart",
     "achievements": "Achievements",
     "deviationTraining": "Deviation Training",
-    "casinoSessionTracker": "Casino Session Tracker"
+    "casinoSessionTracker": "Table history"
   },
   "home": {
     "trainingModes": "Training Modes",
     "toolsProgress": "Tools & Progress",
-    "trackerTitle": "Casino Session Tracker",
+    "trackerTitle": "Table history",
     "desc": {
       "speedDrill": "Train your counting speed with flashing cards",
       "deviationTraining": "Drill every hand — and when to deviate",
       "betSpread": "Practice optimal bet sizing by True Count",
       "deckEstimation": "Estimate remaining decks from the shoe",
       "casinoSession": "Play a full multi-seat session at a realistic table",
-      "bankrollSim": "Track your real casino results",
-      "tracker": "Track your training session results",
+      "bankrollSim": "Log your sessions at a real casino, with real money",
+      "tracker": "Every session at the training table, saved by itself",
       "learn": "How card counting works — for beginners",
       "analytics": "View your training stats, trends, and progress",
       "strategyChart": "View the complete strategy table",
@@ -2327,10 +2366,8 @@
     "unlockedCount": "{{n}} unlocked"
   },
   "sim": {
-    "onboardTitle": "Start Tracking Your Bankroll",
-    "onboardBody": "Track your real casino sessions to see your performance over time.",
-    "title": "Bankroll Tracker",
-    "sub": "Track your real casino sessions and results.",
+    "title": "Real casino log",
+    "sub": "Your sessions at real casinos, with real money.",
     "chartEmpty": "Add your first session to see the chart",
     "hoursPlayed": "Hours Played",
     "notesPlaceholder": "Good penetration, 6 deck, S17...",
@@ -2373,7 +2410,18 @@
     "winPlus": "Win +",
     "hoursShort": "{{n}}h",
     "emptySessions": "No sessions yet. Add your first casino visit!",
-    "nSessions": "{{n}} sessions"
+    "nSessions": "{{n}} sessions",
+    "intro": {
+      "title": "Your real-money sessions, and where your bankroll stands",
+      "body": "After a night at a real casino, add one line: where, how long, won or lost. The log does the rest.",
+      "point1": "Your bankroll as a curve from the first entry",
+      "point2": "Win rate and dollars per hour",
+      "point3": "Best casino, best session and streaks",
+      "start": "Start my log",
+      "note": "You can change the starting bankroll later.",
+      "venue1": "Riverside Casino",
+      "venue2": "Grand Hotel Casino"
+    }
   },
   "chart": {
     "title": "Basic Strategy Chart",
@@ -2809,5 +2857,10 @@
     "free2": "Your stats from every drill, on every device",
     "free3": "Ten hands at the full casino table",
     "freeStrip": "Free: your plan, your stats and ten hands at the full table. No card required."
+  },
+  "trackerIntro": {
+    "example": "Example",
+    "exampleCaption": "What this page looks like once it fills",
+    "exampleAria": "Example of a filled page"
   }
 }

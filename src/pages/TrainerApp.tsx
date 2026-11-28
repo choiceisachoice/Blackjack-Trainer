@@ -15,7 +15,7 @@ import { AchievementsPage } from '../components/achievements/AchievementsPage'
 import { CasinoSession } from '../components/casino-session/CasinoSession'
 import { StrategyChart } from '../components/strategy-chart/StrategyChart'
 import { CasinoSessionTracker } from '../components/training/CasinoSessionTracker'
-import { LearnPage } from '../components/learn/LearnPage'
+import { LearnChapters } from '../components/learn/LearnChapters'
 import { TrainingPlan } from '../components/plan/TrainingPlan'
 import { LeaveSessionDialog } from '../components/navigation/LeaveSessionDialog'
 import { ToastLayer } from '../components/navigation/ToastLayer'
@@ -205,7 +205,7 @@ export function TrainerApp() {
                 keyed instance — two engines, two shoes, one visible. */}
             {currentMode === 'strategyChart' && <StrategyChart />}
             {currentMode === 'casinoSessionTracker' && <CasinoSessionTracker />}
-            {currentMode === 'learn' && <LearnPage />}
+            {currentMode === 'learn' && <LearnChapters />}
             {currentMode === 'plan' && <TrainingPlan />}
           </>
         )}

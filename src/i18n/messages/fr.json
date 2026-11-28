@@ -32,8 +32,8 @@
       "analytics": "Analyses",
       "strategyChart": "Stratégie",
       "achievements": "Récompenses",
-      "bankrollSim": "Bankroll",
-      "casinoSessionTracker": "Suivi"
+      "bankrollSim": "Journal du casino réel",
+      "casinoSessionTracker": "Historique de table"
     },
     "goPro": "Passer à Pro",
     "accountAndBilling": "Compte et facturation",
@@ -369,7 +369,7 @@
     "r5": "Tableau de stratégie",
     "r6": "Déviations Illustrious 18 & Fab 4",
     "r7": "Analyse — tendance, carte de chaleur, radar, mains les plus faibles",
-    "r8": "Suivi de bankroll",
+    "r8": "Journal du casino réel",
     "r9": "Trophées, niveaux & le guide",
     "basics": "bases",
     "goProHeading": "Passer à Pro",
@@ -769,7 +769,7 @@
       "styleBasic": "Blackjack seul",
       "styleBasicHint": "Pas de running count ni de true count — jouez simplement. Seule la stratégie de base est notée, et vous gagnez quand même des XP.",
       "unlimited": "Illimité",
-      "unlimitedHint": "Jouez aussi longtemps que vous voulez et encaissez quand vous le souhaitez. La session est enregistrée dans votre suivi.",
+      "unlimitedHint": "Jouez aussi longtemps que vous voulez et encaissez quand vous le souhaitez. La session est enregistrée dans votre historique de table.",
       "multiHand": "Jouer plusieurs mains",
       "multiHandHint": "Chaque place libre de la table affiche un +. Vous pouvez ouvrir jusqu’à {{count}} mains.",
       "lineHands_one": "{{count}} main",
@@ -947,13 +947,9 @@
     }
   },
   "tracker": {
-    "onboardTitle": "Suivez vos sessions de casino",
-    "onboardBody": "Définissez votre bankroll de départ pour commencer.",
-    "onboardNote": "Les résultats seront enregistrés automatiquement après chaque session.",
     "startingBankroll": "Bankroll de départ",
-    "startTracking": "Commencer le suivi",
-    "title": "Suivi des sessions",
-    "sub": "Vos sessions jouées, leurs résultats et leurs notes.",
+    "title": "Historique de table",
+    "sub": "Chaque session encaissée à la table d’entraînement : résultat, note et précision.",
     "currentBankroll": "Bankroll actuelle",
     "startingPrefix": "Départ :",
     "save": "Enregistrer",
@@ -988,7 +984,18 @@
     "playPct": "Jeu : {{pct}} %",
     "betPct": "Mise : {{pct}} %",
     "countPct": "Comptage : {{pct}} %",
-    "streaks": "Séries"
+    "streaks": "Séries",
+    "intro": {
+      "title": "Chaque table que vous jouez, réunie au même endroit",
+      "body": "Jouez une session à la table d’entraînement et encaissez. Elle arrive ici toute seule, sans rien saisir.",
+      "point1": "Votre bankroll au fil des sessions, en courbe",
+      "point2": "Chaque session avec sa note et la précision du jeu, des mises et du comptage",
+      "point3": "Records : meilleure session, meilleure note, plus longue série",
+      "play": "Jouer à la table de casino",
+      "bankrollLabel": "Bankroll de départ (facultatif)",
+      "setBankroll": "Définir",
+      "bankrollNote": "Sinon, la bankroll de la première table est utilisée."
+    }
   },
   "welcome": {
     "stepOne": {
@@ -1428,6 +1435,38 @@
     "hand": {
       "soft": "{{n}} souple",
       "bust": "{{n}} — brûlé"
+    },
+    "hub": {
+      "sub": "Neuf chapitres, des règles du jeu à l’écart de mises. Lisez-en un, puis entraînez-vous.",
+      "colStart": "Commencer ici",
+      "colCount": "Comptage",
+      "basicsTitle": "Comment fonctionne le blackjack",
+      "sum": {
+        "basics": "Les règles, la valeur des cartes, mains souples et dures : la base de tout le reste.",
+        "what-is-counting": "Pourquoi les cartes restant dans le sabot décident de qui a l’avantage.",
+        "hi-lo": "+1, 0 ou −1 par carte : le compte courant en une seule règle.",
+        "true-count": "Divisez par les jeux restants pour que le compte veuille dire la même chose partout.",
+        "basic-strategy": "Le bon coup pour chaque main contre chaque carte du croupier.",
+        "deviations": "Quand le compte vous dit de quitter la table de stratégie, et à partir de quel chiffre.",
+        "i18-fab4": "Les 22 écarts au compte qui valent la peine, chacun avec son chiffre.",
+        "bet-spread": "Miser plus quand le compte est haut, et quel écart de mises viser.",
+        "deck-estimation": "Lisez le bac à défausse pour savoir combien de jeux il reste.",
+        "faq": "Est-ce légal, combien de temps faut-il, quel avantage ?",
+        "modes": "Ce que développe chaque mode d’entraînement, et quand l’utiliser."
+      },
+      "progress": "{{done}} chapitres sur {{total}} pratiqués",
+      "minutes": "{{n}} min de lecture",
+      "practised": "Pratiqué {{n}}×",
+      "notYet": "Pas encore pratiqué",
+      "reference": "Référence",
+      "chapterN": "Chapitre {{n}}",
+      "back": "Tous les chapitres",
+      "next": "Suivant",
+      "prev": "Précédent",
+      "practiseTitle": "S’entraîner",
+      "planBody": "Votre plan sait quelle étape vient ensuite.",
+      "contents": "Chapitres",
+      "minutesShort": "{{n}} min"
     }
   },
   "basics": {
@@ -1923,7 +1962,7 @@
       "milestones": "Jalons",
       "extreme": "Défis extrêmes",
       "counting_mastery": "Maîtrise du comptage",
-      "bankrollTracker": "Suivi de bankroll"
+      "bankrollTracker": "Journal du casino réel"
     },
     "all": "Tous",
     "maxLevel": "Niveau maximal atteint",
@@ -1943,26 +1982,26 @@
     "casinoSession": "Session de casino",
     "tableCounting": "Comptage à la table",
     "deviationTable": "Déviation (table)",
-    "bankrollTracker": "Suivi de bankroll",
+    "bankrollTracker": "Journal du casino réel",
     "learn": "Apprendre",
     "analytics": "Analyses",
     "strategyChart": "Tableau de stratégie de base",
     "achievements": "Récompenses",
     "deviationTraining": "Entraînement aux déviations",
-    "casinoSessionTracker": "Suivi des sessions"
+    "casinoSessionTracker": "Historique de table"
   },
   "home": {
     "trainingModes": "Modes d’entraînement",
     "toolsProgress": "Outils et progression",
-    "trackerTitle": "Suivi des sessions",
+    "trackerTitle": "Historique de table",
     "desc": {
       "speedDrill": "Travaillez votre vitesse de comptage avec des cartes qui défilent",
       "deviationTraining": "Entraînez chaque main — et quand s’en écarter",
       "betSpread": "Travaillez la mise optimale selon le true count",
       "deckEstimation": "Estimez les jeux restants dans le sabot",
       "casinoSession": "Jouez une session complète à une table réaliste",
-      "bankrollSim": "Suivez vos vrais résultats au casino",
-      "tracker": "Suivez les résultats de vos sessions d’entraînement",
+      "bankrollSim": "Notez vos sessions dans un vrai casino, avec de l’argent réel",
+      "tracker": "Chaque session à la table d’entraînement, enregistrée toute seule",
       "learn": "Comment fonctionne le comptage — pour débutants",
       "analytics": "Consultez vos statistiques, tendances et progrès",
       "strategyChart": "Consultez le tableau de stratégie complet",
@@ -2327,10 +2366,8 @@
     "unlockedCount": "{{n}} débloquées"
   },
   "sim": {
-    "onboardTitle": "Suivez votre bankroll",
-    "onboardBody": "Enregistrez vos vraies sessions de casino pour suivre vos performances dans le temps.",
-    "title": "Suivi de bankroll",
-    "sub": "Suivez vos vraies sessions de casino et leurs résultats.",
+    "title": "Journal du casino réel",
+    "sub": "Vos sessions dans de vrais casinos, avec de l’argent réel.",
     "chartEmpty": "Ajoutez votre première session pour voir le graphique",
     "hoursPlayed": "Heures jouées",
     "notesPlaceholder": "Bonne pénétration, 6 jeux, S17…",
@@ -2373,7 +2410,18 @@
     "winPlus": "Gain +",
     "hoursShort": "{{n}} h",
     "emptySessions": "Aucune session pour l’instant. Ajoutez votre première visite au casino !",
-    "nSessions": "{{n}} sessions"
+    "nSessions": "{{n}} sessions",
+    "intro": {
+      "title": "Vos sessions en argent réel, et où en est votre bankroll",
+      "body": "Après une soirée dans un vrai casino, ajoutez une ligne : où, combien de temps, gagné ou perdu. Le journal fait le reste.",
+      "point1": "Votre bankroll en courbe dès la première entrée",
+      "point2": "Taux de gain et dollars par heure",
+      "point3": "Meilleur casino, meilleure session et séries",
+      "start": "Commencer mon journal",
+      "note": "Vous pourrez modifier la bankroll de départ plus tard.",
+      "venue1": "Casino du Fleuve",
+      "venue2": "Casino du Grand Hôtel"
+    }
   },
   "chart": {
     "title": "Tableau de stratégie de base",
@@ -2809,5 +2857,10 @@
     "free2": "Vos statistiques de chaque exercice, sur tous vos appareils",
     "free3": "Dix mains à la vraie table de casino",
     "freeStrip": "Gratuit : votre plan, vos statistiques et dix mains à la vraie table. Sans carte."
+  },
+  "trackerIntro": {
+    "example": "Exemple",
+    "exampleCaption": "Voici la page une fois remplie",
+    "exampleAria": "Exemple de page remplie"
   }
 }
