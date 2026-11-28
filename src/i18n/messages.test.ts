@@ -213,3 +213,20 @@ describe('the document title', () => {
     },
   )
 })
+
+describe('the search-result descriptions', () => {
+  it.each(Object.entries(BUNDLES))(
+    'fit a result snippet and say enough, in %s',
+    (_locale, bundle) => {
+      const meta = (bundle as { meta: { description: string; pages: Record<string, { description: string }> } }).meta
+      // Google cuts a snippet near 155 characters; the front page and the
+      // Terms are the two a buyer is most likely to meet in a result.
+      for (const d of [meta.description, meta.pages.terms.description]) {
+        expect(d.length, d).toBeLessThanOrEqual(155)
+        // Under ~120 the snippet is padded out by Google from page text.
+        expect(d.length, d).toBeGreaterThanOrEqual(120)
+      }
+      expect(meta.description).toMatch(/hi-lo/i)
+    },
+  )
+})

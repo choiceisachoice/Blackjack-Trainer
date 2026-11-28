@@ -22,8 +22,14 @@ type Mode = 'signin' | 'signup' | 'reset'
  * Login / registration screen shown when Supabase is configured and no user is
  * signed in. Dark-luxury styling to match the app shell.
  */
-export function AuthPage({ notice: initialNotice, initialMode = 'signin' }: {
+export function AuthPage({ notice: initialNotice, initialMode = 'signin', aside }: {
   notice?: string
+  /**
+   * What the form is for, shown beside it from `lg` up and above it below
+   * (the caller renders both forms — see `SignupContext`). Optional: a
+   * plain sign-in has nothing to explain.
+   */
+  aside?: React.ReactNode
   /**
    * Which side of the toggle the form opens on. A visitor who pressed "create
    * a free account" should not have to find the register tab first.
@@ -113,13 +119,14 @@ export function AuthPage({ notice: initialNotice, initialMode = 'signin' }: {
   }
 
   return (
-    <div className="relative flex-1 flex items-center justify-center p-4 overflow-hidden">
-      {/* ambient glow */}
-
-      <div className="surface w-full max-w-sm p-7">
-        {/* brand */}
-        <div className="flex flex-col items-center text-center mb-6">
-          <span className="grid place-items-center w-12 h-12 rounded-xl text-gold bg-gold/10 border border-gold/20 mb-3">
+    <div className="relative flex-1 flex items-center justify-center p-4">
+      <div className="w-full flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-14">
+      {aside}
+      <div className="surface w-full max-w-sm p-7 [@media(max-height:800px)]:p-6">
+        {/* brand — the mark gives way on a short screen (a 720px desktop
+            with the cookie bar open), the form does not. */}
+        <div className="flex flex-col items-center text-center mb-6 [@media(max-height:800px)]:mb-5">
+          <span className="grid place-items-center w-12 h-12 rounded-xl text-gold bg-gold/10 border border-gold/20 mb-3 [@media(max-height:800px)]:hidden">
             <Spade size={22} className="fill-current" />
           </span>
           <h1 className="text-2xl font-extrabold text-gold-gradient leading-[1.15] pb-0.5">Blackjack Trainer</h1>
@@ -259,6 +266,7 @@ export function AuthPage({ notice: initialNotice, initialMode = 'signin' }: {
             </button>
           )}
         </form>
+      </div>
       </div>
     </div>
   )

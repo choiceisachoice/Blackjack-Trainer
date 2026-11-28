@@ -139,6 +139,6 @@ describe('UpgradePanel — the price card', () => {
     render(<UpgradePanel />)
     const card = screen.getByTestId('paywall-price-card')
     expect(within(card).getByText(en.pricing.secureCheckout)).toBeInTheDocument()
-    expect(within(card).getByTestId('paywall-vat-note')).toHaveTextContent('8.1% Swiss VAT')
+    expect(within(card).getByTestId('paywall-vat-note')).toHaveTextContent('8.1% VAT in Switzerland')
   })
 })

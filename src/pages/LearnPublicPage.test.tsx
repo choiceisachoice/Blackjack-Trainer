@@ -55,7 +55,7 @@ describe('LearnPublicPage', () => {
 
   it('offers a way in and a way home', () => {
     renderPage()
-    expect(screen.getByTestId('learn-start')).toHaveAttribute('href', '/login')
+    expect(screen.getByTestId('learn-start')).toHaveAttribute('href', '/login?mode=signup')
     expect(screen.getByTestId('learn-home')).toHaveAttribute('href', '/')
   })
 })

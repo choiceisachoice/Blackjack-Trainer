@@ -145,7 +145,7 @@
     "downloadError": "Die Datei konnte nicht erstellt werden. Bitte versuch es noch einmal."
   },
   "pricing": {
-    "vatNote": "Endpreis, inkl. {{rate}}% Schweizer MWST für Kunden in der Schweiz",
+    "vatNote": "Endpreis · inkl. {{rate}}% MWST in der Schweiz",
     "monthly": "Monatlich",
     "yearly": "Jährlich",
     "perMonth": "/Monat",
@@ -155,7 +155,6 @@
     "yourPlan": "Dein Tarif",
     "forever": "für immer",
     "noCard": "Keine Karte nötig",
-    "mostPopular": "Am beliebtesten",
     "bestValue": "BESTER PREIS",
     "startFree": "Gratis starten",
     "goPro": "Pro holen →",
@@ -165,7 +164,9 @@
     "secureCheckout": "Sichere Zahlung über Stripe. Jederzeit im Konto kündbar.",
     "everythingInFree": "Alles aus Gratis, plus:",
     "goProPrice": "Pro holen — {{price}}",
-    "atCheckout": "Preis wird an der Kasse angezeigt"
+    "atCheckout": "Preis wird an der Kasse angezeigt",
+    "perMonthEquiv": "= {{amount}} pro Monat · {{percent}}% günstiger als monatlich",
+    "cancelInAccount": "Jederzeit im Konto kündbar."
   },
   "landing": {
     "nav": {
@@ -174,7 +175,8 @@
       "signIn": "Anmelden",
       "openApp": "App öffnen →",
       "startFree": "Gratis starten",
-      "learn": "Lernen"
+      "learn": "Lernen",
+      "menu": "Menü"
     },
     "hero": {
       "subtitle": "Übungen, Abweichungen, ein vollständiger Casino-Tisch und die Auswertung, die genau zeigt, wo dein Vorteil verloren geht — alles, damit das Zählen automatisch wird.",
@@ -228,7 +230,9 @@
       "contact": "Kontakt",
       "note": "Übungswerkzeug — mit keinem Casino verbunden.",
       "social": "Folge uns",
-      "socialLink": "Blackjack Trainer auf {{network}} (öffnet in einem neuen Tab)"
+      "socialLink": "Blackjack Trainer auf {{network}} (öffnet in einem neuen Tab)",
+      "strategyChart": "Strategietabelle",
+      "try": "10 Hände gratis spielen"
     },
     "sections": {
       "featuresEyebrow": "Alles in einem Trainer",
@@ -299,7 +303,8 @@
       "decksBold": "6 Decks",
       "counting": "zählen",
       "realTable": "Casinotisch",
-      "realBold": "Echter"
+      "realBold": "Echter",
+      "freeChart": "Gratis-Tabelle"
     },
     "visual": {
       "running": "Laufend",
@@ -388,12 +393,14 @@
     "addDeviationsTitle": "Abweichungen"
   },
   "contact": {
-    "title": "Kontakt",
+    "title": "Kontakt & Impressum",
     "emailUs": "Schreib uns",
     "privacy": "Datenschutzerklärung",
     "terms": "Nutzungsbedingungen",
     "intro": "Fragen, Rückmeldungen, ein Problem mit deinem Konto oder eine Datenschutzanfrage — wir lesen jede Nachricht.",
-    "dataRequests": "Für Datenschutzanfragen (Auskunft, Berichtigung oder Löschung deiner Daten) nutze dieselbe Adresse — siehe die <pp>Datenschutzerklärung</pp>."
+    "dataRequests": "Für Datenschutzanfragen (Auskunft, Berichtigung oder Löschung deiner Daten) nutze dieselbe Adresse — siehe die <pp>Datenschutzerklärung</pp>.",
+    "imprintTitle": "Impressum",
+    "emailLabel": "E-Mail"
   },
   "actions": {
     "hit": "Ziehen",
@@ -2786,5 +2793,18 @@
       "moreMisses_one": "Und {{count}} weitere.",
       "moreMisses_other": "Und {{count}} weitere."
     }
+  },
+  "signupPanel": {
+    "proEyebrow": "Pro · {{plan}}",
+    "step": "Schritt 1 von 2",
+    "stepAccount": "Konto erstellen",
+    "stepCheckout": "Sichere Zahlung über Stripe",
+    "stripLine": "Schritt 1 von 2 — danach sichere Zahlung über Stripe. Jederzeit kündbar.",
+    "freeEyebrow": "Gratis-Konto",
+    "freeTitle": "Was ein Gratis-Konto speichert",
+    "free1": "Deinen Trainingsplan und wie weit du bist",
+    "free2": "Deine Werte aus jeder Übung, auf jedem Gerät",
+    "free3": "Zehn Hände am vollen Casino-Tisch",
+    "freeStrip": "Gratis: dein Plan, deine Werte und zehn Hände am vollen Tisch. Keine Karte nötig."
   }
 }

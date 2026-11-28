@@ -145,7 +145,7 @@
     "downloadError": "The file could not be created. Please try again."
   },
   "pricing": {
-    "vatNote": "Final price, incl. {{rate}}% Swiss VAT for customers in Switzerland",
+    "vatNote": "Final price · incl. {{rate}}% VAT in Switzerland",
     "monthly": "Monthly",
     "yearly": "Yearly",
     "perMonth": "/month",
@@ -155,7 +155,6 @@
     "yourPlan": "Your plan",
     "forever": "forever",
     "noCard": "No card required",
-    "mostPopular": "Most popular",
     "bestValue": "BEST VALUE",
     "startFree": "Start free",
     "goPro": "Go Pro →",
@@ -165,7 +164,9 @@
     "secureCheckout": "Secure checkout by Stripe. Cancel anytime from your account.",
     "everythingInFree": "Everything in Free, plus:",
     "goProPrice": "Go Pro — {{price}}",
-    "atCheckout": "Price shown at checkout"
+    "atCheckout": "Price shown at checkout",
+    "perMonthEquiv": "= {{amount}} a month · {{percent}}% less than monthly",
+    "cancelInAccount": "Cancel anytime in your account."
   },
   "landing": {
     "nav": {
@@ -174,7 +175,8 @@
       "signIn": "Sign in",
       "openApp": "Open app →",
       "startFree": "Start free",
-      "learn": "Learn"
+      "learn": "Learn",
+      "menu": "Menu"
     },
     "hero": {
       "subtitle": "Drills, deviations, a full casino table and the analytics that show exactly where your advantage leaks — everything you need to make the count automatic.",
@@ -228,7 +230,9 @@
       "contact": "Contact",
       "note": "Practice tool — not affiliated with any casino.",
       "social": "Follow us",
-      "socialLink": "Blackjack Trainer on {{network}} (opens in a new tab)"
+      "socialLink": "Blackjack Trainer on {{network}} (opens in a new tab)",
+      "strategyChart": "Strategy chart",
+      "try": "Play 10 hands free"
     },
     "sections": {
       "featuresEyebrow": "Everything in one trainer",
@@ -299,7 +303,8 @@
       "decksBold": "6 decks",
       "counting": "counting",
       "realTable": "casino table",
-      "realBold": "Real"
+      "realBold": "Real",
+      "freeChart": "free chart"
     },
     "visual": {
       "running": "Running",
@@ -388,12 +393,14 @@
     "addDeviationsTitle": "Deviations"
   },
   "contact": {
-    "title": "Contact",
+    "title": "Contact & imprint",
     "emailUs": "Email us",
     "privacy": "Privacy Policy",
     "terms": "Terms of Use",
     "intro": "Questions, feedback, a problem with your account or a privacy request — we read every message.",
-    "dataRequests": "For data-protection requests (access, correction or deletion of your data), use the same address — see the <pp>Privacy Policy</pp>."
+    "dataRequests": "For data-protection requests (access, correction or deletion of your data), use the same address — see the <pp>Privacy Policy</pp>.",
+    "imprintTitle": "Imprint",
+    "emailLabel": "Email"
   },
   "actions": {
     "hit": "Hit",
@@ -2786,5 +2793,18 @@
       "moreMisses_one": "And {{count}} more.",
       "moreMisses_other": "And {{count}} more."
     }
+  },
+  "signupPanel": {
+    "proEyebrow": "Pro · {{plan}}",
+    "step": "Step 1 of 2",
+    "stepAccount": "Create your account",
+    "stepCheckout": "Secure checkout with Stripe",
+    "stripLine": "Step 1 of 2 — then secure checkout with Stripe. Cancel anytime.",
+    "freeEyebrow": "Free account",
+    "freeTitle": "What a free account keeps",
+    "free1": "Your training plan and how far you are",
+    "free2": "Your stats from every drill, on every device",
+    "free3": "Ten hands at the full casino table",
+    "freeStrip": "Free: your plan, your stats and ten hands at the full table. No card required."
   }
 }

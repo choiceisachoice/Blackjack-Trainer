@@ -3,6 +3,7 @@ import { render, screen, cleanup, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { ContactPage } from './ContactPage'
 import { setLocale } from '../../i18n'
+import { LEGAL_META } from './legal-meta'
 
 /**
  * The contact page is where a data-protection request has to be able to start,
@@ -47,5 +48,18 @@ describe('ContactPage', () => {
     expect(link).toHaveAttribute('href', '/privacy')
     expect(link).toHaveTextContent('Datenschutzerklärung')
     expect(screen.getByTestId('contact-privacy-note')).toHaveTextContent('Datenschutzanfragen')
+  })
+
+  it('carries an imprint with the operator and address the Terms state, under the public header', async () => {
+    await setLocale('de')
+    renderPage()
+    const imprint = screen.getByTestId('contact-imprint')
+    expect(imprint).toHaveTextContent(LEGAL_META.operator)
+    expect(imprint).toHaveTextContent('Neuhausweg 5')
+    expect(imprint).toHaveTextContent('8810 Horgen')
+    expect(imprint).toHaveTextContent('Schweiz')
+    expect(imprint).toHaveTextContent(LEGAL_META.contactEmail)
+    expect(screen.getByTestId('learn-home')).toHaveAttribute('href', '/')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Kontakt & Impressum')
   })
 })

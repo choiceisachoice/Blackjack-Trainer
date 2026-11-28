@@ -5,6 +5,14 @@ import { Link } from 'react-router-dom'
 import { Spade } from 'lucide-react'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { SocialLinks } from './SocialLinks'
+import { PublicNavMenu } from './PublicNavMenu'
+
+/**
+ * Where every "Start free" goes: the sign-up side of `/login`. A query, not
+ * router state, so the link already says so in the prerendered HTML, before
+ * the script has arrived.
+ */
+const SIGNUP_LINK = { pathname: '/login', search: '?mode=signup' }
 
 interface PublicShellProps {
   children: ReactNode
@@ -41,9 +49,11 @@ export function PublicShell({ children, cta = true, testId = 'public-shell' }: P
             <Link to="/learn" className="hidden sm:inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.learn')}</Link>
             <Link to="/strategy-chart" className="hidden sm:inline-flex items-center min-h-10 hover:text-content">{t('nav.modes.strategyChart')}</Link>
             <LanguageSwitcher />
-            <Link to="/login" className="inline-flex items-center min-h-10 hover:text-content px-1 whitespace-nowrap">{t('landing.nav.signIn')}</Link>
+            <Link to="/login" className="hidden sm:inline-flex items-center min-h-10 hover:text-content px-1 whitespace-nowrap">{t('landing.nav.signIn')}</Link>
+            {/* Below sm: Learn, the chart and Sign in behind one button. */}
+            <PublicNavMenu className="sm:hidden" />
             <Link
-              to="/login"
+              to={SIGNUP_LINK}
               className="rounded-lg px-3 sm:px-4 py-2.5 font-semibold bg-gradient-to-b from-gold-bright to-gold text-on-gold whitespace-nowrap"
               data-testid="learn-start"
             >
@@ -62,7 +72,7 @@ export function PublicShell({ children, cta = true, testId = 'public-shell' }: P
               <h2 className="text-xl md:text-2xl font-extrabold">{t('learn.cta.title')}</h2>
               <p className="mt-2 text-sm text-content/60 max-w-[52ch] mx-auto">{t('learn.cta.body')}</p>
               <Link
-                to="/login"
+                to={SIGNUP_LINK}
                 className="inline-block mt-5 rounded-xl px-6 py-3 font-semibold bg-gradient-to-b from-gold-bright to-gold text-on-gold"
               >
                 {t('landing.hero.ctaStart')}
@@ -75,10 +85,14 @@ export function PublicShell({ children, cta = true, testId = 'public-shell' }: P
       <footer className="border-t border-contrast/8">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-content/50">
           <span>{t('landing.footer.note')}</span>
-          {/* Wraps: five links in one row are 394px in German, on a 360px
-              screen. Each is 40px tall to the finger and one line to the eye. */}
+          {/* Wraps: seven links do not fit one row on a phone. Each is 40px
+              tall to the finger and one line to the eye. The chart and the
+              ten free hands are here because they are the two things a
+              visitor can use without an account. */}
           <nav className="flex flex-wrap items-center gap-x-5">
             <Link to="/" className="inline-flex items-center min-h-10 hover:text-content">{t('common.backToHome')}</Link>
+            <Link to="/strategy-chart" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.strategyChart')}</Link>
+            <Link to="/try" className="inline-flex items-center min-h-10 hover:text-content" data-testid="footer-try">{t('landing.footer.try')}</Link>
             <Link to="/terms" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.terms')}</Link>
             <Link to="/privacy" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.privacy')}</Link>
             <Link to="/contact" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.contact')}</Link>

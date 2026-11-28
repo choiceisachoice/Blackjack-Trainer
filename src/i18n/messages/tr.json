@@ -145,7 +145,7 @@
     "downloadError": "Dosya oluşturulamadı. Lütfen tekrar dene."
   },
   "pricing": {
-    "vatNote": "Nihai fiyat; İsviçre'deki müşteriler için %{{rate}} İsviçre KDV'si dâhildir",
+    "vatNote": "Nihai fiyat · İsviçre’de %{{rate}} KDV dâhil",
     "monthly": "Aylık",
     "yearly": "Yıllık",
     "perMonth": "/ay",
@@ -155,7 +155,6 @@
     "yourPlan": "Planınız",
     "forever": "sonsuza dek",
     "noCard": "Kart gerekmez",
-    "mostPopular": "En çok tercih edilen",
     "bestValue": "EN İYİ FİYAT",
     "startFree": "Ücretsiz başla",
     "goPro": "Pro'ya geç →",
@@ -165,7 +164,9 @@
     "secureCheckout": "Stripe ile güvenli ödeme. Hesabınızdan istediğiniz zaman iptal edebilirsiniz.",
     "everythingInFree": "Ücretsizdeki her şey, ayrıca:",
     "goProPrice": "Pro'ya geç — {{price}}",
-    "atCheckout": "Fiyat ödeme adımında gösterilir"
+    "atCheckout": "Fiyat ödeme adımında gösterilir",
+    "perMonthEquiv": "= ayda {{amount}} · aylıktan %{{percent}} daha ucuz",
+    "cancelInAccount": "Hesabından istediğin zaman iptal et."
   },
   "landing": {
     "nav": {
@@ -174,7 +175,8 @@
       "signIn": "Giriş yap",
       "openApp": "Uygulamayı aç →",
       "startFree": "Ücretsiz başla",
-      "learn": "Öğren"
+      "learn": "Öğren",
+      "menu": "Menü"
     },
     "hero": {
       "subtitle": "Alıştırmalar, sapmalar, tam bir kumarhane masası ve avantajınızın tam olarak nereden sızdığını gösteren analiz — sayımın kendiliğinden gelmesi için gereken her şey.",
@@ -228,7 +230,9 @@
       "contact": "İletişim",
       "note": "Alıştırma aracı — hiçbir kumarhaneyle bağlantılı değildir.",
       "social": "Bizi takip edin",
-      "socialLink": "{{network}} üzerinde Blackjack Trainer (yeni sekmede açılır)"
+      "socialLink": "{{network}} üzerinde Blackjack Trainer (yeni sekmede açılır)",
+      "strategyChart": "Strateji tablosu",
+      "try": "10 el ücretsiz oyna"
     },
     "sections": {
       "featuresEyebrow": "Hepsi tek bir eğitmende",
@@ -299,7 +303,8 @@
       "decksBold": "6 deste",
       "counting": "sayım",
       "realTable": "casino masası",
-      "realBold": "Gerçek"
+      "realBold": "Gerçek",
+      "freeChart": "ücretsiz tablo"
     },
     "visual": {
       "running": "Yürüyen",
@@ -388,12 +393,14 @@
     "addDeviationsTitle": "Sapmalar"
   },
   "contact": {
-    "title": "İletişim",
+    "title": "İletişim ve künye",
     "emailUs": "Bize yazın",
     "privacy": "Gizlilik Politikası",
     "terms": "Kullanım Koşulları",
     "intro": "Sorular, geri bildirim, hesabınızla ilgili bir sorun ya da bir gizlilik talebi — her mesajı okuyoruz.",
-    "dataRequests": "Veri koruma talepleri (verilerinize erişim, düzeltme veya silme) için aynı adresi kullanın — <pp>Gizlilik Politikası</pp>'na bakın."
+    "dataRequests": "Veri koruma talepleri (verilerinize erişim, düzeltme veya silme) için aynı adresi kullanın — <pp>Gizlilik Politikası</pp>'na bakın.",
+    "imprintTitle": "Künye",
+    "emailLabel": "E-posta"
   },
   "actions": {
     "hit": "Kart Al",
@@ -2454,7 +2461,7 @@
       },
       "terms": {
         "title": "Kullanım Koşulları — Kart Sayma Antrenörü",
-        "description": "Hizmetin koşulları: ne olduğu, ne olmadığı, abonelikler, iptal ve sorumluluk."
+        "description": "Blackjack Card Counting Trainer kullanım koşulları: hizmetin ne olduğu ve ne olmadığı, abonelikler, KDV dâhil fiyatlar, iptal ve sorumluluk."
       },
       "privacy": {
         "title": "Gizlilik — Kart Sayma Antrenörü",
@@ -2786,5 +2793,18 @@
       "moreMisses_one": "Ve {{count}} tane daha.",
       "moreMisses_other": "Ve {{count}} tane daha."
     }
+  },
+  "signupPanel": {
+    "proEyebrow": "Pro · {{plan}}",
+    "step": "Adım 1 / 2",
+    "stepAccount": "Hesabını oluştur",
+    "stepCheckout": "Stripe ile güvenli ödeme",
+    "stripLine": "Adım 1 / 2 — ardından Stripe ile güvenli ödeme. İstediğin zaman iptal et.",
+    "freeEyebrow": "Ücretsiz hesap",
+    "freeTitle": "Ücretsiz hesap neleri saklar",
+    "free1": "Antrenman planın ve ne kadar ilerlediğin",
+    "free2": "Her alıştırmadaki istatistiklerin, her cihazda",
+    "free3": "Tam casino masasında on el",
+    "freeStrip": "Ücretsiz: planın, istatistiklerin ve tam masada on el. Kart gerekmez."
   }
 }

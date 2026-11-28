@@ -37,7 +37,7 @@ describe('StrategyChartPublicPage', () => {
 
   it('keeps the way in and the way home of every public page', () => {
     renderPage()
-    expect(screen.getByTestId('learn-start')).toHaveAttribute('href', '/login')
+    expect(screen.getByTestId('learn-start')).toHaveAttribute('href', '/login?mode=signup')
     expect(screen.getByTestId('learn-home')).toHaveAttribute('href', '/')
   })
 })

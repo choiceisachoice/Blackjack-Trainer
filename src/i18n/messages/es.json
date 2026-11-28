@@ -145,7 +145,7 @@
     "downloadError": "No se pudo crear el archivo. Inténtalo de nuevo."
   },
   "pricing": {
-    "vatNote": "Precio final, IVA suizo del {{rate}}% incluido para clientes en Suiza",
+    "vatNote": "Precio final · IVA suizo del {{rate}}% incluido en Suiza",
     "monthly": "Mensual",
     "yearly": "Anual",
     "perMonth": "/mes",
@@ -155,7 +155,6 @@
     "yourPlan": "Tu plan",
     "forever": "para siempre",
     "noCard": "Sin tarjeta",
-    "mostPopular": "El más elegido",
     "bestValue": "MEJOR PRECIO",
     "startFree": "Empezar gratis",
     "goPro": "Hazte Pro →",
@@ -165,7 +164,9 @@
     "secureCheckout": "Pago seguro con Stripe. Cancela cuando quieras desde tu cuenta.",
     "everythingInFree": "Todo lo gratuito, y además:",
     "goProPrice": "Hazte Pro — {{price}}",
-    "atCheckout": "El precio se muestra al pagar"
+    "atCheckout": "El precio se muestra al pagar",
+    "perMonthEquiv": "= {{amount}} al mes · un {{percent}}% menos que mensual",
+    "cancelInAccount": "Cancela cuando quieras desde tu cuenta."
   },
   "landing": {
     "nav": {
@@ -174,7 +175,8 @@
       "signIn": "Iniciar sesión",
       "openApp": "Abrir la app →",
       "startFree": "Empezar gratis",
-      "learn": "Aprender"
+      "learn": "Aprender",
+      "menu": "Menú"
     },
     "hero": {
       "subtitle": "Ejercicios, desviaciones, una mesa de casino completa y el análisis que muestra exactamente por dónde se escapa tu ventaja: todo para que el conteo salga solo.",
@@ -228,7 +230,9 @@
       "contact": "Contacto",
       "note": "Herramienta de práctica: sin relación con ningún casino.",
       "social": "Síguenos",
-      "socialLink": "Blackjack Trainer en {{network}} (se abre en una pestaña nueva)"
+      "socialLink": "Blackjack Trainer en {{network}} (se abre en una pestaña nueva)",
+      "strategyChart": "Tabla de estrategia",
+      "try": "Juega 10 manos gratis"
     },
     "sections": {
       "featuresEyebrow": "Todo en un solo entrenador",
@@ -299,7 +303,8 @@
       "decksBold": "6 barajas",
       "counting": "conteo",
       "realTable": "mesa de casino",
-      "realBold": "Real"
+      "realBold": "Real",
+      "freeChart": "tabla gratis"
     },
     "visual": {
       "running": "Corriente",
@@ -388,12 +393,14 @@
     "addDeviationsTitle": "Desviaciones"
   },
   "contact": {
-    "title": "Contacto",
+    "title": "Contacto y aviso legal",
     "emailUs": "Escríbenos",
     "privacy": "Política de privacidad",
     "terms": "Términos de uso",
     "intro": "Preguntas, comentarios, un problema con tu cuenta o una solicitud de privacidad: leemos todos los mensajes.",
-    "dataRequests": "Para solicitudes de protección de datos (acceso, rectificación o supresión), usa la misma dirección: consulta la <pp>Política de privacidad</pp>."
+    "dataRequests": "Para solicitudes de protección de datos (acceso, rectificación o supresión), usa la misma dirección: consulta la <pp>Política de privacidad</pp>.",
+    "imprintTitle": "Aviso legal",
+    "emailLabel": "Correo"
   },
   "actions": {
     "hit": "Pedir",
@@ -2434,7 +2441,7 @@
   },
   "meta": {
     "title": "Entrenador de blackjack — contar cartas con Hi-Lo",
-    "description": "Entrena el conteo Hi-Lo en serio: ejercicios cronometrados, cada mano de estrategia básica, las Illustrious 18, una mesa de casino completa y análisis que encuentran tus fugas.",
+    "description": "Entrena el conteo Hi-Lo en serio: ejercicios cronometrados, estrategia básica, las Illustrious 18, una mesa de casino completa y análisis de tus fugas.",
     "pages": {
       "learn": {
         "title": "Aprender a contar cartas — Hi-Lo, True Count, estrategia básica, Illustrious 18",
@@ -2454,7 +2461,7 @@
       },
       "terms": {
         "title": "Términos de uso — Entrenador de conteo de cartas",
-        "description": "Las condiciones del servicio: qué es, qué no es, suscripciones, cancelación y responsabilidad."
+        "description": "Las condiciones del Blackjack Card Counting Trainer: qué es el servicio y qué no, suscripciones, precios con IVA, cancelación y responsabilidad."
       },
       "privacy": {
         "title": "Privacidad — Entrenador de conteo de cartas",
@@ -2786,5 +2793,18 @@
       "moreMisses_one": "Y {{count}} más.",
       "moreMisses_other": "Y {{count}} más."
     }
+  },
+  "signupPanel": {
+    "proEyebrow": "Pro · {{plan}}",
+    "step": "Paso 1 de 2",
+    "stepAccount": "Crea tu cuenta",
+    "stepCheckout": "Pago seguro con Stripe",
+    "stripLine": "Paso 1 de 2; después, pago seguro con Stripe. Cancela cuando quieras.",
+    "freeEyebrow": "Cuenta gratuita",
+    "freeTitle": "Lo que guarda una cuenta gratuita",
+    "free1": "Tu plan de entrenamiento y tu progreso",
+    "free2": "Tus estadísticas de cada ejercicio, en cada dispositivo",
+    "free3": "Diez manos en la mesa de casino completa",
+    "freeStrip": "Gratis: tu plan, tus estadísticas y diez manos en la mesa completa. Sin tarjeta."
   }
 }

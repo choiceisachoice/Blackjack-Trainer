@@ -17,16 +17,18 @@ import { usePageMeta } from '../hooks/use-page-meta'
 import { JsonLd } from '../components/common/JsonLd'
 import { siteJsonLd } from '../services/structured-data'
 import { LanguageSwitcher } from '../components/common/LanguageSwitcher'
+import { PublicNavMenu } from '../components/common/PublicNavMenu'
 import { Reveal } from '../components/landing/Reveal'
 import { ManifestoSection } from '../components/landing/ManifestoSection'
 import { FeatureShowcase } from '../components/landing/FeatureShowcase'
 import { LandingPhoto } from '../components/landing/LandingPhoto'
 import { LANDING_PHOTOS } from '../components/landing/landing-photos'
 import { QrRewardWelcome } from '../components/landing/QrRewardWelcome'
+import { shouldLoadHeroCanvas, readHeroCanvasEnv, whenIdle } from '../components/landing/hero-canvas-gate'
 import { isQrArrival, rememberQrReward, hasQrReward, withoutRefParam, qrWelcomeShown, markQrWelcomeShown } from '../services/qr-reward'
 
-// The WebGL hero pulls in Three.js — load it as its own chunk after the hero
-// text has painted, so it never blocks the landing's first paint.
+// The WebGL hero pulls in Three.js — its own chunk, requested by `HeroLayer`
+// only where the gate allows it, so it never blocks the landing's first paint.
 const HeroCanvas = lazy(() => import('../components/landing/HeroCanvas').then(m => ({ default: m.HeroCanvas })))
 
 /*
@@ -134,7 +136,8 @@ export function LandingPage() {
     window.history.replaceState({}, '', withoutRefParam(window.location.pathname, window.location.search, window.location.hash))
   }, [])
 
-  function startFree() { void navigate(authed ? '/app' : '/login') }
+  // Every "Start free" means a new account, so the form opens on that side.
+  function startFree() { void (authed ? navigate('/app') : navigate('/login', { state: { mode: 'signup' } })) }
   /**
    * Buy `chosen` (the toggle's plan by default). Takes the plan as an argument
    * so the QR reward can claim the yearly plan without waiting for the toggle's
@@ -144,8 +147,10 @@ export function LandingPage() {
     if (busy) return
     if (!authed) {
       // Remember the intent so checkout resumes automatically after sign-in.
+      // A buyer has no account yet as a rule: the form opens on sign-up, and
+      // the page says which plan is waiting (`SignupContext`).
       setPendingCheckout(chosen)
-      void navigate('/login')
+      void navigate('/login', { state: { mode: 'signup' } })
       return
     }
     // Someone who already pays does not get sent to a payment form. This is the
@@ -220,11 +225,15 @@ export function LandingPage() {
             {/* The one control a visitor may need before they can read the rest.
                 It belongs on the page they land on, not only inside the app. */}
             <LanguageSwitcher />
+            {authed && <PublicNavMenu signIn={false} className="sm:hidden" />}
             {authed ? (
               <Link to="/app" className="inline-flex items-center min-h-10 px-1 whitespace-nowrap font-semibold text-gold hover:text-gold-bright">{t('landing.hero.ctaOpen')}</Link>
             ) : (
               <>
-                <Link to="/login" className="inline-flex items-center min-h-10 hover:text-content px-1 whitespace-nowrap">{t('landing.nav.signIn')}</Link>
+                {/* Below sm "Sign in" moves into the menu, which also carries
+                    Learn and the strategy chart: same width as before. */}
+                <Link to="/login" className="hidden sm:inline-flex items-center min-h-10 hover:text-content px-1 whitespace-nowrap">{t('landing.nav.signIn')}</Link>
+                <PublicNavMenu className="sm:hidden" />
                 <button onClick={startFree} className="rounded-lg px-3 sm:px-4 py-2.5 font-semibold bg-gradient-to-b from-gold-bright to-gold text-on-gold cursor-pointer whitespace-nowrap">{t('landing.nav.startFree')}</button>
               </>
             )}
@@ -300,7 +309,13 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap gap-x-7 gap-y-2 justify-center text-sm text-content/60">
           <span><b className="text-content font-semibold">{t('landing.tag.decksBold')}</b> · {t('landing.tag.decks')}</span>
           <span><b className="text-content font-semibold">Hi-Lo</b> {t('landing.tag.counting')}</span>
-          <span><b className="text-content font-semibold">{t('landing.hero.chipStrategy')}</b> · S17 / H17</span>
+          {/* The one item in the strip that is also a free tool: it opens
+              the public chart, so a visitor can check the claim before
+              signing up — and the chart page gets a link from the front. */}
+          <Link to="/strategy-chart" data-testid="strip-strategy-chart"
+            className="underline decoration-gold/40 underline-offset-4 hover:text-content hover:decoration-gold">
+            <b className="text-content font-semibold">{t('landing.hero.chipStrategy')}</b> · {t('landing.tag.freeChart')}
+          </Link>
           <span><b className="text-content font-semibold">Illustrious 18</b> + Fab 4</span>
           <span><b className="text-content font-semibold">{t('landing.tag.realBold')}</b> {t('landing.tag.realTable')}</span>
         </div>
@@ -337,7 +352,7 @@ export function LandingPage() {
       <ManifestoSection />
 
       {/* Pricing */}
-      <section id="pricing" className="max-w-6xl mx-auto px-6 py-20">
+      <section id="pricing" className="max-w-6xl mx-auto px-6 pt-14 pb-20">
         <Reveal>
           <SectionHead
             center
@@ -345,106 +360,111 @@ export function LandingPage() {
             title={<Trans i18nKey="landing.pricingIntro.title" components={[<span key="0" />, <span key="1" className="text-gold-gradient" />]} />}
             sub={t('landing.pricingIntro.body')} />
         </Reveal>
-        {/* Centred in the section, and each card as tall as its own content:
-            stretched to the Pro card, the free one carried some 300px of
-            empty panel under its button. */}
-        <Reveal delay={0.06} className="mt-10 grid gap-4 md:grid-cols-[1fr_1.15fr] items-start max-w-3xl mx-auto">
+        {/* Wide, not tall. On a 720px-high screen the old stacked Pro card put
+            "Go Pro" below the fold the moment the section came into view. Now
+            the Pro card is two columns — price and button on the left, what
+            it adds on the right — beside a narrower free card, and the whole
+            row fits under the heading. Below lg the two cards stack; below md
+            the Pro card's columns do too, price and button first. */}
+        <Reveal delay={0.06} className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.1fr)]">
           {/* Free */}
           <div className="surface rounded-2xl p-7 flex flex-col">
             <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">{t('pricing.free')}</div>
             <div className="mt-3.5 flex items-baseline gap-1.5"><span className="text-4xl font-extrabold">CHF 0</span><span className="text-content/60 text-sm">{t('pricing.forever')}</span></div>
             <div className="text-xs text-gold mt-1.5">{t('pricing.noCard')}</div>
-            <div className="mt-5 flex flex-col gap-2.5 text-sm text-content/60">
+            <div className="mt-5 mb-6 flex flex-col gap-2.5 text-sm text-content/60">
               {[t('landing.freeCard.l1'), t('landing.freeCard.l2'), t('landing.freeCard.l3'), t('landing.freeCard.l4')].map(item => (
                 <div key={item} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{item}</div>
               ))}
             </div>
-            <button onClick={startFree} className="mt-6 rounded-xl px-5 py-3 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors cursor-pointer w-full">{t('landing.nav.startFree')}</button>
+            <button onClick={startFree} className="mt-auto rounded-xl px-5 py-3 font-semibold border border-white/12 text-content hover:border-gold/55 transition-colors cursor-pointer w-full">{t('landing.nav.startFree')}</button>
           </div>
           {/* Pro */}
-          <div className="rounded-2xl p-7 flex flex-col relative border border-gold/50 bg-[linear-gradient(180deg,rgba(24,20,10,.55),var(--color-surface))] shadow-[0_0_0_1px_rgba(212,168,71,.15),0_40px_80px_-46px_rgba(212,168,71,.4)]">
-            <div className="absolute -top-2.5 right-6 text-xs font-extrabold text-on-gold bg-gradient-to-b from-gold-bright to-gold px-3 py-1 rounded-full">{t('pricing.mostPopular')}</div>
-            <div className="text-sm uppercase tracking-wide text-content/60 font-semibold">{t('pricing.pro')}</div>
-            {qrRewarded && plan === 'yearly' && (
-              <div className="mt-2 self-start text-xs font-bold text-gold border border-gold/50 rounded-full px-2.5 py-0.5" data-testid="pricing-qr-badge">
-                {t('qrReward.badge')}
-              </div>
-            )}
-            {/* Fetched from Stripe, never asserted. The marketing page is the
-                place a wrong price does the most damage, so it shows a skeleton
-                until it has the real one and no figure at all if the fetch
-                fails — only a line saying where the figure will be, because
-                Stripe still states the amount at checkout. */}
-            <div className="mt-3.5 flex items-baseline gap-2 flex-wrap min-h-10" data-testid="pricing-amount">
-              {current ? (
-                <>
-                  {plan === 'yearly' && saving && (
-                    <span className="text-lg text-content/35 line-through tabular-nums">
-                      {money(saving.monthlyTotal, current.currency)}
+          <div className="rounded-2xl p-7 grid gap-x-10 gap-y-6 md:grid-cols-2 border border-gold/50 bg-[linear-gradient(180deg,rgba(24,20,10,.55),var(--color-surface))] shadow-[0_0_0_1px_rgba(212,168,71,.15),0_40px_80px_-46px_rgba(212,168,71,.4)]">
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-sm uppercase tracking-wide text-content/60 font-semibold">{t('pricing.pro')}</span>
+                  {qrRewarded && plan === 'yearly' && (
+                    <span className="text-xs font-bold text-gold border border-gold/50 rounded-full px-2.5 py-0.5" data-testid="pricing-qr-badge">
+                      {t('qrReward.badge')}
                     </span>
                   )}
-                  <span className="text-4xl font-extrabold tabular-nums">
-                    {money(current.amount, current.currency)}
+                </div>
+                <div className="inline-flex bg-surface-2 border border-white/8 rounded-[11px] p-1 gap-1">
+                  <button onClick={() => setPlan('yearly')} aria-pressed={plan === 'yearly'} className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'yearly' ? 'bg-gradient-to-b from-gold-bright to-gold text-on-gold' : 'text-content/60'}`}>{t('pricing.yearly')}</button>
+                  <button onClick={() => setPlan('monthly')} aria-pressed={plan === 'monthly'} className={`px-3.5 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'monthly' ? 'bg-gradient-to-b from-gold-bright to-gold text-on-gold' : 'text-content/60'}`}>{t('pricing.monthly')}</button>
+                </div>
+              </div>
+              {/* Fetched from Stripe, never asserted. The marketing page is the
+                  place a wrong price does the most damage, so it shows a skeleton
+                  until it has the real one and no figure at all if the fetch
+                  fails — only a line saying where the figure will be, because
+                  Stripe still states the amount at checkout. */}
+              <div className="mt-4 flex items-baseline gap-2 flex-wrap min-h-10" data-testid="pricing-amount">
+                {current ? (
+                  <>
+                    <span className="text-4xl font-extrabold tabular-nums">
+                      {money(current.amount, current.currency)}
+                    </span>
+                    <span className="text-content/60 text-sm">
+                      {t(`pricing.${current.interval === 'year' ? 'perYear' : 'perMonth'}`)}
+                    </span>
+                  </>
+                ) : priceStatus === 'error' ? (
+                  /* A skeleton that goes on animating after the fetch has failed
+                      promises an arrival that will never happen. One neutral
+                      sentence, in the same 40px. (Locally, with no Supabase
+                      configured, this is the state to expect.) */
+                  <span className="self-center text-sm text-content/60" data-testid="pricing-amount-unavailable">
+                    {t('pricing.atCheckout')}
                   </span>
-                  <span className="text-content/60 text-sm">
-                    {t(`pricing.${current.interval === 'year' ? 'perYear' : 'perMonth'}`)}
-                  </span>
-                </>
-              ) : priceStatus === 'error' ? (
-                /* A skeleton that goes on animating after the fetch has failed
-                    promises an arrival that will never happen, and the bare
-                    reserved height that stood here instead read as a hole in
-                    the card. One neutral sentence, in the same 40px. (Locally,
-                    with no Supabase configured, this is the state to expect.) */
-                <span className="self-center text-sm text-content/60" data-testid="pricing-amount-unavailable">
-                  {t('pricing.atCheckout')}
-                </span>
-              ) : (
-                <span
-                  aria-hidden
-                  data-testid="pricing-amount-pending"
-                  className="h-9 w-36 self-center rounded-lg bg-contrast/10 animate-pulse"
-                />
+                ) : (
+                  <span
+                    aria-hidden
+                    data-testid="pricing-amount-pending"
+                    className="h-9 w-36 self-center rounded-lg bg-contrast/10 animate-pulse"
+                  />
+                )}
+              </div>
+              {/* A comparison, never a struck-through figure: twelve monthly
+                  payments were never this plan's price, and a crossed-out
+                  amount reads as a former price under Swiss and EU price
+                  rules. Derived from the two Stripe prices, not written. */}
+              <div className="text-xs text-gold mt-1.5 min-h-4" data-testid="pricing-compare">
+                {plan === 'yearly'
+                  ? saving && yearly && t('pricing.perMonthEquiv', {
+                    amount: money(Math.round(yearly.amount / 12), yearly.currency),
+                    percent: saving.percent,
+                  })
+                  : t('pricing.flexibleCancel')}
+              </div>
+              <button
+                onClick={() => void goPro()}
+                disabled={busy}
+                className="mt-5 rounded-xl px-5 py-3 font-semibold bg-gradient-to-b from-gold-bright to-gold
+                  text-casino-bg cursor-pointer w-full inline-flex items-center justify-center gap-2
+                  disabled:opacity-60 disabled:cursor-default"
+              >
+                {busy && <Loader2 size={16} className="animate-spin" />}
+                {t('pricing.goPro')}
+              </button>
+              {/* `role="alert"` so the failure is announced, not merely drawn: the
+                  visitor who most needs this message may not be looking at the
+                  button they just pressed. */}
+              {checkoutError && (
+                <p className="mt-3 text-sm text-error" role="alert">{checkoutError}</p>
               )}
+              <div className="mt-3 text-xs text-content/45 leading-relaxed">
+                <span data-testid="pricing-vat-note">{t('pricing.vatNote', { rate: formatDecimal(CH_VAT_PERCENT, i18n.language) })}</span>
+                {' · '}
+                <span>{t('pricing.cancelInAccount')}</span>
+              </div>
             </div>
-            {/* Derived, not written: the old copy said "2 months free" while the
-                real discount is ~4.5 months. Both sentences were also still in
-                English on all seven locales — they sat inside a JSX expression,
-                where the no-literal-string rule cannot see them, while the
-                translated keys they needed already existed. */}
-            <div className="text-xs text-gold mt-1.5 min-h-4">
-              {plan === 'yearly'
-                ? saving && monthly && t('pricing.saveAgainstMonthly', {
-                  amount: money(saving.saved, monthly.currency),
-                  percent: saving.percent,
-                })
-                : t('pricing.flexibleCancel')}
-            </div>
-            <div className="text-xs text-content/45 mt-1" data-testid="pricing-vat-note">{t('pricing.vatNote', { rate: formatDecimal(CH_VAT_PERCENT, i18n.language) })}</div>
-            <div className="inline-flex mt-2 self-start bg-surface-2 border border-white/8 rounded-[11px] p-1 gap-1">
-              <button onClick={() => setPlan('yearly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'yearly' ? 'bg-gradient-to-b from-gold-bright to-gold text-on-gold' : 'text-content/60'}`}>{t('pricing.yearly')}</button>
-              <button onClick={() => setPlan('monthly')} className={`px-4 py-1.5 rounded-lg text-sm font-semibold cursor-pointer ${plan === 'monthly' ? 'bg-gradient-to-b from-gold-bright to-gold text-on-gold' : 'text-content/60'}`}>{t('pricing.monthly')}</button>
-            </div>
-            <div className="mt-5 flex flex-col gap-2.5 text-sm text-content/60">
+            <div className="flex flex-col gap-2 text-sm text-content/60 min-w-0 md:border-l md:border-white/8 md:pl-10">
               <div className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" /><span className="text-content">{t('pricing.everythingInFree')}</span></div>
               {PRO_BENEFITS.map(b => (<div key={b} className="flex gap-2.5 items-start"><Check size={16} className="text-gold shrink-0 mt-0.5" />{t(`paywall.${b}`)}</div>))}
             </div>
-            <button
-              onClick={() => void goPro()}
-              disabled={busy}
-              className="mt-6 rounded-xl px-5 py-3 font-semibold bg-gradient-to-b from-gold-bright to-gold
-                text-casino-bg cursor-pointer w-full inline-flex items-center justify-center gap-2
-                disabled:opacity-60 disabled:cursor-default"
-            >
-              {busy && <Loader2 size={16} className="animate-spin" />}
-              {t('pricing.goPro')}
-            </button>
-            {/* `role="alert"` so the failure is announced, not merely drawn: the
-                visitor who most needs this message may not be looking at the
-                button they just pressed. */}
-            {checkoutError && (
-              <p className="mt-3 text-sm text-error" role="alert">{checkoutError}</p>
-            )}
           </div>
         </Reveal>
       </section>
@@ -498,6 +518,7 @@ export function LandingPage() {
             <a href="#features" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.features')}</a>
             <a href="#pricing" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.pricing')}</a>
             <Link to="/learn" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.learn')}</Link>
+            <Link to="/strategy-chart" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.strategyChart')}</Link>
             <Link to="/login" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.nav.signIn')}</Link>
             <Link to="/terms" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.terms')}</Link>
             <Link to="/privacy" className="inline-flex items-center min-h-10 hover:text-content">{t('landing.footer.privacy')}</Link>
@@ -513,11 +534,27 @@ export function LandingPage() {
 }
 
 function HeroLayer() {
+  /*
+    The canvas is an extra, not the hero: three.js measured 2.2 s of
+    main-thread blocking on a phone, where it sits under the 72% scrim anyway.
+    So it is requested only after mount, once the browser is idle, and only
+    on a screen and device that can show it (`hero-canvas-gate.ts`). The
+    prerender and every phone keep the static ground — the same near-black
+    the canvas clears to, so nothing changes under the headline when it
+    arrives.
+  */
+  const [canvas, setCanvas] = useState(false)
+  useEffect(() => {
+    if (!shouldLoadHeroCanvas(readHeroCanvasEnv())) return
+    return whenIdle(() => setCanvas(true))
+  }, [])
   return (
     <>
-      <Suspense fallback={null}>
-        <HeroCanvas className="absolute inset-0 w-full h-full z-[1]" />
-      </Suspense>
+      {canvas && (
+        <Suspense fallback={null}>
+          <HeroCanvas className="absolute inset-0 w-full h-full z-[1]" />
+        </Suspense>
+      )}
       <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: SCRIM }} />
       {/* On a phone the text runs the full width, so there is no side of the
           hero a card can pass on: every card is held back to a shape in the

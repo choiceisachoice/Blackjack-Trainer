@@ -75,9 +75,11 @@ export function articleJsonLd(t: Translate, info: ArticleInfo): Record<string, u
 /**
  * The site and the product, for the landing page.
  *
- * No `offers`: the prices come from Stripe at runtime and are deliberately
- * not written anywhere else, so a price here would be exactly the drift that
- * was removed from the paywall in August.
+ * One `Offer`, the free tier at 0 CHF — the only price that is a fact of the
+ * product rather than a Stripe setting. The Pro prices come from Stripe at
+ * runtime and are deliberately not written anywhere else, so a Pro price
+ * here would be exactly the drift that was removed from the paywall in
+ * August. No rating: there is no review data to back one.
  *
  * @param t - Translator for the reader's language
  */
@@ -103,6 +105,7 @@ export function siteJsonLd(t: Translate): Record<string, unknown> {
         operatingSystem: 'Web',
         url: `${SITE_ORIGIN}/`,
         description: t('meta.description'),
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'CHF' },
       },
     ],
   }

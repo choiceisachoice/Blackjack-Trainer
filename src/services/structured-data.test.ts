@@ -35,12 +35,15 @@ describe('structured data', () => {
     expect(JSON.stringify(data)).not.toContain('"author"')
   })
 
-  it('describes the site without inventing a price', () => {
-    const json = JSON.stringify(siteJsonLd(i18next.t))
+  it('describes the site with the free tier as its one offer, and no invented Pro price or rating', () => {
+    const data = siteJsonLd(i18next.t) as { '@graph': Record<string, unknown>[] }
+    const json = JSON.stringify(data)
     expect(json).toContain('"@type":"WebSite"')
-    expect(json).toContain('"SoftwareApplication"')
     expect(json).toContain('https://black-jack-training.com/')
-    expect(json).not.toContain('offers')
-    expect(json).not.toMatch(/CHF|price/i)
+    const app = data['@graph'].find(n => n['@type'] === 'SoftwareApplication')
+    expect(app?.offers).toEqual({ '@type': 'Offer', price: '0', priceCurrency: 'CHF' })
+    // The only price is the free one; Pro's comes from Stripe at runtime.
+    expect(json.match(/"price"/g)).toHaveLength(1)
+    expect(json).not.toMatch(/aggregateRating|review/i)
   })
 })
