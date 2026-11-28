@@ -27,42 +27,12 @@
 	}
 }
 
-:{$PORT:3000} {
-	log {
-		format json
-	}
-
-	root * /app/dist
-	encode gzip
-
-	# One host. Traefik in front routes www here as well, and until this
-	# line the www address answered with a full copy of every page — two URLs
-	# for one page, which a search engine has to resolve on its own and may
-	# resolve the wrong way. The apex is the canonical host, so www redirects.
-	@www host www.black-jack-training.com
-	redir @www https://black-jack-training.com{uri} permanent
-
-	# Vite content-hashes everything under /assets, so a returning visitor
-	# need never ask about them again. Everything else keeps Caddy's default.
-	@assets path /assets/*
-	header @assets Cache-Control "public, max-age=31536000, immutable"
-
-	# The web app manifest, by its registered type. Caddy takes the type from
-	# the operating system's table, which may not know `.webmanifest`; the file
-	# would then go out as text/plain. Browsers read it regardless, but an
-	# install check that looks at the header does not.
-	@manifest path /manifest.webmanifest
-	header @manifest Content-Type "application/manifest+json"
-
-	# Everything else is asked about again on every visit. Without this line a
-	# page carried only Last-Modified, and a browser may then keep it fresh on
-	# its own guess (10 % of its age): Safari served the page from before a
-	# deploy, with the old script names, and the QR welcome never ran, while a
-	# private window showed the new one (10 Nov 2026). The ETag makes the
-	# question cheap: an unchanged page answers 304 with no body.
-	@pages not path /assets/*
-	header @pages Cache-Control "no-cache"
-
+# The security headers, as a snippet because two places need them: every
+# ordinary response, and the 404 page in `handle_errors` at the bottom. That
+# block runs outside the main route, and the `-Server` line makes this whole
+# block deferred — applied only to responses written inside the route that
+# set it — so an error page would otherwise go out with none of them.
+(security_headers) {
 	# Security headers, set here and not on the server.
 	#
 	# They were meant to come from a Traefik middleware pasted into Dokploy by
@@ -107,10 +77,108 @@
 
 		-Server
 	}
+}
 
-	file_server
+:{$PORT:3000} {
+	log {
+		format json
+	}
 
-	# A file, then a prerendered page in a directory, then the empty app
-	# shell for the client-side routes (/app, /account, /login).
-	try_files {path} {path}/index.html /shell.html
+	root * /app/dist
+
+	# zstd first, gzip for the rest. Caddy has no brotli of its own, and zstd
+	# is what current Chrome, Edge and Firefox ask for; measured on this build,
+	# JS and CSS come out ~19 % smaller than gzip. Safari still gets gzip.
+	#
+	# The list is Caddy's default minus `font/*`: woff2 is Brotli inside
+	# already, and webp, jpg, png and mp3 are not on it either. Compressing
+	# those spends CPU on every request to make them a few bytes larger.
+	encode zstd gzip {
+		match {
+			header Content-Type text/*
+			header Content-Type application/javascript*
+			header Content-Type application/json*
+			header Content-Type application/ld+json*
+			header Content-Type application/manifest+json*
+			header Content-Type application/xml*
+			header Content-Type application/xhtml+xml*
+			header Content-Type application/wasm*
+			header Content-Type image/svg+xml*
+			header Content-Type image/x-icon*
+			header Content-Type image/vnd.microsoft.icon*
+		}
+	}
+
+	# One host. Traefik in front routes www here as well, and until this
+	# line the www address answered with a full copy of every page — two URLs
+	# for one page, which a search engine has to resolve on its own and may
+	# resolve the wrong way. The apex is the canonical host, so www redirects.
+	@www host www.black-jack-training.com
+	redir @www https://black-jack-training.com{uri} permanent
+
+	# Vite content-hashes everything under /assets, so a returning visitor
+	# need never ask about them again. Everything else keeps Caddy's default.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+
+	# The web app manifest, by its registered type. Caddy takes the type from
+	# the operating system's table, which may not know `.webmanifest`; the file
+	# would then go out as text/plain. Browsers read it regardless, but an
+	# install check that looks at the header does not.
+	@manifest path /manifest.webmanifest
+	header @manifest Content-Type "application/manifest+json"
+
+	# Everything else is asked about again on every visit. Without this line a
+	# page carried only Last-Modified, and a browser may then keep it fresh on
+	# its own guess (10 % of its age): Safari served the page from before a
+	# deploy, with the old script names, and the QR welcome never ran, while a
+	# private window showed the new one (10 Nov 2026). The ETag makes the
+	# question cheap: an unchanged page answers 304 with no body.
+	@pages not path /assets/* /fonts/* /cards/* /sounds/* /og-card.jpg
+	header @pages Cache-Control "no-cache"
+
+	# The fonts, the card faces, the table sounds and the link-preview image.
+	# Not hashed — the file keeps its name when its content changes — so not
+	# `immutable`: a week, then one revalidation in the background (the ETag
+	# makes that a 304). A replaced card face can take up to a week to reach a
+	# returning visitor; rename the file if it must arrive sooner. Before
+	# 28 Nov 2026 these were `no-cache` and asked about on every page.
+	@static path /fonts/* /cards/* /sounds/* /og-card.jpg
+	header @static Cache-Control "public, max-age=604800, stale-while-revalidate=86400"
+
+	# Security headers: the `(security_headers)` snippet above the site.
+	import security_headers
+
+	# The client-side routes get the empty app shell, with or without a
+	# language prefix: the sign-in and password-reset forms, the trainer and
+	# every screen under it (/app/speed, /app?checkout=success from Stripe),
+	# the account and the admin numbers. Mirrors `routeFor` in
+	# src/routes/pages.ts; a new client-side route has to be added here too,
+	# or it answers 404 (still drawn by the app, but not indexed and not
+	# linkable as a 200). The /dev screens exist only in development.
+	@shell path_regexp shell ^(/(de|fr|it|es|pt|tr))?/(login|reset-password|account|admin/analytics|app(/.*)?)/?$
+	handle @shell {
+		rewrite * /shell.html
+		file_server
+	}
+
+	# Everything else: a file, or a prerendered page in a directory. Nothing
+	# else exists, and from 28 Nov 2026 it says so — until then every unknown
+	# path answered 200 with the shell, which a search engine reads as a page
+	# (a soft 404) and the app quietly redirected to the landing.
+	handle {
+		try_files {path} {path}/index.html
+		file_server
+	}
+
+	# The 404 (and any other error) is the app shell with the error's status:
+	# `file_server` keeps the status inside `handle_errors`. A visitor who
+	# followed a broken link still lands somewhere — the app's router sends an
+	# unknown path to the landing — while a crawler sees the 404.
+	handle_errors {
+		import security_headers
+		header Cache-Control "no-cache"
+		rewrite * /shell.html
+		file_server
+	}
 }
