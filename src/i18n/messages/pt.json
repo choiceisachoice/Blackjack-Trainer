@@ -166,7 +166,10 @@
     "goProPrice": "Obter Pro — {{price}}",
     "atCheckout": "Preço apresentado no pagamento",
     "perMonthEquiv": "= {{amount}} por mês · menos {{percent}}% do que mensal",
-    "cancelInAccount": "Cancele quando quiser na sua conta."
+    "cancelInAccount": "Cancele quando quiser na sua conta.",
+    "youSave": "Economize {{amount}}",
+    "compareLabel": "pagando mensalmente",
+    "perMonthShort": "= {{amount}} por mês"
   },
   "landing": {
     "nav": {

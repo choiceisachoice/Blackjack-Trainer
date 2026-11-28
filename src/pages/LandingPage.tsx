@@ -410,6 +410,15 @@ export function LandingPage() {
                     <span className="text-content/60 text-sm">
                       {t(`pricing.${current.interval === 'year' ? 'perYear' : 'perMonth'}`)}
                     </span>
+                    {plan === 'yearly' && saving && saving.saved > 0 && (
+                      <span
+                        className="self-center ml-1 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums
+                          bg-gold/15 text-gold border border-gold/40"
+                        data-testid="pricing-saving"
+                      >
+                        {t('pricing.youSave', { amount: money(saving.saved, current.currency) })}
+                      </span>
+                    )}
                   </>
                 ) : priceStatus === 'error' ? (
                   /* A skeleton that goes on animating after the fetch has failed
@@ -427,17 +436,31 @@ export function LandingPage() {
                   />
                 )}
               </div>
-              {/* A comparison, never a struck-through figure: twelve monthly
-                  payments were never this plan's price, and a crossed-out
-                  amount reads as a former price under Swiss and EU price
-                  rules. Derived from the two Stripe prices, not written. */}
-              <div className="text-xs text-gold mt-1.5 min-h-4" data-testid="pricing-compare">
+              {/* The saving, visible: the owner asked for the struck-through
+                  figure back (28 Nov 2026), because "69" alone hides what a
+                  buyer saves. It stays — with the words that make it honest.
+                  A crossed-out amount on its own reads as a former price,
+                  and twelve monthly payments were never this plan's price;
+                  labelled "if paid monthly" it is what it is, a comparison of
+                  two prices on sale today, and the badge beside the price says
+                  the difference in money. All three figures are derived from
+                  the two Stripe prices, none is written. */}
+              <div className="text-xs mt-2 min-h-4 space-y-0.5" data-testid="pricing-compare">
                 {plan === 'yearly'
-                  ? saving && yearly && t('pricing.perMonthEquiv', {
-                    amount: money(Math.round(yearly.amount / 12), yearly.currency),
-                    percent: saving.percent,
-                  })
-                  : t('pricing.flexibleCancel')}
+                  ? saving && yearly && saving.saved > 0 && (
+                    <>
+                      <div className="flex flex-wrap items-baseline gap-x-1.5">
+                        <span className="text-base text-content/50 line-through decoration-content/50 tabular-nums" data-testid="pricing-struck">
+                          {money(saving.monthlyTotal, yearly.currency)}
+                        </span>
+                        <span className="text-content/55">{t('pricing.compareLabel')}</span>
+                      </div>
+                      <div className="text-gold">
+                        {t('pricing.perMonthShort', { amount: money(Math.round(yearly.amount / 12), yearly.currency) })}
+                      </div>
+                    </>
+                  )
+                  : <span className="text-gold">{t('pricing.flexibleCancel')}</span>}
               </div>
               <button
                 onClick={() => void goPro()}

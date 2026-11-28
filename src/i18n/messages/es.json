@@ -166,7 +166,10 @@
     "goProPrice": "Hazte Pro — {{price}}",
     "atCheckout": "El precio se muestra al pagar",
     "perMonthEquiv": "= {{amount}} al mes · un {{percent}}% menos que mensual",
-    "cancelInAccount": "Cancela cuando quieras desde tu cuenta."
+    "cancelInAccount": "Cancela cuando quieras desde tu cuenta.",
+    "youSave": "Ahorras {{amount}}",
+    "compareLabel": "pagando mes a mes",
+    "perMonthShort": "= {{amount}} al mes"
   },
   "landing": {
     "nav": {

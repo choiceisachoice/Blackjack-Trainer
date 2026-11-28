@@ -50,6 +50,7 @@ vi.mock('framer-motion', () => {
 })
 
 import { LandingPage } from './LandingPage'
+import { usePlanPriceStore } from '../store/plan-price-store'
 
 /** Stands in for `/login`: shows the mode the link carried. */
 function Login() {
@@ -67,7 +68,10 @@ const renderPage = () => render(
 )
 
 beforeEach(() => { auth.status = 'signedOut'; setPendingCheckout.mockReset(); heroCanvas.mockClear() })
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  usePlanPriceStore.setState({ status: 'idle', plans: [] })
+})
 
 describe('the landing, signed out', () => {
   it('opens the sign-up side from the hero\'s "Start free"', () => {
@@ -95,10 +99,35 @@ describe('the landing, signed out', () => {
     expect(within(screen.getByRole('contentinfo')).getByRole('link', { name: /strategy chart/i })).toHaveAttribute('href', '/strategy-chart')
   })
 
-  it('shows no struck-through price and no popularity claim on the Pro card', () => {
+  it('makes no popularity claim on the Pro card', () => {
+    renderPage()
+    expect(screen.queryByText(/most popular/i)).toBeNull()
+  })
+
+  it('shows the yearly saving: the struck monthly total, labelled, and the amount saved', () => {
+    // The owner asked for the struck-through figure back (28 Nov 2026). It
+    // may only appear with the words that say what it is — twelve monthly
+    // payments, not a former price — and only from real Stripe prices.
+    usePlanPriceStore.setState({
+      status: 'ready',
+      plans: [
+        { id: 'monthly', amount: 890, currency: 'chf', interval: 'month' },
+        { id: 'yearly', amount: 6900, currency: 'chf', interval: 'year' },
+      ],
+    } as never)
+    renderPage()
+    const struck = screen.getByTestId('pricing-struck')
+    expect(struck.textContent).toMatch(/106[.,']80/)
+    expect(struck).toHaveClass('line-through')
+    expect(screen.getByTestId('pricing-compare').textContent).toMatch(/if paid monthly/i)
+    expect(screen.getByTestId('pricing-saving').textContent).toMatch(/you save .*37[.,']80/i)
+  })
+
+  it('shows no struck figure without real prices', () => {
+    usePlanPriceStore.setState({ status: 'error', plans: [] })
     renderPage()
     expect(document.querySelector('.line-through')).toBeNull()
-    expect(screen.queryByText(/most popular/i)).toBeNull()
+    expect(screen.queryByTestId('pricing-saving')).toBeNull()
   })
 
   it('does not load the three.js hero where the screen cannot be read (no matchMedia)', () => {

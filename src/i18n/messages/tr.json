@@ -166,7 +166,10 @@
     "goProPrice": "Pro'ya geç — {{price}}",
     "atCheckout": "Fiyat ödeme adımında gösterilir",
     "perMonthEquiv": "= ayda {{amount}} · aylıktan %{{percent}} daha ucuz",
-    "cancelInAccount": "Hesabından istediğin zaman iptal et."
+    "cancelInAccount": "Hesabından istediğin zaman iptal et.",
+    "youSave": "{{amount}} tasarruf",
+    "compareLabel": "aylık ödemede",
+    "perMonthShort": "= ayda {{amount}}"
   },
   "landing": {
     "nav": {

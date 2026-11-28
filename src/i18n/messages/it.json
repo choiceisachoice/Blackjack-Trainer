@@ -166,7 +166,10 @@
     "goProPrice": "Passa a Pro — {{price}}",
     "atCheckout": "Prezzo mostrato al pagamento",
     "perMonthEquiv": "= {{amount}} al mese · {{percent}}% in meno del mensile",
-    "cancelInAccount": "Disdici quando vuoi dal tuo account."
+    "cancelInAccount": "Disdici quando vuoi dal tuo account.",
+    "youSave": "Risparmi {{amount}}",
+    "compareLabel": "pagando ogni mese",
+    "perMonthShort": "= {{amount}} al mese"
   },
   "landing": {
     "nav": {

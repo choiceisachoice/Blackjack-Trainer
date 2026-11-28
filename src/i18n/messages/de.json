@@ -166,7 +166,10 @@
     "goProPrice": "Pro holen — {{price}}",
     "atCheckout": "Preis wird an der Kasse angezeigt",
     "perMonthEquiv": "= {{amount}} pro Monat · {{percent}}% günstiger als monatlich",
-    "cancelInAccount": "Jederzeit im Konto kündbar."
+    "cancelInAccount": "Jederzeit im Konto kündbar.",
+    "youSave": "Du sparst {{amount}}",
+    "compareLabel": "bei monatlicher Zahlung",
+    "perMonthShort": "= {{amount}} pro Monat"
   },
   "landing": {
     "nav": {

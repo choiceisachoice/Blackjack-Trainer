@@ -166,7 +166,10 @@
     "goProPrice": "Go Pro — {{price}}",
     "atCheckout": "Price shown at checkout",
     "perMonthEquiv": "= {{amount}} a month · {{percent}}% less than monthly",
-    "cancelInAccount": "Cancel anytime in your account."
+    "cancelInAccount": "Cancel anytime in your account.",
+    "youSave": "You save {{amount}}",
+    "compareLabel": "if paid monthly",
+    "perMonthShort": "= {{amount}} a month"
   },
   "landing": {
     "nav": {
