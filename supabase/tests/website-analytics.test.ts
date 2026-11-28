@@ -370,3 +370,23 @@ describe('retention', () => {
     expect(cron).toBe(false)
   })
 })
+
+describe('flood guard', () => {
+  it('stops counting past 300 page views a minute, without an error, and counts again after', async () => {
+    // The function is granted to anon and the anon key ships in the page;
+    // without a cap one script could grow three tables until the purge.
+    const sid = await track({ role: 'anon' }, V1, '/')
+    await db.query(
+      `insert into public.analytics_page_views (session_id, visitor_id, pathname)
+       select $1, $2, '/' from generate_series(1, 299)`,
+      [sid, V1],
+    )
+    expect(await track({ role: 'anon' }, V2, '/learn')).toBeNull()
+    expect(await scalar<number>(db, 'select count(*)::int from public.analytics_page_views')).toBe(300)
+    expect(await scalar<number>(db, 'select count(*)::int from public.analytics_visitors')).toBe(1)
+
+    // A minute later the window has moved on.
+    await db.query(`update public.analytics_page_views set viewed_at = now() - interval '2 minutes'`)
+    expect(await track({ role: 'anon' }, V2, '/learn')).toMatch(/^[0-9a-f-]{36}$/)
+  })
+})

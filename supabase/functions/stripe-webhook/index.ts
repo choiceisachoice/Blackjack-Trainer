@@ -80,40 +80,21 @@ async function syncSubscriptionById(subId: string): Promise<void> {
   // customer id was never stored — returned normally and the caller answered
   // Stripe with 200. The customer had paid, the entitlement was never granted,
   // and nothing anywhere recorded that it went wrong.
-  const query = admin.from('profiles').update(patch).select('id')
-  const outcome = userId
-    ? await query.eq('id', userId)
-    : await query.eq('stripe_customer_id', sub.customer as string)
+  //
+  // The metadata id can point at a user that no longer exists: an account
+  // deleted and signed up again gets a new id, while checkout adopts the old
+  // Stripe customer (and its subscription, whose metadata still names the old
+  // id). Matching on that id alone hit no row, `requireWrite` threw, Stripe
+  // retried for three days and gave up — a paying customer left on `free`. So
+  // a miss on the id falls back to the customer, which checkout stored on the
+  // new profile when it adopted it.
+  const update = () => admin.from('profiles').update(patch).select('id')
+  let outcome = userId ? await update().eq('id', userId) : null
+  if (!outcome || (!outcome.error && (outcome.data?.length ?? 0) === 0)) {
+    outcome = await update().eq('stripe_customer_id', sub.customer as string)
+  }
 
   requireWrite(outcome, `entitlement update (user=${userId ?? 'n/a'}, customer=${sub.customer})`)
-}
-
-/** Downgrade a customer whose invoice failed. */
-async function markPastDue(customerId: string): Promise<void> {
-  // `.select()` and `requireWrite`, not a bare error check.
-  //
-  // This is the one event whose entire job is to take access away from someone
-  // who has stopped paying, and it matches on the customer id — which is null
-  // on any profile whose id write was lost. Checking only `error` treated
-  // "changed nothing" as success: the handler answered Stripe 200 and the
-  // account kept Pro indefinitely.
-  //
-  // Throwing hands it to the dispatcher, which releases the ledger claim so
-  // Stripe's retry can do the work.
-  //
-  // Deliberate trade, not an oversight: for a customer with no profile at all
-  // — a deleted account — no retry can ever succeed, so Stripe will keep
-  // redelivering until it gives up and the endpoint shows failed deliveries.
-  // That is the intended alarm; the alternative is answering 200 to a downgrade
-  // that did not happen. Worth revisiting only if the volume ever grows enough
-  // to risk Stripe disabling the endpoint, which would take the whole payment
-  // path down and would be far worse than one stale row.
-  const outcome = await admin
-    .from('profiles')
-    .update({ subscription_status: 'past_due' })
-    .eq('stripe_customer_id', customerId)
-    .select('id')
-  requireWrite(outcome, `past_due downgrade (customer=${customerId})`)
 }
 
 /**
@@ -138,7 +119,6 @@ const deps: WebhookDeps = {
     return !error
   },
   syncSubscription: syncSubscriptionById,
-  markPastDue,
   warn: (m) => console.warn(m),
   error: (m, cause) => console.error(m, cause),
 }

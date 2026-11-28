@@ -165,3 +165,33 @@ Switzerland explicitly rather than being hidden from foreign visitors. Swiss
 price-disclosure rules want the all-in figure shown to consumers, and a
 sentence that says *who* the VAT applies to stays true for every reader —
 unlike geolocation, which is wrong for anyone travelling or on a VPN.
+
+## 9. Day-to-day: refunds and corrections
+
+**A refund does not end Pro by itself.** The webhook listens to subscription
+events, not to charges. Refunding a payment in the Stripe dashboard (or losing
+a chargeback) leaves the subscription — and with it Pro — running. So a refund
+is two steps: refund the payment, **then cancel the subscription immediately**
+(Customers → the customer → Subscription → Cancel → *Immediately*). The
+`customer.subscription.deleted` event that follows takes Pro away on its own.
+
+**Correcting Pro by hand in the SQL editor needs the service-role claim.**
+`protect_entitlement_columns` lets entitlement columns change only when
+`auth.role()` says `service_role` — and `auth.role()` reads the request's JWT
+claim, not the database role. The editor has no such claim, so a plain UPDATE
+is quietly put back while reporting "UPDATE 1". (`set role service_role` does
+not help, for the same reason.) Set the claim for one transaction:
+
+```sql
+begin;
+select set_config('request.jwt.claim.role', 'service_role', true);
+update public.profiles
+set subscription_status = 'active', current_period_end = '2027-11-28T00:00:00Z'
+where id = '<user id>';
+commit;
+```
+
+Then read the row back: it must show the new values. Both halves are pinned
+by `supabase/tests/manual-entitlement-fix.test.ts`. (The trigger is not widened
+to the `postgres` role on purpose: SECURITY DEFINER functions run as `postgres`
+too, and one of them updating a profile would then bypass the guard.)

@@ -31,7 +31,6 @@ export interface WebhookDeps {
   /** Remove the ledger row again. `false` if that itself failed. */
   release(eventId: string): Promise<boolean>
   syncSubscription(subscriptionId: string): Promise<void>
-  markPastDue(customerId: string): Promise<void>
   warn(message: string): void
   error(message: string, cause?: unknown): void
 }
@@ -46,6 +45,26 @@ export interface DispatchResult {
 function str(object: Record<string, unknown>, key: string): string | undefined {
   const v = object[key]
   return typeof v === 'string' && v.length > 0 ? v : undefined
+}
+
+/**
+ * The subscription an invoice belongs to.
+ *
+ * The payload's shape follows the API version set on the webhook *endpoint* in
+ * the Stripe dashboard, not the version this code pins. Up to 2025-01 (acacia)
+ * it is `invoice.subscription`; from 2025-03 (basil) Stripe moved it to
+ * `invoice.parent.subscription_details.subscription`. Reading only the old
+ * field would make every failed renewal on a newer endpoint look like a
+ * one-off invoice and be ignored.
+ */
+export function invoiceSubscription(object: Record<string, unknown>): string | undefined {
+  const direct = str(object, 'subscription')
+  if (direct) return direct
+  const parent = object.parent
+  if (!parent || typeof parent !== 'object') return undefined
+  const details = (parent as Record<string, unknown>).subscription_details
+  if (!details || typeof details !== 'object') return undefined
+  return str(details as Record<string, unknown>, 'subscription')
 }
 
 export async function dispatchEvent(
@@ -87,8 +106,18 @@ export async function dispatchEvent(
         // Only when the invoice belongs to a subscription. A failed one-off
         // invoice says nothing about anyone's subscription, and downgrading on
         // it would take Pro from someone who is still paying for it.
-        const customer = str(object, 'customer')
-        if (str(object, 'subscription') && customer) await deps.markPastDue(customer)
+        //
+        // Re-read the subscription rather than writing `past_due` by hand.
+        // The hand-written status used to be the one write on this path that
+        // did not ask Stripe, and Stripe does not order its deliveries: when
+        // the last dunning retry fails it sends `customer.subscription.deleted`
+        // and this event together. Processed in that order, the literal put a
+        // cancelled yearly subscription back to `past_due` with a period end a
+        // year away — and `past_due` before its period end counts as Pro. A
+        // customer who had stopped paying kept Pro for a year. Stripe's own
+        // status is right whichever event arrives last.
+        const subscription = invoiceSubscription(object)
+        if (subscription) await deps.syncSubscription(subscription)
         break
       }
 

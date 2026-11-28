@@ -36,6 +36,19 @@ const PLAN_PRICES: Record<string, string | undefined> = {
   yearly: Deno.env.get('STRIPE_PRICE_YEARLY'),
 }
 
+/**
+ * The last good answer, kept for a few minutes.
+ *
+ * This function is public — the landing page calls it for every visitor — and
+ * each call used to make two live `prices.retrieve` requests. A loop against it
+ * spent the account's Stripe rate limit, which checkout and the webhook share:
+ * the webhook would recover on retry, checkout would simply fail. Prices change
+ * a few times a year, by hand, so five minutes of staleness costs nothing.
+ * Only a complete, validated answer is kept; a failure is never cached.
+ */
+const CACHE_MS = 5 * 60_000
+let cached: { plans: PlanPrice[]; at: number } | null = null
+
 Deno.serve(async (req) => {
   const cors = corsHeaders(req)
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
@@ -43,8 +56,16 @@ Deno.serve(async (req) => {
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), {
       status,
-      headers: { ...cors, 'Content-Type': 'application/json' },
+      headers: {
+        ...cors,
+        'Content-Type': 'application/json',
+        // Private, not public: the answer carries a per-origin CORS header,
+        // and the protection that matters is the in-memory copy above.
+        'Cache-Control': status === 200 ? 'private, max-age=300' : 'no-store',
+      },
     })
+
+  if (cached && Date.now() - cached.at < CACHE_MS) return json({ plans: cached.plans })
 
   try {
     const plans: PlanPrice[] = []
@@ -61,6 +82,7 @@ Deno.serve(async (req) => {
       plans.push(toPlanPrice(id, await stripe.prices.retrieve(priceId)))
     }
 
+    cached = { plans, at: Date.now() }
     return json({ plans })
   } catch (e) {
     // Logged in full, returned in outline. The message can name a price id and

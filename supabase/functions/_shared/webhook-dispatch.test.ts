@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { dispatchEvent, type WebhookDeps, type WebhookEvent } from './webhook-dispatch'
+import { dispatchEvent, invoiceSubscription, type WebhookDeps, type WebhookEvent } from './webhook-dispatch'
 
 /**
  * What the webhook does once the signature and the Stripe mode have been
@@ -17,21 +17,19 @@ import { dispatchEvent, type WebhookDeps, type WebhookEvent } from './webhook-di
 const claim = vi.fn<(e: { id: string; type: string }) => Promise<'claimed' | 'duplicate' | 'error'>>()
 const release = vi.fn<(id: string) => Promise<boolean>>()
 const syncSubscription = vi.fn<(id: string) => Promise<void>>()
-const markPastDue = vi.fn<(customerId: string) => Promise<void>>()
 const warn = vi.fn<(m: string) => void>()
 const error = vi.fn<(m: string, e?: unknown) => void>()
 
-const deps = (): WebhookDeps => ({ claim, release, syncSubscription, markPastDue, warn, error })
+const deps = (): WebhookDeps => ({ claim, release, syncSubscription, warn, error })
 
 const evt = (type: string, object: Record<string, unknown>, id = 'evt_1'): WebhookEvent =>
   ({ id, type, data: { object } })
 
 beforeEach(() => {
-  for (const m of [claim, release, syncSubscription, markPastDue, warn, error]) m.mockReset()
+  for (const m of [claim, release, syncSubscription, warn, error]) m.mockReset()
   claim.mockResolvedValue('claimed')
   release.mockResolvedValue(true)
   syncSubscription.mockResolvedValue(undefined)
-  markPastDue.mockResolvedValue(undefined)
 })
 
 describe('claiming the event', () => {
@@ -86,19 +84,36 @@ describe('routing', () => {
     expect(syncSubscription).toHaveBeenCalledWith('sub_7')
   })
 
-  it('downgrades on a failed invoice, by customer', async () => {
+  it('re-reads the subscription on a failed invoice instead of writing past_due by hand', async () => {
+    // Stripe sends `customer.subscription.deleted` and the last
+    // `invoice.payment_failed` together, in no fixed order. A hand-written
+    // `past_due` arriving second put a cancelled yearly subscription back
+    // into the grace window — Pro for a year without paying. Asking Stripe
+    // gives the true status whichever event lands last.
     await dispatchEvent(
       evt('invoice.payment_failed', { subscription: 'sub_1', customer: 'cus_9' }),
       deps(),
     )
-    expect(markPastDue).toHaveBeenCalledWith('cus_9')
+    expect(syncSubscription).toHaveBeenCalledWith('sub_1')
+  })
+
+  it('finds the subscription on a newer endpoint API version too', async () => {
+    // From 2025-03 (basil) the invoice carries it under parent.subscription_details.
+    await dispatchEvent(
+      evt('invoice.payment_failed', {
+        customer: 'cus_9',
+        parent: { type: 'subscription_details', subscription_details: { subscription: 'sub_2' } },
+      }),
+      deps(),
+    )
+    expect(syncSubscription).toHaveBeenCalledWith('sub_2')
   })
 
   it('ignores a failed invoice that belongs to no subscription', async () => {
     // A one-off invoice failing says nothing about anyone's subscription, and
     // downgrading on it would take Pro away from someone still paying for it.
     await dispatchEvent(evt('invoice.payment_failed', { customer: 'cus_9' }), deps())
-    expect(markPastDue).not.toHaveBeenCalled()
+    expect(syncSubscription).not.toHaveBeenCalled()
   })
 
   it('acknowledges an event type it does not handle', async () => {
@@ -106,7 +121,6 @@ describe('routing', () => {
     const res = await dispatchEvent(evt('customer.created', { id: 'cus_1' }), deps())
     expect(res.status).toBe(200)
     expect(syncSubscription).not.toHaveBeenCalled()
-    expect(markPastDue).not.toHaveBeenCalled()
   })
 })
 
@@ -148,5 +162,15 @@ describe('when the handler fails', () => {
     await dispatchEvent(evt('customer.subscription.updated', { id: 'sub_1' }, 'evt_xyz'), deps())
     const logged = [...warn.mock.calls, ...error.mock.calls].map(c => String(c[0])).join(' ')
     expect(logged).toMatch(/evt_xyz|customer\.subscription\.updated/)
+  })
+})
+
+describe('invoiceSubscription', () => {
+  it('reads the old and the new invoice shape, and nothing else', () => {
+    expect(invoiceSubscription({ subscription: 'sub_a' })).toBe('sub_a')
+    expect(invoiceSubscription({ parent: { subscription_details: { subscription: 'sub_b' } } })).toBe('sub_b')
+    expect(invoiceSubscription({ parent: null })).toBeUndefined()
+    expect(invoiceSubscription({ parent: { subscription_details: null } })).toBeUndefined()
+    expect(invoiceSubscription({ subscription: '' })).toBeUndefined()
   })
 })

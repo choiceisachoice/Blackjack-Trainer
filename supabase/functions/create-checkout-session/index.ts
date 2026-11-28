@@ -122,7 +122,13 @@ Deno.serve(async (req) => {
     //
     // Only when nothing is stored: for an ordinary returning subscriber this
     // adds no API calls at all.
-    if (!customerId && user.email) {
+    //
+    // Only for a confirmed address. Adopting hands over the customer's portal
+    // (invoices, card, address, cancel), so it must not be reachable by
+    // someone who merely typed another person's email at sign-up. Supabase
+    // requires confirmation today; this keeps that true if the setting ever
+    // changes.
+    if (!customerId && user.email && user.email_confirmed_at) {
       const byEmail = await stripe.customers.list({ email: user.email, limit: 100 })
 
       for (const candidate of byEmail.data) {
@@ -167,10 +173,15 @@ Deno.serve(async (req) => {
     }
 
     if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { supabase_user_id: user.id },
-      })
+      // Keyed per user: two checkouts started at once (two tabs, or the
+      // resumed checkout after sign-up plus a click) used to create two
+      // customers, and the second write won — the subscription sat on one,
+      // the portal opened the other, and the payer could not cancel. With the
+      // key, Stripe returns the same customer to both for 24 hours.
+      const customer = await stripe.customers.create(
+        { email: user.email, metadata: { supabase_user_id: user.id } },
+        { idempotencyKey: `customer-for-user-${user.id}` },
+      )
       customerId = customer.id
 
       // Checked, and fatal if it did not land.
