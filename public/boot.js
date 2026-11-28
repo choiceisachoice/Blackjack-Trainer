@@ -15,6 +15,17 @@
   Neither is the common case, English on an English page: that one is
   readable from the first paint and stays up until the app replaces it.
 
+  A second job, the cookie bar. Every prerendered page carries the bar
+  (`data-boot-banner`), so it is painted with the page and not 2-3 s later,
+  when it used to become the page's LCP element. For a visitor with nothing
+  to answer — an answer already stored, Global Privacy Control, Do Not
+  Track: the cases in which `CookieBanner` stays away — this sets
+  `data-consent` on <html>, and the rule in index.html hides the bar before
+  the first paint. Until the app has mounted, the bar's two buttons are
+  answered here, with what `consent-choice.ts` → `setConsent` does; then
+  `CookieBanner` adopts the element and renames the marker, and this
+  handler no longer matches it.
+
   The timeout is the way out if the app never arrives: after four seconds the
   English page is shown regardless, because a page in the wrong language is
   worth more than a dark screen.
@@ -24,6 +35,28 @@
   step with `src/i18n/locales.ts`; `boot-script.test.ts` holds them together.
 */
 (function () {
+  var CONSENT_KEY = 'bjt_cookie_consent'
+  try {
+    var answered = null
+    try { answered = localStorage.getItem(CONSENT_KEY) } catch (e) { /* storage unavailable */ }
+    if (answered === 'accepted' || answered === 'declined' ||
+        navigator.globalPrivacyControl === true || navigator.doNotTrack === '1') {
+      document.documentElement.setAttribute('data-consent', 'skip')
+    }
+    document.addEventListener('click', function (e) {
+      var button = e.target && e.target.closest && e.target.closest('[data-boot-banner] [data-testid^="cookie-"]')
+      if (!button) return
+      var id = button.getAttribute('data-testid')
+      var answer = id === 'cookie-accept' ? 'accepted' : id === 'cookie-decline' ? 'declined' : null
+      if (!answer) return
+      try {
+        localStorage.setItem(CONSENT_KEY, answer)
+        if (answer === 'declined') localStorage.removeItem('bjt_visitor_id')
+      } catch (err) { /* storage unavailable — the app will ask again */ }
+      document.documentElement.setAttribute('data-consent', 'skip')
+    })
+  } catch (e) { /* the bar stays up; the app answers it once mounted */ }
+
   try {
     var LOCALES = ['en', 'de', 'fr', 'it', 'es', 'pt', 'tr']
     var root = document.documentElement

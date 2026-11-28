@@ -42,6 +42,66 @@ globalThis.localStorage ??= {
 const LOCALES = ['en', 'de', 'fr', 'it', 'es', 'pt', 'tr']
 const prefixOf = locale => (locale === 'en' ? '' : `/${locale}`)
 
+/**
+ * The page module behind each prerendered route, as the Vite manifest names
+ * it. Mirrors `src/routes/pages.ts`; a route missing here fails the build
+ * rather than quietly losing its preloads.
+ */
+function pageModule(route) {
+  if (route === '/') return 'src/pages/LandingPage.tsx'
+  if (route === '/learn') return 'src/pages/LearnPublicPage.tsx'
+  if (route.startsWith('/learn/')) return 'src/pages/LearnTopicPage.tsx'
+  if (route === '/strategy-chart') return 'src/pages/StrategyChartPublicPage.tsx'
+  if (route === '/try') return 'src/pages/TryPage.tsx'
+  if (route === '/terms') return 'src/pages/legal/TermsPage.tsx'
+  if (route === '/privacy') return 'src/pages/legal/PrivacyPage.tsx'
+  if (route === '/contact') return 'src/pages/legal/ContactPage.tsx'
+  throw new Error(`prerender: no page module known for ${route}`)
+}
+
+/**
+ * `<link rel="modulepreload">` for what a page needs before `main.tsx` can
+ * render it: the page's chunk, its static imports, and the language's
+ * messages for a prefixed page. `main.tsx` waits for exactly these
+ * (`route.preload()`, `localeReady`), and without the links the browser only
+ * learns of them once the entry has downloaded and run — a waterfall of
+ * 0.5–1 s on a slow phone (measured 28 Nov 2026).
+ *
+ * Static imports only. A page's dynamic imports (the landing's Three.js
+ * hero, the PDF and Word exports) load when the page asks for them, and
+ * preloading them would put megabytes in front of the page on every visit.
+ * Chunks the entry imports itself are already on their way and are skipped.
+ */
+function preloadLinks(manifest, route, locale) {
+  const entry = Object.values(manifest).find(c => c.isEntry)
+  if (!entry) throw new Error('prerender: the Vite manifest has no entry chunk')
+  const loaded = new Set()
+  const walk = (key, into) => {
+    const chunk = manifest[key]
+    if (!chunk || into.has(chunk.file)) return
+    into.add(chunk.file)
+    for (const k of chunk.imports ?? []) walk(k, into)
+  }
+  walk(Object.keys(manifest).find(k => manifest[k] === entry), loaded)
+
+  const wanted = new Set()
+  const page = pageModule(route)
+  if (!manifest[page]) throw new Error(`prerender: ${page} is not in the Vite manifest`)
+  walk(page, wanted)
+  if (locale !== 'en') {
+    const messages = `src/i18n/messages/${locale}.json`
+    if (!manifest[messages]) throw new Error(`prerender: ${messages} is not in the Vite manifest`)
+    walk(messages, wanted)
+  }
+  return [...wanted]
+    .filter(file => !loaded.has(file))
+    .map(file => `    <link rel="modulepreload" crossorigin href="/${file}">`)
+    .join('\n')
+}
+
+/** The display face's preloads, which only the app shell uses (see index.html). */
+const DISPLAY_FONT_PRELOAD = /^\s*<link rel="preload" href="\/fonts\/instrument-sans-[^"]+"[^>]*>\r?\n/gm
+
 const escapeAttr = s => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
 const escapeText = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
 
@@ -75,12 +135,36 @@ async function main() {
   // prerendered (/app, /account, /login): those must not flash the landing.
   await writeFile(path.join(root, 'dist/shell.html'), template)
 
+  const manifestFile = path.join(root, 'dist/.vite/manifest.json')
+  const manifest = JSON.parse(await readFile(manifestFile, 'utf8'))
+  // The preloads go last in <head>, after the entry script and the
+  // stylesheet: ahead of the stylesheet, two dozen of them held the
+  // render-blocking CSS back on a slow line and the landing's first paint
+  // came later (measured 28 Nov 2026, +0.4 s).
+  const headEnd = /^\s*<\/head>$/m
+  if (!headEnd.test(template)) throw new Error('dist/index.html has no </head> to put the preloads before')
+
+  // Two inputs, one bundle: the cookie bar is rendered by the same module
+  // graph as the pages, so it shares their i18next instance and comes out in
+  // the language `render` just switched to.
   await build({
     root,
     logLevel: 'warn',
-    build: { ssr: 'src/entry-prerender.tsx', outDir: 'dist-ssr', emptyOutDir: true },
+    build: {
+      ssr: true,
+      manifest: false,
+      outDir: 'dist-ssr',
+      emptyOutDir: true,
+      rollupOptions: {
+        input: {
+          'entry-prerender': 'src/entry-prerender.tsx',
+          'cookie-banner-prerender': 'src/components/common/cookie-banner-prerender.tsx',
+        },
+      },
+    },
   })
   const entry = await import(pathToFileURL(path.join(root, 'dist-ssr/entry-prerender.js')).href)
+  const banner = await import(pathToFileURL(path.join(root, 'dist-ssr/cookie-banner-prerender.js')).href)
 
   let written = 0
   for (const { path: route } of entry.PRERENDER_ROUTES) {
@@ -91,11 +175,21 @@ async function main() {
     for (const locale of LOCALES) {
       const prefix = prefixOf(locale)
       const { html, meta, lang } = await entry.render(route, locale, prefix)
+      // Rendered after the page, in the language `render` switched to, and
+      // written *after* #root: the app's first render replaces everything
+      // inside #root, and a replaced bar is a new paint — on a phone it came
+      // out a few pixels larger and was the LCP again. Outside, CookieBanner
+      // adopts this element instead. It is `fixed`, so where it sits in the
+      // markup does not move it on screen.
+      const bar = banner.renderCookieBannerMarkup(prefix, lang)
+      const preloads = preloadLinks(manifest, route, locale)
       const page = applyHead(template, { meta, lang, alternates })
+        .replace(DISPLAY_FONT_PRELOAD, '')
+        .replace(headEnd, m => (preloads ? `${preloads}\n${m}` : m))
         // `data-prerendered` is how `main.tsx` tells this page from the empty
         // shell: over a page the visitor can already read it waits until it
         // can replace the markup in one commit, instead of clearing it first.
-        .replace('<div id="root"></div>', `<div id="root" data-prerendered="${lang}">${html}</div>`)
+        .replace('<div id="root"></div>', () => `<div id="root" data-prerendered="${lang}">${html}</div>${bar}`)
       const rel = route === '/' ? `${prefix}/index.html` : `${prefix}${route}/index.html`
       const file = path.join(root, 'dist', rel)
       await mkdir(path.dirname(file), { recursive: true })
@@ -105,6 +199,8 @@ async function main() {
   }
   await writeFile(path.join(root, 'dist/sitemap.xml'), sitemap(entry.PRERENDER_ROUTES))
   await rm(path.join(root, 'dist-ssr'), { recursive: true, force: true })
+  // The manifest has done its job; the server should not hand out the map.
+  await rm(path.join(root, 'dist/.vite'), { recursive: true, force: true })
   console.log(`prerendered ${written} pages (${entry.PRERENDER_ROUTES.length} routes × ${LOCALES.length} languages) + sitemap.xml`)
 }
 

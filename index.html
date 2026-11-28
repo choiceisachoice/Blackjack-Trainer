@@ -23,11 +23,18 @@
          Without it the document is white until the CSS has arrived, and a
          dark site opened on a white flash. The second rule belongs to
          /boot.js below: it keeps a prerendered page invisible in the one case
-         where it is in the wrong language for this visitor. -->
+         where it is in the wrong language for this visitor. The next two hide
+         the prerendered cookie bar (beside #root) for a visitor with nothing
+         to answer and, like the page, while it is held — both decided by
+         /boot.js; without JavaScript there is nothing to count and
+         nothing that could take the answer, so the bar is not shown at all. -->
     <style>
       html { background: #070809; color-scheme: dark; }
       html[data-boot='hold'] #root { visibility: hidden; }
+      html[data-consent] [data-boot-banner] { display: none; }
+      html[data-boot='hold'] [data-boot-banner] { visibility: hidden; }
     </style>
+    <noscript><style>[data-boot-banner] { display: none; }</style></noscript>
     <script src="/boot.js"></script>
 
     <!-- The display face, preloaded.
@@ -37,7 +44,11 @@
          finished mounting, which is what makes a real typeface usable on a
          screen that exists precisely because things are still loading. -->
     <!-- Inter is the interface face on every screen, so it is preloaded too;
-         self-hosted since the Google Fonts import was removed. -->
+         self-hosted since the Google Fonts import was removed.
+         The two Instrument Sans lines stay in the app shell only:
+         scripts/prerender.mjs drops them from the public pages, which never
+         use the display face (it is the loading screen's and the level-up's),
+         so on a slow line they only competed with the page's own requests. -->
     <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/instrument-sans-700.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/instrument-sans-400.woff2" as="font" type="font/woff2" crossorigin />

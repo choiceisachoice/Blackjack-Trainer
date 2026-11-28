@@ -76,3 +76,74 @@ describe('CookieBanner', () => {
     expect(screen.queryByTestId('cookie-settings')).toBeNull()
   })
 })
+
+/**
+ * The prerendered bar is replaced by the live one when the app mounts. Same
+ * markup, same size: then the swap is not a new largest paint and does not
+ * move anything (28 Nov 2026, LCP).
+ */
+describe('CookieBanner and its prerendered copy', () => {
+  it('render the same bar, the copy only adding its marker', async () => {
+    const { renderCookieBannerMarkup } = await import('./cookie-banner-prerender')
+    const { container } = show()
+    const live = container.querySelector('[data-testid="cookie-banner"]')!.outerHTML
+    expect(renderCookieBannerMarkup().replace(' data-boot-banner="en"', '')).toBe(live)
+  })
+})
+
+/**
+ * The prerendered bar sits beside `#root` and is adopted, not replaced: a
+ * replaced bar is a new paint and became the LCP on phones (28 Nov 2026).
+ */
+describe('CookieBanner over a prerendered bar', () => {
+  async function prerendered(lang = 'en') {
+    const { renderCookieBannerMarkup } = await import('./cookie-banner-prerender')
+    const holder = document.createElement('div')
+    holder.innerHTML = renderCookieBannerMarkup('', lang)
+    const el = holder.firstElementChild as HTMLElement
+    document.body.appendChild(el)
+    return el
+  }
+  afterEach(() => { document.querySelectorAll('body > [data-testid="cookie-banner"]').forEach(e => e.remove()) })
+
+  it('takes the element over instead of drawing a second bar', async () => {
+    const el = await prerendered()
+    show()
+    expect(screen.getAllByTestId('cookie-banner')).toHaveLength(1)
+    expect(el.isConnected).toBe(true)
+    expect(el.hasAttribute('data-boot-banner')).toBe(false)
+    expect(el.style.display).toBe('')
+  })
+
+  it('answers its buttons and hides it', async () => {
+    const el = await prerendered()
+    show()
+    fireEvent.click(el.querySelector('[data-testid="cookie-decline"]')!)
+    expect(getConsent()).toBe('declined')
+    expect(el.style.display).toBe('none')
+  })
+
+  it('brings it back from "Cookie settings"', async () => {
+    const el = await prerendered()
+    show()
+    fireEvent.click(el.querySelector('[data-testid="cookie-accept"]')!)
+    expect(el.style.display).toBe('none')
+    fireEvent.click(screen.getByTestId('cookie-settings'))
+    expect(el.style.display).toBe('')
+  })
+
+  it('keeps it hidden for a visitor who answered before', async () => {
+    setConsent('accepted')
+    const el = await prerendered()
+    show()
+    expect(el.style.display).toBe('none')
+  })
+
+  it('replaces a bar in another language with its own', async () => {
+    const el = await prerendered('de')
+    show()
+    expect(el.isConnected).toBe(false)
+    expect(screen.getByTestId('cookie-banner')).toBeInTheDocument()
+    expect(screen.getByTestId('cookie-accept')).toHaveTextContent('Accept')
+  })
+})
