@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { pushProfileScalars } from '../services/supabase/profiles-sync'
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -91,6 +92,13 @@ function gradeRank(grade: string): number {
 interface CasinoSessionTrackerStore {
   sessions: TrackedCasinoSession[]
   startingBankroll: number
+  /**
+   * When the starting bankroll was last set by hand (ms; 0 = never, or before
+   * this was tracked). It travels with the figure in
+   * `profiles.settings.casino_starting_bankroll` and decides which side wins
+   * the merge — see `mergeStartingBankroll`.
+   */
+  startingBankrollUpdatedAt: number
 
   // Actions
   addSession(session: TrackedCasinoSession): void
@@ -103,6 +111,8 @@ interface CasinoSessionTrackerStore {
    */
   hydrate(sessions: TrackedCasinoSession[]): void
   setStartingBankroll(amount: number): void
+  /** Put the account's starting bankroll on this device (from the cloud merge; sends nothing). */
+  hydrateStartingBankroll(amount: number, updatedAt: number): void
   deleteSession(id: string): void
   reset(): void
 
@@ -149,6 +159,7 @@ export const useCasinoSessionTrackerStore = create<CasinoSessionTrackerStore>()(
     (set, get) => ({
       sessions: [],
       startingBankroll: 0,
+      startingBankrollUpdatedAt: 0,
 
       addSession(session) {
         set(state => ({ sessions: [...state.sessions, session] }))
@@ -159,7 +170,14 @@ export const useCasinoSessionTrackerStore = create<CasinoSessionTrackerStore>()(
       },
 
       setStartingBankroll(amount) {
-        set({ startingBankroll: amount })
+        // Kept only here, it was wiped by every sign-out while the sessions
+        // were rebuilt from the cloud — the bankroll then read as 0 + profits.
+        set({ startingBankroll: amount, startingBankrollUpdatedAt: Date.now() })
+        pushProfileScalars()
+      },
+
+      hydrateStartingBankroll(amount, updatedAt) {
+        set({ startingBankroll: amount, startingBankrollUpdatedAt: updatedAt })
       },
 
       deleteSession(id) {
@@ -169,7 +187,7 @@ export const useCasinoSessionTrackerStore = create<CasinoSessionTrackerStore>()(
       },
 
       reset() {
-        set({ sessions: [], startingBankroll: 0 })
+        set({ sessions: [], startingBankroll: 0, startingBankrollUpdatedAt: 0 })
       },
 
       getCurrentBankroll() {

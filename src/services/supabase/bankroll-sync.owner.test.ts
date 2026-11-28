@@ -69,8 +69,20 @@ describe('bankroll-sync: only the device owner’s log goes up', () => {
     expect(upsert).not.toHaveBeenCalled()
   })
 
-  it('deletes for the owner', async () => {
+  it('deletes for the owner, as a tombstone filed under the owner', async () => {
     setLocalOwner('user-y')
+    removeCloudSession(session.id)
+    await vi.waitFor(() => expect(upsert).toHaveBeenCalledOnce())
+    const tomb = (upsert.mock.calls[0] as unknown as [{ id: string; user_id: string; deleted_at: string }])[0]
+    expect(tomb.id).toBe(session.id)
+    expect(tomb.user_id).toBe('user-y')
+    expect(typeof tomb.deleted_at).toBe('string')
+    expect(del).not.toHaveBeenCalled()
+  })
+
+  it('falls back to a hard delete where the column does not exist yet (migration not pushed)', async () => {
+    setLocalOwner('user-y')
+    upsert.mockResolvedValueOnce({ error: { code: 'PGRST204', message: "Could not find the 'deleted_at' column" } } as never)
     removeCloudSession(session.id)
     await vi.waitFor(() => expect(deleteEqId).toHaveBeenCalledWith('id', session.id))
     expect(deleteEqUser).toHaveBeenCalledWith('user_id', 'user-y')

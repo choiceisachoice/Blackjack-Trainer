@@ -297,3 +297,19 @@ describe('bankroll-tracker-store', () => {
     })
   })
 })
+
+describe('bankroll-tracker-store: edits carry their time for the merge', () => {
+  beforeEach(resetStore)
+
+  it('addSession and editSession stamp updatedAt', () => {
+    addSample({ result: 100 })
+    const added = useBankrollTrackerStore.getState().sessions[0]
+    expect(added.updatedAt).toBe(added.createdAt)
+    const before = Date.now()
+    useBankrollTrackerStore.getState().editSession(added.id, { result: 250 })
+    const edited = useBankrollTrackerStore.getState().sessions[0]
+    expect(edited.result).toBe(250)
+    expect(edited.updatedAt).toBeGreaterThanOrEqual(before)
+    expect(edited.createdAt).toBe(added.createdAt)
+  })
+})

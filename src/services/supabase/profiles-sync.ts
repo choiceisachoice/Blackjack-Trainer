@@ -11,6 +11,7 @@ import {
 import { onPlanStateChanged } from '../plan-state-signal'
 import { setTrialHandsUsed, toTrialHands, trialHandsUsed } from '../casino-trial'
 import { useBankrollTrackerStore } from '../../store/bankroll-tracker-store'
+import { useCasinoSessionTrackerStore } from '../../store/casino-session-tracker-store'
 
 const isStageId = (v: unknown): v is StageId =>
   typeof v === 'string' && CURRICULUM.some(s => s.id === v)
@@ -56,12 +57,19 @@ interface ProfileScalars {
    */
   plan: PlanState | null
   /**
-   * The Casino Session Tracker's starting bankroll, as
+   * The bankroll tracker's (real-money log) starting bankroll, as
    * `settings.starting_bankroll`. The tracker's sessions come back from the
    * cloud after a sign-out; the figure they are added to did not, so a
    * $5,000 bankroll that had lost $1,200 read as −$1,200. Null when none is set.
    */
   startingBankroll: StartingBankroll | null
+  /**
+   * The Casino Session Tracker's own starting bankroll (the one the casino
+   * table's sessions are added to), as `settings.casino_starting_bankroll`.
+   * Same shape and same merge as `startingBankroll`, kept apart: the two
+   * trackers are two logs with two figures. Null when none is set.
+   */
+  casinoStartingBankroll: StartingBankroll | null
 }
 
 /** A starting bankroll and when it was last set by hand (ms; 0 = before this was tracked). */
@@ -97,18 +105,43 @@ export function mergeStartingBankroll(
   return local.updatedAt > cloud.updatedAt ? local : cloud
 }
 
-/** The tracker's figure on this device. Zero is "not set": the tracker refuses 0, and the wipe leaves it at 0. */
-function localStartingBankroll(): StartingBankroll | null {
-  const { startingBankroll, startingBankrollUpdatedAt } = useBankrollTrackerStore.getState()
+/** What either tracker's store offers for its starting bankroll. */
+interface StartingBankrollHolder {
+  getState(): {
+    startingBankroll: number
+    startingBankrollUpdatedAt: number
+    hydrateStartingBankroll(amount: number, updatedAt: number): void
+  }
+}
+
+/** A store's figure on this device. Zero is "not set": the trackers refuse 0, and the wipe leaves it at 0. */
+function readStartingBankroll(store: StartingBankrollHolder): StartingBankroll | null {
+  const { startingBankroll, startingBankrollUpdatedAt } = store.getState()
   return startingBankroll > 0 ? { amount: startingBankroll, updatedAt: startingBankrollUpdatedAt ?? 0 } : null
 }
 
-/** Put the merged figure on this device if it is not the one already there. */
-function applyStartingBankroll(merged: StartingBankroll | null): void {
+/** Put the merged figure in a store if it is not the one already there. */
+function applyStartingBankrollTo(store: StartingBankrollHolder, merged: StartingBankroll | null): void {
   if (!merged) return
-  const local = localStartingBankroll()
+  const local = readStartingBankroll(store)
   if (local && local.amount === merged.amount && local.updatedAt === merged.updatedAt) return
-  useBankrollTrackerStore.getState().hydrateStartingBankroll(merged.amount, merged.updatedAt)
+  store.getState().hydrateStartingBankroll(merged.amount, merged.updatedAt)
+}
+
+/** The bankroll tracker's figure on this device. */
+function localStartingBankroll(): StartingBankroll | null {
+  return readStartingBankroll(useBankrollTrackerStore)
+}
+
+/** The Casino Session Tracker's figure on this device. */
+function localCasinoStartingBankroll(): StartingBankroll | null {
+  return readStartingBankroll(useCasinoSessionTrackerStore)
+}
+
+/** Put both merged figures on this device. */
+function applyStartingBankroll(merged: StartingBankroll | null, casino: StartingBankroll | null): void {
+  applyStartingBankrollTo(useBankrollTrackerStore, merged)
+  applyStartingBankrollTo(useCasinoSessionTrackerStore, casino)
 }
 
 /** Whether two plan states hold the same answers, whatever order their keys and lists are in. */
@@ -138,6 +171,7 @@ function localScalars(): ProfileScalars {
     trialHands: trialHandsUsed(),
     plan: readPlanState(),
     startingBankroll: localStartingBankroll(),
+    casinoStartingBankroll: localCasinoStartingBankroll(),
   }
 }
 
@@ -164,7 +198,7 @@ async function fetchCloud(userId: string): Promise<CloudProfile> {
     .maybeSingle()
   if (error) throw error
   if (!data) {
-    return { levelXp: 0, simCount: 0, simBestEdge: 0, onboardingSeen: false, claimedStages: [], claimedRewards: [], trialHands: 0, plan: null, startingBankroll: null, settings: {} }
+    return { levelXp: 0, simCount: 0, simBestEdge: 0, onboardingSeen: false, claimedStages: [], claimedRewards: [], trialHands: 0, plan: null, startingBankroll: null, casinoStartingBankroll: null, settings: {} }
   }
   const settings: Record<string, unknown> = data.settings && typeof data.settings === 'object'
     ? data.settings as Record<string, unknown>
@@ -181,6 +215,7 @@ async function fetchCloud(userId: string): Promise<CloudProfile> {
     trialHands: toTrialHands(settings.casino_trial_hands),
     plan: parsePlanState(settings.plan),
     startingBankroll: parseStartingBankroll(settings.starting_bankroll),
+    casinoStartingBankroll: parseStartingBankroll(settings.casino_starting_bankroll),
     settings,
   }
 }
@@ -219,6 +254,7 @@ async function writeCloud(userId: string, s: ProfileScalars, settings: Record<st
         plan: s.plan,
         // Only when there is one: an absent figure leaves the cloud's in place.
         ...(s.startingBankroll ? { starting_bankroll: s.startingBankroll } : {}),
+        ...(s.casinoStartingBankroll ? { casino_starting_bankroll: s.casinoStartingBankroll } : {}),
       },
       updated_at: new Date().toISOString(),
     })
@@ -289,6 +325,7 @@ export async function syncProfileOnSignIn(): Promise<void> {
     trialHands: Math.max(local.trialHands, cloud.trialHands),
     plan: mergePlanState(local.plan ?? readPlanState(), cloud.plan),
     startingBankroll: mergeStartingBankroll(local.startingBankroll, cloud.startingBankroll),
+    casinoStartingBankroll: mergeStartingBankroll(local.casinoStartingBankroll, cloud.casinoStartingBankroll),
   }
   levelSystem.setTotalXP(merged.levelXp)
   achievementEngine.setSimCounters(merged.simCount, merged.simBestEdge)
@@ -299,7 +336,7 @@ export async function syncProfileOnSignIn(): Promise<void> {
   // account's answer has arrived, and only then is the trial offered.
   setTrialHandsUsed(merged.trialHands)
   if (merged.plan) writePlanState(merged.plan)
-  applyStartingBankroll(merged.startingBankroll)
+  applyStartingBankroll(merged.startingBankroll, merged.casinoStartingBankroll)
   await writeCloud(userId, merged, cloud.settings)
   if (issued === generation) hasMerged = true
 }
@@ -350,7 +387,8 @@ export async function pushProfileScalarsNow(): Promise<void> {
   const plan = mergePlanState(local.plan ?? readPlanState(), cloud.plan)
   if (local.plan && !samePlan(plan, local.plan)) writePlanState(plan)
   const startingBankroll = mergeStartingBankroll(local.startingBankroll, cloud.startingBankroll)
-  applyStartingBankroll(startingBankroll)
+  const casinoStartingBankroll = mergeStartingBankroll(local.casinoStartingBankroll, cloud.casinoStartingBankroll)
+  applyStartingBankroll(startingBankroll, casinoStartingBankroll)
   await writeCloud(userId, {
     ...local,
     claimedStages: Array.from(new Set([...local.claimedStages, ...cloud.claimedStages])),
@@ -358,6 +396,7 @@ export async function pushProfileScalarsNow(): Promise<void> {
     trialHands,
     plan,
     startingBankroll,
+    casinoStartingBankroll,
   }, cloud.settings)
 }
 

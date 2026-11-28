@@ -276,3 +276,24 @@ describe('casino-session-tracker-store', () => {
     })
   })
 })
+
+describe('casino-session-tracker-store: the starting bankroll carries its time', () => {
+  beforeEach(resetStore)
+
+  it('setStartingBankroll stamps the time; hydrateStartingBankroll takes the cloud’s as given', () => {
+    const before = Date.now()
+    useCasinoSessionTrackerStore.getState().setStartingBankroll(5000)
+    expect(useCasinoSessionTrackerStore.getState().startingBankroll).toBe(5000)
+    expect(useCasinoSessionTrackerStore.getState().startingBankrollUpdatedAt).toBeGreaterThanOrEqual(before)
+    useCasinoSessionTrackerStore.getState().hydrateStartingBankroll(7000, 42)
+    expect(useCasinoSessionTrackerStore.getState().startingBankroll).toBe(7000)
+    expect(useCasinoSessionTrackerStore.getState().startingBankrollUpdatedAt).toBe(42)
+  })
+
+  it('reset clears the figure and its time', () => {
+    useCasinoSessionTrackerStore.getState().setStartingBankroll(5000)
+    useCasinoSessionTrackerStore.getState().reset()
+    expect(useCasinoSessionTrackerStore.getState().startingBankroll).toBe(0)
+    expect(useCasinoSessionTrackerStore.getState().startingBankrollUpdatedAt).toBe(0)
+  })
+})

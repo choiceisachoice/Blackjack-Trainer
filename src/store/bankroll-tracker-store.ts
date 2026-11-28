@@ -22,6 +22,13 @@ export interface TrackedSession {
   notes: string
   /** Timestamp when created */
   createdAt: number
+  /**
+   * When this copy was last changed (ms). Set by the device on add and edit,
+   * and by the server (`bankroll_sessions.updated_at`) on a copy from the
+   * cloud. The newer copy wins the merge (`mergeById`); a session from before
+   * this was tracked has none and counts as of `createdAt`.
+   */
+  updatedAt?: number
 }
 
 // ── Personal Records ─────────────────────────────────────────────────
@@ -66,8 +73,8 @@ interface BankrollTrackerStore {
   startingBankrollUpdatedAt: number
 
   // Actions
-  addSession(session: Omit<TrackedSession, 'id' | 'createdAt'>): void
-  editSession(id: string, updates: Partial<Omit<TrackedSession, 'id' | 'createdAt'>>): void
+  addSession(session: Omit<TrackedSession, 'id' | 'createdAt' | 'updatedAt'>): void
+  editSession(id: string, updates: Partial<Omit<TrackedSession, 'id' | 'createdAt' | 'updatedAt'>>): void
   deleteSession(id: string): void
   setStartingBankroll(amount: number): void
   /** Put the account's starting bankroll on this device (from the cloud merge; sends nothing). */
@@ -123,10 +130,12 @@ export const useBankrollTrackerStore = create<BankrollTrackerStore>()(
       startingBankrollUpdatedAt: 0,
 
       addSession(session) {
+        const now = Date.now()
         const newSession: TrackedSession = {
           ...session,
           id: generateId(),
-          createdAt: Date.now(),
+          createdAt: now,
+          updatedAt: now,
         }
         set(state => ({ sessions: [...state.sessions, newSession] }))
         pushSession(newSession)
@@ -137,7 +146,7 @@ export const useBankrollTrackerStore = create<BankrollTrackerStore>()(
       editSession(id, updates) {
         set(state => ({
           sessions: state.sessions.map(s =>
-            s.id === id ? { ...s, ...updates } : s,
+            s.id === id ? { ...s, ...updates, updatedAt: Date.now() } : s,
           ),
         }))
         const updated = get().sessions.find(s => s.id === id)
@@ -149,6 +158,8 @@ export const useBankrollTrackerStore = create<BankrollTrackerStore>()(
         set(state => ({
           sessions: state.sessions.filter(s => s.id !== id),
         }))
+        // A tombstone, retried until it lands — a hard delete came back with
+        // the next page load on any device still holding the session.
         removeCloudSession(id)
       },
 
