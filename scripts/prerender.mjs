@@ -62,7 +62,7 @@ function pageModule(route) {
 /**
  * `<link rel="modulepreload">` for what a page needs before `main.tsx` can
  * render it: the page's chunk, its static imports, and the language's
- * messages for a prefixed page. `main.tsx` waits for exactly these
+ * messages (every language, English too). `main.tsx` waits for exactly these
  * (`route.preload()`, `localeReady`), and without the links the browser only
  * learns of them once the entry has downloaded and run — a waterfall of
  * 0.5–1 s on a slow phone (measured 28 Nov 2026).
@@ -88,11 +88,12 @@ function preloadLinks(manifest, route, locale) {
   const page = pageModule(route)
   if (!manifest[page]) throw new Error(`prerender: ${page} is not in the Vite manifest`)
   walk(page, wanted)
-  if (locale !== 'en') {
-    const messages = `src/i18n/messages/${locale}.json`
-    if (!manifest[messages]) throw new Error(`prerender: ${messages} is not in the Vite manifest`)
-    walk(messages, wanted)
-  }
+  // Every language, English included: since 28 Nov 2026 English is a chunk
+  // of its own too, not part of the entry, so an English page that did not
+  // preload it would fetch it only after the entry had run.
+  const messages = `src/i18n/messages/${locale}.json`
+  if (!manifest[messages]) throw new Error(`prerender: ${messages} is not in the Vite manifest`)
+  walk(messages, wanted)
   return [...wanted]
     .filter(file => !loaded.has(file))
     .map(file => `    <link rel="modulepreload" crossorigin href="/${file}">`)

@@ -1,23 +1,30 @@
 import i18next from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY, LOCALES, localeFromPath, resolveLocale, type Locale } from './locales'
-import en from './messages/en.json'
 
 /** Locales already fetched, so a second switch back is instant. */
-const loaded = new Set<Locale>([DEFAULT_LOCALE])
+const loaded = new Set<Locale>()
+
+/** The loads started, finished or not; a failed one is removed so a later switch retries it. */
+const inFlight = new Map<Locale, Promise<void>>()
 
 /**
- * One loader per translatable language — English excluded, because it is
- * bundled.
+ * One loader per language, English included.
  *
- * Written out rather than built from a template literal. A
- * `import(\`./messages/${locale}.json\`)` covering all seven would include
- * English in the dynamic set while it is also imported statically, and Vite
- * warns that it cannot then move it into its own chunk. The warning is
- * harmless and the noise is not: a build that always prints something is a
- * build whose output stops being read.
+ * English used to be imported statically and rode in the entry chunk: about
+ * 100 kB raw (25 kB compressed) that every visitor downloaded, so a German
+ * page cost English *and* German (measured 28 Nov 2026). Now each language
+ * is a chunk of its own, and `scripts/prerender.mjs` writes a
+ * `modulepreload` for the page's language into every prerendered page,
+ * English included, so the file is fetched in parallel with the entry and not
+ * after it has run.
+ *
+ * Written out rather than built from a template literal, so that each file is
+ * a chunk the Vite manifest names by its source path — the prerender looks the
+ * preloads up by that name.
  */
-const LOADERS: Record<Exclude<Locale, 'en'>, () => Promise<{ default: unknown }>> = {
+const LOADERS: Record<Locale, () => Promise<{ default: unknown }>> = {
+  en: () => import('./messages/en.json'),
   de: () => import('./messages/de.json'),
   fr: () => import('./messages/fr.json'),
   it: () => import('./messages/it.json'),
@@ -31,16 +38,27 @@ const LOADERS: Record<Exclude<Locale, 'en'>, () => Promise<{ default: unknown }>
  *
  * A failed load is not fatal: i18next falls back to English, which is worse
  * than the right language and much better than a screen of dotted key paths.
+ * English is no longer in the entry, so a failed language fetches it here
+ * before resolving. One request per language however often it is asked for:
+ * the missing-key path below can ask many times in one render.
  */
-async function loadLocale(locale: Locale): Promise<void> {
-  if (loaded.has(locale)) return
-  try {
-    const mod = await LOADERS[locale as Exclude<Locale, 'en'>]()
-    i18next.addResourceBundle(locale, 'translation', mod.default, true, true)
-    loaded.add(locale)
-  } catch (e) {
-    console.error(`could not load the ${locale} translation; staying on ${i18next.language}`, e)
+function loadLocale(locale: Locale): Promise<void> {
+  let pending = inFlight.get(locale)
+  if (!pending) {
+    pending = (async () => {
+      try {
+        const mod = await LOADERS[locale]()
+        i18next.addResourceBundle(locale, 'translation', mod.default, true, true)
+        loaded.add(locale)
+      } catch (e) {
+        console.error(`could not load the ${locale} translation; staying on ${i18next.language}`, e)
+        inFlight.delete(locale)
+        if (locale !== DEFAULT_LOCALE) await loadLocale(DEFAULT_LOCALE)
+      }
+    })()
+    inFlight.set(locale, pending)
   }
+  return pending
 }
 
 /** The language remembered from a previous visit, or the browser's, or English. */
@@ -94,10 +112,29 @@ function startingLocaleOf(): Locale {
 
 const startingLocale = startingLocaleOf()
 
+/**
+ * English as the fallback, fetched only when it is needed.
+ *
+ * Every language carries every key (`messages.test.ts` fails the build
+ * otherwise), so a German visitor never needs English and no longer downloads
+ * it. Should a key be missing anyway, i18next reports it here and the English
+ * file is fetched; when it lands (`bindI18nStore: 'added'` below) every
+ * translated component renders again and the key path gives way to English.
+ */
+function onMissingKey(): void {
+  if (!loaded.has(DEFAULT_LOCALE)) void loadLocale(DEFAULT_LOCALE)
+}
+
 void i18next
   .use(initReactI18next)
   .init({
-    resources: { en: { translation: en } },
+    // No bundle up front: every language, English too, arrives through
+    // `loadLocale`, and `main.tsx` waits for it before the first render.
+    resources: {},
+    partialBundledLanguages: true,
+    saveMissing: true,
+    missingKeyHandler: onMissingKey,
+    react: { bindI18nStore: 'added' },
     lng: startingLocale,
     fallbackLng: DEFAULT_LOCALE,
     supportedLngs: LOCALES as unknown as string[],
@@ -123,11 +160,27 @@ void i18next
  * the live site as an English page, and an English loading screen, turning
  * German.
  *
+ * English is waited for the same way now that it is a chunk of its own, but
+ * through `loadLocale` and not `setLocale`: starting in English must not
+ * store "English" as a choice, or a visitor whose browser language changes
+ * later would stay pinned to it.
+ *
  * Never rejects: a language that fails to load leaves English up.
  */
 export const localeReady: Promise<void> =
-  startingLocale !== DEFAULT_LOCALE ? setLocale(startingLocale) : Promise.resolve()
+  startingLocale !== DEFAULT_LOCALE
+    ? setLocale(startingLocale)
+    : loadLocale(DEFAULT_LOCALE).then(() => i18next.changeLanguage(DEFAULT_LOCALE)).then(() => undefined)
 reflectLocale(startingLocale)
+
+/**
+ * Whether any messages are registered yet — the starting language's or
+ * English. Before that, a render would show key paths; `main.tsx` asks before
+ * it lets a time cap overrule {@link localeReady}.
+ */
+export function messagesLoaded(): boolean {
+  return loaded.size > 0
+}
 
 /**
  * The locale the app is currently showing, normalised to a supported one.

@@ -7,7 +7,7 @@ import './index.css'
 // initialised before the first component calls `useTranslation`, or that call
 // renders raw keys for one frame. It also decides the starting language —
 // the one in the URL if there is one — and starts fetching it.
-import { localeReady } from './i18n'
+import { localeReady, messagesLoaded } from './i18n'
 import { localeFromPath, unprefixedPath } from './i18n/locales'
 import App from './App.tsx'
 import { initGlowFallback } from './utils/glow-fallback'
@@ -93,12 +93,19 @@ const after = (ms: number) => new Promise<void>(resolve => { setTimeout(resolve,
 
   Neither promise rejects: a language that fails to load leaves English up,
   and a chunk that fails is reported by the route's own boundary.
+
+  A cap never overrules the absence of every language: English is a chunk of
+  its own now, not part of this one, and a render with no messages at all
+  would draw key paths. Past the cap with nothing registered, the render waits
+  for `localeReady` after all (which settles once some language — at worst
+  English — is in).
 */
+const withWords = () => (messagesLoaded() ? mount() : void localeReady.then(mount))
 const route = routeFor(path)
 if (prerendered) {
   void Promise.all([localeReady, route?.preload()]).then(mount)
 } else if (isAppPath(path)) {
-  void Promise.race([localeReady, after(400)]).then(mount)
+  void Promise.race([localeReady, after(400)]).then(withWords)
 } else {
-  void Promise.race([Promise.all([localeReady, route?.preload()]), after(1500)]).then(mount)
+  void Promise.race([Promise.all([localeReady, route?.preload()]), after(1500)]).then(withWords)
 }
