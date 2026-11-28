@@ -6,6 +6,8 @@ import { useStatsStore } from '../store/stats-store'
 import type { SessionDetails } from '../services/stats-types'
 import { setLocalOwner } from '../services/storage/local-owner'
 import { runBeforeSignOut } from '../services/storage/before-sign-out'
+import { useAuthStore } from '../store/auth-store'
+import type { User } from '@supabase/supabase-js'
 
 const details = (): SessionDetails => ({
   type: 'speedDrill', cardsPerRound: 20, speedMs: 1000, rcErrors: [],
@@ -88,6 +90,33 @@ describe('useSessionSave', () => {
       setLocalOwner('user-a') // the first sign-in settled meanwhile
       unmount()
       expect(recordSpy).toHaveBeenCalledTimes(1)
+    })
+
+    /**
+     * Begun signed in on a device whose owner was not written yet (the first
+     * sign-in still settling), then a sign-out in another tab wiped it. The
+     * reload's pagehide save must not land in the ownerless storage.
+     */
+    describe('begun signed in before the device had an owner', () => {
+      afterEach(() => useAuthStore.setState({ status: 'loading', user: null }))
+
+      it('does not record into the device once a sign-out elsewhere has wiped it', () => {
+        useAuthStore.setState({ status: 'signedIn', user: { id: 'user-a' } as User })
+        render(<Harness questions={20} />)
+        setLocalOwner('user-a') // the sign-in merge settles
+        localStorage.clear() // another tab signed out
+        useAuthStore.setState({ status: 'signedOut', user: null })
+        window.dispatchEvent(new Event('pagehide')) // the reload
+        expect(recordSpy).not.toHaveBeenCalled()
+      })
+
+      it('records it as usual once the owner is that account', () => {
+        useAuthStore.setState({ status: 'signedIn', user: { id: 'user-a' } as User })
+        const { unmount } = render(<Harness questions={20} />)
+        setLocalOwner('user-a')
+        unmount()
+        expect(recordSpy).toHaveBeenCalledTimes(1)
+      })
     })
 
     it('leaves no task behind after unmount', async () => {

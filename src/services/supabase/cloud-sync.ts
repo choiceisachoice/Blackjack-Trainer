@@ -1,4 +1,4 @@
-import { localStorageService } from '../storage/storage-service'
+import { localStorageService, getSyncedSessionIds, markSessionsSynced } from '../storage/storage-service'
 import { clearLocalAppData, getLocalOwner, setLocalOwner } from '../storage/local-reset'
 import { LOCAL_OWNER_KEY } from '../storage/local-owner'
 import { SupabaseStorageService } from './supabase-storage'
@@ -193,8 +193,16 @@ export const SESSION_PUSH_TIMEOUT_MS = 20_000
 let sessionPush: Promise<number> | null = null
 
 /**
- * Push the sessions held on this device to the cloud. Resolves with how many
- * were sent; rejects when the cloud did not confirm them.
+ * Push the sessions on this device the cloud has not confirmed yet. Resolves
+ * with how many were sent; rejects when the cloud did not confirm them.
+ *
+ * Not the whole of `bjt_sessions`: that used to go up on every page load, a
+ * payload that only grew, against a fixed time limit. What goes is every
+ * session waiting for upload plus every session never confirmed at all — a
+ * guest's, a legacy one, one written by a build before the confirmed list
+ * existed (so the first load after an update sends everything once, as
+ * before). A session leaves this set only on a confirmed write, so a failed
+ * push loses nothing.
  *
  * This is the one push there is. The sign-in merge runs it on every page
  * load, and `installReconnectSync` runs it again when the browser comes back
@@ -231,6 +239,7 @@ async function runSessionPush(): Promise<number> {
   // Read before the sessions: an id marked after this line belongs to a
   // session this batch may not contain, and must not be confirmed by it.
   const waiting = getPendingSessionIds()
+  const synced = getSyncedSessionIds()
   const localSessions = await localStorageService.getAllSessionResults()
   if (localSessions.length === 0) {
     // Marked as waiting with no local copy (the local write failed): there is
@@ -242,14 +251,22 @@ async function runSessionPush(): Promise<number> {
   if (normalized.some((s, i) => s.id !== localSessions[i].id)) {
     await localStorageService.replaceAllSessionResults(normalized)
   }
+  const unsent = normalized.filter(s => !synced.has(s.id) || waiting.includes(s.id))
+  if (unsent.length === 0) {
+    // Every session here is in the cloud already; an id still waiting has no
+    // local copy left to send (as above).
+    confirmSessionsUploaded(waiting)
+    return 0
+  }
   try {
-    await withTimeout(cloud.saveMany(normalized), SESSION_PUSH_TIMEOUT_MS, 'session push')
+    await withTimeout(cloud.saveMany(unsent), SESSION_PUSH_TIMEOUT_MS, 'session push')
   } catch (e) {
     markUploadFailed()
     throw e
   }
   confirmSessionsUploaded(waiting)
-  return normalized.length
+  markSessionsSynced(unsent.map(s => s.id))
+  return unsent.length
 }
 
 /** First wait before a failed upload is tried again; doubles up to the cap. */

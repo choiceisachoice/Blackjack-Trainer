@@ -65,7 +65,16 @@ vi.mock('./client', () => {
   const from = (table: string) => table === 'training_sessions'
     ? {
         upsert,
-        select: () => ({ eq: () => ({ order: read }) }),
+        // The paged read: `.eq().order().order().range(from, to)`.
+        select: () => {
+          const q = {
+            eq: () => q,
+            order: () => q,
+            range: (from: number, to: number) => (read() as Promise<{ data: unknown[] | null; error: unknown }>)
+              .then(r => (r.data ? { ...r, data: r.data.slice(from, to + 1) } : r)),
+          }
+          return q
+        },
         delete: () => ({ eq: async () => { cloud.rows.clear(); return { error: null } } }),
       }
     : anything()

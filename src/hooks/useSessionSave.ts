@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react'
 import { useStatsStore } from '../store/stats-store'
 import { useAppStore } from '../store/app-store'
+import { useAuthStore } from '../store/auth-store'
 import type { TrainingMode, SessionDetails } from '../services/stats-types'
 import { getLocalOwner } from '../services/storage/local-owner'
 import { registerBeforeSignOut } from '../services/storage/before-sign-out'
@@ -88,8 +89,23 @@ export function useSessionSave(
    * the session into storage that has no owner and belongs to whoever signs
    * in next. So the sign-out saves first (below), and a save that finds the
    * owner changed does nothing.
+   *
+   * When the device had no owner yet at the start — the first sign-in on it
+   * still settling — the session was started for whoever is signed in, and
+   * that account is what the owner has to be at the save. Taking `null` as
+   * "keep whatever happens" let a drill begun in that window be written,
+   * after a sign-out in another tab had wiped the device, into ownerless
+   * storage the next sign-in would claim as guest data.
    */
   const ownerRef = useRef<string | null>(null)
+
+  /** The account a session starting now is for: the device's owner, else whoever is signed in. */
+  const currentAccount = (): string | null => {
+    const owner = getLocalOwner()
+    if (owner !== null) return owner
+    const auth = useAuthStore.getState()
+    return auth.status === 'signedIn' ? auth.user?.id ?? null : null
+  }
 
   // Keep buildDetails ref current (in an effect — refs aren't written in render).
   useEffect(() => { buildDetailsRef.current = buildDetails })
@@ -99,8 +115,8 @@ export function useSessionSave(
   const save = useCallback(() => {
     const stats = statsRef.current
     if (savedRef.current || stats.totalQuestions < MIN_QUESTIONS) return
-    // `null` at the start is a device nobody owned yet (a first sign-in still
-    // settling, or the app without a cloud): that session is kept.
+    // `null` at the start is a guest's device, or the app without a cloud:
+    // that session is kept. Otherwise the device must still be that account's.
     if (ownerRef.current !== null && getLocalOwner() !== ownerRef.current) return
     savedRef.current = true
 
@@ -129,7 +145,7 @@ export function useSessionSave(
   useEffect(() => {
     // Reset start time when the hook mounts
     startTimeRef.current = Date.now()
-    ownerRef.current = getLocalOwner()
+    ownerRef.current = currentAccount()
     // Signing out mid-drill: record it while the account is still signed in.
     const unregister = registerBeforeSignOut(save)
 

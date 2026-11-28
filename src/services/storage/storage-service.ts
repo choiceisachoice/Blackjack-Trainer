@@ -36,6 +36,48 @@ export const CLOUD_READ_TIMEOUT_MS = 12_000
 const SESSIONS_KEY = 'bjt_sessions'
 
 /**
+ * Ids of the sessions on this device the cloud has confirmed holding.
+ *
+ * Two jobs. The push sends only what is not in here (plus what is waiting),
+ * instead of the whole of `bjt_sessions` on every page load — a payload that
+ * grew with every session against a fixed time limit. And a session in here
+ * that the cloud's full history no longer lists was deleted there (a reset on
+ * another device), so this device drops its copy instead of uploading it
+ * again.
+ *
+ * Ids are only ever added on a confirmed write or when the cloud's answer
+ * lists them, and they stay after their session is dropped: a copy written
+ * back by a stale snapshot is then recognised as deleted again rather than
+ * mistaken for new. The `bjt_` prefix puts it under the sign-out wipe, with
+ * the sessions it describes.
+ */
+export const SYNCED_SESSIONS_KEY = 'bjt_synced_sessions'
+
+/** Ids of the sessions the cloud has confirmed holding (see `SYNCED_SESSIONS_KEY`). */
+export function getSyncedSessionIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(SYNCED_SESSIONS_KEY)
+    if (!raw) return new Set()
+    const parsed: unknown = JSON.parse(raw)
+    return new Set(Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
+
+/** Record that the cloud holds these sessions. */
+export function markSessionsSynced(ids: readonly string[]): void {
+  if (ids.length === 0) return
+  const known = getSyncedSessionIds()
+  const before = known.size
+  ids.forEach(id => known.add(id))
+  if (known.size === before) return
+  try {
+    localStorage.setItem(SYNCED_SESSIONS_KEY, JSON.stringify([...known]))
+  } catch { /* storage full: the next push sends these again, which is harmless */ }
+}
+
+/**
  * Async storage abstraction for training session persistence.
  *
  * Implementations: LocalStorageService (MVP), SupabaseStorageService (F-008).
@@ -102,6 +144,16 @@ export class LocalStorageService implements StorageService {
     this.writeSessions(results)
   }
 
+  /**
+   * Remove these sessions from the device. Read and written in one
+   * synchronous step, so a session saved meanwhile is not overwritten.
+   */
+  async dropSessionResults(ids: ReadonlySet<string>): Promise<void> {
+    const sessions = this.readSessions()
+    const kept = sessions.filter(s => !ids.has(s.id))
+    if (kept.length !== sessions.length) this.writeSessions(kept)
+  }
+
   async getSessionResults(mode: TrainingMode): Promise<TrainingSessionResult[]> {
     return this.readSessions().filter(s => s.mode === mode)
   }
@@ -128,6 +180,7 @@ export class LocalStorageService implements StorageService {
 
   async clearAll(): Promise<void> {
     localStorage.removeItem(SESSIONS_KEY)
+    localStorage.removeItem(SYNCED_SESSIONS_KEY)
   }
 }
 
@@ -304,7 +357,10 @@ class SyncedStorageService implements StorageService {
         ? Promise.reject(new Error('offline'))
         : withTimeout(this.cloud.saveSessionResult(result), CLOUD_SAVE_TIMEOUT_MS, 'cloud session save')
       push.then(
-        () => confirmSessionsUploaded([result.id]),
+        () => {
+          confirmSessionsUploaded([result.id])
+          markSessionsSynced([result.id])
+        },
         e => {
           markUploadFailed()
           console.error('cloud session save failed; the local copy stands and will be uploaded later', e)
@@ -332,15 +388,21 @@ class SyncedStorageService implements StorageService {
    * neither in its answer nor on the waiting list — the upload had been
    * confirmed in between — and the session just finished dropped out of the
    * history until the next reload. So everything this device holds for the
-   * signed-in account and the answer lacks is kept, waiting or not. The
-   * device's copy is the account's own (the owner check), it is emptied with
-   * the cloud's by `clearAll`, and whatever is in it is uploaded again on the
-   * next page load anyway.
+   * signed-in account and the answer lacks is kept, waiting or not — unless
+   * the cloud had confirmed it before this read left (`SYNCED_SESSIONS_KEY`):
+   * a confirmed session the cloud's whole history no longer lists was deleted
+   * there, by a reset on another device, and this device's copy goes too.
+   * Otherwise the next push would upload it again and the reset would not
+   * stick. A session still waiting is never dropped; nor is one confirmed
+   * while the read was out, which the read could not have seen.
    */
   async getAllSessionResults(): Promise<TrainingSessionResult[]> {
     if (this.impl() === this.local) return this.local.getAllSessionResults()
-    const fromCloud = await withTimeout(
-      this.cloud.getAllSessionResults(), CLOUD_READ_TIMEOUT_MS, 'cloud session read',
+    // Before the request: only what was confirmed before it left can be
+    // judged missing from its answer.
+    const syncedBefore = getSyncedSessionIds()
+    const { userId: readFor, sessions: fromCloud } = await withTimeout(
+      this.cloud.readHistory(), CLOUD_READ_TIMEOUT_MS, 'cloud session read',
     )
     // Both read after the answer, so they describe the device as it is now.
     const pending = getPendingSessionIds()
@@ -348,8 +410,20 @@ class SyncedStorageService implements StorageService {
     const ownDevice = !!userId && getLocalOwner() === userId
     if (pending.length === 0 && !ownDevice) return fromCloud
     const known = new Set(fromCloud.map(s => s.id))
-    const onDevice = (await this.local.getAllSessionResults())
-      .filter(s => !known.has(s.id) && (ownDevice || pending.includes(s.id)))
+    const local = await this.local.getAllSessionResults()
+    let gone = new Set<string>()
+    if (ownDevice) {
+      markSessionsSynced(local.filter(s => known.has(s.id)).map(s => s.id))
+      // Only an answer for this very account is a full account of its history.
+      if (readFor === userId) {
+        gone = new Set(local
+          .filter(s => !known.has(s.id) && syncedBefore.has(s.id) && !pending.includes(s.id))
+          .map(s => s.id))
+        if (gone.size > 0) await this.local.dropSessionResults(gone)
+      }
+    }
+    const onDevice = local
+      .filter(s => !known.has(s.id) && !gone.has(s.id) && (ownDevice || pending.includes(s.id)))
     return onDevice.length > 0 ? [...onDevice, ...fromCloud] : fromCloud
   }
   getSessionResultsByDateRange(start: Date, end: Date): Promise<TrainingSessionResult[]> {

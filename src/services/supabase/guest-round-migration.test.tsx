@@ -53,7 +53,19 @@ vi.mock('./client', () => {
       : () => anything(),
   })
   const from = (table: string) => table === 'training_sessions'
-    ? { upsert, select: () => ({ eq: () => ({ order: read }) }) }
+    ? {
+        upsert,
+        // The paged read: `.eq().order().order().range(from, to)`.
+        select: () => {
+          const q = {
+            eq: () => q,
+            order: () => q,
+            range: (from: number, to: number) => read()
+              .then(r => ({ ...r, data: r.data.slice(from, to + 1) })),
+          }
+          return q
+        },
+      }
     : anything()
   return {
     isSupabaseConfigured: true,

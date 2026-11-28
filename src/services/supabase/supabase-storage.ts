@@ -3,6 +3,12 @@ import { computeLifetimeStats } from '../storage/storage-service'
 import type { TrainingSessionResult, TrainingMode, LifetimeStats } from '../stats-types'
 import { requireSupabase } from './client'
 
+/**
+ * Rows per history request. Supabase's default `max_rows` — a larger page
+ * would be cut to this size silently and read as the last one.
+ */
+export const HISTORY_PAGE_SIZE = 1000
+
 /** A row of the `training_sessions` table. */
 interface SessionRow {
   id: string
@@ -64,15 +70,51 @@ export class SupabaseStorageService implements StorageService {
   }
 
   private async fetchAll(): Promise<TrainingSessionResult[]> {
+    return (await this.readHistory()).sessions
+  }
+
+  /**
+   * The signed-in user's whole history, newest first, and whose it is.
+   *
+   * Paged. PostgREST answers at most `max_rows` rows per request (1000 on
+   * Supabase unless changed) and says nothing when it cuts a list short, so a
+   * single `select` showed a learner past 1000 sessions only the newest 1000 —
+   * on a new device, in the lifetime figures, in the curriculum that is
+   * derived from the sessions, and in the data export. The order is total
+   * (`started_at`, then `id`), so the pages neither overlap nor skip while
+   * nothing changes; a row inserted at the head while paging shifts the rest
+   * by one, which the id check below absorbs.
+   *
+   * `userId` is null when there is no signed-in session, and `sessions` is
+   * then empty: the caller must not read that as "the cloud has nothing".
+   */
+  async readHistory(): Promise<{ userId: string | null; sessions: TrainingSessionResult[] }> {
     const uid = await this.userId()
-    if (!uid) return []
-    const { data, error } = await requireSupabase()
-      .from('training_sessions')
-      .select('*')
-      .eq('user_id', uid)
-      .order('started_at', { ascending: false })
-    if (error) throw error
-    return (data as SessionRow[]).map(fromRow)
+    if (!uid) return { userId: null, sessions: [] }
+    const seen = new Set<string>()
+    const sessions: TrainingSessionResult[] = []
+    for (let from = 0; ; from += HISTORY_PAGE_SIZE) {
+      const { data, error } = await requireSupabase()
+        .from('training_sessions')
+        .select('*')
+        .eq('user_id', uid)
+        .order('started_at', { ascending: false })
+        .order('id', { ascending: false })
+        .range(from, from + HISTORY_PAGE_SIZE - 1)
+      if (error) throw error
+      const rows = (data ?? []) as SessionRow[]
+      let fresh = 0
+      for (const row of rows) {
+        if (seen.has(row.id)) continue
+        seen.add(row.id)
+        sessions.push(fromRow(row))
+        fresh++
+      }
+      // A short page is the last one. A page with nothing new means the
+      // server is not honouring the range — stop rather than loop.
+      if (rows.length < HISTORY_PAGE_SIZE || fresh === 0) break
+    }
+    return { userId: uid, sessions }
   }
 
   async saveSessionResult(result: TrainingSessionResult): Promise<void> {

@@ -102,15 +102,15 @@ export const useStatsStore = create<StatsStore>((set, get) => ({
   async loadStats() {
     set({ isLoading: true })
     try {
-      const [sessions, lifetimeStats] = await Promise.all([
-        storage.getAllSessionResults(),
-        storage.getLifetimeStats(),
-      ])
+      // One read. The lifetime figures are derived from the same list rather
+      // than asked for separately, which fetched the whole history a second
+      // time — and could answer from a different moment than the list.
+      const sessions = await storage.getAllSessionResults()
       // Sort newest first
       sessions.sort(
         (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       )
-      set({ sessions, lifetimeStats, isLoading: false })
+      set({ sessions, lifetimeStats: computeLifetimeStats(sessions), isLoading: false })
     } catch (e) {
       /*
        * The cloud could not be read: no network, or a request that never
