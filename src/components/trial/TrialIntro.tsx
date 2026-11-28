@@ -43,7 +43,33 @@ export function TrialIntro({ onStart, busy = false }: TrialIntroProps) {
       felt={<EmptyTable />}
       controls={(
         <div className="flex flex-col items-center gap-2 text-center" data-testid="try-intro">
-          <Button size="lg" className="w-full max-w-xs" onClick={onStart} aria-busy={busy || undefined} data-testid="try-start">
+          {/* On a phone the button lies on the felt, under the dealer's place,
+              not under the felt. The stage is sized for the moment it has been
+              scrolled to, so on arrival — with the heading above it — its
+              bottom edge, and the button on it, sat below the screen on every
+              phone measured (390×844: button bottom at 846px), and the cookie
+              bar on a first visit covered another 140–190px. On the felt it is
+              on the first screen at once, where the cards are about to land.
+              One button, moved by CSS only: the prerendered page draws it in
+              the same place, and nothing moves when the round takes over —
+              the round's own controls appear in the band below, as before.
+              Not for a phone held sideways (`short`), whose controls already
+              sit beside the felt.
+
+              Its height is measured off the felt, which scales with the
+              screen's width: below the discard tray (felt top + ~17.5vw, felt
+              top = stage top + 45px) and, where there is room, half way
+              between that and the printed "Blackjack pays" arc at a third of
+              the felt's height (the stage less its 2.25rem bar and 7.75rem
+              band). A fixed offset cut into the arc on a 360px phone. */}
+          <Button
+            size="lg"
+            className="w-full max-w-xs max-sm:absolute max-sm:z-10 max-sm:left-1/2 max-sm:-translate-x-1/2
+              max-sm:top-[max(calc(51px_+_17.5vw),calc(22px_+_(17.5vw_+_(100%_-_10rem)_*_0.33)_/_2))] max-sm:py-2.5 max-sm:w-[min(20rem,calc(100%_-_3rem))] max-sm:shadow-[0_12px_32px_-8px_rgba(0,0,0,.7)]"
+            onClick={onStart}
+            aria-busy={busy || undefined}
+            data-testid="try-start"
+          >
             {t('try.start')}
           </Button>
           <p className="text-xs text-content/55 max-w-[40ch]">{t('try.table.introNote', { bet: formatDollar(GUEST_TABLE_BET) })}</p>

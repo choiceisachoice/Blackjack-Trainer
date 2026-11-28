@@ -140,11 +140,11 @@ export function CookieBar({ barRef, onAnswer, prerenderedLang }: CookieBarProps)
       aria-label={t('consent.title')}
       data-testid="cookie-banner"
       data-boot-banner={prerenderedLang}
-      className="fixed inset-x-0 bottom-0 z-[60] px-3 pb-3 sm:px-5 sm:pb-5 try-wide:pb-3 pointer-events-none"
+      className="fixed inset-x-0 bottom-0 z-[60] px-3 pb-2 sm:px-5 sm:pb-5 try-wide:pb-3 pointer-events-none"
     >
       <div
         className="pointer-events-auto mx-auto max-w-3xl rounded-2xl border border-contrast/12 bg-[var(--color-surface-2)]
-          shadow-[0_18px_50px_-12px_rgba(0,0,0,.85)] p-3.5 sm:p-5
+          shadow-[0_18px_50px_-12px_rgba(0,0,0,.85)] p-3 sm:p-5
           flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4
           try-wide:max-w-[88rem] try-wide:px-5 try-wide:py-3"
       >
@@ -152,8 +152,8 @@ export function CookieBar({ barRef, onAnswer, prerenderedLang }: CookieBarProps)
             the question runs on in one or two lines instead of a title over
             three, so the bar takes ~80px from the table, not 190. */}
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-content try-wide:inline try-wide:mr-2">{t('consent.title')}</h2>
-          <p className="mt-1 text-sm text-content/65 leading-relaxed try-wide:inline try-wide:mt-0">
+          <h2 className="text-sm font-semibold text-content try-wide:inline try-wide:mr-2 max-sm:inline max-sm:mr-1.5">{t('consent.title')}</h2>
+          <p className="mt-1 text-sm text-content/65 leading-relaxed try-wide:inline try-wide:mt-0 max-sm:inline max-sm:mt-0">
             {/* A phone gets the short version: the long one made the bar a
                 third of the screen and put it on top of the start buttons. */}
             <span className="max-sm:hidden">{t('consent.body')}</span>

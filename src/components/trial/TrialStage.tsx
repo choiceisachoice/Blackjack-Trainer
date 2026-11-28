@@ -33,7 +33,7 @@ export function TrialStage({ status, felt, controls, frameRef }: TrialStageProps
     <div
       ref={frameRef}
       data-testid="trial-stage"
-      className={`${STAGE_FRAME} ${STAGE_HEIGHT} grid grid-cols-1 grid-rows-[auto_minmax(0,1fr)_auto]
+      className={`${STAGE_FRAME} ${STAGE_HEIGHT} relative grid grid-cols-1 grid-rows-[auto_minmax(0,1fr)_auto]
         [grid-template-areas:'bar'_'felt'_'controls']
         short:grid-cols-[minmax(0,1fr)_13.5rem] short:grid-rows-[auto_minmax(0,1fr)]
         short:[grid-template-areas:'felt_bar'_'felt_controls']`}
